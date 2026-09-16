@@ -1,0 +1,7 @@
+{
+  "checkedAt": "2026-09-16",
+  "runtime": {"three":"0.186.0","sky":"0.3.0","scheduler":"0.2.0"},
+  "plannedBindings": {"reactThreeFiber":"10.0.0-alpha.5","status":"registry observed, not integrated"},
+  "upscalerReference": {"path":"/Users/dex/Developer/upscaler","version":"0.2.0","revision":"4a79229","status":"read only reference"},
+  "contractVersion":0
+}
