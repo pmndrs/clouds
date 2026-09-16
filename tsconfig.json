@@ -16,5 +16,5 @@
       "@clouds/three": ["packages/three/src/index.ts"]
     }
   },
-  "include": ["packages/**/*.ts", "examples/**/*.ts", "bench/**/*.ts", "vite.config.ts", "vitest.config.ts"]
+  "include": ["packages/**/*.ts", "examples/**/*.ts", "bench/**/*.ts", "fixtures/**/*.ts", "vite.config.ts", "vitest.config.ts"]
 }

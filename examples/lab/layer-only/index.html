@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clouds — Lightweight Layer</title>
+  </head>
+  <body>
+    <main id="app">
+      <div class="hud">
+        <span class="eyebrow">pmndrs / clouds</span>
+        <h1>Thin high clouds</h1>
+        <p>Independent TSL layer · world projected · depth tested</p>
+        <label>Coverage <output id="coverage-value">53%</output><input id="coverage" type="range" min="0" max="1" step="0.01" value="0.53" /></label>
+        <label>Density <output id="density-value">74%</output><input id="density" type="range" min="0" max="1" step="0.01" value="0.74" /></label>
+        <p><a href="/clouds/">Voxel renderer</a> · <a href="/">Integration lab</a></p><p class="hint">Drag to orbit. Opaque geometry in front of the dome stays visible through the cloud layer.</p>
+      </div>
+      <div id="error" class="error" hidden></div>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

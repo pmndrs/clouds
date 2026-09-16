@@ -1,6 +1,6 @@
 # Implementation work queue
 
-Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1 and later packets are not started. See [P0 evidence](p0-evidence.md) for actual execution and remaining platform limits. Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
+Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 shape review is pending. P2 and later are not started. See [P1 evidence](p1-evidence.md). See [P0 evidence](p0-evidence.md) for actual execution and remaining platform limits. Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
 
 ## First dispatch wave
 
@@ -68,7 +68,10 @@ Update one row per dispatched packet. Local P0 acceptance does not claim RTX/Win
 | P0.2 | accepted | gpt-5.6-luna high + orchestrator GPU review | Contract v0 / Three 0.186.0 | P0 evidence; local report and image | Raw↔TSL 2D/3D/buffer at 16→8→16; disposal; no final GPU errors | Lab available |
 | P0.3 | accepted | gpt-5.6-luna medium + orchestrator integration | Contract v0 | Bench tests; exported JSON/PNG verified | Deterministic paths, metrics/report/capture integrated | Not required |
 | P0.4 | accepted | Orchestrator | Sky 0.3.0 / scheduler 0.2.0 | Integration decision; browser lighting fixture | Standalone order test, shadow texture and environment contribution demonstrated; cloud hooks still P1/P3 | Lab available |
-| P1.1 | ready | Unassigned | P0.2 accepted | — | Pending | R1 later |
-| L1 | ready | Unassigned | P0.1 accepted | — | Pending | R2 later |
+| P1.1 | accepted | gpt-5.6-luna high + O review | Contract v0 | 6 source tests; GPU source replacement and form viewer | Seeded fields, six-face guards, conservative occupancy; one correction | R1 pending |
+| P1.2 | accepted | Orchestrator + focused Luna review | Three 0.186.0 / contract v0 | P1 evidence; 11 GPU checks; timing reports | Optical/depth/scale/inside equivalence; no final runtime errors; full march selected by measurement | R1 pending |
+| P1.3 | accepted (reference) | gpt-5.6-luna high math + O rendering | P1 bounded volume | 5 shadow math tests; both GPU shadow-direction checks | Matching box caster and Y=0 ground receiver only; production hooks remain P3 | R1 pending |
+| L1 | accepted (preview) | gpt-5.6-luna high + O browser review | Three 0.186.0 | Independent page/build; zero coverage/background visual check | TSL layer independent of voxel runtime; coverage/normal correction accepted | R2 later |
+| P2.1 | ready | Unassigned | P1.2 accepted | — | Stable world coverage and distribution next | R1 preference pending |
 
 State vocabulary: `ready`, `running`, `needs-decision`, `ready-for-review`, `accepted`, `returned`. Keep failures and unavailable hardware visible in evidence. Only the orchestrator records acceptance; child completion notifications do not close gates.

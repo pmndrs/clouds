@@ -1,6 +1,6 @@
 # Implementation plan — pmndrs/clouds
 
-Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized and P0 started. Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
+Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized; P0 and the P1 technical reference are accepted locally, R1 shape review is pending. Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
 
 ## Working approach
 

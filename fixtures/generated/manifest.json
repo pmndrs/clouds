@@ -1,0 +1,13 @@
+{
+  "version": 0,
+  "fixtures": [
+    {
+      "id": "generated-authored-r32-s2718",
+      "source": "createDensityField(\"authored\", 32, 2718)",
+      "license": "MIT",
+      "encoding": "r8unorm",
+      "dimensions": [32, 32, 32],
+      "purpose": "Synthetic authored-density parity fixture for P1 reference integration"
+    }
+  ]
+}

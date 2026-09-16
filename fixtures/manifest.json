@@ -1,1 +1,24 @@
-{"version":0,"fixtures":[{"id":"interop-gradient-v0","source":"Generated analytically in the diagnostic app","license":"MIT","seed":0,"purpose":"GPU interop correctness; not a cloud-quality asset"}]}
+{
+  "version": 0,
+  "fixtures": [
+    {
+      "id": "interop-gradient-v0",
+      "source": "Generated analytically in the diagnostic app",
+      "license": "MIT",
+      "seed": 0,
+      "purpose": "GPU interop correctness; not a cloud-quality asset"
+    },
+    {
+      "id": "generated-authored-r32-s2718",
+      "source": "createDensityField(\"authored\", 32, 2718)",
+      "license": "MIT",
+      "encoding": "r8unorm",
+      "dimensions": [
+        32,
+        32,
+        32
+      ],
+      "purpose": "Synthetic authored-density parity fixture for P1 reference integration"
+    }
+  ]
+}
