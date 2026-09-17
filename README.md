@@ -1,6 +1,6 @@
 # WebGPU Clouds
 
-Voxel-first cloud library for Three.js WebGPU, with independent lightweight clouds and later R3F v10 bindings. P1 now has a working bounded voxel renderer and a separate 2D cloud-layer preview. These are correctness prototypes with provisional appearance and APIs.
+Voxel-first cloud library for Three.js WebGPU, with independent lightweight clouds and later R3F v10 bindings. P2 adds a cloudscape viewer with a bounded world of voxel formations, alongside the first-cloud reference and independent 2D layer. These are correctness prototypes with provisional appearance and APIs.
 
 ## Implementation planning
 
@@ -13,6 +13,8 @@ Voxel-first cloud library for Three.js WebGPU, with independent lightweight clou
 P0 is accepted on the local WebGPU backend. See [integration decisions](docs/decisions/integration.md) and [stage evidence](docs/p0-evidence.md).
 
 P1 technical evidence, timing scope and remaining limitations are recorded in [first-cloud evidence](docs/p1-evidence.md). Human shape review is separate from technical acceptance.
+
+P2 implementation and current review limits are recorded in [cloudscape evidence](docs/p2-evidence.md).
 
 ## Specification and research
 
@@ -41,8 +43,9 @@ pnpm dev
 
 Open a WebGPU-enabled desktop browser:
 
+- [Cloudscape](http://127.0.0.1:5173/cloudscape/): a 40-second ground-to-cloud flight, world coverage controls, a shared voxel atlas, conservative GPU lookup, and flight-view timing comparisons.
 - [First voxel cloud](http://127.0.0.1:5173/clouds/): three generated forms, synthetic authored form, ground/side/inside cameras, fly-through slider, density/size/sun controls, both reference shadow directions, GPU correctness checks and optional timing sweep.
 - [Independent 2D layer](http://127.0.0.1:5173/layer-only/): animated thin clouds, coverage/density controls, preserved background and opaque depth.
 - [P0 integration lab](http://127.0.0.1:5173/): known-pattern GPU sharing checks and sky/environment fixture.
 
-`pnpm check` runs type checking, unit tests and a production build of all three pages. Use **Export evidence** and **Save image** in the voxel viewer. **Measure GPU presets** measures the cloud compute pass at 1080p/1440p and three internal scales. Live CPU submission measurements are separate from GPU timing. The half-resolution preview currently scales the entire reference scene spatially; FSR integration is planned for P4.
+`pnpm check` runs type checking, unit tests and a production build of all four pages. Use **Export evidence** and **Save image** in the voxel viewer. **Measure GPU presets** measures the cloud compute pass at 1080p/1440p and three internal scales. Live CPU submission measurements are separate from GPU timing. The half-resolution preview currently scales the entire reference scene spatially; FSR integration is planned for P4.

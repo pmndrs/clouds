@@ -1,6 +1,6 @@
 # Implementation work queue
 
-Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 views were reported working and stylized forms accepted provisionally; silhouette choice and shadow retest remain open. See the [human review guide](human-review.md) and [overall status](project-status.md). P2 and later are not started. See [P1 evidence](p1-evidence.md). See [P0 evidence](p0-evidence.md) for actual execution and remaining platform limits. Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
+Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 views were reported working and stylized forms accepted provisionally; silhouette choice and shadow retest remain open. P2 implementation is now available at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/) with local technical evidence recorded and R2 human review pending. P2 is ready for review; P3 and later are not started. See the [human review guide](human-review.md), [overall status](project-status.md), [P1 evidence](p1-evidence.md), and [P2 evidence](p2-evidence.md). Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
 
 ## First dispatch wave
 
@@ -27,8 +27,8 @@ Paths below assign implementation ownership. P0 paths now exist; later paths rem
 | P1.3 | W + O review | P1.2, P0.4 | `packages/three/src/lighting/reference/`, `examples/lab/scenes/shadow-reference/`; simple cloud→plane and opaque object→cloud directional shadow proof |
 | L1 | W | P0.1 | `packages/three/src/layers/`, `examples/layer-only/`; usable independent 2D clouds with no voxel dependency |
 | P2.1 | W + O review | P1.2 | `packages/three/src/world/`; stable region distribution/update and projected-detail policy, bounded memory; requests integrator changes from O |
-| P2.2 | O + focused W experiment | P2.1, P0.3 | `packages/three/src/volumetric/` by O; separate candidate under `experiments/residency/` by W; accepted coverage/traversal decision based on measurements |
-| P2.3 | O | P2.2, L1 | `examples/lab/scenes/cloudscape/`; horizon-to-interior path, independent layer combination, no duplicated cloud extinction |
+| P2.2 | O + focused W experiment | P2.1, P0.3 | `packages/three/src/cloudscape/` by O; atlas, `world-candidates/` and `world-traversal/` by W; accepted coverage/traversal decision based on measurements |
+| P2.3 | O | P2.2, L1 | `examples/lab/cloudscape/`; horizon-to-interior path, independent layer combination, no duplicated cloud extinction |
 | P3.1 | W + O review | P1.3, P2.2 | `packages/three/src/lighting/`; production directional cast/receive shadows and cache invalidation; O alone changes integrator hooks |
 | P3.2 | W + O review | P0.4, P2.2 | `packages/three/src/environment/`, `examples/lab/scenes/sky/`; sky contribution/capture and lighting test objects, separate view state |
 | P3.3 | O | P3.1, P3.2, P2.3 | Integrated lit cloudscape and atmosphere ordering; R3 evidence |
@@ -72,6 +72,8 @@ Update one row per dispatched packet. Local P0 acceptance does not claim RTX/Win
 | P1.2 | accepted | Orchestrator + focused Luna review | Three 0.186.0 / contract v0 | P1 evidence; 14 GPU checks including floor continuity; historical timing reports | Optical/depth/scale/inside equivalence; no final runtime errors; full march selected by measurement | Views working / style provisional; shape choice and shadow retest open |
 | P1.3 | accepted (reference) | gpt-5.6-luna high math + O rendering | P1 bounded volume | 5 shadow math tests; both GPU shadow-direction checks | Matching box caster and explicit Y=0 receiver mask; depth-precision dropout fixed; production hooks remain P3 | Views working / style provisional; shape choice and shadow retest open |
 | L1 | accepted (preview) | gpt-5.6-luna high + O browser review | Three 0.186.0 | Independent page/build; zero coverage/background visual check | TSL layer independent of voxel runtime; coverage/normal correction accepted | R2 later |
-| P2.1 | ready | Unassigned | P1.2 accepted | — | Stable world coverage and distribution next | R1 preference pending |
+| P2.1 | accepted (prototype) | gpt-5.6-luna high + O review | P1.2 accepted | 6 world tests; shared atlas and candidate tests; residency decision | Stable distribution, fixed working set, retained-cell metadata; world contract validated | R2 review pending; R1 preference and shadow retest remain open |
+| P2.2 | accepted (prototype) | O + gpt-5.6-luna high atlas/candidate/traversal work and review | P2.1, P0.3 | P2 evidence; 19 GPU checks; matched timing reports | Exact lookup/reference fixture parity, density rebase continuity, 0.98–1.38 ms p50 at 960 × 540; finite support and provisional cache recorded | R2 review pending |
+| P2.3 | ready-for-review | O | P2.2, L1 | `/cloudscape/`, five-view flight sheet, R2 checklist | Runnable flight, bounded memory and local validation; appearance and full motion quality remain open | R2 review pending |
 
 State vocabulary: `ready`, `running`, `needs-decision`, `ready-for-review`, `accepted`, `returned`. Keep failures and unavailable hardware visible in evidence. Only the orchestrator records acceptance; child completion notifications do not close gates.

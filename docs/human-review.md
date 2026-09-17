@@ -40,7 +40,7 @@ Questions: Is the diagnostic result legible? Are the controls clear enough for a
 
 ## P1 — First voxel cloud (R1)
 
-**Availability:** Runnable now at [`/clouds/`](http://127.0.0.1:5173/clouds/). Technical baseline accepted locally; R1 shape review is pending.
+**Availability:** Runnable now at [`/clouds/`](http://127.0.0.1:5173/clouds/). Technical baseline accepted locally; R1 user review remains pending.
 
 Human checklist:
 
@@ -53,15 +53,27 @@ Questions: Which silhouette, scale and softness direction should lead? Does the 
 
 ## P2 — Cloudscape coverage and distance
 
-**Availability:** Future; no runnable P2 scene yet. [`/clouds/`](http://127.0.0.1:5173/clouds/) is a P1 viewer and cannot substitute for this gate.
+**Availability:** Runnable now at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/). P2 implementation is available, but R2 human review is pending; local technical checks and measurements are recorded in [P2 evidence](p2-evidence.md). [`/clouds/`](http://127.0.0.1:5173/clouds/) is the P1 viewer and cannot substitute for this gate.
 
-When available:
+Current slice: an eight-form 96³ r8 atlas drives 81 resident world-cell
+descriptors. Near and medium formations stay volumetric; a separate thin
+high/far layer supplies inexpensive distant coverage. The lighting cache and
+GPU candidate lookup are provisional P2 work, and production shadow/environment
+cache behavior remains P3.
 
-- [ ] Run the fixed ground-to-horizon-to-inside flight, then inspect with a free camera.
-- [ ] Compare medium/far representations and L1 transitions with coverage and memory/update overlays.
-- [ ] Check thin wisps, region/LOD boundaries and overlap for holes, popping or duplicate extinction.
+Review path:
 
-Questions: Is horizon coverage convincing? Is repetition acceptable? Are transitions visible enough to be distracting? Technical acceptance measures coverage, transitions, memory, generation/upload and acceleration against a reference. Alternate presets may remain while R2 feedback is pending; no P2 visual acceptance exists before the scene is runnable.
+- [ ] Use **Save flight sheet** for five matching still views. Run the fixed 40-second ground-to-horizon-to-inside flight, then inspect the same scene with a free camera.
+- [ ] Change coverage, sun and density, and toggle the thin high/far layer; inspect ground, horizon and inside views after each change.
+- [ ] Check horizon richness and repeated forms. Decide whether repetition is acceptable for this stage.
+- [ ] Move across camera-cell boundaries and watch for image instability, popping or changed retained silhouettes.
+- [ ] Inspect cloud shadows and the reference lookup toggle; with lookup on and off, appearance should remain equivalent within the expected performance-only difference.
+- [ ] Check overlap and the near/far transition for holes, popping or duplicate extinction.
+
+Questions: Is the horizon rich enough? Are repeated forms acceptable? Are
+cell-crossing transitions visible or distracting? Technical acceptance measures
+coverage, transitions, memory, generation/upload and acceleration against a
+reference. The local 42-unit / 19-GPU check suite passes, including conservative lookup and density rebase comparisons. Review the finite 7.7 km volumetric support, stylized/repeated forms, and provisional coarse shadows; P2 visual acceptance remains open.
 
 ## P3 — Light, sky and environment (R3)
 
