@@ -2,7 +2,7 @@ import {
   Color, Data3DTexture, RedFormat, RedIntegerFormat, UnsignedIntType, UnsignedByteType, LinearFilter, StorageTexture,
   Storage3DTexture, HalfFloatType, RenderTarget, DepthTexture, FloatType,
   MeshBasicNodeMaterial, QuadMesh, Matrix4, Vector3, WebGPUCoordinateSystem,
-  type WebGPURenderer, type Scene, type PerspectiveCamera,
+  type WebGPURenderer, type Scene, type PerspectiveCamera, type DirectionalLight,
 } from 'three/webgpu';
 import { texture, mrt, output as sceneOutput, vec4 } from 'three/tsl';
 import type { WorldSnapshot } from '../world';
@@ -10,6 +10,7 @@ import type { createCloudscapeAtlas } from '../sources/cloudscape-atlas';
 import { sharedBackend } from '../gpu/backend';
 import { createComputeTimer } from '../gpu/timer';
 import { decodeFloat16 } from '../volumetric';
+import { createCloudShadowReceiver, getDirectionalShadowSnapshot } from '../lighting/p3';
 import { CLOUDSCAPE_WGSL, LIGHT_CACHE_WGSL, CANDIDATE_WGSL } from './shaders';
 
 type Atlas = ReturnType<typeof createCloudscapeAtlas>;
@@ -30,22 +31,29 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
   const candidates = new Storage3DTexture(1, 1, 1); candidates.format = RedIntegerFormat; candidates.type = UnsignedIntType; candidates.generateMipmaps = false;
   const material = new MeshBasicNodeMaterial({ colorNode: texture(output), depthWrite: false, depthTest: false });
   const quad = new QuadMesh(material);
-  const params = device.createBuffer({ label: 'cloudscape-frame', size: 208, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const params = device.createBuffer({ label: 'cloudscape-frame', size: 256, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const cellBuffer = device.createBuffer({ label: 'cloudscape-resident-cells', size: 17 * 17 * 32, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
   const sampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
   const pipeline = device.createComputePipeline({ layout: 'auto', compute: { module: device.createShaderModule({ code: CLOUDSCAPE_WGSL }), entryPoint: 'main' } });
   const lightPipeline = device.createComputePipeline({ layout: 'auto', compute: { module: device.createShaderModule({ code: LIGHT_CACHE_WGSL }), entryPoint: 'main' } });
   const candidatePipeline = device.createComputePipeline({ layout: 'auto', compute: { module: device.createShaderModule({ code: CANDIDATE_WGSL }), entryPoint: 'main' } });
   const timer = createComputeTimer(device), lightTimer = createComputeTimer(device), candidateTimer = createComputeTimer(device);
+  const shadowParams = device.createBuffer({ label: 'cloudscape-scene-shadow', size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const fallbackShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT });
+  const receiverHook = createCloudShadowReceiver(light);
+  let directionalShadow: DirectionalLight | null = null;
+  let shadowBinding: GPUBindGroup | undefined, shadowTexture: GPUTexture | undefined;
   const settings = {
+    sunRadiance: new Vector3(10.5, 10, 9), ambientRadiance: new Vector3(0.28, 0.34, 0.43),
+    hazeColor: new Vector3(0.48, 0.64, 0.86), hazeDensity: 1 / 18000, hazeStrength: 0.75,
     density: 1, stepMetres: 24, maxSteps: 320, detail: 0.16,
-    skipEmpty: true, distanceFade: true, earlyTermination: true, cachedLighting: true, shadows: true, constantLight: false,
+    skipEmpty: true, distanceFade: true, earlyTermination: true, cachedLighting: true, shadows: true, geometryShadows: true, constantLight: false,
     sunDirection: new Vector3(-0.65, 0.75, 0.2).normalize(),
     casterMin: new Vector3(950, 0, 850), casterMax: new Vector3(1250, 1800, 1150),
   };
   let world: WorldSnapshot, worldBinding: GPUBindGroup | undefined, frameBinding: GPUBindGroup | undefined, cacheBinding: GPUBindGroup | undefined, candidateBinding: GPUBindGroup | undefined;
   let disposed = false, lightDirty = true, lightKey = '', cacheUpdates = 0, worldUploads = 0, cacheWidth = 1, candidateWidth = 1, candidateDirty = true, candidateUpdates = 0, worldUploadCpuMs = 0;
-  const values = new Float32Array(52), inverse = new Matrix4(), position = new Vector3();
+  const values = new Float32Array(64), inverse = new Matrix4(), position = new Vector3();
   const ensureAlive = () => { if (disposed) throw new Error('Cloudscape has been disposed.'); };
   function setWorld(next: WorldSnapshot) {
     ensureAlive(); if (world === next) return;
@@ -64,6 +72,7 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
     const size = (next.side + 2) * 12; cacheWidth = size;
     light.setSize(size, 32, size); renderer.initTexture(light);
     candidateWidth = (next.side + 2) * 8; candidates.setSize(candidateWidth, 32, candidateWidth); renderer.initTexture(candidates);
+    receiverHook.setBounds(new Vector3((next.gridMin[0] - 1) * next.cellSize, 0, (next.gridMin[1] - 1) * next.cellSize), new Vector3((next.gridMin[0] + next.side + 1) * next.cellSize, 4000, (next.gridMin[1] + next.side + 1) * next.cellSize));
     worldBinding = cacheBinding = candidateBinding = undefined; lightDirty = candidateDirty = true;
   }
   setWorld(initialWorld);
@@ -75,14 +84,18 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
   }
   function upload(camera: PerspectiveCamera) {
     camera.updateMatrixWorld(); inverse.multiplyMatrices(camera.matrixWorld, camera.projectionMatrixInverse).toArray(values);
-    camera.getWorldPosition(position).toArray(values, 16); values[19] = 2 * Math.tan(camera.fov * Math.PI / 360) / target.height;
+    camera.getWorldPosition(position).toArray(values, 16); values[19] = 2 * Math.abs(Math.tan(camera.fov * Math.PI / 360)) / target.height;
     const sun = settings.sunDirection.clone().normalize(); sun.toArray(values, 20); values[23] = +settings.earlyTermination;
     values.set([world.gridMin[0], world.gridMin[1], world.side, world.cellSize], 24);
     values.set([(world.gridMin[0] - 1) * world.cellSize, 700, (world.gridMin[1] - 1) * world.cellSize], 28); values[31] = +settings.distanceFade;
     values.set([(world.gridMin[0] + world.side + 1) * world.cellSize, 3500, (world.gridMin[1] + world.side + 1) * world.cellSize], 32);
     values.set([settings.density, settings.stepMetres, settings.maxSteps, settings.detail], 36);
     values.set([+settings.skipEmpty, +settings.cachedLighting, +settings.shadows, +settings.constantLight], 40);
-    settings.casterMin.toArray(values, 44); settings.casterMax.toArray(values, 48);
+    settings.casterMin.toArray(values, 44); settings.casterMax.toArray(values, 48); values[51] = +settings.geometryShadows;
+    settings.sunRadiance.toArray(values, 52); values[55] = settings.hazeDensity;
+    settings.ambientRadiance.toArray(values, 56); values[59] = settings.hazeStrength;
+    settings.hazeColor.toArray(values, 60); values[63] = +(directionalShadow !== null);
+    receiverHook.setEnabled(settings.shadows);
     device.queue.writeBuffer(params, 0, values);
     const key = `${sun.toArray().map(v => v.toPrecision(12))}|${settings.density}|${settings.skipEmpty}`;
     if (key !== lightKey) { lightDirty = true; lightKey = key; }
@@ -95,21 +108,15 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
     ensureAlive();
     if (renderer.reversedDepthBuffer || camera.coordinateSystem !== WebGPUCoordinateSystem) throw new Error('Cloudscape requires conventional WebGPU perspective depth.');
     if (!Number.isFinite(settings.density) || settings.density < 0 || !Number.isFinite(settings.stepMetres) || settings.stepMetres <= 0 || !Number.isInteger(settings.maxSteps) || settings.maxSteps < 1 || settings.maxSteps > 1024 || !Number.isFinite(settings.detail) || settings.detail < 0 || settings.detail > 1 || !settings.sunDirection.toArray().every(Number.isFinite) || settings.sunDirection.lengthSq() === 0) throw new Error('Invalid cloudscape settings.');
-    const previousTarget = renderer.getRenderTarget(), previousMRT = renderer.getMRT();
+    if (![settings.sunRadiance, settings.ambientRadiance, settings.hazeColor].every(v => v.toArray().every(n => Number.isFinite(n) && n >= 0)) || !Number.isFinite(settings.hazeDensity) || settings.hazeDensity < 0 || !Number.isFinite(settings.hazeStrength) || settings.hazeStrength < 0 || settings.hazeStrength > 1) throw new Error('Invalid cloudscape lighting.');
+    const previousTarget = renderer.getRenderTarget(), previousMRT = renderer.getMRT(), previousFace = renderer.getActiveCubeFace(), previousMip = renderer.getActiveMipmapLevel();
     let measuredCache = false, measuredCandidates = false;
     try {
-      renderer.setRenderTarget(target); renderer.setMRT(sceneMRT); renderer.render(scene, camera); upload(camera);
+      upload(camera);
       if (!worldBinding) worldBinding = device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [...commonEntries(), { binding: 4, resource: backend.texture(light).createView() }, { binding: 5, resource: backend.texture(candidates).createView() }] });
       if (!cacheBinding) cacheBinding = device.createBindGroup({ layout: lightPipeline.getBindGroupLayout(0), entries: [...commonEntries(), { binding: 4, resource: backend.texture(light).createView() }, { binding: 5, resource: backend.texture(candidates).createView() }] });
       if (!candidateBinding) candidateBinding = device.createBindGroup({ layout: candidatePipeline.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: params } }, { binding: 3, resource: { buffer: cellBuffer } }, { binding: 4, resource: backend.texture(candidates).createView() },
-      ] });
-      if (!frameBinding) frameBinding = device.createBindGroup({ layout: pipeline.getBindGroupLayout(1), entries: [
-        { binding: 0, resource: backend.texture(target.texture).createView() },
-        { binding: 1, resource: backend.texture(target.depthTexture!).createView() },
-        { binding: 2, resource: backend.texture(target.textures[1]).createView() },
-        { binding: 3, resource: backend.texture(optical).createView() },
-        { binding: 4, resource: backend.texture(output).createView() },
       ] });
       const encoder = device.createCommandEncoder({ label: 'cloudscape-frame' });
       if (candidateDirty) {
@@ -118,19 +125,40 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
         if (measure && candidateTimer) { candidateTimer.resolve(encoder); measuredCandidates = true; }
         candidateDirty = false; candidateUpdates++;
       }
-      if (lightDirty && settings.cachedLighting) {
+      if (lightDirty && (settings.cachedLighting || receiverHook.attachedCount > 0)) {
         const pass = encoder.beginComputePass(measure && lightTimer ? { timestampWrites: lightTimer.begin() } : {});
         pass.setPipeline(lightPipeline); pass.setBindGroup(0, cacheBinding);
         pass.dispatchWorkgroups(Math.ceil(cacheWidth / 4), 8, Math.ceil(cacheWidth / 4)); pass.end();
         if (measure && lightTimer) { lightTimer.resolve(encoder); measuredCache = true; }
         lightDirty = false; cacheUpdates++;
       }
-      const pass = encoder.beginComputePass(measure && timer ? { timestampWrites: timer.begin() } : {});
-      pass.setPipeline(pipeline); pass.setBindGroup(0, worldBinding); pass.setBindGroup(1, frameBinding);
-      pass.dispatchWorkgroups(Math.ceil(target.width / 8), Math.ceil(target.height / 8)); pass.end();
-      if (measure && timer) timer.resolve(encoder);
       device.queue.submit([encoder.finish()]);
-    } finally { renderer.setMRT(previousMRT); renderer.setRenderTarget(previousTarget); }
+      // Cache production precedes Three's material reads; scene shadow maps are
+      // then available to the volume pass in this same frame.
+      renderer.setRenderTarget(target); renderer.setMRT(sceneMRT); renderer.render(scene, camera);
+      const sceneShadow = getDirectionalShadowSnapshot(renderer, directionalShadow);
+      device.queue.writeBuffer(shadowParams, 0, sceneShadow.values);
+      const nativeShadow = sceneShadow.texture ?? fallbackShadow;
+      if (!shadowBinding || shadowTexture !== nativeShadow) {
+        shadowTexture = nativeShadow;
+        shadowBinding = device.createBindGroup({ layout: pipeline.getBindGroupLayout(2), entries: [
+          { binding: 0, resource: { buffer: shadowParams } }, { binding: 1, resource: nativeShadow.createView({ aspect: 'depth-only' }) },
+        ] });
+      }
+      if (!frameBinding) frameBinding = device.createBindGroup({ layout: pipeline.getBindGroupLayout(1), entries: [
+        { binding: 0, resource: backend.texture(target.texture).createView() },
+        { binding: 1, resource: backend.texture(target.depthTexture!).createView() },
+        { binding: 2, resource: backend.texture(target.textures[1]).createView() },
+        { binding: 3, resource: backend.texture(optical).createView() },
+        { binding: 4, resource: backend.texture(output).createView() },
+      ] });
+      const viewEncoder = device.createCommandEncoder({ label: 'cloudscape-view' });
+      const pass = viewEncoder.beginComputePass(measure && timer ? { timestampWrites: timer.begin() } : {});
+      pass.setPipeline(pipeline); pass.setBindGroup(0, worldBinding); pass.setBindGroup(1, frameBinding); pass.setBindGroup(2, shadowBinding);
+      pass.dispatchWorkgroups(Math.ceil(target.width / 8), Math.ceil(target.height / 8)); pass.end();
+      if (measure && timer) timer.resolve(viewEncoder);
+      device.queue.submit([viewEncoder.finish()]);
+    } finally { renderer.setMRT(previousMRT); renderer.setRenderTarget(previousTarget, previousFace, previousMip); }
     if (present) quad.render(renderer);
     return { measuredCache, measuredCandidates };
   }
@@ -145,7 +173,17 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
     } finally { staging.destroy(); }
   }
   return {
-    settings, output, optical, setWorld, resize, render,
+    settings, output, optical, lightCache: light, shadowReceiver: receiverHook, setWorld, resize, render,
+    async compile(scene: Scene, camera: PerspectiveCamera) {
+      ensureAlive();
+      const previousTarget = renderer.getRenderTarget(), previousMRT = renderer.getMRT(), previousFace = renderer.getActiveCubeFace(), previousMip = renderer.getActiveMipmapLevel();
+      try {
+        renderer.setRenderTarget(target); renderer.setMRT(sceneMRT);
+        await renderer.compileAsync(scene, camera);
+        ensureAlive();
+      } finally { renderer.setMRT(previousMRT); renderer.setRenderTarget(previousTarget, previousFace, previousMip); }
+    },
+    setDirectionalShadow(light: DirectionalLight | null) { ensureAlive(); directionalShadow = light; },
     invalidateLighting() { ensureAlive(); lightDirty = true; },
     async measureGpu(scene: Scene, camera: PerspectiveCamera, rebuild = false) {
       ensureAlive(); if (!timer) return null; if (rebuild) lightDirty = candidateDirty = true;
@@ -168,8 +206,9 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
       worldUploads, worldUploadCpuMs, cacheUpdates, candidateUpdates, candidateBytes: candidateWidth * 32 * candidateWidth * 4, atlasBytes: source.data.byteLength, cellBufferBytes: cellBuffer.size,
       lightCacheSize: [cacheWidth, 32, cacheWidth], lightCacheBytes: cacheWidth * 32 * cacheWidth * 8,
       frameTargetBytes: target.width * target.height * 32, renderSize: [target.width, target.height],
-      settings: { ...settings, sunDirection: settings.sunDirection.toArray(), casterMin: settings.casterMin.toArray(), casterMax: settings.casterMax.toArray() },
+      directionalShadowMap: directionalShadow !== null, materialReceivers: receiverHook.attachedCount,
+      settings: { ...settings, sunRadiance: settings.sunRadiance.toArray(), ambientRadiance: settings.ambientRadiance.toArray(), hazeColor: settings.hazeColor.toArray(), sunDirection: settings.sunDirection.toArray(), casterMin: settings.casterMin.toArray(), casterMax: settings.casterMax.toArray() },
     }; },
-    dispose() { if (disposed) return; disposed = true; atlas.dispose(); light.dispose(); candidates.dispose(); target.dispose(); output.dispose(); optical.dispose(); material.dispose(); params.destroy(); cellBuffer.destroy(); timer?.dispose(); lightTimer?.dispose(); candidateTimer?.dispose(); },
+    dispose() { if (disposed) return; disposed = true; receiverHook.dispose(); shadowParams.destroy(); fallbackShadow.destroy(); atlas.dispose(); light.dispose(); candidates.dispose(); target.dispose(); output.dispose(); optical.dispose(); material.dispose(); params.destroy(); cellBuffer.destroy(); timer?.dispose(); lightTimer?.dispose(); candidateTimer?.dispose(); },
   };
 }

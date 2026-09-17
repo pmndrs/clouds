@@ -1,4 +1,5 @@
 import { REFERENCE_SHADOW_WGSL } from '../lighting/reference';
+import { DIRECTIONAL_SHADOW_WGSL } from '../lighting/p3';
 import { TRAVERSAL_WGSL } from '../world-traversal';
 
 const COMMON = /* wgsl */`
@@ -13,6 +14,10 @@ struct Params {
   flags: vec4<f32>, // skip empty cells, cached lighting, shadows, diagnostic constant light
   casterLo: vec4<f32>,
   casterHi: vec4<f32>,
+  sunRadiance: vec4<f32>, // w = exponential haze density
+  ambientRadiance: vec4<f32>, // w = haze strength
+  hazeColor: vec4<f32>, // w = use scene shadow map instead of reference box
+
 }
 struct Cell { lo: vec4<f32>, hi: vec4<f32> } // lo.w extinction; hi.w atlas index
 @group(0) @binding(0) var<uniform> p: Params;
@@ -141,7 +146,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 `;
 
-export const CLOUDSCAPE_WGSL = COMMON + /* wgsl */`
+export const CLOUDSCAPE_WGSL = COMMON + DIRECTIONAL_SHADOW_WGSL + /* wgsl */`
 @group(0) @binding(4) var lightCache: texture_3d<f32>;
 @group(1) @binding(0) var sceneColor: texture_2d<f32>;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
@@ -150,10 +155,12 @@ export const CLOUDSCAPE_WGSL = COMMON + /* wgsl */`
 @group(1) @binding(4) var compositeOut: texture_storage_2d<rgba16float,write>;
 fn lightAt(world:vec3<f32>) -> f32 {
   if (p.flags.z < 0.5) { return 1.0; }
-  if (boxOccludes(world+p.sun.xyz*0.1,p.sun.xyz,p.casterLo.xyz,p.casterHi.xyz)) { return 0.0; }
-  if (p.flags.y < 0.5) { return directLight(world); }
+  var geometryT = 1.0;
+  if (p.hazeColor.w > 0.5) { if (p.casterHi.w > 0.5) { geometryT = sceneShadowAt(world); } }
+  else if (p.casterHi.w > 0.5 && boxOccludes(world+p.sun.xyz*0.1,p.sun.xyz,p.casterLo.xyz,p.casterHi.xyz)) { return 0.0; }
+  if (p.flags.y < 0.5) { return geometryT * directLight(world); }
   let uvw = (world-vec3(p.lo.x,0.0,p.lo.z))/(vec3(p.hi.x,4000.0,p.hi.z)-vec3(p.lo.x,0.0,p.lo.z));
-  return textureSampleLevel(lightCache,linearSampler,uvw,0.0).r;
+  return geometryT * textureSampleLevel(lightCache,linearSampler,uvw,0.0).r;
 }
 fn worldAt(ndc:vec2<f32>,depth:f32) -> vec3<f32> {
   let h=p.inverseVP*vec4(ndc,depth,1.0); return h.xyz/h.w;
@@ -211,12 +218,12 @@ fn main(@builtin(global_invocation_id) id:vec3<u32>) {
         sigma*=detailFactor(world,t);
         let segmentT=exp(-sigma*segmentDs);
         let sunlight=lightAt(world);
-        var lighting=vec3(0.28,0.34,0.43)+vec3(10.5,10.0,9.0)*phase*sunlight;
+        var lighting=p.ambientRadiance.rgb+p.sunRadiance.rgb*phase*sunlight;
         if(p.flags.w>0.5){lighting=vec3(1.0);}
         // Distance haze treats distant cloud radiance and background coherently
         // enough for the coverage study; physical atmosphere composition is P3.
-        let haze=1.0-exp(-t/18000.0);
-        lighting=mix(lighting,vec3(0.48,0.64,0.86),haze*0.75);
+        let haze=1.0-exp(-t*p.sunRadiance.w);
+        lighting=mix(lighting,p.hazeColor.rgb,haze*p.ambientRadiance.w);
         if(p.flags.w>0.5){lighting=vec3(1.0);}
         L+=T*(1.0-segmentT)*lighting; T*=segmentT;
       }

@@ -1,6 +1,6 @@
 # Implementation plan — pmndrs/clouds
 
-Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized; P0 and the P1 technical reference are accepted locally, R1 shape review is pending. Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
+Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized; P0 and the P1 technical reference are accepted locally, R1 shape review is pending. The current P2 stage is accepted provisionally for progression, with distance/LOD, coverage/weather and view/shadow quality debt open. The first P3 lighting/environment slice is runnable at `/lighting/`; P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 review is pending. P4 has not started and remains the maximum authorized phase. Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
 
 Human review steps, expected behavior and questions for every stage are in the [review guide](human-review.md). The [project status](project-status.md) is the concise current overview; update both at each checkpoint alongside the technical evidence.
 
@@ -62,13 +62,17 @@ Integrate track L's thin/far layer as an option. Maintain volumetric distant for
 
 ### R2 revision after human review (2026-09-17)
 
-R2 returned the first cloudscape prototype for insufficient distant coverage and view/shadow mismatch. Close flight, entry, scale and provisional repeated forms were positively reviewed. Passing region-rebase and lookup parity tests did not prove horizon continuity.
+R2 returned the first cloudscape prototype for insufficient distant coverage and view/shadow mismatch. Close flight, entry, scale and provisional repeated forms were positively reviewed. The user accepts the current P2 stage as fine for continuing provisionally. Passing region-rebase and lookup parity tests did not prove horizon continuity, and the open P2 quality debt remains.
 
 Read [Nubis distance-rendering findings and proposed adaptation](research/nubis-lod.md) before the next implementation packet. The next P2 slice must establish persistent broad weather/cloud shapes and continuity into nearby detail. Separate world coverage, density detail, ray sampling, screen resolution and residency; increasing the existing fade radius or applying upscaling alone does not close this gate. The published 2022 near/far/environment integration and 2023 voxel detail/rendering techniques inform this design, but no exact Decima hierarchy is claimed.
 
-Use long approach/retreat captures and known-sun shadow agreement, plus the existing optical tests, to assess the revision. P3/P4 remain unstarted; P4 remains the maximum authorized unattended phase.
+Use long approach/retreat captures and known-sun shadow agreement, plus the existing optical tests, to assess the revision. The latest camera turn/down observation shows shadows beyond view-faded clouds because the fade uses horizontal camera distance while the tower is not centered on the camera, and shadows include view-hidden clouds. Carry distance/LOD and view/shadow agreement into ongoing work. P2.4–P2.6 remain future coverage/weather packets and do not block compatible P3 lighting. The `/lighting/` slice is now runnable: P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 remains incomplete pending R3 review. P4 remains the maximum authorized phase.
 
 ## P3 — Required shadows, atmosphere and environment
+
+The first P3 lighting/environment slice is runnable at `/lighting/`. P3.1 and
+P3.2 bounded prototypes are integrated; P3.3 is partial and review/acceptance
+remain pending.
 
 **Deliver:** cloud self-shadowing, cloud shadows cast on opaque scene geometry, and scene occluders casting into clouds, initially for a directional sun. Demonstrate ground terrain and an object crossing the lit cloud. Select shadow/light-density caching based on P2 profiles; update it when sun or density changes.
 
@@ -77,6 +81,18 @@ Define explicit shadow hooks/material support for the first release. Do not clai
 **Exit:** moving sun, density and geometry invalidate the right caches; both shadow directions visibly work; the environment is free of main-camera temporal state; caller-owned background/environment resources survive detach. Opaque composition is correct. Document the initial limitation for arbitrary interleaved transparency/refraction.
 
 **Review R3:** time-of-day slider, moving occluder, diffuse sphere and reflective sphere, cloud-only/sky-only/composite views. This is the best point for your sky integration judgment. Continue tests and reconstruction inputs while art/API feedback is pending.
+
+The current slice uses Three directional scene-depth shadows into the volume,
+explicit NodeMaterial `receivedShadowNode` receivers, cache-before-material-draw,
+and geometry movement without cloud-cache rebuild. Environment capture uses a
+fixed separate six-face linear-HDR cloud+sky cube and PMREM with explicit async
+refresh. The main background remains sky-only and caller scene environment state
+survives attach/detach. Environment captures exclude local terrain/objects from
+reflections; the fixed probe has limited parallax, and manual refresh is
+intentionally stale until clicked. Full atmosphere aerial-perspective LUT integration and
+calibrated sky/cloud lighting remain open; pmndrs/sky is currently off and
+exponential cloud haze is approximate. Distinguish coarse shadow-cache,
+stylized voxel/banding and distance/LOD limits from integration bugs.
 
 ## P4 — Reconstruction and performance presets
 

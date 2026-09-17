@@ -53,7 +53,7 @@ Questions: Which silhouette, scale and softness direction should lead? Does the 
 
 ## P2 — Cloudscape coverage and distance
 
-**Availability:** Runnable now at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/). R2 feedback is received and P2 is returned for coverage revision; local technical checks and measurements are recorded in [P2 evidence](p2-evidence.md). [`/clouds/`](http://127.0.0.1:5173/clouds/) is the P1 viewer and cannot substitute for this gate.
+**Availability:** Runnable now at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/). R2 feedback is received and the current P2 stage is accepted provisionally for progression while coverage debt remains; local technical checks and measurements are recorded in [P2 evidence](p2-evidence.md). [`/clouds/`](http://127.0.0.1:5173/clouds/) is the P1 viewer and cannot substitute for this gate.
 
 Current slice: an eight-form 96³ r8 atlas drives 81 resident world-cell
 descriptors. Near and medium formations stay volumetric; a separate thin
@@ -109,15 +109,25 @@ tracked quality debt pending spatial-reference work.
 
 ## P3 — Light, sky and environment (R3)
 
-**Availability:** Future; no runnable P3 scene yet. P0's sky/shadow fixture proves integration points only.
+**Availability:** Runnable first slice at [`/lighting/`](http://127.0.0.1:5173/lighting/). P3.1 and P3.2 bounded prototypes are integrated and P3.3 is partial; P3 is not complete and R3 review is pending.
 
-When available:
+Review steps:
 
-- [ ] Use the time-of-day slider and move an opaque occluder through the cloud.
-- [ ] Compare cloud-only, sky-only and composite views with diffuse and reflective test objects.
-- [ ] Change sun and density; confirm lighting, shadows and environment respond without stale state.
+- [ ] **Pass/fail — directional shadows:** change sun, toggle cloud/geometric shadows, and move the occluder through the cloud. Pass if scene-depth shadows enter the volume and cloud shadows reach scene receivers without errors or stale geometry; record coarse-cache softness separately from an integration failure.
+- [ ] **Pass/fail — cache invalidation:** move geometry, then change sun and density. Pass if geometry movement does not rebuild the cloud cache unnecessarily, while sun/density changes refresh the relevant lighting state.
+- [ ] **Pass/fail — composition modes:** compare sky-only, cloud-on-black and composite views with overview, lighting objects and cloud occluder. Pass if the modes remain legible and the main background stays sky-only.
+- [ ] **Pass/fail — environment refresh:** click the explicit environment refresh after changing sun/density. Pass if the fixed six-face cloud+sky environment updates; leave it unchanged before the click and record that intentional staleness separately.
+- [ ] **Pass/fail — reflections:** choose **Lighting objects** and inspect both spheres after **Refresh environment**. Pass if sky/cloud contribution appears without black or stale capture faces. Local terrain and objects are intentionally absent; exact near-cloud parallax is not expected. Ownership restoration is covered by automated checks.
 
-Questions: Is shadow softness believable? Is the atmosphere balance pleasing? Do diffuse lighting and reflections match the visible clouds, and is their refresh rate acceptable? Technical acceptance covers cache invalidation, both shadow directions, capture state, resource ownership and one-time atmosphere/tone mapping. Arbitrary transparency/refraction remains limited.
+Expected quality: the lighting should be coherent and usable for this partial
+slice, with directional cast/receive behavior and explicit refresh visible. Coarse
+cloud-shadow cache filtering, stylized voxel/banding and inherited distance/LOD
+artifacts are known quality limits; judge them separately from integration bugs.
+Full aerial-perspective LUT integration and calibrated sky/cloud lighting remain open.
+The current pmndrs/sky aerial perspective is off and exponential cloud haze is an approximation.
+Environment captures sky/clouds only; local terrain and objects are excluded from
+reflections, and the fixed probe has limited parallax. Arbitrary
+transparency/refraction remains limited. This review does not accept P3 by itself.
 
 ## P4 — Reconstruction and performance presets (R4)
 
@@ -180,15 +190,20 @@ Questions: Is the thin-cloud appearance convincing at the horizon? Is animation 
 | --- | --- | --- |
 | Do the GPU checks pass? | All pass | Recorded as human feedback; technical evidence remains in [P2 evidence](p2-evidence.md) |
 | How does the fixed flight feel? | Substantial; scale, spacing and cloud entry are good | Keep the path for repeatable review |
-| Is repetition acceptable now? | Fine provisionally | No P2 sign-off; revisit after coverage work |
-| Horizon and transition | Distant clouds appear too late with harsh pop-in; shadows appear before clouds; the world feels like a pool | P2 coverage/transition/shadow-order defect; current 4.4–7.7 km view fade has no far LOD or mass handoff |
+| Is repetition acceptable now? | Fine provisionally | P2 progression accepted provisionally; revisit after coverage work; no full visual sign-off |
+| Horizon and transition | Distant clouds appear too late with harsh pop-in; shadows appear before clouds; the world feels like a pool | P2 coverage/transition/shadow-order quality debt; current 4.4–7.7 km view fade has no far LOD or mass handoff |
 | Coverage and density controls | Coverage just hides whole clouds; density cannot reach zero or a wispy value | Density now reaches zero with finer increments; Cloud population label clarifies the current behavior. Coherent weather coverage remains P2 work. |
 | Lookup and lighting | Lookup causes no appearance change; sun/shadows move but shadows are boxy | Lookup result recorded; shadow filtering is tracked P3 quality debt |
 | Image quality | Bands and angular voxel visibility observed; screenshots supplied | Track spatial-reference improvement before P4; do not promise an FSR fix |
 | Animation/browser | Animation works in IAB but not Chrome | Full-precision playback clock added; 60/120/144/240 Hz tests pass, and Chrome camera progression was verified. |
+| Camera turn/down and shadows | Shadows remain visible beyond clouds that have faded from view; the tower is not centered on the camera, and shadows include view-hidden clouds | Carry distance/LOD representation and view/shadow agreement into ongoing P2/P3 work; no claim of a fix yet |
 
-**R2 disposition:** feedback received; returned for coverage work. No P2
-acceptance. P3 and P4 have not started.
+**R2 disposition:** feedback received and returned for coverage work. The user
+accepts the current P2 stage as fine for continuing provisionally. This keeps
+the distance/LOD, coverage/weather and view/shadow quality debt open and is not
+an all-visuals-passed result. P3.1 and P3.2 are running; P3.3 remains for
+orchestrator integration. No runnable P3 scene or P3 human acceptance exists
+yet. P4 remains the maximum authorized phase.
 
 ### R2 follow-up priorities
 
@@ -196,6 +211,9 @@ acceptance. P3 and P4 have not started.
 2. Make view density and cloud-shadow representation agree through the transition; shadows should not announce clouds that abruptly appear later.
 3. Add a spatial weather/coverage driver that produces coherent patches and changing cloud extent. Retain the population control as a diagnostic if useful.
 4. Compare ray-step count, density resolution and light-cache resolution separately at the photographed angles. Identify the sources of bands and angular silhouettes before adding reconstruction.
-5. Recheck approach sequences starting beyond the current fade range, including a fixed cloud at several distances; region-rebase parity alone is insufficient.
+5. Recheck approach sequences starting beyond the current fade range, including a fixed cloud at several distances; region-rebase parity alone is insufficient. Include camera turns/downward views where view-faded clouds can still contribute shadows.
+
+P2.4–P2.6 remain future coverage/weather packets and are tracked for later
+resolution; they do not block compatible P3 lighting work.
 
 Known artifacts need not be reported repeatedly. Report new behavior, a particularly bad view, or a regression after a fix. Native render scale and 512 samples are useful comparisons when diagnosing an artifact, not conditions for dismissing a default-view defect.
