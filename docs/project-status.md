@@ -29,7 +29,7 @@ the phase acceptance gates.
 
 The user reports that the views seem to work and the stylized forms are acceptable for this provisional stage. They also reported apparent floor-shadow z-fighting, which is not intentional.
 
-**Fixed locally:** the P1 renderer was identifying the floor using a depth-derived world position. Precision loss caused shadow pixels to drop out at distance. An explicit material receiver marker and analytical floor intersection now replace that guess. The new continuity regression changed from 0.75 error to zero; the P1 checkpoint passed **14 GPU checks, 21 unit tests and the production build** (the current workspace has 42 unit tests).
+**Fixed locally:** the P1 renderer was identifying the floor using a depth-derived world position. Precision loss caused shadow pixels to drop out at distance. An explicit material receiver marker and analytical floor intersection now replace that guess. The new continuity regression changed from 0.75 error to zero; the P1 checkpoint passed **14 GPU checks, 21 unit tests and the production build** (the current workspace has 47 unit tests).
 
 **Still open for the human review:** retest the affected view and identify whether the original report referred to the voxel cloud or P0 spheres. No separate P0 shadow defect has been reproduced. A preferred P2 silhouette mix is also unselected. These observations are recorded in the [review guide](human-review.md#current-human-review-record--2026-09-17).
 
@@ -54,8 +54,10 @@ boxy shadow filtering as P3 quality debt. Do not promise an FSR fix.
 | P3 | Sky, sun, shadows and environment agree with visible clouds, with credible softness and cache refresh. |
 | P4 | Reconstruction and presets preserve detail through motion, cuts, disocclusion and foreground edges; spatial-reference image quality is ready for measurement. |
 
+The next P2 direction is informed by a direct [Nubis 2022/2023 LOD review](research/nubis-lod.md): persistent broad formations and near refinement from a shared source, with screen-resolution choices kept separate. This is planned, not implemented.
+
 ## Evidence and limits
 
 See [P0 evidence](p0-evidence.md), [P1 evidence](p1-evidence.md), the [P2 evidence](p2-evidence.md), the [implementation plan](implementation-plan.md), and the [work queue](implementation-work-queue.md). Local technical checks and the M5 Pro development environment do not establish RTX 3060/Windows results, injected device-loss recovery, final cloudscape coverage, final shadow caching, reconstruction, packaged APIs, R3F v10 bindings or release readiness.
 
-Human observations and automated technical results should be recorded independently using the [human review guide](human-review.md). Questions already answered in the latest R2 review—provisional stylized forms, simple atmosphere, repetition, scale, spacing and entry—should remain logged rather than asked again.
+Human observations and automated technical results should be recorded independently using the [human review guide](human-review.md). Questions already answered in the latest R2 review—provisional stylized forms, repetition, scale, spacing and entry—should remain logged rather than asked again.

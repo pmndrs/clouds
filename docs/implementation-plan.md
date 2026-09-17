@@ -60,6 +60,14 @@ Integrate track L's thin/far layer as an option. Maintain volumetric distant for
 
 **Review R2:** fixed fly-through plus free camera; representation/coverage and memory overlays. Human review targets repetition, transition visibility and whether distant coverage feels convincing. If art feedback is unavailable, retain alternate presets and proceed with compatible lighting work; do not claim visual acceptance.
 
+### R2 revision after human review (2026-09-17)
+
+R2 returned the first cloudscape prototype for insufficient distant coverage and view/shadow mismatch. Close flight, entry, scale and provisional repeated forms were positively reviewed. Passing region-rebase and lookup parity tests did not prove horizon continuity.
+
+Read [Nubis distance-rendering findings and proposed adaptation](research/nubis-lod.md) before the next implementation packet. The next P2 slice must establish persistent broad weather/cloud shapes and continuity into nearby detail. Separate world coverage, density detail, ray sampling, screen resolution and residency; increasing the existing fade radius or applying upscaling alone does not close this gate. The published 2022 near/far/environment integration and 2023 voxel detail/rendering techniques inform this design, but no exact Decima hierarchy is claimed.
+
+Use long approach/retreat captures and known-sun shadow agreement, plus the existing optical tests, to assess the revision. P3/P4 remain unstarted; P4 remains the maximum authorized unattended phase.
+
 ## P3 — Required shadows, atmosphere and environment
 
 **Deliver:** cloud self-shadowing, cloud shadows cast on opaque scene geometry, and scene occluders casting into clouds, initially for a directional sun. Demonstrate ground terrain and an object crossing the lit cloud. Select shadow/light-density caching based on P2 profiles; update it when sun or density changes.

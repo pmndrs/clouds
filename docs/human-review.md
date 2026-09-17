@@ -182,10 +182,10 @@ Questions: Is the thin-cloud appearance convincing at the horizon? Is animation 
 | How does the fixed flight feel? | Substantial; scale, spacing and cloud entry are good | Keep the path for repeatable review |
 | Is repetition acceptable now? | Fine provisionally | No P2 sign-off; revisit after coverage work |
 | Horizon and transition | Distant clouds appear too late with harsh pop-in; shadows appear before clouds; the world feels like a pool | P2 coverage/transition/shadow-order defect; current 4.4–7.7 km view fade has no far LOD or mass handoff |
-| Coverage and density controls | Coverage just hides whole clouds; density cannot reach zero or a wispy value | P2 control-semantics and coverage follow-up; suspected slider-step quantization/range fix is pending owner confirmation |
+| Coverage and density controls | Coverage just hides whole clouds; density cannot reach zero or a wispy value | Density now reaches zero with finer increments; Cloud population label clarifies the current behavior. Coherent weather coverage remains P2 work. |
 | Lookup and lighting | Lookup causes no appearance change; sun/shadows move but shadows are boxy | Lookup result recorded; shadow filtering is tracked P3 quality debt |
 | Image quality | Bands and angular voxel visibility observed; screenshots supplied | Track spatial-reference improvement before P4; do not promise an FSR fix |
-| Animation/browser | Animation works in IAB but not Chrome | Browser-specific flight/animation issue remains open |
+| Animation/browser | Animation works in IAB but not Chrome | Full-precision playback clock added; 60/120/144/240 Hz tests pass, and Chrome camera progression was verified. |
 
 **R2 disposition:** feedback received; returned for coverage work. No P2
 acceptance. P3 and P4 have not started.

@@ -3,6 +3,10 @@
 **Research snapshot:** 2026-09-15  
 **Scope:** volumetric rendering paths and reusable precedents for a framework-free Three.js library using `WebGPURenderer`/TSL first, with a later R3F v10 adapter. Desktop WebGPU is the initial quality target; browser/mobile portability still needs a separate quality profile.
 
+## Focused follow-up
+
+The R2 coverage review prompted direct reading of the 2022/2023 slide PDFs: [distance rendering, LOD distinctions and P2 revision](nubis-lod.md). This adds page-specific evidence beyond the original survey.
+
 ## Findings at a glance
 
 - **Decima/Nubis is a family of systems, not one renderer.** The 2015/2017 lineage describes a procedural, mostly 2.5D sky system built from weather/type maps, profile functions, tiled 3D shape/detail noise, ray marching and lighting approximations. The later Nubis³ work (SIGGRAPH 2023) explicitly moves to authored voxel clouds for close-up flight-through scenes. It adds SDF-guided ray-march skipping, an up-res strategy for dense voxels, lighting acceleration, and cloud-specific lighting approximations. These are different density and authoring regimes that can still feed one renderer through a shared density-sampling contract.

@@ -81,3 +81,13 @@ State vocabulary: `ready`, `running`, `needs-decision`, `ready-for-review`, `acc
 ## R2 follow-up (2026-09-17)
 
 Viewer playback now uses a precise clock rather than accumulating through a stepped slider; Chrome playback and zero density were verified. Remaining P2 work: persistent distant representation with shared weather identity, consistent view/shadow transition, coherent weather coverage, and spatial sampling quality diagnosis. Preserve the existing lookup/reference tests, but add approach-distance and shadow-agreement checks: same-camera region continuity alone did not catch the reported horizon problem. P3/P4 remain unstarted.
+
+### Next bounded P2 packets
+
+| Packet | Owner | Output | Gate |
+| --- | --- | --- | --- |
+| P2.4 | O contract + W world/weather source | Persistent coherent weather/profile source, deterministic global identity, density/coverage separated | Clear-to-covered progression; camera-independent formation identity |
+| P2.5 | O integration + focused W representation experiment | Broad coarse representation and near refinement from the same source, explicit overlap ownership, matched shadow density | Long-distance approach/reference comparisons, no missing far formation or duplicate optical depth |
+| P2.6 | W capture/metrics + O acceptance | Banding diagnostics, transition and shadow agreement captures, generation/update/frame measurements | Revised R2 review with stated quality limits |
+
+These packets are planned, not dispatched. Source basis and open design choices: [Nubis LOD research](research/nubis-lod.md).
