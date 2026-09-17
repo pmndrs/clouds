@@ -15,6 +15,7 @@
   "devDependencies": {
     "@pmndrs/scheduler": "0.2.0",
     "@pmndrs/sky": "0.3.0",
+    "@pmndrs/upscaler": "file:vendor/pmndrs-upscaler-0.2.0.tgz",
     "@types/node": "22.19.15",
     "@types/three": "0.186.0",
     "@webgpu/types": "0.1.71",

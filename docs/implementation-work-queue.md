@@ -1,6 +1,6 @@
 # Implementation work queue
 
-Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 views were reported working and stylized forms accepted provisionally; silhouette choice and shadow retest remain open. P2 implementation is now available at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/) with local technical evidence recorded and R2 feedback received. The user accepts the current P2 stage as sufficient to continue provisionally; distance/LOD, coverage/weather and view/shadow quality debt remain tracked. The first P3 lighting/environment slice is runnable at [`/lighting/`](http://127.0.0.1:5173/lighting/): P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 human review is pending; P4 has not started and remains the maximum authorized phase. See the [human review guide](human-review.md), [overall status](project-status.md), [P1 evidence](p1-evidence.md), [P2 evidence](p2-evidence.md), and [P3 evidence](p3-evidence.md). Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
+Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 views were reported working and stylized forms accepted provisionally; silhouette choice and shadow retest remain open. P2 implementation is now available at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/) with local technical evidence recorded and R2 feedback received. The user accepts the current P2 stage as sufficient to continue provisionally; distance/LOD, coverage/weather and view/shadow quality debt remain tracked. The first P3 lighting/environment slice is runnable at [`/lighting/`](http://127.0.0.1:5173/lighting/): P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 human review is pending; P4 now has a reconstruction comparison preview at [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/). R4 visual review and preset acceptance remain pending; P4 remains the maximum authorized phase. See the [critical review guide](p4-review.md) and [P4 evidence](p4-evidence.md). See the [human review guide](human-review.md), [overall status](project-status.md), [P1 evidence](p1-evidence.md), [P2 evidence](p2-evidence.md), and [P3 evidence](p3-evidence.md). Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
 
 ## First dispatch wave
 
@@ -78,6 +78,19 @@ Update one row per dispatched packet. Local P0 acceptance does not claim RTX/Win
 | P3.1 | ready-for-review | gpt-5.6-luna high + O GPU review | P1.3, P2.2 | `/lighting/`; [P3 evidence](p3-evidence.md) | Bounded prototype integrated; final P3 acceptance pending | R3 pending |
 | P3.2 | ready-for-review | gpt-5.6-luna high + O integration | P0.4, P2.2 | `/lighting/`; [P3 evidence](p3-evidence.md) | Bounded prototype integrated; final P3 acceptance pending | R3 pending |
 | P3.3 | running (partial) | Orchestrator | P3.1, P3.2, P2.3 | `/lighting/`; [P3 evidence](p3-evidence.md) | Not accepted; integrated slice incomplete | R3 pending |
+
+### P4 checkpoint
+
+| Packet | State | Delivery / remaining gate |
+| --- | --- | --- |
+| P4.1 | ready-for-review | [Reconstruction contract](decisions/reconstruction.md); weighted cloud depth, opaque motion, reactivity, one jitter/history owner |
+| P4.2 | ready-for-review | Actual FSR1/FSR3 adapter plus separate L/T cloud-only spatial resolve; GPU integration checks |
+| P4.3 | running (partial) | Fixed comparison lab, critical review guide and timing harness; preset acceptance, wind and RTX/Windows evidence still open |
+
+Three bounded `gpt-5.6-luna` workers supplied the adapter (high), optical resolve
+(high) and review guide (medium). Root owns guide integration, viewer, GPU
+verification, measurements and acceptance. Worker completion is not a gate pass.
+P3 remains partial; user-authorized progression to P4 does not accept P2/P3 debt.
 
 State vocabulary: `ready`, `running`, `needs-decision`, `ready-for-review`, `accepted`, `accepted provisionally`, `returned`. Keep failures and unavailable hardware visible in evidence. Only the orchestrator records technical acceptance; provisional progression does not close a visual gate, and child completion notifications do not close gates.
 

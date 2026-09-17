@@ -17,6 +17,8 @@ struct Params {
   sunRadiance: vec4<f32>, // w = exponential haze density
   ambientRadiance: vec4<f32>, // w = haze strength
   hazeColor: vec4<f32>, // w = use scene shadow map instead of reference box
+  currentVP: mat4x4<f32>, // unjittered guide projection
+  previousVP: mat4x4<f32>,
 
 }
 struct Cell { lo: vec4<f32>, hi: vec4<f32> } // lo.w extinction; hi.w atlas index
@@ -146,13 +148,14 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 `;
 
-export const CLOUDSCAPE_WGSL = COMMON + DIRECTIONAL_SHADOW_WGSL + /* wgsl */`
+const VIEW_WGSL = COMMON + DIRECTIONAL_SHADOW_WGSL + /* wgsl */`
 @group(0) @binding(4) var lightCache: texture_3d<f32>;
 @group(1) @binding(0) var sceneColor: texture_2d<f32>;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
 @group(1) @binding(2) var receiver: texture_2d<f32>;
 @group(1) @binding(3) var opticalOut: texture_storage_2d<rgba16float,write>;
 @group(1) @binding(4) var compositeOut: texture_storage_2d<rgba16float,write>;
+/* GUIDE_BINDINGS */
 fn lightAt(world:vec3<f32>) -> f32 {
   if (p.flags.z < 0.5) { return 1.0; }
   var geometryT = 1.0;
@@ -180,13 +183,15 @@ fn main(@builtin(global_invocation_id) id:vec3<u32>) {
   let uv=(vec2<f32>(id.xy)+0.5)/vec2<f32>(size);
   let ndc=vec2(uv.x*2.0-1.0,1.0-uv.y*2.0);
   let ray=normalize(worldAt(ndc,1.0)-p.camera.xyz);
-  let depth=textureLoad(sceneDepth,pixel,0);
+  let scenePixel=min(vec2<i32>(uv*vec2<f32>(textureDimensions(sceneDepth))),vec2<i32>(textureDimensions(sceneDepth))-1);
+  let depth=textureLoad(sceneDepth,scenePixel,0);
   let opaque=worldAt(ndc,depth);
   let opaqueDistance=select(1e8,dot(opaque-p.camera.xyz,ray),depth<1.0);
   let interval=boxInterval(p.camera.xyz,ray,p.lo.xyz,p.hi.xyz);
   let start=max(max(0.0,interval.x),length(worldAt(ndc,0.0)-p.camera.xyz));
   let end=min(interval.y,opaqueDistance);
   var T=1.0; var L=vec3(0.0);
+  /* GUIDE_MOMENT */
   if(end>start){
     // Use a camera-anchored lattice. The projected world extent determines a
     // stable lower bound for ds, while the user setting can request a coarser
@@ -225,18 +230,53 @@ fn main(@builtin(global_invocation_id) id:vec3<u32>) {
         let haze=1.0-exp(-t*p.sunRadiance.w);
         lighting=mix(lighting,p.hazeColor.rgb,haze*p.ambientRadiance.w);
         if(p.flags.w>0.5){lighting=vec3(1.0);}
+        /* GUIDE_ACCUMULATE */
         L+=T*(1.0-segmentT)*lighting; T*=segmentT;
       }
       if(p.sun.w>0.5 && T<0.0001){break;}
       i++;
     }
   }
-  var bg=textureLoad(sceneColor,pixel,0).rgb;
-  if(p.flags.z>0.5 && textureLoad(receiver,pixel,0).r>0.5 && abs(ray.y)>1e-7) {
+  var bg=textureLoad(sceneColor,scenePixel,0).rgb;
+  if(p.flags.z>0.5 && textureLoad(receiver,scenePixel,0).r>0.5 && abs(ray.y)>1e-7) {
     let hit=p.camera.xyz+ray*(-p.camera.y/ray.y);
     bg*=0.35+0.65*lightAt(vec3(hit.x,0.05,hit.z));
   }
+  /* GUIDE_STORE */
   textureStore(opticalOut,pixel,vec4(L,T));
   textureStore(compositeOut,pixel,vec4(L+T*bg,1.0));
 }
 `;
+
+/** Guides are opt-in: older reference scenes pay no guide attachment cost. */
+export function cloudscapeShader(guides = false) {
+  return VIEW_WGSL
+    .replace('/* GUIDE_BINDINGS */', guides ? `
+@group(1) @binding(5) var sceneVelocity:texture_2d<f32>;
+@group(1) @binding(6) var guideOut:texture_storage_2d<rgba32float,write>;
+` : '')
+    .replace('/* GUIDE_MOMENT */', guides ? 'var weightedDistance=0.0;' : '')
+    .replace('/* GUIDE_ACCUMULATE */', guides ? 'weightedDistance+=T*(1.0-segmentT)*t;' : '')
+    .replace('/* GUIDE_STORE */', guides ? `
+  let opacity=1.0-T;
+  let cloudDistance=weightedDistance/max(opacity,1e-6);
+  let cloudPosition=p.camera.xyz+ray*cloudDistance;
+  // A single depth cannot encode cloud + background layers. Use the dominant
+  // contributor and mark mixed pixels reactive, instead of claiming exact flow.
+  var guideDepth=depth;
+  var motion=textureLoad(sceneVelocity,scenePixel,0).xy;
+  var reactive=clamp(4.0*opacity*T,0.0,1.0);
+  if(opacity>0.5 || depth>=1.0){
+    var position=cloudPosition;
+    if(opacity<=0.5){position=p.camera.xyz+ray*1e7;}
+    let current=p.currentVP*vec4(position,1.0);
+    let previous=p.previousVP*vec4(position,1.0);
+    if(current.w>1e-5 && previous.w>1e-5){
+      motion=current.xy/current.w-previous.xy/previous.w;
+      if(opacity>0.5){guideDepth=clamp(current.z/current.w,0.0,1.0);}
+    }else{motion=vec2(0.0);reactive=1.0;}
+  }
+  textureStore(guideOut,pixel,vec4(motion,guideDepth,reactive));
+` : '');
+}
+export const CLOUDSCAPE_WGSL = cloudscapeShader();

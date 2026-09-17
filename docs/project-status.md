@@ -8,7 +8,7 @@ Updated 2026-09-17 (Japan time).
 - **P1:** technical baseline is complete and accepted locally. The first-cloud viewer is available at [`http://127.0.0.1:5173/clouds/`](http://127.0.0.1:5173/clouds/). User review remains open for the R1 shape preference and the reported floor-shadow view.
 - **L1:** independent 2D layer preview is available at [`http://127.0.0.1:5173/layer-only/`](http://127.0.0.1:5173/layer-only/); it is not a final cloudscape acceptance.
 - **P2:** R2 feedback is received and returned for coverage work at [`http://127.0.0.1:5173/cloudscape/`](http://127.0.0.1:5173/cloudscape/). The user reports that all GPU checks pass, that the fixed flight is substantial, and that scale, spacing, entry and provisional repetition are good. The current P2 stage is accepted as sufficient to continue provisionally; distant-cloud pop-in, distance/LOD continuity, shadows beyond view-faded clouds, finite coverage and weather semantics remain open quality debt.
-- **P3:** the first lighting/environment slice is runnable at [`http://127.0.0.1:5173/lighting/`](http://127.0.0.1:5173/lighting/). P3.1 and P3.2 bounded prototypes are integrated; P3.3 is partially running. P3 is not complete and R3 human review is pending. P4 has not started and remains the maximum authorized phase. P2.4–P2.6 future coverage/weather packets remain tracked and are not blockers to compatible P3 lighting work. P5–P6 remain planned and not runnable yet.
+- **P3:** the first lighting/environment slice is runnable at [`http://127.0.0.1:5173/lighting/`](http://127.0.0.1:5173/lighting/). P3.1 and P3.2 bounded prototypes are integrated; P3.3 is partially running. P3 is not complete and R3 human review is pending. P4 now has a reconstruction comparison preview at [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/). R4 visual review and preset acceptance remain pending; P4 remains the maximum authorized phase. See the [critical review guide](p4-review.md) and [P4 evidence](p4-evidence.md). P2.4–P2.6 future coverage/weather packets remain tracked and are not blockers to compatible P3 lighting work. P5–P6 remain planned and not runnable yet.
 
 The current P2 slice uses an eight-form 96³ r8 atlas, 81 resident world-cell
 descriptors, near/medium volumetric formations and a separate thin high/far
@@ -21,9 +21,9 @@ the phase acceptance gates.
 
 | Ready now | Next | Later |
 | --- | --- | --- |
-| P0 interop/sky diagnostic at `/` | P3 lighting slice at `/lighting/`; R3 review and evidence | P4 reconstruction and measured presets |
-| P1 dense voxel viewer at `/clouds/` | R1 shape/shadow retest; P2 coverage can proceed | P4 reconstruction and measured presets |
-| L1 independent 2D preview at `/layer-only/` | R1 shape review and L1 follow-up in P2/P3 | P5 packaged Three/R3F v10 APIs; P6 validation/release and the asset extension |
+| P0 interop/sky diagnostic at `/` | R3 lighting review | P5 packaged APIs (not authorized yet) |
+| P1 voxel, P2 cloudscape and P3 lighting viewers | Open distance/LOD, atmosphere and shadow quality work | R3F v10 and asset tooling |
+| L1 layer and P4 reconstruction preview | R4 critical comparison and measured preset selection | Windows/RTX validation; release preparation |
 
 ## Latest review context
 
@@ -79,6 +79,19 @@ The next P2 direction is informed by a direct [Nubis 2022/2023 LOD review](resea
 
 ## Evidence and limits
 
-See [P0 evidence](p0-evidence.md), [P1 evidence](p1-evidence.md), the [P2 evidence](p2-evidence.md), the [implementation plan](implementation-plan.md), and the [work queue](implementation-work-queue.md). Local technical checks and the M5 Pro development environment do not establish RTX 3060/Windows results, injected device-loss recovery, final cloudscape coverage, final shadow caching, reconstruction, packaged APIs, R3F v10 bindings or release readiness.
+See [P0 evidence](p0-evidence.md), [P1 evidence](p1-evidence.md), the [P2 evidence](p2-evidence.md), the [implementation plan](implementation-plan.md), and the [work queue](implementation-work-queue.md). Local technical checks and the M5 Pro development environment do not establish RTX 3060/Windows results, injected device-loss recovery, final cloudscape coverage, final shadow caching, accepted reconstruction presets, packaged APIs, R3F v10 bindings or release readiness.
 
 Human observations and automated technical results should be recorded independently using the [human review guide](human-review.md). Questions already answered in the latest R2 review—provisional stylized forms, repetition, scale, spacing and entry—should remain logged rather than asked again.
+
+## P4 review checkpoint
+
+The comparison preview now includes native, reduced bilinear, cloud-only spatial,
+final FSR1 and final FSR3 temporal reconstruction using the author's pinned local
+upscaler snapshot. It exposes paired native comparison, fixed flight, foreground
+bars, moving geometry, cuts, source/density/sun edits and benchmarks. Follow the
+[P4 critical review](p4-review.md) and [technical evidence](p4-evidence.md).
+
+P4 is **ready for critical review, not accepted**. Single-depth transparent
+motion is approximate. Full cloud wind/advection is not implemented. Spatial
+source quality, long-distance coverage, physical atmosphere, sustained motion
+quality, supported-device results and validated presets remain open. Stop at P4.

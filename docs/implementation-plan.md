@@ -1,6 +1,6 @@
 # Implementation plan — pmndrs/clouds
 
-Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized; P0 and the P1 technical reference are accepted locally, R1 shape review is pending. The current P2 stage is accepted provisionally for progression, with distance/LOD, coverage/weather and view/shadow quality debt open. The first P3 lighting/environment slice is runnable at `/lighting/`; P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 review is pending. P4 has not started and remains the maximum authorized phase. Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
+Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized; P0 and the P1 technical reference are accepted locally, R1 shape review is pending. The current P2 stage is accepted provisionally for progression, with distance/LOD, coverage/weather and view/shadow quality debt open. The first P3 lighting/environment slice is runnable at `/lighting/`; P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 review is pending. P4 now has a reconstruction comparison preview at [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/). R4 visual review and preset acceptance remain pending; P4 remains the maximum authorized phase. See the [critical review guide](p4-review.md) and [P4 evidence](p4-evidence.md). Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
 
 Human review steps, expected behavior and questions for every stage are in the [review guide](human-review.md). The [project status](project-status.md) is the concise current overview; update both at each checkpoint alongside the technical evidence.
 
@@ -90,7 +90,7 @@ refresh. The main background remains sky-only and caller scene environment state
 survives attach/detach. Environment captures exclude local terrain/objects from
 reflections; the fixed probe has limited parallax, and manual refresh is
 intentionally stale until clicked. Full atmosphere aerial-perspective LUT integration and
-calibrated sky/cloud lighting remain open; pmndrs/sky is currently off and
+calibrated sky/cloud lighting remain open; pmndrs/sky aerial perspective is currently off and
 exponential cloud haze is approximate. Distinguish coarse shadow-cache,
 stylized voxel/banding and distance/LOD limits from integration bugs.
 

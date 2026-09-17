@@ -10,6 +10,7 @@ export default defineConfig({
   build: { outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     lab: fileURLToPath(new URL('./examples/lab/index.html', import.meta.url)),
     clouds: fileURLToPath(new URL('./examples/lab/clouds/index.html', import.meta.url)),
+    reconstruction: fileURLToPath(new URL('./examples/lab/reconstruction/index.html', import.meta.url)),
     lighting: fileURLToPath(new URL('./examples/lab/lighting/index.html', import.meta.url)),
     cloudscape: fileURLToPath(new URL('./examples/lab/cloudscape/index.html', import.meta.url)),
     layer: fileURLToPath(new URL('./examples/lab/layer-only/index.html', import.meta.url)),

@@ -14,6 +14,9 @@ importers:
       '@pmndrs/sky':
         specifier: 0.3.0
         version: 0.3.0(three@0.186.0)
+      '@pmndrs/upscaler':
+        specifier: file:vendor/pmndrs-upscaler-0.2.0.tgz
+        version: file:vendor/pmndrs-upscaler-0.2.0.tgz(three@0.186.0)
       '@types/node':
         specifier: 22.19.15
         version: 22.19.15
@@ -243,6 +246,12 @@ packages:
         optional: true
       react-dom:
         optional: true
+
+  '@pmndrs/upscaler@file:vendor/pmndrs-upscaler-0.2.0.tgz':
+    resolution: {integrity: sha512-0yGkRJ6lQNeXL+FUO91QVzyfWWb0WfdA08RussMlPrKtzQaXPIZw2cnMQecJXbz1PACM/Qn6w9+wF+PT3Y5cNA==, tarball: file:vendor/pmndrs-upscaler-0.2.0.tgz}
+    version: 0.2.0
+    peerDependencies:
+      three: '>=0.184.0'
 
   '@rollup/rollup-android-arm-eabi@4.63.3':
     resolution: {integrity: sha512-w3Jnvi1ocaVm/c7yVPpfB98XeSRBMyzp6njL5MVVbGyXjpmUkN+s6Hp4t0PqhGCCaI1ZHMKXt/w0lA1RCaLVcw==}
@@ -759,6 +768,10 @@ snapshots:
   '@pmndrs/scheduler@0.2.0': {}
 
   '@pmndrs/sky@0.3.0(three@0.186.0)':
+    dependencies:
+      three: 0.186.0
+
+  '@pmndrs/upscaler@file:vendor/pmndrs-upscaler-0.2.0.tgz(three@0.186.0)':
     dependencies:
       three: 0.186.0
 

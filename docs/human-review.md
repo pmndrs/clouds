@@ -131,15 +131,11 @@ transparency/refraction remains limited. This review does not accept P3 by itsel
 
 ## P4 — Reconstruction and performance presets (R4)
 
-**Availability:** Future; no reconstruction viewer or accepted preset yet.
+**Availability:** Comparison preview at [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/). Use the comprehensive [P4 critical review guide](p4-review.md) for exact controls, expected appearance, pass/fail cases, known issues and a report template. [P4 evidence](p4-evidence.md) separates automated results from visual acceptance.
 
-When available:
+Start with **Native reference**, then compare **Reduced + bilinear**, **Cloud-only spatial**, **Final FSR1** and **Final FSR3 temporal** using the wipe and fixed flight. Test foreground bars, moving geometry, cloud entry, camera cuts, sun/density/source edits and scale changes. Report new trails, holes, lost edges, brightness changes and stale history against native at the same pose. Cloud-only keeps the opaque scene at full resolution.
 
-- [ ] Compare native, spatial/final-scene and cloud-only reconstruction on identical recorded paths.
-- [ ] Exercise camera cuts, rapid flight, wind, sun changes, voxel edits, resize and foreground edges.
-- [ ] Review motion playback and guides for ghosting, disocclusion and double reconstruction.
-
-Questions: What ghosting/detail tradeoff is acceptable? Which quality/performance preset should be the default? Are resets visibly clean after cuts and edits? Technical acceptance captures timing and image comparisons on M5 Pro and RTX 3060 where available. Missing RTX evidence leaves Windows performance unverified.
+P4 does not upgrade the source art: stylized repeated forms remain provisional; distance/LOD, mismatched distant shadows, angular voxels, spatial bands and approximate atmosphere remain unresolved. Missing wind/advection and Windows/RTX results are unverified. No quality/performance preset is accepted yet. A technical pass is not visual sign-off.
 
 ## P5 — Reusable library and R3F v10 (R5)
 

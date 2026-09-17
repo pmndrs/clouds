@@ -1,6 +1,6 @@
 # P3 first lighting/environment slice — 2026-09-17
 
-**State:** runnable prototype at [`/lighting/`](http://127.0.0.1:5173/lighting/). P3.1/P3.2 have local technical evidence; full P3 remains in progress, including atmosphere integration and visual review. P4 has not started. The user accepted P2 for continued development with distance/LOD and view/shadow consistency tracked as open work.
+**State:** runnable prototype at [`/lighting/`](http://127.0.0.1:5173/lighting/). P3.1/P3.2 have local technical evidence; full P3 remains in progress, including atmosphere integration and visual review. At this checkpoint P4 had not started; see [P4 evidence](p4-evidence.md) for the subsequent reconstruction preview. The user accepted P2 for continued development with distance/LOD and view/shadow consistency tracked as open work.
 
 ## What changed
 
