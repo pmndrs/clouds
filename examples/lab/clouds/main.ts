@@ -6,7 +6,7 @@ import {
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createDensityField, type DensityPreset } from '../../../packages/three/src/sources/index';
-import { createReferenceCloud } from '../../../packages/three/src/volumetric/index';
+import { createReferenceCloud, referenceGroundReceiver } from '../../../packages/three/src/volumetric/index';
 import { MeasurementCollector, downloadCanvasCapture } from '../harness';
 import { runCloudChecks, type CloudCheck } from './checks';
 import compatibility from '../../../fixtures/compatibility.json';
@@ -37,6 +37,7 @@ async function boot() {
   camera.coordinateSystem = WebGPUCoordinateSystem; camera.updateProjectionMatrix();
   const controls = new OrbitControls(camera, renderer.domElement); controls.maxDistance = 6000; controls.minDistance = 1; controls.enableDamping = false;
   const groundMaterial = new MeshStandardNodeMaterial({ color: 0x66816c, roughness: 1 });
+  groundMaterial.mrtNode = referenceGroundReceiver();
   const ground = new Mesh(new PlaneGeometry(6000, 6000), groundMaterial); ground.rotation.x = -Math.PI / 2; scene.add(ground);
   const boxBounds = { min: [25, 200, -35] as const, max: [95, 380, 35] as const };
   const boxMaterial = new MeshStandardNodeMaterial({ color: 0xd67e53, roughness: 0.8 });

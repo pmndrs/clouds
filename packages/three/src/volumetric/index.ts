@@ -2,9 +2,9 @@ import {
   Data3DTexture, RedFormat, UnsignedByteType, LinearFilter, NearestFilter,
   StorageTexture, HalfFloatType, RenderTarget, DepthTexture, FloatType,
   MeshBasicNodeMaterial, QuadMesh, Matrix4, Vector3, WebGPUCoordinateSystem,
-  type WebGPURenderer, type Scene, type PerspectiveCamera,
+  Color, type WebGPURenderer, type Scene, type PerspectiveCamera,
 } from 'three/webgpu';
-import { texture } from 'three/tsl';
+import { texture, mrt, output as sceneOutput, vec4 } from 'three/tsl';
 import { densityPayloadBytes, type Bounds3 } from '@clouds/core';
 import { sharedBackend } from '../gpu/backend';
 import { createComputeTimer } from '../gpu/timer';
@@ -22,12 +22,20 @@ export interface ReferenceCloudSettings {
   sunDirection: Vector3;
 }
 
+/** Assign to the material.mrtNode of the reference floor at world Y=0. */
+export function referenceGroundReceiver() { return mrt({ cloudReceiver: vec4(1) }); }
+
 /** Bounded reference, conventional WebGPU depth only; no temporal state or overlapping volumes. */
 export function createReferenceCloud(renderer: WebGPURenderer, initialField: DenseDensityField, occluder: Bounds3) {
   const backend = sharedBackend(renderer);
   const { device } = backend;
   const timer = createComputeTimer(device);
-  const target = new RenderTarget(1, 1, { type: HalfFloatType, depthBuffer: true });
+  const target = new RenderTarget(1, 1, { type: HalfFloatType, depthBuffer: true, count: 2 });
+  target.texture.name = 'output';
+  target.textures[1].name = 'cloudReceiver';
+  target.textures[1].type = UnsignedByteType;
+  const sceneMRT = mrt({ output: sceneOutput, cloudReceiver: vec4(0) });
+  sceneMRT.setClearColor('cloudReceiver', new Color(0), 0);
   target.depthTexture = new DepthTexture(1, 1, FloatType);
   const output = new StorageTexture(1, 1);
   const optical = new StorageTexture(1, 1);
@@ -91,8 +99,9 @@ export function createReferenceCloud(renderer: WebGPURenderer, initialField: Den
     if (!Number.isFinite(settings.densityMultiplier) || settings.densityMultiplier < 0 || ![settings.viewSteps, settings.lightSteps].every(n => Number.isInteger(n) && n >= 1 && n <= 512)) throw new Error('Invalid integration settings.');
     if (!settings.sunDirection.toArray().every(Number.isFinite) || settings.sunDirection.lengthSq() === 0) throw new Error('Sun direction must be finite and nonzero.');
     const previousTarget = renderer.getRenderTarget();
+    const previousMRT = renderer.getMRT();
     try {
-      renderer.setRenderTarget(target); renderer.render(scene, camera);
+      renderer.setRenderTarget(target); renderer.setMRT(sceneMRT); renderer.render(scene, camera);
       camera.updateMatrixWorld();
       inverseVP.multiplyMatrices(camera.matrixWorld, camera.projectionMatrixInverse).toArray(values, 0);
       camera.getWorldPosition(cameraPosition).toArray(values, 16);
@@ -113,6 +122,7 @@ export function createReferenceCloud(renderer: WebGPURenderer, initialField: Den
           { binding: 5, resource: backend.texture(target.depthTexture!).createView() },
           { binding: 6, resource: backend.texture(optical).createView() },
           { binding: 7, resource: backend.texture(output).createView() },
+          { binding: 8, resource: backend.texture(target.textures[1]).createView() },
         ] });
       }
       const encoder = device.createCommandEncoder({ label: 'cloud-reference-frame' });
@@ -120,7 +130,7 @@ export function createReferenceCloud(renderer: WebGPURenderer, initialField: Den
       pass.dispatchWorkgroups(Math.ceil(target.width / 8), Math.ceil(target.height / 8)); pass.end();
       if (measure && timer) timer.resolve(encoder);
       device.queue.submit([encoder.finish()]);
-    } finally { renderer.setRenderTarget(previousTarget); }
+    } finally { renderer.setMRT(previousMRT); renderer.setRenderTarget(previousTarget); }
     if (present) quad.render(renderer);
   }
   /** Diagnostic only: never awaited by the animation/render connection. */
@@ -148,7 +158,7 @@ export function createReferenceCloud(renderer: WebGPURenderer, initialField: Den
       return timer.readMilliseconds();
     },
     readOptical: () => readPixels(optical), readComposite: () => readPixels(output),
-    get evidence() { return { source: field.descriptor, renderSize: [target.width, target.height], occupiedBrickFraction: occupiedRatio, densityPayloadBytes: field.data.byteLength, outputPayloadBytes: target.width * target.height * 28, settings: { ...settings, sunDirection: settings.sunDirection.toArray() }, depth: 'webgpu-zero-to-one', temporalHistory: false }; },
+    get evidence() { return { source: field.descriptor, renderSize: [target.width, target.height], occupiedBrickFraction: occupiedRatio, densityPayloadBytes: field.data.byteLength, outputPayloadBytes: target.width * target.height * 32, groundReceiver: 'explicit-material-mask-and-ray-plane', settings: { ...settings, sunDirection: settings.sunDirection.toArray() }, depth: 'webgpu-zero-to-one', temporalHistory: false }; },
     dispose() {
       if (disposed) return; disposed = true;
       density.dispose(); occupancy.dispose(); target.dispose(); output.dispose(); optical.dispose(); material.dispose(); params.destroy(); timer?.dispose();

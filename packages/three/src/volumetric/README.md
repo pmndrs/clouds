@@ -3,6 +3,7 @@
 Internal preview API; public packaging is P5. `createReferenceCloud(renderer, field, occluderBounds)` requires an initialized Three r186 WebGPU renderer. The caller owns the renderer, scene and perspective camera; the cloud instance owns its density/occupancy textures, offscreen scene target, optical/composite storage textures, uniform/timing buffers and output material.
 
 1. Create a `DenseDensityField` from the source module or supply the same validated `r8unorm` payload contract.
+   Mark the reference floor material with `material.mrtNode = referenceGroundReceiver()`. The marked geometry must lie at world Y=0; unmarked materials do not receive this reference ground-shadow contribution.
 2. Call `resize(width, height)` for the internal resolution.
 3. Call `render(scene, camera)` after updating the camera and scene. Its offscreen Three render, raw WGSL dispatch and TSL output quad share one device/queue. There is no readback or wait on this path.
 4. `setField` replaces density and occupancy resources. Changing bounds changes the physical path length; extinction remains inverse metres unless the caller adjusts it.
@@ -16,7 +17,7 @@ The marcher uses midpoint segments, exponential segment transmittance, single-sc
 
 - One dense bounded volume, conventional WebGPU 0..1 perspective depth; reverse-Z and orthographic cameras are unsupported here.
 - Opaque scene depth stops the volume march. Interleaved transparency/refraction is not handled.
-- Cloud self-shadow uses direct secondary sampling. The opaque caster is an analytical world-aligned box matching the demo mesh. Cloud shadows attenuate the reference ground receiver at world Y=0. These are required capability proofs, not arbitrary material/geometry shadow support.
+- Cloud self-shadow uses direct secondary sampling. The opaque caster is an analytical world-aligned box matching the demo mesh. Cloud shadows use an explicit material receiver mask and analytical ray/plane intersection at world Y=0. The extra RGBA8 attachment is written alongside scene color/depth; no second geometry pass is needed. The host render target and MRT state are restored after the pass. These are required capability proofs, not arbitrary material/geometry shadow support.
 - The generated source is a CPU baseline with lobed shapes/noise and empty boundary guards. It is not a Nubis port, GPU generation system, VDB importer or sparse residency system.
 - `readOptical`, `readComposite` and `measureGpu` are serialized diagnostics; callers must pause their render loop while using them. GPU timing includes the raw compute pass only, combining cloud integration, reference shadows and compute composition. It excludes opaque rendering and the display quad. GPU timestamps are optional.
 - The reference stores no history. Multiple volume overlap, world coverage, production atmosphere/environment integration and FSR follow in later phases.

@@ -4,6 +4,8 @@ Voxel-first cloud library for Three.js WebGPU, with independent lightweight clou
 
 ## Implementation planning
 
+- [Overall status: what works now and what comes next](docs/project-status.md)
+- [Human review checklists and questions for every stage](docs/human-review.md)
 - [Phases and visual review points](docs/implementation-plan.md)
 - [Agent orchestration and cost controls](docs/agent-orchestration.md)
 - [Work packets, dependencies and execution queue](docs/implementation-work-queue.md)

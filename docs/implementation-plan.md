@@ -2,6 +2,8 @@
 
 Prepared 2026-09-16 from the [specification](library-spec.md) and the author's [decisions](questions.md). Status: implementation authorized; P0 and the P1 technical reference are accepted locally, R1 shape review is pending. Track actual acceptance in the work queue. This document does not launch a background run or authorize publication.
 
+Human review steps, expected behavior and questions for every stage are in the [review guide](human-review.md). The [project status](project-status.md) is the concise current overview; update both at each checkpoint alongside the technical evidence.
+
 ## Working approach
 
 Build a visible result in each phase. Use objective engineering gates to establish correctness and short human reviews to choose appearance and tradeoffs. The orchestrator owns interfaces, the integrated renderer and acceptance; lower-cost agents implement bounded modules and verification tasks. See [agent orchestration](agent-orchestration.md) and the [work queue](implementation-work-queue.md).

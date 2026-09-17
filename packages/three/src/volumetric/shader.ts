@@ -21,6 +21,7 @@ struct Params {
 @group(0) @binding(5) var sceneDepth: texture_depth_2d;
 @group(0) @binding(6) var cloudOut: texture_storage_2d<rgba16float, write>;
 @group(0) @binding(7) var compositeOut: texture_storage_2d<rgba16float, write>;
+@group(0) @binding(8) var groundReceiver: texture_2d<f32>;
 
 ${REFERENCE_SHADOW_WGSL}
 
@@ -92,8 +93,10 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
   }
   var background = textureLoad(sceneColor, pixel, 0).rgb;
   // P1 reference ground receiver only. General material light hooks arrive in P3.
-  if (p.flags.x > 0.5 && depth < 0.999999 && abs(opaquePoint.y) < 0.5) {
-    background *= 0.25 + 0.75 * sunVisibility(opaquePoint + vec3(0.0,0.02,0.0));
+  if (p.flags.x > 0.5 && textureLoad(groundReceiver, pixel, 0).r > 0.5 && abs(ray.y) > 1e-7) {
+    let groundDistance = -p.camera.y / ray.y;
+    let groundPoint = p.camera.xyz + ray * groundDistance;
+    background *= 0.25 + 0.75 * sunVisibility(vec3(groundPoint.x, 0.02, groundPoint.z));
   }
   textureStore(cloudOut, pixel, vec4(radiance, transmittance));
   textureStore(compositeOut, pixel, vec4(radiance + transmittance*background, 1.0));
