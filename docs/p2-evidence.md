@@ -1,6 +1,6 @@
 # P2 cloudscape evidence
 
-Local development record, 2026-09-17. **R2 human review is pending.** This is a coverage and residency prototype; it is not a final appearance or release claim.
+Local development record, 2026-09-17. **R2 feedback is received; P2 is returned for coverage revision.** This is a coverage and residency prototype; it is not a final appearance or release claim.
 
 ## What is implemented
 
@@ -68,3 +68,9 @@ Local raw evidence: `artifacts/p2/2026-09-17/accelerated.json`, `reference.json`
 Use the [R2 checklist](human-review.md#p2--cloudscape-coverage-and-distance). Inspect repetition, horizon coverage, camera transitions, thin edges and shadows in motion. The contact sheet helps compare poses but cannot establish temporal stability.
 
 P3 and P4 remain unstarted. P2 is substantial enough to make this a useful human checkpoint before choosing further horizon/lighting treatment. The user's authorization permits continuing through P4; nothing beyond P4 is authorized for this unattended implementation run. R1 feedback and the earlier floor-shadow retest remain open. RTX 3060/Windows performance is unverified.
+
+## R2 feedback and viewer fixes
+
+The user confirms all checks pass, close flight/entry/scale feel good, and repeated forms are acceptable provisionally. The review exposes missing distant coverage, late reveal, shadows before clouds, whole-form population changes instead of weather coverage, and sampling/voxel artifacts. Therefore the earlier numerical checks and timings do not establish P2 visual acceptance. See the updated human review guide for the quality rubric and follow-up priorities.
+
+The viewer clock formerly accumulated time through an HTML slider with 0.02-second steps; sub-step frame advances could round to zero. It now owns full-precision time independently of the displayed slider. Five playback regressions cover 60/120/144/240 Hz, seek/end behavior and background pauses. Chrome playback was observed advancing beyond 30 seconds with camera motion and no application errors. Density now allows zero and 0.005 increments; Chrome rendered no volumetric clouds or their ground shadows at zero (the independent thin layer remains separate). The old Coverage control is relabeled Cloud population and allows zero. These are viewer fixes, not a weather system or distant-LOD fix. Current validation: 47 unit tests, 19 GPU checks in Chrome, type checking and build pass.

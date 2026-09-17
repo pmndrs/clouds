@@ -53,7 +53,7 @@ Questions: Which silhouette, scale and softness direction should lead? Does the 
 
 ## P2 — Cloudscape coverage and distance
 
-**Availability:** Runnable now at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/). P2 implementation is available, but R2 human review is pending; local technical checks and measurements are recorded in [P2 evidence](p2-evidence.md). [`/clouds/`](http://127.0.0.1:5173/clouds/) is the P1 viewer and cannot substitute for this gate.
+**Availability:** Runnable now at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/). R2 feedback is received and P2 is returned for coverage revision; local technical checks and measurements are recorded in [P2 evidence](p2-evidence.md). [`/clouds/`](http://127.0.0.1:5173/clouds/) is the P1 viewer and cannot substitute for this gate.
 
 Current slice: an eight-form 96³ r8 atlas drives 81 resident world-cell
 descriptors. Near and medium formations stay volumetric; a separate thin
@@ -73,7 +73,39 @@ Review path:
 Questions: Is the horizon rich enough? Are repeated forms acceptable? Are
 cell-crossing transitions visible or distracting? Technical acceptance measures
 coverage, transitions, memory, generation/upload and acceleration against a
-reference. The local 42-unit / 19-GPU check suite passes, including conservative lookup and density rebase comparisons. Review the finite 7.7 km volumetric support, stylized/repeated forms, and provisional coarse shadows; P2 visual acceptance remains open.
+reference. The local 47-unit / 19-GPU check suite passes, including conservative lookup and density rebase comparisons. Review the finite 7.7 km volumetric support, stylized/repeated forms, and provisional coarse shadows; P2 visual acceptance remains open.
+
+R2 review interpretation: the user reports that the GPU checks all pass. The
+fixed flight is substantial, and scale, spacing and entry feel good. Repetition
+is acceptable provisionally. The review is **received and returned for coverage
+work**; it is not P2 acceptance. Distant clouds arrive too late with a harsh
+pop-in, shadows are visible before their clouds, and the world can feel like a
+pool. Coverage currently tends to hide whole clouds; the density control does
+not reach true zero or a wispy setting. Lookup on/off produces no visible
+appearance change. Sun and shadows move, but the shadows look boxy. The supplied screenshots are preserved locally as `artifacts/p2/2026-09-17/review/user-banding-and-shadow.png` and `user-angular-voxel-silhouette.png` (artifacts are excluded from Git).
+
+Follow-up: the flight clock now retains sub-frame precision separately from the range input, which rounded away increments at high refresh rates. Regression tests cover 60/120/144/240 Hz, and Chrome playback was observed progressing beyond 30 seconds with camera movement and no application errors. Density now reaches zero in 0.005 increments; zero-density rendering was verified in Chrome. The population control also reaches zero and is labeled **Cloud population**, because it does not yet implement weather coverage. These viewer fixes do not complete the coverage work. Current limits explain some of the
+observations: volumetric view fade is approximately 4.4–7.7 km, cached shadow
+density is not faded with the view, and there is no far LOD or mass handoff.
+
+Questions answered by this review: stylized forms and
+repetition are acceptable provisionally; scale, spacing and cloud entry are
+acceptable for this slice. Keep those answers in the record and do not ask for
+them again. Remaining P2 questions are horizon coverage, near/far transition,
+shadow ordering/shape, and weather coverage semantics. Retest Chrome playback if the updated page still stalls; the original browser symptom was reported by the user and the repaired clock was verified locally.
+
+### Phase quality expectations
+
+| Phase | Quality bar for human review |
+| --- | --- |
+| P0 | Diagnostic controls and GPU result are legible; resize and lifecycle remain stable. |
+| P1 | A single cloud has readable scale, depth and shadow continuity; stylized form is acceptable provisionally. |
+| P2 | Cloudscape has useful horizon coverage, continuous near/far transitions, sensible controls, and shadows do not lead clouds. Track sampling bands/angular voxel visibility against a higher-quality spatial reference. Repeated forms may remain provisional. |
+| P3 | Sky, sun, shadows and environment agree with visible clouds; softness and cache refresh are credible. Boxy shadow filtering is tracked P3 quality debt. |
+| P4 | Reconstruction and presets hold detail through motion, cuts, disocclusion and foreground edges; view banding and angular voxel steps need spatial-reference improvement before this gate. |
+
+Do not promise an FSR fix for the banding or voxel-step observations. They are
+tracked quality debt pending spatial-reference work.
 
 ## P3 — Light, sky and environment (R3)
 
@@ -141,3 +173,29 @@ Questions: Is the thin-cloud appearance convincing at the horizon? Is animation 
 | Are stylized forms acceptable at this stage? | Acceptable as provisional | Keep the correctness baseline; finer detail comes later |
 | Floor shadow appears to z-fight | Reported defect; not intentional | P1 depth-based receiver dropout reproduced and fixed; 14 GPU checks pass. Human retest and exact reported scene remain open |
 | Which silhouettes should lead P2? | No preference selected yet | Keep the three alternatives available; this does not block coverage work |
+
+## Latest R2 review record — 2026-09-17
+
+| Observation / question | Human feedback | Technical follow-up / status |
+| --- | --- | --- |
+| Do the GPU checks pass? | All pass | Recorded as human feedback; technical evidence remains in [P2 evidence](p2-evidence.md) |
+| How does the fixed flight feel? | Substantial; scale, spacing and cloud entry are good | Keep the path for repeatable review |
+| Is repetition acceptable now? | Fine provisionally | No P2 sign-off; revisit after coverage work |
+| Horizon and transition | Distant clouds appear too late with harsh pop-in; shadows appear before clouds; the world feels like a pool | P2 coverage/transition/shadow-order defect; current 4.4–7.7 km view fade has no far LOD or mass handoff |
+| Coverage and density controls | Coverage just hides whole clouds; density cannot reach zero or a wispy value | P2 control-semantics and coverage follow-up; suspected slider-step quantization/range fix is pending owner confirmation |
+| Lookup and lighting | Lookup causes no appearance change; sun/shadows move but shadows are boxy | Lookup result recorded; shadow filtering is tracked P3 quality debt |
+| Image quality | Bands and angular voxel visibility observed; screenshots supplied | Track spatial-reference improvement before P4; do not promise an FSR fix |
+| Animation/browser | Animation works in IAB but not Chrome | Browser-specific flight/animation issue remains open |
+
+**R2 disposition:** feedback received; returned for coverage work. No P2
+acceptance. P3 and P4 have not started.
+
+### R2 follow-up priorities
+
+1. Persistent distant volumetric formations driven by the same world/weather identity as nearby clouds; select a coarse representation and transition without duplicated extinction. Increasing the fade radius alone is not the acceptance criterion.
+2. Make view density and cloud-shadow representation agree through the transition; shadows should not announce clouds that abruptly appear later.
+3. Add a spatial weather/coverage driver that produces coherent patches and changing cloud extent. Retain the population control as a diagnostic if useful.
+4. Compare ray-step count, density resolution and light-cache resolution separately at the photographed angles. Identify the sources of bands and angular silhouettes before adding reconstruction.
+5. Recheck approach sequences starting beyond the current fade range, including a fixed cloud at several distances; region-rebase parity alone is insufficient.
+
+Known artifacts need not be reported repeatedly. Report new behavior, a particularly bad view, or a regression after a fix. Native render scale and 512 samples are useful comparisons when diagnosing an artifact, not conditions for dismissing a default-view defect.
