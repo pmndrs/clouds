@@ -849,7 +849,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - March cost within +0.3 ms.
   - Parity passes; `pnpm check` green.
 
-### [~] P4-G Real-world VDBs: Disney cloud, OpenVDB bunny and the user's samples · Sonnet
+### [x] P4-G Real-world VDBs: Disney cloud, OpenVDB bunny and the user's samples · Sonnet
 - **Owns:**
   - `assets/clouds/disney/**` (committed, with `NOTICE.md`: CC BY-SA 3.0,
     © 2017 Disney Enterprises, plus the Kevin Udy photo reference attribution)

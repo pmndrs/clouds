@@ -1,0 +1,156 @@
+{
+  "url": "http://127.0.0.1:50315/flagship/?cloud=local/cloud-0001",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:39:11.817Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-G/cloud-0001/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9278835666666669,
+          "skyCompute": 0.225247,
+          "lightGridReduce": 0.051577,
+          "lightGrid": 0.030581,
+          "marchNear": 0.35058956666666663,
+          "marchFar": 1.4376756666666666,
+          "composite": 0.9981331000000001,
+          "dome": 0.23139268333333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.799999999999955,
+          "last": 16.600000000000136
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "local/cloud-0001",
+        "frames": 97,
+        "assetLoadMs": 23.600000023841858,
+        "firstCloudFrameMs": 32.29999998211861
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-G/cloud-0001/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8854794,
+          "skyCompute": 0.16279,
+          "lightGridReduce": 0.051577,
+          "lightGrid": 0.030581,
+          "marchNear": 0.21877935,
+          "marchFar": 2.4840724833333336,
+          "composite": 0.6099733833333334,
+          "dome": 0.12262663333333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "local/cloud-0001",
+        "frames": 192,
+        "assetLoadMs": 23.600000023841858,
+        "firstCloudFrameMs": 32.29999998211861
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-G/cloud-0001/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.1468312833333336,
+          "skyCompute": 0.212038,
+          "lightGridReduce": 0.051577,
+          "lightGrid": 0.04973522222222223,
+          "marchNear": 0.2952567166666666,
+          "marchFar": 1.8265887666666667,
+          "composite": 0.9090479666666664,
+          "dome": 0.15573443333333337
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "local/cloud-0001",
+        "frames": 286,
+        "assetLoadMs": 23.600000023841858,
+        "firstCloudFrameMs": 32.29999998211861
+      }
+    },
+    {
+      "name": "frontlit",
+      "file": "work/captures/P4-G/cloud-0001/frontlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.2591621166666662,
+          "skyCompute": 0.227413,
+          "lightGridReduce": 0.051577,
+          "lightGrid": 0.0464894705882353,
+          "marchNear": 0.36686369999999996,
+          "marchFar": 1.71557745,
+          "composite": 1.0322516499999996,
+          "dome": 0.2587495166666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "frontlit",
+        "timeOfDay": 16.5,
+        "sunElevation": 31.913473845740242,
+        "sunAzimuth": 275.1349011966056,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "local/cloud-0001",
+        "frames": 381,
+        "assetLoadMs": 23.600000023841858,
+        "firstCloudFrameMs": 32.29999998211861
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "url": "http://127.0.0.1:51483/flagship/?cloud=disney&time=15&noground=1&quality=high",
+  "size": [
+    1998,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:40:57.549Z",
+  "shots": [
+    {
+      "name": "edge",
+      "file": "work/captures/P4-G/match/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.52688895,
+          "skyCompute": 0.290995,
+          "lightGridReduce": 0.025582,
+          "lightGrid": 0.038662,
+          "marchNear": 0.4880919166666667,
+          "marchFar": 1.1593042500000001,
+          "composite": 1.1631238833333333,
+          "dome": 0.05947746666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045,
+          "last": 16.600000000000136
+        },
+        "renderSize": [
+          1998,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 15,
+        "sunElevation": 49.08506948284602,
+        "sunAzimuth": 259.9271921656391,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "disney",
+        "frames": 97,
+        "assetLoadMs": 22,
+        "firstCloudFrameMs": 32.29999998211861
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

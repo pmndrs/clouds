@@ -1,0 +1,156 @@
+{
+  "url": "http://127.0.0.1:51387/flagship/?cloud=disney",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:40:50.308Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-G/disney/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9454146666666664,
+          "skyCompute": 0.196247,
+          "lightGridReduce": 0.033705,
+          "lightGrid": 0.031039,
+          "marchNear": 0.35497966666666686,
+          "marchFar": 1.375831516666667,
+          "composite": 0.9658206166666666,
+          "dome": 0.1690263333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "disney",
+        "frames": 95,
+        "assetLoadMs": 28.19999998807907,
+        "firstCloudFrameMs": 42.400000005960464
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-G/disney/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.4179497333333337,
+          "skyCompute": 0.203289,
+          "lightGridReduce": 0.033705,
+          "lightGrid": 0.031039,
+          "marchNear": 0.3665542333333334,
+          "marchFar": 1.4749947,
+          "composite": 0.9806010999999998,
+          "dome": 0.17994861666666662
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "disney",
+        "frames": 190,
+        "assetLoadMs": 28.19999998807907,
+        "firstCloudFrameMs": 42.400000005960464
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-G/disney/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.3295935666666663,
+          "skyCompute": 0.281787,
+          "lightGridReduce": 0.033705,
+          "lightGrid": 0.05422088888888889,
+          "marchNear": 0.3748123833333332,
+          "marchFar": 1.0476554666666662,
+          "composite": 1.0500708166666668,
+          "dome": 0.11341633333333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "disney",
+        "frames": 285,
+        "assetLoadMs": 28.19999998807907,
+        "firstCloudFrameMs": 42.400000005960464
+      }
+    },
+    {
+      "name": "frontlit",
+      "file": "work/captures/P4-G/disney/frontlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.1802835833333332,
+          "skyCompute": 0.217455,
+          "lightGridReduce": 0.033705,
+          "lightGrid": 0.04350652941176471,
+          "marchNear": 0.37393171666666664,
+          "marchFar": 1.7957289500000002,
+          "composite": 1.0077144500000002,
+          "dome": 0.15620740000000005
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "frontlit",
+        "timeOfDay": 16.5,
+        "sunElevation": 31.913473845740242,
+        "sunAzimuth": 275.1349011966056,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "disney",
+        "frames": 380,
+        "assetLoadMs": 28.19999998807907,
+        "firstCloudFrameMs": 42.400000005960464
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

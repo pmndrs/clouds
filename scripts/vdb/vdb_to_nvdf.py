@@ -213,6 +213,15 @@ def convert(args):
         detail = fetch_resampled(args.detail_grid)[0] if args.detail_grid else None
         scale = fetch_resampled(args.scale_grid)[0] if args.scale_grid else None
         density = None
+    if args.rotate_y:
+        # Quarter turns about the up axis (texture arrays are [up, row, x]); lets an elongated cloud face the flagship's side-on bookmarks.
+        k = (args.rotate_y // 90) % 4
+        rot = lambda a: None if a is None else np.ascontiguousarray(np.rot90(a, k, axes=(1, 2)))
+        mask = rot(mask)
+        density, detail, scale, given_sdf = rot(density), rot(detail), rot(scale), rot(given_sdf)
+        if mode == 'pack':
+            r8 = rot(r8)
+        t0 = [0, 0, 0]   # placement metadata is not tracked through the rotation (the runtime centres the cloud itself)
     timer.lap('read+resample')
 
     # --- crop (on the occupancy mask)
@@ -341,6 +350,8 @@ def parser():
     p.add_argument('--name', help='cloud name for cloud.json (default: output dir name)')
     p.add_argument('--voxel-size', type=float, help='target voxel size in metres (default 8; pack mode: the VDB voxel size)')
     p.add_argument('--world-scale', type=float, default=1.0, help='multiply VDB world units by this to get metres (default 1)')
+    p.add_argument('--rotate-y', type=int, default=0, choices=[0, 90, 180, 270],
+                   help='rotate the field about the up axis by a quarter-turn multiple (default 0)')
     p.add_argument('--margin', type=int, default=8, help='crop margin in target voxels around profile > 0 (default 8 = 64 m)')
     p.add_argument('--profile-grid', default='dimensional_profile')
     p.add_argument('--detail-grid', help='detail-type grid (0 wispy .. 1 billowy). pack default: detail_type; fog/sdf: optional')
