@@ -266,7 +266,38 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
     `edge` and `inside` thanks to the light grid; report the drop.
   - The light grid update stays at or under 0.1 ms per frame.
 
-- P1-06 Near/far split at 200 m (¼ and ½ res), front-to-back merge, aerial perspective on clouds, wind animation.
+### [~] P1-06 Performance: near/far split and in-cloud cost · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{runtime.ts,shaders/march.wgsl.ts,shaders/frame.wgsl.ts,shaders/composite.wgsl.ts}`
+  - `examples/lab/flagship/{main.ts,three-bridge.ts}`
+  - you may also touch `shaders/density.wgsl.ts`, but only for pure algebraic
+    speed-ups that keep the P1-04 parity page passing
+- **Does:**
+  - **Nubis near/far split** (s157–160): the march runs as two passes.
+    - **Near:** t ∈ [0, 200 m) at ¼ output res.
+    - **Far:** t ≥ 200 m at ½ output res.
+    - Composite upsamples both depth-aware and merges front to back:
+      `rgb = near.rgb + near.a * far.rgb`, `a = near.a * far.a`.
+    - The split distance and both scales are quality-preset settings.
+  - **In-cloud cost** (review #4):
+    - Skip `cloudDistance` re-fetches while deep inside, using a Lipschitz bound.
+    - Cut `pow` calls in the near-camera HF branch.
+    - Hoist ray-constant remaps.
+    - Skip lighting when `σ·ds` is negligible.
+    - Raise the transmittance cutoff to about 0.03 if it is invisible.
+  - **Composite tap rejection** (review #3): compare taps against the march's
+    actual end distance, min(volume exit, scene), not scene distance alone.
+  - **Quality presets:** define `low`, `medium` and `high`, each with near/far
+    scales, maxSteps and the transmittance cutoff.
+- **Acceptance (P1 measures, at `--size 2560x1440`):**
+  - clouds total (lightGrid + march + composite) ≤ 4 ms from `ground`, `edge`,
+    `above` and `backlit`, and ≤ 6 ms `inside`, on high, for both clouds
+  - report a table for all 3 presets
+  - captures compared with P1-05 show no visible quality loss far away, and only
+    acceptable softening near; describe it honestly
+  - `pnpm check` green; the parity page still passes
+  - **Frame stability:** with `?animateTime=1`, p95 ≤ 1.5× p50
+
 - P1-07 Cloud shadow on the ground (from the light grid or a projected map).
 - P1-08 Visual acceptance and timing: all bookmarks on both clouds, side by side with Tidewater (`work/captures/P0-04/`), and a timing table against the P1 measures.
 
