@@ -1,0 +1,157 @@
+{
+  "url": "http://127.0.0.1:53612/runtime-tests/atmosphere/sky-cost.html",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:37:13.442Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P1-02/sky-cost/view.jpg",
+      "report": {
+        "gpuMs": {},
+        "frameMs": {
+          "p50": 0,
+          "p95": 0,
+          "last": 0
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "scenarios": [
+          {
+            "name": "static (sun fixed)",
+            "renderMs": 0.6130985444444442,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.3266666683885786,
+            "wallMs": 0.7266666665673256
+          },
+          {
+            "name": "animate every frame, defaults",
+            "renderMs": 10.282593144444444,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.7777777804268731,
+            "wallMs": 2.769999999801318
+          },
+          {
+            "name": "  only skyView LUT re-render",
+            "renderMs": 1.7852158111111112,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.38555555542310077,
+            "wallMs": 1.1633333335320155
+          },
+          {
+            "name": "  only cube capture (6 faces)",
+            "renderMs": 0.9334047333333335,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.5844444440470802,
+            "wallMs": 1.0333333333333334
+          },
+          {
+            "name": "  only PMREM prefilter (sky compute)",
+            "renderMs": 10.057353344444447,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.3677777796983719,
+            "wallMs": 2.344999999801318
+          },
+          {
+            "name": "animate, pmrem quality fast",
+            "renderMs": 11.056568666666665,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.49222222136126625,
+            "wallMs": 1.9733333334326744
+          },
+          {
+            "name": "animate, pmrem three generator (250 ms, 1 level/frame)",
+            "renderMs": 5.223848455555555,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.6166666676600774,
+            "wallMs": 1.4600000003973643
+          },
+          {
+            "name": "animate, pmrem three generator (1000 ms, 1 level/frame)",
+            "renderMs": 2.363987266666666,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.7488888886239794,
+            "wallMs": 1.5033333331346512
+          },
+          {
+            "name": "animate, cubeSize 64",
+            "renderMs": 5.787822722222224,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.580000000529819,
+            "wallMs": 1.7916666666666667
+          },
+          {
+            "name": "animate, cubeSize 128",
+            "renderMs": 7.093460377777782,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.6633333338631524,
+            "wallMs": 2.2383333335320157
+          },
+          {
+            "name": "animate, cubeSize 512",
+            "renderMs": 11.123011300000002,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.5511111120382944,
+            "wallMs": 3.8699999998013177
+          },
+          {
+            "name": "animate, quality low",
+            "renderMs": 7.5019239888888904,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.6899999979469511,
+            "wallMs": 2.466666666666667
+          },
+          {
+            "name": "animate, cubeSize 64 + pmrem fast",
+            "renderMs": 5.713711344444443,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.5166666663355297,
+            "wallMs": 2.094999999801318
+          },
+          {
+            "name": "update every 4th frame, defaults",
+            "renderMs": 3.2234035777777774,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.4133333318763309,
+            "wallMs": 1.5416666666666667
+          },
+          {
+            "name": "update every 15th frame, defaults",
+            "renderMs": 1.3054966777777774,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.3377777804931005,
+            "wallMs": 0.9699999998013179
+          },
+          {
+            "name": "update every 4th frame, cubeSize 128",
+            "renderMs": 2.1914259666666664,
+            "computeMs": 0.6570129999999993,
+            "cpuMs": 0.4355555574099223,
+            "wallMs": 1.3916666666666666
+          }
+        ],
+        "wallClockMsPerOp": {
+          "empty queue round trip": 0.07666666706403097,
+          "skyView LUT render": 0.4633333335320155,
+          "cube capture (6 faces)": 0.7800000001986821,
+          "PMREM prefilter": 1.5199999998013178,
+          "AP LUT compute": 0.27666666607062024,
+          "whole frame, sun fixed": 0.33666666646798454,
+          "whole frame, sun moving": 1.7133333335320156,
+          "all three (full sun change)": 1.5533333331346513
+        },
+        "env": "three r186, pmrem mode sky, layout atlas"
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
