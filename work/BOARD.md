@@ -956,6 +956,8 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Parity passes (or a documented variant); `pnpm check` green.
   - Be honest about what remains versus offline.
 
+- [x] Phase 3 and Phase 4 accepted by the orchestrator ([report](reports/P3-P4-acceptance.md)).
+
 ## Phase 5 — Scale down to laptops and phones
 
 ### [~] P5-A Generator and streaming memory diet · Sonnet
