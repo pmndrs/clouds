@@ -454,6 +454,34 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Main-view captures and parity are unchanged.
   - `pnpm check` green.
 
+### [~] P2-03 Open-water demo scene · Sonnet
+- **Owns:** `examples/lab/open-water/**` (page wired into vite).
+- **Read-only:** `packages/three` (the adapter), `packages/runtime`,
+  `examples/lab/scenes/ocean` (P2-A).
+- **Does:** the Phase 2 demo, open water and sky with clouds, using
+  **`@clouds/three` exactly like a user would**.
+  - sky, ocean (`createOcean`), clouds composited by `clouds.node`, and cloud
+    shadows on the water (automatic through the composite alpha)
+  - **Clouds:** a generated cloudscape over the sea, using
+    `createVolumeGenerator` with a procedural weather map at 512×512×64 (8 m),
+    centred on the camera's area and amortized at startup. Needs
+    `setVolume(GpuCloudVolume)`, which P2-04 is adding; poll for it.
+    `?cloud=parkouring` falls back to an asset.
+  - **Reflections:** once P2-04 lands the dome and the adapter exposes a
+    reflection helper, feed `clouds.reflection(dir)` into the ocean's
+    reflection. If the adapter lacks the helper, report the exact API you need.
+  - Bookmarks: `shore` (2 m above the water), `horizon`, `sunset` (backlit
+    clouds over a glitter path) and `flight` (300 m, among clouds).
+  - Capture contract; the HUD shows GPU ms per pass.
+- **Acceptance:**
+  - 60 fps for the whole frame at 2560×1440: report the whole-frame GPU total
+    and `frameMs` p95.
+  - Clouds visible in the water reflection, or a clear report of the blocking
+    API.
+  - Shadows visible on the water.
+  - Captures at all bookmarks in `work/captures/P2-03/`.
+  - The integration-line count is ≤ 20.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
