@@ -20,6 +20,48 @@ say so in your report; don't silently diverge.
 - **Units.** Metres, world y-up, right-handed, WebGPU clip space with z in 0…1.
   Conventional depth for P1. Reversed-Z is a P2 option.
 
+## Foundation (exists, orchestrator-owned; extend only via your task's listed files)
+
+- `src/assets.ts`: `loadCloudVolume(url)` (decodes the SDF to metres), `loadCloudNoise(url)`.
+  Assets are served from `/assets/clouds/<name>/` because vite has `fs.allow ../..`. Use
+  `new URL('../../../../assets/clouds/parkouring/', import.meta.url).href` or the equivalent from your file.
+- `src/resources.ts`: `uploadCloudVolume` creates NVDF `rgba8unorm` and SDF `r16float` (metres, rounded
+  down), and gives `extentMeters` in world axes. `uploadCloudNoise` uploads the 8 mips.
+- `src/shaders/common.wgsl.ts`: `valueRemap`, `valueErosion`, `fractionFromValue`, `pcg`/`hash01`, `ign`.
+- `src/shaders/volume.wgsl.ts`: `volumeWgsl(group)` gives the bindings plus `volumeUvw`, `insideVolume`,
+  `sampleModeling(p, mip)`, `cloudDistance(p)` (conservative outside the box) and `volumeRayInterval`.
+  Also `createVolumeBindGroupLayout` (explicit; never use `layout: 'auto'` for passes that take the
+  volume group), `createVolumeBindGroup`, `volumeUniformData` and `createVolumeSamplers`.
+- **Bind group convention:** group 0 is the volume (shared by every pass); group 1 is per-pass.
+
+## Density function: fixed signature (P1-01 implements it, P1-04 tests it)
+
+`src/shaders/density.wgsl.ts` exports `DENSITY_WGSL`. It requires `COMMON_WGSL` and `volumeWgsl(0)` to be
+concatenated before it and declares:
+
+```wgsl
+struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, _p0: f32, _p1: f32 }
+// x = full up-rezzed density (0..1, before extinction scaling), y = profile * density scale (cheap).
+fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32>
+```
+
+- It is a line-for-line port of `GetVoxelCloudDensitySamples` + `GetUprezzedVoxelCloudDensity` from
+  `assets/nubis-voxel-clouds/Code Fragments/VoxelCloudSampler.cg`, including the
+  `* ValueRemap(distance, 10, 120, 0.25, 1)` near-camera fade and `pow(saturate(densityScale), 4)`.
+- Noise is sampled at `(p - inputs.wind) * cloudVolume.noiseScale` with the **world** position. The
+  Decima code is z-up and scrolls `xy`; our horizontal plane is `xz`, so `wind.y` should be 0.
+- The NVDF is sampled at mip `inputs.baseMip`.
+- The noise mip is `log2(1 + |rayDistance * mipDistanceScale|) + baseMip`.
+
+## Frame order in the flagship (P1-01 restructures `main.ts`)
+
+1. three renders the scene into a `RenderTarget` with a `DepthTexture` (`FloatType`, `depth32float`).
+2. `sky.update`, then the runtime encodes light-grid, march and composite into one encoder, reading the
+   scene depth through `sharedBackend(renderer).texture(...)`, as the legacy `volumetric/index.ts` did.
+3. A three `QuadMesh` presents `sceneColor * cloud.a + cloud.rgb`, then tone mapping.
+
+The current `cloud-hook.ts` runs before the scene render, so P1-01 must change it.
+
 ## Data
 
 | Resource | Format | Notes |

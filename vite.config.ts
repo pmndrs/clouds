@@ -16,6 +16,9 @@ export default defineConfig({
   server: { port: 5173, strictPort: true, fs: { allow: ['../..'] } },
   build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
+    testDensity: fileURLToPath(new URL('./examples/lab/runtime-tests/density/index.html', import.meta.url)),
+    testLightGrid: fileURLToPath(new URL('./examples/lab/runtime-tests/light-grid/index.html', import.meta.url)),
+    testAtmosphere: fileURLToPath(new URL('./examples/lab/runtime-tests/atmosphere/index.html', import.meta.url)),
     gpuSmoke: fileURLToPath(new URL('./examples/lab/gpu-smoke/index.html', import.meta.url)),
     reactDensity: fileURLToPath(new URL('./examples/lab/legacy/react-density/index.html', import.meta.url)),
     realism: fileURLToPath(new URL('./examples/lab/legacy/realism/index.html', import.meta.url)),
