@@ -95,7 +95,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 ### Wave A (parallel)
 
-### [ ] P1-01 First image: density, SDF march, composite and the flagship frame · Sonnet
+### [~] P1-01 First image: density, SDF march, composite and the flagship frame · Sonnet
 - **Owns:**
   - `packages/runtime/src/{runtime.ts,shaders/density.wgsl.ts,shaders/march.wgsl.ts,shaders/composite.wgsl.ts}`
   - export lines added to `packages/runtime/src/index.ts`
@@ -127,7 +127,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
   - Also capture `--query cloud=stormbird` with the `ground` and `inside` shots.
   - Look at every capture yourself and describe what you see.
 
-### [ ] P1-02 Sky coupling: LUT-driven sun, ambient and aerial perspective · Sonnet
+### [~] P1-02 Sky coupling: LUT-driven sun, ambient and aerial perspective · Sonnet
 - **Owns:**
   - `packages/runtime/src/shaders/atmosphere.wgsl.ts`
   - `examples/lab/flagship/sky-bridge.ts` (new file; P1-01 owns the rest of flagship)
@@ -161,7 +161,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
   - The report documents the LUT mappings with file:line references into the sky
     source.
 
-### [ ] P1-03 Voxel light grid · Sonnet
+### [x] P1-03 Voxel light grid · Sonnet
 - **Owns:**
   - `packages/runtime/src/{light-grid.ts,shaders/light-grid.wgsl.ts,light-grid.test.ts}`
   - `examples/lab/runtime-tests/light-grid/**`
@@ -189,7 +189,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
     grid ever bound.
   - It reports per-frame GPU ms for the update slice on Parkouring's real dims.
 
-### [ ] P1-04 Density parity test · Sonnet
+### [~] P1-04 Density parity test · Sonnet
 - **Owns:**
   - `packages/runtime/src/reference/density.ts` and its test
   - `examples/lab/runtime-tests/density/**`

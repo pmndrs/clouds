@@ -1,0 +1,58 @@
+{
+  "url": "http://127.0.0.1:49622/runtime-tests/light-grid/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:29:08.130Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P1-03/view.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridSlice": 0.0676027833333333,
+          "lightGridStartupFull": 0.054288
+        },
+        "frameMs": 18,
+        "renderSize": [
+          0,
+          0
+        ],
+        "checks": 15,
+        "failures": [],
+        "parity": {
+          "voxels": 60,
+          "worstSampledPct": 0.23705948030017582,
+          "worstAllPct": 0.5534554416156722,
+          "gridDims": [
+            24,
+            20,
+            18
+          ]
+        },
+        "parkouring": {
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "gridDims": [
+            54,
+            54,
+            26
+          ],
+          "voxelM": 8
+        },
+        "startupMs": 0.054288,
+        "sliceMs": 0.0676027833333333
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

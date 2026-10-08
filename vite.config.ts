@@ -13,6 +13,8 @@ export default defineConfig({
     '@clouds/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
     '@clouds/three': fileURLToPath(new URL('./packages/three/src/index.ts', import.meta.url)),
   } },
+  // Runtime assets are served at /clouds/<name>/... and /nubis-voxel-clouds/... in dev and build.
+  publicDir: fileURLToPath(new URL('./assets', import.meta.url)),
   server: { port: 5173, strictPort: true, fs: { allow: ['../..'] } },
   build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
