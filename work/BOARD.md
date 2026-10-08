@@ -628,6 +628,71 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Generation never stalls a frame.
   - `pnpm check` green.
 
+### [~] P3-C2 Sky layer quality and temporal amortization · Fable (escalated)
+- **Owns:**
+  - `packages/runtime/src/{sky-layer.ts,shaders/sky-layer.wgsl.ts,shaders/composite.wgsl.ts}`
+  - `packages/runtime/src/generate/weather.ts`, only for shaping that must stay
+    in sync with the generator
+  - `examples/lab/cloudscape-gen/**`
+  - minimal, re-read-before-edit changes to `runtime.ts`; P3-E edits it too
+- **Problem:** `work/captures/P3-C1/*`, `work/reports/P3-C1.md`. The layer
+  works but shows:
+  - peaked or conical tops instead of domes
+  - static ¼-res hatching
+  - unexplained vertical "cliff" edges, which are real geometry
+  - a blocky horizon band
+  - shading darker than the voxel clouds
+  - a faintly visible box boundary
+- **Does:**
+  - Fix the shape and shading so near-far continuity holds: same silhouettes
+    and brightness as voxel clouds at the boundary.
+  - Add the Nubis 16-frame temporal amortization for this layer: render 1/16
+    of the pixels per frame at ¼ res, reproject with the cloud mean depth
+    (and wind), use a neighbourhood clamp, and reset on cuts or sun jumps. This
+    removes the hatching and pays for higher quality.
+  - Root-cause the cliffs.
+- **Acceptance:**
+  - `cloudscape-gen?sky=1` at the `horizon`, `ground`, `seamNorth` and `above`
+    bookmarks reads as one continuous cumulus field to the horizon: domed tops,
+    no hatching, no cliffs, no visible box edge. Side-by-side with the P3-C1
+    captures.
+  - Layer cost ≤ 1.0 ms at 2560×1440 (amortized).
+  - Camera motion shows no ghosting trails. Verify with a 5-frame capture
+    sequence while the camera moves.
+  - `pnpm check` green; the flagship is unchanged with the layer off.
+
+### [~] P3-E Performance on large generated volumes · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{light-grid.ts,shaders/light-grid.wgsl.ts,shaders/march.wgsl.ts,shaders/lighting.wgsl.ts}`
+  - `shaders/density.wgsl.ts`, algebraic changes only, parity must pass
+  - minimal, re-read-before-edit changes to `runtime.ts`; P3-C2 edits it too
+  - `examples/lab/plains-flight/**` for measurement
+- **Problem** (`work/reports/P3-D.md`, `work/captures/P3-D/capture.json`):
+  - The light grid costs about 3 ms every frame on the 512×512×64 generated
+    volume (256×256×32 grid; Parkouring was 0.07 ms). Nubis: 0.1–0.2 ms every
+    8 frames.
+  - Climbing under a thick base costs 8–24 ms in the march: `t15`, and frames
+    at 33 ms during `?play=1`.
+- **Does:**
+  - **Light grid:** make the cost scale. For example, march a pre-downsampled
+    `profile·scale` volume at grid resolution with step growth and a cap; get
+    upward τ from a prefix sum along z; spread the update over more frames for
+    large grids. Target ≤ 0.3 ms per frame at 512²×64 with the same lighting.
+    Verify the P1-03 test page still passes, or update its tolerance with
+    justification.
+  - **March under and inside thick bases:** find where the time goes
+    (step counts, light samples per step, the T cutoff, rays grazing along the
+    base) and fix it without visible change. Target clouds total ≤ 6 ms
+    anywhere on the flight path at 2560×1440 high.
+- **Acceptance:**
+  - Light grid ≤ 0.3 ms per frame on the flight page.
+  - The flight path t0–t40 is under 6 ms clouds total in every capture.
+  - `?play=1` at 2560×1440 gives frame p95 ≤ 1.5× p50 with 0 frames over
+    33 ms across 3 runs, using a private vite without watch if needed (see the
+    P3-D note).
+  - Before/after captures show no visible change.
+  - Parity passes; `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
