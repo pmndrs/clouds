@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:60295/flagship/?quality=medium",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T16:32:12.099Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P5-C/tier-medium/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.151017383333334,
+          "skyCompute": 0.222287,
+          "lightGridReduce": 0.022331,
+          "lightGrid": 0.022623,
+          "marchNear": 0.15807173333333335,
+          "marchFar": 0.4903849999999999,
+          "composite": 0.3615351999999999,
+          "dome": 0.13058746666666662,
+          "resolveNear": 0.0628454,
+          "resolveFar": 0.1232479166666667
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.022331,
+          "lightGrid": 0.022623,
+          "marchNear": 0.153078,
+          "marchFar": 0.48666,
+          "composite": 0.309037,
+          "dome": 0.099873,
+          "resolveNear": 0.061582,
+          "resolveFar": 0.107831
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "medium",
+        "qualityOption": "medium",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 11073024,
+          "trace": 1384128,
+          "sky": 3110400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1819584,
+          "total": 17911424
+        },
+        "cloud": "parkouring",
+        "frames": 97,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 97,
+          "bytes": 12457152
+        },
+        "assetLoadMs": 19.599999994039536,
+        "firstCloudFrameMs": 37.599999994039536
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P5-C/tier-medium/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.5009479833333335,
+          "skyCompute": 0.210871,
+          "lightGridReduce": 0.022331,
+          "lightGrid": 0.022623,
+          "marchNear": 1.3610826833333332,
+          "marchFar": 0.4178970166666666,
+          "composite": 0.5845153666666667,
+          "dome": 0.16849119999999998,
+          "resolveNear": 0.07063361666666669,
+          "resolveFar": 0.22108831666666667
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.022331,
+          "lightGrid": 0.022623,
+          "marchNear": 0.348453,
+          "marchFar": 0.430536,
+          "composite": 0.314328,
+          "dome": 0.156664,
+          "resolveNear": 0.062165,
+          "resolveFar": 0.107873
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "medium",
+        "qualityOption": "medium",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 11073024,
+          "trace": 1384128,
+          "sky": 3110400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1819584,
+          "total": 17911424
+        },
+        "cloud": "parkouring",
+        "frames": 193,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 193,
+          "bytes": 12457152
+        },
+        "assetLoadMs": 19.599999994039536,
+        "firstCloudFrameMs": 37.599999994039536
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

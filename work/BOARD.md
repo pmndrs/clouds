@@ -1033,7 +1033,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The user-facing code in the demo is ≤ 20 lines for clouds.
   - `pnpm check` green.
 
-### [~] P5-C Tiers that scale, auto tier, dynamic resolution, composite and memory · Sonnet
+### [x] P5-C Tiers that scale, auto tier, dynamic resolution, composite and memory · Sonnet
 - **Owns:**
   - `packages/runtime/src/{runtime.ts,shaders/composite.wgsl.ts,shaders/temporal.wgsl.ts}` and presets
   - `packages/three/src/**`, for auto-tier and dynamic-resolution wiring

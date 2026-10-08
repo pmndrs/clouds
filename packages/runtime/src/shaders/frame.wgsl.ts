@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 256;
+export const FRAME_UNIFORM_BYTES = 304;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -21,13 +21,40 @@ struct Frame {
   microDist: f32, microShadow: f32, detailBias: f32, stepScale: f32,
   // P5-B temporal amortization of this pass: (k = 1, 2 or 4 (1 = every pixel every frame), phase 0..k-1, full trace (1 = every pixel this frame), 0)
   temporal: vec4<f32>,
+  // P5-C dynamic resolution: the textures are allocated at the pass's full size; a pass renders into the top-left renderSize rectangle of them.
+  // rects = (near w, near h, far w, far h) as rendered this frame, texDims = the same textures' allocated sizes.
+  rects: vec4<f32>,
+  texDims: vec4<f32>,
+  // P5-C tier levers: x = distance (m) within which the high-frequency detail octave is evaluated, y = far pass limit (m, FAR_T = none), zw = 0
+  misc: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
 
 const FAR_T = 1.0e6;
-// The march passes' depth targets are rgba16float (P5-B: bandwidth) holding distances / DEPTH_PACK, so 1e6 m (FAR_T) still fits.
-const DEPTH_PACK = 32.0;
+// P5-C: a march pass keeps its three distances per pixel in ONE r32uint word, log-coded (4 bytes instead of rgba16float's 8):
+//   x = transmittance-weighted mean cloud distance or 0 (11 bits, 0.74 percent steps), y = the distance the ray is marched to (11 bits),
+//   z = scene distance (10 bits, 1.5 percent steps; its consumers have a 25 percent tolerance). Code 0 = 0 m, the top code = FAR_T exactly.
+// The composite compares codes instead of decoding (thresholds are coded once per pixel).
+const DEPTH_LO = 0.25;
+const DEPTH_LN = 15.201805;   // ln(FAR_T / DEPTH_LO)
+const DEPTH_XY_MAX = 2047u;
+const DEPTH_Z_MAX = 1023u;
+fn depthCode(d: f32, maxCode: u32) -> u32 {
+  if (!(d >= DEPTH_LO)) { return 0u; }
+  let c = round(log(d / DEPTH_LO) * (f32(maxCode - 1u) / DEPTH_LN)) + 1.0;
+  return u32(min(c, f32(maxCode)));
+}
+fn depthDecode(c: u32, maxCode: u32) -> f32 {
+  if (c == 0u) { return 0.0; }
+  if (c >= maxCode) { return FAR_T; }
+  return DEPTH_LO * exp(f32(c - 1u) * (DEPTH_LN / f32(maxCode - 1u)));
+}
+fn packDepth(x: f32, y: f32, z: f32) -> u32 {
+  return depthCode(x, DEPTH_XY_MAX) | (depthCode(y, DEPTH_XY_MAX) << 11u) | (depthCode(z, DEPTH_Z_MAX) << 22u);
+}
+fn depthWordX(w: u32) -> f32 { return depthDecode(w & 2047u, DEPTH_XY_MAX); }
+fn depthWordZ(w: u32) -> f32 { return depthDecode(w >> 22u, DEPTH_Z_MAX); }
 
 fn unprojectDepth(uv: vec2<f32>, depth: f32) -> vec3<f32> {
   let w = frame.invViewProj * vec4(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, depth, 1.0);

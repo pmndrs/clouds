@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:63460/flagship/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T15:37:48.332Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P5-C/before-a/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.1012770833333334,
+          "skyCompute": 0.173915,
+          "lightGridReduce": 0.033413,
+          "lightGrid": 0.088158,
+          "marchNear": 0.21541860000000002,
+          "resolveNear": 0.08566116666666666,
+          "marchFar": 0.43965880000000007,
+          "resolveFar": 0.1606404333333334,
+          "composite": 0.61499225,
+          "dome": 0.06577046666666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 97,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 97,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 20.799999982118607,
+        "firstCloudFrameMs": 41
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P5-C/before-a/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.6717236166666665,
+          "skyCompute": 0.308663,
+          "lightGridReduce": 0.033413,
+          "lightGrid": 0.088158,
+          "marchNear": 0.23215979999999994,
+          "resolveNear": 0.08196741666666667,
+          "marchFar": 0.6142843833333334,
+          "resolveFar": 0.1531935,
+          "composite": 0.9329551666666666,
+          "dome": 0.13559376666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 194,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 194,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 20.799999982118607,
+        "firstCloudFrameMs": 41
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P5-C/before-a/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.4153434499999995,
+          "skyCompute": 0.075998,
+          "lightGridReduce": 0.033413,
+          "lightGrid": 0.088158,
+          "marchNear": 1.54114715,
+          "resolveNear": 0.06727131666666666,
+          "marchFar": 0.2567244499999999,
+          "resolveFar": 0.09838878333333337,
+          "composite": 0.8250513000000002,
+          "dome": 0.057678166666666676
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 290,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 3,
+          "frames": 290,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 20.799999982118607,
+        "firstCloudFrameMs": 41
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

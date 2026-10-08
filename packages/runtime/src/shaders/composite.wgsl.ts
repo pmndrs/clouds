@@ -8,6 +8,8 @@ export const COMPOSITE_LIGHT_GRID_BINDING = 7;
  * between the camera and the box, back = the cloud beyond it, both premultiplied, so the merge is front over voxel over back.
  */
 export const COMPOSITE_SKY_BINDING = 9;
+/** Linear sampler (colour) at this binding, a non-filtering one (depth gather) at +1. */
+export const COMPOSITE_SAMPLER_BINDING = 12;
 
 /**
  * Depth-aware upsample of the near and far march outputs to output resolution, merged front to back
@@ -27,10 +29,12 @@ export const COMPOSITE_SKY_BINDING = 9;
 export const COMPOSITE_WGSL = /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(2) var nearColor: texture_2d<f32>;
-@group(1) @binding(3) var nearDepth: texture_2d<f32>;
+@group(1) @binding(3) var nearDepth: texture_2d<u32>;
 @group(1) @binding(4) var outputTex: texture_storage_2d<rgba16float, write>;
 @group(1) @binding(5) var farColor: texture_2d<f32>;
-@group(1) @binding(6) var farDepth: texture_2d<f32>;
+@group(1) @binding(6) var farDepth: texture_2d<u32>;
+@group(1) @binding(${COMPOSITE_SAMPLER_BINDING}) var linSampler: sampler;
+@group(1) @binding(${COMPOSITE_SAMPLER_BINDING + 1}) var gatherSampler: sampler;
 ${lightGridWgsl(1, COMPOSITE_LIGHT_GRID_BINDING)}
 @group(1) @binding(${COMPOSITE_SKY_BINDING}) var skyColor: texture_2d<f32>;
 @group(1) @binding(${COMPOSITE_SKY_BINDING + 1}) var skyDepth: texture_2d<f32>;
@@ -48,32 +52,41 @@ fn cloudShadow(p: vec3<f32>) -> f32 {
   return mix(1.0, soft, frame.shadowStrength);
 }
 
-fn tapResult(colorTex: texture_2d<f32>, depthTex: texture_2d<f32>, tap: vec2<i32>, sceneT: f32, pixelEnd: f32, strict: bool) -> vec4<f32> {
-  // w < 0 marks a skipped tap
-  let d = textureLoad(depthTex, tap, 0).xy * DEPTH_PACK;
-  if (strict && d.y < pixelEnd * 0.97 - 1.0) { return vec4(0.0, 0.0, 0.0, -1.0); }
-  var c = textureLoad(colorTex, tap, 0);
-  if (d.x > 0.0 && d.x > sceneT * 1.02 + 1.0) { c = vec4(0.0, 0.0, 0.0, 1.0); }
-  return c;
-}
-
-fn upsample(colorTex: texture_2d<f32>, depthTex: texture_2d<f32>, uv: vec2<f32>, sceneT: f32, pixelEnd: f32) -> vec4<f32> {
-  let size = vec2<f32>(textureDimensions(colorTex));
-  let m = uv * size - 0.5;
-  let b = floor(m);
-  let f = m - b;
-  let hi = vec2<i32>(size) - vec2<i32>(1);
+// P5-C. The march depth words are compared as codes (frame.wgsl.ts packDepth): the thresholds below are coded once per pixel.
+// Fast path: one gather of the four taps' depth words, and when none is skipped or replaced (almost every pixel) a single hardware
+// bilinear sample of the colour. Otherwise the per-tap loop. The pass textures may be bigger than the rendered rectangle (dynamic
+// resolution), so the footprint is clamped to the rectangle by hand.
+fn upsample(colorTex: texture_2d<f32>, depthTex: texture_2d<u32>, uv: vec2<f32>, rect: vec2<f32>, tex: vec2<f32>, yThr: u32, xThr: u32, strict: bool) -> vec4<f32> {
+  let m = uv * rect - 0.5;
+  let s = clamp(floor(m), vec2(0.0), max(rect - 2.0, vec2(0.0)));
+  let w1 = clamp(m - s, vec2(0.0), vec2(1.0));
+  let g = textureGather(0, depthTex, gatherSampler, (s + 1.0) / tex);   // (x0,y1) (x1,y1) (x1,y0) (x0,y0)
+  let words = vec4<u32>(g.w, g.z, g.x, g.y);
+  var clean = true;
+  for (var i = 0; i < 4; i++) {
+    let w = words[i];
+    let behind = (w & 2047u) > xThr;   // xThr >= 0, and a code of 0 (no cloud) is never above it
+    let cut = strict && ((w >> 11u) & 2047u) < yThr;
+    if (behind || cut) { clean = false; }
+  }
+  if (clean) { return textureSampleLevel(colorTex, linSampler, (s + w1 + 0.5) / tex, 0.0); }
   var acc = vec4(0.0);
   var wsum = 0.0;
   for (var i = 0; i < 4; i++) {
     let o = vec2<f32>(f32(i & 1), f32(i >> 1));
-    let w = mix(1.0 - f.x, f.x, o.x) * mix(1.0 - f.y, f.y, o.y);
-    let tap = clamp(vec2<i32>(b + o), vec2<i32>(0), hi);
-    let r = tapResult(colorTex, depthTex, tap, sceneT, pixelEnd, true);
-    if (r.a >= 0.0) { acc += r * w; wsum += w; }
+    let w = mix(1.0 - w1.x, w1.x, o.x) * mix(1.0 - w1.y, w1.y, o.y);
+    let word = words[i];
+    if (strict && ((word >> 11u) & 2047u) < yThr) { continue; }
+    var c = textureLoad(colorTex, vec2<i32>(s + o), 0);
+    if ((word & 2047u) > xThr) { c = vec4(0.0, 0.0, 0.0, 1.0); }
+    acc += c * w; wsum += w;
   }
   if (wsum > 1e-4) { return acc / wsum; }
-  return tapResult(colorTex, depthTex, clamp(vec2<i32>(round(m)), vec2<i32>(0), hi), sceneT, pixelEnd, false);
+  // Every tap was skipped: the nearest one, replaced only if its cloud is behind the surface.
+  let n = vec2<i32>(clamp(round(m), vec2(0.0), rect - 1.0));
+  var c = textureLoad(colorTex, n, 0);
+  if ((textureLoad(depthTex, n, 0).x & 2047u) > xThr) { c = vec4(0.0, 0.0, 0.0, 1.0); }
+  return c;
 }
 
 // Distant sky layer: merged per tap (front over the voxel result over back), then bilinear. Interpolating front and back
@@ -107,9 +120,24 @@ fn mergeSky(voxel: vec4<f32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
 
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  if (any(vec2<f32>(gid.xy) >= frame.outputSize)) { return; }
-  let uv = (vec2<f32>(gid.xy) + 0.5) / frame.outputSize;
-  let sceneT = sceneDistance(textureLoad(sceneDepth, vec2<i32>(gid.xy), 0), uv);
+  // frame.misc.zw = the composite's own size (P5-C: a tier may composite below the scene's resolution; the consumer upsamples). Its pixel covers
+  // ratio x ratio scene pixels and sees the farthest of them (up to 4 x 4), as the march passes do.
+  let cs = frame.misc.zw;
+  if (any(vec2<f32>(gid.xy) >= cs)) { return; }
+  let uv = (vec2<f32>(gid.xy) + 0.5) / cs;
+  var sceneDepthMax = 0.0;
+  if (cs.x >= frame.outputSize.x) {
+    sceneDepthMax = textureLoad(sceneDepth, vec2<i32>(gid.xy), 0);
+  } else {
+    let ratio = frame.outputSize / cs;
+    let lo = vec2<i32>(floor(vec2<f32>(gid.xy) * ratio));
+    let hi = min(vec2<i32>(ceil(vec2<f32>(gid.xy + vec2<u32>(1u)) * ratio)) - vec2<i32>(1), lo + vec2<i32>(3));
+    let dmax = vec2<i32>(textureDimensions(sceneDepth)) - vec2<i32>(1);
+    for (var y = lo.y; y <= hi.y; y++) {
+      for (var x = lo.x; x <= hi.x; x++) { sceneDepthMax = max(sceneDepthMax, textureLoad(sceneDepth, min(vec2<i32>(x, y), dmax), 0)); }
+    }
+  }
+  let sceneT = sceneDistance(sceneDepthMax, uv);
 
   let origin = frame.cameraPos;
   let dir = normalize(unprojectDepth(uv, 1.0) - origin);
@@ -121,11 +149,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // A ray that misses the voxel box has no voxel cloud: the march traced exactly nothing there, so skip the upsamples (P5-B).
   var result = vec4(0.0, 0.0, 0.0, 1.0);
   if (hit) {
-    let near = upsample(nearColor, nearDepth, uv, sceneT, min(volumeEnd, split));
+    let xThr = depthCode(sceneT * 1.02 + 1.0, DEPTH_XY_MAX);
+    let nearEnd = min(volumeEnd, split);
+    var near = vec4(0.0, 0.0, 0.0, 1.0);   // splitDistance 0: no near pass, the far one covers the whole ray
+    if (split > 0.0) { near = upsample(nearColor, nearDepth, uv, frame.rects.xy, frame.texDims.xy, depthCode(nearEnd * 0.97 - 1.0, DEPTH_XY_MAX), xThr, true); }
     result = near;
     // The far layer only matters where the near layer lets light through and the ray reaches past the split.
     if (near.a > 0.004 && volumeEnd > split) {
-      let far = upsample(farColor, farDepth, uv, sceneT, volumeEnd);
+      let far = upsample(farColor, farDepth, uv, frame.rects.zw, frame.texDims.zw, depthCode(min(volumeEnd, frame.misc.y) * 0.97 - 1.0, DEPTH_XY_MAX), xThr, true);
       result = vec4(near.rgb + near.a * far.rgb, near.a * far.a);
     }
   }

@@ -18,14 +18,14 @@ import {
   createEmptyCloudVolume, createStreamingCloudscape, loadCloudNoise, loadCloudVolume,
   type CloudNoiseAsset, type CloudPreset, type CloudPresetName, type CloudVolumeAsset, type StreamingCloudscape, type StreamingUpdate,
 } from '@clouds/runtime';
-import { Clouds as CloudsCore, sharedBackend, type CloudQuality, type CloudSettings, type GpuCloudVolume, type UniformLightingValues } from '@clouds/three';
+import { Clouds as CloudsCore, sharedBackend, type CloudQuality, type CloudQualityOption, type CloudSettings, type GpuCloudVolume, type UniformLightingValues } from '@clouds/three';
 import { collectSettings, settingsKey, settingsPatch } from './props';
 
 type ScenePass = NonNullable<PassRecord['scenePass']>;
 
 export { CLOUD_QUALITIES } from '@clouds/three';
 export { CLOUD_PRESETS } from '@clouds/runtime';
-export type { CloudQuality, CloudSettings, CloudPresetName };
+export type { CloudQuality, CloudQualityOption, CloudSettings, CloudPresetName };
 export type CloudsInstance = CloudsCore;
 
 // ---- asset cache (Suspense) -------------------------------------------------------------------------------------------------------------
@@ -71,7 +71,8 @@ export interface CloudsOwnProps {
   noise?: string;
   /** World position of the volume's base centre. Default [0, 500, 0]. Changing it re-places the volume (a re-upload for packs). */
   position?: [number, number, number];
-  quality?: CloudQuality;
+  /** A tier, or 'auto' (picked at creation from the adapter, then dynamic resolution toward the budget). Switching to 'auto' later keeps the current tier. */
+  quality?: CloudQualityOption;
   /** Settings as an object; loose props (`<Clouds densityScale={0.02} />`) are settings too and win. */
   settings?: Partial<CloudSettings>;
   /** Default: the enclosing <Sky> (useSky()). `false` forces the sky-less uniform lighting. Changing it recreates the instance. */
@@ -158,7 +159,7 @@ export function Clouds(props: CloudsProps) {
   }, [instance, volumeValue, px, py, pz]);
 
   // 3. Quality, settings and sky-less lighting.
-  useEffect(() => { instance?.setQuality(quality); }, [instance, quality]);
+  useEffect(() => { if (quality !== 'auto') instance?.setQuality(quality); }, [instance, quality]);
   const settings = collectSettings(props as unknown as Record<string, unknown>);
   const key = settingsKey(settings);
   const applied = useRef<{ instance: CloudsCore | null; settings: Partial<CloudSettings>; defaults: Partial<CloudSettings> }>({ instance: null, settings: {}, defaults: {} });

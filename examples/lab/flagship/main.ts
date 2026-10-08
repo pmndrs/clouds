@@ -3,7 +3,7 @@
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
-import { createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQuality } from '@clouds/runtime';
+import { CLOUD_QUALITY_PRESETS, controlledCost, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQualityOption } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { BOOKMARK_NAMES, INSIDE_POINT, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
@@ -13,7 +13,7 @@ import { createSkyBridge } from './sky-bridge';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
-const QUALITIES = ['low', 'medium', 'high'] as const;
+const QUALITIES = ['auto', 'mobile', 'low', 'medium', 'high', 'ultra'] as const;   // ?quality=auto&budget=2: tier from the adapter, render scale from the GPU timer toward a 2 ms budget
 const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus', 'disney', 'local/bunny-cloud', 'local/cloud-0001'] as const;
 const cloudName = CLOUDS.includes(query.get('cloud') as never) ? (query.get('cloud') as string) : 'parkouring';
 const state = {
@@ -25,6 +25,8 @@ const state = {
   timeRate: 0.5, // hours of sky time per real second when animating
 };
 const ANIMATE_WARMUP_FRAMES = 30;
+const BUDGET_MS = Number(query.get('budget') ?? 3);
+const TRACE_FRAMES = Number(query.get('trace') ?? 0);   // ?trace=N records the first N frames' render scale and cloud ms (the auto-quality convergence trace, in the report)
 const PAN_PER_FRAME = Number(query.get('pan') ?? 0) * Math.PI / 180;   // ?pan=D yaws the camera D degrees per frame (a motion test for the temporal resolve)
 
 try {
@@ -51,7 +53,9 @@ try {
   await sky.compileAsync();
   // Sun, ambient and aerial perspective for the clouds come from the sky's LUTs through this bridge.
   const skyBridge = createSkyBridge(renderer, sky);
-  const runtime = createCloudRuntime(device, { quality: state.quality as CloudQuality, atmosphereLayout: skyBridge.layout });
+  // ?p.<field>=<value> edits the chosen tier's preset before the runtime is created (tuning aid: ?quality=low&p.farScale=0.25)
+  for (const [key, value] of query) if (key.startsWith('p.') && state.quality in CLOUD_QUALITY_PRESETS && key.slice(2) in CLOUD_QUALITY_PRESETS[state.quality as 'high']) (CLOUD_QUALITY_PRESETS[state.quality as 'high'] as unknown as Record<string, number | boolean>)[key.slice(2)] = value === 'true' ? true : value === 'false' ? false : Number(value);
+  const runtime = createCloudRuntime(device, { quality: state.quality as CloudQualityOption, atmosphereLayout: skyBridge.layout, budgetMs: BUDGET_MS, expectedPixels: innerWidth * innerHeight * state.scale * state.scale });
   const bridge = createCloudBridge(renderer, runtime);
   const assetStart = performance.now();
   const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume(`/clouds/${cloudName}/`), loadCloudNoise('/clouds/noise/')]);
@@ -108,6 +112,8 @@ try {
   let timestampBusy = false;
   const pct = (p: number) => { if (!frameTimes.length) return 0; const s = [...frameTimes].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
   const mean = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
+  const passSamples: Record<string, number>[] = [];   // per frame, the latest readback of every pass (duplicates when no new one arrived): medians resist the idle-GPU clock ramp and spikes
+  const gpuMedian = () => { const out: Record<string, number> = {}; const names = new Set(passSamples.flatMap(s => Object.keys(s))); for (const n of names) { const v = passSamples.map(s => s[n]).filter(x => x !== undefined).sort((a, b) => a - b); if (v.length) out[n] = v[v.length >> 1]; } return out; };
   const gpuMs = () => ({ scene: mean(sceneGpu), ...extraGpu, ...timer.averages() });
   const frameStats = () => ({ p50: pct(0.5), p95: pct(0.95), last: frameTimes[frameTimes.length - 1] ?? 0 });
 
@@ -125,7 +131,7 @@ try {
   scaleInput.oninput = () => { state.scale = Number(scaleInput.value); resize(); };
   const qualitySel = el('select', {}, label('quality'));
   for (const q of QUALITIES) el('option', { value: q, textContent: q }, qualitySel);
-  qualitySel.onchange = () => { state.quality = qualitySel.value; runtime.setQuality(state.quality as CloudQuality); };
+  qualitySel.onchange = () => { state.quality = qualitySel.value; if (state.quality !== 'auto') runtime.setQuality(state.quality as never); };   // (switching to auto needs a reload: ?quality=auto)
   const animateBox = el('input', { type: 'checkbox' }, label('animate'));
   animateBox.onchange = () => { state.animateTime = animateBox.checked; };
   const shadowInput = el('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(runtime.settings.shadowStrength) }, label('shadow'));
@@ -141,18 +147,22 @@ try {
     for (const name of BOOKMARK_NAMES) controls[name].classList.toggle('on', name === state.bookmark);
   }
   const f = (n: number, d = 2) => n.toFixed(d);
+  const tierText = () => (runtime.auto ? `auto > ${runtime.quality}` : runtime.quality);
   const updateHud = () => {
     const g = gpuMs(), fs = frameStats();
     const fps = fs.p50 > 0 ? 1000 / fs.p50 : 0;
     hud.textContent = [
       `fps ${f(fps, 0)}   frame ${f(fs.last)} ms  (p50 ${f(fs.p50)}  p95 ${f(fs.p95)})`,
-      `render ${renderSize.width}x${renderSize.height} (x${state.scale})  q:${state.quality}  t:${f(state.time)}h`,
+      `render ${renderSize.width}x${renderSize.height} (x${state.scale})  q:${tierText()}  t:${f(state.time)}h`,
+      ...(runtime.auto ? [`auto  tier ${runtime.auto.tier}  scale ${f(runtime.settings.renderScale)}  cloud ${f(runtime.auto.costMs)} / ${f(runtime.auto.budgetMs)} ms  changes ${runtime.auto.changes}`] : []),
+      `mem ${f(runtime.memory.total / 1048576, 1)} MB (history ${f(runtime.temporalInfo.bytes / 1048576, 1)})`,
       `gpu ms${timer.enabled || sceneGpu.length ? '' : ' (no timestamp-query)'}`,
       ...Object.entries(g).map(([k, v]) => `  ${k.padEnd(12)} ${f(v)}`),
       `cam ${camera.position.toArray().map(v => f(v, 0)).join(', ')}  [${rig.mode}${rig.mode === 'fly' ? ` ${f(rig.speed, 0)} m/s` : ''}]`,
     ].join('\n');
   };
 
+  const trace: number[][] = [];   // [frame, render scale, cloud ms (last readback), smoothed ms]
   const frameData: CloudFrame = {
     view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16),
     cameraPosition: [0, 0, 0], depth: undefined as unknown as GPUTextureView, depthKind: 'depth32float',
@@ -177,6 +187,7 @@ try {
     void sky.updateAerialPerspective(); // per-frame AP LUT, queued before the cloud passes
     skyBridge.update(camera);
 
+    bridge.syncOutput();
     bridge.renderScene(scene, camera);
     bridge.fillFrame(camera, frameData);
     frameData.time = (now - t0) / 1000; frameData.frameIndex = frame;
@@ -186,6 +197,8 @@ try {
     timer.endFrame(encoder);
     device.queue.submit([encoder.finish()]);
     bridge.present();
+    passSamples.push({ ...timer.last() }); if (passSamples.length > 150) passSamples.shift();
+    if (frame < TRACE_FRAMES) trace.push([frame, +runtime.settings.renderScale.toFixed(3), +controlledCost(timer.last()).toFixed(3), +(runtime.auto?.costMs ?? 0).toFixed(3)]);
 
     // three timestamps: resolve asynchronously, one request in flight, never awaited by the loop
     if (!timestampBusy) {
@@ -205,7 +218,7 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
+    report: () => ({ gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

@@ -15,8 +15,8 @@ export const MARCH_RADIANCE_LIMIT = 60000;
 /**
  * SDF sphere-trace march with the Nubis lighting model (N3 s110-128) driven by the sky atmosphere (atmosphereWgsl).
  * Concatenate COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + MARCH_WGSL. Group 1: 0 Frame, 1 scene depth,
- * 2 colour out (premultiplied radiance, a = transmittance), 3 depth out (rgba16float, distances / DEPTH_PACK: x = transmittance-weighted mean cloud
- * distance or 0, y = distance the ray was marched to, z = scene distance), 4/5 light grid + sampler, 6 sky light (storage).
+ * 2 colour out (premultiplied radiance, a = transmittance), 3 depth out (direct: r32uint packDepth(mean cloud distance or 0, distance the ray was marched to,
+ * scene distance); trace (`direct` false): r32float mean distance, at the dispatch coordinate), 4/5 light grid + sampler, 6 sky light (storage).
  * Group 2: the atmosphere (sky LUTs, see atmosphereWgsl).
  *
  * Direct light: transmittance toward the sun = exp(-(tauMicro + tauInline + tauGrid)): a short full-density sample from every lit
@@ -30,12 +30,12 @@ export type MarchLightingMode = 'atmosphere' | 'uniform';
  * 'uniform' drops the atmosphere group (no sky library): sun radiance and ambient come only from the skyLight buffer, and the
  * cloud gets no aerial perspective. Pipeline layout is then [volume, pass] only.
  */
-export function marchWgsl(mode: MarchLightingMode): string {
+export function marchWgsl(mode: MarchLightingMode, direct = true): string {
   const atm = mode === 'atmosphere';
   return /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(2) var marchColor: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(3) var marchDepth: texture_storage_2d<rgba16float, write>;
+${direct ? '@group(1) @binding(3) var marchDepth: texture_storage_2d<r32uint, write>;' : '@group(1) @binding(3) var marchDepth: texture_storage_2d<r32float, write>;'}
 ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
 // [0] sun radiance (illuminance, exposure units), [1] sky ambient from above, [2] from below (mean radiance per hemisphere)
 @group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
@@ -72,14 +72,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let dir = normalize(unprojectDepth(uv, 1.0) - origin);
   let interval = volumeRayInterval(origin, dir);
   let isNear = frame.passMode == 0u;
-  let tCap = select(FAR_T, frame.splitDistance, isNear);
+  let tCap = select(frame.misc.y, frame.splitDistance, isNear);
   let tEnd = min(min(interval.y, sceneEnd), tCap);
   var t = max(interval.x, select(frame.splitDistance, 0.0, isNear));
 
   // Far pass: pixels whose neighbourhood in the near pass is (almost) opaque contribute nothing; skip them.
   var hidden = false;
-  if (!isNear) {
-    let nd = vec2<i32>(textureDimensions(nearColor));
+  if (!isNear && frame.splitDistance > 0.0) {   // splitDistance 0: the near pass is off (the 'mobile' tier), the far pass marches the whole ray
+    let nd = vec2<i32>(frame.rects.xy);
     let c = vec2<i32>(floor(uv * vec2<f32>(nd))) - vec2<i32>(1);
     var maxT = 0.0;
     for (var y = 0; y < 4; y++) {
@@ -146,7 +146,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         let ts = t + select(jitterStatic, jitterAnimated, t < 250.0) * step;
         let ds = min(step, tEnd - t);
         if (ts < tEnd) {
-          inputs.hfDetails = select(0u, 1u, ts < 150.0);
+          inputs.hfDetails = select(0u, 1u, ts < frame.misc.x);
           let ps = origin + dir * ts;
           let d = cloudDensity(ps, ts, inputs);
           sparseRun = select(0.0, min(sparseRun + 1.0, SPARSE_MAX), d.x * frame.extinction * step < SPARSE_THIN);
@@ -204,8 +204,10 @@ ${atm ? `  if (meanDistance > 0.0) {
     radiance = applyAerialPerspective(radiance, T, normalize(unprojectDepth(uv, 1.0) - origin), meanDistance);
   }` : ''}
   radiance = clamp(radiance, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
-  textureStore(marchColor, px, vec4(radiance, T));
-  textureStore(marchDepth, px, vec4(meanDistance, tEnd, sceneEnd, 0.0) / DEPTH_PACK);
+${direct ? `  textureStore(marchColor, px, vec4(radiance, T));
+  textureStore(marchDepth, px, vec4<u32>(packDepth(meanDistance, tEnd, sceneEnd), 0u, 0u, 0u));` : `  // Trace target: only this frame's traced pixels, stored compactly at the dispatch coordinate (x only needs the mean distance).
+  textureStore(marchColor, vec2<i32>(gid.xy), vec4(radiance, T));
+  textureStore(marchDepth, vec2<i32>(gid.xy), vec4(meanDistance, 0.0, 0.0, 0.0));`}
 }
 `;
 }

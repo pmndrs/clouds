@@ -11,7 +11,7 @@ import { NodeUpdateType, StorageTexture, TempNode, type WebGPURenderer } from 't
 import { Fn, abs, float, max, mix, smoothstep, texture, uniform, vec2, vec3, vec4 } from 'three/tsl';
 import {
   createAtmosphereBindGroupLayout, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume,
-  type CloudFrame, type CloudNoiseAsset, type CloudQuality, type CloudRuntime, type CloudSettings, type CloudVolumeAsset, type GpuCloudVolume,
+  type AutoQualityInfo, type AutoQualityOptions, type CloudFrame, type CloudMemory, type CloudNoiseAsset, type CloudQuality, type CloudQualityOption, type CloudRuntime, type CloudSettings, type CloudVolumeAsset, type GpuCloudVolume,
 } from '@clouds/runtime';
 import type { Sky } from '@pmndrs/sky';
 import { sharedBackend, type SharedBackend } from './interop';
@@ -21,7 +21,20 @@ import { createUniformLighting, type UniformLighting, type UniformLightingValues
 export interface CloudsOptions {
   /** A @pmndrs/sky Sky. Sun, ambient and aerial perspective then come from its LUTs. Omit for uniform lighting. */
   sky?: Sky;
-  quality?: CloudQuality;
+  /**
+   * A tier ('ultra' | 'high' | 'medium' | 'low' | 'mobile'), or 'auto': the tier is picked from the adapter (vendor, limits, features,
+   * `expectedPixels`) and the render scale then follows the GPU timer toward `budgetMs` (needs `timestamp-query`; without it the picked
+   * tier is used at full scale). Default 'high'.
+   */
+  quality?: CloudQualityOption;
+  /** 'auto' only: GPU ms the cloud passes (march, resolve, composite, dome, sky layer) may take per frame. Default 3. Change later with `setBudget`. */
+  budgetMs?: number;
+  /** 'auto' only: output size in pixels the first tier is picked for (default 1920 x 1080). */
+  expectedPixels?: number;
+  /** 'auto' only: controller tuning (scale range, hysteresis, smoothing). */
+  auto?: Partial<AutoQualityOptions>;
+  /** 'auto' only: the GPUAdapter behind the renderer, if you have it (three does not keep it). Its limits then take part in the tier pick. */
+  adapter?: GPUAdapter;
   /** Initial values for the sky-less lighting (see `clouds.lighting`). */
   lighting?: Partial<UniformLightingValues>;
   /** World-space planet centre for sky planet mode (`sky.update(camera, { planetCenter })`). */
@@ -64,6 +77,8 @@ export class Clouds {
   private disposed = false;
   private width = 0;
   private height = 0;
+  private cloudWidth = 0;
+  private cloudHeight = 0;
   private frameIndex = 0;
   private readonly t0 = performance.now();
   private warnedMsaa = false;
@@ -84,7 +99,7 @@ export class Clouds {
     this.backend = sharedBackend(renderer);
     this.device = this.backend.device;
     this.layout = createAtmosphereBindGroupLayout(this.device);
-    this.runtime = createCloudRuntime(this.device, { quality: options.quality ?? 'high', atmosphereLayout: this.layout });
+    this.runtime = createCloudRuntime(this.device, { quality: options.quality ?? 'high', atmosphereLayout: this.layout, budgetMs: options.budgetMs, expectedPixels: options.expectedPixels, auto: options.auto, adapter: options.adapter });
     this.timer = new GpuTimer(this.device);
     if (!options.sky) {
       this.uniformLighting = createUniformLighting(this.device, this.layout, options.lighting);
@@ -111,7 +126,16 @@ export class Clouds {
   get isReady(): boolean { return this.runtime.ready; }
   /** The runtime (escape hatch for tooling). */
   get core(): CloudRuntime { return this.runtime; }
+  /** Switch tier. Under 'auto' the dynamic render scale keeps running on top of it (use `setBudget(Infinity)` to pin scale 1). */
   setQuality(quality: CloudQuality): void { this.runtime.setQuality(quality); }
+  /** The tier in effect (for 'auto', the one it picked and that `setQuality` may have changed since). */
+  get quality(): CloudQuality { return this.runtime.quality; }
+  /** 'auto' state (tier, why, render scale, smoothed cloud ms, budget), or null for a fixed tier. */
+  get auto(): AutoQualityInfo | null { return this.runtime.auto; }
+  /** 'auto': change the GPU budget (ms) at run time. */
+  setBudget(ms: number): void { this.runtime.setBudget(ms); }
+  /** GPU memory the clouds hold (history, trace, sky layer, composite output, dome, light grid), bytes. */
+  get memory(): CloudMemory { return this.runtime.memory; }
 
   /** Loads a cloud pack and the noise, places it, and returns the volume asset (for framing a camera, for instance). */
   async load(options: CloudsLoadOptions): Promise<CloudVolumeAsset> {
@@ -139,6 +163,7 @@ export class Clouds {
    * with the octahedral decode `uv = (x, z) / (|x| + |y| + |z|) * 0.5 + 0.5` (the upper hemisphere is the central diamond, so no fold is needed).
    */
   reflection(dirNode: AnyNode): AnyNode {
+    this.runtime.dome.settings.enabled = true;   // the 'mobile' tier leaves the dome off until something reflects the clouds
     const dome = this.domeTexture;
     return Fn(() => {
       const d = vec3(dirNode);
@@ -194,9 +219,12 @@ export class Clouds {
       if (!this.warnedMsaa) { this.warnedMsaa = true; console.warn('@clouds/three: the scene pass depth is multisampled; clouds are skipped. Create the pass with { samples: 0 }.'); }
       this.ready.value = 0; return;
     }
-    if (depthGpu.width !== this.width || depthGpu.height !== this.height) {
-      this.width = depthGpu.width; this.height = depthGpu.height;
-      this.cloudTexture.setSize(this.width, this.height, 1);
+    // The composite output is the scene's size times the tier's outputScale (bilinearly upsampled by the node); it follows `setQuality` too.
+    const scale = this.runtime.outputScale;
+    const cw = Math.max(1, Math.round(depthGpu.width * scale)), ch = Math.max(1, Math.round(depthGpu.height * scale));
+    if (depthGpu.width !== this.width || depthGpu.height !== this.height || cw !== this.cloudWidth || ch !== this.cloudHeight || this.runtime.outputSize[0] !== cw) {
+      this.width = depthGpu.width; this.height = depthGpu.height; this.cloudWidth = cw; this.cloudHeight = ch;
+      this.cloudTexture.setSize(cw, ch, 1);
       this.renderer.initTexture(this.cloudTexture);
       this.runtime.resize(this.width, this.height, this.backend.texture(this.cloudTexture));
     }

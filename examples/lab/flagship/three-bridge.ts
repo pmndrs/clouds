@@ -28,16 +28,23 @@ export function createCloudBridge(renderer: WebGPURenderer, runtime: CloudRuntim
   const m = { view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16) };
   const camPos = [0, 0, 0];
   const worldPos = new Vector3();
-  let width = 0, height = 0;
+  let width = 0, height = 0, cwNow = 0, chNow = 0;
 
   return {
     resize(w: number, h: number) {
       if (w === width && h === height) return;
       width = w; height = h;
       sceneTarget.setSize(w, h);
-      cloudOutput.setSize(w, h, 1);
+      this.syncOutput();
+    },
+    /** The cloud texture follows the tier's composite scale (P5-C): call after `runtime.setQuality` (the loop does, every frame). Bilinear sampling upsamples it. */
+    syncOutput() {
+      const cw = Math.max(1, Math.round(width * runtime.outputScale)), ch = Math.max(1, Math.round(height * runtime.outputScale));
+      if (cwNow === cw && chNow === ch && runtime.outputSize[0] === cw) return;
+      cwNow = cw; chNow = ch;
+      cloudOutput.setSize(cw, ch, 1);
       renderer.initTexture(cloudOutput);
-      runtime.resize(w, h, backend.texture(cloudOutput));
+      runtime.resize(width, height, backend.texture(cloudOutput));
     },
     /** Step 1: scene -> render target with depth. */
     renderScene(scene: Scene, camera: Camera) {

@@ -4,8 +4,8 @@ import { FRAME_WGSL } from './frame.wgsl';
 export const TEMPORAL_BINDINGS = {
   trace: 2, traceDepth: 3, hist: 4, histDepth: 5, out: 6, outDepth: 7, params: 8, sampler: 9,
 } as const;
-/** TemporalParams uniform: mat4 + 2 vec4 = 24 floats. */
-export const TEMPORAL_PARAM_FLOATS = 24;
+/** TemporalParams uniform: mat4 + 3 vec4 = 28 floats. */
+export const TEMPORAL_PARAM_FLOATS = 28;
 export const TEMPORAL_PARAM_BYTES = TEMPORAL_PARAM_FLOATS * 4;
 
 /**
@@ -21,9 +21,10 @@ export const TEMPORAL_PARAM_BYTES = TEMPORAL_PARAM_FLOATS * 4;
  *    how far the pixel moved, so a still view keeps its converged (jitter-averaged) history;
  *  - a fresh pixel blends in at `temporalBlend` (more when it moved), the others keep the clipped history; a rejected pixel takes
  *    the nearest fresh sample.
- * On a cut (`frame.temporal.z`) every pixel was traced and is copied. Wind is not compensated: the noise scrolls centimetres a frame.
- * Needs COMMON_WGSL + volumeWgsl(0). Output: colour = premultiplied radiance, a = transmittance; depth = (mean cloud distance or 0,
- * the distance the pixel's ray is marched to, scene distance), the march's format.
+ * On a cut the march traces every pixel straight into the history and this pass is skipped (P5-C: no full-size trace target). The fresh samples
+ * are kept compactly (traceIndex). Wind is not compensated: the noise scrolls centimetres a frame.
+ * Needs COMMON_WGSL + volumeWgsl(0). Output: colour = premultiplied radiance, a = transmittance; depth = packDepth(mean cloud distance or 0,
+ * the distance the pixel's ray is marched to, scene distance), the march's direct format (r32uint).
  */
 export const TEMPORAL_WGSL = /* wgsl */ `
 ${FRAME_WGSL}
@@ -31,13 +32,14 @@ struct TemporalParams {
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,    // xyz = previous camera position, w = 1 when the previous frame is a valid history
   settings: vec4<f32>,   // x = blend of a fresh sample, y = clip gamma (sigmas), z = relative margin, w = 0
+  prevRect: vec4<f32>,   // xy = this pass's rendered size last frame (dynamic resolution moves the grid), zw = 0
 }
 @group(1) @binding(${TEMPORAL_BINDINGS.trace}) var traceColor: texture_2d<f32>;
 @group(1) @binding(${TEMPORAL_BINDINGS.traceDepth}) var traceDepth: texture_2d<f32>;
 @group(1) @binding(${TEMPORAL_BINDINGS.hist}) var histColor: texture_2d<f32>;
-@group(1) @binding(${TEMPORAL_BINDINGS.histDepth}) var histDepth: texture_2d<f32>;
+@group(1) @binding(${TEMPORAL_BINDINGS.histDepth}) var histDepth: texture_2d<u32>;
 @group(1) @binding(${TEMPORAL_BINDINGS.out}) var outColor: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(${TEMPORAL_BINDINGS.outDepth}) var outDepth: texture_storage_2d<rgba16float, write>;
+@group(1) @binding(${TEMPORAL_BINDINGS.outDepth}) var outDepth: texture_storage_2d<r32uint, write>;
 @group(1) @binding(${TEMPORAL_BINDINGS.params}) var<uniform> TP: TemporalParams;
 @group(1) @binding(${TEMPORAL_BINDINGS.sampler}) var histSampler: sampler;
 
@@ -55,34 +57,38 @@ fn sceneEndCorners(px: vec2<u32>, uv: vec2<f32>) -> f32 {
   return sceneDistance(max(max(a, b), max(c, d)), uv);
 }
 
+// The trace holds only the traced pixels, compactly: k = 2 packs each row's every second pixel, k = 4 one pixel per 2x2 block.
+fn traceIndex(q: vec2<i32>) -> vec2<i32> {
+  let k = u32(frame.temporal.x);
+  return select(vec2<i32>(q.x >> 1u, q.y >> 1u), vec2<i32>(q.x >> 1u, q.y), k == 2u);
+}
+fn traceColorAt(q: vec2<i32>) -> vec4<f32> { return textureLoad(traceColor, traceIndex(q), 0); }
+fn traceDistAt(q: vec2<i32>) -> f32 { return textureLoad(traceDepth, traceIndex(q), 0).x; }
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (any(vec2<f32>(gid.xy) >= frame.renderSize)) { return; }
   let px = vec2<i32>(gid.xy);
-  let size = vec2<i32>(frame.renderSize);
-  let hi = size - vec2<i32>(1);
   let uv = (vec2<f32>(gid.xy) + 0.5) / frame.renderSize;
   let origin = frame.cameraPos;
   let dir = normalize(unprojectDepth(uv, 1.0) - origin);
   // The march's own end distance for this pixel (it must match march.wgsl.ts: the composite rejects taps against it).
   let sceneEnd = sceneEndCorners(gid.xy, uv);
   let interval = volumeRayInterval(origin, dir);
-  let tCap = select(FAR_T, frame.splitDistance, frame.passMode == 0u);
+  let tCap = select(frame.misc.y, frame.splitDistance, frame.passMode == 0u);
   let tEnd = min(min(interval.y, sceneEnd), tCap);
-
-  if (frame.temporal.z > 0.5) {
-    textureStore(outColor, px, textureLoad(traceColor, px, 0));
-    textureStore(outDepth, px, vec4(textureLoad(traceDepth, px, 0).x * DEPTH_PACK, tEnd, sceneEnd, 0.0) / DEPTH_PACK);
-    return;
-  }
 
   let fresh = isTracedPixel(px);
   let k = u32(frame.temporal.x);
+  // The history is a texture allocated at the pass's full size, of which the previous frame filled the top-left prevSize pixels.
+  let prevSize = TP.prevRect.xy;
+  let prevHi = vec2<i32>(prevSize) - vec2<i32>(1);
+  let texDims = select(frame.texDims.zw, frame.texDims.xy, frame.passMode == 0u);
 
   // Reproject through the cloud's mean distance: the pixel's own fresh sample, else its own old history, else far away (rotation only).
   var rd = 1.0e5;
-  let own = select(0.0, textureLoad(traceDepth, px, 0).x * DEPTH_PACK, fresh);
-  let h0d = textureLoad(histDepth, px, 0).x * DEPTH_PACK;
+  let own = select(0.0, traceDistAt(px), fresh);
+  let h0d = depthWordX(textureLoad(histDepth, clamp(vec2<i32>(uv * prevSize), vec2<i32>(0), prevHi), 0).x);
   if (own > 0.0) { rd = own; } else if (h0d > 0.0) { rd = h0d; }
   let clip = TP.prevViewProj * vec4(origin + dir * rd, 1.0);
   var valid = TP.prevCam.w > 0.5 && clip.w > 1e-3;
@@ -92,18 +98,22 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     puv = vec2(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
     valid = all(puv >= vec2(0.0)) && all(puv <= vec2(1.0));
   }
-  var hd = vec4(0.0);
+  var hdx = 0.0;
   if (valid) {
     // Disocclusion: the surface this pixel sees now, from the previous camera, against what the history texel saw then.
-    hd = textureLoad(histDepth, clamp(vec2<i32>(puv * frame.renderSize), vec2<i32>(0), hi), 0) * DEPTH_PACK;
+    let hw = textureLoad(histDepth, clamp(vec2<i32>(puv * prevSize), vec2<i32>(0), prevHi), 0).x;
+    let hdz = depthWordZ(hw);
+    hdx = depthWordX(hw);
     let nowFar = sceneEnd >= FAR_T;
-    let thenFar = hd.z >= FAR_T * 0.99;   // the f16 depth target does not round-trip 1e6 exactly
+    let thenFar = hdz >= FAR_T * 0.99;
     if (nowFar != thenFar) { valid = false; }
     else if (!nowFar) {
       let sp = length(origin + dir * sceneEnd - TP.prevCam.xyz);
-      valid = abs(sp - hd.z) <= 0.25 * max(sp, hd.z) + 3.0;
+      valid = abs(sp - hdz) <= 0.25 * max(sp, hdz) + 3.0;
     }
   }
+  // Bilinear history at the reprojected position, kept inside the previous frame's rectangle of the (possibly larger) texture.
+  let histUv = clamp(puv * prevSize, vec2(0.5), prevSize - vec2(0.5)) / texDims;
   // The clip guards against reprojection error; a still view keeps its converged history (it only bites as much as the pixel moved).
   let moved = select(0.0, smoothstep(0.1, 0.6, length((puv - uv) * frame.renderSize)), valid);
 
@@ -111,12 +121,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var dist = 0.0;
   if (valid && moved <= 0.0) {
     // Static pixel: its history; a fresh sample blends in. No neighbourhood needed (it only guards moving history).
-    let history = textureSampleLevel(histColor, histSampler, puv, 0.0);
+    let history = textureSampleLevel(histColor, histSampler, histUv, 0.0);
     result = history;
-    dist = hd.x;
-    if (fresh) { result = mix(history, textureLoad(traceColor, px, 0), TP.settings.x); dist = own; }
+    dist = hdx;
+    if (fresh) { result = mix(history, traceColorAt(px), TP.settings.x); dist = own; }
   } else {
     // The fresh samples around the pixel: moments for the clip, the nearest one for a rejected history.
+    let hi = vec2<i32>(frame.renderSize) - vec2<i32>(1);
     var m1 = vec4(0.0);
     var m2 = vec4(0.0);
     var n = 0.0;
@@ -128,9 +139,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       for (var dy = -1; dy <= 1; dy++) {
         for (var dx = -1; dx <= 1; dx++) {
           let q = clamp(base + vec2<i32>(dx, dy) * 2, vec2<i32>(0), hi);
-          let c = textureLoad(traceColor, q, 0);
+          let c = traceColorAt(q);
           m1 += c; m2 += c * c; n += 1.0;
-          if (dx == 0 && dy == 0) { nearC = c; nearD = textureLoad(traceDepth, q, 0).x * DEPTH_PACK; }
+          if (dx == 0 && dy == 0) { nearC = c; nearD = traceDistAt(q); }
         }
       }
     } else {
@@ -139,10 +150,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         for (var dx = -1; dx <= 1; dx++) {
           let q = px + vec2<i32>(dx, dy);
           if (any(q < vec2<i32>(0)) || any(q > hi) || !isTracedPixel(q)) { continue; }
-          let c = textureLoad(traceColor, q, 0);
+          let c = traceColorAt(q);
           m1 += c; m2 += c * c; n += 1.0;
           let r = f32(dx * dx + dy * dy);
-          if (r < nearR) { nearR = r; nearC = c; nearD = textureLoad(traceDepth, q, 0).x * DEPTH_PACK; }
+          if (r < nearR) { nearR = r; nearC = c; nearD = traceDistAt(q); }
         }
       }
     }
@@ -152,17 +163,17 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       let mean = m1 / max(n, 1.0);
       let sigma = sqrt(max(m2 / max(n, 1.0) - mean * mean, vec4(0.0)));
       let margin = TP.settings.y * sigma + TP.settings.z * abs(mean);
-      let h0 = textureSampleLevel(histColor, histSampler, puv, 0.0);
+      let h0 = textureSampleLevel(histColor, histSampler, histUv, 0.0);
       let history = mix(h0, clamp(h0, mean - margin, mean + margin), moved);
       if (fresh) {
         result = mix(history, nearC, mix(TP.settings.x, max(TP.settings.x, 0.6), moved));
       } else {
         result = history;
-        dist = hd.x;
+        dist = hdx;
       }
     }
   }
   textureStore(outColor, px, result);
-  textureStore(outDepth, px, vec4(dist, tEnd, sceneEnd, 0.0) / DEPTH_PACK);
+  textureStore(outDepth, px, vec4<u32>(packDepth(dist, tEnd, sceneEnd), 0u, 0u, 0u));
 }
 `;

@@ -5,7 +5,8 @@ export { uploadCloudVolume, uploadCloudNoise, type GpuCloudVolume } from './reso
 export { COMMON_WGSL } from './shaders/common.wgsl';
 export { volumeWgsl, volumeUniformData, createVolumeBindGroupLayout, createVolumeBindGroup, createVolumeSamplers, VOLUME_UNIFORM_BYTES, type VolumeBindingResources } from './shaders/volume.wgsl';
 export { createLightGrid, lightGridDims, lightGridWgsl, LightGridScheduler, type LightGrid, type LightGridFrameParams } from './light-grid';
-export { createCloudRuntime, CLOUD_QUALITY_PRESETS, type CloudQualityPreset, type CloudRuntime, type CloudFrame, type CloudSettings, type CloudQuality, type CloudUniformLighting, type CloudRuntimeOptions } from './runtime';
+export { createCloudRuntime, estimateCloudMemory, CLOUD_QUALITY_PRESETS, CLOUD_QUALITY_ORDER, type CloudQualityPreset, type CloudRuntime, type CloudFrame, type CloudSettings, type CloudQuality, type CloudQualityOption, type CloudMemory, type CloudUniformLighting, type CloudRuntimeOptions } from './runtime';
+export { selectTier, describeDevice, controlledCost, DynamicScale, AUTO_QUALITY_DEFAULTS, AUTO_QUALITY_PASSES, type AutoQualityInfo, type AutoQualityOptions, type TierInputs, type TierPick } from './auto-quality';
 export { DENSITY_WGSL } from './shaders/density.wgsl';
 export { MARCH_WGSL, marchWgsl, type MarchLightingMode } from './shaders/march.wgsl';
 export { LIGHTING_WGSL } from './shaders/lighting.wgsl';

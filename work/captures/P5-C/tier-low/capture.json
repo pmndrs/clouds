@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:60366/flagship/?quality=low",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T16:32:16.150Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P5-C/tier-low/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.804780233333333,
+          "skyCompute": 0.221622,
+          "lightGridReduce": 0.014956,
+          "lightGrid": 0.007749,
+          "marchNear": 0.08314381666666669,
+          "marchFar": 0.29814670000000004,
+          "composite": 0.13507978333333334,
+          "dome": 0.08171060000000001,
+          "resolveNear": 0.04570691666666666,
+          "resolveFar": 0.05406993333333334
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.014956,
+          "lightGrid": 0.007749,
+          "marchNear": 0.09329,
+          "marchFar": 0.345579,
+          "composite": 0.156372,
+          "dome": 0.076082,
+          "resolveNear": 0.051874,
+          "resolveFar": 0.061999
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "low",
+        "qualityOption": "low",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 4976232,
+          "trace": 624372,
+          "sky": 1990656,
+          "output": 0,
+          "dome": 131072,
+          "lightGrid": 279936,
+          "total": 8002268
+        },
+        "cloud": "parkouring",
+        "frames": 97,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 97,
+          "bytes": 5600604
+        },
+        "assetLoadMs": 20.599999994039536,
+        "firstCloudFrameMs": 37.900000005960464
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P5-C/tier-low/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.35437585,
+          "skyCompute": 0.213289,
+          "lightGridReduce": 0.014956,
+          "lightGrid": 0.007749,
+          "marchNear": 0.55501575,
+          "marchFar": 0.3155042166666666,
+          "composite": 0.18524930000000003,
+          "dome": 0.1378409333333333,
+          "resolveNear": 0.04893113333333331,
+          "resolveFar": 0.056690849999999994
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.014956,
+          "lightGrid": 0.007749,
+          "marchNear": 0.165955,
+          "marchFar": 0.345661,
+          "composite": 0.156581,
+          "dome": 0.091583,
+          "resolveNear": 0.052041,
+          "resolveFar": 0.061832
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "low",
+        "qualityOption": "low",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 4976232,
+          "trace": 624372,
+          "sky": 1990656,
+          "output": 0,
+          "dome": 131072,
+          "lightGrid": 279936,
+          "total": 8002268
+        },
+        "cloud": "parkouring",
+        "frames": 193,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 193,
+          "bytes": 5600604
+        },
+        "assetLoadMs": 20.599999994039536,
+        "firstCloudFrameMs": 37.900000005960464
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
