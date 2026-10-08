@@ -482,7 +482,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Captures at all bookmarks in `work/captures/P2-03/`.
   - The integration-line count is ≤ 20.
 
-### [~] P2-05 Reflections, depth sorting and presets: closing Phase 2 · Sonnet
+### [x] P2-05 Reflections, depth sorting and presets: closing Phase 2 · Sonnet
 - **Owns:**
   - `packages/three/**`
   - `examples/lab/scenes/ocean/**` (add an optional reflection hook)

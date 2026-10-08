@@ -1,0 +1,124 @@
+{
+  "url": "http://127.0.0.1:54753/three-adapter/?objects=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:43:31.825Z",
+  "shots": [
+    {
+      "name": "objects",
+      "file": "work/captures/P2-05/depth/objects.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4568688666666667,
+          "lightGrid": 0.072909,
+          "marchNear": 0.28793548333333335,
+          "marchFar": 0.8954264999999995,
+          "composite": 0.7588218333333333,
+          "dome": 0.12561813333333338
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "objects",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 94,
+        "cloudsReady": true
+      }
+    },
+    {
+      "name": "pierce",
+      "file": "work/captures/P2-05/depth/pierce.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.39118506666666664,
+          "lightGrid": 0.072909,
+          "marchNear": 0.22541881666666666,
+          "marchFar": 1.2481503499999997,
+          "composite": 0.5664274833333331,
+          "dome": 0.10583659999999999
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "pierce",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 189,
+        "cloudsReady": true
+      }
+    },
+    {
+      "name": "front",
+      "file": "work/captures/P2-05/depth/front.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.48530358333333334,
+          "lightGrid": 0.072909,
+          "marchNear": 0.36097976666666665,
+          "marchFar": 1.1372514,
+          "composite": 0.9590451333333334,
+          "dome": 0.12353699999999998
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "front",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 285,
+        "cloudsReady": true
+      }
+    },
+    {
+      "name": "behind",
+      "file": "work/captures/P2-05/depth/behind.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.34846746666666667,
+          "lightGrid": 0.072909,
+          "marchNear": 0.2777270166666667,
+          "marchFar": 0.9106626000000003,
+          "composite": 0.7023599833333332,
+          "dome": 0.08340636666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "behind",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 381,
+        "cloudsReady": true
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

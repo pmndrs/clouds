@@ -3,9 +3,9 @@
 // Detail LOD is per wave: waves smaller than the pixel footprint fade out and their lost slope variance is folded into roughness (no shimmer, no aliasing).
 import { BufferAttribute, BufferGeometry, DirectionalLight, Vector3, type Object3D, type PerspectiveCamera, type Scene } from 'three';
 import { bakeDetailTile } from './detail';
-import { MeshPhysicalNodeMaterial, Mesh, type WebGPURenderer } from 'three/webgpu';
+import { MeshPhysicalNodeMaterial, Mesh, LightingNode, type WebGPURenderer } from 'three/webgpu';
 import {
-  Fn, If, texture, vec2, positionGeometry, cameraViewMatrix, clamp, cos, dot, float, length, max, normalize, positionWorld, cameraPosition, pow, sin, smoothstep, uniform, vec3, vec4,
+  Fn, If, texture, vec2, positionGeometry, cameraViewMatrix, clamp, cos, dot, float, length, max, normalize, positionWorld, cameraPosition, positionViewDirection, normalView, cameraWorldMatrix, pow, sin, smoothstep, uniform, vec3, vec4,
 } from 'three/tsl';
 
 /** The pieces of @pmndrs/sky this module reads. Kept structural so any Sky instance fits. */
@@ -41,6 +41,12 @@ export interface OceanOptions extends Partial<OceanSettings> {
   waves?: number;
   /** Water level (y). */
   level?: number;
+  /**
+   * Extra reflected radiance, e.g. `dir => clouds.reflection(dir)`. Called with the world-space reflection direction; returns vec4
+   * (rgb = radiance to add, a = transmittance of what the environment shows through it). The IBL specular radiance becomes
+   * `env * a + rgb` before Fresnel, so the sky reflection is occluded by the clouds and the clouds are lit.
+   */
+  reflection?: (dir: any) => any;
 }
 
 export interface Ocean {
@@ -106,6 +112,19 @@ function buildGrid(rings: number, segments: number, r0: number, radius: number):
   return g;
 }
 
+/** Applies `env * T + rgb` to the specular IBL radiance, after three's own EnvironmentNode has written it. */
+class ReflectionLighting extends LightingNode {
+  constructor(private readonly env: any, private readonly reflection: (dir: any) => any) { super(); }
+  setup(builder: any): null {
+    this.env?.setup(builder);
+    const dir = positionViewDirection.negate().reflect(normalView).normalize().transformDirection(cameraWorldMatrix);
+    const c = this.reflection(dir);
+    const radiance = builder.context.radiance;
+    radiance.assign(radiance.mul(c.a).add(c.rgb));
+    return null;
+  }
+}
+
 export function createOcean(renderer: WebGPURenderer, scene: Scene, sky: OceanSky, options: OceanOptions = {}): Ocean {
   const settings: OceanSettings = {
     waveScale: 1, choppiness: 0.75, windDirection: 20, speed: 1, roughness: 0.04,
@@ -162,6 +181,11 @@ export function createOcean(renderer: WebGPURenderer, scene: Scene, sky: OceanSk
 
   // ---- vertex: long waves displace the grid, faded by grid spacing at that range (~7% of radius) ----
   const material = new MeshPhysicalNodeMaterial({ ior: 1.333, metalness: 0, side: 0 });
+  if (options.reflection) {
+    const hook = options.reflection;
+    const base = material.setupEnvironment.bind(material);
+    material.setupEnvironment = (builder: any) => new ReflectionLighting(base(builder), hook) as any;
+  }
   material.positionNode = Fn(() => {
     const wx = positionGeometry.x.add(uCamXZ.x), wz = positionGeometry.z.add(uCamXZ.z);
     const r = length(positionGeometry.xz);

@@ -1,0 +1,152 @@
+{
+  "url": "http://127.0.0.1:54905/open-water/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T12:43:49.657Z",
+  "shots": [
+    {
+      "name": "shore",
+      "file": "work/captures/P2-05/ow/shore.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7464163666666663,
+          "lightGrid": 5.533625,
+          "marchNear": 0.18029453333333337,
+          "marchFar": 2.9286545666666672,
+          "composite": 0.4659611166666666,
+          "dome": 0.12497596666666663,
+          "cloudsTotal": 9.233511183333333,
+          "total": 9.97992755
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "shore",
+        "frames": 206,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 112,
+          "jobsPerFrame": 2,
+          "wallMs": 1878.699999988079,
+          "encodeSubmitMsTotal": 7.500000178813934
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P2-05/ow/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.1192433,
+          "lightGrid": 1.5855686666666666,
+          "marchNear": 0.19405884999999995,
+          "marchFar": 2.454828433333333,
+          "composite": 0.4962049499999999,
+          "dome": 0.1612169833333333,
+          "cloudsTotal": 4.891877883333333,
+          "total": 6.011121183333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "horizon",
+        "frames": 303,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 112,
+          "jobsPerFrame": 2,
+          "wallMs": 1878.699999988079,
+          "encodeSubmitMsTotal": 7.500000178813934
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/P2-05/ow/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9011237833333333,
+          "lightGrid": 1.4776516470588235,
+          "marchNear": 0.20080586666666672,
+          "marchFar": 2.695647066666667,
+          "composite": 0.5309128333333332,
+          "dome": 0.1498046166666667,
+          "cloudsTotal": 5.054822030392157,
+          "total": 5.95594581372549
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "sunset",
+        "frames": 401,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 112,
+          "jobsPerFrame": 2,
+          "wallMs": 1878.699999988079,
+          "encodeSubmitMsTotal": 7.500000178813934
+        }
+      }
+    },
+    {
+      "name": "flight",
+      "file": "work/captures/P2-05/ow/flight.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.800261483333333,
+          "lightGrid": 1.3302881599999998,
+          "marchNear": 3.8162257333333343,
+          "marchFar": 0.08572580000000002,
+          "composite": 0.2517870666666667,
+          "dome": 0.15249695000000005,
+          "cloudsTotal": 5.6365237100000005,
+          "total": 6.436785193333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "flight",
+        "frames": 498,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 112,
+          "jobsPerFrame": 2,
+          "wallMs": 1878.699999988079,
+          "encodeSubmitMsTotal": 7.500000178813934
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

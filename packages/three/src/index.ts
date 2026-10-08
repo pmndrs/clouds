@@ -3,4 +3,7 @@ export { Clouds, type CloudsOptions, type CloudsLoadOptions, type SetVolumeOptio
 export { createSkyBridge, type SkyBridge, type SkyBridgeOptions } from './sky-bridge';
 export { createUniformLighting, DEFAULT_UNIFORM_LIGHTING, type UniformLighting, type UniformLightingValues } from './uniform-lighting';
 export { sharedBackend, toHalfBits, type SharedBackend } from './interop';
-export type { CloudQuality, CloudSettings, CloudVolumeAsset } from '@clouds/runtime';
+import type { CloudQuality } from '@clouds/runtime';
+export type { CloudQuality, CloudSettings, CloudVolumeAsset, GpuCloudVolume } from '@clouds/runtime';
+/** Every quality preset, cheapest first (`'ultra'` is the 0.5x / 1024-step reference preset). */
+export const CLOUD_QUALITIES = ['low', 'medium', 'high', 'ultra'] as const satisfies readonly CloudQuality[];

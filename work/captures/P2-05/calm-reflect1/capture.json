@@ -1,0 +1,84 @@
+{
+  "url": "http://127.0.0.1:54992/open-water/?wave=0.05&reflect=1",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T12:43:58.893Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/P2-05/calm-reflect1/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0689128999999997,
+          "lightGrid": 1.8239443333333334,
+          "marchNear": 0.18815206666666662,
+          "marchFar": 2.4193699333333325,
+          "composite": 0.4907251333333333,
+          "dome": 0.1778958833333333,
+          "cloudsTotal": 5.100087349999999,
+          "total": 6.169000249999999
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "horizon",
+        "frames": 202,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 112,
+          "jobsPerFrame": 2,
+          "wallMs": 1868.1000000238419,
+          "encodeSubmitMsTotal": 6.800000160932541
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/P2-05/calm-reflect1/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9352294166666667,
+          "lightGrid": 1.6586707647058823,
+          "marchNear": 0.19808661666666663,
+          "marchFar": 2.678933383333333,
+          "composite": 0.5278043833333335,
+          "dome": 0.17498065,
+          "cloudsTotal": 5.238475798039215,
+          "total": 6.173705214705882
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "sunset",
+        "frames": 300,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 112,
+          "jobsPerFrame": 2,
+          "wallMs": 1868.1000000238419,
+          "encodeSubmitMsTotal": 6.800000160932541
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

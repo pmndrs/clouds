@@ -2,10 +2,10 @@
 // everything clouds cost this scene; the cloudscape itself (GPU-generated field, see "cloudscape") is content, tagged `// CONTENT`.
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
-import { pass } from 'three/tsl';
+import { pass, vec4 } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
-import { Clouds, sharedBackend } from '@clouds/three'; // INTEGRATION
-import { createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type VolumeGenerator } from '@clouds/runtime'; // CONTENT
+import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three'; // INTEGRATION
+import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type CloudPresetName, type VolumeGenerator } from '@clouds/runtime'; // CONTENT
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { createOcean } from '../scenes/ocean';
 import { CameraRig } from '../flagship/controls';
@@ -43,9 +43,10 @@ try {
   const sun = sky.createSun({ physical: true });
   sun.attach(scene);
   await sky.compileAsync();
-  const ocean = createOcean(renderer, scene, sky, { sun });
+  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as CloudQuality) ?? 'high' }); // INTEGRATION
+  const ocean = createOcean(renderer, scene, sky, { sun, reflection: query.get('reflect') === '0' ? undefined : dir => { const r = clouds.reflection(dir); return query.has('refgain') ? vec4(r.rgb.mul(Number(query.get('refgain'))), r.a) : r; } }); // INTEGRATION (cloud reflections on the water)
   ocean.mesh.visible = query.get('ocean') !== '0';
-  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as 'high') ?? 'high' }); // INTEGRATION
+  if (query.has('wave')) { ocean.settings.waveScale = Number(query.get('wave')); ocean.settings.choppiness = 0.2; } // ?wave=0.05: near-flat water for judging reflections
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera); // INTEGRATION
   post.outputNode = clouds.node(scenePass.getTextureNode(), scenePass); // INTEGRATION
@@ -60,9 +61,11 @@ try {
     gen.source = `asset:${query.get('cloud')}`;
   } else {
     const encoder = device.createCommandEncoder();
-    const weather = encodeProceduralWeatherMap(device, encoder, { size: [FIELD.dims[0], FIELD.dims[1]], seed: Number(query.get('seed') ?? 7), scale: Number(query.get('wscale') ?? 12), coverageLo: Number(query.get('lo') ?? 0.5), coverageHi: Number(query.get('hi') ?? 0.64) });
+    const preset = CLOUD_PRESETS[(query.get('preset') as CloudPresetName) ?? 'cumulus'] ?? CLOUD_PRESETS.cumulus; // CONTENT
+    const seed = Number(query.get('seed') ?? 7);
+    const weather = encodeProceduralWeatherMap(device, encoder, { ...preset.weather, size: [FIELD.dims[0], FIELD.dims[1]], seed });
     device.queue.submit([encoder.finish()]);
-    gen.current = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params: { useMapHeights: false, baseDefault: Number(query.get('base') ?? 0.08), topMin: Number(query.get('tmin') ?? 0.18), topMax: Number(query.get('tmax') ?? 0.5) } }); // CONTENT
+    gen.current = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params: { ...preset.params, seed } }); // CONTENT
     gen.startMs = performance.now(); gen.source = 'generated';
   }
   const stepGeneration = () => {
@@ -75,8 +78,7 @@ try {
     gen.gpuSubmitMs += performance.now() - t; gen.frames++;
     if (g.done) {
       gen.doneMs = performance.now() - gen.startMs;
-      // The runtime takes the generator's GpuCloudVolume (caller-owned, so `g` stays alive); the adapter's setVolume() still rejects it, so go through `core`.
-      void clouds.core.setVolume(g.volume, { position: [cloudPos[0] - (FIELD.dims[0] * FIELD.voxel) / 2, cloudPos[1], cloudPos[2] - (FIELD.dims[1] * FIELD.voxel) / 2] }).then(() => ready()); // CONTENT (the capture harness waits for the clouds)
+      void clouds.setVolume(g.volume, { position: cloudPos }).then(() => ready()); // INTEGRATION (the volume stays caller-owned: `g` stays alive; the harness waits for the clouds)
       gen.current = undefined;
     }
   };

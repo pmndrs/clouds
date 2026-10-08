@@ -8,7 +8,7 @@
 // its own command encoder with three's device and submits it, then the fragment shader blends `color * a + rgb`.
 import { HalfFloatType, Matrix4, Vector3, type PerspectiveCamera } from 'three';
 import { NodeUpdateType, StorageTexture, TempNode, type WebGPURenderer } from 'three/webgpu';
-import { float, texture, uniform, vec4, mix } from 'three/tsl';
+import { Fn, abs, float, max, mix, smoothstep, texture, uniform, vec2, vec3, vec4 } from 'three/tsl';
 import {
   createAtmosphereBindGroupLayout, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume,
   type CloudFrame, type CloudNoiseAsset, type CloudQuality, type CloudRuntime, type CloudSettings, type CloudVolumeAsset, type GpuCloudVolume,
@@ -57,6 +57,9 @@ export class Clouds {
   private readonly options: CloudsOptions;
   private skyBridge: SkyBridge | undefined;
   private readonly cloudTexture = new StorageTexture(1, 1);
+  /** three-owned copy of the runtime's reflection dome (see `reflection()`); refreshed by a texture copy in the node's encoder. */
+  private readonly domeTexture: StorageTexture;
+  private domeGpu: GPUTexture | undefined;
   private readonly ready = uniform(0);
   private disposed = false;
   private width = 0;
@@ -87,6 +90,9 @@ export class Clouds {
       this.uniformLighting = createUniformLighting(this.device, this.layout, options.lighting);
       this.lighting = this.uniformLighting.values;
     }
+    const domeSize = this.runtime.dome.size;
+    this.domeTexture = new StorageTexture(domeSize, domeSize);
+    this.domeTexture.type = HalfFloatType; this.domeTexture.generateMipmaps = false; this.domeTexture.name = 'cloud reflection dome';
     this.cloudTexture.type = HalfFloatType; this.cloudTexture.generateMipmaps = false; this.cloudTexture.name = 'cloud composite';
     this.frame = {
       view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16),
@@ -113,11 +119,33 @@ export class Clouds {
     return asset;
   }
   async setNoise(noise: CloudNoiseAsset): Promise<void> { await this.runtime.setNoise(noise); }
-  /** `position` is the volume's base centre in world metres. */
+  /**
+   * `position` is the volume's base centre in world metres. A `GpuCloudVolume` (volume generator output) stays caller-owned:
+   * the runtime never destroys it, so keep the generator alive while it is shown.
+   */
   async setVolume(volume: GpuCloudVolume | CloudVolumeAsset, options: SetVolumeOptions): Promise<void> {
-    if (!('sdfMeters' in volume)) throw new Error('@clouds/three: runtime.setVolume() accepts a CloudVolumeAsset only in v0; a GpuCloudVolume needs runtime support (P2 core).');
-    const [w, h] = volume.dims, v = volume.voxelSizeMeters;
-    await this.runtime.setVolume(volume, { position: [options.position[0] - (w * v) / 2, options.position[1], options.position[2] - (h * v) / 2] });
+    const [ex, , ez] = 'extentMeters' in volume ? volume.extentMeters : [volume.dims[0] * volume.voxelSizeMeters, 0, volume.dims[1] * volume.voxelSizeMeters];
+    await this.runtime.setVolume(volume, { position: [options.position[0] - ex / 2, options.position[1], options.position[2] - ez / 2] });
+  }
+
+  /**
+   * Cloud reflection for a reflective material: `vec4(rgb, T)` for a world-space direction `dirNode` (any vec3 node; need not be
+   * normalised). rgb is premultiplied cloud radiance and T the transmittance, in the sky's exposure units; blend as
+   * `env * T + rgb`. Directions at or below the horizon give (0, 0, 0, 1). The dome is seen from one reference point (the camera's
+   * x/z at ground level by default), which suits large flat reflectors like water; it lags the main view by about a frame.
+   * Implementation: a three StorageTexture copy of `runtime.dome.texture` (the copy is recorded with the cloud passes), sampled bilinearly
+   * with the octahedral decode `uv = (x, z) / (|x| + |y| + |z|) * 0.5 + 0.5` (the upper hemisphere is the central diamond, so no fold is needed).
+   */
+  reflection(dirNode: AnyNode): AnyNode {
+    const dome = this.domeTexture;
+    return Fn(() => {
+      const d = vec3(dirNode);
+      const up = max(d.y, float(0));
+      const l = abs(d.x).add(up).add(abs(d.z)).max(float(1e-6));
+      const uv = vec2(d.x, d.z).div(l).mul(0.5).add(0.5);
+      const s = texture(dome, uv).level(float(0));
+      return mix(vec4(0, 0, 0, 1), s, smoothstep(float(0), float(0.02), d.y.div(d.length().max(float(1e-6)))));
+    })();
   }
 
   /**
@@ -135,7 +163,7 @@ export class Clouds {
     if (this.disposed) return;
     this.disposed = true;
     this.ready.value = 0;
-    this.runtime.dispose(); this.skyBridge?.dispose(); this.uniformLighting?.dispose(); this.cloudTexture.dispose();
+    this.runtime.dispose(); this.skyBridge?.dispose(); this.uniformLighting?.dispose(); this.cloudTexture.dispose(); this.domeTexture.dispose();
     for (const n of this.nodes) n.dispose();
     this.nodes.clear();
   }
@@ -190,6 +218,8 @@ export class Clouds {
     this.timer.beginFrame();
     const encoder = this.device.createCommandEncoder({ label: 'clouds encoder' });
     this.runtime.encode(encoder, f, this.timer);
+    if (!this.domeGpu) { this.renderer.initTexture(this.domeTexture); this.domeGpu = this.backend.tryTexture(this.domeTexture) ?? undefined; }
+    if (this.domeGpu) { const n = this.runtime.dome.size; encoder.copyTextureToTexture({ texture: this.runtime.dome.texture }, { texture: this.domeGpu }, [n, n]); }
     this.timer.endFrame(encoder);
     this.device.queue.submit([encoder.finish()]);
     this.ready.value = 1;
