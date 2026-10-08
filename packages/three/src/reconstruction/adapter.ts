@@ -205,7 +205,8 @@ export class ReconstructionAdapter {
     // this adapter on the same device as Three and the cloud integrator.
     sharedBackend(renderer);
     this.alpha = options.alpha ?? false;
-    this.upscaler = new Upscaler({ renderer, alpha: this.alpha });
+    // Upscaler >=0.5 always filters RGBA; alpha is kept only for this adapter's own composite policy.
+    this.upscaler = new Upscaler({ renderer });
     this.upscaler.init();
     this.unjitteredProjectionMatrix = this.upscaler.unjitteredProjectionMatrix;
   }

@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:57666/gpu-smoke/",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-10-08T11:10:46.464Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/harness-selftest/view.jpg",
+      "report": {
+        "frames": 37,
+        "adapter": "metal-3"
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

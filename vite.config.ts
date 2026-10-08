@@ -13,7 +13,9 @@ export default defineConfig({
     '@clouds/three': fileURLToPath(new URL('./packages/three/src/index.ts', import.meta.url)),
   } },
   server: { port: 5173, strictPort: true, fs: { allow: ['../..'] } },
-  build: { outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
+  build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
+    flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
+    gpuSmoke: fileURLToPath(new URL('./examples/lab/gpu-smoke/index.html', import.meta.url)),
     reactDensity: fileURLToPath(new URL('./examples/lab/react-density/index.html', import.meta.url)),
     realism: fileURLToPath(new URL('./examples/lab/realism/index.html', import.meta.url)),
     densityStudy: fileURLToPath(new URL('./examples/lab/density-study/index.html', import.meta.url)),

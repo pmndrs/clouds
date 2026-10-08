@@ -17,8 +17,8 @@
   },
   "devDependencies": {
     "@pmndrs/scheduler": "0.2.0",
-    "@pmndrs/sky": "0.3.0",
-    "@pmndrs/upscaler": "file:vendor/pmndrs-upscaler-0.2.0.tgz",
+    "@pmndrs/sky": "0.5.0",
+    "@pmndrs/upscaler": "0.5.0",
     "@react-three/fiber": "10.0.0-alpha.5",
     "@types/node": "22.19.15",
     "@types/react": "19.2.8",
@@ -28,14 +28,9 @@
     "esbuild": "0.25.12",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "three": "0.186.0",
+    "three": "0.186.1",
     "typescript": "5.9.3",
     "vite": "6.4.3",
     "vitest": "3.2.7"
-  },
-  "pnpm": {
-    "overrides": {
-      "@pmndrs/upscaler": "file:vendor/pmndrs-upscaler-0.2.0.tgz"
-    }
   }
 }
