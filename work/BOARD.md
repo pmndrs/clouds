@@ -554,6 +554,41 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The SDF stays conservative (test page).
   - `pnpm check` green.
 
+### [~] P3-C1 Distant sky layer (Nubis vertical-profile 2.5D) · Sonnet (Fable on failure)
+- **Owns:**
+  - `packages/runtime/src/{sky-layer.ts,shaders/sky-layer.wgsl.ts}` (new)
+  - runtime integration in `packages/runtime/src/runtime.ts` and
+    `shaders/composite.wgsl.ts`; keep existing behaviour identical when the
+    layer is disabled
+  - `examples/lab/cloudscape-gen/**` (add `?sky=1`)
+- **Does:** the Nubis vertical-profile method ([nubis-sources.md §1](../docs/research/nubis-sources.md)).
+  - **Geometry:** a cloud shell from `minHeight` to `maxHeight`, with an
+    optional planet-curvature approximation, out to about 30–50 km.
+  - **Weather:** the **same world-anchored weather map** as the generator
+    (`encodeProceduralWeatherMap` parameters), so distant and near clouds
+    agree.
+  - **Profile:** coverage times vertical-profile LUTs (bottom type / top type),
+    giving the dimensional profile. Then the **same up-rez density function**,
+    with noise at far mips, and the **same lighting chunk**
+    (`shaders/lighting.wgsl.ts`). Sun light comes from a short cheap march or
+    a vertical-profile approximation, since there is no light grid out there.
+  - **March:** rays outside the voxel box use adaptive steps (Nubis 2.5D:
+    `3 + 60·d/16384`). Render at reduced resolution (start at ¼ res; P3-C2
+    adds 16-frame temporal amortization).
+  - **Composite:** merge front to back with the voxel result.
+  - **Seamless handoff:** inside the voxel box, the voxel field wins. Fade the
+    layer in over a band outside the box so no seam shows when the box
+    boundary is on screen.
+  - Setting `skyLayer.enabled`, off by default for now.
+- **Acceptance:**
+  - With `cloudscape-gen?sky=1&preset=cumulus`, the horizon and ground
+    bookmarks show cumulus continuing to the horizon, with matching
+    look/density near the box edge (show a capture looking across the
+    boundary) and no seam.
+  - Layer cost at 2560×1440 is reported; target ≤ 1.5 ms before temporal.
+  - Flagship captures are unchanged with the layer off.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
