@@ -19,8 +19,10 @@ export const MARCH_RADIANCE_LIMIT = 60000;
  * distance or 0, y = scene distance the ray was marched against), 4/5 light grid + sampler, 6 sky light (storage).
  * Group 2: the atmosphere (sky LUTs, see atmosphereWgsl).
  *
- * Direct light: transmittance toward the sun = exp(-(tauInline + tauGrid)): two short in-line samples of the real up-rezzed
- * density (0-16 m, 16-48 m: keeps surface detail), the rest from the voxel light grid at p + sun * 48 m.
+ * Direct light: transmittance toward the sun = exp(-(tauMicro + tauInline + tauGrid)): a short full-density sample from every lit
+ * step (0-microDist m, Q-1: resolves billow-scale self-shadowing, fetched only within MICRO_DEPTH of the SDF surface), two in-line
+ * samples of the real up-rezzed density (to 16 m and 16-48 m: keeps surface detail), the rest from the voxel light grid at
+ * p + sun * 48 m. The first 16 m also occlude the glow terms (cloudInScatterMicro).
  * Everything is in the sky's exposure units (sunRadiance = sunRadianceAt, ambient = skyAmbient), no literal colours.
  */
 export type MarchLightingMode = 'atmosphere' | 'uniform';
@@ -53,6 +55,7 @@ const SPARSE_GAIN = 1.0;   // P3-E: inside the SDF but with almost no density (e
 const SPARSE_MAX = 6.0;     // ...up to this many
 const SPARSE_THIN = 0.1;   // a sample is thin when sigma * step is below this (optical depth of the segment)
 const LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3; // segments thinner than this skip the sun/ambient evaluation
+const MICRO_DEPTH = 40.0;   // Q-1: metres below the SDF surface within which the micro sun sample is fetched (the eroded billow shell)
 
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -112,9 +115,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let sunGrid = frame.sunDir * INLINE_FAR;
     let invExtentY = 1.0 / cloudVolume.extent.y;
-    var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, 0.0);
+    var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
-    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, 0.0);
+    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
+    let sunMicro = frame.sunDir * (0.5 * frame.microDist);
+    let microOn = frame.microDist > 0.0;
     var capped = true;
     // Lipschitz bound on the signed distance: |sdf(p + s) - sdf(p)| <= s, so the last fetched value minus the distance
     // travelled since is a conservative (more negative would be wrong) bound while we are deep inside; refetch when it nears 0.
@@ -123,6 +128,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     var sparseRun = 0.0;
     var inlineT = -1.0e9;
     var tauInline = 0.0;
+    var tauNear = 0.0;   // the 0..INLINE_NEAR m part of tauInline (micro sample excluded)
 
     for (var i = 0u; i < frame.maxSteps; i++) {
       if (t >= tEnd || T < frame.tCutoff) { capped = false; break; }
@@ -132,7 +138,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         sdf = cloudDistance(p);
         sdfBound = sdf; sdfFetchT = t;
       }
-      var step = max(sdf, max(STEP_MIN, sqrt(t) * STEP_SQRT));
+      var step = max(sdf, max(STEP_MIN, sqrt(t) * STEP_SQRT) * frame.stepScale);
       // Never silently truncate a long ray at the step cap: coarsen the step once a ray has used a lot of them.
       {
         // P3-E: widen the step in thin or dark-deep media, but never by more than half the depth below the surface (the SDF is a bound,
@@ -158,13 +164,22 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               if (ts - inlineT >= INLINE_REUSE_DIST) {
                 let d0 = cloudDensity(ps + sunInline0, ts, lightInputs).x;
                 let d1 = cloudDensity(ps + sunInline1, ts, lightInputs).x;
-                tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * frame.extinction;
+                tauNear = d0 * (INLINE_NEAR - frame.microDist) * frame.extinction;
+                tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * frame.extinction;
                 inlineT = ts;
               }
+              // Q-1: one short full-density sample toward the sun from every lit step (never reused: it is what resolves the
+              // billows). Its optical depth joins the direct term, and the first INLINE_NEAR metres toward the sun also occlude the
+              // glow terms (microOcc): multiply-scattered light diffuses only a few metres in dense cloud, so a lobe's shadow side
+              // glows less than its lit side. The relaxed, grid-fed tau in the lighting keeps the inner glow of deep interiors.
+              // Deeper than the erosion shell the sample's own density stands in for it (the lobes are all within MICRO_DEPTH of the surface).
+              var tauMicro = d.x * frame.microDist * frame.extinction;
+              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = cloudDensity(ps + sunMicro, ts, inputs).x * frame.microDist * frame.extinction; }
+              let microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
               let grid = lightGridSample(ps + sunGrid);
-              let tau = tauInline + grid.x * frame.lightDensityScale;
+              let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
-              let lit = cloudInScatter(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
+              let lit = cloudInScatterMicro(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown, microOcc);
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);

@@ -8,7 +8,8 @@
  * branch is not ported. The `fineDetailMipDistanceScale` constant (not published) is passed in.
  */
 export const DENSITY_WGSL = /* wgsl */ `
-struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, wispyBias: f32, _p1: f32 }
+// wispyBias and detailBias are art knobs; 0 = the Nubis sampler (the parity page passes 0).
+struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, wispyBias: f32, detailBias: f32 }
 
 // x = full up-rezzed density (0..1, before extinction scaling), y = profile * density scale (cheap).
 fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
@@ -42,6 +43,8 @@ fn cloudDensityShaped(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, mod
     noiseComposite = mix(hhf, noiseComposite, valueRemap(rayDistance, 50.0, 150.0, 0.9, 1.0));
   }
 
+  // Q-1 art bias (0 = Nubis): deeper erosion, so the billows cut further into the profile shell.
+  noiseComposite = saturate(noiseComposite * (1.0 + inputs.detailBias));
   var d = valueErosion(profile, noiseComposite);
   let ds2 = saturate(densityScale) * saturate(densityScale);
   let poweredScale = ds2 * ds2;

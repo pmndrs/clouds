@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 224;
+export const FRAME_UNIFORM_BYTES = 256;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -16,6 +16,10 @@ struct Frame {
   // art controls (P1-09)
   edgeDarkening: f32, glowBoost: f32, ambientSkyBias: f32, wispyBias: f32,
   glowFront: f32, skyEnabled: f32, deepAttenuation: f32, ambientFloor: f32,   // skyEnabled: 1 when the distant sky layer is merged by the composite
+  // Q-1 billow-scale shading: microDist = length (m) of the short full-density sun sample taken from every lit step (0 = off),
+  // microShadow = weight of its occlusion on the glow terms, detailBias = erosion amplitude bias (0 = Nubis), stepScale scales the march step floor
+  microDist: f32, microShadow: f32, detailBias: f32, stepScale: f32,
+  _pad3: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

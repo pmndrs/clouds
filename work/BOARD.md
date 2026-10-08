@@ -921,7 +921,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Quality track
 
-### [~] Q-1 Billow-scale self-shadowing and detail: closing on offline quality · Fable
+### [x] Q-1 Billow-scale self-shadowing and detail: closing on offline quality · Fable
 - **Owns:**
   - `packages/runtime/src/shaders/{march.wgsl.ts,lighting.wgsl.ts,density.wgsl.ts}`;
     density changes must keep the P1-04 parity page passing at Nubis defaults,

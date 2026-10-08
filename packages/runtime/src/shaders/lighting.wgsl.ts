@@ -2,6 +2,7 @@
  * The Nubis lighting model shared by the march and the reflection dome. Needs COMMON_WGSL and FRAME_WGSL
  * (reads frame.phaseG, silverG, silverStrength, msStrength, ambientStrength, ambientSkyBias, ambientExtinction,
  * glowBoost, glowFront, edgeDarkening, deepScatter, deepAttenuation, ambientFloor). All light colours come in as arguments (sky exposure units, no literals).
+ * cloudInScatterMicro (Q-1) adds the billow-scale occlusion of the glow terms; cloudInScatter is the same with no occlusion (dome, sky layer).
  */
 export const LIGHTING_WGSL = /* wgsl */ `
 const INLINE_NEAR = 16.0;   // first in-line sun sample covers 0..16 m
@@ -28,9 +29,16 @@ fn cloudPhase(cosTheta: f32) -> f32 {
 // surface (m, negative inside), h = height fraction in the volume, tau = optical depth toward the sun, gridUp = light grid
 // 'up' sum (density*m), phase = cloudPhase(cosSun), sunRelax = valueRemap(cosSun, 0, 0.9, 0, 1).
 fn cloudInScatter(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, phase: f32, sunRelax: f32, sunRadiance: vec3<f32>, ambientUp: vec3<f32>, ambientDown: vec3<f32>) -> vec3<f32> {
+  return cloudInScatterMicro(profile, sdf, h, tau, gridUp, phase, sunRelax, sunRadiance, ambientUp, ambientDown, 1.0);
+}
+// Q-1: as cloudInScatter, with a billow-scale occlusion factor microOcc = exp(-microShadow * tau over the first metres toward
+// the sun, full up-rezzed density) that the glow terms (ms, deep octaves) see. Without it the glow terms, which carry most of
+// the lit radiance, vary only with the smooth profile and a 0.25-relaxed tau, so the lobes shade flat and the body reads as a
+// smooth mass; the direct term alone resolves them but is too weak and too dark in the clefts to carry the look.
+fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, phase: f32, sunRelax: f32, sunRadiance: vec3<f32>, ambientUp: vec3<f32>, ambientDown: vec3<f32>, microOcc: f32) -> vec3<f32> {
   // Inner glow: the profile is an in-scatter probability; extinction relaxes deep inside and toward the sun.
   let relax = mix(0.25, valueRemap(sdf, -128.0, 0.0, 0.05, 0.25), max(sunRelax, frame.glowFront));
-  let ms = profile * exp(-tau * relax) * (1.0 + frame.glowBoost * sunRelax);
+  let ms = profile * exp(-tau * relax) * (1.0 + frame.glowBoost * sunRelax) * microOcc;
   // Ambient: dark where the profile is high, sky light attenuated by the density above, ground light from below.
   let tauUp = gridUp * frame.lightDensityScale * frame.ambientExtinction;
   // P3-F: sky light diffuses through thick cloud instead of dying: the attenuation saturates at ambientFloor, and so does the
@@ -46,7 +54,7 @@ fn cloudInScatter(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, phase: 
     an *= frame.deepAttenuation; bn *= DEEP_B; cn *= DEEP_C;
     deep += bn * mix(ISO_PHASE, phase, cn) * exp(-tau * an);
   }
-  return sunRadiance * (exp(-tau) * phase + frame.msStrength * ms * MS_NORMALISATION + frame.deepScatter * deep) + ambient;
+  return sunRadiance * (exp(-tau) * phase + frame.msStrength * ms * MS_NORMALISATION + frame.deepScatter * deep * microOcc) + ambient;
 }
 // Dark edges (front-lit): rays that only graze the cloud (shallow in the SDF) scatter little. Multiply the ray's radiance by this.
 fn cloudEdgeFactor(depthMax: f32, frontness: f32) -> f32 {

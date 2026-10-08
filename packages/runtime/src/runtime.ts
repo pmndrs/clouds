@@ -66,6 +66,14 @@ export interface CloudSettings {
   deepAttenuation: number;
   /** P3-F: 0..1 share of the sky ambient that survives any depth of cloud (soft-saturating exp(-tauUp) and profile occlusion). 0 = old behaviour. */
   ambientFloor: number;
+  /** Q-1: length (m) of the short full-density sun sample taken from every lit march step (billow-scale self-shadowing). 0 = off. */
+  microDist: number;
+  /** Q-1: 0..1 weight of the billow occlusion (from the micro sample) on the glow terms (ms, deep octaves). 0 = glow ignores it. */
+  microShadow: number;
+  /** Q-1: erosion amplitude bias, noise * (1 + detailBias) before the erosion. 0 = Nubis. */
+  detailBias: number;
+  /** Q-1: scales the march step floor (3 m + 0.2 sqrt(t)). 1 = P3-E tuning. */
+  stepScale: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
   windOffset: [number, number, number];
   windVelocity: [number, number, number];
@@ -163,6 +171,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     mipDistanceScale: 0.01, baseMip: 0, maxSteps: CLOUD_QUALITY_PRESETS[quality].maxSteps,
     transmittanceCutoff: CLOUD_QUALITY_PRESETS[quality].transmittanceCutoff, splitDistance: CLOUD_QUALITY_PRESETS[quality].splitDistance,
     shadowStrength: 0.6, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
+    microDist: 4, microShadow: 1, detailBias: 0.5, stepScale: 1, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
   };
 
   const volumeLayout = createVolumeBindGroupLayout(device);
@@ -398,6 +407,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[44] = settings.splitDistance; f[45] = settings.transmittanceCutoff;
       f[48] = settings.edgeDarkening; f[49] = settings.glowBoost; f[50] = settings.ambientSkyBias; f[51] = settings.wispyBias;
       f[52] = settings.glowFront; f[54] = settings.deepAttenuation; f[55] = settings.ambientFloor;
+      f[56] = settings.microDist; f[57] = settings.microShadow; f[58] = settings.detailBias; f[59] = settings.stepScale;
       // The distant sky layer: bakes its weather window / compiles its pipeline on first use (async), then renders.
       const skyActive = skyLayer.settings.enabled && skyLayer.prepare(encoder, skyBox, !!uniformLighting);
       f[53] = skyActive ? 1 : 0;
