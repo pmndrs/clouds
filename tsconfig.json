@@ -45,6 +45,9 @@
       ],
       "@clouds/legacy-react/layers": [
         "packages/legacy/react/src/layers.tsx"
+      ],
+      "@clouds/three": [
+        "packages/three/src/index.ts"
       ]
     },
     "jsx": "react-jsx"

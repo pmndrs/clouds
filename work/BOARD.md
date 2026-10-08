@@ -377,6 +377,58 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     outside `packages/legacy`.
   - `@clouds/three` and `@clouds/react` are free names.
 
+### [~] P2-02 `@clouds/three` adapter: `Clouds` and the TSL node · Sonnet
+- **Owns:** `packages/three/**` (new adapter; `package.json` and stub exist) and
+  `examples/lab/three-adapter/**`.
+- **Read-only:**
+  - `packages/runtime` (P1-09 edits lighting there in parallel; consume its
+    public API only)
+  - the flagship's `three-bridge.ts` and `sky-bridge.ts` (port their logic into
+    the adapter)
+  - `~/Developer/upscaler/src` (pattern: `UpscalerNode` `updateBefore`,
+    `internal/threeWebGPU.ts`, `internal/renderPipelineHooks.ts`)
+- **Does:** implement [specs/P2-api.md](specs/P2-api.md) "Target usage".
+  - `new Clouds(renderer, { sky?, quality })`
+  - `load({ volume, position })` and `setVolume(GpuCloudVolume, …)`
+  - `clouds.node(colorNode, scenePass)` → a TSL vec4 node that runs the runtime
+    in `updateBefore` after `scenePass` renders. It reads `scenePass` depth,
+    uses the camera from `scenePass`, and composites `color · a + rgb`.
+  - sky integration through the ported bridge; without a sky, the uniform
+    lighting mode
+  - settings passthrough, `dispose`
+  - Own interop helpers; no import from `packages/legacy`.
+- **Test page:** `three-adapter/` is a minimal scene written exactly like the
+  spec's target usage (count the integration lines), with bookmarks shared from
+  the flagship via import and the capture contract.
+- **Acceptance:**
+  - Integration is ≤ 20 lines.
+  - A capture of `ground,edge,backlit` matches the flagship's images for the same
+    bookmarks within a small tolerance. Report the mean |Δ|.
+  - The cost equals the flagship's ±0.3 ms.
+  - Works with `sky.applyHaze` before the clouds node.
+  - `pnpm check` green.
+
+### [~] P4-B Fit Guerrilla's profile-from-SDF mapping for authored clouds · Sonnet
+- **Owns:** `scripts/vdb/**`, `assets/clouds/houdini-test/**`, `work/captures/P4-B/`, report.
+- **Does:**
+  - Measure, from the pack (`assets/clouds/{parkouring,stormbird}` NVDF + SDF,
+    or the full pack), the empirical relation between SDF depth and dimensional
+    profile (percentiles of profile per depth bin), and how detail type and
+    density scale vary with height fraction and depth.
+  - Fit a compact mapping (piecewise or parametric) and make it the default for
+    fog and SDF modes, with the old mapping still selectable.
+  - Regenerate `houdini-test`.
+  - Ask the orchestrator for a flagship capture: write the exact command in
+    your report. You may run
+    `node scripts/gpu/capture.mjs --serve --page flagship/ --query cloud=houdini-test --shots ground,edge,above,backlit --out work/captures/P4-B`
+    yourself.
+- **Acceptance:**
+  - Plots or tables of the fitted relation versus the pack data, as an image in
+    `work/captures/P4-B/`.
+  - The `houdini-test` cloud visibly gains Nubis-style eroded detail versus
+    `work/captures/P4-A/` (side-by-side image).
+  - Pack parity (P4-A `check_parity.py`) still passes for mode `pack`.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
