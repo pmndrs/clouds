@@ -1,0 +1,153 @@
+{
+  "url": "http://127.0.0.1:64218/runtime-tests/p5a-compare/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T15:05:24.282Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P5-A/compare/view.jpg",
+      "report": {
+        "res": {
+          "256x256x32 cumulus margin1": {
+            "nvdfBytesDiffering": 129596,
+            "nvdfMaxDelta": 10,
+            "sdfMaxAbsDelta": 2.15625,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -2.15625,
+            "meanAbsDeltaNear": 0.075598935609297
+          },
+          "256x256x32 cumulus margin0": {
+            "nvdfBytesDiffering": 129596,
+            "nvdfMaxDelta": 10,
+            "sdfMaxAbsDelta": 2.1875,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -2.1875,
+            "meanAbsDeltaNear": 0.08071994354415864
+          },
+          "256x256x32 congestus margin1": {
+            "nvdfBytesDiffering": 86015,
+            "nvdfMaxDelta": 3,
+            "sdfMaxAbsDelta": 2.75,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -2.75,
+            "meanAbsDeltaNear": 0.07746522861760823
+          },
+          "256x256x32 congestus margin0": {
+            "nvdfBytesDiffering": 86015,
+            "nvdfMaxDelta": 3,
+            "sdfMaxAbsDelta": 2.8125,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -2.8125,
+            "meanAbsDeltaNear": 0.08186334568834305
+          },
+          "256x256x32 stratocumulus margin1": {
+            "nvdfBytesDiffering": 10655,
+            "nvdfMaxDelta": 2,
+            "sdfMaxAbsDelta": 0.25,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -0.25,
+            "meanAbsDeltaNear": 0.03020680499116038
+          },
+          "256x256x32 stratocumulus margin0": {
+            "nvdfBytesDiffering": 10655,
+            "nvdfMaxDelta": 2,
+            "sdfMaxAbsDelta": 0.25,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -0.25,
+            "meanAbsDeltaNear": 0.03144895817573172
+          },
+          "time 256x256x32": {
+            "oldMs": 5.089476000000001,
+            "newMs": 2.3915979999999997
+          },
+          "512x512x64 cumulus margin1": {
+            "nvdfBytesDiffering": 737466,
+            "nvdfMaxDelta": 14,
+            "sdfMaxAbsDelta": 4.5,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -4.5,
+            "meanAbsDeltaNear": 0.08960146332659309
+          },
+          "512x512x64 cumulus margin0": {
+            "nvdfBytesDiffering": 737466,
+            "nvdfMaxDelta": 14,
+            "sdfMaxAbsDelta": 4.5,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -4.5,
+            "meanAbsDeltaNear": 0.09408420085054874
+          },
+          "512x512x64 congestus margin1": {
+            "nvdfBytesDiffering": 492277,
+            "nvdfMaxDelta": 8,
+            "sdfMaxAbsDelta": 10.125,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -10.125,
+            "meanAbsDeltaNear": 0.08953749733442051
+          },
+          "512x512x64 congestus margin0": {
+            "nvdfBytesDiffering": 492277,
+            "nvdfMaxDelta": 8,
+            "sdfMaxAbsDelta": 10.125,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -10.125,
+            "meanAbsDeltaNear": 0.09383425707364561
+          },
+          "512x512x64 stratocumulus margin1": {
+            "nvdfBytesDiffering": 104990,
+            "nvdfMaxDelta": 2,
+            "sdfMaxAbsDelta": 1,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -1,
+            "meanAbsDeltaNear": 0.03352850430494293
+          },
+          "512x512x64 stratocumulus margin0": {
+            "nvdfBytesDiffering": 104990,
+            "nvdfMaxDelta": 2,
+            "sdfMaxAbsDelta": 1,
+            "newMinusOldMax": 0,
+            "newMinusOldMin": -1,
+            "meanAbsDeltaNear": 0.036501591022397084
+          },
+          "time 512x512x64": {
+            "oldMs": 47.01411499999998,
+            "newMs": 17.355069
+          },
+          "odd 101x67x19": {
+            "over": -0.00390625,
+            "under": -0.3048057556152344,
+            "flips": 0,
+            "occupied": 42741
+          },
+          "odd 130x40x33": {
+            "over": -0.00390625,
+            "under": -0.32279205322265625,
+            "flips": 0,
+            "occupied": 58987
+          },
+          "generatorMemory": {
+            "nvdf": 67108864,
+            "sdf": 33554432,
+            "scratch": 33554432,
+            "params": 1536,
+            "total": 134219264
+          },
+          "streamingMemory": {
+            "windows": 201326592,
+            "scratch": 33554432,
+            "other": 2146304,
+            "total": 237027328
+          }
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

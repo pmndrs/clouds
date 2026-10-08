@@ -8,8 +8,8 @@
 // Stamp any number of assets, then rebuild the SDF once. The target must be a generator output (createVolumeGenerator(...).volume)
 // or createEmptyCloudVolume(...): its NVDF needs STORAGE_BINDING | COPY_SRC and its SDF COPY_DST.
 import type { GpuCloudVolume } from '../resources';
-import { JFA_WGSL, SDF_WGSL } from './shaders';
-import { createGeneratorScratch, jfaStepSequence, type GeneratorScratch } from './volume-generator';
+import { EDT_X_WGSL, SDF_WGSL, edtLineWGSL } from './shaders';
+import { createGeneratorScratch, rangeChunks, type GeneratorScratch } from './volume-generator';
 
 export type StampMode = 'max' | 'replace' | 'cutout';
 
@@ -93,22 +93,23 @@ fn stampMain(@builtin(global_invocation_id) g: vec3<u32>) {
 }
 `;
 
-/** The occupancy seeds of the SDF rebuild: NVDF profile > 0 is inside. Params block shares the first 8 words with the generator's. */
+/** The occupancy of the SDF rebuild: NVDF profile > 0 is inside -> the class bit of the field buffer. One thread, two voxels. */
 const SEED_WGSL = /* wgsl */ `
 struct Params { dims: vec3<u32>, step: i32, zStart: u32, zCount: u32, margin: f32, maxDist: f32 }
 @group(0) @binding(0) var<uniform> P: Params;
 @group(0) @binding(1) var nvdf: texture_3d<f32>;
-@group(0) @binding(2) var<storage, read_write> seedsA: array<u32>;
-@group(0) @binding(3) var<storage, read_write> seedsB: array<u32>;
+@group(0) @binding(2) var<storage, read_write> fld: array<u32>;
 @compute @workgroup_size(8, 8, 4)
 fn seedMain(@builtin(global_invocation_id) g: vec3<u32>) {
-  if (g.x >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
-  let p = vec3<i32>(i32(g.x), i32(g.y), i32(P.zStart + g.z));
-  let i = (u32(p.z) * P.dims.y + u32(p.y)) * P.dims.x + u32(p.x);
-  let me = u32(p.x) | (u32(p.y) << 11u) | (u32(p.z) << 22u);
-  let occupied = textureLoad(nvdf, p, 0).r > 0.0;
-  seedsA[i] = select(0xffffffffu, me, occupied);
-  seedsB[i] = select(me, 0xffffffffu, occupied);
+  let x0 = g.x * 2u;
+  if (x0 >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
+  let z = P.zStart + g.z;
+  var o = 0u;
+  for (var s = 0u; s < 2u; s++) {
+    if (x0 + s < P.dims.x && textureLoad(nvdf, vec3<i32>(i32(x0 + s), i32(g.y), i32(z)), 0).r > 0.0) { o = o | (0x8000u << (16u * s)); }
+  }
+  let rowWords = ((P.dims.x * 2u + 255u) / 256u) * 64u;
+  fld[(z * P.dims.y + g.y) * rowWords + g.x] = o;
 }
 `;
 
@@ -247,12 +248,12 @@ export interface SdfRebuilderOptions {
   sliceDepth?: number;
   /** Conservative margin in voxels subtracted from |SDF|. Default 1 (as the generator). */
   marginVoxels?: number;
-  /** Extra jump-flood steps at the end. Default 2. */
+  /** Ignored: kept for API compatibility (the transform is an exact EDT, so sparse fields need no extra jump-flood rounds). */
   refinePasses?: 0 | 1 | 2;
-  /** Full jump-flood rounds (n/2 .. 1) before the refine steps. 2 ("JFA squared") is the default: stamped regions are sparse and a single round overshoots by ~2 voxels far from a cloud. */
+  /** Ignored: kept for API compatibility (see `refinePasses`). */
   rounds?: number;
   maxDistance?: number;
-  /** Share the generator's big seed/staging buffers (the caller must not run both at once). */
+  /** Share the generator's scratch buffer (the caller must not run both at once). */
   scratch?: GeneratorScratch;
   timestamps?: (label: string) => GPUComputePassTimestampWrites | undefined;
   label?: string;
@@ -263,6 +264,8 @@ export interface SdfRebuilder {
   readonly jobsDone: number;
   readonly done: boolean;
   readonly jobLabels: readonly string[];
+  /** GPU memory held by this rebuilder: its parameter buffer, and the scratch field when it owns it (0 when shared). */
+  readonly memoryBytes: { scratch: number; params: number; total: number };
   /** Start over (call after more stamps). */
   restart(): void;
   /** Encode up to `maxJobs` further jobs (default all). The target's SDF holds the old result until the last job's copy. */
@@ -273,13 +276,12 @@ export interface SdfRebuilder {
 const PARAM_BYTES = 96, PARAM_STRIDE = 256;
 
 /**
- * Rebuild `target.sdf` from `target.nvdf` (voxel is inside where profile > 0): occupancy seeds, 3D jump flood on two seed sets,
+ * Rebuild `target.sdf` from `target.nvdf` (voxel is inside where profile > 0): occupancy, exact separable EDT (x, y, z) in one u16 field,
  * signed distance minus a conservative margin, the same passes as the generator (so it is conservative the same way). Whole volume.
  * Jobs are independent dispatches so they can be spread over frames; the SDF texture is only written by the final copies.
  */
 export function createSdfRebuilder(device: GPUDevice, target: GpuCloudVolume, options: SdfRebuilderOptions = {}): SdfRebuilder {
   const [w, h, d] = target.dims;
-  if (w >= 2048 || h >= 2048 || d >= 1024) throw new Error('volume dims exceed the packed seed range (2047, 2047, 1023)');
   const label = options.label ?? 'stamp sdf';
   const margin = options.marginVoxels ?? 1, maxDist = options.maxDistance ?? 4096;
   const sliceDepth = Math.max(1, Math.min(d, options.sliceDepth ?? d));
@@ -290,23 +292,23 @@ export function createSdfRebuilder(device: GPUDevice, target: GpuCloudVolume, op
     const bgl = device.createBindGroupLayout({ label: name, entries });
     return { bgl, pipeline: device.createComputePipeline({ label: `${label} ${name}`, layout: device.createPipelineLayout({ bindGroupLayouts: [bgl] }), compute: { module: device.createShaderModule({ label: name, code }), entryPoint } }) };
   };
-  const seedK = make('seed', SEED_WGSL, 'seedMain', [uniformEntry, { binding: 1, visibility: C, texture: { sampleType: 'float', viewDimension: '3d' } }, storage(2, 'storage'), storage(3, 'storage')]);
-  const jfaK = make('jfa', JFA_WGSL, 'jfa', [{ ...uniformEntry, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: PARAM_BYTES } }, storage(1, 'read-only-storage'), storage(2, 'read-only-storage'), storage(3, 'storage'), storage(4, 'storage')]);
-  const sdfK = make('sdf', SDF_WGSL, 'sdfMain', [{ ...uniformEntry, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: PARAM_BYTES } }, storage(1, 'read-only-storage'), storage(2, 'read-only-storage'), storage(3, 'storage')]);
+  const seedK = make('seed', SEED_WGSL, 'seedMain', [uniformEntry, { binding: 1, visibility: C, texture: { sampleType: 'float', viewDimension: '3d' } }, storage(2, 'storage')]);
+  const fullUniform: GPUBindGroupLayoutEntry = { ...uniformEntry, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: PARAM_BYTES } };
+  const edtX = make('edt-x', EDT_X_WGSL, 'edtX', [fullUniform, storage(1, 'storage')]);
+  const edtY = make('edt-y', edtLineWGSL('y', h), 'edtLine', [fullUniform, storage(1, 'storage')]);
+  const edtZ = make('edt-z', edtLineWGSL('z', d), 'edtLine', [fullUniform, storage(1, 'storage')]);
+  const sdfK = make('sdf', SDF_WGSL, 'sdfMain', [fullUniform, storage(1, 'storage')]);
 
   const scratch = options.scratch ?? createGeneratorScratch(device, [w, h, d], label);
   if (scratch.dims[0] !== w || scratch.dims[1] !== h || scratch.dims[2] !== d) throw new Error('scratch dims differ from the volume dims');
   const ownsScratch = !options.scratch;
-  const seeds = scratch.seeds, staging = scratch.staging;
+  const field = scratch.field;
   const rowBytes = Math.ceil(w * 2 / 256) * 256;
-  const one = jfaStepSequence(Math.max(w, h, d), 0), refine = jfaStepSequence(Math.max(w, h, d), options.refinePasses ?? 2).slice(one.length);
-  const steps: number[] = [];
-  for (let r = 0; r < Math.max(1, options.rounds ?? 2); r++) steps.push(...one);
-  steps.push(...refine);
   const chunks: [number, number][] = [];
   for (let z = 0; z < d; z += sliceDepth) chunks.push([z, Math.min(sliceDepth, d - z)]);
+  const ychunks = rangeChunks(h, chunks.length);
 
-  const maxSlots = chunks.length * (2 + steps.length);
+  const maxSlots = chunks.length * 5;
   const params = device.createBuffer({ label: `${label} params`, size: maxSlots * PARAM_STRIDE, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const uni: GPUBufferBinding = { buffer: params, size: PARAM_BYTES };
   const slots = new Uint8Array(maxSlots * PARAM_STRIDE);
@@ -318,20 +320,17 @@ export function createSdfRebuilder(device: GPUDevice, target: GpuCloudVolume, op
     dv.setFloat32(24, margin, true); dv.setFloat32(28, maxDist, true); dv.setFloat32(32, target.voxelSize, true);
     return nSlots++;
   };
-  const jfaBG = (from: 0 | 1) => device.createBindGroup({
-    label: `jfa ${from}`, layout: jfaK.bgl,
-    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: { buffer: seeds[from * 2] } }, { binding: 2, resource: { buffer: seeds[from * 2 + 1] } }, { binding: 3, resource: { buffer: seeds[(1 - from) * 2] } }, { binding: 4, resource: { buffer: seeds[(1 - from) * 2 + 1] } }],
-  });
-  const final = steps.length % 2;
-  const seedBG = device.createBindGroup({ label: 'seed', layout: seedK.bgl, entries: [{ binding: 0, resource: { buffer: params, size: 32 } }, { binding: 1, resource: target.nvdf.createView({ dimension: '3d' }) }, { binding: 2, resource: { buffer: seeds[0] } }, { binding: 3, resource: { buffer: seeds[1] } }] });
-  const sdfBG = device.createBindGroup({ label: 'sdf', layout: sdfK.bgl, entries: [{ binding: 0, resource: uni }, { binding: 1, resource: { buffer: seeds[final * 2] } }, { binding: 2, resource: { buffer: seeds[final * 2 + 1] } }, { binding: 3, resource: { buffer: staging } }] });
-  const jfaBGs = [jfaBG(0), jfaBG(1)];
+  const fieldBG = (k: { bgl: GPUBindGroupLayout }) => device.createBindGroup({ label: 'edt', layout: k.bgl, entries: [{ binding: 0, resource: uni }, { binding: 1, resource: { buffer: field } }] });
+  const seedBG = device.createBindGroup({ label: 'seed', layout: seedK.bgl, entries: [{ binding: 0, resource: { buffer: params, size: 32 } }, { binding: 1, resource: target.nvdf.createView({ dimension: '3d' }) }, { binding: 2, resource: { buffer: field } }] });
+  const bgX = fieldBG(edtX), bgY = fieldBG(edtY), bgZ = fieldBG(edtZ), sdfBG = fieldBG(sdfK);
 
   type Job = { label: string; pipeline: GPUComputePipeline; bind: GPUBindGroup; slot: number; groups: [number, number, number]; copy?: { z0: number; n: number } };
   const jobs: Job[] = [];
-  const g8 = (n: number): [number, number, number] => [Math.ceil(w / 8), Math.ceil(h / 8), Math.ceil(n / 4)];
-  for (const [z0, n] of chunks) jobs.push({ label: 'seed', pipeline: seedK.pipeline, bind: seedBG, slot: addSlot(z0, n, 0), groups: g8(n) });
-  steps.forEach((step, k) => { for (const [z0, n] of chunks) jobs.push({ label: 'jfa3d', pipeline: jfaK.pipeline, bind: jfaBGs[k % 2], slot: addSlot(z0, n, step), groups: g8(n) }); });
+  const lines = (n: number) => Math.ceil(n / 64);
+  for (const [z0, n] of chunks) jobs.push({ label: 'seed', pipeline: seedK.pipeline, bind: seedBG, slot: addSlot(z0, n, 0), groups: [Math.ceil(w / 16), Math.ceil(h / 8), Math.ceil(n / 4)] });
+  for (const [z0, n] of chunks) jobs.push({ label: 'edt-x', pipeline: edtX.pipeline, bind: bgX, slot: addSlot(z0, n, 0), groups: [lines(h * n), 1, 1] });
+  for (const [z0, n] of chunks) jobs.push({ label: 'edt-y', pipeline: edtY.pipeline, bind: bgY, slot: addSlot(z0, n, 0), groups: [lines(w * n), 1, 1] });
+  for (const [y0, n] of ychunks) jobs.push({ label: 'edt-z', pipeline: edtZ.pipeline, bind: bgZ, slot: addSlot(y0, n, 0), groups: [lines(w * n), 1, 1] });
   for (const [z0, n] of chunks) jobs.push({ label: 'sdf', pipeline: sdfK.pipeline, bind: sdfBG, slot: addSlot(z0, n, 0), groups: [Math.ceil(w / 16), Math.ceil(h / 8), Math.ceil(n / 4)], copy: { z0, n } });
   device.queue.writeBuffer(params, 0, slots.subarray(0, nSlots * PARAM_STRIDE));
 
@@ -341,6 +340,7 @@ export function createSdfRebuilder(device: GPUDevice, target: GpuCloudVolume, op
     get jobsDone() { return cursor; },
     get done() { return cursor >= jobs.length; },
     jobLabels: jobs.map(j => j.label),
+    memoryBytes: { scratch: ownsScratch ? scratch.bytes : 0, params: maxSlots * PARAM_STRIDE, total: (ownsScratch ? scratch.bytes : 0) + maxSlots * PARAM_STRIDE },
     restart() { cursor = 0; },
     generate(encoder, maxJobs = Infinity) {
       let n = 0;
@@ -351,7 +351,7 @@ export function createSdfRebuilder(device: GPUDevice, target: GpuCloudVolume, op
         pass.setBindGroup(0, j.bind, [j.slot * PARAM_STRIDE]);
         pass.dispatchWorkgroups(...j.groups);
         pass.end();
-        if (j.copy) encoder.copyBufferToTexture({ buffer: staging, offset: j.copy.z0 * rowBytes * h, bytesPerRow: rowBytes, rowsPerImage: h }, { texture: target.sdf, origin: { x: 0, y: 0, z: j.copy.z0 } }, { width: w, height: h, depthOrArrayLayers: j.copy.n });
+        if (j.copy) encoder.copyBufferToTexture({ buffer: field, offset: j.copy.z0 * rowBytes * h, bytesPerRow: rowBytes, rowsPerImage: h }, { texture: target.sdf, origin: { x: 0, y: 0, z: j.copy.z0 } }, { width: w, height: h, depthOrArrayLayers: j.copy.n });
       }
       return { done: cursor >= jobs.length, jobsEncoded: n, jobsDone: cursor, jobsTotal: jobs.length };
     },

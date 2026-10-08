@@ -1,0 +1,208 @@
+{
+  "url": "http://127.0.0.1:63679/runtime-tests/generate/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T15:04:08.166Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P5-A/generate/view.jpg",
+      "report": {
+        "gpuMs": {
+          "generate256x256x32": 1.7020730000000002,
+          "generate256x256x32Sliced": 2.7140029999999995,
+          "perJob256x256x32": 0.11308345833333332,
+          "generate512x512x64": 12.115755,
+          "generate512x512x64Sliced": 16.28213299999999,
+          "perJob512x512x64": 0.3392111041666665
+        },
+        "frameMs": 16,
+        "renderSize": [
+          1536,
+          1044
+        ],
+        "sdf256": {
+          "rawSamples": {
+            "n": 2000,
+            "maxOvershoot": -0.00390625,
+            "maxUndershoot": -0.604644775390625,
+            "medianAbs": 0.09656143188476562,
+            "p99Abs": 0.469146728515625,
+            "signFlips": 0
+          },
+          "rawAll": {
+            "n": 2097152,
+            "maxOvershoot": -0.00390625,
+            "maxUndershoot": -0.61663818359375,
+            "medianAbs": 0.166595458984375,
+            "p99Abs": 0.4920654296875,
+            "signFlips": 0
+          },
+          "conservativeSamples": {
+            "n": 2000,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.604644775390625,
+            "medianAbs": 8.081750869750977,
+            "p99Abs": 8.442916870117188,
+            "signFlips": 0
+          },
+          "conservativeAll": {
+            "n": 2097152,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.61663818359375,
+            "medianAbs": 8.157821655273438,
+            "p99Abs": 8.474700927734375,
+            "signFlips": 0
+          },
+          "voxelMeters": 8
+        },
+        "timings": [
+          {
+            "dims": [
+              256,
+              256,
+              32
+            ],
+            "oneShotGpuMs": 1.7020730000000002,
+            "slicedGpuMs": 2.7140029999999995,
+            "wallMs": 2.9000000059604645,
+            "jobs": 24,
+            "perJobMs": 0.11308345833333332,
+            "byStage": {
+              "nvdf": {
+                "sum": 0.457153,
+                "max": 0.219619,
+                "count": 4
+              },
+              "edt-x": {
+                "sum": 0.262784,
+                "max": 0.066582,
+                "count": 4
+              },
+              "edt-y": {
+                "sum": 1.397666,
+                "max": 0.428403,
+                "count": 4
+              },
+              "edt-z": {
+                "sum": 0.527694,
+                "max": 0.151329,
+                "count": 4
+              },
+              "profile": {
+                "sum": 0.042998,
+                "max": 0.014208,
+                "count": 4
+              },
+              "sdf": {
+                "sum": 0.025708,
+                "max": 0.006584,
+                "count": 4
+              }
+            }
+          },
+          {
+            "dims": [
+              512,
+              512,
+              64
+            ],
+            "oneShotGpuMs": 12.115755,
+            "slicedGpuMs": 16.28213299999999,
+            "wallMs": 17.200000017881393,
+            "jobs": 48,
+            "perJobMs": 0.3392111041666665,
+            "byStage": {
+              "nvdf": {
+                "sum": 2.977577,
+                "max": 0.71977,
+                "count": 8
+              },
+              "edt-x": {
+                "sum": 1.662159,
+                "max": 0.234327,
+                "count": 8
+              },
+              "edt-y": {
+                "sum": 8.357829,
+                "max": 1.295336,
+                "count": 8
+              },
+              "edt-z": {
+                "sum": 2.752125,
+                "max": 0.385363,
+                "count": 8
+              },
+              "profile": {
+                "sum": 0.296326,
+                "max": 0.050873,
+                "count": 8
+              },
+              "sdf": {
+                "sum": 0.23611700000000002,
+                "max": 0.037166,
+                "count": 8
+              }
+            }
+          }
+        ],
+        "presetStats": {
+          "cumulus": {
+            "occupiedPct": 27.353286743164062,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.543212890625,
+            "signFlips": 0
+          },
+          "congestus": {
+            "occupiedPct": 23.387479782104492,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.61663818359375,
+            "signFlips": 0
+          },
+          "stratocumulus": {
+            "occupiedPct": 9.848976135253906,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.530517578125,
+            "signFlips": 0
+          }
+        },
+        "worldAnchor": {
+          "x quarter": {
+            "overlapVoxels": 1572864,
+            "occupied": 412136,
+            "occupancyMismatch": 0,
+            "maxDelta": 121,
+            "over1": 1928,
+            "interiorVoxels": 1247232,
+            "interiorMaxDelta": 0,
+            "interiorOver1": 0,
+            "sdfOver2Voxels": 501,
+            "sdfOver2VoxelsInterior": 0
+          },
+          "diagonal quarter": {
+            "overlapVoxels": 1179648,
+            "occupied": 336656,
+            "occupancyMismatch": 0,
+            "maxDelta": 177,
+            "over1": 3298,
+            "interiorVoxels": 903168,
+            "interiorMaxDelta": 0,
+            "interiorOver1": 0,
+            "sdfOver2Voxels": 1811,
+            "sdfOver2VoxelsInterior": 0
+          }
+        },
+        "checks": 22,
+        "failures": []
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

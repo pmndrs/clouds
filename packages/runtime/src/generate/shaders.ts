@@ -1,10 +1,10 @@
 // WGSL for the GPU NVDF generator. No three imports.
-// Seeds are packed voxel coordinates (x:11 | y:11 | z:10 bits); 0xffffffff means "no seed yet".
+// The distance field is an exact separable EDT in one u16-per-voxel buffer (see EDT_COMMON); no jump flood, no seed buffers.
 
-/** Shared params block (96 bytes), one dynamic-offset slot per job. */
+/** Shared params block (96 bytes), one dynamic-offset slot per job. zStart/zCount: the job's chunk, a z range (nvdf, edt x/y, profile, sdf) or a y range (edt z). `step` is unused. */
 const PARAMS = /* wgsl */ `
 struct Params {
-  dims: vec3<u32>, step: i32,
+  dims: vec3<u32>, step: i32,   // step: unused
   zStart: u32, zCount: u32, margin: f32, maxDist: f32,
   voxelSize: f32, covThreshold: f32, useHeights: f32, baseDefault: f32,
   topFrac: f32, domeExp: f32, billowAmp: f32, billowCell: f32,
@@ -12,47 +12,136 @@ struct Params {
   detailBias: f32, baseLift: f32, originX: f32, originY: f32,   // origin: world metres of voxel (0,0) along x and the map row
 }
 @group(0) @binding(0) var<uniform> P: Params;
-const NONE: u32 = 0xffffffffu;
-fn packSeed(p: vec3<i32>) -> u32 { return u32(p.x) | (u32(p.y) << 11u) | (u32(p.z) << 22u); }
-fn unpackSeed(s: u32) -> vec3<i32> { return vec3<i32>(i32(s & 2047u), i32((s >> 11u) & 2047u), i32(s >> 22u)); }
-fn voxelIndex(p: vec3<i32>) -> u32 { return (u32(p.z) * P.dims.y + u32(p.y)) * P.dims.x + u32(p.x); }
 `;
 
-/** One jump-flood step over a z-range, for both seed sets. */
-export const JFA_WGSL = /* wgsl */ `${PARAMS}
-@group(0) @binding(1) var<storage, read> srcA: array<u32>;
-@group(0) @binding(2) var<storage, read> srcB: array<u32>;
-@group(0) @binding(3) var<storage, read_write> dstA: array<u32>;
-@group(0) @binding(4) var<storage, read_write> dstB: array<u32>;
+/**
+ * The distance field lives in one u16-per-voxel buffer (two voxels per u32, x-fastest, rows padded to 256 B so the same buffer is the
+ * copyBufferToTexture source of the SDF):  bit 15 = voxel is inside the cloud, bits 0..14 = distance in 1/64 voxel to the nearest
+ * voxel of the opposite class (saturating at 511.98 voxels). Because every voxel has exactly one non-zero partial distance (an inside voxel
+ * is at distance 0 from the "inside" set, an outside voxel from the "outside" set), one signed volume carries the whole separable
+ * transform of both classes. The passes (x, y, z) run in place; each line is owned by one thread. Distances are floored on every store, so
+ * the result never exceeds the exact EDT.
+ */
+const EDT_COMMON = /* wgsl */ `
+const CAP: u32 = 32767u;
+const CLS: u32 = 0x8000u;
+fn rowWords() -> u32 { return ((P.dims.x * 2u + 255u) / 256u) * 64u; }
+fn wIdx(x: u32, y: u32, z: u32) -> u32 { return (z * P.dims.y + y) * rowWords() + (x >> 1u); }
+`;
 
-fn dist2(s: u32, p: vec3<i32>) -> i32 { let d = unpackSeed(s) - p; return dot(d, d); }
+/** Pass 1: along x, one thread per (y, z) row of the z range [zStart, zStart + zCount). Exact two-sweep 1D distance. */
+export const EDT_X_WGSL = /* wgsl */ `${PARAMS}${EDT_COMMON}
+@group(0) @binding(1) var<storage, read_write> fld: array<atomic<u32>>;
 
-@compute @workgroup_size(8, 8, 4)
-fn jfa(@builtin(global_invocation_id) g: vec3<u32>) {
-  if (g.x >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
-  let p = vec3<i32>(i32(g.x), i32(g.y), i32(P.zStart + g.z));
-  let i = voxelIndex(p);
-  var bestA = srcA[i]; var bestB = srcB[i];
-  var dA = select(0x7fffffff, dist2(bestA, p), bestA != NONE);
-  var dB = select(0x7fffffff, dist2(bestB, p), bestB != NONE);
-  let dims = vec3<i32>(P.dims);
-  for (var dz = -1; dz <= 1; dz++) {
-    for (var dy = -1; dy <= 1; dy++) {
-      for (var dx = -1; dx <= 1; dx++) {
-        if (dx == 0 && dy == 0 && dz == 0) { continue; }
-        let q = p + vec3<i32>(dx, dy, dz) * P.step;
-        if (any(q < vec3<i32>(0)) || any(q >= dims)) { continue; }
-        let qi = voxelIndex(q);
-        let sa = srcA[qi];
-        if (sa != NONE) { let d = dist2(sa, p); if (d < dA) { dA = d; bestA = sa; } }
-        let sb = srcB[qi];
-        if (sb != NONE) { let d = dist2(sb, p); if (d < dB) { dB = d; bestB = sb; } }
-      }
+@compute @workgroup_size(64)
+fn edtX(@builtin(global_invocation_id) g: vec3<u32>) {
+  if (g.x >= P.dims.y * P.zCount) { return; }
+  let y = g.x % P.dims.y;
+  let z = P.zStart + g.x / P.dims.y;
+  let base = wIdx(0u, y, z);
+  let nw = (P.dims.x + 1u) / 2u;
+  var lastIn = -100000; var lastOut = -100000;
+  for (var k = 0u; k < nw; k++) {
+    let wv = atomicLoad(&fld[base + k]);
+    var o = 0u;
+    for (var s = 0u; s < 2u; s++) {
+      let x = 2u * k + s;
+      if (x >= P.dims.x) { break; }
+      let raw = (wv >> (16u * s)) & 0xffffu;
+      var d: i32;
+      if ((raw & CLS) != 0u) { d = i32(x) - lastOut; lastIn = i32(x); } else { d = i32(x) - lastIn; lastOut = i32(x); }
+      o = o | (((raw & CLS) | min(CAP, u32(d) * 64u)) << (16u * s));
     }
+    atomicStore(&fld[base + k], o);
   }
-  dstA[i] = bestA; dstB[i] = bestB;
+  var nextIn = 1000000; var nextOut = 1000000;
+  for (var kk = 0u; kk < nw; kk++) {
+    let k = nw - 1u - kk;
+    let wv = atomicLoad(&fld[base + k]);
+    var o = wv;
+    for (var ss = 0u; ss < 2u; ss++) {
+      let s = 1u - ss;
+      let x = 2u * k + s;
+      if (x >= P.dims.x) { continue; }
+      let raw = (wv >> (16u * s)) & 0xffffu;
+      var d: i32;
+      if ((raw & CLS) != 0u) { d = nextOut - i32(x); nextIn = i32(x); } else { d = nextIn - i32(x); nextOut = i32(x); }
+      let code = min(raw & CAP, min(CAP, u32(d) * 64u));
+      o = (o & ~(0xffffu << (16u * s))) | (((raw & CLS) | code) << (16u * s));
+    }
+    atomicStore(&fld[base + k], o);
+  }
 }
 `;
+
+/**
+ * Passes 2 (axis 'y', line length h, range = z) and 3 (axis 'z', line length d, range = y): Felzenszwalb-Huttenlocher lower envelope of the
+ * squared partial distances along one axis, one thread per line (x, range index), private arrays of `n` entries. Two envelopes per line:
+ * features of the inside set (inside voxels at their partial distance, outside voxels at 0) answer the inside voxels, and vice versa.
+ * The input values are floors, so the output is an under-estimate of the exact EDT by at most 1/64 voxel per pass.
+ */
+export function edtLineWGSL(axis: 'y' | 'z', n: number): string {
+  const at = axis === 'y' ? 'vec3<u32>(x, q, r)' : 'vec3<u32>(x, r, q)';
+  return /* wgsl */ `${PARAMS}${EDT_COMMON}
+@group(0) @binding(1) var<storage, read_write> fld: array<atomic<u32>>;
+const N: u32 = ${n}u;
+var<private> ln: array<u32, ${n}>;
+var<private> vv: array<u32, ${n}>;
+var<private> zz: array<f32, ${n + 1}>;
+
+fn feat(q: u32, inside: bool) -> f32 {
+  let raw = ln[q];
+  return select(0.0, f32(raw & CAP) * (1.0 / 64.0), ((raw & CLS) != 0u) == inside);
+}
+
+@compute @workgroup_size(64)
+fn edtLine(@builtin(global_invocation_id) g: vec3<u32>) {
+  if (g.x >= P.dims.x * P.zCount) { return; }
+  let x = g.x % P.dims.x;
+  let r = P.zStart + g.x / P.dims.x;
+  let sh = (x & 1u) * 16u;
+  var nIn = 0u;
+  for (var q = 0u; q < N; q++) {
+    let p = ${at};
+    let raw = (atomicLoad(&fld[wIdx(p.x, p.y, p.z)]) >> sh) & 0xffffu;
+    ln[q] = raw;
+    nIn += raw >> 15u;
+  }
+  for (var ps = 0u; ps < 2u; ps++) {
+    let inside = ps == 0u;
+    if ((inside && nIn == 0u) || (!inside && nIn == N)) { continue; }
+    var k = 0;
+    vv[0] = 0u; zz[0] = -1e30; zz[1] = 1e30;
+    for (var q = 1u; q < N; q++) {
+      let fq = feat(q, inside);
+      let fq2 = fq * fq;
+      var s: f32;
+      loop {
+        let p = vv[k];
+        let fp = feat(p, inside);
+        s = ((fq2 - fp * fp) / f32(q - p) + f32(q + p)) * 0.5;
+        if (s <= zz[k]) { k--; } else { break; }
+      }
+      k++;
+      vv[k] = q; zz[k] = s; zz[k + 1] = 1e30;
+    }
+    k = 0;
+    for (var q = 0u; q < N; q++) {
+      while (zz[k + 1] < f32(q)) { k++; }
+      if (((ln[q] & CLS) != 0u) != inside) { continue; }
+      let p = vv[k];
+      let dq = f32(q) - f32(p);
+      let fp = feat(p, inside);
+      let code = min(CAP, u32(floor(sqrt(dq * dq + fp * fp) * 64.0)));
+      let pos = ${at};
+      let i = wIdx(pos.x, pos.y, pos.z);
+      atomicAnd(&fld[i], ~(0xffffu << sh));
+      atomicOr(&fld[i], ((ln[q] & CLS) | code) << sh);
+    }
+  }
+}
+`;
+}
 
 /** Hash, 3D Worley, the inverted-Worley billow and the value noise of the generator, parameter-free so the distant sky layer shares them. */
 export const BILLOW_WGSL = /* wgsl */ `
@@ -148,24 +237,27 @@ fn shapeAt(p: vec3<i32>, w: vec4<f32>, withNoise: bool) -> Shape {
 }
 `;
 
-/** Occupancy: f > 0 (before the profile is known) -> initial 3D seeds. Bindings 1,2 weather+sampler, 3,4 seed buffers. */
-export const NVDF_WGSL = /* wgsl */ `${PARAMS}${SHAPE}
+/** Occupancy: f > 0 (before the profile is known) -> the class bit of the distance field. Binding 3 is the field. One thread, two voxels. */
+export const NVDF_WGSL = /* wgsl */ `${PARAMS}${SHAPE}${EDT_COMMON}
 @group(0) @binding(1) var weather: texture_2d<f32>;
 @group(0) @binding(2) var weatherSampler: sampler;
-@group(0) @binding(3) var<storage, read_write> seedsA: array<u32>;  // 3D nearest inside voxel
-@group(0) @binding(4) var<storage, read_write> seedsB: array<u32>;  // 3D nearest outside voxel
+@group(0) @binding(3) var<storage, read_write> fld: array<u32>;
 
 @compute @workgroup_size(8, 8, 4)
 fn nvdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
-  if (g.x >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
-  let p = vec3<i32>(i32(g.x), i32(g.y), i32(P.zStart + g.z));
-  let uv = (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));
-  let sh = shapeAt(p, textureSampleLevel(weather, weatherSampler, uv, 0.0), true);
-  let occupied = sh.f > 0.0 && sh.h < 1.5;
-  let i = voxelIndex(p);
-  let me = packSeed(p);
-  seedsA[i] = select(NONE, me, occupied);
-  seedsB[i] = select(me, NONE, occupied);
+  let x0 = g.x * 2u;
+  if (x0 >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
+  let z = P.zStart + g.z;
+  var o = 0u;
+  for (var s = 0u; s < 2u; s++) {
+    let x = x0 + s;
+    if (x >= P.dims.x) { break; }
+    let p = vec3<i32>(i32(x), i32(g.y), i32(z));
+    let uv = (vec2<f32>(f32(x), f32(g.y)) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));
+    let sh = shapeAt(p, textureSampleLevel(weather, weatherSampler, uv, 0.0), true);
+    if (sh.f > 0.0 && sh.h < 1.5) { o = o | (CLS << (16u * s)); }
+  }
+  fld[wIdx(x0, g.y, z)] = o;
 }
 `;
 
@@ -176,24 +268,22 @@ fn nvdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
  * depth = distance (m) to the nearest outside voxel centre minus half a voxel. Occupied voxels keep profile >= 1/255 so the
  * texture's non-zero set equals the SDF mask. Outside the cloud the shipped assets hold G = B = 1.
  */
-export const PROFILE_WGSL = /* wgsl */ `${PARAMS}${SHAPE}
+export const PROFILE_WGSL = /* wgsl */ `${PARAMS}${SHAPE}${EDT_COMMON}
 @group(0) @binding(1) var weather: texture_2d<f32>;
 @group(0) @binding(2) var weatherSampler: sampler;
-@group(0) @binding(3) var<storage, read> seedsA: array<u32>;
-@group(0) @binding(4) var<storage, read> seedsB: array<u32>;
+@group(0) @binding(3) var<storage, read> fld: array<u32>;
 @group(0) @binding(5) var nvdf: texture_storage_3d<rgba8unorm, write>;
 
 @compute @workgroup_size(8, 8, 4)
 fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
   if (g.x >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
   let p = vec3<i32>(i32(g.x), i32(g.y), i32(P.zStart + g.z));
-  let i = voxelIndex(p);
-  if (seedsA[i] != packSeed(p)) { textureStore(nvdf, p, vec4<f32>(0.0, 1.0, 1.0, 1.0)); return; }
+  let raw = (fld[wIdx(g.x, g.y, P.zStart + g.z)] >> ((g.x & 1u) * 16u)) & 0xffffu;
+  if ((raw & CLS) == 0u) { textureStore(nvdf, p, vec4<f32>(0.0, 1.0, 1.0, 1.0)); return; }
   let uv = (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));
   let sh = shapeAt(p, textureSampleLevel(weather, weatherSampler, uv, 0.0), false);
-  let sb = seedsB[i];
   var depth = P.maxDist;
-  if (sb != NONE) { depth = max(0.0, (length(vec3<f32>(unpackSeed(sb) - p)) - 0.5) * P.voxelSize); }
+  if ((raw & CAP) != CAP) { depth = max(0.0, (f32(raw & CAP) * (1.0 / 64.0) - 0.5) * P.voxelSize); }
   // Smooth unit-ish noise with about 3 voxels of correlation.
   let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize + vec3<f32>(P.originX, P.originY, 0.0);
   let n = clamp((valueNoise3(pm / (3.0 * P.voxelSize), u32(P.seed * 53.0)) - 0.5) * 3.4, -2.5, 2.5);
@@ -212,39 +302,27 @@ fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
  * Final signed distance. r16float is not a core storage-texture format, so each thread packs two adjacent texels as f16
  * into a row-padded (256 B) buffer and the result is copied into the r16float texture with copyBufferToTexture.
  */
-export const SDF_WGSL = /* wgsl */ `${PARAMS}
-@group(0) @binding(1) var<storage, read> seedsA: array<u32>;
-@group(0) @binding(2) var<storage, read> seedsB: array<u32>;
-@group(0) @binding(3) var<storage, read_write> packed: array<u32>;
+export const SDF_WGSL = /* wgsl */ `${PARAMS}${EDT_COMMON}
+@group(0) @binding(1) var<storage, read_write> fld: array<u32>;
 
-fn signedDistance(p: vec3<i32>) -> f32 {
-  let i = voxelIndex(p);
-  let me = packSeed(p);
-  let a = seedsA[i];
-  let b = seedsB[i];
-  var d: f32;
-  if (a == me) {
-    // Inside: centre to nearest outside centre, minus half a voxel (surface lies between), minus the conservative margin.
-    d = select(-P.maxDist, -max(0.0, length(vec3<f32>(unpackSeed(b) - p)) - 0.5 - P.margin) * P.voxelSize, b != NONE);
-  } else {
-    d = select(P.maxDist, max(0.0, length(vec3<f32>(unpackSeed(a) - p)) - 0.5 - P.margin) * P.voxelSize, a != NONE);
-  }
-  d = clamp(d, -P.maxDist, P.maxDist);
-  // The f16 conversion rounds to nearest; bias by 2^-10 relative (one ulp) so the stored value is never larger.
-  return d - abs(d) * (1.0 / 1024.0);
+fn signedDistance(raw: u32) -> f32 {
+  // Centre to nearest opposite centre, minus half a voxel (the surface lies between) and the conservative margin.
+  let m = min(max(0.0, f32(raw & CAP) * (1.0 / 64.0) - 0.5 - P.margin) * P.voxelSize, P.maxDist);
+  let d = select(m, -m, (raw & CLS) != 0u);
+  // The f16 conversion rounds to nearest; shrink the magnitude by 2^-10 relative (one ulp) so the stored |d| is never larger.
+  return d * (1.0 - 1.0 / 1024.0);
 }
 
 @compute @workgroup_size(8, 8, 4)
 fn sdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
   let x0 = g.x * 2u;
   if (x0 >= P.dims.x || g.y >= P.dims.y || g.z >= P.zCount) { return; }
-  let z = P.zStart + g.z;
-  let p0 = vec3<i32>(i32(x0), i32(g.y), i32(z));
-  let d0 = signedDistance(p0);
+  let i = wIdx(x0, g.y, P.zStart + g.z);
+  let wv = fld[i];
+  let d0 = signedDistance(wv & 0xffffu);
   var d1 = 0.0;
-  if (x0 + 1u < P.dims.x) { d1 = signedDistance(p0 + vec3<i32>(1, 0, 0)); }
-  let rowWords = ((P.dims.x * 2u + 255u) / 256u) * 64u;
-  packed[(z * P.dims.y + g.y) * rowWords + g.x] = pack2x16float(vec2<f32>(d0, d1));
+  if (x0 + 1u < P.dims.x) { d1 = signedDistance(wv >> 16u); }
+  fld[i] = pack2x16float(vec2<f32>(d0, d1));
 }
 `;
 

@@ -1,5 +1,5 @@
 // CPU exact Euclidean distance transform (Felzenszwalb & Huttenlocher, separable). Port of scripts/nubis/edt.mjs.
-// Used as the reference for the GPU jump-flood SDF. Isotropic voxels, no three imports.
+// Used as the reference for the GPU exact EDT (same algorithm). Isotropic voxels, no three imports.
 
 const INF = 1e20;
 

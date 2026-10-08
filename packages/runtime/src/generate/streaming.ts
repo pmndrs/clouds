@@ -4,7 +4,7 @@
 // each frame), at a new world origin chosen where the camera is heading. Both are on the same lattice (origins are multiples of
 // the voxel size) and the weather and the shape noise are procedural in world coordinates, so the part of the new window that
 // overlaps the old one is the same field: swapping moves the box without changing what is inside it. They share one scratch
-// (jump-flood seeds + staging, about 300 MB at 512 x 512 x 64); only one generator runs at a time.
+// (the u16 distance field, 33.6 MB at 512 x 512 x 64; the old jump-flood seeds took about 300 MB); only one generator runs at a time.
 import type { GpuCloudVolume } from '../resources';
 import { CLOUD_PRESETS, type CloudPreset, type CloudPresetName } from './presets';
 import { createGeneratorScratch, createVolumeGenerator, type GeneratorScratch, type NvdfParams, type VolumeGenerator } from './volume-generator';
@@ -53,11 +53,23 @@ export interface StreamingStats {
   worstEncodeMs: number;
 }
 
+export interface StreamingMemory {
+  /** The two windows' nvdf + sdf textures (steady, shown and being built). */
+  windows: number;
+  /** The shared generation scratch (the peak scratch, allocated for the whole session). */
+  scratch: number;
+  /** Weather maps (rgba8unorm, one per window) and generator parameter buffers. */
+  other: number;
+  total: number;
+}
+
 export interface StreamingCloudscape {
   readonly extent: [number, number];
   readonly stats: StreamingStats;
   readonly generating: boolean;
   readonly current: StreamingUpdate;
+  /** GPU memory held by the streamer in bytes: the two windows' volumes, the shared scratch (peak extra while generating), per-window weather maps and parameter buffers. */
+  readonly memoryBytes: StreamingMemory;
   /**
    * Generate a window completely and show it (a one-time stall of about 50 ms GPU) around the camera. Await before the first update;
    * also usable to jump (teleport), it drops any generation in flight. Show the result with your renderer's setVolume.
@@ -145,6 +157,12 @@ export function createStreamingCloudscape(device: GPUDevice, options: StreamingC
     extent, stats,
     get generating() { return building >= 0; },
     get current() { return snapshot(false); },
+    get memoryBytes() {
+      const ms = slots.map(s => s.gen?.memoryBytes);
+      const windows = ms.reduce((a, m) => a + (m ? m.nvdf + m.sdf : 0), 0);
+      const other = ms.reduce((a, m) => a + (m ? m.params : 0), 0) + slots.reduce((a, s) => a + (s.weather ? dims[0] * dims[1] * 4 : 0), 0);
+      return { windows, scratch: scratch.bytes, other, total: windows + scratch.bytes + other };
+    },
     async start(cx, cz) {
       building = -1;                                    // drop any generation in flight
       const i = shown < 0 ? 0 : 1 - shown;

@@ -148,13 +148,14 @@ const samples = new Uint32Array(2000);
 for (let k = 0; k < samples.length; k++) samples[k] = k % 2 ? nearSurface[Math.floor(rand() * nearSurface.length)] : Math.floor(rand() * N);
 const sRaw = stats(samples, rawSdf, cpuSdf), sCons = stats(samples, gpuSdf, cpuSdf);
 const fRaw = stats(all, rawSdf, cpuSdf), fCons = stats(all, gpuSdf, cpuSdf);
-log(`raw JFA (margin 0), 2000 samples: ${fmt(sRaw)}`);
-log(`raw JFA (margin 0), all voxels:   ${fmt(fRaw)}`);
+log(`raw EDT (margin 0), 2000 samples: ${fmt(sRaw)}`);
+log(`raw EDT (margin 0), all voxels:   ${fmt(fRaw)}`);
 log(`conservative (margin 1), 2000 samples: ${fmt(sCons)}`);
 log(`conservative (margin 1), all voxels:   ${fmt(fCons)}`);
 check(samples.length >= 1000, `>= 1000 samples compared (${samples.length})`);
-check(sRaw.maxOvershoot <= 1.01 * VOXEL, `raw JFA overshoot on samples <= 1 voxel (${sRaw.maxOvershoot.toFixed(2)} m, voxel ${VOXEL} m)`);
-check(fRaw.maxOvershoot <= 1.01 * VOXEL, `raw JFA overshoot over all voxels <= 1 voxel (${fRaw.maxOvershoot.toFixed(2)} m)`);
+check(sRaw.maxOvershoot <= 1e-3, `raw exact EDT (margin 0) never overshoots the CPU EDT on samples (${sRaw.maxOvershoot.toExponential(2)} m, voxel ${VOXEL} m)`);
+check(fRaw.maxOvershoot <= 1e-3, `raw exact EDT (margin 0) never overshoots the CPU EDT over all voxels (${fRaw.maxOvershoot.toExponential(2)} m)`);
+check(Math.abs(fRaw.maxUndershoot) <= 0.02 * VOXEL * 4, `raw exact EDT (margin 0) undershoot stays within the 1/64-voxel floors and f16 (${fRaw.maxUndershoot.toFixed(3)} m)`);
 check(sCons.maxOvershoot <= 1e-3 && fCons.maxOvershoot <= 1e-3, `conservative field never overshoots exact EDT (max ${fCons.maxOvershoot.toExponential(2)} m)`);
 check(sCons.signFlips === 0 && fCons.signFlips === 0, 'conservative field has no sign flips');
 check(Math.abs(fCons.maxUndershoot) <= 4 * VOXEL, `conservative undershoot bounded (${fCons.maxUndershoot.toFixed(2)} m)`);
@@ -222,7 +223,7 @@ const worldAnchor: Record<string, unknown> = {};
   for (const [name, shift] of [['x quarter', [64, 0]], ['diagonal quarter', [64, 64]]] as [string, [number, number]][]) {
     const a = await make([0, 0]);
     const b = await make([shift[0] * VOXEL, shift[1] * VOXEL]);
-    const margin = 12; // voxels from a window edge: the jump flood sees only its own box, so depths differ near the edge
+    const margin = 12; // voxels from a window edge: the distance transform sees only its own box, so depths differ near the edge
     let n = 0, nInterior = 0, over1 = 0, over1Interior = 0, maxD = 0, maxDInterior = 0, sdfBad = 0, sdfBadInterior = 0, occA = 0, occMismatch = 0;
     for (let z = 0; z < D3(); z++) for (let y = 0; y + shift[1] < DIMS[1]; y++) for (let x = 0; x + shift[0] < DIMS[0]; x++) {
       const ia = (z * DIMS[1] + y + shift[1]) * DIMS[0] + x + shift[0], ib = (z * DIMS[1] + y) * DIMS[0] + x; // A voxel (x + shift) is B voxel x
@@ -306,12 +307,12 @@ const up = (z: number) => D - 1 - z;
 paint(0, 520, W * sx, D * sz, sx, sz, (x, zz) => { const v = nvdf[idx(x, bestRow, up(zz)) * 4]; return [v, v, v]; }, `profile, x-up section at map row ${bestRow}`);
 paint(520, 520, W * sx, D * sz, sx, sz, (x, zz) => sdfColor(gpuSdf[idx(x, bestRow, up(zz))]), 'SDF, same section');
 paint(1040, 520, W * sx, D * sz, sx, sz, (x, zz) => { const o = idx(x, bestRow, up(zz)) * 4; return nvdf[o] ? [nvdf[o + 1], 90 + nvdf[o + 1] * 0.3, 255 - nvdf[o + 1]] : [10, 10, 10]; }, 'detail type, same section');
-// row 3: error map of the raw JFA vs exact, at the same height as the SDF slice (green = exact, red = overestimate)
+// row 3: error map of the raw EDT vs exact, at the same height as the SDF slice (green = exact, red = overestimate)
 paint(0, 784, 256, 256, 1, 1, (x, y) => {
   const i = idx(x, y, midZ), e = (Math.abs(rawSdf[i]) - Math.abs(cpuSdf[i])) / VOXEL;
   if (!mask[i] && Math.abs(cpuSdf[i]) > 24 * VOXEL) return [12, 12, 12];
   return e > 1e-3 ? [255 * Math.min(1, e / 2), 40, 40] : e < -1e-3 ? [40, 40, 255 * Math.min(1, -e / 2)] : [30, 160, 60];
-}, `raw JFA vs exact EDT at z=${midZ}: green exact, red overestimate (2 voxels = full), blue underestimate`);
+}, `raw GPU EDT vs CPU EDT at z=${midZ}: green exact, red overestimate (2 voxels = full), blue underestimate`);
 
 log(failures.length ? `\n${failures.length} FAILED` : '\nALL PASSED');
 if (failures.length) harness.fail(`generate: ${failures.join('; ')}`);
