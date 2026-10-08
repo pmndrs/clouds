@@ -1,0 +1,84 @@
+{
+  "url": "http://127.0.0.1:64080/ocean/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:59:16.206Z",
+  "shots": [
+    {
+      "name": "shore",
+      "file": "work/captures/P2-A/shore.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.796278,
+          "skyOnly": 0.248246,
+          "ocean": 1.187315
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "shore",
+        "frames": 458
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P2-A/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.390102,
+          "skyOnly": 0.248246,
+          "ocean": 1.187315
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 554
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/P2-A/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.5613920000000001,
+          "skyOnly": 0.248246,
+          "ocean": 1.187315
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 650
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
