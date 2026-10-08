@@ -693,6 +693,55 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Before/after captures show no visible change.
   - Parity passes; `pnpm check` green.
 
+## Phase 4 — Authored clouds
+
+### [~] P4-C GPU stamping of authored clouds into a cloudscape · Sonnet
+- **Owns:**
+  - `packages/runtime/src/generate/stamp.ts` and its shader (new)
+  - one export line in `packages/runtime/src/generate/index.ts`
+  - `examples/lab/runtime-tests/stamp/**` (wired)
+- **Read-only:** the rest of `generate/**`; P3-C2 edits `weather.ts` and
+  `shaders.ts`.
+- **Does:** Atlas-style compositing (Nubis s65–67) on the GPU, renderer-agnostic.
+  - `stampCloud(encoder, target: GpuCloudVolume/generator, asset: GpuCloudVolume, { position, yaw, scale, mode: 'max'|'replace'|'cutout', densityScale?, detailType? })`
+    resamples the authored NVDF into the region's NVDF with the transform.
+  - Then the SDF is regenerated for the touched region: a JFA over the
+    affected bounds plus margin, or the whole volume. Amortizable.
+  - Cutout carves (for example a tunnel or hole). Multiple stamps per region.
+  - It works on generated regions (`createVolumeGenerator` output) and on an
+    empty region.
+- **Acceptance:**
+  - The test page stamps Parkouring, Stormbird and `houdini-test` into a
+    generated cumulus region at chosen transforms, plus one cutout, and
+    renders it.
+  - Captures show each stamped cloud in place with correct orientation and
+    scale, and the cutout hole.
+  - SDF conservativeness holds after stamping (compare with a CPU EDT on the
+    stamped region).
+  - Cost per stamp is reported.
+  - `pnpm check` green.
+
+### [~] P4-E Houdini hero-cloud authoring with Cloud SOPs · Sonnet
+- **Owns:** `scripts/vdb/authoring/**` (new) and `assets/clouds/heroes/**`
+  (new; each cloud under 4 MB).
+- **Does:** a hython script that builds hero clouds the way a Houdini artist
+  would, using Houdini's built-in **Cloud SOP** and **Cloud Noise SOP** (and
+  optionally VDB Reshape or Smooth), not displaced spheres.
+  - Shapes come from simple source geometry: a towering cumulus from stacked
+    spheres or a curve, a long low fog bank for a valley, and a
+    flat-bottomed fair-weather cumulus.
+  - Each exports a fog VDB and converts with `scripts/vdb/vdb_to_nvdf.py`
+    `--mode fog` (the P4-B PACK_FIT mapping).
+  - Document the recipe in `scripts/vdb/authoring/README.md`: the knobs that
+    matter and how to author your own.
+- **Acceptance:**
+  - Three hero clouds in `assets/clouds/heroes/`.
+  - Each renders in the flagship (`?cloud=heroes/<name>` if the loader allows
+    nested names; otherwise report the one-line change needed). Captures
+    `ground,edge,backlit` in `work/captures/P4-E/`.
+  - The clouds show Nubis-like eroded detail comparable to Parkouring. Include
+    a side-by-side with `houdini-test`.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
