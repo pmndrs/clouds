@@ -881,6 +881,44 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - For the bunny, the shape stays recognizable while reading as cloud.
   - Report the conversion parameters and timings.
 
+### [~] P4-H In-browser `.vdb` import: drop a VDB, get a Nubis cloud · Sonnet
+- **Owns:**
+  - `packages/runtime/src/import/**` (new; renderer-agnostic)
+  - `vendor/vdb-web-tools/**` (vendored copy plus its Apache-2.0 LICENSE and
+    NOTICE)
+  - `examples/lab/vdb-drop/**` (wired)
+  - one export line in `packages/runtime/src/index.ts`
+- **Source:** the user's WebVDB project at `/Users/dex/Developer/WebVDB`
+  (Apache-2.0, read-only). Its `packages/vdb-web-tools` is a pure-TS `.vdb`
+  parser (FloatGrid 5-4-3, uncompressed or zlib; no Blosc) with a NanoVDB
+  builder. Vendor only what the import needs, and record the source commit.
+- **Does:** `importVdb(device, arrayBuffer, options) → GpuCloudVolume` in the
+  browser, with no Houdini or Python.
+  - Parse the grid and pick the density grid (or SDF/level set) by name or
+    class.
+  - Resample to the runtime voxel size (8 m, or `worldScale` options) on the
+    CPU or GPU.
+  - Build the NVDF channels with the **P4-B PACK_FIT mapping**, ported from
+    `scripts/vdb/nvdf_math.py` to TS or WGSL.
+  - Generate the SDF with the existing GPU jump flood (2 rounds; see P4-C
+    `createSdfRebuilder`).
+  - Report a clear error for Blosc-compressed files, with the exact Houdini
+    export setting to change.
+- **Demo page:** drag and drop a `.vdb` onto the page, or use `?url=` for a
+  file served under `/clouds/...` or `/@fs/` (dev). Show grid info, conversion
+  time and the render, with `ground`/`edge`/`backlit` bookmarks around the
+  imported cloud.
+- **Acceptance:**
+  - `?url=` imports of the Nubis pack VDBs (`ParkouringCloud.vdb` via
+    `/@fs/` from `artifacts/research/nubis-pack/...`) match the
+    hython-converted asset: NVDF within 2/255 at ≥ 99% of voxels if the pack
+    mode is used, or visually equivalent.
+  - The user's `bunny_cloud.vdb` (`artifacts/research/vdbs/`) and the Disney
+    `wdas_cloud_eighth.vdb` (`artifacts/research/disney-cloud/`) import and
+    render, or fail with a clear Blosc message.
+  - Conversion times are reported.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
