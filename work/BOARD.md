@@ -849,6 +849,38 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - March cost within +0.3 ms.
   - Parity passes; `pnpm check` green.
 
+### [~] P4-G Real-world VDBs: Disney cloud, OpenVDB bunny and the user's samples · Sonnet
+- **Owns:**
+  - `assets/clouds/disney/**` (committed, with `NOTICE.md`: CC BY-SA 3.0,
+    © 2017 Disney Enterprises, plus the Kevin Udy photo reference attribution)
+  - `assets/clouds/local/**` (gitignored; for inputs whose licence is unknown)
+  - `work/captures/P4-G/`
+  - small additions to `scripts/vdb/**` if the converter needs them
+- **Inputs:**
+  - `/Users/dex/Developer/WebGPUClouds/artifacts/research/disney-cloud/`
+    (`wdas_cloud_{sixteenth,eighth,quarter}.vdb`,
+    `wdas_cloud_hyperion_render.png` reference, `README.txt`)
+  - `/Users/dex/Developer/WebGPUClouds/artifacts/research/vdbs/`
+    (`bunny_cloud.vdb`, `cloud.0001.vdb`, `bunny.vdb` level set, others)
+- **Does:**
+  - Inspect each VDB's grids, units, transform and value ranges.
+  - Convert with `vdb_to_nvdf.py` (`--mode fog`, or `sdf` for a level set) at
+    8 m runtime voxels with a sensible world scale. The Disney cloud is a real
+    cumulus: scale it to about 1.0–1.5 km wide. The bunny is a "Sea of
+    Thieves shaped cloud" test: about 600–800 m.
+  - Pick the Disney resolution with the best quality at 8 m (probably quarter
+    or eighth), keeping the asset under 4 MB.
+  - Outputs: `assets/clouds/disney/`, `assets/clouds/local/bunny-cloud/` and
+    `assets/clouds/local/cloud-0001/`. The flagship whitelist already has
+    `disney`, `local/bunny-cloud` and `local/cloud-0001`.
+- **Acceptance:**
+  - Flagship captures (`ground`, `edge`, `backlit`, `frontlit`) for each.
+  - For Disney, a side-by-side against the Hyperion render from an
+    approximately matching camera and sun. Describe honestly how close our
+    realtime Nubis rendering gets to the offline reference.
+  - For the bunny, the shape stays recognizable while reading as cloud.
+  - Report the conversion parameters and timings.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet

@@ -14,7 +14,7 @@ import { createSkyBridge } from './sky-bridge';
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['low', 'medium', 'high'] as const;
-const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus'] as const;
+const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus', 'disney', 'local/bunny-cloud', 'local/cloud-0001'] as const;
 const cloudName = CLOUDS.includes(query.get('cloud') as never) ? (query.get('cloud') as string) : 'parkouring';
 const state = {
   bookmark: (isBookmarkName(query.get('bookmark') ?? '') ? query.get('bookmark') : 'ground') as BookmarkName,
