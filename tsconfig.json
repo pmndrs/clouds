@@ -19,6 +19,9 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
+      "@clouds/runtime": [
+        "packages/runtime/src/index.ts"
+      ],
       "@clouds/core": [
         "packages/core/src/index.ts"
       ],

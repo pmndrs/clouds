@@ -1,0 +1,133 @@
+{
+  "url": "http://127.0.0.1:61689/flagship/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:19:11.748Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P0-03/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0525377666666664
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045,
+          "last": 16.799999999999955
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "frames": 95
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P0-03/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.197566433333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "frames": 190
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P0-03/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.207217083333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "frames": 286
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P0-03/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0000944166666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "frames": 382
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P0-03/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7644729166666668
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "animateTime": false,
+        "quality": "high",
+        "frames": 478
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

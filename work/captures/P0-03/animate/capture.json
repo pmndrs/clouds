@@ -1,0 +1,64 @@
+{
+  "url": "http://127.0.0.1:61836/flagship/?animateTime=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:19:20.759Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P0-03/animate/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 10.983668283333335
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14.749949999999956,
+        "animateTime": true,
+        "quality": "high",
+        "frames": 99
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P0-03/animate/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 10.511690083333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 18.349949999999943,
+        "animateTime": true,
+        "quality": "high",
+        "frames": 194
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

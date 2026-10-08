@@ -45,7 +45,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - Each cloud's output is under 4 MB. The script is deterministic: running it twice gives identical bytes.
 - **Note:** the runtime maps world (x, y-up, z) to texture (x, z, y). Write the axis convention into `assets/clouds/README.md`.
 
-### [~] P0-03 Flagship shell page and GPU timer · Sonnet
+### [x] P0-03 Flagship shell page and GPU timer · Sonnet
 - **Owns:**
   - `examples/lab/flagship/**`
   - `packages/runtime/**`, a new renderer-agnostic package `@clouds/runtime`: `package.json`, `src/index.ts`, `src/gpu-timer.ts` plus test
