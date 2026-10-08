@@ -591,6 +591,43 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Flagship captures are unchanged with the layer off.
   - `pnpm check` green.
 
+### [~] P3-D Streaming cloudscape window and the plains flight demo · Sonnet
+- **Owns:**
+  - `packages/runtime/src/generate/**`
+  - `examples/lab/plains-flight/**` (new page, wired)
+  - `packages/three/**` only for small additions the page needs (report them)
+- **Read-only:** `packages/runtime/src/{runtime.ts,shaders/**}`. P3-C1 is
+  editing them now; if you need a runtime change, report it.
+- **Does:**
+  - **World-anchored generation:** the generator takes a world-space origin,
+    and the weather map is sampled in world coordinates, so two windows at
+    different origins agree exactly where they overlap. Test this on the test
+    page.
+  - **Streaming window:** keep two generator volumes. When the camera moves
+    more than a threshold (for example ¼ of the window) from the current
+    centre, generate the next window at the new centre, amortized over frames,
+    then swap with `setVolume(nextVolume, { position })`. No visible pop at the
+    swap, because the overlap is identical. Report how the light grid behaves
+    across a swap.
+  - **Plains flight demo:** a 40 s scripted flight at about 120 m/s over plains
+    (ground plane, sky, cumulus preset):
+    - start on the ground looking up
+    - climb through the cloud layer
+    - cruise above the tops
+    - descend through a gap
+
+    Use `?t=<seconds>` and bookmarks along the path so the capture harness can
+    sample it, plus `?play=1` for real-time playback. The HUD shows GPU ms per
+    pass.
+- **Acceptance:**
+  - Captures at t = 0, 5, 10 … 40 s at 2560×1440 show a continuous cloudscape
+    through at least one window swap, with no pop. Sample frames either side of
+    the swap and report the mean |Δ|.
+  - 60 fps, with frame p95 ≤ 1.5× p50 measured during `?play=1`, including
+    across swaps.
+  - Generation never stalls a frame.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
