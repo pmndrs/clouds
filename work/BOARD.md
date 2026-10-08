@@ -354,6 +354,29 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 
 
+## Phase 2 — Drop-in API v0 and the open-water scene
+
+Spec: [specs/P2-api.md](specs/P2-api.md).
+
+### [~] P2-00 Move the legacy packages aside · Haiku
+- **Owns:**
+  - `packages/three` → `packages/legacy/three`, renamed `@clouds/legacy-three`
+  - `packages/react` → `packages/legacy/react`, renamed `@clouds/legacy-react`
+    (`git mv`)
+  - every import, alias and path that references them: `vite.config.ts`
+    aliases, `tsconfig.json` paths, legacy labs, `examples/lab/flagship/main.ts`
+    (**only** its `sharedBackend` import line), `examples/lab/runtime-tests/**`,
+    `scripts/*.mjs`, `packages/legacy/**`, docs links
+- **Must not touch:**
+  - `packages/runtime/**` or `scripts/vdb/**`
+  - `examples/lab/flagship/{bookmarks.ts,three-bridge.ts}`
+  - any line of `examples/lab/flagship/main.ts` other than that import
+- **Acceptance:**
+  - `pnpm check` green, with every legacy page still in the build.
+  - `grep` shows no remaining `packages/three/` or `packages/react/` paths
+    outside `packages/legacy`.
+  - `@clouds/three` and `@clouds/react` are free names.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
