@@ -177,6 +177,15 @@ export interface CloudRuntime {
    * never destroyed by the runtime.
    */
   setVolume(asset: CloudVolumeAsset | GpuCloudVolume, options: { position: [number, number, number] }): Promise<void>;
+  /**
+   * Replace the volume by another caller-owned GpuCloudVolume of the same dims, voxel size and extent without touching anything else
+   * (P6-A, for time-evolving fields): the temporal history is kept, the light grid is kept and rebuilt in its amortized slices from the new
+   * volume (instead of being recreated and built in one frame), the bind group is rebuilt. Returns false, doing nothing, if that is not possible
+   * (no volume yet, the current volume is runtime-owned, or the shape differs): call `setVolume` then.
+   */
+  swapVolume(volume: GpuCloudVolume, options: { position: [number, number, number] }): boolean;
+  /** Move the volume box without rebuilding anything (a uniform write). For fields that drift with the wind; sub-voxel to few-voxel moves keep the light grid valid. */
+  setVolumePosition(position: [number, number, number]): void;
   setNoise(asset: CloudNoiseAsset): Promise<void>;
   setQuality(quality: CloudQuality): void;
   /** The tier in effect (for 'auto', the one it picked). */
@@ -570,6 +579,22 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, volume.extentMeters, volume.voxelSize)));
       for (let i = 0; i < 3; i++) { skyBox.minCorner[i] = opts.position[i]; skyBox.extent[i] = volume.extentMeters[i]; }
       rebuildVolumeGroup();
+    },
+    swapVolume(next, opts) {
+      const cur = volume;
+      if (disposed || !cur || ownsVolume || !lightGrid || !('extentMeters' in next) || next.voxelSize !== cur.voxelSize
+        || next.dims.some((d, i) => d !== cur.dims[i]) || next.extentMeters.some((e, i) => e !== cur.extentMeters[i])) return false;
+      volume = next;
+      rebuildVolumeGroup();
+      lightGrid.invalidate();
+      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, next.extentMeters, next.voxelSize)));
+      for (let i = 0; i < 3; i++) skyBox.minCorner[i] = opts.position[i];
+      return true;
+    },
+    setVolumePosition(position) {
+      if (disposed || !volume) return;
+      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(position, volume.extentMeters, volume.voxelSize)));
+      for (let i = 0; i < 3; i++) skyBox.minCorner[i] = position[i];
     },
     async setNoise(asset) {
       noise?.destroy();

@@ -331,8 +331,10 @@ export const WEATHER_WGSL = /* wgsl */ `
 struct WeatherParams {
   size: vec2<u32>, seed: f32, scale: f32,
   coverageLo: f32, coverageHi: f32, border: f32, cellular: f32,
-  cellScale: f32, p0: f32, p1: f32, p2: f32,
+  cellScale: f32, evoOn: f32, p1: f32, p2: f32,
   uvOrigin: vec2<f32>, uvSize: vec2<f32>,   // window of the map's own uv space this texture shows (default 0,0 / 1,1)
+  evo: vec4<f32>,    // evolution: time (s), life cycle (s), pattern advection (uv, x then y)
+  drift: vec4<f32>,  // evolution: fBm drift per second (uv units of the fBm domain, x then y), unused zw
 }
 @group(0) @binding(0) var<uniform> W: WeatherParams;
 @group(0) @binding(1) var outTex: texture_storage_2d<rgba8unorm, write>;
@@ -355,6 +357,36 @@ fn fbm(p0: vec2<f32>) -> f32 {
   for (var o = 0; o < 5; o++) { s += a * valueNoise(p); n += a; p = p * 2.03 + vec2<f32>(17.1, 9.7); a *= 0.5; }
   return s / n;
 }
+fn hashS(p: vec2<i32>, salt: u32) -> f32 {
+  var h = u32(p.x) * 374761393u + u32(p.y) * 668265263u + (u32(W.seed * 977.0) + salt * 3266489917u) * 2246822519u;
+  h = (h ^ (h >> 13u)) * 1274126177u;
+  h = h ^ (h >> 16u);
+  h = (h ^ (h >> 15u)) * 2246822519u;
+  h = h ^ (h >> 13u);
+  return f32(h) * (1.0 / 4294967295.0);
+}
+// Evolving cellular mass: every Worley cell carries a cumulus with its own life cycle (grows over the first 22 percent, mature to 66
+// percent, dissipates over the rest). A cell restarts each cycle with a new jitter, strength and radius while its envelope is zero, so
+// nothing pops. The result is the max over the 3 x 3 neighbours of envelope * dome(distance), continuous in space and time.
+fn evolvingCells(p: vec2<f32>, t: f32, life: f32) -> f32 {
+  let i = vec2<i32>(floor(p));
+  let f = fract(p);
+  var m = 0.0;
+  for (var y = -1; y <= 1; y++) { for (var x = -1; x <= 1; x++) {
+    let c = i + vec2<i32>(x, y);
+    let cyc = t / (life * (0.6 + 0.8 * hashS(c, 3u))) + hashS(c, 4u);
+    let gen = floor(cyc);
+    let u = cyc - gen;
+    let salt = 16u + u32(gen) * 8u;
+    let jit = vec2<f32>(hashS(c, salt), hashS(c, salt + 1u));
+    let str = 0.95 + 0.4 * hashS(c, salt + 2u);
+    let rad = 1.25 * (0.8 + 0.4 * hashS(c, salt + 3u));
+    let env = smoothstep(0.0, 0.22, u) * (1.0 - smoothstep(0.66, 1.0, u));
+    let d = length(vec2<f32>(f32(x), f32(y)) + jit - f);
+    m = max(m, env * str * clamp(1.0 - d * rad, 0.0, 1.0));
+  } }
+  return m;
+}
 fn worleyF1(p: vec2<f32>) -> f32 {
   let i = vec2<i32>(floor(p));
   let f = fract(p);
@@ -371,10 +403,14 @@ fn worleyF1(p: vec2<f32>) -> f32 {
 fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {
   if (g.x >= W.size.x || g.y >= W.size.y) { return; }
   let uv = W.uvOrigin + (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(W.size.x), f32(W.size.y)) * W.uvSize;
-  let q = uv * W.scale;
-  let fb = fbm(q + vec2<f32>(W.seed * 13.0, 0.0));
+  let on = W.evoOn > 0.5;
+  let uvc = select(uv, uv - W.evo.zw, on);              // the pattern is advected; the window border (edge below) stays with the box
+  let q = uvc * W.scale;
+  let fb = fbm(q + vec2<f32>(W.seed * 13.0, 0.0) + select(vec2<f32>(0.0), W.drift.xy * W.evo.x, on));
   // Cellular mass: one dome per Worley cell (cumulus lobes), modulated by fBm so cells differ in size and some die out.
-  let cell = 1.0 - clamp(worleyF1(uv * W.cellScale + vec2<f32>(W.seed * 3.7, 1.3)) * 1.25, 0.0, 1.0);
+  var cell: f32;
+  if (on) { cell = evolvingCells(uvc * W.cellScale + vec2<f32>(W.seed * 3.7, 1.3), W.evo.x, W.evo.y); }
+  else { cell = 1.0 - clamp(worleyF1(uv * W.cellScale + vec2<f32>(W.seed * 3.7, 1.3)) * 1.25, 0.0, 1.0); }
   let n = mix(fb, clamp(0.25 + 0.75 * cell * (0.45 + 1.1 * fb), 0.0, 1.0), W.cellular);
   let edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
   // Wide ramp (no saturation plateau): coverage stays a smooth, peaked mass field. Fade to nothing near the border.

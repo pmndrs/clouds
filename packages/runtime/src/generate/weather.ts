@@ -21,6 +21,13 @@ export interface ProceduralWeatherOptions {
    * uses this). Set `border: 0` there, or the fade to zero at uv 0..1 would be evaluated outside the map.
    */
   window?: { origin: [number, number]; size: [number, number] };
+  /**
+   * Time evolution (cumulus life cycles). Off by default (the map is then static and identical to before). With it, the pattern is a function of
+   * `time`: every Worley cell grows, matures and dissipates over `lifeSeconds` (about 0.6x..1.4x per cell, random phase), restarting with a new
+   * position and strength each cycle; the pattern is shifted by `advection` (uv units, positive = the clouds moved towards +uv) and the fBm
+   * layer drifts by `drift` uv units per second. `border` stays attached to the window.
+   */
+  evolve?: { time: number; lifeSeconds?: number; advection?: [number, number]; drift?: [number, number] };
   /** Allocate this many mip levels (the pass writes level 0 only; the sky layer fills the rest with coverage maxima). Default 1. */
   mipLevels?: number;
 }
@@ -46,14 +53,20 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm', mipLevelCount: Math.max(1, options.mipLevels ?? 1),
     usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
   });
-  const data = new ArrayBuffer(64);
+  const data = new ArrayBuffer(96);
   const u = new Uint32Array(data), f = new Float32Array(data);
   u[0] = w; u[1] = h;
   f[2] = options.seed ?? 1; f[3] = options.scale ?? 4;
   f[4] = options.coverageLo ?? 0.42; f[5] = options.coverageHi ?? 0.8; f[6] = options.border ?? 0.08; f[7] = options.cellular ?? 0; f[8] = options.cellScale ?? 6;
   const win = options.window ?? { origin: [0, 0], size: [1, 1] };
   f[12] = win.origin[0]; f[13] = win.origin[1]; f[14] = win.size[0]; f[15] = win.size[1];
-  const uniforms = device.createBuffer({ label: 'weather params', size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  if (options.evolve) {
+    const e = options.evolve;
+    f[9] = 1;
+    f[16] = e.time; f[17] = e.lifeSeconds ?? 600; f[18] = e.advection?.[0] ?? 0; f[19] = e.advection?.[1] ?? 0;
+    f[20] = e.drift?.[0] ?? 0; f[21] = e.drift?.[1] ?? 0;
+  }
+  const uniforms = device.createBuffer({ label: 'weather params', size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(uniforms, 0, data);
   const bindGroup = device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),

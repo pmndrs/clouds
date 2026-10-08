@@ -1018,7 +1018,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Phase 6 — Beyond Nubis³
 
-### [~] P6-A Realtime cloud evolution · Sonnet (Fable on failure)
+### [x] P6-A Realtime cloud evolution · Sonnet (Fable on failure)
 - **Owns:**
   - `packages/runtime/src/generate/**`
   - `examples/lab/evolve/**` (wired)

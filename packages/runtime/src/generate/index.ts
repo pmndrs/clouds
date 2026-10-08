@@ -9,3 +9,5 @@ export { createStreamingCloudscape } from './streaming';
 export type { StreamingCloudscapeOptions, StreamingCloudscape, StreamingUpdate, StreamingStats, StreamingMemory } from './streaming';
 export { stampCloud, createSdfRebuilder, createEmptyCloudVolume } from './stamp';
 export type { StampMode, StampOptions, StampResult, SdfRebuilder, SdfRebuilderOptions } from './stamp';
+export { createEvolvingCloudscape } from './evolution';
+export type { EvolvingCloudscapeOptions, EvolvingCloudscape, EvolveUpdate, EvolveStats } from './evolution';
