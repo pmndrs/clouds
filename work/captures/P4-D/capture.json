@@ -1,0 +1,136 @@
+{
+  "url": "http://127.0.0.1:58622/onsen/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T14:23:37.886Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/P4-D/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 3.968800483333332,
+          "lightGridReduce": 0.50086,
+          "lightGrid": 5.475041,
+          "marchNear": 0.67732445,
+          "marchFar": 2.0050708166666666,
+          "composite": 0.9661574999999999,
+          "dome": 0.11739406666666667,
+          "cloudsTotal": 9.741847833333333,
+          "total": 13.710648316666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "vantage",
+        "frames": 96,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 777.8000000119209,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "valley",
+      "file": "work/captures/P4-D/valley.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 4.731386133333333,
+          "lightGridReduce": 0.50086,
+          "lightGrid": 5.475041,
+          "marchNear": 0.48043854999999996,
+          "marchFar": 1.9634130833333334,
+          "composite": 1.036629283333333,
+          "dome": 0.11152676666666668,
+          "cloudsTotal": 9.567908683333334,
+          "total": 14.299294816666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "valley",
+        "frames": 193,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 777.8000000119209,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/P4-D/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 4.187974966666666,
+          "lightGridReduce": 0.50086,
+          "lightGrid": 0.7806047600000001,
+          "marchNear": 0.5913730333333335,
+          "marchFar": 1.766194516666667,
+          "composite": 1.2584307000000001,
+          "dome": 0.11955941666666667,
+          "cloudsTotal": 5.017022426666666,
+          "total": 9.204997393333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "sunset",
+        "frames": 290,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 1.0022379786087328,
+          "azimuth": 295.1077878552597
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 777.8000000119209,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

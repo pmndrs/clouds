@@ -742,7 +742,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The clouds show Nubis-like eroded detail comparable to Parkouring. Include
     a side-by-side with `houdini-test`.
 
-### [~] P4-D Onsen valley demo · Sonnet
+### [x] P4-D Onsen valley demo · Sonnet
 - **Owns:** `examples/lab/onsen/**` (wired) and `examples/lab/scenes/terrain/**` (new reusable module).
 - **Read-only:** `packages/**`, `assets/clouds/**`, the ocean module (for reuse
   patterns).
