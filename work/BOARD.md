@@ -813,6 +813,42 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - If Houdini Indie limits or performance block it, report exactly what and
     why.
 
+### [~] P3-F Lighting at scale: thick-cloud undersides and the day cycle · Sonnet
+- **Owns:**
+  - `packages/runtime/src/shaders/{lighting.wgsl.ts,march.wgsl.ts}`
+  - default values in `runtime.ts` settings, with minimal re-read-before-edit
+    changes, because P3-C2 also edits `runtime.ts`
+- **Problem:** thick generated clouds have charcoal-black cores and undersides
+  from the ground (`work/captures/P3-B/cumulus/ground.jpg`,
+  `work/captures/P3-D/t15`, `work/captures/P4-D/*`). Tidewater's bases
+  (`work/captures/P0-04/`) are lighter blue-grey. Nubis bases are also lit by
+  sky ambient and multiple scattering.
+  - The ambient term uses `exp(−σ_amb·τ_up)` through hundreds of metres of
+    cloud, so it hits 0.
+  - The ms term relies on the profile, and the direct sun is fully extinct.
+- **Does:**
+  - Add a physically motivated floor for deep multiple scattering. Options:
+    - a multi-octave scattering approximation (Wrenninge/Hillaire: sum of
+      octaves with attenuated extinction a^n, scattering b^n and phase
+      eccentricity c^n)
+    - ambient that uses a capped or soft-saturating `τ_up`
+    - ground-bounce light from below, using the sky's ground albedo
+  - Pick what looks right and keeps cost unchanged.
+  - Then verify a **full day cycle** (times 7, 9, 12, 15, 18 and 19.5) on the
+    cloudscape: sky tint consistent with the clouds, no clipping at noon, a
+    believable sunset, and no black clouds at dusk.
+- **Acceptance:**
+  - Side-by-side composites (before | after | Tidewater) for:
+    - `cloudscape-gen` cumulus `ground`
+    - `plains-flight` `t15`
+    - `onsen` `vantage`
+    - flagship Stormbird `frontlit` and `backlit`
+  - Undersides read blue-grey with structure, not charcoal. The P1-09 looks
+    still read (inner glow, silver lining, dark clefts).
+  - A day-cycle strip image (6 times).
+  - March cost within +0.3 ms.
+  - Parity passes; `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
