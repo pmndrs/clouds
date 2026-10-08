@@ -986,6 +986,36 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Plains flight still has no pop.
   - `pnpm check` green.
 
+### [~] P5-B Temporal amortization of the voxel clouds (partial-rate tracing) · Sonnet (Fable on failure)
+- **Owns:**
+  - `packages/runtime/src/{runtime.ts,shaders/march.wgsl.ts,shaders/composite.wgsl.ts,shaders/frame.wgsl.ts}`
+  - a new `shaders/temporal.wgsl.ts`
+  - presets in `runtime.ts`
+- **Reference:** P3-C2's temporal resolve for the sky layer
+  (`sky-layer.ts`/`.wgsl.ts`, `work/reports/P3-C2.md`): a sparse Bayer trace,
+  reprojection through the cloud mean distance, variance clip and cut resets.
+  Also Tidewater's resolve (`work/reports/` Tidewater notes in
+  `docs/research/tidewater-*`).
+- **Does:** an optional mode where each march pass (near and far) traces
+  1/k of its pixels per frame (k = 1, 2 or 4; Bayer pattern) and resolves to
+  full render resolution through reprojection.
+  - Reproject with the previous view-projection at the cloud mean distance.
+    Wind-compensate by the noise scroll. Clamp to the neighbourhood (variance
+    clip).
+  - Reject history on disocclusion against scene depth, camera cuts, sun
+    jumps and setting changes.
+  - Keep near clouds responsive: for example k=1 near, k=4 far by default on
+    high, more aggressive on low.
+  - This is the main budget lever for P5 tiers.
+- **Acceptance:**
+  - At 2560×1440 high, clouds total ≤ 3 ms in steady state on the flagship
+    bookmarks and the plains flight t0–t40, with k chosen per preset.
+  - No visible ghosting in motion: 5-frame sequences during camera pans and
+    during the plains flight `?play=1`, Read and described.
+  - Static views converge to the same image as k=1 (mean |Δ| reported).
+  - Frame p95 ≤ 1.5× p50.
+  - Parity passes; `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
