@@ -270,7 +270,7 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   // light samples skip the noise (it averages out along a light ray).
   var dEff = depth;
   if (lodDistance >= 0.0) {
-    let n = clamp((valueNoise3(pm / (3.0 * SKY.extra.x), u32(SKY.billow.z * 53.0)) - 0.5) * 3.4, -2.5, 2.5);
+    let n = clamp(profileNoise(pm, SKY.extra.x, u32(SKY.billow.z * 53.0)) * 3.4, -2.5, 2.5);
     dEff = depth * exp(SKY.extra.y * n);
   }
   let core = pow(clamp((dEff - 1.4) / 66.0, 0.0, 1.0), 1.05);

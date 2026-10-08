@@ -1,0 +1,94 @@
+{
+  "url": "http://127.0.0.1:63007/open-water/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T18:31:44.329Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/P6-D/ow-before/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9416024499999999,
+          "lightGridReduce": 0.219454,
+          "lightGrid": 0.5912114705882354,
+          "marchNear": 0.07516265,
+          "marchFar": 0.7403302833333335,
+          "composite": 0.3552223500000001,
+          "dome": 1.0834724666666669,
+          "resolveNear": 0.02729613333333333,
+          "resolveFar": 0.04777501666666665,
+          "skyLayer": 1.334294833333333,
+          "skyResolve": 0.13653258333333337,
+          "cloudsTotal": 4.610751787254903,
+          "total": 5.552354237254902
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 162,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 800.6999999880791,
+          "encodeSubmitMsTotal": 3.100000023841858
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/P6-D/ow-before/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.811739716666667,
+          "lightGridReduce": 0.219454,
+          "lightGrid": 0.5840781212121211,
+          "marchNear": 0.08762626666666666,
+          "marchFar": 0.8290839499999998,
+          "composite": 0.3971647333333333,
+          "dome": 0.58143695,
+          "resolveNear": 0.034500933333333345,
+          "resolveFar": 0.05733593333333333,
+          "skyLayer": 1.6311792166666665,
+          "skyResolve": 0.18281888333333327,
+          "cloudsTotal": 4.604678987878787,
+          "total": 5.416418704545453
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 257,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 800.6999999880791,
+          "encodeSubmitMsTotal": 3.100000023841858
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

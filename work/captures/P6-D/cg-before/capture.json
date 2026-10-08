@@ -1,0 +1,166 @@
+{
+  "url": "http://127.0.0.1:62940/cloudscape-gen/?sky=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T18:31:39.764Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/P6-D/cg-before/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.24661,
+          "lightGrid": 0.22097152941176473,
+          "marchNear": 0.08880413333333331,
+          "marchFar": 0.8185202,
+          "composite": 0.3925732166666668,
+          "dome": 0.6568176166666669,
+          "resolveNear": 0.0445708,
+          "resolveFar": 0.058817116666666655,
+          "skyLayer": 1.755379533333333,
+          "skyResolve": 0.17615213333333343,
+          "cloudsTotal": 4.4592162794117645
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000273,
+          "mean": 16.666666666666664
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 124,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 1,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.25,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 2,
+            "frames": 111
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 187
+        }
+      }
+    },
+    {
+      "name": "seamNorth",
+      "file": "work/captures/P6-D/cg-before/seamNorth.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.24661,
+          "lightGrid": 0.22097152941176473,
+          "marchNear": 0.08480976666666666,
+          "marchFar": 1.1380645333333335,
+          "composite": 0.38881286666666665,
+          "dome": 0.9369426,
+          "resolveNear": 0.034775833333333325,
+          "resolveFar": 0.05748798333333332,
+          "skyLayer": 1.868734733333333,
+          "skyResolve": 0.15481284999999992,
+          "cloudsTotal": 5.132022696078431
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.666310160427805
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "seamNorth",
+        "frames": 218,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 1,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.25,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 3,
+            "frames": 205
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 187
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
