@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.release.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist/types",
+    "baseUrl": ".",
+    "paths": {
+      "@clouds/runtime": ["../runtime/dist/types/src/index.d.ts"],
+      "@clouds/runtime/generate": ["../runtime/dist/types/src/generate/index.d.ts"],
+      "@clouds/runtime/import": ["../runtime/dist/types/src/import/index.d.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

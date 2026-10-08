@@ -36,7 +36,8 @@ output is a normal `GpuCloudVolume` that you give to `clouds.setVolume`. As a ch
 imports **byte-exact** against the pack's TGA conversion (R, G and B 100.0000 percent exact, occupancy mismatch 0) in 64 ms [P4-H].
 
 ```ts
-import { importVdb, VdbImportError, type GpuCloudVolume } from '@clouds/runtime';
+import type { GpuCloudVolume } from '@clouds/runtime';
+import { importVdb, VdbImportError } from '@clouds/runtime/import';
 import { sharedBackend, type Clouds } from '@clouds/three';
 import type { WebGPURenderer } from 'three/webgpu';
 

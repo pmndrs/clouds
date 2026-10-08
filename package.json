@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm test && pnpm build",
+    "build:release": "node scripts/build-release.mjs",
+    "check:packed": "node scripts/check-packed-consumer.mjs",
     "build:packages": "node scripts/build-packages.mjs",
     "pack:preview": "node scripts/pack-preview.mjs",
     "check:consumer": "node scripts/check-consumer.mjs"

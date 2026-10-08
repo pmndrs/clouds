@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { bloscDecompress, lz4DecompressBlock } from '../../../../vendor/vdb-web-tools/src/blosc';
-import type { VdbGrid, VdbTile } from '../../../../vendor/vdb-web-tools/src/index';
+import { bloscDecompress, lz4DecompressBlock } from '../../vendor/vdb-web-tools/src/blosc';
+import type { VdbGrid, VdbTile } from '../../vendor/vdb-web-tools/src/index';
 import { convertVdb, inspectVdb, VdbImportError } from './convert';
 import { planLattice, resampleGrid } from './grid-read';
 import { gaussianBlur, heightFractions, packProfile, smoothNoise } from './pack-fit';

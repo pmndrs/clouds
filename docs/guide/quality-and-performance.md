@@ -225,19 +225,21 @@ shrinks 8x. If memory matters, choose a smaller `dims` or a larger `voxelSize` f
 
 ## Bundle size
 
-`node scripts/check-bundle.mjs` bundles each package entry with esbuild (three, react and `@pmndrs/*` external, minified,
-es2022) and prints raw, gzip and brotli sizes. The numbers below are from the working tree at P7-B and move with the code.
+`node scripts/check-bundle.mjs` builds `dist/` (when missing) and bundles each entry the way a consumer's bundler sees it (three, react and `@pmndrs/*`
+external, minified, es2022), printing raw, gzip and brotli sizes. The numbers below are from P7-C and move with the code.
 
-| Package | build | raw | gzip | brotli |
+| Entry | build | raw | gzip | brotli |
 | --- | --- | --- | --- | --- |
-| `@clouds/runtime`, the whole entry | alone | 209.8 KB | 70.8 KB | 59.5 KB |
-| `@clouds/three` | alone | 11.2 KB | 4.2 KB | 3.8 KB |
-| `@clouds/three` | with `@clouds/runtime` tree-shaken to what it uses | 160.3 KB | **51.2 KB** | 43.4 KB |
-| `@clouds/react` | alone | 5.2 KB | 2.3 KB | 2.2 KB |
-| `@clouds/react` | with `@clouds/three` and `@clouds/runtime` | 177.4 KB | 57.7 KB | 48.7 KB |
+| `@clouds/runtime` (core entry) | alone | 153.3 KB | **48.7 KB** | 41.5 KB |
+| `@clouds/runtime/generate` | alone | 42.0 KB | 14.3 KB | 12.7 KB |
+| `@clouds/runtime/import` | alone | 48.3 KB | 18.8 KB | 16.9 KB |
+| `@clouds/runtime` core + generate + import | alone | 210.3 KB | 70.1 KB | 59.6 KB |
+| `@clouds/three` | alone | 11.2 KB | 4.1 KB | 3.8 KB |
+| `@clouds/three` | with `@clouds/runtime` tree-shaken to what it uses | 160.8 KB | **51.3 KB** | 43.5 KB |
+| `@clouds/react` | alone | 5.3 KB | 2.3 KB | 2.1 KB |
+| `@clouds/react` | with `@clouds/three` and `@clouds/runtime` (+ `/generate`) | 177.9 KB | 57.8 KB | 48.8 KB |
 
-The core target is under 60 KB gzip. A consumer of `Clouds` ships 51.2 KB gzip, 57.7 KB with the React bindings. The
-**whole runtime entry** (every export, including the generator, stamping, the `.vdb` importer with its vendored parser,
-the sky layer and every shader string) is 70.8 KB gzip and goes over if your bundler cannot drop the exports you do not
-use. The packages are marked `sideEffects: false` so that it can. By minified size: generate 41.7 KB, the sky layer and
-its shader 38.2 KB, `.vdb` import and the vendored parser 30.3 KB, the core `runtime.ts` 21.9 KB, the rest are shaders.
+The target is under 60 KB gzip for the core entry and for a `Clouds` user: 48.7 KB and 51.3 KB. The generator and the `.vdb`
+importer (with its vendored parser) are the `@clouds/runtime/generate` and `@clouds/runtime/import` subpaths, so you pay for
+them only when you import them (the generate and import rows count shared code in each; the core + generate + import row is the whole set).
+The packages are marked `sideEffects: false`, so a bundler also drops unused core exports.

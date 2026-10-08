@@ -354,7 +354,7 @@ All of it is GPU compute and runs in small jobs you spread over frames. P6-A (re
 | `signedDistanceCpu`, `squaredDistanceToMask` | CPU exact distance transforms (tests, tooling). |
 
 ```ts
-import { createStreamingCloudscape } from '@clouds/runtime';
+import { createStreamingCloudscape } from '@clouds/runtime/generate';
 import type { Clouds } from '@clouds/three';
 
 declare const device: GPUDevice;
@@ -383,7 +383,8 @@ edge. Update results carry `volume` (streamer-owned, do not destroy), `centre`, 
 ### Stamp authored clouds
 
 ```ts
-import { createEmptyCloudVolume, createSdfRebuilder, loadCloudVolume, stampCloud, uploadCloudVolume } from '@clouds/runtime';
+import { loadCloudVolume, uploadCloudVolume } from '@clouds/runtime';
+import { createEmptyCloudVolume, createSdfRebuilder, stampCloud } from '@clouds/runtime/generate';
 
 declare const device: GPUDevice;
 
@@ -434,7 +435,8 @@ The 2.5D vertical-profile layer that carries cloud cover from the edge of the vo
 default. It re-evaluates the same weather the generator used, so you configure it with the same options.
 
 ```ts
-import { CLOUD_PRESETS, type CloudRuntime } from '@clouds/runtime';
+import type { CloudRuntime } from '@clouds/runtime';
+import { CLOUD_PRESETS } from '@clouds/runtime/generate';
 
 declare const runtime: CloudRuntime; // clouds.core with @clouds/three
 

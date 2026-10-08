@@ -20,7 +20,13 @@
     "baseUrl": ".",
     "paths": {
       "@clouds/runtime": [
-        "packages/runtime/src/index.ts"
+        "packages/runtime/src/full.ts"
+      ],
+      "@clouds/runtime/generate": [
+        "packages/runtime/src/generate/index.ts"
+      ],
+      "@clouds/runtime/import": [
+        "packages/runtime/src/import/index.ts"
       ],
       "@clouds/core": [
         "packages/core/src/index.ts"

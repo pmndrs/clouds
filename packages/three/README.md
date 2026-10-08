@@ -4,7 +4,7 @@ Drop-in volumetric clouds for a three.js `WebGPURenderer` (three r186 or newer).
 [`@clouds/runtime`](../runtime/README.md) on three's own GPU device and gives you one TSL node that composites the clouds
 over your scene with depth sorting, cloud shadows on opaque surfaces and, optionally, reflections.
 
-> Workspace package, `private` for now. The npm name is not decided. Source-only: `exports` point at `src/*.ts` until a build step exists.
+> Workspace package, `private` for now. The npm name is not decided. `exports` point at the built `dist/` (`node scripts/build-release.mjs`); the repo lab aliases the source. Runtime imports: core from `@clouds/runtime`, content tools from `@clouds/runtime/generate` and `/import`.
 
 ```ts
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';

@@ -1,9 +1,9 @@
 // CPU half of the in-browser .vdb import: parse, pick grids, resample onto the runtime lattice, derive the NVDF channels.
 // The GPU half (SDF by jump flood) is `importVdb` in ./index.ts. No three, no GPU: runs in node for tests.
 //
-// This is a port of scripts/vdb/vdb_to_nvdf.py (Houdini side replaced by vendor/vdb-web-tools) and scripts/vdb/nvdf_math.py.
+// This is a port of scripts/vdb/vdb_to_nvdf.py (Houdini side replaced by packages/runtime/vendor/vdb-web-tools) and scripts/vdb/nvdf_math.py.
 // Axes: a VDB is y-up with index (X, Y, Z). The runtime texture is (x = VDB X, map row = VDB Z, slice/up = VDB Y), see assets/clouds/README.md.
-import { parseVdb, VdbUnsupportedError, type VdbFile, type VdbGrid, type VdbGridDescriptor } from '../../../../vendor/vdb-web-tools/src/index';
+import { parseVdb, VdbUnsupportedError, type VdbFile, type VdbGrid, type VdbGridDescriptor } from '../../vendor/vdb-web-tools/src/index';
 import { signedDistanceCpu } from '../generate/cpu-edt';
 import { activeBounds, planLattice, resampleGrid, type Vec3 } from './grid-read';
 import { clamp01, gaussianBlur, heightFractions, packDetail, packProfile, packScale, PACK_FIT, quantizeUnorm8, smoothNoise } from './pack-fit';

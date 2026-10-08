@@ -18,10 +18,10 @@ This project stands on other people's work. In order of how much of it they carr
 
 ## WebVDB: the `.vdb` parser
 
-`vendor/vdb-web-tools/` is the `.vdb` parser from the author's own WebVDB project (<https://github.com/DennisSmolek/WebVDB>), **Apache License 2.0**, vendored at commit
+`packages/runtime/vendor/vdb-web-tools/` is the `.vdb` parser from the author's own WebVDB project (<https://github.com/DennisSmolek/WebVDB>), **Apache License 2.0**, vendored at commit
 `9a8c1a5aa5c8242722904e91780224570aac7064`. The in-browser importer ([`importVdb`](api.md#import-a-vdb)) uses it. Changes from upstream (a `select` option,
 constant-tile support, the pre-222 leaf layout, OpenVDB inactive-value defaults and a new Blosc lz4 decoder) are listed in
-[`vendor/vdb-web-tools/NOTICE`](../../vendor/vdb-web-tools/NOTICE); the licence is [`vendor/vdb-web-tools/LICENSE`](../../vendor/vdb-web-tools/LICENSE).
+[`packages/runtime/vendor/vdb-web-tools/NOTICE`](../../packages/runtime/vendor/vdb-web-tools/NOTICE); the licence is [`packages/runtime/vendor/vdb-web-tools/LICENSE`](../../packages/runtime/vendor/vdb-web-tools/LICENSE).
 **A distribution that includes the importer must carry that LICENSE and NOTICE.** The importer is a dependency-free import of those files, so a bundle that tree-shakes `importVdb` away does not include them.
 
 ## pmndrs

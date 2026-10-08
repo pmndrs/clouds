@@ -11,7 +11,10 @@ export default defineConfig({
     '@clouds/tools': fileURLToPath(new URL('./packages/tools/src/index.ts', import.meta.url)),
     '@clouds/react': fileURLToPath(new URL('./packages/react/src/index.tsx', import.meta.url)),
     '@clouds/three': fileURLToPath(new URL('./packages/three/src/index.ts', import.meta.url)),
-    '@clouds/runtime': fileURLToPath(new URL('./packages/runtime/src/index.ts', import.meta.url)),
+    // Subpaths first (first match wins). `@clouds/runtime` itself maps to src/full.ts (core + generate + import) so lab imports of the old barrel keep working.
+    '@clouds/runtime/generate': fileURLToPath(new URL('./packages/runtime/src/generate/index.ts', import.meta.url)),
+    '@clouds/runtime/import': fileURLToPath(new URL('./packages/runtime/src/import/index.ts', import.meta.url)),
+    '@clouds/runtime': fileURLToPath(new URL('./packages/runtime/src/full.ts', import.meta.url)),
     '@clouds/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
     '@clouds/legacy-three': fileURLToPath(new URL('./packages/legacy/three/src/index.ts', import.meta.url)),
   } },

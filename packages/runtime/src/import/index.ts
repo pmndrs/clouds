@@ -3,7 +3,7 @@
 //   const { volume, info } = await importVdb(device, await file.arrayBuffer(), { voxelSize: 8, targetWidthMeters: 1500 });
 //   await clouds.setVolume(volume, { position: [0, 500, 0] });   // caller owns `volume` (volume.destroy())
 //
-// CPU: parse (vendor/vdb-web-tools: FloatGrid 5-4-3; uncompressed, ZIP and lz4-Blosc), pick the grids, resample to the runtime
+// CPU: parse (packages/runtime/vendor/vdb-web-tools: FloatGrid 5-4-3; uncompressed, ZIP and lz4-Blosc), pick the grids, resample to the runtime
 // voxel size, derive the NVDF channels (the Nubis pack VDBs carry them; artist fog / level-set VDBs get the P4-B PACK_FIT mapping).
 // GPU: the SDF by the jump flood of createSdfRebuilder (2 rounds), as for stamped clouds.
 import type { GpuCloudVolume } from '../resources';

@@ -14,17 +14,15 @@ import { useSky } from '@pmndrs/sky/react';
 import type { Sky } from '@pmndrs/sky';
 import type { Vector3 } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
-import {
-  createEmptyCloudVolume, createStreamingCloudscape, loadCloudNoise, loadCloudVolume,
-  type CloudNoiseAsset, type CloudPreset, type CloudPresetName, type CloudVolumeAsset, type StreamingCloudscape, type StreamingUpdate,
-} from '@clouds/runtime';
+import { loadCloudNoise, loadCloudVolume, type CloudNoiseAsset, type CloudVolumeAsset } from '@clouds/runtime';
+import { createEmptyCloudVolume, createStreamingCloudscape, type CloudPreset, type CloudPresetName, type StreamingCloudscape, type StreamingUpdate } from '@clouds/runtime/generate';
 import { Clouds as CloudsCore, sharedBackend, type CloudQuality, type CloudQualityOption, type CloudSettings, type GpuCloudVolume, type UniformLightingValues } from '@clouds/three';
 import { collectSettings, settingsKey, settingsPatch } from './props';
 
 type ScenePass = NonNullable<PassRecord['scenePass']>;
 
 export { CLOUD_QUALITIES } from '@clouds/three';
-export { CLOUD_PRESETS } from '@clouds/runtime';
+export { CLOUD_PRESETS } from '@clouds/runtime/generate';
 export type { CloudQuality, CloudQualityOption, CloudSettings, CloudPresetName };
 export type CloudsInstance = CloudsCore;
 

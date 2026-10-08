@@ -1,3 +1,6 @@
+// @clouds/runtime core entry: the render path (runtime, shaders, assets, quality, sky layer). Content tools are subpaths:
+//   @clouds/runtime/generate  procedural volumes, presets, stamping, streaming, evolution
+//   @clouds/runtime/import    .vdb import (bundles the vendored Apache-2.0 parser)
 export { GpuTimer } from './gpu-timer';
 export type { GpuTimerOptions } from './gpu-timer';
 export { loadCloudVolume, loadCloudNoise, decodeSdf, type CloudVolumeAsset, type CloudNoiseAsset } from './assets';
@@ -14,7 +17,5 @@ export { cloudDomeWgsl, defaultDomeSettings, domeDirectionToUv, domeUvToDirectio
 export { COMPOSITE_WGSL } from './shaders/composite.wgsl';
 export { FRAME_WGSL, FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 export * from './shaders/atmosphere.wgsl';
-export * from './generate';
 export { createSkyLayer, SKY_LAYER_DEFAULTS, type SkyLayer, type SkyLayerSettings, type SkyLayerOptions, type SkyBox } from './sky-layer';
 export { skyLayerWgsl } from './shaders/sky-layer.wgsl';
-export * from './import';

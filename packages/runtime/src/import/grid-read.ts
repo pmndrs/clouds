@@ -4,7 +4,7 @@
 //
 // Axes here are the VDB's own ("hou" axes: X, Y up, Z). Target arrays are laid out (jy * nz + jz) * nx + jx, which is exactly
 // the runtime texture order (x fastest, then map row = VDB Z, then slice = VDB Y).
-import type { VdbGrid } from '../../../../vendor/vdb-web-tools/src/index';
+import type { VdbGrid } from '../../vendor/vdb-web-tools/src/index';
 
 export type Vec3 = [number, number, number];
 

@@ -1149,7 +1149,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - 60 fps holds.
   - `pnpm check` green.
 
-### [~] P7-C Publish-ready packages: dist builds, subpath exports, bundle target · Sonnet
+### [x] P7-C Publish-ready packages: dist builds, subpath exports, bundle target · Sonnet
 - **Owns:**
   - `packages/{runtime,three,react}/package.json`
   - `packages/runtime/src/index.ts` and new subpath entry files only (no

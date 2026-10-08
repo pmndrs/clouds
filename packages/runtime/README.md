@@ -6,7 +6,9 @@ stamping of authored clouds and an in-browser `.vdb` importer. It talks to WebGP
 it can sit behind any renderer. For three.js use [`@clouds/three`](../three/README.md); for React Three Fiber
 [`@clouds/react`](../react/README.md).
 
-> Workspace package, `private` for now. The npm name is not decided. Source-only: `exports` point at `src/*.ts` until a build step exists.
+> Workspace package, `private` for now; the npm name is not decided. `exports` point at the built `dist/` (`node scripts/build-release.mjs`); the repo's lab aliases the source.
+>
+> Entries: `@clouds/runtime` (the render path), `@clouds/runtime/generate` (generator, presets, stamping, streaming, evolution) and `@clouds/runtime/import` (the `.vdb` importer, with its vendored parser).
 
 ## Use it
 
@@ -57,8 +59,8 @@ With a physical sky, pass `atmosphere` (a bind group over the sky LUTs; see `cre
 | Runtime | `createCloudRuntime`, `CLOUD_QUALITY_PRESETS`, `CLOUD_QUALITY_ORDER`, `estimateCloudMemory`, `CloudSettings`, `CloudFrame`, `CloudRuntime` |
 | Assets | `loadCloudVolume`, `loadCloudNoise`, `uploadCloudVolume`, `uploadCloudNoise`, `decodeSdf` |
 | Auto quality | `selectTier`, `describeDevice`, `DynamicScale`, `AUTO_QUALITY_DEFAULTS`, `controlledCost` |
-| Generate | `createVolumeGenerator`, `encodeProceduralWeatherMap`, `CLOUD_PRESETS`, `createStreamingCloudscape`, `createGeneratorScratch` |
-| Authored clouds | `stampCloud`, `createSdfRebuilder`, `createEmptyCloudVolume`, `importVdb`, `convertVdb`, `inspectVdb` |
+| Generate (`/generate`) | `createVolumeGenerator`, `encodeProceduralWeatherMap`, `CLOUD_PRESETS`, `createStreamingCloudscape`, `createGeneratorScratch` |
+| Authored clouds | `stampCloud`, `createSdfRebuilder`, `createEmptyCloudVolume` (`/generate`); `importVdb`, `convertVdb`, `inspectVdb` (`/import`) |
 | Sky and lighting | `createSkyLayer`, `atmosphereWgsl`, `createAtmosphereBindGroup*`, `createLightGrid`, the reflection dome helpers |
 | Tooling | `GpuTimer` (timestamp queries), the WGSL strings (`MARCH_WGSL`, `DENSITY_WGSL`, ...) |
 
@@ -70,6 +72,6 @@ Full signatures and defaults: [API reference](../../docs/guide/api.md#cloudsrunt
 - Needs WebGPU; `timestamp-query` is optional but required for `quality: 'auto'` to measure and for `GpuTimer`.
 - Axes: world is y-up; volume textures are `(x, map row, up)`. Voxel size 8 m is the verified size.
 - A `GpuCloudVolume` you pass to `setVolume` stays yours; a `CloudVolumeAsset` is uploaded and owned by the runtime.
-- Size: the whole entry is 209.8 KB minified, 70.8 KB gzip. A consumer that uses only the render path (as `@clouds/three` does) bundles to about 51 KB gzip with the adapter. `node scripts/check-bundle.mjs` prints the current numbers.
-- The `.vdb` importer bundles a vendored parser under the Apache License 2.0 (`vendor/vdb-web-tools`); see [credits](../../docs/guide/credits.md#webvdb-the-vdb-parser). That path is outside this package directory: publishing needs a bundled build, not `src`.
+- Size: the core entry is 153 KB minified, 48.7 KB gzip; `@clouds/three` with the runtime parts it uses is 51.3 KB gzip. `/generate` adds up to 14 KB gzip and `/import` up to 19 KB (shared code counted in each). `node scripts/check-bundle.mjs` prints the current numbers.
+- The `.vdb` importer (`/import`) bundles a vendored parser under the Apache License 2.0 (`vendor/vdb-web-tools` in this package; its LICENSE and NOTICE ship in the tarball); see [credits](../../docs/guide/credits.md#webvdb-the-vdb-parser).
 - `peerDependencies`: `@webgpu/types` (optional; for the `GPU*` types in your own type check).

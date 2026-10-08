@@ -141,7 +141,8 @@ about 96 jobs of 0.34 ms), with presets for cumulus, congestus and stratocumulus
 ```ts
 import type { WebGPURenderer } from 'three/webgpu';
 import { Clouds, sharedBackend } from '@clouds/three';
-import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise } from '@clouds/runtime';
+import { loadCloudNoise } from '@clouds/runtime';
+import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap } from '@clouds/runtime/generate';
 
 declare const renderer: WebGPURenderer; // initialised
 declare const clouds: Clouds;

@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.release.json",
+  "compilerOptions": { "rootDir": ".", "outDir": "dist/types" },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/full.ts", "src/reference"]
+}

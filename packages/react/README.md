@@ -3,7 +3,7 @@
 React Three Fiber **v10** (WebGPU) bindings for [`@clouds/three`](../three/README.md): `<Clouds>` for a cloud pack or any volume, `<Cloudscape>` for a
 generated, camera-following cloud field, and `useClouds()` for the live instance.
 
-> Workspace package, `private` for now. The npm name is not decided. Source-only: `exports` point at `src/*.tsx` until a build step exists.
+> Workspace package, `private` for now. The npm name is not decided. `exports` point at the built `dist/` (`node scripts/build-release.mjs`); the repo lab aliases the source.
 
 ```tsx
 import { Canvas } from '@react-three/fiber/webgpu';
