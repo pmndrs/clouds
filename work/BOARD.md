@@ -1123,6 +1123,32 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The core bundle size is reported against the < 60 KB gzip target.
   - `pnpm check` green.
 
+### [~] P7-D Demo polish for the showcase scenes · Sonnet
+- **Owns:**
+  - `examples/lab/{open-water,onsen,plains-flight,three-adapter}/**`
+  - `examples/lab/scenes/{ocean,terrain}/**`
+- **Read-only:** `packages/**` (consume APIs).
+- **Does:**
+  - **Ocean** (`work/captures/P2-A/sunset.jpg`, `work/captures/P2-03/*`): fix
+    the darker LOD band 1–3 km out at grazing angles and the tile crosshatch
+    near 300 m.
+  - **Open water and plains flight:** enable the sky layer (P3-C2) so cloud
+    cover continues to the horizon; use the `high` preset with
+    `quality=auto` as an option; re-check that the 60 fps measures still hold.
+  - **Onsen:** swap the stamped tower for `heroes/sim-congestus`, add a slow
+    drift to the valley fog (re-stamp periodically or move instances,
+    amortized, with no pops), and frame `vantage` so the hero cloud reads.
+  - **Every showcase page:** a minimal, tasteful HUD toggle (`?hud=0` hides
+    debug text) for clean screenshots, plus a `?clean=1` bookmark mode with no
+    UI panel.
+- **Acceptance:**
+  - Clean captures (`?hud=0&clean=1`) at 2560×1440 of open-water
+    `horizon`/`sunset`, plains-flight `t0`/`t25`, onsen `vantage`/`sunset`, in
+    `work/captures/P7-D/`, plus before/after where fixed.
+  - The ocean band and crosshatch are gone or clearly reduced (side-by-side).
+  - 60 fps holds.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
