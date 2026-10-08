@@ -11,7 +11,7 @@ export const CLOUD_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 90
 export const FOCUS_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 908, 432] as Vector3Tuple };
 export const INSIDE_POINT: Vector3Tuple = [0, 700, 0];
 
-export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit'] as const;
+export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow'] as const;
 export type BookmarkName = (typeof BOOKMARK_NAMES)[number];
 
 export interface Bookmark { position: Vector3Tuple; target: Vector3Tuple; timeOfDay: number }
@@ -85,6 +85,15 @@ export function resolveBookmark(name: BookmarkName, sun: Vector3Tuple = [0, 0.7,
   switch (name) {
     case 'ground': return { position: ring(35, 1.45 * r, 2), target: c, timeOfDay };
     case 'edge': return { position: ring(95, 2.1 * r, c[1] - 0.1 * r), target: c, timeOfDay };
+    case 'shadow': {
+      // The sun ray through the cloud centre meets the ground at S, offset away from the sun by height / tan(elevation).
+      // The camera stands in the shadow, on its sun-side half, and looks along the shadow axis (away from the sun) across the
+      // far soft edge, which lies about one cloud radius further on. Camera height 25 m, aimed at the ground at the far edge.
+      const tanEl = Math.max(0.15, sun[1] / hl);
+      const off = c[1] / tanEl;
+      const s0: [number, number] = [c[0] - sunH[0] * off, c[2] - sunH[1] * off];
+      return { position: [s0[0] + sunH[0] * 0.35 * r, 25, s0[1] + sunH[1] * 0.35 * r], target: [s0[0] - sunH[0] * 1.9 * r, 0, s0[1] - sunH[1] * 1.9 * r], timeOfDay };
+    }
     case 'inside': return { position: [...INSIDE_POINT], target: [INSIDE_POINT[0] + 300, INSIDE_POINT[1] + 20, INSIDE_POINT[2] + 300], timeOfDay };
     case 'above': return { position: ring(55, 1.5 * r, top() + 1.0 * r), target: c, timeOfDay };
     case 'backlit': {

@@ -4,7 +4,7 @@ import { createLightGrid, type LightGrid } from './light-grid';
 import { createAtmosphereBindGroupLayout } from './shaders/atmosphere.wgsl';
 import { uploadCloudNoise, uploadCloudVolume, type GpuCloudVolume } from './resources';
 import { COMMON_WGSL } from './shaders/common.wgsl';
-import { COMPOSITE_WGSL } from './shaders/composite.wgsl';
+import { COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, MARCH_WGSL, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
@@ -57,6 +57,8 @@ export interface CloudSettings {
   transmittanceCutoff: number;
   /** Near/far boundary along the ray, metres. */
   splitDistance: number;
+  /** 0..1: how dark the full cloud shadow makes opaque scene pixels (folded into the composite alpha). 0 disables. */
+  shadowStrength: number;
 }
 
 export interface CloudFrame {
@@ -103,6 +105,13 @@ export interface CloudRuntimeOptions {
   atmosphereLayout?: GPUBindGroupLayout;
 }
 
+function createLightGridLayoutEntries(binding: number): GPUBindGroupLayoutEntry[] {
+  return [
+    { binding, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'float', viewDimension: '3d' } },
+    { binding: binding + 1, visibility: GPUShaderStage.COMPUTE, sampler: { type: 'filtering' } },
+  ];
+}
+
 export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptions = {}): CloudRuntime {
   let quality: CloudQuality = options.quality ?? 'high';
   const settings: CloudSettings = {
@@ -111,6 +120,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     windOffset: [0, 0, 0], windVelocity: [3, 0, 1.5], animSpeed: 1,
     mipDistanceScale: 0.01, baseMip: 0, maxSteps: CLOUD_QUALITY_PRESETS[quality].maxSteps,
     transmittanceCutoff: CLOUD_QUALITY_PRESETS[quality].transmittanceCutoff, splitDistance: CLOUD_QUALITY_PRESETS[quality].splitDistance,
+    shadowStrength: 0.6, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
   };
 
   const volumeLayout = createVolumeBindGroupLayout(device);
@@ -137,6 +147,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: 4, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
     { binding: 5, visibility: C, texture: { sampleType: 'unfilterable-float' } },
     { binding: 6, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    ...createLightGridLayoutEntries(COMPOSITE_LIGHT_GRID_BINDING),
   ] });
   const pipeline = (label: string, code: string, group1: GPUBindGroupLayout, group2?: GPUBindGroupLayout) => device.createComputePipeline({
     label,
@@ -166,7 +177,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   let nearW = 0, nearH = 0, farW = 0, farH = 0;
   let output: GPUTexture | null = null, ownsOutput = false;
   let targets: { color: GPUTexture; depth: GPUTexture }[] | null = null;   // [near, far]
-  let marchGroups: GPUBindGroup[] | null = null, compositeGroup: GPUBindGroup | null = null;
+  let marchGroups: GPUBindGroup[] | null = null, compositeGroups: GPUBindGroup[] | null = null;
   let boundDepth: GPUTextureView | null = null;
   let lastTime = -1;
 
@@ -178,7 +189,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const releaseTargets = () => {
     for (const t of targets ?? []) { t.color.destroy(); t.depth.destroy(); }
     if (ownsOutput) output?.destroy();
-    targets = null; output = null; marchGroups = null; compositeGroup = null; boundDepth = null;
+    targets = null; output = null; marchGroups = null; compositeGroups = null; boundDepth = null;
   };
   const allocate = (externalOutput?: GPUTexture) => {
     releaseTargets();
@@ -209,7 +220,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       volume?.destroy(); lightGrid?.destroy();
       volume = uploadCloudVolume(device, asset);
       lightGrid = createLightGrid(device, volumeLayout, { dims: asset.dims, voxelSize: asset.voxelSizeMeters, extentMeters: volume.extentMeters });
-      marchGroups = null; boundDepth = null;
+      marchGroups = null; compositeGroups = null; boundDepth = null;
       device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, volume.extentMeters, volume.voxelSize)));
       rebuildVolumeGroup();
     },
@@ -232,7 +243,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     },
     encode(encoder, frame, timer) {
       if (disposed || !volumeGroup || !output || !targets || !lightGrid) return;
-      if (frame.depth !== boundDepth || !marchGroups || !compositeGroup) {
+      if (frame.depth !== boundDepth || !marchGroups || !compositeGroups) {
         boundDepth = frame.depth;
         const grid = lightGrid;
         const [near, far] = targets;
@@ -249,15 +260,16 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
             { binding: MARCH_NEAR_BINDING, resource: pass ? near.color.createView() : dummyNear.createView() },
           ] });
         });
-        compositeGroup = device.createBindGroup({ label: 'cloud composite', layout: compositeLayout, entries: [
+        compositeGroups = [0, 1].map(slot => device.createBindGroup({ label: `cloud composite ${slot}`, layout: compositeLayout, entries: [
           { binding: 0, resource: { buffer: frameUniforms[0] } },
           { binding: 1, resource: frame.depth },
           { binding: 2, resource: near.color.createView() },
           { binding: 3, resource: near.depth.createView() },
-          { binding: 4, resource: output.createView() },
+          { binding: 4, resource: output!.createView() },
           { binding: 5, resource: far.color.createView() },
           { binding: 6, resource: far.depth.createView() },
-        ] });
+          ...grid.bindGroupEntries(COMPOSITE_LIGHT_GRID_BINDING, slot as 0 | 1),
+        ] }));
       }
       const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, frame.time - lastTime));
       lastTime = frame.time;
@@ -272,7 +284,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[30] = outW; f[31] = outH;
       f[32] = settings.baseMip; frameU32[33] = settings.maxSteps >>> 0; frameU32[34] = frame.frameIndex >>> 0; f[35] = settings.lightDensityScale;
       f[36] = settings.msStrength; f[37] = settings.ambientStrength; f[38] = settings.silverStrength; f[39] = settings.ambientExtinction;
-      f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = 0; f[43] = 0;
+      f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = settings.shadowStrength; f[43] = 0;
       f[44] = settings.splitDistance; f[45] = settings.transmittanceCutoff;
       for (let pass = 0; pass < 2; pass++) {
         f[28] = pass ? farW : nearW; f[29] = pass ? farH : nearH; frameU32[46] = pass;
@@ -303,7 +315,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const composite = encoder.beginComputePass({ label: 'cloud composite', timestampWrites: timer?.passTimestampWrites('composite') });
       composite.setPipeline(compositePipeline);
       composite.setBindGroup(0, volumeGroup);
-      composite.setBindGroup(1, compositeGroup!);
+      composite.setBindGroup(1, compositeGroups![gridStep.front]);
       composite.dispatchWorkgroups(Math.ceil(outW / 8), Math.ceil(outH / 8));
       composite.end();
     },
@@ -311,7 +323,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       if (disposed) return;
       disposed = true;
       releaseTargets(); volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
-      volumeGroup = null; marchGroups = null; compositeGroup = null; lightGrid = null;
+      volumeGroup = null; marchGroups = null; compositeGroups = null; lightGrid = null;
       volumeUniforms.destroy(); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
     },
   };

@@ -1,0 +1,134 @@
+{
+  "url": "http://127.0.0.1:52751/flagship/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T12:07:48.760Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P1-07/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.080170883333333,
+          "skyCompute": 0.099539,
+          "lightGrid": 0.06391,
+          "marchNear": 0.19589683333333338,
+          "marchFar": 0.44655573333333337,
+          "composite": 0.6315558666666666
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 95
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P1-07/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.3056671,
+          "skyCompute": 0.165497,
+          "lightGrid": 0.06391,
+          "marchNear": 0.1939831,
+          "marchFar": 0.6694328833333335,
+          "composite": 0.6767452333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 191
+      }
+    },
+    {
+      "name": "shadow",
+      "file": "work/captures/P1-07/shadow.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.1441069333333334,
+          "skyCompute": 0.18258,
+          "lightGrid": 0.06391,
+          "marchNear": 0.19977476666666663,
+          "marchFar": 0.1503295666666667,
+          "composite": 0.5389494833333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "shadow",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 287
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P1-07/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.5981532333333337,
+          "skyCompute": 0.043249,
+          "lightGrid": 0.06391,
+          "marchNear": 0.18416515000000006,
+          "marchFar": 0.49936040000000015,
+          "composite": 0.7612167833333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 383
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

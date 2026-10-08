@@ -298,7 +298,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
   - `pnpm check` green; the parity page still passes
   - **Frame stability:** with `?animateTime=1`, p95 ≤ 1.5× p50
 
-### [~] P1-07 Cloud shadows on scene geometry · Sonnet
+### [x] P1-07 Cloud shadows on scene geometry · Sonnet
 - **Owns:**
   - `packages/runtime/src/{runtime.ts,shaders/composite.wgsl.ts,shaders/frame.wgsl.ts}`
   - `examples/lab/flagship/{main.ts,three-bridge.ts,bookmarks.ts}`

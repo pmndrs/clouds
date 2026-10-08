@@ -42,7 +42,7 @@ try {
 
   const sky = new Sky(renderer, { preset: 'earth', timeOfDay: state.time, latitude: 40, north: '-Z' });
   sky.attach(scene);
-  const ground = sky.createGround({ mode: 'plane', size: 2000000, color: 0x34461f, roughness: 1 });
+  const ground = sky.createGround({ mode: 'plane', size: 8000000, color: 0x34461f, roughness: 1 });
   ground.attach(scene);
   if (query.get('noground') === '1') ground.mesh.visible = false;
   const sun = sky.createSun({ physical: true }); // sun light colour/intensity come from the sky LUTs, not hard-coded
@@ -112,6 +112,8 @@ try {
   qualitySel.onchange = () => { state.quality = qualitySel.value; runtime.setQuality(state.quality as CloudQuality); };
   const animateBox = el('input', { type: 'checkbox' }, label('animate'));
   animateBox.onchange = () => { state.animateTime = animateBox.checked; };
+  const shadowInput = el('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(runtime.settings.shadowStrength) }, label('shadow'));
+  shadowInput.oninput = () => { runtime.settings.shadowStrength = Number(shadowInput.value); };
   const modeBtn = el('button', { textContent: 'mode: orbit (F)' });
   const toggleMode = () => { rig.setMode(rig.mode === 'orbit' ? 'fly' : 'orbit'); modeBtn.textContent = `mode: ${rig.mode} (F)`; };
   modeBtn.onclick = toggleMode;

@@ -10,7 +10,7 @@ struct Frame {
   renderSize: vec2<f32>, outputSize: vec2<f32>,
   baseMip: f32, maxSteps: u32, frameIndex: u32, lightDensityScale: f32,
   msStrength: f32, ambientStrength: f32, silverStrength: f32, ambientExtinction: f32,
-  phaseG: f32, silverG: f32, _pad0: f32, _pad1: f32,
+  phaseG: f32, silverG: f32, shadowStrength: f32, _pad1: f32,
   // near/far split: marching range of this pass is [0, splitDistance) for passMode 0 (near) and [splitDistance, inf) for 1 (far)
   splitDistance: f32, tCutoff: f32, passMode: u32, _pad2: f32,
 }
