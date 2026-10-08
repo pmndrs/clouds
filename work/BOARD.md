@@ -742,6 +742,49 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The clouds show Nubis-like eroded detail comparable to Parkouring. Include
     a side-by-side with `houdini-test`.
 
+### [~] P4-D Onsen valley demo · Sonnet
+- **Owns:** `examples/lab/onsen/**` (wired) and `examples/lab/scenes/terrain/**` (new reusable module).
+- **Read-only:** `packages/**`, `assets/clouds/**`, the ocean module (for reuse
+  patterns).
+- **Does:** the Phase 4 showcase, inspired by a Ghost of Tsushima vantage: you
+  sit by a hot spring on a mountainside at golden hour, overlooking a valley.
+  - **Terrain:** a procedural heightfield with mountain ridges and a valley
+    5–10 km across. Distance-dependent detail, a stylized natural material
+    (grass, rock and forest tint by slope and height), receiving cloud shadows
+    through the composite. Keep it cheap: ≤ 2 ms at 2560×1440.
+  - **Foreground:** a small onsen pool (water plane reflecting the sky and
+    clouds through `clouds.reflection` if practical) and rocks or simple
+    shapes. Rising steam is optional; don't spend long on it.
+  - **Clouds (authored):** stamp `heroes/valley-fog` into the valley floor
+    (several instances, a slow drift), a hero cumulus or tower beyond the
+    valley, and fair-weather clouds above, all composed into one generated
+    region with `stampCloud` (P4-C).
+  - **Clouds (procedural):** a generated cumulus background, plus the sky
+    layer if it is enabled by then (P3-C2 may still be in progress; make it
+    optional).
+  - **Lighting:** golden hour by default, plus a `?time=` override. The camera
+    sits at a fixed vantage with a gentle drift, with bookmarks `vantage`,
+    `valley` (looking down at the fog) and `sunset`.
+  - Capture contract and HUD.
+- **Acceptance:**
+  - Captures at all bookmarks at 2560×1440 read as a convincing mountain
+    valley vista with authored valley fog and clouds composited correctly
+    against the terrain (fog between ridges, ridges occluding clouds).
+  - 60 fps; report whole-frame GPU.
+  - Integration lines ≤ 20 for clouds (content lines separate).
+  - `pnpm check` green.
+
+### [~] P4-E2 Rebuild the tower hero cloud · Sonnet
+- **Owns:** `scripts/vdb/authoring/**` and `assets/clouds/heroes/tower/**`.
+- **Does:** the P4-E tower reads as a smoke or explosion column (a narrow stalk
+  with a lobed head; `work/captures/P4-E/tower-*.jpg`). Rebuild it as towering
+  cumulus (congestus): a broad flat-ish base, stacked domed turrets that keep
+  their width or widen with height, cauliflower lobes, and a slight shear.
+  Same pipeline (Cloud SOP → Cloud Noise → convert), under 4 MB.
+- **Acceptance:** flagship captures `?cloud=heroes/tower` at `ground`, `edge`
+  and `backlit` read as towering cumulus. Include a side-by-side with the old
+  tower.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet

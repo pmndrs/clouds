@@ -31,6 +31,7 @@ export default defineConfig({
     cloudscapeGen: fileURLToPath(new URL('./examples/lab/cloudscape-gen/index.html', import.meta.url)),
     plainsFlight: fileURLToPath(new URL('./examples/lab/plains-flight/index.html', import.meta.url)),
     testStamp: fileURLToPath(new URL('./examples/lab/runtime-tests/stamp/index.html', import.meta.url)),
+    onsen: fileURLToPath(new URL('./examples/lab/onsen/index.html', import.meta.url)),
     gpuSmoke: fileURLToPath(new URL('./examples/lab/gpu-smoke/index.html', import.meta.url)),
     reactDensity: fileURLToPath(new URL('./examples/lab/legacy/react-density/index.html', import.meta.url)),
     realism: fileURLToPath(new URL('./examples/lab/legacy/realism/index.html', import.meta.url)),
