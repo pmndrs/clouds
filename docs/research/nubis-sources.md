@@ -9,8 +9,7 @@ from Andrew Schneider's talks. Slide numbers are cited so they can be checked.
 | **SY** | *Synthesizing Realistic Clouds for Video Games* (83 slides, 2024 overview of the same system) |
 
 - Verbatim slide text, speaker notes and full transcriptions are in
-  `artifacts/research/nubis-src/`. That folder is gitignored because the talks
-  are copyrighted.
+  `artifacts/research/nubis-src/` (gitignored, local working copies).
 - The source decks are the user's `.pptx` files.
 - Older talks (HZD 2015/2017, Nubis Evolved 2022) are summarized in
   `volumetric.md` and `nubis-classic-lod-notes.md`.
@@ -84,9 +83,9 @@ Envelope 2.5D [N3 s20]:
   - Downloaded 2026-10-08 from `http://bit.ly/NubisVoxelCloudPack` (Google
     Drive `NubisVoxelCloudsPack.zip`, 115 MB, release 2023-08-10).
   - Extracted to `artifacts/research/nubis-pack/`, which is gitignored.
-  - **There is no license file in the pack.** Use it as local reference/test
-    data only. Don't commit or redistribute it, and don't ship it in a public
-    demo without permission.
+  - The pack has no license file. The project owner treats it as MIT, as
+    published with the talk (non-commercial project). A subset is committed
+    under `assets/nubis-voxel-clouds/`; see its `NOTICE.md`.
   - Contents:
     - `NVDFs/Examples/{ParkouringCloud,StormbirdCloud}/`
       - `TGA/modeling_data.001–064.tga`: 512×512, RGBA8, z-up slices.
