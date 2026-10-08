@@ -52,7 +52,7 @@ reference** raises light samples to 256. Both wipe sides use the selected
 integration setting. Compare at Native mode first, then test reconstruction.
 Expect higher cost and possible remaining bands, voxel edges and cache artifacts.
 The default remains 1× / 48; these are diagnostic budgets, not named presets.
-See the [quality bench](research/cloud-quality-bench.md) for measured scope.
+See the [quality bench](../research/cloud-quality-bench.md) for measured scope.
 
 The filter retains the nominal density multiplier 0.92 at default strength,
 including coarse pixels where the old fade returned 1. Distant clouds may

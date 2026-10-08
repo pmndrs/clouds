@@ -3,7 +3,7 @@
 ## Completed local source packet — 2026-10-08
 
 Weather/base-boundary/erosion source and mip resources are implemented. See
-[the packet evidence and next steps](research/morphology-study.md). A bounded
+[the packet evidence and next steps](../research/morphology-study.md). A bounded
 Luna worker owned original noise generation and checks; root integrated raw
 WebGPU resources, the shared evaluator and the viewer. 129 unit tests, 21 GPU
 checks, build/pack and independent-consumer validation pass. Appearance remains
@@ -41,8 +41,8 @@ footprint filtering and lighting/temporal convergence without treating analytic
 transport checks as visual approval. Root owns integration/visual judgment;
 lower-cost workers can own noise generation and focused source checks.
 
-Reference notes: [density hierarchy](research/tidewater-density-reference.md),
-[transport/lighting](research/tidewater-transport-reference.md). No Tidewater
+Reference notes: [density hierarchy](../research/tidewater-density-reference.md),
+[transport/lighting](../research/tidewater-transport-reference.md). No Tidewater
 source or assets have been copied, and its full game has not been executed.
 
 ## Current platform handoff — 2026-10-08
@@ -176,7 +176,7 @@ warrants it. This historical checkpoint did not accept a preset. The later 2026-
 
 | Packet | State | Delivery / remaining gate |
 | --- | --- | --- |
-| P4.1 | ready-for-review | [Reconstruction contract](decisions/reconstruction.md); weighted cloud depth, opaque motion, reactivity, one jitter/history owner |
+| P4.1 | ready-for-review | [Reconstruction contract](../decisions/reconstruction.md); weighted cloud depth, opaque motion, reactivity, one jitter/history owner |
 | P4.2 | ready-for-review | Actual FSR1/FSR3 adapter plus separate L/T cloud-only spatial resolve; GPU integration checks |
 | P4.3 | running (partial) | Fixed comparison lab, critical review guide and timing harness; preset acceptance, wind and RTX/Windows evidence still open |
 
@@ -201,11 +201,11 @@ Viewer playback now uses a precise clock rather than accumulating through a step
 
 P2.4 remains an isolated source experiment; P2.5/P2.6 now have a finite-region
 integration checkpoint. P2 remains the single active phase. Source basis and open design choices:
-[Nubis LOD research](research/nubis-lod.md).
+[Nubis LOD research](../research/nubis-lod.md).
 
 **2026-09-19 continuation:** P2.4 now has a bounded CPU source experiment and
 [coverage map](http://127.0.0.1:5173/coverage-study/). The
-[distance/refinement decision](decisions/distance-coverage.md) defines ownership,
+[distance/refinement decision](../decisions/distance-coverage.md) defines ownership,
 fallback readiness and test gates for P2.5. Moving the camera overlay changes
 only residency illustration; it never changes the weather source. This is
 source-level progress and does not close distant rendering or shadow continuity.

@@ -80,7 +80,7 @@ from this unshadowed audit.
 
 ## Recorded technical evidence
 
-[Raw Chrome/Metal report](research/density-study-results.json), default candidate
+[Raw Chrome/Metal report](research-results/density-study-results.json), default candidate
 seed 17, erosion 0.55, 96³. **109 unit tests**, typecheck and lab build pass.
 Five browser/GPU checks pass: same-source pane equality (max T difference 0),
 visible finite density, exact clear output at density zero, and invariant

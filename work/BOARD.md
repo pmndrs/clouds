@@ -13,7 +13,7 @@ The protocol is in [README.md](README.md). Phase goals and measures are in
 
 These tasks run in parallel. File ownership is disjoint; respect it.
 
-### [ ] P0-01 Move the old labs under `examples/lab/legacy/` · Haiku
+### [~] P0-01 Move the old labs under `examples/lab/legacy/` · Haiku
 - **Owns:**
   - `examples/lab/{authored,clouds,cloudscape,coverage-study,density-study,layer-only,lighting,lighting-bench,lod-study,quality-bench,react,react-density,realism,reconstruction,scenes,three}/`, moved to `examples/lab/legacy/<same name>/`
   - `examples/lab/index.html` and `examples/lab/main.ts`, which become a short index linking the new pages and the legacy ones
@@ -26,7 +26,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - `pnpm check` passes (typecheck, 129+ tests, build including every legacy page).
   - `node scripts/gpu/capture.mjs --serve --page legacy/realism/ --size 1280x720 --timeout 90 --out work/captures/scratch/legacy-realism` loads with no page errors. A ready timeout is acceptable here, because legacy pages lack the contract; report what happened.
 
-### [ ] P0-02 Nubis pack converter · Sonnet
+### [~] P0-02 Nubis pack converter · Sonnet
 - **Owns:** `scripts/nubis/**` and `assets/clouds/**` (generated output plus a `README.md`).
 - **Input:**
   - `assets/nubis-voxel-clouds/` (committed modeling slices and noise)
@@ -45,7 +45,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - Each cloud's output is under 4 MB. The script is deterministic: running it twice gives identical bytes.
 - **Note:** the runtime maps world (x, y-up, z) to texture (x, z, y). Write the axis convention into `assets/clouds/README.md`.
 
-### [ ] P0-03 Flagship shell page and GPU timer · Sonnet
+### [~] P0-03 Flagship shell page and GPU timer · Sonnet
 - **Owns:**
   - `examples/lab/flagship/**`
   - `packages/runtime/**`, a new renderer-agnostic package `@clouds/runtime`: `package.json`, `src/index.ts`, `src/gpu-timer.ts` plus test
@@ -67,7 +67,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - `report.gpuMs` has a non-zero scene entry.
   - Frame-time stability: time of day animates during capture, and no frame exceeds 1.5× the median after warm-up. Add a `?animateTime=1` mode and record `frameMs` p50/p95 in the report.
 
-### [ ] P0-04 Tidewater reference captures · Sonnet
+### [~] P0-04 Tidewater reference captures · Sonnet
 - **Owns:** `work/captures/P0-04/` and `work/reports/P0-04.md`. Read-only access to `/Users/dex/Developer/tidewater` (MIT; do not modify it).
 - **Does:**
   - Run Tidewater's dev server and capture its clouds at 4 views comparable to our bookmarks: ground looking up at cumulus, distant horizon, low sun with backlit clouds, and the highest viewpoint reachable (boat or hill).
@@ -75,7 +75,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - Find how to set the time of day and camera: URL params, debug UI, or `window` globals.
 - **Acceptance:** ≥ 3 captures at 1920×1080, with a report giving the sun elevation, camera height, FOV and exact steps to reproduce each. If a view is impossible, say why. This is the visual bar for P1–P3.
 
-### [ ] P0-05 Archive the old plan docs · Haiku
+### [x] P0-05 Archive the old plan docs · Haiku
 - **Owns:** `docs/` (except `docs/AUDIT-2026-10.md` and `docs/research/`), and `README.md`.
 - **Does:**
   - Move these to `docs/archive/`, fixing any links that break:

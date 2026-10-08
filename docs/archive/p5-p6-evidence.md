@@ -39,7 +39,7 @@ the local Metal adapter and visual acceptance are not covered.
 > self-shadowing. Its 4×/192 versus 4×/256 equality does not validate lighting
 > convergence or a banding fix. The audit setting is corrected; a lit rerun and
 > full-size cached/direct-light comparison remain pending. See the
-> [corrected research note](research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
+> [corrected research note](../research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
 
 
 2026-09-18, Apple M5 Pro / Metal 3, in-app Chromium 152. Technical results are
@@ -84,7 +84,7 @@ it does not prove all multi-view scheduling combinations or future R3F versions.
   This is functional evidence and limited spot inspection, not acceptance of all
   reported arcs or motion strobing.
 - The isolated and small production motion audits are recorded in
-  [quality research](research/cloud-quality-bench.md). Their cost measurements
+  [quality research](../research/cloud-quality-bench.md). Their cost measurements
   do not establish production performance.
 
 The FSR regression now disposes the old comparison runtime before creating its

@@ -20,4 +20,4 @@ Mount/unmount and camera/resize changes are demonstrated in the React lab.
 
 Source banding, distant-cloud continuity, physical atmosphere, performance
 presets and Windows/RTX validation remain open. This is not a stable API or
-a WebGL fallback. See repository docs/react.md and docs/release-preview.md.
+a WebGL fallback. See repository docs/react.md and docs/archive/release-preview.md.

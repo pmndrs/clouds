@@ -10,7 +10,7 @@
 - A separate fixed-probe renderer captures six linear HDR faces, then PMREM filters them for diffuse/specular environment lighting. Capture is explicit, awaited, and independent of the main view; the main background stays sky-only.
 - Sun, density, moving occluder and composition controls expose the integration. Diffuse and reflective spheres show its lighting effects. **Refresh environment** deliberately controls when reflection lighting catches up to changed parameters.
 
-Contract and ordering: [lighting/environment decision](decisions/lighting-and-environment.md).
+Contract and ordering: [lighting/environment decision](../decisions/lighting-and-environment.md).
 
 ## Validation
 

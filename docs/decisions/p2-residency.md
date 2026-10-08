@@ -1,6 +1,6 @@
 # P2 residency decision — shared atlas and bounded window
 
-**Status:** implemented and measured locally; R2 human coverage review remains pending. See [P2 evidence](../p2-evidence.md).
+**Status:** implemented and measured locally; R2 human coverage review remains pending. See [P2 evidence](../archive/p2-evidence.md).
 
 ## Decision
 

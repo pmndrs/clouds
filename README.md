@@ -1,56 +1,16 @@
 # WebGPU Clouds
 
-Voxel-first cloud library for Three.js WebGPU, with independent lightweight clouds and R3F v10 preview bindings. P2 adds a cloudscape viewer with a bounded world of voxel formations, alongside the first-cloud reference and independent 2D layer. These are correctness prototypes with provisional appearance and APIs.
+Realtime Nubis³-style voxel clouds for WebGPU. A renderer-agnostic core
+(density, SDF sphere-trace march, voxel light grid, near/far resolution split)
+with a three.js adapter first. The method is built from Andrew Schneider's
+Nubis talks and Guerrilla's official Nubis Voxel Cloud Pack, which is the
+development asset set.
 
-## Library preview
+**Current phase: Phase 0, reset and data.** The old demos are being archived
+and the cloud assets are converted from the pack. See the phase plan in
+[`docs/AUDIT-2026-10.md`](docs/AUDIT-2026-10.md).
 
-The user-authorized P5/P6 continuation packages the existing runtimes while a
-separate rendering-quality bench investigates persistent volume banding.
-These are unpublished previews, not accepted production visuals or presets.
-
-- [Three.js API and lifecycle example](http://127.0.0.1:5173/three/)
-- [R3F v10 lifecycle example](http://127.0.0.1:5173/react/)
-- [Authored asset and mesh conversion](http://127.0.0.1:5173/authored/)
-- [Independent cloud-quality bench](http://127.0.0.1:5173/quality-bench/)
-- [Lighting isolation bench](http://127.0.0.1:5173/lighting-bench/)
-- [Persistent weather source study](http://127.0.0.1:5173/coverage-study/) — experimental source map; not yet a distant renderer
-- [Bounded LOD study](http://127.0.0.1:5173/lod-study/) — coarse fallback and single-field transitions; isolated from the cloudscape
-- [Public API ownership contract](docs/decisions/public-api.md)
-- [Build, pack and independent consumer checks](docs/release-preview.md)
-
-**Start here: [audit and reset plan (2026-10-08)](docs/AUDIT-2026-10.md).** It supersedes the phase/gate planning docs below, which are kept for history.
-
-## Implementation planning
-
-- [Overall status: what works now and what comes next](docs/project-status.md)
-- [Human review checklists and questions for every stage](docs/human-review.md)
-- [Phases and visual review points](docs/implementation-plan.md)
-- [Agent orchestration and cost controls](docs/agent-orchestration.md)
-- [Work packets, dependencies and execution queue](docs/implementation-work-queue.md)
-
-P0 is accepted on the local WebGPU backend. See [integration decisions](docs/decisions/integration.md) and [stage evidence](docs/p0-evidence.md).
-
-P1 technical evidence, timing scope and remaining limitations are recorded in [first-cloud evidence](docs/p1-evidence.md). Human shape review is separate from technical acceptance.
-
-P2 implementation and current review limits are recorded in [cloudscape evidence](docs/p2-evidence.md).
-
-## Specification and research
-
-Start with the [research summary](docs/research-summary.md), [draft library specification](docs/library-spec.md), and [questions / decision log](docs/questions.md).
-
-Selected direction: [voxel-first hybrid cloudscapes and distance coverage](docs/approach-decision.md).
-
-New reference: [mixed TSL/direct WebGPU and upscaler integration](docs/research/upscaler-integration.md).
-
-Research tracks:
-
-- [Volumetric rendering, Decima, Unreal and port candidates](docs/research/volumetric.md)
-- [VDB, textures and mesh conversion](docs/research/volume-assets.md)
-- [Three.js, R3F and sky integration](docs/research/integrations.md)
-
-Research was gathered on 2026-09-15. Upstream development branches are moving targets; exact releases and source revisions must be pinned before implementation. Recommendations and unverified claims are marked separately from source-backed findings.
-
-## Run the lab
+## Run it
 
 Requires Node.js 22 and pnpm 10.33.0.
 
@@ -59,11 +19,29 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open a WebGPU-enabled desktop browser:
+Open a WebGPU-enabled desktop browser at
+<http://127.0.0.1:5173/flagship/>. Legacy labs from earlier phases live under
+`/legacy/<name>/` (for example `/legacy/clouds/`) and are kept for reference.
 
-- [Cloudscape](http://127.0.0.1:5173/cloudscape/): a 40-second ground-to-cloud flight, world coverage controls, a shared voxel atlas, conservative GPU lookup, and flight-view timing comparisons.
-- [First voxel cloud](http://127.0.0.1:5173/clouds/): three generated forms, synthetic authored form, ground/side/inside cameras, fly-through slider, density/size/sun controls, both reference shadow directions, GPU correctness checks and optional timing sweep.
-- [Independent 2D layer](http://127.0.0.1:5173/layer-only/): animated thin clouds, coverage/density controls, preserved background and opaque depth.
-- [P0 integration lab](http://127.0.0.1:5173/): known-pattern GPU sharing checks and sky/environment fixture.
+Other checks: `pnpm check` runs typecheck, unit tests and the production build.
 
-`pnpm check` runs type checking, unit tests and a production build of all lab pages. Use **Export evidence** and **Save image** in the voxel viewer. **Measure GPU presets** measures the cloud compute pass at 1080p/1440p and three internal scales. Live CPU submission measurements are separate from GPU timing. The half-resolution preview currently scales the entire reference scene spatially; P4 now has a separate [reconstruction comparison](http://127.0.0.1:5173/reconstruction/) using the author’s actual FSR1/FSR3 runtime and an independent cloud-only spatial path. See the [P4 review guide](docs/p4-review.md); quality and preset acceptance remain pending.
+## GPU capture harness
+
+```sh
+node scripts/gpu/capture.mjs --serve --page flagship/ --shots ground,inside --out work/captures/<task-id>
+```
+
+This runs headless Chrome on the real GPU, waits for the page to report ready,
+writes one JPEG per shot plus `capture.json`, and exits non-zero on page
+errors. Use `--help` for options. Scratch runs go to `work/captures/scratch/`,
+which is git-ignored.
+
+## Documentation
+
+- [`docs/AUDIT-2026-10.md`](docs/AUDIT-2026-10.md): the plan, phases and success measures.
+- [`work/README.md`](work/README.md) and [`work/BOARD.md`](work/BOARD.md): how work is split, reviewed and reported, and the task list.
+- [`docs/research/nubis-sources.md`](docs/research/nubis-sources.md): formulas and constants, with slide references.
+- [`assets/nubis-voxel-clouds/NOTICE.md`](assets/nubis-voxel-clouds/NOTICE.md): credits and licence notice for the Nubis pack.
+
+Earlier plans, phase evidence and research results are in
+[`docs/archive/`](docs/archive/). They are kept for history only.

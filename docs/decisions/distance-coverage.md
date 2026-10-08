@@ -106,7 +106,7 @@ source to be inside the camera frustum.
 
 ## Handoff to agents
 
-**Distance audit decision:** [measured image comparisons](../p2-lod-evidence.md#distance-quality-continuation--2026-09-19)
+**Distance audit decision:** [measured image comparisons](../archive/p2-lod-evidence.md#distance-quality-continuation--2026-09-19)
 select 32×64×32 over cubic 32³ for the bounded profile-driven fixture. Keep
 per-axis resolution in the representation contract; do not assume all coarse
 levels halve every axis. This is not a universal size/default. The production

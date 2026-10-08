@@ -60,8 +60,8 @@ from continuous-field resampling and complete-ray error.
 The bench now includes a cancellable **Measure distance quality** sweep and JSON
 export. One Luna medium worker supplied optical image metrics and focused tests;
 root implemented the GPU sweep, per-axis filtering and viewer integration.
-Completed raw evidence: [320² report](research/lod-distance-results.json) and
-[640² report](research/lod-distance-results-640.json).
+Completed raw evidence: [320² report](research-results/lod-distance-results.json) and
+[640² report](research-results/lod-distance-results-640.json).
 
 Each run measures 15 poses: 20/12/8/4/1 km at 20/90/150° azimuth, 42° FOV,
 with self-shadowing and history off. It compares direct 16³, 32³ and 32×64×32
@@ -146,7 +146,7 @@ completion of P2 or infinite-world streaming.
 
 ### Evidence and limits
 
-Raw Chrome/Metal report: [persistent-world-results.json](research/persistent-world-results.json).
+Raw Chrome/Metal report: [persistent-world-results.json](research-results/persistent-world-results.json).
 Eighteen new GPU checks and the existing nineteen P2 checks pass with no recorded
 WebGPU validation errors. Checks include a shaped coarse cloud visible at 20 km,
 no world upload/rebase after camera travel, exact repeatability on return, empty

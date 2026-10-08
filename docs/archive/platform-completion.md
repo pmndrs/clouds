@@ -54,7 +54,7 @@ The current platform packet has 122 unit tests passing, with aggregate voxel
 assertions retained after reducing test concurrency to avoid CPU contention.
 TypeScript, the production build, and the online packed consumer check pass.
 P4 has 29 GPU checks and 15 timing smoke rows at 320×180 in
-[`reconstruction-smoke-2026-10-08.json`](research/reconstruction-smoke-2026-10-08.json):
+[`reconstruction-smoke-2026-10-08.json`](research-results/reconstruction-smoke-2026-10-08.json):
 five modes: native, bilinear, cloud-only and FSR1 are guide-free; FSR3 uses
 guides. Both comparison runtimes remain allocated.
 The React dense adapter reached exact zero optical parity after field, camera,

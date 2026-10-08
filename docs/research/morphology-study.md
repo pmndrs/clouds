@@ -46,7 +46,7 @@ heuristic, not a calibrated physical multiple-scattering solver.
 - Typecheck, production build, package build/pack and independent packed
   consumer pass. An inferred declaration that leaked a workspace React alias
   was corrected with an explicit public return type.
-- [GPU evidence](morphology-gpu-2026-10-08.json): 21 checks pass with no captured
+- [GPU evidence](../archive/research-results/morphology-gpu-2026-10-08.json): 21 checks pass with no captured
   GPU errors on Apple/Metal. The set includes the 12 authored transport/cache
   checks and nine procedural domain/resource checks. Zero coverage clears
   both view extinction and sunlight optical depth. Constant-light L+T error

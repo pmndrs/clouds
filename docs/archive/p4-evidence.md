@@ -4,7 +4,7 @@
 > self-shadowing. Its 4×/192 versus 4×/256 equality does not validate lighting
 > convergence or a banding fix. The audit setting is corrected; a lit rerun and
 > full-size cached/direct-light comparison remain pending. See the
-> [corrected research note](research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
+> [corrected research note](../research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
 
 
 Updated 2026-09-18. Viewer: [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/).
@@ -15,7 +15,7 @@ stable, but image quality and presets are not accepted.
 
 ## Latest quality continuation
 
-The [independent bench](research/cloud-quality-bench.md) provides analytic and
+The [independent bench](../research/cloud-quality-bench.md) provides analytic and
 voxel sources, an expensive reference and motion-error measurement. Its lower-cost
 192-view-evaluation candidate reduced isolated voxel spatial error about 6.3×
 and motion residual about 5.6×. Those are bench results, not proof that the user's
@@ -72,7 +72,7 @@ sign-off. `pnpm check` passes with 53 tests, type checking, and build.
   rejection and one `L + T × background` composition.
 - Matching native wipe, 40-second flight, overview/foreground/inside poses,
   moving geometry, cuts, density/sun/source changes, reset and resize controls.
-- Critical [human review guide](p4-review.md) and [ownership/input contract](decisions/reconstruction.md).
+- Critical [human review guide](p4-review.md) and [ownership/input contract](../decisions/reconstruction.md).
 
 ## Automated evidence — historical 2026-09-17 baseline
 

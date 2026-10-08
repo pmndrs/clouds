@@ -59,7 +59,7 @@ audit wall time, not the cost of each method or a usable performance estimate.
 Chrome, Metal 3, twelve poses, 96×54, all isolation checks passed. Cloud support
 27.83%, partial opacity 11.77%, maximum transmittance difference **0**. No GPU
 validation errors. Values below are linear radiance errors against direct 2048.
-The [full recorded results](research/lighting-isolation-results.json) include
+The [full recorded results](research-results/lighting-isolation-results.json) include
 reference sensitivity, support counts, configuration and all error statistics.
 
 | Candidate | Spatial MAE | Motion residual MAE |

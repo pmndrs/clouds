@@ -42,4 +42,4 @@ The first technical gate should prove voxel coverage from horizon to inside-clou
 
 Exact repository links, source evidence and caveats are in [volumetric research](research/volumetric.md), [asset research](research/volume-assets.md), and [integration research](research/integrations.md).
 
-Remaining discussion: numerical budgets/browser versions, authored asset scope and environment refresh policy. See the [questions and decisions](questions.md). Detailed execution/orchestration plans follow these decisions.
+Remaining discussion: numerical budgets/browser versions, authored asset scope and environment refresh policy. See the [questions and decisions](archive/questions.md). Detailed execution/orchestration plans follow these decisions.

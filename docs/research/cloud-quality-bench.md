@@ -97,7 +97,7 @@ GPU contention and cannot establish a performance preset.
 
 ### Production shadow isolation — user observation, 2026-09-18
 
-**Follow-up implemented:** the [lighting isolation bench](../lighting-isolation.md)
+**Follow-up implemented:** the [lighting isolation bench](../archive/lighting-isolation.md)
 uses the production renderer with lit secondary-only comparisons, fixed view
 sampling, transmittance invariance checks and a 1024/2048 reference-sensitivity
 comparison. New results are recorded there, separately from the withdrawn audit.
@@ -105,7 +105,7 @@ comparison. New results are recorded there, separately from the withdrawn audit.
 The user compared cached lighting, unshadowed rendering and direct lighting in
 the cloudscape viewer. Cached lighting has prominent bands; disabling shadows
 removes the visible bands; direct lighting makes them substantially worse.
-See the [review record](../human-review.md#user-results-received--2026-09-18).
+See the [review record](../archive/human-review.md#user-results-received--2026-09-18).
 
 Both the cache builder and direct view shading call the same `directLight()`.
 That function spreads a fixed sample count (48 by default) uniformly over the

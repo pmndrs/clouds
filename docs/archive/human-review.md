@@ -380,7 +380,7 @@ lighting is under investigation.
 
 ## P6 — Validation, assets and release (R6)
 
-**Availability:** Local package archives and a bounded dense-asset pipeline are runnable at [authored density](http://127.0.0.1:5173/authored/). See [asset contract](assets.md) and [release preview](release-preview.md); nothing is published.
+**Availability:** Local package archives and a bounded dense-asset pipeline are runnable at [authored density](http://127.0.0.1:5173/authored/). See [asset contract](../assets.md) and [release preview](release-preview.md); nothing is published.
 
 ### Expected appearance and pass/fail
 

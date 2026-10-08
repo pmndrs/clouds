@@ -103,7 +103,7 @@ Use deterministic seeds and reference images with tolerances. Verify energy/tran
 
 ## Proposed staging, before detailed agent execution plans
 
-The detailed [implementation phases](implementation-plan.md), [agent orchestration](agent-orchestration.md), and [work queue](implementation-work-queue.md) now expand this outline. P0 foundation work has started; see the work queue and stage evidence for acceptance status.
+The detailed [implementation phases](archive/implementation-plan.md), [agent orchestration](archive/agent-orchestration.md), and [work queue](archive/implementation-work-queue.md) now expand this outline. P0 foundation work has started; see the work queue and stage evidence for acceptance status.
 
 1. Record confirmed hardware, MIT licensing, voxel-first direction and v10 requirement; settle remaining numerical budgets.
 2. Pin research references and compatibility versions; establish scene integration and representative GPU feasibility experiments.
@@ -119,4 +119,4 @@ This outline expresses dependency ordering; the linked implementation plan is th
 - [Volumetric techniques and port candidates](research/volumetric.md)
 - [Volume assets and conversion](research/volume-assets.md)
 - [Three.js, R3F and sky integration](research/integrations.md)
-- [Questions and decision log](questions.md)
+- [Questions and decision log](archive/questions.md)

@@ -8,7 +8,7 @@ Local checkpoint: 2026-09-17 (Japan time). **P1 technical prototype accepted loc
 - `/layer-only/`: independent animated TSL hemisphere layer, coverage/density controls, transparent gaps preserving the host background, opaque depth occlusion. No voxel, asset or React module is imported by this runtime.
 - `/`: P0 interop and sky/environment fixtures remain available.
 
-Shared Three-owned textures are passed to raw WGSL on Three's device. The optical output is linear HDR radiance plus transmittance, composed with opaque scene color before final tone mapping. See the [reference renderer contract](../packages/three/src/volumetric/README.md).
+Shared Three-owned textures are passed to raw WGSL on Three's device. The optical output is linear HDR radiance plus transmittance, composed with opaque scene color before final tone mapping. See the [reference renderer contract](../../packages/three/src/volumetric/README.md).
 
 ## Technical evidence
 

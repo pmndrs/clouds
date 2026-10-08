@@ -4,7 +4,7 @@ The 2026-09-18 instruction authorizes implementation through P6 while a dedicate
 agent investigates volume quality. These are **unpublished preview packages**,
 not a production release or an accepted performance preset.
 
-See the [local evidence](p5-p6-evidence.md), [preview changelog](preview-changelog.md) and [attribution](attribution.md).
+See the [local evidence](p5-p6-evidence.md), [preview changelog](preview-changelog.md) and [attribution](../attribution.md).
 
 ## Reproduce
 

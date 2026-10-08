@@ -32,7 +32,7 @@ We should also consider a 2d distant/far approach where useful. Thin clouds/cove
 - MIT; repository target `pmndrs/clouds`. Exact npm package names remain open.
 - Use current sky/R3F development as needed and pin the versions tested together.
 - Environment contribution is intended to affect lighting when fed into the lighting environment. Proposed integration default: opt-in visible background + filtered diffuse/specular environment contribution, with a separate refresh policy. A standalone dome affects lighting only if included in an explicit environment capture or another lighting path. Exact modes/cadence remain open.
-- Evaluate cloud-only and final-scene reconstruction using the author’s upscaler; see [integration evidence](research/upscaler-integration.md).
+- Evaluate cloud-only and final-scene reconstruction using the author’s upscaler; see [integration evidence](../research/upscaler-integration.md).
 
 Still unanswered: static versus animated authored assets and fixture licenses (6), initial conversion formats/runtime split (7), numerical performance and memory targets (1), and exact environment update policy (10). Provisional implementation scope can begin with static fixtures and optional offline conversion without claiming those choices were approved.
 
@@ -87,4 +87,4 @@ Still unanswered: static versus animated authored assets and fixture licenses (6
 | D16 | Confirmed | Local ground/sky/inside views and cloud shadow casting/receiving required |
 | D17 | Investigate | Cloud-only versus final-scene upscaling; optional v10 scheduler reuse in vanilla |
 
-[1]:	approach-decision.md
+[1]:	../approach-decision.md

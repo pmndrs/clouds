@@ -2,7 +2,7 @@
 
 ## Latest quality packet — 2026-10-08
 
-The [procedural morphology packet](research/morphology-study.md) is integrated
+The [procedural morphology packet](../research/morphology-study.md) is integrated
 and is the default in `/realism/`: periodic weather, Perlin-Worley base boundary,
 independent Worley erosion, explicit noise mips and shared view/light evaluation.
 129 unit tests and 21 GPU checks pass; package build/pack and the independent
@@ -61,7 +61,7 @@ See [realism progress](realism-progress.md) for actual GPU reports and captures.
 > [lighting isolation bench](lighting-isolation.md). The user's
 > full-size A/B/C review found no bands with shadows off and worse bands with
 > direct lighting; the shadow-enabled rendering path is now the focus. See the
-> [corrected research note](research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
+> [corrected research note](../research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
 
 
 Updated 2026-09-20 (Japan time).
@@ -107,7 +107,7 @@ worker delivered the bounded implementation; root reviewed and verified it.
 shows a camera-independent regional weather map with separate coverage and
 density controls. Nine source unit tests and five browser source checks pass;
 the workspace now has 77 passing unit tests. Clear/full coverage and zero
-density were verified in Chrome. The [distance/refinement contract](decisions/distance-coverage.md)
+density were verified in Chrome. The [distance/refinement contract](../decisions/distance-coverage.md)
 sets the next experiment's identity, fallback and optical ownership gates.
 This source-only prototype is not connected to the cloudscape renderer; distant
 LOD, shadow agreement and the current pop-in remain unresolved.
@@ -153,7 +153,7 @@ P4-only scope cap is superseded. No visual quality, preset or public release
 acceptance is implied.
 
 
-**Rendering acceptance:** the earlier detail filter improved some spot views but failed the user's retest. Prominent arcs, crosshatching and motion strobing remain a Major defect. The independent [quality bench](research/cloud-quality-bench.md) now separates view-ray and light-ray sampling error and supplies a dense reference. Production sampling candidates are opt-in; no default preset or visual sign-off is inferred.
+**Rendering acceptance:** the earlier detail filter improved some spot views but failed the user's retest. Prominent arcs, crosshatching and motion strobing remain a Major defect. The independent [quality bench](../research/cloud-quality-bench.md) now separates view-ray and light-ray sampling error and supplies a dense reference. Production sampling candidates are opt-in; no default preset or visual sign-off is inferred.
 
 - **P0:** technical work is complete and locally accepted for the local WebGPU backend. The diagnostic lab is available at [`http://127.0.0.1:5173/`](http://127.0.0.1:5173/).
 - **P1:** technical baseline is complete and accepted locally. The first-cloud viewer is available at [`http://127.0.0.1:5173/clouds/`](http://127.0.0.1:5173/clouds/). User review remains open for the R1 shape preference and the reported floor-shadow view.
@@ -230,7 +230,7 @@ boxy shadow filtering as P3 quality debt. Do not promise an FSR fix.
 | P3 | Sky, sun, shadows and environment agree with visible clouds, with credible softness and cache refresh. |
 | P4 | Reconstruction and presets preserve detail through motion, cuts, disocclusion and foreground edges; spatial-reference image quality is ready for measurement. |
 
-The next P2 direction is informed by a direct [Nubis 2022/2023 LOD review](research/nubis-lod.md): persistent broad formations and near refinement from a shared source, with screen-resolution choices kept separate. This is planned, not implemented.
+The next P2 direction is informed by a direct [Nubis 2022/2023 LOD review](../research/nubis-lod.md): persistent broad formations and near refinement from a shared source, with screen-resolution choices kept separate. This is planned, not implemented.
 
 ## Evidence and limits
 
