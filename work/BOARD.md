@@ -211,7 +211,61 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 ### Wave B (after wave A lands; the orchestrator assigns)
 
-- P1-05 Full lighting in the march: 2 in-line light samples plus the light grid; ms inner glow; ambient with `exp(-τ_up)`; P1-02 radiance and ambient.
+### [~] P1-05 Full Nubis lighting, sky-driven · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{runtime.ts,shaders/march.wgsl.ts,shaders/frame.wgsl.ts}`
+  - `examples/lab/flagship/{main.ts,three-bridge.ts,bookmarks.ts}`
+  - fixes from `work/reports/P1-01-review.md` that land in these files:
+    - **#1 maxSteps truncation.** Grow the step after N iterations, or run a
+      terminal coarse segment, so cloud is never silently dropped.
+    - **#2 HDR overflow.** Clamp or pre-scale radiance so `scene * a + rgb` can't
+      produce Inf or NaN.
+    - **#5 robustness:**
+      - the bridge must present the plain scene, not black, before the runtime
+        is ready
+      - use the camera's world position
+      - integrate wind so changing `animSpeed` scales velocity and doesn't
+        teleport the noise
+      - `encode` after `dispose` is a no-op
+    - Composite tap rejection (#3) and the in-cloud cost items (#4) belong to
+      P1-06; leave them.
+    - #4's SDF half-voxel margin and the `valueErosion` guard are already fixed
+      by the orchestrator.
+- **Does:**
+  - **Light grid:** the march takes 2 in-line sun samples near the sample
+    (preserving surface detail, Nubis s113), then the remainder from
+    `lightGridSample(p)`. The runtime owns a `createLightGrid` instance and
+    encodes it each frame before the march. Bind it in group 1 and pick
+    `grid.frontIndex`.
+  - **Sky:** sun radiance and ambient come from `atmosphereWgsl` (P1-02):
+    - `sunRadianceAt(p)` for the sun
+    - `skyAmbient` for top and bottom, with ambient
+      `pow(1 − P, 0.5) * exp(−σ_amb · τ_up)` (Nubis s128)
+    - aerial perspective on the cloud result at the mean cloud distance
+      (`applyAerialPerspective`)
+    - the flagship wires `createSkyBridge`, `sky.updateAerialPerspective()` and
+      `bridge.update(camera)`
+
+    Remove the temporary sky-derived stand-ins and the 6-tap sun march.
+  - **ms inner glow:** keep the Nubis formula. Expose `msStrength` and
+    `ambientStrength` knobs; they default to 1 and are art-directable.
+  - **Phase:** HG g = 0.2 with a forward lobe mix, and art-directable silver lining.
+  - **Bookmarks:** reframe so the cloud fills about 30–50% of the frame from
+    `ground`, `edge` and `above`, with a believable distance (Parkouring core is
+    about 300 m). `backlit` puts the sun 10–20° behind the cloud from the camera.
+  - **Exposure:** match P0-04 Tidewater's look. Tops bright and white in sun,
+    undersides blue-grey from sky ambient, sky blue and not washed out. Use
+    sky/renderer exposure, never literal colours.
+- **Acceptance:**
+  - `pnpm check` green.
+  - The flagship capture of 5 bookmarks on both clouds exits 0.
+  - A side-by-side with `work/captures/P0-04/` is described honestly in the report.
+  - Measures: inner glow visible when backlit, dark edges with the sun behind
+    the camera, silver lining, sky-tinted ambient.
+  - March GPU ms at 1920×1080 for every shot. It must be lower than P1-01 for
+    `edge` and `inside` thanks to the light grid; report the drop.
+  - The light grid update stays at or under 0.1 ms per frame.
+
 - P1-06 Near/far split at 200 m (¼ and ½ res), front-to-back merge, aerial perspective on clouds, wind animation.
 - P1-07 Cloud shadow on the ground (from the light grid or a projected map).
 - P1-08 Visual acceptance and timing: all bookmarks on both clouds, side by side with Tidewater (`work/captures/P0-04/`), and a timing table against the P1 measures.

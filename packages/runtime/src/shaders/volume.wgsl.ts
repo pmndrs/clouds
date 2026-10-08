@@ -43,7 +43,9 @@ fn cloudDistance(p: vec3<f32>) -> f32 {
   let hi = cloudVolume.minCorner + cloudVolume.extent;
   let c = clamp(p, lo, hi);
   let boxDist = length(p - c);
-  let s = textureSampleLevel(cloudSdf, clampSampler, volumeUvw(c), 0.0).r;
+  // Trilinear filtering of a Euclidean field can overstate the distance by up to about half a voxel
+  // between texel centres, so subtract that to stay conservative (P1-01 review).
+  let s = textureSampleLevel(cloudSdf, clampSampler, volumeUvw(c), 0.0).r - 0.5 * cloudVolume.voxelSize;
   if (boxDist <= 0.0) { return s; }
   return max(boxDist, s - boxDist);
 }

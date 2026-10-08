@@ -9,7 +9,7 @@ fn valueRemap(v: f32, oldMin: f32, oldMax: f32, newMin: f32, newMax: f32) -> f32
 }
 // ValueErosion: -inValues inflate, +inValues erode.
 fn valueErosion(v: f32, oldMin: f32) -> f32 {
-  return saturate((v - oldMin) / (1.0 - oldMin));
+  return saturate((v - oldMin) / max(1.0 - oldMin, EPSILON)); // guard 0/0 when the noise reaches 1
 }
 fn fractionFromValue(v: f32, lo: f32, hi: f32) -> f32 {
   return saturate((v - lo) / (hi - lo));
