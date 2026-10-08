@@ -1180,6 +1180,27 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     the docs import paths if subpaths changed. You may edit `docs/guide/*.md`
     and package READMEs only for import paths.
 
+### [~] P7-E Sky-layer and handoff fixes at cloud altitude · Sonnet (Fable on failure)
+- **Owns:**
+  - `packages/runtime/src/{sky-layer.ts,shaders/sky-layer.wgsl.ts,shaders/composite.wgsl.ts,dome.ts,shaders/dome.wgsl.ts}`
+  - minimal `runtime.ts`
+  - `examples/lab/open-water/**` and `examples/lab/plains-flight/**`, for wiring and measurement
+- **Bugs:**
+  1. **Open-water `cruise`** (`work/captures/P7-D/ow/cruise.jpg`, camera at
+     300 m among the clouds): clouds read as vertical-sided blocks, and a tall
+     white column shows in the water reflection. Root-cause it: voxel-box wall,
+     sky-layer near field, temporal resolve or the dome reflection.
+  2. **Sky layer has no `weatherOrigin`:** after a streaming swap the far
+     field no longer matches the streamer's weather. Add the option and wire
+     it in plains-flight.
+  3. **Open-water sunset** (`work/captures/P7-D/ow/sunset.jpg`): blocky bricks
+     at the very horizon in the sky layer.
+- **Acceptance:**
+  - Clean before/after captures for each bug, with root causes named.
+  - No regression on the P3-C2 bookmarks or the flagship (A/B).
+  - 60 fps holds.
+  - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
