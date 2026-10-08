@@ -721,7 +721,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Cost per stamp is reported.
   - `pnpm check` green.
 
-### [~] P4-E Houdini hero-cloud authoring with Cloud SOPs · Sonnet
+### [x] P4-E Houdini hero-cloud authoring with Cloud SOPs · Sonnet
 - **Owns:** `scripts/vdb/authoring/**` (new) and `assets/clouds/heroes/**`
   (new; each cloud under 4 MB).
 - **Does:** a hython script that builds hero clouds the way a Houdini artist

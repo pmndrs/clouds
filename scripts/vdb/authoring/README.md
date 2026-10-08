@@ -1,0 +1,54 @@
+# Hero-cloud authoring in Houdini (Cloud SOP + Cloud Noise SOP)
+
+`build_heroes.py` builds `tower`, `valley-fog` and `fairweather` the way an artist would, then converts them with
+`scripts/vdb/vdb_to_nvdf.py --mode fog` (default PACK_FIT mapping, 8 m voxels) into `assets/clouds/heroes/<name>/`.
+
+```bash
+HYTHON=/Applications/Houdini/Houdini21.0.671/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython
+$HYTHON scripts/vdb/authoring/build_heroes.py                  # all three, about 30 s
+$HYTHON scripts/vdb/authoring/build_heroes.py tower --voxel 8 --no-convert --tag _t   # fast experiment + preview PNG
+$HYTHON scripts/vdb/authoring/build_heroes.py tower --hip tower.hip                   # open the network in Houdini
+```
+VDBs and preview PNGs (side view, centre slice, top view) go to `work/captures/scratch/p4e/` (`--work-dir`).
+Render with the flagship: `?cloud=heroes/tower` (needs `'heroes/<name>'` in its `CLOUDS` list).
+
+## Network (all metres, y up, base at y = 0)
+
+`sphere SOPs (merge, polygons)` -> **cloud** -> **cloudnoise** (big) -> **cloudnoise** (medium) -> [**cloudnoise** (fine)]
+-> **vdbsmooth** (mean, 1 iteration, radius 1) -> optional `volumewrangle` flat base -> save `.vdb` (grid `density`).
+Edit the `RECIPES` dict at the top of the script; every value is a real parm name of the node (find them with
+`hou.sopNodeTypeCategory().nodeTypes()['cloud'].parmTemplates()`). `--set cloud.densitymultiplier=3` or
+`--set noise1.noiseamount=0.5` override one value from the command line.
+
+## Knobs that matter
+
+| Node / parm | Effect | Used here |
+| --- | --- | --- |
+| Source shapes | Overall silhouette. Ellipsoids (rx, ry, rz) give a fog bank; stacked spheres give a tower. Overlap them generously. | 8 to 30 spheres |
+| cloud `uniformsamples=By Size`, `divsize` | Authoring voxel size (m). 4 m then area-averaged to 8 m keeps the fine noise clean. | 4 |
+| cloud `exteriorband` / `interiorband` (with `useworldspaceunits`) | Width in metres of the soft density shoulder. **The noise only erodes where density has a gradient**, so a narrow band (the 0.1 default, or 50 m) leaves the spheres smooth. 120-200 m is what made the erosion visible. | 60 to 200 |
+| cloud `densitymultiplier` | Steepness of the shoulder. With wide bands keep it low (2); high values re-saturate to 1 and hide the noise. | 2 |
+| cloud `addsecondary`, `scatterpoints`, `secondaryshapesize`, `secondaryiterations` | Procedural small bumps stuck on the surface (cauliflower lobes). Keep `secondaryiterations` at 1 and points at 100-160: the default 2 iterations x 150 points never finished cooking. Size is in metres (about 1/12 of the cloud). | 1 / 110-160 / 28-55 |
+| cloud `spatialscale` | Does not scale the output VDB; author in metres instead. | not used |
+| cloud `flatten*` | Did not give a flat floor on a polygon model here; use the `volumewrangle` below. | off |
+| cloudnoise `noiseelementsize` | Feature size of the noise in metres. Pass 1 about 1/4 of the cloud (big billows), pass 2 about 1/12, optional pass 3 about 25-30 m (the smallest the 8 m runtime grid can show). | 210 / 70 / 28 |
+| cloudnoise `noiseamount` | Erosion depth. Needs to be large (0.5-1.5) relative to the density gradient above. | 0.45 to 1.5 |
+| cloudnoise `noiseoctaves`, `noiserough` | Fractal detail and roughness of each pass. | 3-4, 0.5-0.6 |
+| cloudnoise `advectnoise`, `advectamp`, `advectelemsize` | Domain warp: swirls the lumps so they look sheared and rolled instead of uniform. | on for big passes |
+| vdbsmooth | One light mean filter before resampling, so no voxel stair-steps remain. | 1 x r1 |
+| flat base `volumewrangle` | `@density *= smooth(base, base+fade, @P.y)`: flat bottom for fair-weather cumulus and ground fog. | fairweather 40 m, fog 0 m |
+| `--iso` (converter) | Density level that counts as the cloud surface. 0.3 for towers and cumulus; 0.15 for thin fog so it stays connected. | see recipes |
+| `scale` (recipe) | Scales the layout and every length parm together. Needed because of the size budget below. | tower 0.77 |
+
+## Size budget
+
+`nvdf.bin` (4 bytes) + `sdf.bin` (2 bytes) are dense over the bounding box, so size = 6 x dims. The 4 MB cap is about
+650 k voxels at 8 m. The tower as first authored (1.2 km x 800 m wide) was 7.5 MB, so it is built at scale 0.77. The
+fog bank is thin and long, so it fits full size. To author a bigger cloud, raise `--voxel-size` in `convert` to 12
+(the loader accepts it, only 8 m is verified), or accept a bigger file.
+
+## Make your own
+
+1. Copy a recipe and a `*_spheres` function (or replace the sources by a curve + sweep, or any closed polygon / point-with-pscale model; for points set the Cloud SOP `input` to 1).
+2. Start with a wide band and low `densitymultiplier`, look at the preview PNG, then add noise passes coarse to fine.
+3. Convert and render in the flagship; judge the edge and backlit views. If the base is too dark use the converter's `--scale-gain` (P4-B), not the VDB.
