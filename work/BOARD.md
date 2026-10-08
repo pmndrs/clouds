@@ -328,7 +328,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 - [x] P1-08 Phase 1 acceptance by the orchestrator: technical measures pass, look measures partial → P1-09 ([report](reports/P1-08.md)).
 
-### [~] P1-09 Art pass: inner glow, dark edges and undersides · Sonnet
+### [x] P1-09 Art pass: inner glow, dark edges and undersides · Sonnet
 - **Owns:**
   - `packages/runtime/src/{shaders/march.wgsl.ts,runtime.ts}`: lighting terms and default settings only
   - `examples/lab/flagship/bookmarks.ts`: add `frontlit`, with the sun behind the camera

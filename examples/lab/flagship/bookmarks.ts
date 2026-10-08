@@ -11,7 +11,7 @@ export const CLOUD_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 90
 export const FOCUS_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 908, 432] as Vector3Tuple };
 export const INSIDE_POINT: Vector3Tuple = [0, 700, 0];
 
-export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow'] as const;
+export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow', 'frontlit'] as const;
 export type BookmarkName = (typeof BOOKMARK_NAMES)[number];
 
 export interface Bookmark { position: Vector3Tuple; target: Vector3Tuple; timeOfDay: number }
@@ -55,7 +55,10 @@ const top = () => FOCUS_BOX.max[1];
 export function isBookmarkName(name: string): name is BookmarkName { return (BOOKMARK_NAMES as readonly string[]).includes(name); }
 
 /** Time of day for a bookmark, needed first so the caller can read the sun and pass it to `resolveBookmark`. */
-export function bookmarkTime(name: BookmarkName): number { return name === 'backlit' ? 17.6 : 14; }
+/** Time of day that puts the sun about 30 degrees above the horizon (lat 40). */
+export const FRONTLIT_TIME = 16.5;
+
+export function bookmarkTime(name: BookmarkName): number { return name === 'backlit' ? 17.6 : name === 'frontlit' ? FRONTLIT_TIME : 14; }
 
 /** Unit vector toward the sun from compass azimuth and elevation (degrees); north = -Z so east = +X. */
 export function sunVector(azimuthDeg: number, elevationDeg: number): Vector3Tuple {
@@ -84,6 +87,7 @@ export function resolveBookmark(name: BookmarkName, sun: Vector3Tuple = [0, 0.7,
   };
   switch (name) {
     case 'ground': return { position: ring(35, 1.45 * r, 2), target: c, timeOfDay };
+    case 'frontlit': return { position: ring(0, 1.15 * r, 2), target: c, timeOfDay };
     case 'edge': return { position: ring(95, 2.1 * r, c[1] - 0.1 * r), target: c, timeOfDay };
     case 'shadow': {
       // The sun ray through the cloud centre meets the ground at S, offset away from the sun by height / tan(elevation).

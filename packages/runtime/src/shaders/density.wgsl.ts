@@ -8,13 +8,15 @@
  * branch is not ported. The `fineDetailMipDistanceScale` constant (not published) is passed in.
  */
 export const DENSITY_WGSL = /* wgsl */ `
-struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, _p0: f32, _p1: f32 }
+struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, wispyBias: f32, _p1: f32 }
 
 // x = full up-rezzed density (0..1, before extinction scaling), y = profile * density scale (cheap).
 fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
   let modeling = sampleModeling(p, inputs.baseMip);
   let profile = modeling.x;
-  let type_ = modeling.y;
+  // Art bias (0 = Nubis): the detail type goes wispy toward the cloud base (Schneider SY s37).
+  let hFrac = saturate((p.y - cloudVolume.minCorner.y) / max(cloudVolume.extent.y, 1.0));
+  let type_ = modeling.y * (1.0 - inputs.wispyBias * (1.0 - hFrac) * (1.0 - hFrac));
   let densityScale = modeling.z;
   if (!(profile > 0.0)) { return vec2(0.0); }
   let hf = inputs.hfDetails != 0u;

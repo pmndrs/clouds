@@ -37,6 +37,8 @@ const INLINE_FAR = 48.0;    // second covers 16..48 m, the grid takes over from 
 // Art-tuned against the Tidewater captures: the knobs (msStrength, ambientStrength) stay 1 by default.
 const MS_NORMALISATION = 3.0 / (4.0 * PI);
 const AMBIENT_GAIN = 1.5;
+const EDGE_DEPTH = 70.0;   // metres below the surface a ray must reach to count as 'thick' (front-lit edge darkening is released by then)
+const EDGE_FLOOR = 0.08;   // radiance share left at a silhouette with edgeDarkening = 1
 const STEP_GROWTH_FROM = 256u;
 const STEP_MIN = 1.5;
 const STEP_SQRT = 0.12;
@@ -91,6 +93,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
 
   var T = 1.0;
+  var depthMax = 0.0;   // deepest point below the cloud surface this ray reached (thin silhouettes stay shallow)
   var radiance = vec3(0.0);
   var depthSum = 0.0;
   var weightSum = 0.0;
@@ -101,6 +104,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let cosSun = dot(dir, frame.sunDir);
     let phase = cloudPhase(cosSun);
     let sunRelax = valueRemap(cosSun, 0.0, 0.9, 0.0, 1.0);
+    // 1 with the sun behind the viewer, 0 when looking toward it or sideways: where the dark edges apply.
+    let frontness = (1.0 - smoothstep(-0.6, 0.1, cosSun));
     let sunRadiance = skyLight[0].xyz;
     let ambientUp = skyLight[1].xyz;
     let ambientDown = skyLight[2].xyz;
@@ -108,9 +113,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let sunGrid = frame.sunDir * INLINE_FAR;
     let invExtentY = 1.0 / cloudVolume.extent.y;
-    var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, 0.0, 0.0);
+    var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, 0.0);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
-    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, 0.0, 0.0);
+    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, 0.0);
     var capped = true;
     // Lipschitz bound on the signed distance: |sdf(p + s) - sdf(p)| <= s, so the last fetched value minus the distance
     // travelled since is a conservative (more negative would be wrong) bound while we are deep inside; refetch when it nears 0.
@@ -147,14 +152,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               let grid = lightGridSample(ps + sunGrid);
               let tau = tauInline + grid.x * frame.lightDensityScale;
               // Inner glow: the profile is an in-scatter probability; extinction relaxes deep inside and toward the sun.
-              let relax = mix(0.25, valueRemap(sdf, -128.0, 0.0, 0.05, 0.25), sunRelax);
-              let ms = d.y * exp(-tau * relax);
+              let relax = mix(0.25, valueRemap(sdf, -128.0, 0.0, 0.05, 0.25), max(sunRelax, frame.glowFront));
+              let ms = d.y * exp(-tau * relax) * (1.0 + frame.glowBoost * sunRelax);
               // Ambient: dark where the profile is high, sky light attenuated by the density above, ground light from below.
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               let tauUp = grid.y * frame.lightDensityScale * frame.ambientExtinction;
               let skyAbove = ambientUp * exp(-tauUp);
-              let ambient = AMBIENT_GAIN * frame.ambientStrength * sqrt(1.0 - saturate(d.y)) * mix(ambientDown, skyAbove, 0.3 + 0.7 * h);
+              var ambient = AMBIENT_GAIN * frame.ambientStrength * sqrt(1.0 - saturate(d.y)) * mix(ambientDown, skyAbove, frame.ambientSkyBias + (1.0 - frame.ambientSkyBias) * h);
               let lit = sunRadiance * (exp(-tau) * phase + frame.msStrength * ms * MS_NORMALISATION) + ambient;
+              depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);
               radiance += lit * w;
@@ -175,6 +181,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       radiance /= max(1.0 - T, 0.5);
       T = 0.0;
     }
+    // Dark edges (front-lit): rays that only graze the cloud (shallow in the SDF) scatter little; keep the radiance but not the glow.
+    // Art knob: edgeDarkening 0 leaves the Nubis result untouched; it fades out toward the sun, where the silver lining takes over.
+    radiance *= mix(1.0, mix(EDGE_FLOOR, 1.0, smoothstep(0.0, EDGE_DEPTH, depthMax)), frame.edgeDarkening * frontness);
   }
 
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);

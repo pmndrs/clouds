@@ -46,6 +46,16 @@ export interface CloudSettings {
   silverG: number;
   /** Scales the optical depth the ambient light sees on its way down (exp(-k * tauUp)). */
   ambientExtinction: number;
+  /** 0..1: front-lit (sun behind the viewer) darkening of low in-scatter-probability regions (the edges): the direct light is modulated by the profile. 0 = off. */
+  edgeDarkening: number;
+  /** Extra inner glow when looking toward the sun: multiplies the multiple-scattering term by 1 + glowBoost * sunRelax. 0 = off. */
+  glowBoost: number;
+  /** 0..1: floor of the sky-above weight in the ambient blend (cloud base uses ambientSkyBias of the sky, the rest ground light). Nubis reference: 0.3. */
+  ambientSkyBias: number;
+  /** 0..1: how much of the sun-facing inner-glow relaxation also applies when the sun is behind the viewer (bright interior bulges). 0 = Nubis. */
+  glowFront: number;
+  /** 0..1: bias of the detail type toward wispy at low height fraction. 0 = unchanged Nubis density. */
+  wispyBias: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
   windOffset: [number, number, number];
   windVelocity: [number, number, number];
@@ -115,8 +125,9 @@ function createLightGridLayoutEntries(binding: number): GPUBindGroupLayoutEntry[
 export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptions = {}): CloudRuntime {
   let quality: CloudQuality = options.quality ?? 'high';
   const settings: CloudSettings = {
-    densityScale: 0.2, lightDensityScale: 1.5, msStrength: 1, ambientStrength: 1,
-    silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 1,
+    densityScale: 0.2, lightDensityScale: 1.5, msStrength: 1.4, ambientStrength: 1, // P1-09 art defaults (Nubis neutral: 1, 1)
+    silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.08, // 0.3 left bases charcoal; tuned by orchestrator sweep (P1-09)
+    edgeDarkening: 0.5, glowBoost: 12, ambientSkyBias: 0.9, wispyBias: 1, glowFront: 1,
     windOffset: [0, 0, 0], windVelocity: [3, 0, 1.5], animSpeed: 1,
     mipDistanceScale: 0.01, baseMip: 0, maxSteps: CLOUD_QUALITY_PRESETS[quality].maxSteps,
     transmittanceCutoff: CLOUD_QUALITY_PRESETS[quality].transmittanceCutoff, splitDistance: CLOUD_QUALITY_PRESETS[quality].splitDistance,
@@ -286,6 +297,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[36] = settings.msStrength; f[37] = settings.ambientStrength; f[38] = settings.silverStrength; f[39] = settings.ambientExtinction;
       f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = settings.shadowStrength; f[43] = 0;
       f[44] = settings.splitDistance; f[45] = settings.transmittanceCutoff;
+      f[48] = settings.edgeDarkening; f[49] = settings.glowBoost; f[50] = settings.ambientSkyBias; f[51] = settings.wispyBias;
+      f[52] = settings.glowFront;
       for (let pass = 0; pass < 2; pass++) {
         f[28] = pass ? farW : nearW; f[29] = pass ? farH : nearH; frameU32[46] = pass;
         device.queue.writeBuffer(frameUniforms[pass], 0, f);

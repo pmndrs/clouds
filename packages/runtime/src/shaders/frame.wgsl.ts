@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 192;
+export const FRAME_UNIFORM_BYTES = 224;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -13,6 +13,9 @@ struct Frame {
   phaseG: f32, silverG: f32, shadowStrength: f32, _pad1: f32,
   // near/far split: marching range of this pass is [0, splitDistance) for passMode 0 (near) and [splitDistance, inf) for 1 (far)
   splitDistance: f32, tCutoff: f32, passMode: u32, _pad2: f32,
+  // art controls (P1-09)
+  edgeDarkening: f32, glowBoost: f32, ambientSkyBias: f32, wispyBias: f32,
+  glowFront: f32, _pad3: f32, _pad4: f32, _pad5: f32,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:61033/flagship/?cloud=parkouring&",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:23:50.037Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p109-fin-parkouring/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.696578766666667,
+          "skyCompute": 0.097124,
+          "lightGrid": 0.056619,
+          "marchNear": 0.11974368333333338,
+          "marchFar": 0.30620025,
+          "composite": 0.3025408833333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 93,
+        "assetLoadMs": 62.80000001192093,
+        "firstCloudFrameMs": 79.19999998807907
+      }
+    },
+    {
+      "name": "frontlit",
+      "file": "work/captures/scratch/p109-fin-parkouring/frontlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6684267666666664,
+          "skyCompute": 0.123123,
+          "lightGrid": 0.141141,
+          "marchNear": 0.13942636666666666,
+          "marchFar": 0.4201782500000001,
+          "composite": 0.3821254666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "frontlit",
+        "timeOfDay": 16.5,
+        "sunElevation": 31.913473845740242,
+        "sunAzimuth": 275.1349011966056,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 189,
+        "assetLoadMs": 62.80000001192093,
+        "firstCloudFrameMs": 79.19999998807907
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/scratch/p109-fin-parkouring/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9211611666666666,
+          "skyCompute": 0.121164,
+          "lightGrid": 0.11198094117647057,
+          "marchNear": 0.12092181666666667,
+          "marchFar": 0.3925661999999999,
+          "composite": 0.2885678333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 285,
+        "assetLoadMs": 62.80000001192093,
+        "firstCloudFrameMs": 79.19999998807907
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/scratch/p109-fin-parkouring/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7246785333333334,
+          "skyCompute": 0.59345,
+          "lightGrid": 0.10780496,
+          "marchNear": 0.09228120000000004,
+          "marchFar": 0.4382094666666666,
+          "composite": 0.25502660000000005
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 381,
+        "assetLoadMs": 62.80000001192093,
+        "firstCloudFrameMs": 79.19999998807907
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
