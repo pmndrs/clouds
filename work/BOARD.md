@@ -211,7 +211,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 ### Wave B (after wave A lands; the orchestrator assigns)
 
-### [~] P1-05 Full Nubis lighting, sky-driven · Sonnet
+### [x] P1-05 Full Nubis lighting, sky-driven · Sonnet
 - **Owns:**
   - `packages/runtime/src/{runtime.ts,shaders/march.wgsl.ts,shaders/frame.wgsl.ts}`
   - `examples/lab/flagship/{main.ts,three-bridge.ts,bookmarks.ts}`

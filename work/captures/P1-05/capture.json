@@ -1,0 +1,158 @@
+{
+  "url": "http://127.0.0.1:60525/flagship/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:53:23.119Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P1-05/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7267427666666667,
+          "skyCompute": 0.067957,
+          "lightGrid": 0.14311,
+          "march": 1.1778814666666666,
+          "composite": 0.41109225000000016
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 95
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P1-05/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.48949523333333345,
+          "skyCompute": 0.083957,
+          "lightGrid": 0.14311,
+          "march": 0.9829565166666666,
+          "composite": 0.2079870166666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 190
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P1-05/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5188377833333333,
+          "skyCompute": 0.064374,
+          "lightGrid": 0.14311,
+          "march": 8.064958133333331,
+          "composite": 0.5630337833333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 285
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P1-05/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7394943666666666,
+          "skyCompute": 0.139081,
+          "lightGrid": 0.14311,
+          "march": 0.8935509166666662,
+          "composite": 0.29229556666666656
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 380
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P1-05/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7471699666666668,
+          "skyCompute": 0.084207,
+          "lightGrid": 0.0846778888888889,
+          "march": 1.1597530833333332,
+          "composite": 0.33249221666666673
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 476
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

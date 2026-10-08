@@ -1,0 +1,158 @@
+{
+  "url": "http://127.0.0.1:60693/flagship/?cloud=stormbird",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:53:32.322Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P1-05/stormbird/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.53971155,
+          "skyCompute": 0.316746,
+          "lightGrid": 0.085533,
+          "march": 1.7181018833333332,
+          "composite": 0.2681307666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 96
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P1-05/stormbird/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7552516833333333,
+          "skyCompute": 0.160206,
+          "lightGrid": 0.085533,
+          "march": 2.41381395,
+          "composite": 0.4967509000000001
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 191
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P1-05/stormbird/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.44765213333333326,
+          "skyCompute": 0.067666,
+          "lightGrid": 0.085533,
+          "march": 7.571049033333336,
+          "composite": 0.13843885
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 285
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P1-05/stormbird/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9205925833333334,
+          "skyCompute": 0.114956,
+          "lightGrid": 0.085533,
+          "march": 0.8640535833333335,
+          "composite": 0.2780408166666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 380
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P1-05/stormbird/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8566751666666664,
+          "skyCompute": 0.200289,
+          "lightGrid": 0.050929,
+          "march": 1.0237261333333332,
+          "composite": 0.2541022833333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 475
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

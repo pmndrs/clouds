@@ -3,7 +3,7 @@
 import { DepthTexture, FloatType, HalfFloatType, RenderTarget, type Camera, type Scene } from 'three';
 import { MeshBasicNodeMaterial, QuadMesh, StorageTexture, WebGPURenderer } from 'three/webgpu';
 import { texture, vec4 } from 'three/tsl';
-import { Matrix4 } from 'three';
+import { Matrix4, Vector3 } from 'three';
 import type { CloudFrame, CloudRuntime } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/three/src/gpu/backend';
 
@@ -18,11 +18,16 @@ export function createCloudBridge(renderer: WebGPURenderer, runtime: CloudRuntim
   const cloud = texture(cloudOutput);
   material.colorNode = vec4(texture(sceneTarget.texture).rgb.mul(cloud.a).add(cloud.rgb), 1);
   const quad = new QuadMesh(material);
+  // Before the runtime is ready (or after it is disposed) the cloud texture is never written; present the plain scene instead.
+  const plainMaterial = new MeshBasicNodeMaterial({ depthTest: false, depthWrite: false });
+  plainMaterial.colorNode = vec4(texture(sceneTarget.texture).rgb, 1);
+  const plainQuad = new QuadMesh(plainMaterial);
 
   const views = new WeakMap<GPUTexture, GPUTextureView>();
   const proj = new Matrix4(), viewProj = new Matrix4(), invViewProj = new Matrix4(), prev = new Matrix4();
   const m = { view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16) };
   const camPos = [0, 0, 0];
+  const worldPos = new Vector3();
   let width = 0, height = 0;
 
   return {
@@ -54,9 +59,9 @@ export function createCloudBridge(renderer: WebGPURenderer, runtime: CloudRuntim
       let view = views.get(native);
       if (!view) views.set(native, view = native.createView({ aspect: 'depth-only' }));
       out.depth = view; out.depthKind = 'depth32float';
-      camera.position.toArray(camPos); out.cameraPosition = camPos;
+      camera.getWorldPosition(worldPos).toArray(camPos); out.cameraPosition = camPos;
     },
     /** Step 3: blend and tone-map to the canvas. */
-    present() { quad.render(renderer); },
+    present() { (runtime.ready ? quad : plainQuad).render(renderer); },
   };
 }
