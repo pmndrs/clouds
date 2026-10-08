@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Runtime test: reflection dome</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font:12px/1.35 ui-monospace,Menlo,monospace;color:#fff}
+#app{position:fixed;inset:0}
+#app canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;left:8px;top:8px;padding:6px 8px;background:#0009;border-radius:4px;white-space:pre;pointer-events:none}
+#pano{position:fixed;left:8px;bottom:8px;width:960px;height:270px;border:1px solid #fff8;background:#000}
+#pano canvas{position:absolute;inset:0;width:100%;height:100%}
+#pano .m{position:absolute;transform:translate(-50%,-50%);font-weight:bold;text-shadow:0 0 3px #000,0 0 3px #000;pointer-events:none}
+#pano .l{position:absolute;bottom:2px;transform:translateX(-50%);color:#fffc;text-shadow:0 0 3px #000}
+#pano .t{position:absolute;left:4px;top:2px;color:#fffc;text-shadow:0 0 3px #000}
+</style></head>
+<body><div id="app"></div><div id="hud"></div>
+<div id="pano"><canvas id="panoCanvas" width="960" height="270"></canvas><div id="panoLabels"></div></div>
+<script type="module" src="./main.ts"></script></body></html>

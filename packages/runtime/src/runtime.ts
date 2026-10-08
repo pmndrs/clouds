@@ -2,15 +2,17 @@ import type { CloudNoiseAsset, CloudVolumeAsset } from './assets';
 import type { GpuTimer } from './gpu-timer';
 import { createLightGrid, type LightGrid } from './light-grid';
 import { createAtmosphereBindGroupLayout } from './shaders/atmosphere.wgsl';
+import { defaultDomeSettings, type CloudDome } from './dome';
+import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_WGSL } from './shaders/dome.wgsl';
 import { uploadCloudNoise, uploadCloudVolume, type GpuCloudVolume } from './resources';
 import { COMMON_WGSL } from './shaders/common.wgsl';
 import { COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
-import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, MARCH_WGSL, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
+import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, volumeUniformData, volumeWgsl, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
 
-export type CloudQuality = 'high' | 'medium' | 'low';
+export type CloudQuality = 'ultra' | 'high' | 'medium' | 'low';
 /**
  * Quality presets (Nubis near/far split, s157-160): the march runs twice. Near covers [0, splitDistance) at nearScale of the
  * output resolution (linear), far covers the rest at farScale. maxSteps and the transmittance cutoff are per pass.
@@ -24,6 +26,7 @@ export interface CloudQualityPreset {
   transmittanceCutoff: number;
 }
 export const CLOUD_QUALITY_PRESETS: Record<CloudQuality, CloudQualityPreset> = {
+  ultra: { nearScale: 0.5, farScale: 0.75, splitDistance: 240, maxSteps: 1024, transmittanceCutoff: 0.005 },
   high: { nearScale: 0.33, farScale: 0.5, splitDistance: 200, maxSteps: 768, transmittanceCutoff: 0.01 },
   medium: { nearScale: 0.25, farScale: 0.4, splitDistance: 200, maxSteps: 512, transmittanceCutoff: 0.02 },
   low: { nearScale: 0.2, farScale: 0.3, splitDistance: 160, maxSteps: 320, transmittanceCutoff: 0.03 },
@@ -71,6 +74,15 @@ export interface CloudSettings {
   shadowStrength: number;
 }
 
+export interface CloudUniformLighting {
+  kind: 'uniform';
+  /** Sun illuminance (RGB). */
+  sunRadiance: ArrayLike<number>;
+  /** Mean sky radiance from above and from below (RGB). */
+  ambientTop: ArrayLike<number>;
+  ambientBottom: ArrayLike<number>;
+}
+
 export interface CloudFrame {
   /** Column-major 4x4. Only inverseViewProjection is read in P1; the rest are for later passes. */
   view: Float32Array;
@@ -83,8 +95,10 @@ export interface CloudFrame {
   depth: GPUTextureView;
   depthKind: 'depth32float' | 'depth24plus';
   sunDirection: ArrayLike<number>;
-  /** Bind group for atmosphereWgsl(2) (sky LUTs + uniform), e.g. the sky bridge's. Sun radiance, ambient and aerial perspective come from it. */
-  atmosphere: GPUBindGroup;
+  /** Bind group for atmosphereWgsl(2) (sky LUTs + uniform), e.g. the sky bridge's. Sun radiance, ambient and aerial perspective come from it. Required unless `lighting` is given. */
+  atmosphere?: GPUBindGroup;
+  /** Uniform lighting for users without a sky library: no aerial perspective, `atmosphere` is ignored. Radiances in the same exposure units as the scene lights. */
+  lighting?: CloudUniformLighting;
   time: number;
   frameIndex: number;
 }
@@ -98,13 +112,19 @@ export interface CloudRuntime {
   readonly nearRenderSize: [number, number];
   /** True once the volume, noise and output exist, so `encode` writes `output`. Present the plain scene until then. */
   readonly ready: boolean;
-  setVolume(asset: CloudVolumeAsset, options: { position: [number, number, number] }): Promise<void>;
+  /**
+   * A CloudVolumeAsset is uploaded (and owned) by the runtime. A GpuCloudVolume (e.g. from the generator) is used as is and is
+   * never destroyed by the runtime.
+   */
+  setVolume(asset: CloudVolumeAsset | GpuCloudVolume, options: { position: [number, number, number] }): Promise<void>;
   setNoise(asset: CloudNoiseAsset): Promise<void>;
   setQuality(quality: CloudQuality): void;
   /** `output` may be supplied by the caller (rgba16float, STORAGE_BINDING | TEXTURE_BINDING, exactly width x height). */
   resize(width: number, height: number, output?: GPUTexture): void;
   /** World-space extent of the volume once set, metres (x, y-up, z). */
   readonly extent: [number, number, number] | null;
+  /** Reflection dome (P2-04): octahedral radiance + transmittance seen from the reference point, refreshed 1/16 per frame. */
+  readonly dome: CloudDome;
   encode(encoder: GPUCommandEncoder, frame: CloudFrame, timer?: GpuTimer): void;
   dispose(): void;
 }
@@ -113,6 +133,8 @@ export interface CloudRuntimeOptions {
   quality?: CloudQuality;
   /** Layout the atmosphere bind group was created with. Omit to use the runtime's own (group-equivalent) layout. */
   atmosphereLayout?: GPUBindGroupLayout;
+  /** Reflection dome texture size (square, multiple of 4). Default 256. */
+  domeSize?: number;
 }
 
 function createLightGridLayoutEntries(binding: number): GPUBindGroupLayoutEntry[] {
@@ -165,7 +187,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     layout: device.createPipelineLayout({ bindGroupLayouts: group2 ? [volumeLayout, group1, group2] : [volumeLayout, group1] }),
     compute: { module: device.createShaderModule({ label, code }), entryPoint: 'main' },
   });
-  const marchPipeline = pipeline('cloud march', COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + MARCH_WGSL, marchLayout, atmosphereLayout);
+  const marchPipeline = pipeline('cloud march', COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + marchWgsl('atmosphere'), marchLayout, atmosphereLayout);
+  // Uniform-lighting variants (no atmosphere group) are built on first use.
+  let marchUniformPipeline: GPUComputePipeline | null = null;
+  const getMarchUniformPipeline = () => marchUniformPipeline ??= pipeline('cloud march uniform', COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + marchWgsl('uniform'), marchLayout);
   const skyLightPipeline = pipeline('cloud sky light', COMMON_WGSL + volumeWgsl(0) + SKY_LIGHT_WGSL, skyLightLayout, atmosphereLayout);
   const compositePipeline = pipeline('cloud composite', COMMON_WGSL + volumeWgsl(0) + COMPOSITE_WGSL, compositeLayout);
 
@@ -177,11 +202,48 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const frameF32: Float32Array<ArrayBuffer> = new Float32Array(new ArrayBuffer(FRAME_UNIFORM_BYTES));
   const frameU32 = new Uint32Array(frameF32.buffer);
 
-  const skyLightBuffer = device.createBuffer({ label: 'cloud sky light', size: 48, usage: GPUBufferUsage.STORAGE });
+  const skyLightBuffer = device.createBuffer({ label: 'cloud sky light', size: 48, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
   const skyLightGroup = device.createBindGroup({ label: 'cloud sky light', layout: skyLightLayout, entries: [{ binding: SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } }] });
+  // ---- reflection dome (P2-04) ----
+  const domeSize = Math.max(4, (options.domeSize ?? 256) & ~3);
+  const domeSettings = defaultDomeSettings();
+  const domeLayout = device.createBindGroupLayout({ label: 'cloud dome', entries: [
+    { binding: DOME_FRAME_BINDING, visibility: C, buffer: { type: 'uniform' } },
+    { binding: DOME_DEPTH_BINDING, visibility: C, texture: { sampleType: 'depth' } },
+    { binding: DOME_OUT_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
+    { binding: DOME_PARAMS_BINDING, visibility: C, buffer: { type: 'uniform' } },
+    ...createLightGridLayoutEntries(DOME_LIGHT_GRID_BINDING),
+    { binding: DOME_SKY_LIGHT_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
+  ] });
+  const domePipeline = pipeline('cloud dome', COMMON_WGSL + volumeWgsl(0) + DOME_WGSL, domeLayout);
+  const domeTexture = device.createTexture({ label: 'cloud reflection dome', size: [domeSize, domeSize], format: 'rgba16float', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST });
+  const domeView = domeTexture.createView();
+  {
+    // Until a texel is first shaded it reads as clear sky: no radiance, transmittance 1 (half-float 1.0 = 0x3C00).
+    const init = new Uint16Array(domeSize * domeSize * 4);
+    for (let i = 3; i < init.length; i += 4) init[i] = 0x3c00;
+    device.queue.writeTexture({ texture: domeTexture }, init, { bytesPerRow: domeSize * 8 }, [domeSize, domeSize]);
+  }
+  const domeFrameBuffer = device.createBuffer({ label: 'cloud dome frame', size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const domeParamBuffer = device.createBuffer({ label: 'cloud dome params', size: DOME_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const domeDepth = device.createTexture({ label: 'cloud dome dummy depth', size: [1, 1], format: 'depth32float', usage: GPUTextureUsage.TEXTURE_BINDING });
+  const domeParamData = new ArrayBuffer(DOME_PARAM_BYTES);
+  const domeParamF32 = new Float32Array(domeParamData), domeParamU32 = new Uint32Array(domeParamData);
+  const domeRef: [number, number, number] = [0, 0, 0];
+  let domeGroups: GPUBindGroup[] | null = null;
+  let domeSlot = 0, domeRefreshFrames = DOME_REFRESH_FRAMES, domeBoost = 0;
+  const domeSun = [0, 1, 0];
+  let domeScaleSeen = -1;
+  const dome: CloudDome = {
+    texture: domeTexture, view: domeView, size: domeSize, settings: domeSettings,
+    get referencePoint() { return domeRef; },
+    get refreshFrames() { return domeRefreshFrames; },
+  };
   let lightGrid: LightGrid | null = null;
+  const lightingData = new Float32Array(12);
   let disposed = false;
   let volume: GpuCloudVolume | null = null;
+  let ownsVolume = false;
   let noise: GPUTexture | null = null;
   let volumeGroup: GPUBindGroup | null = null;
   let outW = 0, outH = 0;
@@ -221,6 +283,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
 
   return {
     settings,
+    dome,
     get output() { return output; },
     get renderSize(): [number, number] { return [farW, farH]; },
     get nearRenderSize(): [number, number] { return [nearW, nearH]; },
@@ -228,10 +291,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get extent() { return volume ? volume.extentMeters : null; },
     async setVolume(asset, opts) {
       if (disposed) return;
-      volume?.destroy(); lightGrid?.destroy();
-      volume = uploadCloudVolume(device, asset);
-      lightGrid = createLightGrid(device, volumeLayout, { dims: asset.dims, voxelSize: asset.voxelSizeMeters, extentMeters: volume.extentMeters });
-      marchGroups = null; compositeGroups = null; boundDepth = null;
+      if (ownsVolume) volume?.destroy();
+      lightGrid?.destroy();
+      const external = 'extentMeters' in asset;   // a GpuCloudVolume: caller-owned
+      volume = external ? asset : uploadCloudVolume(device, asset);
+      ownsVolume = !external;
+      lightGrid = createLightGrid(device, volumeLayout, { dims: volume.dims, voxelSize: volume.voxelSize, extentMeters: volume.extentMeters });
+      marchGroups = null; compositeGroups = null; boundDepth = null; domeGroups = null;
       device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, volume.extentMeters, volume.voxelSize)));
       rebuildVolumeGroup();
     },
@@ -254,6 +320,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     },
     encode(encoder, frame, timer) {
       if (disposed || !volumeGroup || !output || !targets || !lightGrid) return;
+      const uniformLighting = frame.lighting?.kind === 'uniform' ? frame.lighting : null;
+      if (!uniformLighting && !frame.atmosphere) return;
       if (frame.depth !== boundDepth || !marchGroups || !compositeGroups) {
         boundDepth = frame.depth;
         const grid = lightGrid;
@@ -307,20 +375,28 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // The grid holds extinction-scaled optical depth; it re-slices over 8 frames when the sun or the scale moves.
       const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: settings.densityScale, frameIndex: frame.frameIndex }, timer);
 
-      const sky = encoder.beginComputePass({ label: 'cloud sky light' });
-      sky.setPipeline(skyLightPipeline);
-      sky.setBindGroup(0, volumeGroup);
-      sky.setBindGroup(1, skyLightGroup);
-      sky.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere);
-      sky.dispatchWorkgroups(1);
-      sky.end();
+      if (uniformLighting) {
+        for (let i = 0; i < 3; i++) {
+          const c = [uniformLighting.sunRadiance, uniformLighting.ambientTop, uniformLighting.ambientBottom][i];
+          lightingData[i * 4] = c[0]; lightingData[i * 4 + 1] = c[1]; lightingData[i * 4 + 2] = c[2];
+        }
+        device.queue.writeBuffer(skyLightBuffer, 0, lightingData);
+      } else {
+        const sky = encoder.beginComputePass({ label: 'cloud sky light' });
+        sky.setPipeline(skyLightPipeline);
+        sky.setBindGroup(0, volumeGroup);
+        sky.setBindGroup(1, skyLightGroup);
+        sky.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere!);
+        sky.dispatchWorkgroups(1);
+        sky.end();
+      }
 
       for (let pass = 0; pass < 2; pass++) {
         const march = encoder.beginComputePass({ label: pass ? 'cloud march far' : 'cloud march near', timestampWrites: timer?.passTimestampWrites(pass ? 'marchFar' : 'marchNear') });
-        march.setPipeline(marchPipeline);
+        march.setPipeline(uniformLighting ? getMarchUniformPipeline() : marchPipeline);
         march.setBindGroup(0, volumeGroup);
         march.setBindGroup(1, marchGroups[pass * 2 + gridStep.front]);
-        march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere);
+        if (!uniformLighting) march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere!);
         march.dispatchWorkgroups(Math.ceil((pass ? farW : nearW) / 8), Math.ceil((pass ? farH : nearH) / 8));
         march.end();
       }
@@ -331,13 +407,56 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       composite.setBindGroup(1, compositeGroups![gridStep.front]);
       composite.dispatchWorkgroups(Math.ceil(outW / 8), Math.ceil(outH / 8));
       composite.end();
+
+      if (domeSettings.enabled) {
+        // Reference point: fixed, or the camera's x/z at ground height.
+        const ref = domeSettings.referencePoint;
+        domeRef[0] = ref ? ref[0] : frame.cameraPosition[0]; domeRef[1] = ref ? ref[1] : domeSettings.groundHeight; domeRef[2] = ref ? ref[2] : frame.cameraPosition[2];
+        // A sun or density change makes the old texels stale until every slot has been redone.
+        const sd = frame.sunDirection;
+        if (domeSun[0] * sd[0] + domeSun[1] * sd[1] + domeSun[2] * sd[2] < 0.99999 || domeScaleSeen !== settings.densityScale * domeSettings.densityScale) {
+          domeSun[0] = sd[0]; domeSun[1] = sd[1]; domeSun[2] = sd[2]; domeScaleSeen = settings.densityScale * domeSettings.densityScale;
+          domeRefreshFrames = 0;
+        }
+        // The grid the dome lights from is replaced when a bake completes (8 frames after a sun change): shade two slots per
+        // frame for the next 8 so the whole dome has seen the new grid 16 frames after the change.
+        if (gridStep.swapped) { domeBoost = 8; domeRefreshFrames = 0; }
+        const slots = domeBoost > 0 ? 2 : 1;
+        if (domeBoost > 0) domeBoost--;
+        const df = frameF32;   // the march uniform with the dome's own origin and cutoff
+        df[16] = domeRef[0]; df[17] = domeRef[1]; df[18] = domeRef[2];
+        df[45] = Math.max(settings.transmittanceCutoff, 0.02);
+        device.queue.writeBuffer(domeFrameBuffer, 0, df);
+        domeParamF32[0] = domeRef[0]; domeParamF32[1] = domeRef[1]; domeParamF32[2] = domeRef[2]; domeParamF32[3] = domeSettings.densityScale;
+        domeParamU32[4] = domeSize; domeParamU32[5] = domeSlot; domeParamU32[6] = domeSettings.maxSteps >>> 0; domeParamU32[7] = slots;
+        domeParamF32[8] = domeSettings.stepMin; domeParamF32[9] = domeSettings.stepRel; domeParamF32[10] = domeSettings.maxDistance; domeParamF32[11] = 0;
+        device.queue.writeBuffer(domeParamBuffer, 0, domeParamData);
+        domeSlot = (domeSlot + slots) % DOME_REFRESH_FRAMES;
+        domeRefreshFrames = Math.min(DOME_REFRESH_FRAMES, domeRefreshFrames + slots);
+        domeGroups ??= [0, 1].map(slot => device.createBindGroup({ label: `cloud dome ${slot}`, layout: domeLayout, entries: [
+          { binding: DOME_FRAME_BINDING, resource: { buffer: domeFrameBuffer } },
+          { binding: DOME_DEPTH_BINDING, resource: domeDepth.createView() },
+          { binding: DOME_OUT_BINDING, resource: domeView },
+          { binding: DOME_PARAMS_BINDING, resource: { buffer: domeParamBuffer } },
+          ...lightGrid!.bindGroupEntries(DOME_LIGHT_GRID_BINDING, slot as 0 | 1),
+          { binding: DOME_SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } },
+        ] }));
+        const pass = encoder.beginComputePass({ label: 'cloud dome', timestampWrites: timer?.passTimestampWrites('dome') });
+        pass.setPipeline(domePipeline);
+        pass.setBindGroup(0, volumeGroup);
+        pass.setBindGroup(1, domeGroups[gridStep.front]);
+        const blocks = Math.ceil(domeSize / 4 / 8);
+        pass.dispatchWorkgroups(blocks, blocks);
+        pass.end();
+      }
     },
     dispose() {
       if (disposed) return;
       disposed = true;
-      releaseTargets(); volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
+      releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; marchGroups = null; compositeGroups = null; lightGrid = null;
       volumeUniforms.destroy(); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
+      domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };
 }

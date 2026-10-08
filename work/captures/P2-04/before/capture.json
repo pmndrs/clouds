@@ -1,0 +1,84 @@
+{
+  "url": "http://127.0.0.1:49909/flagship/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:34:27.830Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/oldA/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.45608253333333315,
+          "skyCompute": 0.042499,
+          "lightGrid": 1.175416,
+          "marchNear": 0.11488691666666663,
+          "marchFar": 0.27423373333333334,
+          "composite": 0.22980800000000004,
+          "dome": 0.07792581666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 93,
+        "assetLoadMs": 38.400000005960464,
+        "firstCloudFrameMs": 42
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/scratch/oldA/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5573255500000001,
+          "skyCompute": 0.46991,
+          "lightGrid": 1.175416,
+          "marchNear": 0.09297776666666664,
+          "marchFar": 0.45226951666666687,
+          "composite": 0.26177653333333334,
+          "dome": 0.07386966666666668
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 187,
+        "assetLoadMs": 38.400000005960464,
+        "firstCloudFrameMs": 42
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

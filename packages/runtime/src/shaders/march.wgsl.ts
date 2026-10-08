@@ -1,6 +1,7 @@
 import { FRAME_WGSL } from './frame.wgsl';
 import { lightGridWgsl } from './light-grid.wgsl';
 import { atmosphereWgsl } from './atmosphere.wgsl';
+import { LIGHTING_WGSL } from './lighting.wgsl';
 
 /** Bindings in the march pass (group 1): the light grid texture + sampler, then the per-frame sky light buffer. */
 export const MARCH_LIGHT_GRID_BINDING = 4;
@@ -22,7 +23,14 @@ export const MARCH_RADIANCE_LIMIT = 60000;
  * density (0-16 m, 16-48 m: keeps surface detail), the rest from the voxel light grid at p + sun * 48 m.
  * Everything is in the sky's exposure units (sunRadiance = sunRadianceAt, ambient = skyAmbient), no literal colours.
  */
-export const MARCH_WGSL = /* wgsl */ `
+export type MarchLightingMode = 'atmosphere' | 'uniform';
+/**
+ * 'uniform' drops the atmosphere group (no sky library): sun radiance and ambient come only from the skyLight buffer, and the
+ * cloud gets no aerial perspective. Pipeline layout is then [volume, pass] only.
+ */
+export function marchWgsl(mode: MarchLightingMode): string {
+  const atm = mode === 'atmosphere';
+  return /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(2) var marchColor: texture_storage_2d<rgba16float, write>;
 @group(1) @binding(3) var marchDepth: texture_storage_2d<rg32float, write>;
@@ -30,30 +38,15 @@ ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
 // [0] sun radiance (illuminance, exposure units), [1] sky ambient from above, [2] from below (mean radiance per hemisphere)
 @group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
 @group(1) @binding(${MARCH_NEAR_BINDING}) var nearColor: texture_2d<f32>;
-${atmosphereWgsl(MARCH_ATMOSPHERE_GROUP)}
+${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
+${LIGHTING_WGSL}
 
-const INLINE_NEAR = 16.0;   // first in-line sun sample covers 0..16 m
-const INLINE_FAR = 48.0;    // second covers 16..48 m, the grid takes over from there
-// Art-tuned against the Tidewater captures: the knobs (msStrength, ambientStrength) stay 1 by default.
-const MS_NORMALISATION = 3.0 / (4.0 * PI);
-const AMBIENT_GAIN = 1.5;
-const EDGE_DEPTH = 70.0;   // metres below the surface a ray must reach to count as 'thick' (front-lit edge darkening is released by then)
-const EDGE_FLOOR = 0.08;   // radiance share left at a silhouette with edgeDarkening = 1
 const STEP_GROWTH_FROM = 256u;
 const STEP_MIN = 1.5;
 const STEP_SQRT = 0.12;
 const SDF_SKIP_MARGIN = 6.0;     // metres: closer than this to the surface, fetch the real distance
 const SDF_SKIP_RANGE = 24.0;     // metres: refetch at least this often so the inner-glow remap stays accurate
 const LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3; // segments thinner than this skip the sun/ambient evaluation
-
-fn henyeyGreenstein(cosTheta: f32, g: f32) -> f32 {
-  let g2 = g * g;
-  return (1.0 - g2) / (4.0 * PI * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
-}
-// HG(g = phaseG) with an art-directable forward lobe (silver lining).
-fn cloudPhase(cosTheta: f32) -> f32 {
-  return mix(henyeyGreenstein(cosTheta, frame.phaseG), henyeyGreenstein(cosTheta, frame.silverG), frame.silverStrength);
-}
 
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -151,15 +144,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               let tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * frame.extinction;
               let grid = lightGridSample(ps + sunGrid);
               let tau = tauInline + grid.x * frame.lightDensityScale;
-              // Inner glow: the profile is an in-scatter probability; extinction relaxes deep inside and toward the sun.
-              let relax = mix(0.25, valueRemap(sdf, -128.0, 0.0, 0.05, 0.25), max(sunRelax, frame.glowFront));
-              let ms = d.y * exp(-tau * relax) * (1.0 + frame.glowBoost * sunRelax);
-              // Ambient: dark where the profile is high, sky light attenuated by the density above, ground light from below.
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
-              let tauUp = grid.y * frame.lightDensityScale * frame.ambientExtinction;
-              let skyAbove = ambientUp * exp(-tauUp);
-              var ambient = AMBIENT_GAIN * frame.ambientStrength * sqrt(1.0 - saturate(d.y)) * mix(ambientDown, skyAbove, frame.ambientSkyBias + (1.0 - frame.ambientSkyBias) * h);
-              let lit = sunRadiance * (exp(-tau) * phase + frame.msStrength * ms * MS_NORMALISATION) + ambient;
+              let lit = cloudInScatter(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);
@@ -181,21 +167,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       radiance /= max(1.0 - T, 0.5);
       T = 0.0;
     }
-    // Dark edges (front-lit): rays that only graze the cloud (shallow in the SDF) scatter little; keep the radiance but not the glow.
-    // Art knob: edgeDarkening 0 leaves the Nubis result untouched; it fades out toward the sun, where the silver lining takes over.
-    radiance *= mix(1.0, mix(EDGE_FLOOR, 1.0, smoothstep(0.0, EDGE_DEPTH, depthMax)), frame.edgeDarkening * frontness);
+    radiance *= cloudEdgeFactor(depthMax, frontness);
   }
 
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);
-  if (meanDistance > 0.0) {
+${atm ? `  if (meanDistance > 0.0) {
     // Aerial perspective of the cloud as a whole, at its transmittance-weighted mean distance.
     radiance = applyAerialPerspective(radiance, T, normalize(unprojectDepth(uv, 1.0) - origin), meanDistance);
-  }
+  }` : ''}
   radiance = clamp(radiance, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   textureStore(marchColor, px, vec4(radiance, T));
   textureStore(marchDepth, px, vec4(meanDistance, tEnd, 0.0, 0.0));
 }
 `;
+}
+export const MARCH_WGSL = marchWgsl('atmosphere');
 
 /** One thread per frame: sun radiance and sky ambient at the volume centre -> a small buffer the march reads. */
 export const SKY_LIGHT_BINDING = 0;

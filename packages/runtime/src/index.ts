@@ -5,9 +5,11 @@ export { uploadCloudVolume, uploadCloudNoise, type GpuCloudVolume } from './reso
 export { COMMON_WGSL } from './shaders/common.wgsl';
 export { volumeWgsl, volumeUniformData, createVolumeBindGroupLayout, createVolumeBindGroup, createVolumeSamplers, VOLUME_UNIFORM_BYTES, type VolumeBindingResources } from './shaders/volume.wgsl';
 export { createLightGrid, lightGridDims, lightGridWgsl, LightGridScheduler, type LightGrid, type LightGridFrameParams } from './light-grid';
-export { createCloudRuntime, CLOUD_QUALITY_PRESETS, type CloudQualityPreset, type CloudRuntime, type CloudFrame, type CloudSettings, type CloudQuality } from './runtime';
+export { createCloudRuntime, CLOUD_QUALITY_PRESETS, type CloudQualityPreset, type CloudRuntime, type CloudFrame, type CloudSettings, type CloudQuality, type CloudUniformLighting, type CloudRuntimeOptions } from './runtime';
 export { DENSITY_WGSL } from './shaders/density.wgsl';
-export { MARCH_WGSL } from './shaders/march.wgsl';
+export { MARCH_WGSL, marchWgsl, type MarchLightingMode } from './shaders/march.wgsl';
+export { LIGHTING_WGSL } from './shaders/lighting.wgsl';
+export { cloudDomeWgsl, defaultDomeSettings, domeDirectionToUv, domeUvToDirection, domeTexelDirection, domeDirectionToTexel, DOME_OCT_WGSL, DOME_REFRESH_FRAMES, type CloudDome, type CloudDomeSettings } from './dome';
 export { COMPOSITE_WGSL } from './shaders/composite.wgsl';
 export { FRAME_WGSL, FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 export * from './shaders/atmosphere.wgsl';

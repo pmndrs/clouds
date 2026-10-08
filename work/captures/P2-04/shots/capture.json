@@ -1,0 +1,482 @@
+{
+  "url": "http://127.0.0.1:50797/runtime-tests/dome/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:36:19.836Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P2-04/shots/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.08251445454545459,
+          "marchNear": 0.10523166666666663,
+          "marchFar": 0.27042788333333334,
+          "composite": 0.23622076666666672,
+          "dome": 0.042030583333333316
+        },
+        "domeMs": 0.042030583333333316,
+        "frameMs": {
+          "p50": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "domeSize": 256,
+        "referencePoint": [
+          -270.3023734226827,
+          0,
+          460.07128460931415
+        ],
+        "expectedCloud": {
+          "az": 30.435207268862154,
+          "el": 53.150708639731505
+        },
+        "domeCentroid": {
+          "az": 17.483157761961742,
+          "el": 56.20053142752702,
+          "coverage": 0.04112160852713178,
+          "mass": 569.4032287597656
+        },
+        "domeCentroidAtRefA": {
+          "az": 17.493498816346328,
+          "el": 56.20210226446397,
+          "coverage": 0.04154554263565891,
+          "mass": 568.8628997802734
+        },
+        "bounds": {
+          "dome": {
+            "azMin": -8.901716032891995,
+            "azMax": 58.055247223796606,
+            "elMin": 38.480778509559926,
+            "elMax": 70.41297539830263
+          },
+          "box": {
+            "azMin": -46.69822991879814,
+            "azMax": 81.7920412293322,
+            "elMin": 28.344179897285034,
+            "elMax": 81.12774047531506
+          }
+        },
+        "sunTest": {
+          "timeA": 14,
+          "timeB": 16.5,
+          "frameMs": {
+            "steadyMedian": 16.700000000000045,
+            "steadyMax": 16.799999999999955,
+            "changeMedian": 16.699999999999818,
+            "changeMax": 16.800000000000182
+          },
+          "noiseFloor": {
+            "radianceRel": 0.056594777482783944,
+            "transmittance": 0.00021681422367691994
+          },
+          "startError": {
+            "radianceRel": 0.8371612237108197,
+            "transmittance": 0.000202446011826396
+          },
+          "settledDiff": {
+            "radianceRel": 0.07200524019741932,
+            "transmittance": 0.00026998785324394703
+          },
+          "sunAtRefB": [
+            -0.8454407424978049,
+            0.5286379668131781,
+            -0.07597269883576335
+          ],
+          "sunAtEnd": [
+            -0.8454407424978049,
+            0.5286379668131781,
+            -0.07597269883576335
+          ],
+          "trace": [
+            {
+              "frame": 1,
+              "radianceRel": 0.798565988031788,
+              "transmittance": 0.0002042700070887804
+            },
+            {
+              "frame": 2,
+              "radianceRel": 0.766812366585841,
+              "transmittance": 0.00020625116303563118
+            },
+            {
+              "frame": 3,
+              "radianceRel": 0.732444340123696,
+              "transmittance": 0.00020937970839440823
+            },
+            {
+              "frame": 4,
+              "radianceRel": 0.6968846366272728,
+              "transmittance": 0.0002122668083757162
+            },
+            {
+              "frame": 5,
+              "radianceRel": 0.6631705772459954,
+              "transmittance": 0.00021378532983362675
+            },
+            {
+              "frame": 6,
+              "radianceRel": 0.6279532518053207,
+              "transmittance": 0.0002171031665056944
+            },
+            {
+              "frame": 7,
+              "radianceRel": 0.5947147584322632,
+              "transmittance": 0.0002205150667577982
+            },
+            {
+              "frame": 8,
+              "radianceRel": 0.4982026126501526,
+              "transmittance": 0.00022406131029129028
+            },
+            {
+              "frame": 9,
+              "radianceRel": 0.39551199443139495,
+              "transmittance": 0.00023232586681842804
+            },
+            {
+              "frame": 10,
+              "radianceRel": 0.2984953577403515,
+              "transmittance": 0.00023176590912044048
+            },
+            {
+              "frame": 11,
+              "radianceRel": 0.20030863438557675,
+              "transmittance": 0.00021397764794528484
+            },
+            {
+              "frame": 12,
+              "radianceRel": 0.13646986880327747,
+              "transmittance": 0.00020536663942039013
+            },
+            {
+              "frame": 13,
+              "radianceRel": 0.10893631785065919,
+              "transmittance": 0.00020526745356619358
+            },
+            {
+              "frame": 14,
+              "radianceRel": 0.07820842712596794,
+              "transmittance": 0.0002048963215202093
+            },
+            {
+              "frame": 15,
+              "radianceRel": 0.05194061457773944,
+              "transmittance": 0.0002143271267414093
+            },
+            {
+              "frame": 16,
+              "radianceRel": 0.053244557798417,
+              "transmittance": 0.00021780002862215042
+            },
+            {
+              "frame": 17,
+              "radianceRel": 0.05508180893674902,
+              "transmittance": 0.00022589298896491528
+            },
+            {
+              "frame": 18,
+              "radianceRel": 0.05570925924064966,
+              "transmittance": 0.0002276513259857893
+            },
+            {
+              "frame": 19,
+              "radianceRel": 0.055481750947446014,
+              "transmittance": 0.00022701406851410866
+            },
+            {
+              "frame": 20,
+              "radianceRel": 0.05577562719626891,
+              "transmittance": 0.00022804015316069126
+            },
+            {
+              "frame": 21,
+              "radianceRel": 0.05631231596579474,
+              "transmittance": 0.00022833235561847687
+            },
+            {
+              "frame": 22,
+              "radianceRel": 0.05636747647255272,
+              "transmittance": 0.00022867880761623383
+            },
+            {
+              "frame": 23,
+              "radianceRel": 0.061159951455824035,
+              "transmittance": 0.00024101976305246353
+            },
+            {
+              "frame": 24,
+              "radianceRel": 0.0639549716328513,
+              "transmittance": 0.0002526089083403349
+            },
+            {
+              "frame": 25,
+              "radianceRel": 0.06332166448693272,
+              "transmittance": 0.0002525860909372568
+            },
+            {
+              "frame": 26,
+              "radianceRel": 0.06320640282780424,
+              "transmittance": 0.00025186827406287193
+            },
+            {
+              "frame": 27,
+              "radianceRel": 0.06571291783611886,
+              "transmittance": 0.000254559563472867
+            },
+            {
+              "frame": 28,
+              "radianceRel": 0.06727049926014791,
+              "transmittance": 0.0002622914034873247
+            }
+          ]
+        },
+        "frames": 557
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P2-04/shots/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.08251445454545459,
+          "marchNear": 0.13977148333333334,
+          "marchFar": 0.48004411666666674,
+          "composite": 0.2985024,
+          "dome": 0.043329116666666674
+        },
+        "domeMs": 0.043329116666666674,
+        "frameMs": {
+          "p50": 16.69999999999891
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "domeSize": 256,
+        "referencePoint": [
+          381.305303417474,
+          0,
+          672.1801139469302
+        ],
+        "expectedCloud": {
+          "az": -29.564792731137857,
+          "el": 42.655146615735894
+        },
+        "domeCentroid": {
+          "az": 17.483157761961742,
+          "el": 56.20053142752702,
+          "coverage": 0.04112160852713178,
+          "mass": 569.4032287597656
+        },
+        "domeCentroidAtRefA": {
+          "az": 17.493498816346328,
+          "el": 56.20210226446397,
+          "coverage": 0.04154554263565891,
+          "mass": 568.8628997802734
+        },
+        "bounds": {
+          "dome": {
+            "azMin": -53.637131415070755,
+            "azMax": -14.370001515179306,
+            "elMin": 30.249124639305865,
+            "elMax": 49.91094377253058
+          },
+          "box": {
+            "azMin": -67.90533153309845,
+            "azMax": -0.7328501547929608,
+            "elMin": 23.74708295057005,
+            "elMax": 70.50420328583205
+          }
+        },
+        "sunTest": {
+          "timeA": 14,
+          "timeB": 16.5,
+          "frameMs": {
+            "steadyMedian": 16.700000000000045,
+            "steadyMax": 16.799999999999955,
+            "changeMedian": 16.699999999999818,
+            "changeMax": 16.800000000000182
+          },
+          "noiseFloor": {
+            "radianceRel": 0.056594777482783944,
+            "transmittance": 0.00021681422367691994
+          },
+          "startError": {
+            "radianceRel": 0.8371612237108197,
+            "transmittance": 0.000202446011826396
+          },
+          "settledDiff": {
+            "radianceRel": 0.07200524019741932,
+            "transmittance": 0.00026998785324394703
+          },
+          "sunAtRefB": [
+            -0.8454407424978049,
+            0.5286379668131781,
+            -0.07597269883576335
+          ],
+          "sunAtEnd": [
+            -0.8454407424978049,
+            0.5286379668131781,
+            -0.07597269883576335
+          ],
+          "trace": [
+            {
+              "frame": 1,
+              "radianceRel": 0.798565988031788,
+              "transmittance": 0.0002042700070887804
+            },
+            {
+              "frame": 2,
+              "radianceRel": 0.766812366585841,
+              "transmittance": 0.00020625116303563118
+            },
+            {
+              "frame": 3,
+              "radianceRel": 0.732444340123696,
+              "transmittance": 0.00020937970839440823
+            },
+            {
+              "frame": 4,
+              "radianceRel": 0.6968846366272728,
+              "transmittance": 0.0002122668083757162
+            },
+            {
+              "frame": 5,
+              "radianceRel": 0.6631705772459954,
+              "transmittance": 0.00021378532983362675
+            },
+            {
+              "frame": 6,
+              "radianceRel": 0.6279532518053207,
+              "transmittance": 0.0002171031665056944
+            },
+            {
+              "frame": 7,
+              "radianceRel": 0.5947147584322632,
+              "transmittance": 0.0002205150667577982
+            },
+            {
+              "frame": 8,
+              "radianceRel": 0.4982026126501526,
+              "transmittance": 0.00022406131029129028
+            },
+            {
+              "frame": 9,
+              "radianceRel": 0.39551199443139495,
+              "transmittance": 0.00023232586681842804
+            },
+            {
+              "frame": 10,
+              "radianceRel": 0.2984953577403515,
+              "transmittance": 0.00023176590912044048
+            },
+            {
+              "frame": 11,
+              "radianceRel": 0.20030863438557675,
+              "transmittance": 0.00021397764794528484
+            },
+            {
+              "frame": 12,
+              "radianceRel": 0.13646986880327747,
+              "transmittance": 0.00020536663942039013
+            },
+            {
+              "frame": 13,
+              "radianceRel": 0.10893631785065919,
+              "transmittance": 0.00020526745356619358
+            },
+            {
+              "frame": 14,
+              "radianceRel": 0.07820842712596794,
+              "transmittance": 0.0002048963215202093
+            },
+            {
+              "frame": 15,
+              "radianceRel": 0.05194061457773944,
+              "transmittance": 0.0002143271267414093
+            },
+            {
+              "frame": 16,
+              "radianceRel": 0.053244557798417,
+              "transmittance": 0.00021780002862215042
+            },
+            {
+              "frame": 17,
+              "radianceRel": 0.05508180893674902,
+              "transmittance": 0.00022589298896491528
+            },
+            {
+              "frame": 18,
+              "radianceRel": 0.05570925924064966,
+              "transmittance": 0.0002276513259857893
+            },
+            {
+              "frame": 19,
+              "radianceRel": 0.055481750947446014,
+              "transmittance": 0.00022701406851410866
+            },
+            {
+              "frame": 20,
+              "radianceRel": 0.05577562719626891,
+              "transmittance": 0.00022804015316069126
+            },
+            {
+              "frame": 21,
+              "radianceRel": 0.05631231596579474,
+              "transmittance": 0.00022833235561847687
+            },
+            {
+              "frame": 22,
+              "radianceRel": 0.05636747647255272,
+              "transmittance": 0.00022867880761623383
+            },
+            {
+              "frame": 23,
+              "radianceRel": 0.061159951455824035,
+              "transmittance": 0.00024101976305246353
+            },
+            {
+              "frame": 24,
+              "radianceRel": 0.0639549716328513,
+              "transmittance": 0.0002526089083403349
+            },
+            {
+              "frame": 25,
+              "radianceRel": 0.06332166448693272,
+              "transmittance": 0.0002525860909372568
+            },
+            {
+              "frame": 26,
+              "radianceRel": 0.06320640282780424,
+              "transmittance": 0.00025186827406287193
+            },
+            {
+              "frame": 27,
+              "radianceRel": 0.06571291783611886,
+              "transmittance": 0.000254559563472867
+            },
+            {
+              "frame": 28,
+              "radianceRel": 0.06727049926014791,
+              "transmittance": 0.0002622914034873247
+            }
+          ]
+        },
+        "frames": 713
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
