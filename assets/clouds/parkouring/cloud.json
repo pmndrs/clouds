@@ -1,0 +1,74 @@
+{
+  "name": "parkouring",
+  "source": "assets/nubis-voxel-clouds/NVDFs/Examples/ParkouringCloud/TGA/modeling_data.*.tga",
+  "dims": [
+    108,
+    108,
+    51
+  ],
+  "voxelSizeMeters": 8,
+  "layout": "x fastest, then y (map row, +Y = up in the source image), then z (slice, up); texel (x,y,z) at ((z*dims[1]+y)*dims[0]+x)",
+  "sourceGrid": [
+    512,
+    512,
+    64
+  ],
+  "cropOffset": [
+    167,
+    103,
+    13
+  ],
+  "occupiedMin": [
+    175,
+    111,
+    21
+  ],
+  "occupiedMax": [
+    266,
+    202,
+    57
+  ],
+  "margin": 8,
+  "boundsMeters": {
+    "note": "source axes: x = map column, y = map row, z = up; origin = corner of source grid voxel (0,0,0)",
+    "min": [
+      1336,
+      824,
+      104
+    ],
+    "max": [
+      2200,
+      1688,
+      512
+    ],
+    "size": [
+      864,
+      864,
+      408
+    ]
+  },
+  "nvdf": {
+    "file": "nvdf.bin",
+    "format": "rgba8unorm",
+    "bytes": 2379456,
+    "channels": {
+      "r": "dimensional profile (0 none, 1 full cloud)",
+      "g": "detail type (0 wispy, 1 billowy)",
+      "b": "density scale",
+      "a": "unused"
+    }
+  },
+  "sdf": {
+    "file": "sdf.bin",
+    "format": "r16unorm little-endian",
+    "bytes": 1189728,
+    "encoding": {
+      "minMeters": -256,
+      "maxMeters": 4096,
+      "decode": "meters = minMeters + v * (maxMeters - minMeters)",
+      "rounding": "down"
+    },
+    "source": "exact 3D EDT of (profile > 0), full 512x512x64 grid, signed (negative inside), surface at half a voxel from the nearest centres",
+    "outsideCrop": "treat as far / empty (distance >= margin*voxel from the occupied bounds, except at the grid floor/ceiling where the grid ends)"
+  }
+}

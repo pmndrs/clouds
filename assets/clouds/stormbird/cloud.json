@@ -1,0 +1,74 @@
+{
+  "name": "stormbird",
+  "source": "assets/nubis-voxel-clouds/NVDFs/Examples/StormbirdCloud/TGA/modeling_data.*.tga",
+  "dims": [
+    83,
+    116,
+    62
+  ],
+  "voxelSizeMeters": 8,
+  "layout": "x fastest, then y (map row, +Y = up in the source image), then z (slice, up); texel (x,y,z) at ((z*dims[1]+y)*dims[0]+x)",
+  "sourceGrid": [
+    512,
+    512,
+    64
+  ],
+  "cropOffset": [
+    212,
+    198,
+    0
+  ],
+  "occupiedMin": [
+    220,
+    206,
+    0
+  ],
+  "occupiedMax": [
+    286,
+    305,
+    53
+  ],
+  "margin": 8,
+  "boundsMeters": {
+    "note": "source axes: x = map column, y = map row, z = up; origin = corner of source grid voxel (0,0,0)",
+    "min": [
+      1696,
+      1584,
+      0
+    ],
+    "max": [
+      2360,
+      2512,
+      496
+    ],
+    "size": [
+      664,
+      928,
+      496
+    ]
+  },
+  "nvdf": {
+    "file": "nvdf.bin",
+    "format": "rgba8unorm",
+    "bytes": 2387744,
+    "channels": {
+      "r": "dimensional profile (0 none, 1 full cloud)",
+      "g": "detail type (0 wispy, 1 billowy)",
+      "b": "density scale",
+      "a": "unused"
+    }
+  },
+  "sdf": {
+    "file": "sdf.bin",
+    "format": "r16unorm little-endian",
+    "bytes": 1193872,
+    "encoding": {
+      "minMeters": -256,
+      "maxMeters": 4096,
+      "decode": "meters = minMeters + v * (maxMeters - minMeters)",
+      "rounding": "down"
+    },
+    "source": "exact 3D EDT of (profile > 0), full 512x512x64 grid, signed (negative inside), surface at half a voxel from the nearest centres",
+    "outsideCrop": "treat as far / empty (distance >= margin*voxel from the occupied bounds, except at the grid floor/ceiling where the grid ends)"
+  }
+}

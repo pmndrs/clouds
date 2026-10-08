@@ -26,7 +26,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - `pnpm check` passes (typecheck, 129+ tests, build including every legacy page).
   - `node scripts/gpu/capture.mjs --serve --page legacy/realism/ --size 1280x720 --timeout 90 --out work/captures/scratch/legacy-realism` loads with no page errors. A ready timeout is acceptable here, because legacy pages lack the contract; report what happened.
 
-### [~] P0-02 Nubis pack converter · Sonnet
+### [x] P0-02 Nubis pack converter · Sonnet
 - **Owns:** `scripts/nubis/**` and `assets/clouds/**` (generated output plus a `README.md`).
 - **Input:**
   - `assets/nubis-voxel-clouds/` (committed modeling slices and noise)
