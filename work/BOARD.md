@@ -1016,6 +1016,36 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Frame p95 ≤ 1.5× p50.
   - Parity passes; `pnpm check` green.
 
+## Phase 6 — Beyond Nubis³
+
+### [~] P6-A Realtime cloud evolution · Sonnet (Fable on failure)
+- **Owns:**
+  - `packages/runtime/src/generate/**`
+  - `examples/lab/evolve/**` (wired)
+  - minimal, additive `runtime.ts` hooks if needed, re-read before editing
+- **Does:** clouds that grow, merge and dissipate over minutes at stable cost.
+  Nubis³ lists "realtime voxel cloud evolution + on-the-fly SDF generation" as
+  future work.
+  - The weather/coverage field evolves over time: advected and noise-driven
+    growth and decay, cumulus life cycles of about 5–20 minutes, with a
+    `timeScale` knob for demos.
+  - The NVDF and SDF regenerate incrementally in amortized jobs, double-buffered
+    so the renderer always reads a complete field, and crossfade between
+    generations so updates don't pop. For example, keep two volumes and blend
+    their density by t in the sampler, or regenerate slices continuously.
+  - Measure cost per frame at 512²×64 and choose an update cadence (for
+    example a full regeneration every N seconds, amortized).
+- **Demo:** the `evolve` page shows a time-lapse of a cumulus field forming and
+  dissipating from the ground and from above, with `?timeScale=` and the
+  capture contract.
+- **Acceptance:**
+  - Captures at t = 0, 30, 60, 90, 120 s (time-lapse) show visibly changing
+    clouds: growth and dissipation of individual cells.
+  - Consecutive frames show no pop (mean |Δ| per frame small).
+  - Added cost ≤ +1 ms per frame (report it).
+  - Frame p95 ≤ 1.5× p50 during evolution.
+  - `pnpm check` green.
+
 ## Phase 7 — Release
 
 ### [x] P7-A React Three Fiber v10 bindings · Sonnet
@@ -1068,6 +1098,30 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     steady. Show a trace in the report.
   - No visual regressions on high (A/B mean |Δ| ≈ noise).
   - Parity passes; `pnpm check` green.
+
+### [~] P7-B Docs and package readiness · Sonnet
+- **Owns:**
+  - `packages/{runtime,three,react}/README.md` (new or rewritten)
+  - `docs/guide/**` (new: getting started, API reference, presets and
+    performance, authoring clouds from Houdini/Blender/VDB, demos tour)
+  - the package `exports`/`files`/`peerDependencies` fields in
+    `packages/{runtime,three,react}/package.json` (not versions or names; P7
+    publish names are the user's call)
+  - `scripts/check-bundle.mjs` (new)
+- **Read-only:** all source; the work reports for facts and numbers.
+- **Does:**
+  - Accurate, concise docs drawn from the actual code: real signatures, real
+    defaults, real numbers from the reports. Show the 9-line three.js and
+    2-line React integrations, the VDB drop and Houdini recipes, tiers and
+    auto quality, and memory and cost tables.
+  - A bundle-size script that esbuild-bundles each package entry (three and
+    react external) and reports gzipped sizes.
+- **Acceptance:**
+  - Docs build-free markdown with links that resolve (run a link check).
+  - Every code sample in the docs typechecks (extract it into a scratch `.ts`
+    and run `tsc`).
+  - The core bundle size is reported against the < 60 KB gzip target.
+  - `pnpm check` green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
