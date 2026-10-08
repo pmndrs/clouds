@@ -89,14 +89,17 @@ try {
   if (ready.error) throw new Error('Page did not become ready: ' + ready.error);
   const settle = `(async () => { const c = window.__clouds; if (c.settle) return c.settle(${settleFrames}); for (let i = 0; i < ${settleFrames}; i++) await new Promise(r => requestAnimationFrame(r)); })()`;
   mkdirSync(out, { recursive: true });
+  const seen = new Map();
   for (const shot of shots.length ? shots : ['view']) {
+    const n = (seen.get(shot) ?? 0) + 1; seen.set(shot, n);
+    const fileName = n > 1 ? `${shot}-${n}` : shot; // repeated shots (e.g. flicker checks) keep separate files
     if (shot !== 'view') await eval_(`window.__clouds.bookmark ? window.__clouds.bookmark(${JSON.stringify(shot)}) : Promise.reject(new Error('page has no bookmark()'))`);
     await eval_(settle);
     const pageReport = await eval_(`(() => { const c = window.__clouds; return c.report ? c.report() : null; })()`);
     const { data } = await cdp.send('Page.captureScreenshot', { format, ...(format === 'jpeg' ? { quality: 88 } : {}) });
-    const file = join(out, `${shot}.${format === 'jpeg' ? 'jpg' : 'png'}`);
+    const file = join(out, `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`);
     writeFileSync(file, Buffer.from(data, 'base64'));
-    report.shots.push({ name: shot, file: file.slice(root.length + 1), report: pageReport });
+    report.shots.push({ name: fileName, file: file.slice(root.length + 1), report: pageReport });
     console.log(`captured ${shot} -> ${file.slice(root.length + 1)}${pageReport?.gpuMs ? '  gpu ' + JSON.stringify(pageReport.gpuMs) : ''}`);
   }
   for (const e of cdp.events) {

@@ -326,7 +326,32 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
   - Composite cost delta ≤ 0.2 ms at 2560×1440.
   - Totals still meet the P1-06 budgets.
 
-- P1-08 Visual acceptance and timing: all bookmarks on both clouds, side by side with Tidewater (`work/captures/P0-04/`), and a timing table against the P1 measures.
+- [x] P1-08 Phase 1 acceptance by the orchestrator: technical measures pass, look measures partial → P1-09 ([report](reports/P1-08.md)).
+
+### [~] P1-09 Art pass: inner glow, dark edges and undersides · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{shaders/march.wgsl.ts,runtime.ts}`: lighting terms and default settings only
+  - `examples/lab/flagship/bookmarks.ts`: add `frontlit`, with the sun behind the camera
+- **Does:**
+  - Tune the Nubis terms so the three signature looks read clearly on **both**
+    clouds:
+    - **Dark edges when front-lit:** low in-scatter at the edges. Rebalance the
+      ambient `pow(1 − P, 0.5)` and the ms term, or modulate HG by the profile
+      (Schneider SY s60).
+    - **Inner glow when backlit:** Parkouring is currently weak.
+    - **Blue-grey sky-lit undersides** like Tidewater.
+    - **Wispier undersides:** bias detail type toward wispy at low height
+      fraction (Nubis SY s37) as a runtime setting. Don't change the assets.
+  - Keep everything art-directable through settings, with no literal colours.
+- **Acceptance:**
+  - Side-by-side images (ours vs `work/captures/P0-04/` Tidewater, and the
+    P1-07 baseline) for `ground`, `frontlit`, `backlit` and `edge` on both
+    clouds, saved as composite jpgs in `work/captures/P1-09/`.
+  - The report says plainly whether each signature look reads.
+  - Cost unchanged within 0.3 ms.
+  - The parity page still passes. Density changes are allowed only through new
+    settings that default to the Nubis values.
+
 
 
 ## Ahead of phase (parallel, no file overlap with P1)

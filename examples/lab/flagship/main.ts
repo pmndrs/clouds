@@ -6,7 +6,7 @@ import { Sky } from '@pmndrs/sky';
 import { createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQuality } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
-import { BOOKMARK_NAMES, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
+import { BOOKMARK_NAMES, INSIDE_POINT, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
 import { createCloudBridge } from './three-bridge';
 import { CameraRig } from './controls';
 import { createSkyBridge } from './sky-bridge';
@@ -52,7 +52,10 @@ try {
   const skyBridge = createSkyBridge(renderer, sky);
   const runtime = createCloudRuntime(device, { quality: state.quality as CloudQuality, atmosphereLayout: skyBridge.layout });
   const bridge = createCloudBridge(renderer, runtime);
+  const assetStart = performance.now();
   const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume(`/clouds/${cloudName}/`), loadCloudNoise('/clouds/noise/')]);
+  const assetsLoadedAt = performance.now();
+  let firstCloudFrameMs = -1; // ms from assets loaded to the first frame the runtime encoded clouds
   await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset) });
   await runtime.setNoise(noiseAsset);
   for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number>)[key.slice(2)] = Number(value);
@@ -75,6 +78,18 @@ try {
   // compass azimuth / elevation in degrees (the library reports degrees)
   const sunNow = () => sunVector(sky.sunAzimuth, sky.sunElevation);
   const applyBookmark = (name: string) => {
+    // `path:<t>` flies from the edge bookmark (t = 0) to the inside point (t = 1), looking at the edge target:
+    // sampled by the capture harness to check for popping across the near/far split.
+    const path = /^path:([0-9.]+)$/.exec(name);
+    if (path) {
+      const t = Math.min(1, Math.max(0, Number(path[1])));
+      setTime(bookmarkTime('edge'));
+      const a = resolveBookmark('edge', sunNow());
+      const pos = a.position.map((v, i) => v + (INSIDE_POINT[i] - v) * t) as [number, number, number];
+      const dir = a.target.map((v, i) => v - a.position[i]);
+      rig.set(pos, pos.map((v, i) => v + dir[i]) as [number, number, number]);
+      return;
+    }
     if (!isBookmarkName(name)) throw new Error(`unknown bookmark: ${name}`);
     state.bookmark = name;
     setTime(query.has('time') && !state.animateTime ? Number(query.get('time')) : bookmarkTime(name));
@@ -179,6 +194,7 @@ try {
       }).then(ms => { if (typeof ms === 'number' && ms > 0) extraGpu.skyCompute = ms; }).catch(() => {}).finally(() => { timestampBusy = false; });
     }
     if (frame++ % 10 === 0) updateHud();
+    if (firstCloudFrameMs < 0 && runtime.ready) firstCloudFrameMs = performance.now() - assetsLoadedAt;
     harness.frame();
   };
   renderer.setAnimationLoop(loop);
@@ -187,7 +203,7 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame }),
+    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));
