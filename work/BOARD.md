@@ -919,6 +919,43 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Conversion times are reported.
   - `pnpm check` green.
 
+## Quality track
+
+### [~] Q-1 Billow-scale self-shadowing and detail: closing on offline quality · Fable
+- **Owns:**
+  - `packages/runtime/src/shaders/{march.wgsl.ts,lighting.wgsl.ts,density.wgsl.ts}`;
+    density changes must keep the P1-04 parity page passing at Nubis defaults,
+    or get documented new defaults with a parity variant
+  - settings defaults in `runtime.ts` (minimal edits)
+- **Evidence:** `work/captures/P4-G/disney-vs-hyperion.jpg`. Our version
+  matches silhouette and shading direction, but the body is a smooth white mass
+  where Hyperion shows crisp, self-shadowed cauliflower billows. Every cloud we
+  render shares this (Parkouring, generated cumulus, heroes).
+- **Hypotheses** (verify; don't assume):
+  1. **Missing billow-scale self-shadowing.** The in-line sun samples sit about
+     8 and 32 m out with 4 m reuse; billows need 2–10 m occlusion, using full
+     up-rezzed density.
+  2. **Noise frequency and amplitude** at hero scale: tile 100 m, billowy ×0.3
+     erosion. Check against Nubis s91–109; detail may be too weak or too
+     coarse.
+  3. **Ambient and ms terms flatten contrast.**
+  4. **Half/third-res march plus upsample** softens micro-detail.
+- **Does:** find the dominant causes with A/B captures, then fix within budget:
+  - micro self-shadowing (for example 1–2 extra short full-density samples, or
+    a gradient-based occlusion trick)
+  - detail strength and scale tuned per Nubis, art-directable
+  - edge contrast
+- **Acceptance:**
+  - The Disney cloud (`?cloud=disney`, `edge` at `time=15`) shows visibly
+    self-shadowed billow structure in a side-by-side with Hyperion and the
+    P4-G baseline.
+  - Parkouring, cumulus `ground` and onsen `vantage` also improve, with
+    before/after composites.
+  - Cost: march within +0.6 ms at 2560×1440 high on the flagship's `edge` and
+    `inside`.
+  - Parity passes (or a documented variant); `pnpm check` green.
+  - Be honest about what remains versus offline.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
