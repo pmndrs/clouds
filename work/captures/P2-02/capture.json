@@ -1,0 +1,94 @@
+{
+  "url": "http://127.0.0.1:62481/three-adapter/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:26:09.284Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P2-02/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.3869024166666667,
+          "lightGrid": 0.100406,
+          "marchNear": 0.20928208333333329,
+          "marchFar": 0.7282477833333334,
+          "composite": 0.5745781499999999
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 96,
+        "cloudsReady": true
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P2-02/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5325980333333334,
+          "lightGrid": 0.100406,
+          "marchNear": 0.19670123333333328,
+          "marchFar": 1.0994304833333333,
+          "composite": 0.9263884833333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 191,
+        "cloudsReady": true
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P2-02/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6461172333333335,
+          "lightGrid": 0.08272488888888888,
+          "marchNear": 0.25950710000000005,
+          "marchFar": 1.5218059500000003,
+          "composite": 1.7047615833333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "haze": false,
+        "frames": 286,
+        "cloudsReady": true
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

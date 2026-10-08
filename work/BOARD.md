@@ -377,7 +377,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     outside `packages/legacy`.
   - `@clouds/three` and `@clouds/react` are free names.
 
-### [~] P2-02 `@clouds/three` adapter: `Clouds` and the TSL node · Sonnet
+### [x] P2-02 `@clouds/three` adapter: `Clouds` and the TSL node · Sonnet
 - **Owns:** `packages/three/**` (new adapter; `package.json` and stub exist) and
   `examples/lab/three-adapter/**`.
 - **Read-only:**
