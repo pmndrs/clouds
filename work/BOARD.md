@@ -1033,6 +1033,42 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The user-facing code in the demo is ≤ 20 lines for clouds.
   - `pnpm check` green.
 
+### [~] P5-C Tiers that scale, auto tier, dynamic resolution, composite and memory · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{runtime.ts,shaders/composite.wgsl.ts,shaders/temporal.wgsl.ts}` and presets
+  - `packages/three/src/**`, for auto-tier and dynamic-resolution wiring
+  - `examples/lab/flagship/**`, `examples/lab/open-water/**` and `examples/lab/plains-flight/**`, for measurement
+- **Problems:**
+  - Low and medium barely save time (P2-05).
+  - The composite costs about 1 ms at 1440p and is now the largest pass.
+  - The temporal history uses about 63 MB at 1440p, too much for phones.
+  - There is no automatic scaling.
+- **Does:**
+  - **Composite:** reduce cost, for example by merging the resolve and
+    composite, cheaper depth-aware taps, skipping sky-only tiles, or running at
+    a lower resolution for transparent areas. Target ≤ 0.5 ms at 1440p with no
+    visual change.
+  - **Memory:** pack the history (for example rgba16f colour plus r16f depth,
+    or history at march resolution only). Target ≤ 25 MB at 1440p, and report
+    the totals per preset.
+  - **Tiers:** `ultra`/`high`/`medium`/`low`/`mobile` with real levers: render
+    scales, near/far k, step budgets, light-grid size, dome size, sky-layer
+    resolution, and the sky layer only on mobile beyond N km. Each tier gets a
+    measured cost table on flagship, open-water and plains-flight at 2560×1440
+    and 1280×720. Target low ≈ 50% and mobile ≈ 25% of high's cost.
+  - **Auto:** `quality: 'auto'` picks a tier from adapter info and limits, then
+    adjusts dynamic resolution (render scale) from the GpuTimer feedback toward
+    a configurable cloud budget in ms, with hysteresis and no oscillation.
+    Wire it into `@clouds/three` and show it in the flagship HUD.
+- **Acceptance:**
+  - The tables above.
+  - Composite ≤ 0.5 ms and history ≤ 25 MB at 1440p high.
+  - Low and mobile hit their ratios.
+  - Auto converges to the budget (for example 2 ms) within 2 s and holds
+    steady. Show a trace in the report.
+  - No visual regressions on high (A/B mean |Δ| ≈ noise).
+  - Parity passes; `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
