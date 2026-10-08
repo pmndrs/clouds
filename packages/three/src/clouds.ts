@@ -165,7 +165,7 @@ export class Clouds {
     if (this.disposed) return;
     this.disposed = true;
     this.ready.value = 0;
-    this.runtime.dispose(); this.skyBridge?.dispose(); this.uniformLighting?.dispose(); this.cloudTexture.dispose(); this.domeTexture.dispose();
+    this.runtime.dispose(); this.timer.dispose(); this.skyBridge?.dispose(); this.uniformLighting?.dispose(); this.cloudTexture.dispose(); this.domeTexture.dispose();
     for (const n of this.nodes) n.dispose();
     this.nodes.clear();
   }

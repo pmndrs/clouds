@@ -1,0 +1,130 @@
+{
+  "url": "http://127.0.0.1:55990/r3f/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T15:21:22.580Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P7-A/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.25658215,
+          "lightGridReduce": 0.068081,
+          "lightGrid": 0.082413,
+          "marchNear": 0.21958958333333328,
+          "resolveNear": 0.12023358333333335,
+          "marchFar": 0.2552378,
+          "resolveFar": 0.10983854999999994,
+          "composite": 0.25222049999999996,
+          "dome": 0.047019466666666676
+        },
+        "frameMs": {
+          "p50": 16.699999999999715,
+          "p95": 16.70000000000005
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "haze": null,
+        "frames": 95,
+        "cloudsReady": true,
+        "gpu": {
+          "liveTextures": 53,
+          "liveBuffers": 85,
+          "texturesCreated": 58,
+          "buffersCreated": 101,
+          "errors": [],
+          "devicesLost": 0
+        }
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P7-A/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7639512833333334,
+          "lightGridReduce": 0.068081,
+          "lightGrid": 0.082413,
+          "marchNear": 0.21695093333333335,
+          "resolveNear": 0.1542552333333333,
+          "marchFar": 0.5512742666666666,
+          "resolveFar": 0.15995594999999993,
+          "composite": 0.49482014999999974,
+          "dome": 0.05934006666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999715,
+          "p95": 16.70000000000016
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "haze": null,
+        "frames": 190,
+        "cloudsReady": true,
+        "gpu": {
+          "liveTextures": 53,
+          "liveBuffers": 85,
+          "texturesCreated": 58,
+          "buffersCreated": 101,
+          "errors": [],
+          "devicesLost": 0
+        }
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P7-A/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5225545833333334,
+          "lightGridReduce": 0.068081,
+          "lightGrid": 0.14755744444444444,
+          "marchNear": 0.17603485000000008,
+          "resolveNear": 0.07825710000000002,
+          "marchFar": 0.45870411666666666,
+          "resolveFar": 0.09949846666666667,
+          "composite": 0.30440924999999996,
+          "dome": 0.05551150000000001
+        },
+        "frameMs": {
+          "p50": 16.699999999999715,
+          "p95": 16.700000000001047
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "haze": null,
+        "frames": 284,
+        "cloudsReady": true,
+        "gpu": {
+          "liveTextures": 53,
+          "liveBuffers": 85,
+          "texturesCreated": 58,
+          "buffersCreated": 101,
+          "errors": [],
+          "devicesLost": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

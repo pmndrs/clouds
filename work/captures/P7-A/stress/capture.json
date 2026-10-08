@@ -1,0 +1,71 @@
+{
+  "url": "http://127.0.0.1:55649/r3f/?stress=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T15:20:51.235Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P7-A/stress/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.26227093333333334,
+          "lightGridReduce": 0.067041,
+          "lightGrid": 0.081916,
+          "marchNear": 0.20793084999999997,
+          "resolveNear": 0.11595098333333333,
+          "marchFar": 0.35240024999999997,
+          "resolveFar": 0.12752499999999997,
+          "composite": 0.3267054,
+          "dome": 0.06401624999999998
+        },
+        "frameMs": {
+          "p50": 16.70000000000016,
+          "p95": 16.70000000000016
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "haze": null,
+        "frames": 1504,
+        "cloudsReady": true,
+        "gpu": {
+          "liveTextures": 53,
+          "liveBuffers": 85,
+          "texturesCreated": 292,
+          "buffersCreated": 364,
+          "errors": [],
+          "devicesLost": 0
+        },
+        "stress": {
+          "texturesGrown": {},
+          "buffersGrown": {
+            "bindingBuffer19_object_(vertex,fragment,compute)": "1 -> 0",
+            "bindingBuffer49_object_(vertex,fragment,compute)": "0 -> 1"
+          },
+          "step": 15,
+          "steps": 16,
+          "name": "back to baseline",
+          "done": true,
+          "baselineTextures": 53,
+          "baselineBuffers": 85,
+          "finalTextures": 53,
+          "finalBuffers": 85,
+          "texturesCreated": 292,
+          "buffersCreated": 364
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

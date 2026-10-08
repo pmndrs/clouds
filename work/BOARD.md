@@ -1018,7 +1018,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Phase 7 — Release
 
-### [~] P7-A React Three Fiber v10 bindings · Sonnet
+### [x] P7-A React Three Fiber v10 bindings · Sonnet
 - **Owns:** `packages/react/**` (new `@clouds/react`; stub exists) and `examples/lab/r3f/**` (wired).
 - **Read-only:** `packages/three` (the adapter; consume its public API), `packages/runtime`, `node_modules/@react-three/fiber` (v10 alpha) and `node_modules/@pmndrs/sky` (its `react` entry, `<Sky>`, `useSky`, `<AutoHaze>`, and how it hooks the R3F v10 render pipeline: `useRenderPipeline`).
 - **Does:** idiomatic R3F v10 bindings.
