@@ -298,7 +298,34 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
   - `pnpm check` green; the parity page still passes
   - **Frame stability:** with `?animateTime=1`, p95 ≤ 1.5× p50
 
-- P1-07 Cloud shadow on the ground (from the light grid or a projected map).
+### [~] P1-07 Cloud shadows on scene geometry · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{runtime.ts,shaders/composite.wgsl.ts,shaders/frame.wgsl.ts}`
+  - `examples/lab/flagship/{main.ts,three-bridge.ts,bookmarks.ts}`
+- **Does:** screen-space cloud shadowing, renderer-agnostic, in the composite.
+  - **Shadow factor:** for pixels with opaque scene depth, reconstruct the world
+    position, intersect the sun ray with the cloud volume, and read the light
+    grid's summed sun density at the entry point (slightly inside), which is the
+    total optical depth to the sun.
+  - **Formula:** `shadow = mix(1, 0.8·exp(−σ·τ) + 0.2·exp(−σ·τ/4), strength)`,
+    following Tidewater's soft term.
+  - **Output:** composite alpha becomes `T_cloud · shadow`, so the caller's
+    `scene · a + rgb` shades the scene with no API change. Sky pixels are never
+    shadowed.
+  - Add a `shadowStrength` setting.
+  - Shadows need a full light grid even when the camera can't see the cloud.
+    Note any frame-order issue.
+  - Fix the horizon seam visible at the left of `work/captures/P1-05/edge.jpg`
+    if it comes from the flagship ground setup.
+  - Add a `shadow` bookmark: a camera on the ground in the cloud's shadow,
+    looking along it so the shadow edge on the ground is visible.
+- **Acceptance:**
+  - `pnpm check` green.
+  - A capture of `ground,edge,shadow,above` on both clouds shows a visible,
+    soft-edged shadow consistent with the sun direction.
+  - Composite cost delta ≤ 0.2 ms at 2560×1440.
+  - Totals still meet the P1-06 budgets.
+
 - P1-08 Visual acceptance and timing: all bookmarks on both clouds, side by side with Tidewater (`work/captures/P0-04/`), and a timing table against the P1 measures.
 
 
