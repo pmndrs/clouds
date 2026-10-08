@@ -1,0 +1,243 @@
+# Quality and performance
+
+Every number here comes from a work report (named in brackets) and was measured on one machine: an Apple
+M-series GPU on Metal, headless Chrome, `timestamp-query` per pass. Treat them as ratios and orders of magnitude.
+GPU times are for the cloud passes only unless a row says "whole frame".
+
+**How the numbers were taken.** A vsync-locked page lets the GPU idle at low clocks, so small passes read two to
+four times slower and 30 percent noisier than at full clock. The tier tables below are full-clock: Chrome with
+`--disable-gpu-vsync --disable-frame-rate-limit`, 1500 to 2500 settle frames, per-pass median of 150 frames, the
+better of two interleaved runs, spread under 5 percent [P5-C]. Idle-clock numbers are noted where they appear.
+The sum of "cloud passes" is `marchNear + resolveNear + marchFar + resolveFar + composite + dome` (plus the sky layer
+when on) and **excludes the light grid**, which is driven by the sun, amortized over 8 to 16 frames and cannot be scaled.
+
+## Choosing a tier
+
+```ts
+import type { WebGPURenderer } from 'three/webgpu';
+import { Clouds, CLOUD_QUALITIES } from '@clouds/three';
+
+declare const renderer: WebGPURenderer; // initialised, `trackTimestamp: true`
+
+// A fixed tier:
+const clouds = new Clouds(renderer, { quality: 'medium' });
+console.log(CLOUD_QUALITIES); // ['mobile', 'low', 'medium', 'high', 'ultra']
+clouds.setQuality('low');     // switch at run time: a one-frame history cut
+
+// Or let the device and the GPU timer decide (see "Auto quality"):
+const auto = new Clouds(renderer, { quality: 'auto', budgetMs: 2 });
+console.log(auto.auto?.tier, auto.auto?.reasons, auto.auto?.scale);
+```
+
+| Tier | Intent |
+| --- | --- |
+| `'ultra'` | The reference: 0.5x near, 0.75x far, 1024 steps, no temporal amortization, light grid at full size. Costs 2 to 5 times `'high'` in the demo views. Never picked by `'auto'`. |
+| `'high'` | The default. 0.5 to 1.5 ms on a large GPU at 2560x1440 in the demo scenes. |
+| `'medium'` | Coarser steps (x1.5) and a looser cutoff; about 80 percent of `'high'`. |
+| `'low'` | About half of `'high'`. Half-size composite, smaller light grid and dome, no billow micro-shadow. Softer, keeps the shapes. |
+| `'mobile'` | About a quarter to a third of `'high'`. No near pass (everything is the far pass), far range capped at 6 km, dome off until something reflects the clouds. Only measured on a desktop GPU. |
+
+### What a tier changes
+
+`CLOUD_QUALITY_PRESETS` in [`runtime.ts`](../../packages/runtime/src/runtime.ts). Scales are fractions of the output
+size (linear, per axis); "k" is the temporal rate: the pass traces `1/k` of its pixels per frame and resolves the rest from reprojected history.
+
+| | ultra | high | medium | low | mobile |
+| --- | --- | --- | --- | --- | --- |
+| near / far scale | 0.5 / 0.75 | 0.28 / 0.41 | 0.25 / 0.4 | 0.18 / 0.26 | off / 0.15 |
+| near/far split (m) | 240 | 200 | 200 | 160 | 0 |
+| max steps | 1024 | 768 | 512 | 320 | 160 |
+| transmittance cutoff | 0.005 | 0.01 | 0.03 | 0.05 | 0.08 |
+| temporal k (near / far) | 1 / 1 | 4 / 4 | 4 / 4 | 4 / 4 | 4 / 4 |
+| step scale | 1 | 1 | 1.5 | 2 | 2 |
+| billow micro-shadow (m) | 4 | 4 | 4 | 0 | 0 |
+| detail octave distance (m) | 150 | 150 | 150 | 100 | 60 |
+| far limit (m) | none | none | none | none | 6000 |
+| light-grid divisor | 1 | 1 | 1 | 2 | 2 |
+| dome size / steps | 256 / 96 | 256 / 96 | 256 / 64 | 128 / 48 | 64 / 32 |
+| sky-layer scale | 0.25 | 0.25 | 0.25 | 0.2 | 0.125 |
+| composite scale | 1 | 1 | 1 | 0.5 | 0.5 |
+| dome on by default | yes | yes | yes | yes | no |
+
+Composite scale 0.75 and 0.33 were slower than 0.5 (a non-integer depth footprint), so only 1 and 0.5 are allowed [P5-C].
+Scene depth is read at scene size either way.
+
+## Cost tables
+
+Cloud passes only, full clock, GPU ms [P5-C]. "flagship" is the Parkouring pack in the lab flagship page; "open-water" and
+"plains" are the generated 512x512x64 cumulus scenes (see [demos](demos.md)).
+
+**2560x1440**
+
+| view | ultra | high | medium | low | mobile | low / high | mobile / high |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| flagship ground | 0.88 | 0.45 | 0.40 | 0.25 | 0.15 | 56% | 33% |
+| flagship edge | 0.95 | 0.59 | 0.48 | 0.31 | 0.19 | 53% | 32% |
+| flagship inside | 6.04 | 1.12 | 0.91 | 0.48 | 0.28 | 43% | 25% |
+| open-water horizon | 3.37 | 1.39 | 1.07 | 0.59 | 0.40 | 42% | 29% |
+| open-water flight | 4.25 | 1.33 | 1.05 | 0.59 | 0.42 | 44% | 32% |
+| plains t0 | 3.56 | 0.94 | 0.77 | 0.44 | 0.24 | 47% | 26% |
+| plains t15 | 5.62 | 1.40 | 1.08 | 0.54 | 0.28 | 39% | 20% |
+| plains t30 | 6.25 | 1.53 | 1.21 | 0.61 | 0.32 | 40% | 21% |
+
+**1280x720**
+
+| view | ultra | high | medium | low | mobile | low / high | mobile / high |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| flagship ground | 0.27 | 0.21 | 0.18 | 0.13 | 0.09 | 62% | 43% |
+| flagship edge | 0.40 | 0.27 | 0.23 | 0.18 | 0.12 | 67% | 44% |
+| flagship inside | 1.97 | 0.43 | 0.37 | 0.23 | 0.16 | 53% | 37% |
+| open-water horizon | 1.39 | 0.63 | 0.48 | 0.32 | 0.23 | 51% | 37% |
+| open-water flight | 1.50 | 0.58 | 0.43 | 0.29 | 0.21 | 50% | 36% |
+| plains t0 | 1.14 | 0.47 | 0.36 | 0.23 | 0.13 | 49% | 28% |
+| plains t15 | 1.96 | 0.58 | 0.44 | 0.27 | 0.16 | 47% | 28% |
+| plains t30 | 2.29 | 0.64 | 0.47 | 0.29 | 0.17 | 45% | 27% |
+
+Reading them:
+
+- `'low'` is about half of `'high'` (39 to 56 percent at 1440p, 45 to 67 percent at 720p). `'mobile'` is 20 to 33 percent at 1440p, and 25 percent only on the dense views.
+- The cheap views are bound by per-pass floors (about 0.02 ms a pass, composite 0.05, the far march 0.07 to 0.1 even at 20 to 37 thousand threads), not by pixels, on a large GPU. A phone GPU has far fewer cores, so pixel cost should dominate there and the ratios should be better; that has not been measured.
+- Idle-clock (vsync) flagship at 2560x1440, best of 3: `'high'` 1.57 / 1.87 / 2.66 ms (ground / edge / inside), `'low'` 1.18 / 1.06 / 1.19, `'mobile'` 0.62 / 0.63 / 1.00.
+- The composite at 2560x1440 `'high'` is 0.12 / 0.15 / 0.19 ms at full clock (0.40 / 0.52 / 0.44 idle-clock) [P5-C].
+- **Temporal amortization** (k = 4) took the `'high'` cloud passes of the flagship from 2.69 / 2.92 / 3.97 ms (k = 1, ground / edge / inside) to 2.15 / 2.02 / 3.16 ms, and the plains flight from 2.4 to 6.1 ms (k = 1) to 2.1 to 3.4 ms (min of 3 runs, shared GPU, run-to-run noise about 0.3 ms) [P5-B]. It is not 4x because rays inside thick cloud are latency-bound, and the resolve passes cost 0.05 to 0.2 ms each. These are pre-P5-C tier scales.
+- Whole-frame references (2560x1440, `'high'`, vsync at 60 fps): open-water 5 to 6 ms of GPU in steady state [P2-06]; the onsen valley 9 to 14 ms with a heavy terrain scene (clouds 5 to 10 ms before P5) [P4-D].
+
+### Cost of operations
+
+| Operation | Cost | Source |
+| --- | --- | --- |
+| Generate a 512x512x64 field | 17 ms GPU in one shot, or 96 jobs of about 0.34 ms spread over frames | P5-A |
+| Stream a window swap | invisible; 48 frames at 2 jobs a frame, worst encode and submit 0.2 ms; the swap frame spikes about 1 ms (light grid) | P3-D, P5-A |
+| Light grid after a sun change | rebuilt over 8 frames for small grids (16 at 256x256x32, more for larger), restarted if the sun moves more than 0.5 degrees | `light-grid.ts` |
+| `stampCloud` | 0.02 to 0.08 ms GPU per stamp | P4-C |
+| SDF rebuild after stamping | 7.7 ms for 384x384x96 in one shot | P5-A |
+| `.vdb` drop, Nubis pack file (45 MB) | 64 ms total (166 ms in a fresh page, pipeline creation included) | P4-H |
+| `.vdb` drop, artist fog (WDAS eighth) | 1.9 s | P4-H |
+| `.vdb` drop, 80 MB ZIP file | 6.8 s (the pure-TS inflate dominates; Blosc lz4 and uncompressed files parse in tens of ms) | P4-H |
+| `setVolume` / `setNoise` / `setQuality` / resize | a history cut: every pixel of both march passes is traced that frame (about twice a normal frame's march) | P5-B |
+
+## Auto quality
+
+`quality: 'auto'` does two things [P5-C]:
+
+1. **Picks the starting tier** from what the adapter says (`selectTier`). It never picks `'ultra'`.
+
+   | Device | Tier |
+   | --- | --- |
+   | Software adapter (SwiftShader, llvmpipe, WARP) | `'mobile'` |
+   | Adreno, Mali, PowerVR, Immortalis, Xclipse, VideoCore, Broadcom | `'mobile'` |
+   | Apple GPU on a phone or tablet | `'low'` |
+   | Apple GPU on a desktop | `'high'` |
+   | Intel integrated; old discrete (Pascal, Maxwell, Kepler, GCN, Polaris, Vega) | `'medium'` |
+   | Intel Arc, current NVIDIA and AMD | `'high'` |
+
+   Then one tier down for outputs above about 5 MP (4K); a cap at `'low'` for mobile devices and for mobile-class
+   limits (`maxTextureDimension2D <= 8192`, `maxBufferSize < 1 GiB`) when you pass the `adapter` (a device's own limits
+   are just what it asked for, so they are ignored); `'mobile'` if `maxTextureDimension3D < 2048`. `clouds.auto.reasons` says why.
+2. **Moves the render scale** (`settings.renderScale`, range 0.5 to 1) toward `budgetMs` (default 3) of the controlled
+   passes, measured with `GpuTimer`. The scale is a sub-rectangle of the tier-sized textures, so changing it costs
+   nothing: no reallocation, no history cut (history is reprojected across the size change).
+
+The controller (`DynamicScale`, defaults in `AUTO_QUALITY_DEFAULTS`: `minScale` 0.5, `maxScale` 1, `window` 30,
+`minSamples` 14, `skip` 3, `over` 1.08, `under` 0.8): the cost is the median of the samples since the last change.
+It shrinks when the cost is above 1.08 x budget (area model, at most 30 percent a step) and grows only after two
+consecutive decisions below 0.8 x budget when the predicted cost still fits; a grow that is soon undone caps the
+scale for a while. Decisions need 14 fresh samples, so there is at most one every 15 to 20 frames.
+
+```ts
+import type { Clouds } from '@clouds/three';
+
+declare const clouds: Clouds; // created with quality: 'auto'
+
+setInterval(() => {
+  const a = clouds.auto;
+  if (!a) return;
+  console.log(`tier ${a.tier}, scale ${a.scale.toFixed(2)}, cost ${a.costMs.toFixed(2)} / ${a.budgetMs} ms, measured ${a.measured}`);
+}, 1000);
+
+clouds.setBudget(2);        // tighten at run time
+clouds.setBudget(Infinity); // pin the render scale at 1
+```
+
+What it does and does not do [P5-C]:
+
+- Cost does not fall with scale as fast as pixel area: scale 1 to 0.5 took 3.0 to 2.1 ms in the thick-cloud `inside` view. A budget below what the floor reaches (0.5) is infeasible and the scale sits at 0.5.
+- Convergence, 2560x1440, vsync harness: `inside` with a 2.5 ms budget goes 1.0 to 0.91 (frame 60), 0.83 (120), 0.64 (180), 0.55 (280 to 400) with the cost at 2.4 to 2.6 ms and no changes after frame 280; a 2 ms budget reaches the floor after about 5 s. `ground` with a 2 ms budget never leaves 1.0. So it settles in 2 to 5 s with a few 0.03 to 0.05 steps afterwards, not "within 2 s" on every view: single-frame pass times jump 2x on an idle GPU and clocks drift with load.
+- Without `timestamp-query` there is nothing to measure: it keeps the picked tier at scale 1. Request the feature (`trackTimestamp: true` on the renderer).
+- Switching a running `Clouds` to `'auto'` is not supported; create it that way. `setQuality(tier)` on an auto instance changes the tier and the scale controller keeps running on top.
+
+## Memory
+
+GPU memory the clouds hold, from `estimateCloudMemory(width, height, quality, { volumeDims })` (pure arithmetic that mirrors
+the allocations; `clouds.memory` / `runtime.memory` report the live numbers). MiB (1 MiB = 1,048,576 bytes). It
+does **not** count the volume and noise (the caller's, listed below) or the scene's own targets.
+
+Composition: *history* is two resolved pairs per march pass (rgba16float colour + one r32uint word with the
+log-coded distances); *trace* is the compact set of a pass's fresh samples (1/2 or 1/4 size, only while k > 1); *output*
+is the composite texture (the adapter's `StorageTexture` counts); the sky-layer targets are allocated even while the layer
+is off. 12 bytes per pixel, twice, is the floor of this design [P5-C].
+
+| Scene size, volume | tier | history | trace | sky | output | dome | light grid | **total** |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1920x1080, Parkouring (108x108x51) | ultra | 38.6 | 0.0 | 3.0 | 15.8 | 0.5 | 1.7 | **59.6** |
+| | high | 11.7 | 1.5 | 3.0 | 15.8 | 0.5 | 1.7 | **34.2** |
+| | medium | 10.6 | 1.3 | 3.0 | 15.8 | 0.5 | 1.7 | **32.9** |
+| | low | 4.7 | 0.6 | 1.9 | 4.0 | 0.1 | 0.3 | **11.6** |
+| | mobile | 1.1 | 0.1 | 0.7 | 4.0 | 0.0 | 0.3 | **6.2** |
+| 1920x1080, generated 512x512x64 | high | 11.7 | 1.5 | 3.0 | 15.8 | 0.5 | 48.0 | **80.5** |
+| | low | 4.7 | 0.6 | 1.9 | 4.0 | 0.1 | 6.0 | **17.3** |
+| 2560x1440, Parkouring | ultra | 68.6 | 0.0 | 5.3 | 28.1 | 0.5 | 1.7 | **104.2** |
+| | high | 20.8 | 2.6 | 5.3 | 28.1 | 0.5 | 1.7 | **59.0** |
+| | medium | 18.8 | 2.3 | 5.3 | 28.1 | 0.5 | 1.7 | **56.8** |
+| | low | 8.4 | 1.1 | 3.4 | 7.0 | 0.1 | 0.3 | **20.3** |
+| | mobile | 1.9 | 0.2 | 1.3 | 7.0 | 0.0 | 0.3 | **10.8** |
+| 2560x1440, generated 512x512x64 | high | 20.8 | 2.6 | 5.3 | 28.1 | 0.5 | 48.0 | **105.3** |
+| | low | 8.4 | 1.1 | 3.4 | 7.0 | 0.1 | 6.0 | **26.0** |
+
+The `'high'` history plus trace at 2560x1440 is 23.4 MiB (24.5 MB decimal), inside the 25 MB target; it was 63.5 MB
+before P5-C [P5-C]. At 1280x720 history plus trace is 18.0 (ultra), 6.1 (high), 5.5 (medium), 2.5 (low) and 0.6 MB (mobile).
+The light grid (three rgba16float 3D textures at half the volume's dims per axis) is the biggest item for a generated field.
+
+Volumes and generators (the caller's memory):
+
+| Item | Memory |
+| --- | --- |
+| A converted pack cloud, 4 bytes NVDF + 2 bytes SDF a voxel | Parkouring 108x108x51: 3.4 MB. The hero clouds are 1.4 to 3.6 MB. |
+| The cloud noise | 128^3 rgba8 with mips: 9.1 MiB on disk and on the GPU |
+| Generated 512x512x64 field | nvdf 67.1 + sdf 33.6 = 100.7 MB |
+| Generator work buffer, 512x512x64 | 33.6 MB (it was 302 MB before P5-A; steady generator 134 MB, was 403 MB) |
+| Streaming cloudscape (two windows, scratch, weather maps) | 237 MB (was 506 MB) |
+| Stamp target | a scratch NVDF copy the size of the target (67 MB at 512x512x64) per stamped target |
+
+Rules of thumb: file volumes are cheap; the light grid and generated volumes dominate; at `'low'` and below the light grid
+shrinks 8x. If memory matters, choose a smaller `dims` or a larger `voxelSize` for generated fields (only 8 m is verified), and use the `'low'` tier.
+
+## Practical advice
+
+- Create the instance with `quality: 'auto'` and a budget you can afford, and show `clouds.auto` in a debug HUD.
+- Never block on generation: pass `generator.generate(encoder, 2)` per frame, not `generate(encoder)`.
+- Edits that move the sun by more than 0.5 degrees in a frame restart the light-grid rebuild (it keeps the old grid until the new one is done). Normal day-cycle drift (about 0.1 degree a frame) is invisible.
+- Anything the runtime cannot see (a sky or lighting jump, a teleport) should call `clouds.core.resetTemporal()`. Camera jumps over 25 m, turns over 15 degrees in one frame, and sun jumps over 0.5 degree are detected automatically.
+- Wind is not compensated in the temporal history: a very fast `windVelocity` smears billow detail by up to k frames.
+- Do not give the scene pass MSAA; the clouds read its depth as a plain texture.
+- The `'ultra'` tier exists for reference captures. In thick cloud it costs 5 to 6 ms.
+- Shared GPUs lie: measure with the vsync caveat at the top of this page in mind.
+
+## Bundle size
+
+`node scripts/check-bundle.mjs` bundles each package entry with esbuild (three, react and `@pmndrs/*` external, minified,
+es2022) and prints raw, gzip and brotli sizes. The numbers below are from the working tree at P7-B and move with the code.
+
+| Package | build | raw | gzip | brotli |
+| --- | --- | --- | --- | --- |
+| `@clouds/runtime`, the whole entry | alone | 209.8 KB | 70.8 KB | 59.5 KB |
+| `@clouds/three` | alone | 11.2 KB | 4.2 KB | 3.8 KB |
+| `@clouds/three` | with `@clouds/runtime` tree-shaken to what it uses | 160.3 KB | **51.2 KB** | 43.4 KB |
+| `@clouds/react` | alone | 5.2 KB | 2.3 KB | 2.2 KB |
+| `@clouds/react` | with `@clouds/three` and `@clouds/runtime` | 177.4 KB | 57.7 KB | 48.7 KB |
+
+The core target is under 60 KB gzip. A consumer of `Clouds` ships 51.2 KB gzip, 57.7 KB with the React bindings. The
+**whole runtime entry** (every export, including the generator, stamping, the `.vdb` importer with its vendored parser,
+the sky layer and every shader string) is 70.8 KB gzip and goes over if your bundler cannot drop the exports you do not
+use. The packages are marked `sideEffects: false` so that it can. By minified size: generate 41.7 KB, the sky layer and
+its shader 38.2 KB, `.vdb` import and the vendored parser 30.3 KB, the core `runtime.ts` 21.9 KB, the rest are shaders.

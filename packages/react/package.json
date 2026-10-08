@@ -4,6 +4,19 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "peerDependencies": { "three": ">=0.186.0", "react": ">=19", "@react-three/fiber": ">=10.0.0-0", "@pmndrs/sky": ">=0.5.0" },
-  "peerDependenciesMeta": { "@pmndrs/sky": { "optional": true } }
+  "sideEffects": false,
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
+  "exports": {
+    ".": {
+      "types": "./src/index.tsx",
+      "import": "./src/index.tsx",
+      "default": "./src/index.tsx"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "!src/**/*.test.ts", "README.md"],
+  "dependencies": { "@clouds/runtime": "workspace:*", "@clouds/three": "workspace:*" },
+  "peerDependencies": { "three": ">=0.186.0", "react": ">=19", "@react-three/fiber": ">=10.0.0-0", "@pmndrs/sky": ">=0.5.0", "@webgpu/types": ">=0.1.60" },
+  "peerDependenciesMeta": { "@webgpu/types": { "optional": true } }
 }

@@ -1,0 +1,209 @@
+# Authoring clouds
+
+A cloud is three 8-bit channels per voxel plus a signed distance field:
+
+| Channel | Meaning |
+| --- | --- |
+| R, dimensional profile | 0 outside, rising toward the interior. The runtime erodes it with 3D noise (`sat((P - noise) / (1 - noise))`), so a profile that is a patchwork of mid values carves a cauliflower, and a plateau of 1 stays smooth. |
+| G, detail type | 0 wispy, 1 billowy. Mostly a function of height in Guerrilla's clouds. |
+| B, density scale | Multiplies the extinction. Rises with height in the packs. |
+| SDF (separate texture) | Metres, negative inside, never larger than the true distance. The march uses it to skip empty space. |
+
+You rarely write these by hand. You give the tools a **density volume** (a `.vdb`) and they derive the channels with a
+mapping fitted to Guerrilla's two example clouds [P4-B]. Four ways in, from least to most work:
+
+| Route | What you need | Time |
+| --- | --- | --- |
+| [Drop a `.vdb`](#in-browser-vdb-import) | A browser | tens of ms to a few seconds |
+| [hython converter](#hython-converter) | Houdini (Indie is fine) | 4 to 16 s |
+| [Cloud SOP recipe](#houdini-cloud-sop-recipe) / [Pyro sim recipe](#houdini-pyro-recipe) | Houdini | 20 to 30 s per cloud |
+| [Blender via VDB export](#blender-via-vdb-export) | Blender, plus a small amount of checking | untested here |
+| [Generate](api.md#generate-a-cloudscape) | Nothing; presets | 17 ms |
+
+Then [stamp](#stamping-and-cutouts) the result into a generated cloudscape.
+
+## Budgets and limits
+
+- **Dense storage.** `nvdf` (4 bytes) + `sdf` (2 bytes) are dense over the bounding box: 6 bytes a voxel. A 4 MB cap is about 650 thousand voxels at 8 m (for example 85x92x62). The first tower, 1.2 km by 900 m, came to 7.5 MB and had to be built at 0.77 scale.
+- **8 m voxels.** Everything is tuned and verified at 8 m. The loader accepts other sizes (12 m for bigger clouds) but they are not verified.
+- **Detail finer than about 25 m is not representable** at 8 m voxels. Fine lobes (5 to 20 m) of a Hyperion-quality cloud are out of reach; the 100 m noise tiles carry the small scale [Q-1, P4-G].
+- Rotation: the importer and converter require an axis-aligned transform with cubic voxels.
+
+## In-browser `.vdb` import
+
+Drop a `.vdb` file on the [vdb-drop demo](demos.md#vdb-drop) (`pnpm dev`, then `/vdb-drop/`). There is no Houdini or Python step; the
+output is a normal `GpuCloudVolume` that you give to `clouds.setVolume`. As a check, Guerrilla's own Parkouring VDB
+imports **byte-exact** against the pack's TGA conversion (R, G and B 100.0000 percent exact, occupancy mismatch 0) in 64 ms [P4-H].
+
+```ts
+import { importVdb, VdbImportError, type GpuCloudVolume } from '@clouds/runtime';
+import { sharedBackend, type Clouds } from '@clouds/three';
+import type { WebGPURenderer } from 'three/webgpu';
+
+declare const renderer: WebGPURenderer;
+declare const clouds: Clouds;
+
+const device = sharedBackend(renderer).device;
+let shown: GpuCloudVolume | undefined;
+
+addEventListener('dragover', event => event.preventDefault());
+addEventListener('drop', async event => {
+  event.preventDefault();
+  const file = event.dataTransfer?.files[0];
+  if (!file) return;
+  try {
+    // targetWidthMeters scales an artist VDB (usually in real-world units) so its larger horizontal extent is 1.5 km
+    const { volume, info } = await importVdb(device, await file.arrayBuffer(), { voxelSize: 8, targetWidthMeters: 1500 });
+    await clouds.setVolume(volume, { position: [0, 500, 0] }); // base centre
+    shown?.destroy(); // the clouds now read the new volume; the old one is yours to free
+    shown = volume;
+    console.log(info.mode, info.dims, `${info.timings.totalMs.toFixed(0)} ms`, info.notes);
+  } catch (error) {
+    if (error instanceof VdbImportError) console.warn(`${error.code}: ${error.message}`); // says what to change in Houdini
+    else throw error;
+  }
+});
+```
+
+**Modes** (`mode: 'auto'` picks):
+
+| Mode | Input | Result |
+| --- | --- | --- |
+| `pack` | A `dimensional_profile` grid (Guerrilla's NVDF VDBs: `dimensional_profile`, `detail_type`, `density_scale`, `sdf`) | Grids are copied and quantised; crop = occupied bounds + 8 voxels. Exact. |
+| `fog` | One float density grid (`grid`, default `density`, else the first fog volume) | Surface at `density >= iso` (0.05). Profile, detail type and density scale from the fitted mapping (`PACK_FIT`) and the height fraction; depth from the exact mask EDT. |
+| `sdf` | A level set (for example mesh to VDB), `grid` default the first level set | Surface at `sdf == sdfOffset` metres. |
+
+Options worth knowing: `worldScale` (VDB units to metres), `targetWidthMeters` (overrides it), `iso`, `margin` (8 voxels), and the
+mapping knobs `profileGain`, `profileNoise` (0 disables the noise on the depth), `scaleGain`, `scaleFloor`, `seed`.
+The library never auto-scales; the demo page scales anything under 600 m wide to 1500 m for you, because artist VDBs are in real-world units.
+
+**What it reads.** Float grids (`FloatGrid`, 5-4-3 tree), axis-aligned with cubic voxels (anisotropic voxels are resampled per axis);
+uncompressed, ZIP and **Blosc lz4** files, file versions from the pre-222 layout up. Not supported (each throws a `VdbImportError` that
+says why): vec3, int or point grids, other tree shapes, rotated or sheared transforms, instanced grids, active root-level tiles, and
+Blosc with a codec other than lz4 (blosclz, snappy, zlib, zstd). **In Houdini, set File Compression to ZIP (or None) on the
+Geometry ROP or File SOP** if you hit the Blosc error [`BLOSC_HELP`].
+
+| File | Parse | Resample | Channels | Upload + GPU SDF | Total |
+| --- | --- | --- | --- | --- | --- |
+| Parkouring pack VDB (45 MB, Blosc lz4) | 15 ms | 26 | 11 | 12 | 64 ms |
+| WDAS eighth, fog (uncompressed) | 44 | 196 | 1563 | 107 | 1.9 s |
+| bunny_cloud, fog (80 MB ZIP, 19 M active voxels) | 4311 | 1000 | 1393 | 67 | 6.8 s |
+| bunny, level set | 207 | 603 | 1136 | 74 | 2.0 s |
+
+The fog and level-set "channels" cost is the exact CPU distance transform and two smoothing passes. The pure-TypeScript
+inflate is what makes big ZIP files slow [P4-H]. Axes follow Houdini: texture x = VDB X, map row = VDB Z, slice = VDB Y (up).
+
+## hython converter
+
+The offline equivalent runs under Houdini's `hython` (Indie works) and writes the same files `loadCloudVolume` reads
+(`cloud.json`, `nvdf.bin`, `sdf.bin`; see [`assets/clouds/README.md`](../../assets/clouds/README.md)).
+The full reference is [`scripts/vdb/README.md`](../../scripts/vdb/README.md).
+
+```sh
+HYTHON=/Applications/Houdini/Houdini21.0.671/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython
+$HYTHON scripts/vdb/vdb_to_nvdf.py --mode pack IN.vdb --out assets/clouds/NAME   # Nubis pack NVDF VDB
+$HYTHON scripts/vdb/vdb_to_nvdf.py --mode fog  IN.vdb --out assets/clouds/NAME   # artist density VDB
+$HYTHON scripts/vdb/vdb_to_nvdf.py --mode sdf  IN.vdb --out assets/clouds/NAME   # level set (mesh to VDB)
+```
+
+hython takes about 3 s to start; the conversion is 0.5 to 15 s (Parkouring 4.0 s, a 1.26 M-voxel 4 m fog cloud 16 s, a level set
+7.8 s). Options: `--voxel-size` (default 8), `--world-scale` (VDB units to metres), `--margin` (8), `--iso` (0.3 for towers and
+cumulus, 0.15 for thin fog so it stays connected), `--rotate-y {90,180,270}` (turn about the up axis; used to put the Disney cloud side-on),
+`--density-grid`, `--sdf-grid`, `--mapping pack|legacy`, `--seed`, `--profile-noise`, `--profile-gain`, `--scale-gain`, `--scale-floor`, `--name`.
+`--mapping pack` (the default) is the fitted relation:
+profile = `sat((d_eff - 1.4) / 66)^1.05 * baseLift(h)` with `d_eff = depth * exp(0.64 * noise)` (3-voxel correlation), detail type a smoothstep of
+height lowered by depth, density scale a height ramp. The pack mode reproduces Guerrilla's TGA conversions: Parkouring identical
+dims and crop offset, R/G/B 100 percent exact; Stormbird R exact, G/B 99.9998 percent, max diff 1/255 [P4-A].
+
+Axes: Houdini is y-up. Texture x = VDB X, map row = VDB Z, slice = VDB Y. The `houdini` block in `cloud.json` records the crop's world
+position, which the runtime ignores (clouds are placed by you, by centre).
+
+## Houdini Cloud SOP recipe
+
+[`scripts/vdb/authoring/build_heroes.py`](../../scripts/vdb/authoring/build_heroes.py) builds `tower`, `valley-fog` and
+`fairweather` the way an artist would and converts them into `assets/clouds/heroes/<name>/` in about 30 s. Full notes:
+[`scripts/vdb/authoring/README.md`](../../scripts/vdb/authoring/README.md).
+
+```sh
+$HYTHON scripts/vdb/authoring/build_heroes.py                                          # all three
+$HYTHON scripts/vdb/authoring/build_heroes.py tower --voxel 8 --no-convert --tag _t    # fast experiment + preview PNGs
+$HYTHON scripts/vdb/authoring/build_heroes.py tower --hip tower.hip                    # open the network in Houdini
+```
+
+The network, in metres, y up, base at y = 0: sphere SOPs (merged polygons) then **Cloud**, then three **Cloud Noise** passes
+(coarse to fine), **VDB Smooth**, and a volume wrangle for a flat base, saved as a `density` VDB. The converter then runs in `fog` mode.
+
+What matters:
+
+- **Shape.** A cumulus tower is a broad flat foot plus rings of domed cells (6 per layer, 6 layers, radius about 100 m, ring radius 190 to 225 m) around a slim core, drifting +x with height for shear. A single stacked column reads as a smoke plume, not a cloud. Keep notches between cells: widening the core fills the silhouette back into a column.
+- **Cloud SOP bands.** The noise only erodes where density has a gradient. A narrow `exteriorband` / `interiorband` (the 0.1 default, or 50 m) leaves the spheres smooth; 120 to 200 m made the erosion visible. Keep `densitymultiplier` low (2) with wide bands.
+- **Secondary shapes.** Keep `secondaryiterations` at 1 and `scatterpoints` at 100 to 160 (size about 1/12 of the cloud, 28 to 55 m). The default 2 iterations x 150 points never finished cooking at metre scale.
+- **Cloud Noise passes.** `noiseelementsize` 210 / 70 / 28 m (the smallest the 8 m grid can show), `noiseamount` 0.45 to 1.5, `noiseoctaves` 3 to 4, `noiserough` 0.5 to 0.6, advection on the big passes for sheared, rolled lumps.
+- **Flat base.** `spatialscale` does not scale the output and Cloud SOP Flatten did not flatten a polygon model; a one-line `volumewrangle` (`@density *= smooth(base, base+fade, @P.y)`, 15 to 40 m) does.
+- **Voxel size.** Author at 4 m then area-average to 8 m for clean fine noise.
+
+Results: `fairweather` (82x68x44, 1.41 MiB) reads as a convincing fair-weather cumulus; `valley-fog` (273x49x21, 1.61 MiB) as a plausible low bank;
+`tower` (74x69x117 first version at 0.77 scale) read as a smoke column until rebuilt as the congestus recipe (about 690 x 930 x 580 m, 3.58 MiB at scale 1)
+[P4-E, P4-E2]. SOP recipes top out at "soft spheres" next to a real cumulus; the Pyro route below is better.
+
+## Houdini Pyro recipe
+
+[`scripts/vdb/authoring/sim/sim_clouds.py`](../../scripts/vdb/authoring/sim/sim_clouds.py) grows `sim-cumulus` and `sim-congestus` with the SOP-level
+**Pyro Solver** and converts a cached frame, the "grown" route of Schneider's Nubis slides 63 to 64. About 12 s of simulation for 180
+frames, 20 s for the whole run, on an 18-core Mac [P4-F]. README: [`scripts/vdb/authoring/sim/README.md`](../../scripts/vdb/authoring/sim/README.md).
+
+```sh
+$HYTHON scripts/vdb/authoring/sim/sim_clouds.py cumulus                  # sim + cache checkpoints + convert
+$HYTHON scripts/vdb/authoring/sim/sim_clouds.py congestus
+$HYTHON scripts/vdb/authoring/sim/sim_clouds.py cumulus --no-convert --tag _t --set solver.turbulence=1.0   # experiment
+$HYTHON scripts/vdb/authoring/sim/sim_clouds.py cumulus --convert-only work/captures/scratch/p4f/cumulus_t_f180.vdb
+```
+
+Recipe: a flat noisy disc emitter (a thresholded noise field fires only a few hot spots, which become the separate thermals that make turrets)
+into the Pyro Solver, a smoothstep density remap with a soft flat base, a vertical stretch (1.7 cumulus, 2.8 congestus), a light smooth. The sim runs at
+1 sim unit = 100 m with an 8 m voxel (`--world-scale 100` restores metres in the converter).
+
+| Knob | Effect |
+| --- | --- |
+| `source.radius` | Foot width. 2.0 for cumulus humilis/mediocris, 1.0 for a tower. |
+| `source.cellfreq`, `cell0`, `cell1` | Size and number of thermals. |
+| `solver.buoyancylift` | 6 cumulus, 12 congestus. Below about 4 the smoke stalls as a pancake. |
+| `solver.turbulence`, `swirlsize`, `disturbance` | Higher is ragged, wispy, wider; lower is tight, smooth, narrow and tall. |
+| `solver.dissipation`, `tempcooling` | 0.005 to 0.03 keeps the plume alive. Pyro's defaults (0.1 / 0.5) killed it. |
+| `remap.lo`, `remap.hi`, `remap.stretch` | Fluffiness, edge crispness, aspect. Above about 3 the billows turn into vertical streaks. |
+
+Gotchas found: Volume SOP `uniformsamples` index 5 is "By Size" (the Cloud SOP's uses 1); VEX `smooth(a, b, x)` with a > b returns 0; `@Frame` is
+undefined in a volume wrangle (use `` `$FF` ``); `mix` does not exist in VEX (use `lerp`). Results: `sim-cumulus` 85x92x62 (2.78 MiB), `sim-congestus` 82x76x101
+(3.60 MiB), clearly more organic than the SOP tower; congestus is 808 m tall, a little under the 1 km target, which would exceed 4 MB at 8 m [P4-F].
+
+## Blender via VDB export
+
+Blender has no Nubis-specific tool, but the importer reads any OpenVDB density volume, so the route is: make or simulate a density volume in
+Blender, write it as `.vdb`, drop it. **This route has not been run in this repository.** What is known and what to check:
+
+1. **Get a VDB out.** The usual source is a smoke simulation: add a Quick Smoke (or a Fluid domain), and in the domain's Cache settings choose the OpenVDB format and bake. Each cached frame is a `.vdb` with a float grid named `density`. Menu names move between Blender versions; check yours.
+2. **Compression.** If Blender offers a compression choice for the cache, choose Zip (or None). Blosc is only supported with the lz4 codec; any other codec throws a `VdbImportError` whose message says so.
+3. **Up axis.** Houdini's VDBs are y-up and the importer maps VDB Y to "up". Blender is z-up. If a Blender VDB comes in lying on its side in the demo, rotate it before export (or re-orient the simulation domain) so up is +Y of the grid. `--rotate-y` only turns about the up axis and does not fix this.
+4. **Units.** Pass `worldScale` or `targetWidthMeters`. A default Blender smoke domain is a few metres across.
+5. **Grid name.** If there are several grids, pass `grid: 'density'`.
+6. **Check.** Drop the file on [`/vdb-drop/`](demos.md#vdb-drop) and read the overlay: grid table, mode, dims, timings. The `info.notes` array lists anything the importer assumed.
+
+For a mesh instead of a simulation, convert it to a level-set VDB (in Houdini, VDB From Polygons) and use `mode: 'sdf'`; the same applies if Blender produces
+a level set. The older `fixtures/authored/blender-authoring.py` recipe belongs to the legacy dense-asset path and is not used by the Nubis runtime.
+
+## Stamping and cutouts
+
+Hand-authored clouds go into a generated cloudscape with `stampCloud` ([API](api.md#stamp-authored-clouds)). The onsen valley demo is the worked example:
+one 512x512x96 generated cumulus region at 12 m, then 10 `valley-fog` banks laid along the valley floor (found by scanning the heightfield, each yawed to
+follow its axis), 5 `fairweather` clouds floating over the valley and one `tower` behind the far ridges, then a single SDF rebuild (about 1 s at startup).
+See `buildClouds` in [`examples/lab/onsen/main.ts`](../../examples/lab/onsen/main.ts).
+
+- **`max`** takes whichever of target and asset has the larger profile, all channels: a union. Use `densityScale` and `detailType` to retune a hero for its place (the fog banks use `detailType: 0.8` and a low `densityScale`).
+- **`replace`** overwrites the target where the asset has density and empties the target within `clearMargin` metres (default 48) of the asset's surface.
+- **`cutout`** empties the target wherever the asset has density. A cutout tunnel through Stormbird left a clean round hole (112 m radius); the wall shows voxel-sized steps because the edge is binary [P4-C].
+- `yaw` follows three.js' `rotation.y`. `scale` is uniform.
+- **The SDF is stale after stamping.** Run `createSdfRebuilder` once after the last stamp (spread it over frames with `generate(encoder, maxJobs)` if the volume is large; the old SDF stays in place until the final copy, so a render in between has briefly wrong shadow-march distances after an addition). The whole volume is rebuilt: a sub-box is unsafe, since a new cloud lowers distances arbitrarily far away.
+- Stamped targets keep an NVDF scratch copy the size of the target (67 MB at 512x512x64).
+- Movable per-frame instances are not implemented (stamping is free at render time but each change needs the SDF rebuild).
+
+Stormbird and Parkouring read as modest wispy clouds among taller generated cumulus pillars; judge a hero in an empty region first.

@@ -95,7 +95,50 @@ importers:
         specifier: 0.186.0
         version: 0.186.0
 
-  packages/runtime: {}
+  packages/react:
+    dependencies:
+      '@clouds/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@clouds/three':
+        specifier: workspace:*
+        version: link:../three
+      '@pmndrs/sky':
+        specifier: '>=0.5.0'
+        version: 0.5.0(@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@react-three/fiber':
+        specifier: '>=10.0.0-0'
+        version: 10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@webgpu/types':
+        specifier: '>=0.1.60'
+        version: 0.1.71
+      react:
+        specifier: '>=19'
+        version: 19.2.3
+      three:
+        specifier: '>=0.186.0'
+        version: 0.186.1
+
+  packages/runtime:
+    dependencies:
+      '@webgpu/types':
+        specifier: '>=0.1.60'
+        version: 0.1.71
+
+  packages/three:
+    dependencies:
+      '@clouds/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@pmndrs/sky':
+        specifier: '>=0.5.0'
+        version: 0.5.0(@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@webgpu/types':
+        specifier: '>=0.1.60'
+        version: 0.1.71
+      three:
+        specifier: '>=0.186.0'
+        version: 0.186.1
 
   packages/tools:
     dependencies:

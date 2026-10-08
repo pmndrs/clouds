@@ -1099,7 +1099,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - No visual regressions on high (A/B mean |Δ| ≈ noise).
   - Parity passes; `pnpm check` green.
 
-### [~] P7-B Docs and package readiness · Sonnet
+### [x] P7-B Docs and package readiness · Sonnet
 - **Owns:**
   - `packages/{runtime,three,react}/README.md` (new or rewritten)
   - `docs/guide/**` (new: getting started, API reference, presets and
@@ -1204,6 +1204,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-09: P7-B: the full `@clouds/runtime` entry is 70.8 KB gzipped, over the 60 KB target; the `@clouds/three`-used subset is 51 KB. → split subpath exports (`/generate`, `/import`, `/dome`) before publish. Packages export source only (no dist build yet), and the importer reaches `vendor/` from outside the package; fix both in the publish task. Lockfile resynced by the orchestrator.
 - 2026-10-09: P5-B is accepted with an orchestrator re-measure at 2560×1440 high: ground 1.94, edge 1.86, inside 2.97 ms (≤ 3 ms). Next levers: the composite (about 1 ms, now the largest pass) and the temporal history memory (about 63 MB at 1440p; phones).
 - 2026-10-09: P5-A replaces the 3D JFA with an exact separable EDT. The P4-C overshoot risk is gone; scratch 302→34 MB, generation 47→17 ms. Mobile risk: the y-pass uses large per-thread private arrays, so validate on mobile GPUs in P5. Re-verify the stamp page after P5-B lands (it failed during P5-B's in-progress runtime edits).
 - 2026-10-08: P4-C finding: the generator's single jump-flood round can overshoot the true distance by up to 6.7 m on sparse fields; stamping uses 2 rounds and never overshoots. → verify the generator's SDF on sparse presets and default to 2 rounds or a larger margin (P3 follow-up). Also, `createSdfRebuilder` reads the generator's params layout in `shaders.ts`, so keep them in sync. The cumulus preset looks columnar in taller (96-slice) volumes.
