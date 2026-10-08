@@ -1149,6 +1149,37 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - 60 fps holds.
   - `pnpm check` green.
 
+### [~] P7-C Publish-ready packages: dist builds, subpath exports, bundle target · Sonnet
+- **Owns:**
+  - `packages/{runtime,three,react}/package.json`
+  - `packages/runtime/src/index.ts` and new subpath entry files only (no
+    algorithm changes)
+  - `scripts/build-release.mjs` (new), `scripts/check-bundle.mjs`
+  - `packages/runtime/vendor/**`: move or copy `vendor/vdb-web-tools` inside
+    the package, with its LICENSE and NOTICE
+  - import path updates required by these moves
+- **Does:**
+  - Split `@clouds/runtime` into subpath exports: the core runtime as the main
+    entry, plus `/generate`, `/import`, `/dome` (if separable), `/assets`, and
+    so on, so a typical three.js user's bundle is under 60 KB gzipped.
+  - Build ESM `dist/` with `.d.ts` for each package (esbuild plus
+    `tsc --emitDeclarationOnly`), with `exports` pointing at `dist`.
+  - The vendored VDB code ships inside the runtime package with its Apache
+    LICENSE and NOTICE.
+  - `npm pack --dry-run` for each package lists exactly the intended files.
+  - Write a consumer smoke test: a temp directory installs the packed
+    tarballs, then imports and typechecks both a three example and a react
+    example. Reuse ideas from `scripts/check-consumer.mjs` (legacy).
+  - Keep the lab working, through vite aliases to source or dist, whichever
+    is simpler.
+- **Acceptance:**
+  - Bundle report: the three-user path is under 60 KB gzipped, and the full
+    runtime with subpaths is listed separately.
+  - The packed-consumer smoke test passes: install, typecheck and bundle.
+  - `pnpm check` green, and `node scripts/check-docs.mjs` still passes. Update
+    the docs import paths if subpaths changed. You may edit `docs/guide/*.md`
+    and package READMEs only for import paths.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
