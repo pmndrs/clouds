@@ -1234,6 +1234,32 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Flagship and open-water A/B unchanged with no flash.
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
+### [~] P6-C Cumulonimbus that reads as one · Fable
+- **Owns:**
+  - `packages/runtime/src/generate/**` (including `volume-generator.ts` and `stamp.ts`) and its tests
+  - `examples/lab/storm/**`
+  - `packages/runtime/src/shaders/march.wgsl.ts`, for lightning glow tuning only
+- **Problem:** P6-B's storm (`work/captures/P6-B/timelapse-distant.jpg`, `flash-vs-noflash.jpg`) has four faults:
+  - The tower is a bucket with vertical flanks and a flat base.
+  - The anvil is a thin flat plate.
+  - A regular dimple lattice covers the flanks; the volume is 16 m voxels.
+  - The lightning glow is a uniform blue-white wash.
+
+  The weather map is 2.5D (base and top per column), so tall cells come out as extrusions.
+- **Does:** give the storm cell a real 3D shape. The P6-B evolution timing and API stay.
+  - A tower that tapers and bulges into turrets, with cauliflower flanks, and gets wider with height under the anvil.
+  - An anvil with a thick, curved, sheared underside that overhangs the tower. Mammatus is a bonus.
+  - A rain-free base that is darker and flat-ish but not a cut.
+  - Approach is your choice. One option is a parametric 3D cell (profile as a function of height and radius, plus displacement noise) stamped into the evolving volume via the P4-C stamp path. Another is a sequence of Houdini Pyro-sim keyframes (`scripts/vdb/authoring/sim/`, P4-F); hython is available. Pick what looks best within the cost budget.
+  - Root-cause and fix the dimple lattice.
+  - Tune the lightning glow so it reads as light inside the cloud: a warm-to-cool falloff, brightest near the strike, and occlusion by density.
+- **Acceptance:**
+  - Time-lapse at 0/30/60/90/120 s and a flash pair. A non-expert should read it as a thunderstorm: a towering cauliflower with an overhanging anvil.
+  - Side-by-side against a real cumulonimbus reference. Describe the reference; don't commit copyrighted photos.
+  - Cost: ≤ +1 ms over a static cloudscape at 2560×1440 high.
+  - No regression to the cumulus presets (cloudscape-gen bookmarks, A/B).
+  - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
