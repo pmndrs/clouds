@@ -9,7 +9,7 @@ export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
   // Scattered fair-weather cumulus: domed lobes 400-900 m wide, tops 150-300 m above a flat base.
   cumulus: {
     weather: { scale: 5, cellular: 0.75, cellScale: 9, coverageLo: 0.42, coverageHi: 0.8 },
-    params: { topFraction: 0.8, domeExponent: 1.6, billowAmp: 0.4, billowCellMeters: 450, coverageThreshold: 0.15 },
+    params: { topFraction: 0.65, domeExponent: 1.6, billowAmp: 0.4, billowCellMeters: 450, coverageThreshold: 0.15 },
   },
   // Towering cumulus: fewer, narrower, taller towers (height grows faster with mass), strong billows.
   congestus: {

@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:56704/cloudscape-gen/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T17:36:42.042Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P7-F/cg-after/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.096411,
+          "lightGrid": 0.701749,
+          "marchNear": 0.15786704999999998,
+          "marchFar": 2.4175576500000004,
+          "composite": 0.36643121666666656,
+          "dome": 0.24076076666666665,
+          "resolveNear": 0.06652755,
+          "resolveFar": 0.10996914999999997,
+          "cloudsTotal": 4.157273383333334
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "mean": 16.66447368421053
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 107,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 193.19999998807907
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P7-F/cg-after/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.096411,
+          "lightGrid": 0.23172241176470595,
+          "marchNear": 0.17769018333333333,
+          "marchFar": 1.6665676833333332,
+          "composite": 0.3367102166666667,
+          "dome": 0.2311722166666667,
+          "resolveNear": 0.07148924999999999,
+          "resolveFar": 0.12099048333333336,
+          "cloudsTotal": 2.9327534450980393
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.665497076023392
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 202,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 193.19999998807907
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P7-F/cg-after/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.096411,
+          "lightGrid": 0.2877066363636364,
+          "marchNear": 0.18738465,
+          "marchFar": 1.6923345500000002,
+          "composite": 0.5574012333333332,
+          "dome": 0.36643191666666663,
+          "resolveNear": 0.07226778333333334,
+          "resolveFar": 0.12459181666666666,
+          "cloudsTotal": 3.3845295863636364
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 297,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 193.19999998807907
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

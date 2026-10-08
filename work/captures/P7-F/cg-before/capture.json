@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:54970/cloudscape-gen/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T17:32:42.932Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P7-F/cg-before/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.108493,
+          "lightGrid": 0.872988,
+          "marchNear": 0.12297043333333332,
+          "marchFar": 1.9444272999999999,
+          "composite": 0.3126896666666667,
+          "dome": 0.2530849166666667,
+          "resolveNear": 0.046350050000000004,
+          "resolveFar": 0.09573256666666667,
+          "cloudsTotal": 3.756735933333333
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.799999999999955,
+          "mean": 16.665333333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 106,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.8,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 195.2999999821186
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P7-F/cg-before/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.108493,
+          "lightGrid": 0.49333811764705887,
+          "marchNear": 0.17181689999999994,
+          "marchFar": 1.7179085000000003,
+          "composite": 0.33220746666666656,
+          "dome": 0.21649249999999995,
+          "resolveNear": 0.06902673333333333,
+          "resolveFar": 0.14778723333333332,
+          "cloudsTotal": 3.257070450980392
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.66588235294118
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 201,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.8,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 195.2999999821186
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P7-F/cg-before/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.108493,
+          "lightGrid": 0.4442167878787879,
+          "marchNear": 0.1188239166666667,
+          "marchFar": 1.3061134333333333,
+          "composite": 0.3278720666666668,
+          "dome": 0.2347089333333333,
+          "resolveNear": 0.05471856666666667,
+          "resolveFar": 0.08324815000000002,
+          "cloudsTotal": 2.678194854545455
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 296,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.8,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 195.2999999821186
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

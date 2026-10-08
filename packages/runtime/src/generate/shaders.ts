@@ -414,7 +414,13 @@ fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {
   let n = mix(fb, clamp(0.25 + 0.75 * cell * (0.45 + 1.1 * fb), 0.0, 1.0), W.cellular);
   let edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
   // Wide ramp (no saturation plateau): coverage stays a smooth, peaked mass field. Fade to nothing near the border.
-  let cov = smoothstep(W.coverageLo, W.coverageHi, n) * select(1.0, smoothstep(0.0, W.border, edge), W.border > 0.0);
+  // Rounded mass profile. The shape stage builds the cloud as f = cov - h^p, so cov must itself be the dome profile: with u the linear ramp
+  // (a cone over a Worley cell) and cov = (u (2 - u))^0.8, a column of mass u reaches height h = sqrt(u (2 - u))^(0.8 / p * 2), which for the
+  // cumulus exponent p = 1.6 is a hemisphere (r = R sqrt(1 - h^2)): widest at the base, tangent-horizontal at the top, no saturation plateau
+  // (the old smoothstep ramp made vertical-walled columns with flat tops) and no straight creases (the cone's ridge never reaches the surface).
+  // The ramp starts at 0.2 of the lo..hi range: the old smoothstep ramp was ~0 over its first fifth, and the dome profile rises at once, so this keeps the footprint where the presets tuned it.
+  let u = clamp(((n - W.coverageLo) / max(W.coverageHi - W.coverageLo, 1e-4) - 0.2) / 0.8, 0.0, 1.0);
+  let cov = pow(1.0 - pow(1.0 - u, 1.7), 1.6) * select(1.0, smoothstep(0.0, W.border, edge), W.border > 0.0);
   let t = fbm(q * 0.7 + vec2<f32>(31.0, W.seed * 7.0));
   let cellType = 1.0 - clamp(worleyF1(q * 1.6) * 1.3, 0.0, 1.0);
   let cloudType = clamp(0.6 * t + 0.5 * cellType - 0.05, 0.0, 1.0);

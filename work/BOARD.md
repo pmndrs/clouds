@@ -1201,7 +1201,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - 60 fps holds.
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
-### [~] P7-F Slab-sided generated clouds · Sonnet (Fable on failure)
+### [x] P7-F Slab-sided generated clouds · Sonnet (Fable on failure)
 - **Owns:** `packages/runtime/src/generate/{weather.ts,shaders.ts,presets.ts,generator.ts}` and its tests; `examples/lab/open-water/**` and `examples/lab/cloudscape-gen/**` for measurement only.
 - **Problem:** at the cumulus preset's `cellular` 0.75, generated clouds seen from cloud altitude read as extruded slabs with flat vertical faces and straight creases (`work/captures/P7-E/ow-after-preset-cells/cruise.jpg`). P7-E worked around it in the demo (`cellular` 0.55); the engine still does it. The P3 note "the cumulus preset looks columnar" is the same issue.
 - **Does:** root-cause it in the generator (suspects: Worley F1 gradient creases at cell borders, coverage → profile mapping that extrudes a 2D mask vertically, a height profile that doesn't round tops and taper sides). Fix it in the engine so the presets give rounded, tapered cumulus at their defaults, then restore the open-water demo to the preset value.

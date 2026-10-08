@@ -1,0 +1,108 @@
+{
+  "url": "http://127.0.0.1:57518/cloudscape-gen/?preset=stratocumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T17:38:35.368Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P7-F/cg-stratocumulus-before/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.08337,
+          "lightGrid": 0.635628,
+          "marchNear": 0.13847621666666665,
+          "marchFar": 1.6570350833333332,
+          "composite": 0.32419013333333335,
+          "dome": 0.2766950666666667,
+          "resolveNear": 0.07503641666666666,
+          "resolveFar": 0.10453861666666665,
+          "cloudsTotal": 3.2949695333333335
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045,
+          "mean": 16.665333333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 106,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "stratocumulus",
+          "params": {
+            "topFraction": 0.3,
+            "domeExponent": 3.2,
+            "billowAmp": 0.28,
+            "billowCellMeters": 200,
+            "baseDefault": 0.1,
+            "coverageThreshold": 0.1,
+            "scaleBase": 0.35,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.19999998807907
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P7-F/cg-stratocumulus-before/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.08337,
+          "lightGrid": 0.38770329411764703,
+          "marchNear": 0.16775735000000003,
+          "marchFar": 0.9807628499999996,
+          "composite": 0.5164289333333333,
+          "dome": 0.33570661666666674,
+          "resolveNear": 0.06660438333333335,
+          "resolveFar": 0.20731486666666668,
+          "cloudsTotal": 2.7456482941176468
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.666470588235292
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 201,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "stratocumulus",
+          "params": {
+            "topFraction": 0.3,
+            "domeExponent": 3.2,
+            "billowAmp": 0.28,
+            "billowCellMeters": 200,
+            "baseDefault": 0.1,
+            "coverageThreshold": 0.1,
+            "scaleBase": 0.35,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.19999998807907
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

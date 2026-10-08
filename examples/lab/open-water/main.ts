@@ -67,7 +67,7 @@ try {
     const encoder = device.createCommandEncoder();
     const preset = CLOUD_PRESETS[(query.get('preset') as CloudPresetName) ?? 'cumulus'] ?? CLOUD_PRESETS.cumulus; // CONTENT
     const seed = Number(query.get('seed') ?? 7);
-    const weatherOpts = { ...preset.weather, coverageLo: Number(query.get('lo') ?? 0.56), coverageHi: Number(query.get('hi') ?? 0.9), cellular: Number(query.get('cellular') ?? 0.55), // preset 0.75: near the cells' Voronoi borders the coverage cones meet in straight creases, which read as flat-faced prisms from 300 m (P7-E)
+    const weatherOpts = { ...preset.weather, coverageLo: Number(query.get('lo') ?? 0.56), coverageHi: Number(query.get('hi') ?? 0.9), ...(query.has('cellular') ? { cellular: Number(query.get('cellular')) } : {}), // preset value unless ?cellular= overrides (P7-F fixed the slab look in the generator)
         ...(query.has('cells') ? { cellScale: Number(query.get('cells')) } : {}), // sparser than the preset: fair-weather cumulus with blue sky between, all the way out
        size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}) }; // border 0: one continuous field the sky layer carries to the horizon
     gen.weatherOpts = weatherOpts; gen.params = { ...preset.params, seed };
