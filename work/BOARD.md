@@ -343,6 +343,42 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
   - A capture shows a slice visualization.
   - No three imports.
 
+### [~] P4-A VDB → NVDF converter (Houdini) · Sonnet
+- **Owns:** `scripts/vdb/**` (new), `assets/clouds/README.md` (append a section only), `work/captures/P4-A/`, report.
+- **Does:** a hython converter
+  (`/Applications/Houdini/Houdini21.0.671/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython`,
+  Indie licence) that writes the **same runtime format** as `scripts/nubis/convert.mjs`
+  (`cloud.json`, `nvdf.bin` rgba8, `sdf.bin` r16 unorm −256…4096 m, rounded down).
+  - **Mode 1, NVDF VDB:** the Nubis pack VDBs, which already hold profile, detail
+    type, density scale and SDF fields. Read them and write our format.
+  - **Mode 2, artist fog VDB:**
+    - SDF from a density iso threshold
+    - profile from the SDF, the Nubis way: 0 at the surface rising inward over a
+      configurable depth
+    - detail type from an optional VDB attribute, else a height heuristic
+      (wispy bottoms, billowy tops)
+    - density scale from the normalized density
+  - **Mode 3, SDF or level-set VDB** (e.g. a mesh converted in Houdini): treat
+    it like mode 2 from the SDF.
+  - **Common to all modes:**
+    - resample to a target voxel size (default 8 m, with world-scale
+      overrides)
+    - crop with margin
+    - keep the transform translation in `cloud.json`
+  - Reuse what helps from the legacy `scripts/convert-vdb-houdini.py`.
+- **Acceptance:**
+  - **Pack VDB parity:** converting `ParkouringCloud.vdb` and `StormbirdCloud.vdb`
+    from the full pack (`/Users/dex/Developer/WebGPUClouds/artifacts/research/nubis-pack/extracted/Nubis Voxel Clouds Pack/NVDFs/Examples/*/VDB/`)
+    matches the TGA-derived `assets/clouds/{parkouring,stormbird}`: NVDF channels
+    within 2/255 at ≥ 99% of voxels, SDF median |diff| ≤ 4 m. Report what the
+    VDB grids contain (names, value types, transform, voxel size).
+  - **Mode 2:** convert a fog VDB generated in Houdini by a small script (a
+    cloud-like noise-displaced sphere cluster) and render it in the flagship with
+    `?cloud=<name>`, adding only a loader branch if needed. Report what
+    `flagship/main.ts` needs if you can't touch it. Captures in
+    `work/captures/P4-A/`.
+  - Conversion time for each file is reported.
+
 ## Decisions and escalations
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
