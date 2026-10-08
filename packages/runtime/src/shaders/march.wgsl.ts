@@ -13,26 +13,38 @@ export const MARCH_ATMOSPHERE_GROUP = 2;
 export const MARCH_RADIANCE_LIMIT = 60000;
 
 /**
- * P6-B lightning: in-scattered radiance (per unit scattering, in units of the scene light reference) at sample p from the flash point light.
+ * P6-B/C lightning: in-scattered radiance (per unit scattering, in units of the scene light reference) at sample p from the flash point light.
  * Nubis³ s130 glow = pow(1 - d/r, 12) * (1 - sat(rho * 5)) lights the thin, wispy cloud near the discharge. On its own it vanishes wherever
- * rho > 0.2, which is all of a cumulonimbus's body, so two more terms carry the light through dense cloud (documented deviation):
- * a wider core pow(1 - d/r, 3) falling as 1/(1 + (d/CORE)^2), the point light's inverse-square law with a finite core, attenuated by
- * exp(-FLASH_DIFFUSE * sigma * d): in dense media multiple scattering carries light much farther than the single-scatter exp(-sigma d)
- * (the same relaxation the inner glow uses for the sun), so a flash lights a soft ball of cloud around it.
+ * rho > 0.2, which is all of a cumulonimbus's body, so a second term carries the light through dense cloud (documented deviation):
+ * the point light's inverse-square law with a finite core, pow(1 - d/r, 2) / (1 + (d/CORE)^2), occluded by the cloud between the sample and
+ * the strike: three taps of the cheap profile density (NVDF profile * scale, no noise fetch) along that segment give an optical depth, relaxed
+ * by FLASH_DIFFUSE because multiple scattering carries light much farther through dense cloud than exp(-tau) (the inner glow uses the same
+ * kind of relaxation for the sun). So the light is brightest at the strike and reaches the surface where the cloud between is thin, which is
+ * what shapes the glow instead of a uniform wash. Colour runs from a warm white at the strike to the flash's own (cool) colour at the edge.
  */
 const FLASH_WGSL = /* wgsl */ `
-const FLASH_CORE = 90.0;       // metres: size of the finite core of the point light
-const FLASH_DIFFUSE = 0.012;    // relaxation of the extinction for light that diffuses through dense cloud (the inner glow uses 0.05-0.25)
-const FLASH_GAIN = 2.2;       // gain of the diffuse term
-const FLASH_WISP = 6.0;        // gain of the Nubis wisp term relative to the diffuse one
+const FLASH_CORE = 110.0;      // metres: size of the finite core of the point light
+const FLASH_DIFFUSE = 0.05;    // relaxation of the extinction along the strike-to-sample path (profile density): e^-2 through about 400 m of solid cloud
+const FLASH_GAIN = 2.2;        // gain of the core term
+const FLASH_WISP = 6.0;        // gain of the Nubis wisp term relative to the core one
 fn flashGlow(p: vec3<f32>, rho: f32) -> vec3<f32> {
   let r = frame.flash.w;
-  let d = length(p - frame.flash.xyz);
+  let toStrike = frame.flash.xyz - p;
+  let d = length(toStrike);
   let x = saturate(1.0 - d / r);
   if (x <= 0.0) { return vec3(0.0); }
+  var tau = rho * frame.extinction * min(d, 24.0);
+  if (d > 24.0) {
+    let m0 = sampleModeling(p + toStrike * 0.2, 0.0);
+    let m1 = sampleModeling(p + toStrike * 0.5, 0.0);
+    let m2 = sampleModeling(p + toStrike * 0.8, 0.0);
+    tau += (m0.x * m0.z + m1.x * m1.z + m2.x * m2.z) * (d / 3.0) * frame.extinction;
+  }
   let wisp = pow(x, 12.0) * (1.0 - saturate(rho * 5.0));
-  let core = x * x / (1.0 + (d / FLASH_CORE) * (d / FLASH_CORE) * 0.25) * exp(-FLASH_DIFFUSE * rho * frame.extinction * d);
-  return frame.flashColor.xyz * (FLASH_WISP * wisp + FLASH_GAIN * core);
+  let core = x * x / (1.0 + (d / FLASH_CORE) * (d / FLASH_CORE)) * exp(-FLASH_DIFFUSE * tau);
+  let warm = frame.flashColor.xyz * vec3(1.25, 0.98, 0.72);
+  let colour = mix(warm, frame.flashColor.xyz, smoothstep(0.0, 0.5, d / r));
+  return colour * (FLASH_WISP * wisp + FLASH_GAIN * core);
 }
 `;
 

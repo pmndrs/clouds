@@ -1,0 +1,70 @@
+{
+  "url": "http://127.0.0.1:61510/storm/?hud=0&clean=1&sim=90&storm=0",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T18:28:43.397Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P6-C/timing/storm-off/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.620891,
+          "lightGridReduce": 0.062827,
+          "lightGrid": 0.565189,
+          "marchNear": 0.1926171666666667,
+          "marchFar": 1.7400585666666664,
+          "composite": 0.4432007000000001,
+          "dome": 0.1812557333333333,
+          "resolveNear": 0.09385888333333332,
+          "resolveFar": 0.1826326666666667,
+          "cloudsTotal": 3.4616397166666664,
+          "cloudsMarch": 2.8336237166666662,
+          "total": 4.082530716666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "ground",
+        "simT": 90,
+        "timeScale": 4,
+        "frames": 93,
+        "cloudsReady": true,
+        "mode": "frozen",
+        "storm": null,
+        "lightning": {
+          "rate": 0,
+          "flashHeld": false,
+          "flashFrames": 0,
+          "calmFrames": 32,
+          "cloudsTotalDuringFlash": {
+            "mean": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "cloudsTotalCalm": {
+            "mean": 4.0917863125,
+            "p95": 4.637705
+          }
+        },
+        "evolution": {
+          "swaps": 1,
+          "memoryMB": 64.296875
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

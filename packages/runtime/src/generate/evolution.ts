@@ -13,7 +13,7 @@
 //     swap never jumps them; (3) the content is generated for the time the swap is expected to happen, not the time it started.
 import type { GpuCloudVolume } from '../resources';
 import { CLOUD_PRESETS, type CloudPreset, type CloudPresetName } from './presets';
-import { createGeneratorScratch, createVolumeGenerator, NVDF_DEFAULTS, type GeneratorScratch, type NvdfParams, type VolumeGenerator } from './volume-generator';
+import { createGeneratorScratch, createVolumeGenerator, NVDF_DEFAULTS, type GeneratorScratch, type NvdfParams, type StormCellState, type VolumeGenerator } from './volume-generator';
 import { encodeProceduralWeatherMap, type ProceduralWeatherOptions, type StormCellOptions } from './weather';
 
 export interface EvolvingCloudscapeOptions {
@@ -42,10 +42,11 @@ export interface EvolvingCloudscapeOptions {
   sliceDepth?: number;
   weather?: Partial<ProceduralWeatherOptions>;
   /**
-   * A cumulonimbus life cycle on top of the field (P6-B): one cell grows from cumulus through congestus to a tall tower with a spreading anvil over
-   * `storm.growSeconds` (default 120 s of simulated time) while the surrounding field keeps evolving. The cell's centre is in the pattern frame, in map uv, and it
-   * is carried by the wind. The NVDF stage then reads base/top from the weather map (`useMapHeights`) for the whole field; use the 'storm' preset and a taller volume
-   * (about 2 km, e.g. dims [256, 256, 128] at 16 m). Its time is `start`-relative: pass a negative `start` to begin with a young cell.
+   * A cumulonimbus life cycle on top of the field (P6-B timing, P6-C shape): one cell grows from cumulus through congestus to a tall tower with a spreading
+   * anvil over `storm.growSeconds` (default 120 s of simulated time) while the surrounding field keeps evolving. The cell is a 3D field in the generator
+   * (overhanging anvil, turrets); its centre is in the pattern frame, in map uv, and it is carried by the wind. The NVDF stage then reads base/top from the
+   * weather map (`useMapHeights`) for the whole field; use the 'storm' preset and a taller volume (about 2 km, e.g. dims [256, 256, 128] at 16 m). Its time
+   * is `start`-relative: pass a negative `start` to begin with a young cell.
    */
   storm?: StormCellOptions;
   params?: Partial<NvdfParams>;
@@ -114,25 +115,35 @@ export function createEvolvingCloudscape(device: GPUDevice, options: EvolvingClo
   let destroyed = false;
 
   const snapped = (t: number): [number, number] => [Math.round(wind[0] * t / voxel) * voxel, Math.round(wind[1] * t / voxel) * voxel];
+  // The cell in the generator's metres: the pattern frame (uv * extent) is the generator's pm space, so the wind carries it with the field.
+  const stormAt = (time: number): StormCellState | null => {
+    const st = options.storm;
+    if (!st) return null;
+    const c = st.center ?? [0.5, 0.5], volH = dims[2] * voxel;
+    return {
+      center: [c[0] * ref, c[1] * ref], phase: (time - (st.start ?? 0)) / Math.max(1, st.growSeconds ?? 120),
+      towerRadius: st.towerRadius ?? 520, towerHeight: st.towerHeight ?? 0.85 * volH, anvilRadius: st.anvilRadius ?? 1500, baseHeight: st.baseHeight, shear: st.shear,
+    };
+  };
   const prepare = (i: number, time: number) => {
     const slot = slots[i];
     const adv = snapped(time);
+    const storm = stormAt(time);
     const encoder = device.createCommandEncoder({ label: 'evolution weather' });
     const weather = encodeProceduralWeatherMap(device, encoder, {
       ...preset.weather, border: options.border ?? 0.06, ...options.weather, size: [dims[0], dims[1]], seed,
       evolve: { time, lifeSeconds: life, advection: [adv[0] / ref, adv[1] / ref], drift },
-      extentMeters: ref, heightMeters: dims[2] * voxel,
-      ...(options.storm ? { storm: { coverageThreshold: nvdfParams.coverageThreshold, ...options.storm } } : {}),
+      extentMeters: ref, heightMeters: dims[2] * voxel, storm: !!options.storm,
       window: { origin: [0, 0], size: [dims[0] * voxel / ref, dims[1] * voxel / ref] },
     });
     device.queue.submit([encoder.finish()]);
     const origin: [number, number] = [-adv[0], -adv[1]];
     if (!slot.gen) {
       slot.gen = createVolumeGenerator(device, {
-        dims, voxelSize: voxel, weather, origin, scratch, sliceDepth: options.sliceDepth ?? 4,
+        dims, voxelSize: voxel, weather, origin, scratch, sliceDepth: options.sliceDepth ?? 4, storm: storm ?? undefined,
         params: nvdfParams, label: `evolution volume ${i}`, timestamps: options.timestamps,
       });
-    } else slot.gen.restart({ weather, origin });
+    } else slot.gen.restart({ weather, origin, storm });
     slot.weather?.destroy();
     slot.weather = weather;
     slot.adv = adv; slot.time = time;

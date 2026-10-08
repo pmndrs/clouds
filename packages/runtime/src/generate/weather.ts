@@ -29,11 +29,10 @@ export interface ProceduralWeatherOptions {
    */
   evolve?: { time: number; lifeSeconds?: number; advection?: [number, number]; drift?: [number, number] };
   /**
-   * A cumulonimbus on top of the evolving field (P6-B; requires `evolve`; the NVDF stage must read the map's base/top: `params.useMapHeights`). Its life cycle
-   * runs on `evolve.time - start`: cumulus -> congestus -> a tall cell with an anvil over `growSeconds`, then the tower decays (from 1.7x) and the anvil
-   * outlives it (to 3.6x). The cell is in the advected pattern frame, so the wind carries it.
+   * Storm scene (P6-B/C): write the field's base/top as fractions of `heightMeters` (for a taller volume than the presets' 512 m) with gentler tops.
+   * The cumulonimbus itself is no longer in the map: it is a 3D field in the generator (`VolumeGeneratorOptions.storm`, see `stormCellState`).
    */
-  storm?: StormCellOptions;
+  storm?: boolean;
   /** Metres spanned by the map's uv 0..1 (storm geometry is in metres). Default 4096. */
   extentMeters?: number;
   /** Height of the volume the map's base/top fractions refer to, metres. Only the storm cell path uses it (it writes both fields as fractions of this). Default 512. */
@@ -42,6 +41,7 @@ export interface ProceduralWeatherOptions {
   mipLevels?: number;
 }
 
+/** A cumulonimbus life cycle (P6-B API, P6-C 3D shape): the evolving cloudscape turns it into the generator's `StormCellState` per generation. */
 export interface StormCellOptions {
   /** Cell centre at time 0 in the pattern frame, map uv (0..1 spans `extentMeters`). Default [0.5, 0.5]. */
   center?: [number, number];
@@ -57,11 +57,22 @@ export interface StormCellOptions {
   anvilRadius?: number;
   /** Direction the anvil is carried (wind shear), map uv axes. Default [1, 0.35]. */
   shear?: [number, number];
-  /** The NVDF stage's coverage threshold (NvdfParams.coverageThreshold; the storm writes its mass relative to it). Default 0.15. */
-  coverageThreshold?: number;
+  /** Height of the cell's base above the volume base, metres. Default 60. */
+  baseHeight?: number;
 }
 
-const WEATHER_PARAM_BYTES = 160;
+/** The storm cell's life cycle at phase `ph` = age / growSeconds (the WGSL `stormField` uses the same curves). Sizes are fractions of the mature ones. */
+export function stormCellState(ph: number): { rise: number; towerEnvelope: number; anvilSpread: number; anvilEnvelope: number; radiusScale: number; heightScale: number } {
+  const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const rise = smooth(0, 0.75, ph);
+  const towerEnvelope = smooth(0, 0.06, ph) * (1 - smooth(1.7, 2.6, ph));
+  return {
+    rise, towerEnvelope, anvilSpread: smooth(0.42, 1.05, ph), anvilEnvelope: smooth(0.42, 0.56, ph) * (1 - smooth(2.6, 3.6, ph)),
+    radiusScale: 0.4 + 0.6 * rise, heightScale: (0.2 + 0.8 * Math.pow(rise, 0.85)) * towerEnvelope,
+  };
+}
+
+const WEATHER_PARAM_BYTES = 128;
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
 
 /**
@@ -96,14 +107,8 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     f[16] = e.time; f[17] = e.lifeSeconds ?? 600; f[18] = e.advection?.[0] ?? 0; f[19] = e.advection?.[1] ?? 0;
     f[20] = e.drift?.[0] ?? 0; f[21] = e.drift?.[1] ?? 0;
   }
-  const ext = options.extentMeters ?? 4096, volH = options.heightMeters ?? 512;
-  f[36] = ext; f[37] = volH;
-  if (options.storm) {
-    const st = options.storm, c = st.center ?? [0.5, 0.5];
-    f[24] = c[0]; f[25] = c[1]; f[26] = (options.evolve?.time ?? 0) - (st.start ?? 0); f[27] = st.growSeconds ?? 120;
-    f[28] = st.towerRadius ?? 520; f[29] = st.towerHeight ?? 0.9 * volH; f[30] = st.anvilRadius ?? 1500; f[31] = st.coverageThreshold ?? 0.15;
-    f[32] = st.shear?.[0] ?? 1; f[33] = st.shear?.[1] ?? 0.35; f[34] = options.evolve ? 1 : 0;
-  }
+  f[24] = options.storm ? 1 : 0;
+  f[28] = options.extentMeters ?? 4096; f[29] = options.heightMeters ?? 512;
   const uniforms = device.createBuffer({ label: 'weather params', size: WEATHER_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(uniforms, 0, data);
   const bindGroup = device.createBindGroup({

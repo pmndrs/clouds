@@ -60,6 +60,24 @@ export interface VolumeGeneratorOptions {
   origin?: [number, number];
   /** Shared scratch buffer (see `createGeneratorScratch`). Generators that share one must not generate at the same time; the caller owns it. */
   scratch?: GeneratorScratch;
+  /** A cumulonimbus (P6-C): a 3D cell unioned with the field in the shape stage. `restart({ storm })` moves it along its life cycle. */
+  storm?: StormCellState;
+}
+
+/** One storm cell for the generator, in its own metres (voxel * voxelSize + origin along x and the map row; heights above the volume base). */
+export interface StormCellState {
+  /** Centre of the cell (x, map row), generator metres. */
+  center: [number, number];
+  /** Life phase: age / seconds to grow (tower rises over 0..0.75, anvil 0.42..1.05, tower gone by 2.6, anvil by 3.6). */
+  phase: number;
+  /** Mature tower radius and top height (m, above `baseHeight`), mature anvil radius (m). */
+  towerRadius: number;
+  towerHeight: number;
+  anvilRadius: number;
+  /** Base of the cell above the volume base, m. Default 60. */
+  baseHeight?: number;
+  /** Direction the anvil is carried (x, map row). Default [1, 0.35]. */
+  shear?: [number, number];
 }
 
 /**
@@ -92,7 +110,7 @@ export interface VolumeGenerator {
    * Restart from the first job. With `next`, regenerate for a new window: a new weather map (the caller owns it and must keep it alive
    * until the generation is done) and/or a new world origin. The volume is overwritten in place, so do not render it until `done`.
    */
-  restart(next?: { weather?: GPUTexture; origin?: [number, number] }): void;
+  restart(next?: { weather?: GPUTexture; origin?: [number, number]; storm?: StormCellState | null }): void;
   /** World origin (metres) of the volume's voxel (0, 0) along x and the map row. */
   readonly origin: readonly [number, number];
   /** Encode up to `maxJobs` further jobs (default all remaining) into `encoder`. The caller submits. */
@@ -120,7 +138,10 @@ export function jfaStepSequence(maxDim: number, refine: 0 | 1 | 2 = 0): number[]
   return steps;
 }
 
-const PARAM_BYTES = 96, PARAM_STRIDE = 256;
+/** Size of the generator's params block (shaders.ts PARAMS); the stamp rebuilder binds the same block. */
+export const PARAM_BYTES = 144;
+const PARAM_STRIDE = 256;
+const STORM_WORD = 24;
 
 /** Split [0, total) into at most `count` contiguous [start, length] ranges of equal size (the last may be shorter). */
 export function rangeChunks(total: number, count: number): [number, number][] {
@@ -178,6 +199,15 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
   let weatherView = options.weather.createView();
   let origin: [number, number] = [...(options.origin ?? [0, 0])];
+  let storm: StormCellState | null = options.storm ?? null;
+  const stormWords = (f: Float32Array, at: number) => {
+    const st = storm;
+    f[at] = st ? 1 : 0;
+    if (!st) return;
+    f[at + 1] = st.center[0]; f[at + 2] = st.center[1]; f[at + 3] = st.baseHeight ?? 60;
+    f[at + 4] = st.towerRadius; f[at + 5] = st.towerHeight; f[at + 6] = st.anvilRadius; f[at + 7] = st.phase;
+    f[at + 8] = st.shear?.[0] ?? 1; f[at + 9] = st.shear?.[1] ?? 0.35;
+  };
 
   // ---- plan ----
   const slots: ArrayBuffer[] = [];
@@ -193,6 +223,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     f[6] = margin; f[7] = maxDist; f[8] = voxelSize; f[9] = p.coverageThreshold; f[10] = p.useMapHeights ? 1 : 0; f[11] = p.baseDefault;
     f[12] = p.topFraction; f[13] = p.domeExponent; f[14] = p.billowAmp; f[15] = p.billowCellMeters;
     f[16] = p.seed; f[17] = p.scaleBase; f[18] = p.scaleTop; f[19] = p.profileSigma; f[20] = p.detailBias; f[21] = p.baseLift; f[22] = origin[0]; f[23] = origin[1];
+    stormWords(f, STORM_WORD);
   };
   const bgl = (x: { pipeline: GPUComputePipeline }) => x.pipeline.getBindGroupLayout(0);
   // One 256-byte-aligned parameter slot per dispatch (dynamic offsets): per chunk, nvdf + edt x/y/z + profile + sdf.
@@ -270,10 +301,11 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     get origin() { return origin; },
     restart(next) {
       if (next?.weather) { weatherView = next.weather.createView(); bindings.nvdf = makeNvdfBG(); bindings.profile = makeProfileBG(); }
-      if (next?.origin) {
-        origin = [...next.origin];
+      if (next?.origin) origin = [...next.origin];
+      if (next?.storm !== undefined) storm = next.storm;
+      if (next?.origin || next?.storm !== undefined) {
         const f = new Float32Array(all.buffer);
-        for (let i = 0; i < slots.length; i++) { f[i * (PARAM_STRIDE / 4) + 22] = origin[0]; f[i * (PARAM_STRIDE / 4) + 23] = origin[1]; }
+        for (let i = 0; i < slots.length; i++) { const at = i * (PARAM_STRIDE / 4); f[at + 22] = origin[0]; f[at + 23] = origin[1]; stormWords(f, at + STORM_WORD); }
         device.queue.writeBuffer(params, 0, all);
       }
       cursor = 0;

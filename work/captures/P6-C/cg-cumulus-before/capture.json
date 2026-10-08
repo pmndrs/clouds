@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:53000/cloudscape-gen/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T18:06:56.899Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P6-C/cg-cumulus-before/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.087953,
+          "lightGrid": 0.688125,
+          "marchNear": 0.11867856666666667,
+          "marchFar": 2.009754016666667,
+          "composite": 0.2820311166666667,
+          "dome": 0.17891588333333341,
+          "resolveNear": 0.05329236666666667,
+          "resolveFar": 0.0848765333333333,
+          "cloudsTotal": 3.503626483333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "mean": 16.665789473684214
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 107,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 181.89999997615814
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P6-C/cg-cumulus-before/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.087953,
+          "lightGrid": 0.32113570588235296,
+          "marchNear": 0.13970129999999997,
+          "marchFar": 1.2768160166666667,
+          "composite": 0.2487482166666667,
+          "dome": 0.21489246666666667,
+          "resolveNear": 0.06369891666666666,
+          "resolveFar": 0.0910472166666667,
+          "cloudsTotal": 2.443992839215686
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "mean": 16.66608187134503
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 202,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 181.89999997615814
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P6-C/cg-cumulus-before/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.087953,
+          "lightGrid": 0.2602565757575758,
+          "marchNear": 0.12303903333333334,
+          "marchFar": 1.1304618999999998,
+          "composite": 0.34422539999999996,
+          "dome": 0.21675220000000006,
+          "resolveNear": 0.04917631666666669,
+          "resolveFar": 0.08025356666666666,
+          "cloudsTotal": 2.2921179924242425
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 297,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 181.89999997615814
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -7,14 +7,15 @@
 //   ?flash=hold      a steady flash at the cell's centre (look development / captures); ?flash=x,y,z,r,i a steady flash at a world position, radius, intensity
 //   ?lightning=0     no lightning (the A/B for its cost: also no active flash);  ?rate=<flashes/s> automatic flash rate (default 0.25 once the cell is a congestus)
 //   ?storm=0         no storm cell (the same field without it: the A/B for the cell's cost)
-//   ?bookmark=ground|distant|inside   ?wind=<x>,<z> ?cadence= ?seed= ?exposure= ?sunEl= ?sunAz= ?quality= ?hud=0 ?clean=1
+//   ?bookmark=ground|distant|top|inside|anvil   ?wind=<x>,<z> ?cadence= ?seed= ?exposure= ?sunEl= ?sunAz= ?quality= ?hud=0 ?clean=1
+//   ?p_<NvdfParams key>=<n>   override a shaping parameter (e.g. p_profileSigma=0 for the A/B of the profile noise)   ?height= ?radius= ?anvil= the cell's mature size (m)
 // Lines tagged `// INTEGRATION` are what clouds cost this scene; the evolving cloudscape is content, tagged `// CONTENT`.
 import { ACESFilmicToneMapping, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Scene } from 'three';
 import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
 import { pass } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three'; // INTEGRATION
-import { createEvolvingCloudscape, loadCloudNoise, type EvolveUpdate } from '@clouds/runtime'; // CONTENT
+import { createEvolvingCloudscape, loadCloudNoise, stormCellState, type EvolveUpdate, type NvdfParams } from '@clouds/runtime'; // CONTENT
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { CameraRig } from '../flagship/controls';
 
@@ -25,7 +26,7 @@ const num = (k: string, d: number) => (query.has(k) ? Number(query.get(k)) : d);
 // The box is 4096 x 4096 m, 2048 m tall (256 x 256 x 128 voxels of 16 m), centred on x = z = 0, its base at BASE_Y.
 const DIMS: [number, number, number] = [256, 256, 128], VOXEL = 16, BASE_Y = num('base', 250), REF = DIMS[0] * VOXEL;
 const BOX_CENTRE: [number, number] = [0, 0];
-const TOWER = { radius: 560, height: 1700, grow: 120, anvil: 2000 };          // CONTENT: the cell's mature size (m) and the simulated seconds it takes to grow
+const TOWER = { radius: num('radius', 560), height: num('height', 1560), grow: 120, anvil: num('anvil', 2000), base: 60 };   // CONTENT: the cell's mature size (m; turrets reach 1.15 x height) and the simulated seconds it takes to grow
 const STORM_START = -10;                                                    // CONTENT: the cell is already 10 s old at sim t = 0 (a small cumulus)
 const STORM_CENTRE: [number, number] = [0.5, 0.5];
 const TIME_SCALE = num('timeScale', 4);
@@ -34,10 +35,13 @@ const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math
 
 const BOOKMARKS = {
   // ground: under the field, looking at the tower and anvil from 2.3 km south; distant: the whole cell from the far side of the box; inside: in the anvil's shadow under the tower, close to the discharge region
-  ground: { pos: [-150, 2, 2900], sunEl: 24, sunAz: 150, lookAz: 0, pitch: 17 },
-  distant: { pos: [-700, 120, 5900], sunEl: 24, sunAz: 150, lookAz: 3, pitch: 13 },
-  top: { pos: [0, 5200, 1200], sunEl: 24, sunAz: 150, lookAz: 0, pitch: -80 },
-  inside: { pos: [150, 560, 760], sunEl: 24, sunAz: 150, lookAz: 195, pitch: 8 },
+  // Sun from the east-south-east (P6-C: side light, so the lobes shade; P6-B had it behind the camera, which lit the tower flat).
+  ground: { pos: [-150, 2, 2900], sunEl: 24, sunAz: 100, lookAz: 0, pitch: 17 },
+  distant: { pos: [-700, 120, 5900], sunEl: 24, sunAz: 100, lookAz: 3, pitch: 13 },
+  top: { pos: [0, 5200, 1200], sunEl: 24, sunAz: 100, lookAz: 0, pitch: -80 },
+  inside: { pos: [150, 560, 760], sunEl: 24, sunAz: 100, lookAz: 195, pitch: 8 },
+  // under the downwind edge of the anvil, looking back at the tower: the overhang and the underside
+  anvil: { pos: [1900, 40, 1500], sunEl: 24, sunAz: 100, lookAz: 230, pitch: 28 },
 } as const;
 type BookmarkName = keyof typeof BOOKMARKS;
 const NAMES = Object.keys(BOOKMARKS) as BookmarkName[];
@@ -72,12 +76,14 @@ try {
   const device = sharedBackend(renderer).device; // CONTENT
   const wind = (query.get('wind') ?? '3,1.5').split(',').map(Number) as [number, number];
   const stormOn = query.get('storm') !== '0';
+  const paramOverrides: Partial<NvdfParams> = {};
+  for (const [k, v] of query) if (k.startsWith('p_')) (paramOverrides as Record<string, number>)[k.slice(2)] = Number(v);
   const evolution = createEvolvingCloudscape(device, { // CONTENT
     preset: 'storm', dims: DIMS, voxelSize: VOXEL, seed: num('seed', 7), lifeSeconds: num('life', 600), wind,
     cadence: num('cadence', 1.5), border: 0.06, sliceDepth: 4,
     // storm=0 keeps the same recipe (map heights, same preset) without the cell: the cost A/B isolates the cell itself.
-    ...(stormOn ? { storm: { center: STORM_CENTRE, start: STORM_START, growSeconds: TOWER.grow, towerRadius: TOWER.radius, towerHeight: TOWER.height, anvilRadius: TOWER.anvil } }
-      : { params: { useMapHeights: true } }),
+    ...(stormOn ? { storm: { center: STORM_CENTRE, start: STORM_START, growSeconds: TOWER.grow, towerRadius: TOWER.radius, towerHeight: TOWER.height, anvilRadius: TOWER.anvil, baseHeight: TOWER.base } } : {}),
+    params: { ...(stormOn ? {} : { useMapHeights: true }), ...paramOverrides },
   });
   const HALF = DIMS[0] * VOXEL / 2;
   const cornerOf = (off: readonly [number, number]): [number, number, number] => [BOX_CENTRE[0] + off[0] - HALF, BASE_Y, BOX_CENTRE[1] + off[1] - HALF];
@@ -95,12 +101,11 @@ try {
   show(update);
 
   // ---- lightning (INTEGRATION: runtime.flash / settings.lightning; CONTENT: where the storm is) ----
-  /** The cell's state at simulated time t (mirrors weather.ts stormCell): life phase, tower height and radius, world centre of the tower. */
+  /** The cell's state at simulated time t (the generator's life cycle, runtime stormCellState): phase, tower height and radius, world centre of the tower. */
   const cell = (t: number) => {
-    const ph = (t - STORM_START) / TOWER.grow, rise = smooth(0, 0.75, ph);
-    const envT = smooth(0, 0.06, ph) * (1 - smooth(1.7, 2.6, ph));
+    const ph = (t - STORM_START) / TOWER.grow, st = stormCellState(ph);
     return {
-      ph, height: (0.2 + 0.8 * Math.pow(rise, 0.85)) * TOWER.height * envT, radius: (0.4 + 0.6 * rise) * TOWER.radius, envT,
+      ph, height: st.heightScale * TOWER.height, radius: st.radiusScale * TOWER.radius, envT: st.towerEnvelope,
       x: BOX_CENTRE[0] + (STORM_CENTRE[0] - 0.5) * REF + wind[0] * t, z: BOX_CENTRE[1] + (STORM_CENTRE[1] - 0.5) * REF + wind[1] * t,
     };
   };
@@ -113,12 +118,12 @@ try {
   const placeLightning = () => {
     const c = cell(simT());
     // strikes live in the tower's body, a little below its top and above the base
-    L.region = { center: [c.x, BASE_Y + 150, c.z], radius: Math.max(40, c.radius * 0.7), height: Math.max(100, c.height * 0.75) };
+    L.region = { center: [c.x, BASE_Y + TOWER.base + 100, c.z], radius: Math.max(40, c.radius * 0.7), height: Math.max(100, c.height * 0.75) };
     L.rate = lightningOn ? baseRate * smooth(0.3, 0.6, c.ph) * c.envT : 0;
   };
   const holdFlash = () => {
     const c = cell(simT());
-    const v = steadyFlash === 'hold' ? [c.x - 60, BASE_Y + c.height * 0.32, c.z + 420, 1500, 1.2] : steadyFlash.split(',').map(Number);
+    const v = steadyFlash === 'hold' ? [c.x - 60, BASE_Y + TOWER.base + c.height * 0.4, c.z + 300, 1300, 1.0] : steadyFlash.split(',').map(Number);
     clouds.core.flash({ position: [v[0], v[1], v[2]], radius: v[3], intensity: v[4], duration: 1e6, steady: true }); // INTEGRATION
     flashHeld = true;
   };

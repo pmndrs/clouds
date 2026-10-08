@@ -1,6 +1,6 @@
-export { createVolumeGenerator, createGeneratorScratch, scratchBytes, jfaStepSequence, NVDF_DEFAULTS } from './volume-generator';
-export type { NvdfParams, VolumeGenerator, VolumeGeneratorOptions, GenerateProgress, GeneratorScratch, GeneratorMemory } from './volume-generator';
-export { encodeProceduralWeatherMap } from './weather';
+export { createVolumeGenerator, createGeneratorScratch, scratchBytes, jfaStepSequence, NVDF_DEFAULTS, PARAM_BYTES } from './volume-generator';
+export type { NvdfParams, VolumeGenerator, VolumeGeneratorOptions, GenerateProgress, GeneratorScratch, GeneratorMemory, StormCellState } from './volume-generator';
+export { encodeProceduralWeatherMap, stormCellState } from './weather';
 export type { ProceduralWeatherOptions, StormCellOptions } from './weather';
 export { signedDistanceCpu, squaredDistanceToMask } from './cpu-edt';
 export { CLOUD_PRESETS } from './presets';

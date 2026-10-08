@@ -9,7 +9,7 @@
 // or createEmptyCloudVolume(...): its NVDF needs STORAGE_BINDING | COPY_SRC and its SDF COPY_DST.
 import type { GpuCloudVolume } from '../resources';
 import { EDT_X_WGSL, SDF_WGSL, edtLineWGSL } from './shaders';
-import { createGeneratorScratch, rangeChunks, type GeneratorScratch } from './volume-generator';
+import { createGeneratorScratch, PARAM_BYTES, rangeChunks, type GeneratorScratch } from './volume-generator';
 
 export type StampMode = 'max' | 'replace' | 'cutout';
 
@@ -273,7 +273,7 @@ export interface SdfRebuilder {
   destroy(): void;
 }
 
-const PARAM_BYTES = 96, PARAM_STRIDE = 256;
+const PARAM_STRIDE = 256;   // PARAM_BYTES: the generator's block (volume-generator.ts); only its first 9 words are filled here
 
 /**
  * Rebuild `target.sdf` from `target.nvdf` (voxel is inside where profile > 0): occupancy, exact separable EDT (x, y, z) in one u16 field,

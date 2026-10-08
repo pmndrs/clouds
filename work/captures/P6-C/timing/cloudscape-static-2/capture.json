@@ -1,0 +1,60 @@
+{
+  "url": "http://127.0.0.1:60027/cloudscape-gen/?hud=0&clean=1",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T18:25:54.462Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P6-C/timing/cloudscape-static-2/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.091995,
+          "lightGrid": 0.685999,
+          "marchNear": 0.1557289166666667,
+          "marchFar": 1.8410218833333338,
+          "composite": 0.38509350000000003,
+          "dome": 0.1773500666666667,
+          "resolveNear": 0.05585735000000001,
+          "resolveFar": 0.17866821666666663,
+          "cloudsTotal": 3.5717139333333336
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "mean": 16.665333333333333
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "ground",
+        "frames": 106,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 193.90000000596046
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

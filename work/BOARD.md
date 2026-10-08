@@ -1234,7 +1234,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Flagship and open-water A/B unchanged with no flash.
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
-### [~] P6-C Cumulonimbus that reads as one · Fable
+### [x] P6-C Cumulonimbus that reads as one · Fable
 - **Owns:**
   - `packages/runtime/src/generate/**` (including `volume-generator.ts` and `stamp.ts`) and its tests
   - `examples/lab/storm/**`
