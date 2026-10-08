@@ -1,0 +1,880 @@
+{
+  "url": "http://127.0.0.1:57443/vdb-drop/?url=/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/webgpu-cloud-audit-8c9f29/artifacts/research/nubis-pack/ParkouringCloud/ParkouringCloud.vdb&compare=parkouring",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:51:32.086Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-H/parkouring/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4169102166666667,
+          "lightGridReduce": 0.06208,
+          "lightGrid": 0.053331,
+          "marchNear": 0.3589021833333334,
+          "marchFar": 0.8374871666666667,
+          "composite": 0.9693108833333335,
+          "dome": 0.11971896666666666
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "frames": 106,
+        "cloudsReady": true,
+        "source": "ParkouringCloud.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto"
+        },
+        "import": {
+          "mode": "pack",
+          "fileVersion": 224,
+          "fileBytes": 47039215,
+          "grids": [
+            {
+              "name": "dimensional_profile",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  174,
+                  20,
+                  110
+                ],
+                "max": [
+                  267,
+                  57,
+                  203
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "profile"
+            },
+            {
+              "name": "detail_type",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "detail"
+            },
+            {
+              "name": "density_scale",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "scale"
+            },
+            {
+              "name": "sdf",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "clamp-reference"
+            }
+          ],
+          "baseGrid": "dimensional_profile",
+          "sourceVoxelSizeMeters": [
+            8,
+            8,
+            8
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1,
+          "sourceWidthMeters": 752,
+          "dims": [
+            108,
+            108,
+            51
+          ],
+          "cropOffset": [
+            167,
+            103,
+            13
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            99,
+            99,
+            44
+          ],
+          "occupiedFraction": 0.0761535409774335,
+          "sizeMeters": [
+            864,
+            408,
+            864
+          ],
+          "houdiniMinMeters": [
+            -712,
+            424,
+            -1224
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 15.100000023841858,
+            "resampleMs": 25.69999998807907,
+            "channelsMs": 11.099999994039536,
+            "totalMs": 64,
+            "uploadMs": 5.799999982118607,
+            "sdfGpuMs": 5.9000000059604645
+          }
+        },
+        "pageMs": {
+          "readMs": 121.69999998807907,
+          "importWallMs": 64.5,
+          "firstFrameMs": 46.099999994039536
+        },
+        "error": null,
+        "compare": {
+          "against": "parkouring",
+          "dimsMatch": true,
+          "cropOffsetMatch": true,
+          "withinTwo": [
+            1,
+            1,
+            1
+          ],
+          "exact": [
+            1,
+            1,
+            1
+          ],
+          "maxDiff": [
+            0,
+            0,
+            0
+          ],
+          "occupancyMismatch": 0,
+          "voxels": 594864
+        }
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-H/parkouring/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6349715833333334,
+          "lightGridReduce": 0.06208,
+          "lightGrid": 0.053331,
+          "marchNear": 0.3126375499999999,
+          "marchFar": 1.1477256333333334,
+          "composite": 0.9007599000000002,
+          "dome": 0.12003486666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "frames": 202,
+        "cloudsReady": true,
+        "source": "ParkouringCloud.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto"
+        },
+        "import": {
+          "mode": "pack",
+          "fileVersion": 224,
+          "fileBytes": 47039215,
+          "grids": [
+            {
+              "name": "dimensional_profile",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  174,
+                  20,
+                  110
+                ],
+                "max": [
+                  267,
+                  57,
+                  203
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "profile"
+            },
+            {
+              "name": "detail_type",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "detail"
+            },
+            {
+              "name": "density_scale",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "scale"
+            },
+            {
+              "name": "sdf",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "clamp-reference"
+            }
+          ],
+          "baseGrid": "dimensional_profile",
+          "sourceVoxelSizeMeters": [
+            8,
+            8,
+            8
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1,
+          "sourceWidthMeters": 752,
+          "dims": [
+            108,
+            108,
+            51
+          ],
+          "cropOffset": [
+            167,
+            103,
+            13
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            99,
+            99,
+            44
+          ],
+          "occupiedFraction": 0.0761535409774335,
+          "sizeMeters": [
+            864,
+            408,
+            864
+          ],
+          "houdiniMinMeters": [
+            -712,
+            424,
+            -1224
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 15.100000023841858,
+            "resampleMs": 25.69999998807907,
+            "channelsMs": 11.099999994039536,
+            "totalMs": 64,
+            "uploadMs": 5.799999982118607,
+            "sdfGpuMs": 5.9000000059604645
+          }
+        },
+        "pageMs": {
+          "readMs": 121.69999998807907,
+          "importWallMs": 64.5,
+          "firstFrameMs": 46.099999994039536
+        },
+        "error": null,
+        "compare": {
+          "against": "parkouring",
+          "dimsMatch": true,
+          "cropOffsetMatch": true,
+          "withinTwo": [
+            1,
+            1,
+            1
+          ],
+          "exact": [
+            1,
+            1,
+            1
+          ],
+          "maxDiff": [
+            0,
+            0,
+            0
+          ],
+          "occupancyMismatch": 0,
+          "voxels": 594864
+        }
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-H/parkouring/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6809888666666665,
+          "lightGridReduce": 0.06208,
+          "lightGrid": 0.037138000000000004,
+          "marchNear": 0.3580043166666668,
+          "marchFar": 0.9476126000000004,
+          "composite": 1.0356564166666664,
+          "dome": 0.10461578333333335
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "frames": 298,
+        "cloudsReady": true,
+        "source": "ParkouringCloud.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto"
+        },
+        "import": {
+          "mode": "pack",
+          "fileVersion": 224,
+          "fileBytes": 47039215,
+          "grids": [
+            {
+              "name": "dimensional_profile",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  174,
+                  20,
+                  110
+                ],
+                "max": [
+                  267,
+                  57,
+                  203
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "profile"
+            },
+            {
+              "name": "detail_type",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "detail"
+            },
+            {
+              "name": "density_scale",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "scale"
+            },
+            {
+              "name": "sdf",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "clamp-reference"
+            }
+          ],
+          "baseGrid": "dimensional_profile",
+          "sourceVoxelSizeMeters": [
+            8,
+            8,
+            8
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1,
+          "sourceWidthMeters": 752,
+          "dims": [
+            108,
+            108,
+            51
+          ],
+          "cropOffset": [
+            167,
+            103,
+            13
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            99,
+            99,
+            44
+          ],
+          "occupiedFraction": 0.0761535409774335,
+          "sizeMeters": [
+            864,
+            408,
+            864
+          ],
+          "houdiniMinMeters": [
+            -712,
+            424,
+            -1224
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 15.100000023841858,
+            "resampleMs": 25.69999998807907,
+            "channelsMs": 11.099999994039536,
+            "totalMs": 64,
+            "uploadMs": 5.799999982118607,
+            "sdfGpuMs": 5.9000000059604645
+          }
+        },
+        "pageMs": {
+          "readMs": 121.69999998807907,
+          "importWallMs": 64.5,
+          "firstFrameMs": 46.099999994039536
+        },
+        "error": null,
+        "compare": {
+          "against": "parkouring",
+          "dimsMatch": true,
+          "cropOffsetMatch": true,
+          "withinTwo": [
+            1,
+            1,
+            1
+          ],
+          "exact": [
+            1,
+            1,
+            1
+          ],
+          "maxDiff": [
+            0,
+            0,
+            0
+          ],
+          "occupancyMismatch": 0,
+          "voxels": 594864
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P4-H/parkouring/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0288753833333335,
+          "lightGridReduce": 0.06208,
+          "lightGrid": 0.06746211764705881,
+          "marchNear": 0.3621180999999999,
+          "marchFar": 0.9951681666666665,
+          "composite": 1.1182829999999997,
+          "dome": 0.13026326666666668
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "frames": 394,
+        "cloudsReady": true,
+        "source": "ParkouringCloud.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto"
+        },
+        "import": {
+          "mode": "pack",
+          "fileVersion": 224,
+          "fileBytes": 47039215,
+          "grids": [
+            {
+              "name": "dimensional_profile",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  174,
+                  20,
+                  110
+                ],
+                "max": [
+                  267,
+                  57,
+                  203
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "profile"
+            },
+            {
+              "name": "detail_type",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "detail"
+            },
+            {
+              "name": "density_scale",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "scale"
+            },
+            {
+              "name": "sdf",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                8,
+                8,
+                8
+              ],
+              "indexBBox": {
+                "min": [
+                  0,
+                  0,
+                  0
+                ],
+                "max": [
+                  511,
+                  63,
+                  511
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "clamp-reference"
+            }
+          ],
+          "baseGrid": "dimensional_profile",
+          "sourceVoxelSizeMeters": [
+            8,
+            8,
+            8
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1,
+          "sourceWidthMeters": 752,
+          "dims": [
+            108,
+            108,
+            51
+          ],
+          "cropOffset": [
+            167,
+            103,
+            13
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            99,
+            99,
+            44
+          ],
+          "occupiedFraction": 0.0761535409774335,
+          "sizeMeters": [
+            864,
+            408,
+            864
+          ],
+          "houdiniMinMeters": [
+            -712,
+            424,
+            -1224
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 15.100000023841858,
+            "resampleMs": 25.69999998807907,
+            "channelsMs": 11.099999994039536,
+            "totalMs": 64,
+            "uploadMs": 5.799999982118607,
+            "sdfGpuMs": 5.9000000059604645
+          }
+        },
+        "pageMs": {
+          "readMs": 121.69999998807907,
+          "importWallMs": 64.5,
+          "firstFrameMs": 46.099999994039536
+        },
+        "error": null,
+        "compare": {
+          "against": "parkouring",
+          "dimsMatch": true,
+          "cropOffsetMatch": true,
+          "withinTwo": [
+            1,
+            1,
+            1
+          ],
+          "exact": [
+            1,
+            1,
+            1
+          ],
+          "maxDiff": [
+            0,
+            0,
+            0
+          ],
+          "occupancyMismatch": 0,
+          "voxels": 594864
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

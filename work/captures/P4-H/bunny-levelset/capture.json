@@ -1,0 +1,379 @@
+{
+  "url": "http://127.0.0.1:59047/vdb-drop/?url=/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/webgpu-cloud-audit-8c9f29/artifacts/research/vdbs/bunny.vdb",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:54:37.287Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-H/bunny-levelset/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4476022499999999,
+          "lightGridReduce": 0.071371,
+          "lightGrid": 0.405891,
+          "marchNear": 0.2877470333333333,
+          "marchFar": 2.5294489166666674,
+          "composite": 0.8761532833333334,
+          "dome": 0.19831010000000002
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "frames": 106,
+        "cloudsReady": true,
+        "source": "bunny.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "sdf",
+          "fileVersion": 222,
+          "fileBytes": 15435954,
+          "grids": [
+            {
+              "name": "ls_bunny",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                0.05000000074505806,
+                0.05000000074505806,
+                0.05000000074505806
+              ],
+              "indexBBox": {
+                "min": [
+                  -381,
+                  -9,
+                  -250
+                ],
+                "max": [
+                  246,
+                  611,
+                  238
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "level-set"
+            }
+          ],
+          "baseGrid": "ls_bunny",
+          "sourceVoxelSizeMeters": [
+            2.388535031847134,
+            2.388535031847134,
+            2.388535031847134
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 47.77069992510378,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            202,
+            160,
+            200
+          ],
+          "cropOffset": [
+            -121,
+            -82,
+            -10
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            193,
+            151,
+            191
+          ],
+          "occupiedFraction": 0.19877908415841583,
+          "sizeMeters": [
+            1616,
+            1600,
+            1280
+          ],
+          "houdiniMinMeters": [
+            -969.1942675159236,
+            -81.19426751592357,
+            -657.1942675159236
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 207,
+            "resampleMs": 602.5999999940395,
+            "channelsMs": 1136,
+            "totalMs": 2020.2000000178814,
+            "uploadMs": 26.299999982118607,
+            "sdfGpuMs": 47.70000001788139
+          }
+        },
+        "pageMs": {
+          "readMs": 86.59999999403954,
+          "importWallMs": 2020.800000011921,
+          "firstFrameMs": 39.599999994039536
+        },
+        "error": null,
+        "compare": null
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-H/bunny-levelset/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6700481166666665,
+          "lightGridReduce": 0.071371,
+          "lightGrid": 0.405891,
+          "marchNear": 0.34789741666666674,
+          "marchFar": 2.078220416666667,
+          "composite": 1.0901298500000003,
+          "dome": 0.15599623333333337
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "frames": 201,
+        "cloudsReady": true,
+        "source": "bunny.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "sdf",
+          "fileVersion": 222,
+          "fileBytes": 15435954,
+          "grids": [
+            {
+              "name": "ls_bunny",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                0.05000000074505806,
+                0.05000000074505806,
+                0.05000000074505806
+              ],
+              "indexBBox": {
+                "min": [
+                  -381,
+                  -9,
+                  -250
+                ],
+                "max": [
+                  246,
+                  611,
+                  238
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "level-set"
+            }
+          ],
+          "baseGrid": "ls_bunny",
+          "sourceVoxelSizeMeters": [
+            2.388535031847134,
+            2.388535031847134,
+            2.388535031847134
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 47.77069992510378,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            202,
+            160,
+            200
+          ],
+          "cropOffset": [
+            -121,
+            -82,
+            -10
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            193,
+            151,
+            191
+          ],
+          "occupiedFraction": 0.19877908415841583,
+          "sizeMeters": [
+            1616,
+            1600,
+            1280
+          ],
+          "houdiniMinMeters": [
+            -969.1942675159236,
+            -81.19426751592357,
+            -657.1942675159236
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 207,
+            "resampleMs": 602.5999999940395,
+            "channelsMs": 1136,
+            "totalMs": 2020.2000000178814,
+            "uploadMs": 26.299999982118607,
+            "sdfGpuMs": 47.70000001788139
+          }
+        },
+        "pageMs": {
+          "readMs": 86.59999999403954,
+          "importWallMs": 2020.800000011921,
+          "firstFrameMs": 39.599999994039536
+        },
+        "error": null,
+        "compare": null
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-H/bunny-levelset/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7232152833333332,
+          "lightGridReduce": 0.071371,
+          "lightGrid": 0.22512422222222225,
+          "marchNear": 0.35910156666666665,
+          "marchFar": 1.7792921833333333,
+          "composite": 1.1549232833333332,
+          "dome": 0.16483494999999992
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "frames": 296,
+        "cloudsReady": true,
+        "source": "bunny.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "sdf",
+          "fileVersion": 222,
+          "fileBytes": 15435954,
+          "grids": [
+            {
+              "name": "ls_bunny",
+              "valueType": "float",
+              "gridClass": "level set",
+              "voxelSize": [
+                0.05000000074505806,
+                0.05000000074505806,
+                0.05000000074505806
+              ],
+              "indexBBox": {
+                "min": [
+                  -381,
+                  -9,
+                  -250
+                ],
+                "max": [
+                  246,
+                  611,
+                  238
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "level-set"
+            }
+          ],
+          "baseGrid": "ls_bunny",
+          "sourceVoxelSizeMeters": [
+            2.388535031847134,
+            2.388535031847134,
+            2.388535031847134
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 47.77069992510378,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            202,
+            160,
+            200
+          ],
+          "cropOffset": [
+            -121,
+            -82,
+            -10
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            193,
+            151,
+            191
+          ],
+          "occupiedFraction": 0.19877908415841583,
+          "sizeMeters": [
+            1616,
+            1600,
+            1280
+          ],
+          "houdiniMinMeters": [
+            -969.1942675159236,
+            -81.19426751592357,
+            -657.1942675159236
+          ],
+          "notes": [],
+          "timings": {
+            "parseMs": 207,
+            "resampleMs": 602.5999999940395,
+            "channelsMs": 1136,
+            "totalMs": 2020.2000000178814,
+            "uploadMs": 26.299999982118607,
+            "sdfGpuMs": 47.70000001788139
+          }
+        },
+        "pageMs": {
+          "readMs": 86.59999999403954,
+          "importWallMs": 2020.800000011921,
+          "firstFrameMs": 39.599999994039536
+        },
+        "error": null,
+        "compare": null
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

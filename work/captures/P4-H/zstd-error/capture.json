@@ -1,0 +1,49 @@
+{
+  "url": "http://127.0.0.1:57302/vdb-drop/?url=/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/webgpu-cloud-audit-8c9f29/artifacts/research/vdbs/cloud.0001-zstd.vdb",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:51:20.984Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-H/zstd-error/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7298887
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "frames": 97,
+        "cloudsReady": false,
+        "source": "cloud.0001-zstd.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": null,
+        "pageMs": {},
+        "error": "unsupported-codec: This .vdb is Blosc-compressed with the \"zstd\" codec, which is not supported by the in-browser reader (lz4 Blosc, ZIP and uncompressed are). In Houdini set File Compression to ZIP (or None) on the Geometry ROP / File SOP that writes the .vdb, then re-export.",
+        "compare": null
+      }
+    }
+  ],
+  "console": [
+    "warning: vdb import failed (shown on the page): This .vdb is Blosc-compressed with the \"zstd\" codec, which is not supported by the in-browser reader (lz4 Blosc, ZIP and uncompressed are). In Houdini set File Compression to ZIP (or None) on the Geometry ROP / File SOP that writes the .vdb, then re-export."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

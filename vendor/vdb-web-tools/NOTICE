@@ -1,0 +1,24 @@
+vdb-web-tools (the `.vdb` parser only)
+Copyright the WebVDB authors. Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Source:  /Users/dex/Developer/WebVDB/packages/vdb-web-tools/src/vdb/  (the user's own WebVDB project,
+         https://github.com/DennisSmolek/WebVDB)
+Commit:  9a8c1a5aa5c8242722904e91780224570aac7064
+
+Vendored: src/*.ts are the files of src/vdb/ (parseVdb and its helpers). The NanoVDB builder, quantizer and
+writer of the package are not vendored; nothing here needs them.
+
+Changes from upstream (made for the Nubis cloud importer, P4-H):
+- parse.ts: optional second argument `{ select }`. After a grid's metadata and transform are read, `select(descriptor)`
+  decides whether to decode its tree; skipped grids are listed in `VdbFile.descriptors` without decoding (so a first
+  pass can list names, classes, voxel sizes and bounds cheaply). Unsupported grids no longer abort the whole file when
+  they are not selected. Each descriptor records compression flags (blosc/zip) and the grid class.
+- tree.ts, grid.ts, types.ts: constant-value tiles at the lower (8^3) and upper (128^3) node level are kept
+  (`VdbGrid.tiles`) instead of being dropped or rejected, so level sets with an inactive negative interior and fog
+  volumes with active tiles read correctly. Active root-level tiles are still rejected.
+- tree.ts: files older than 222 store a leaf's origin and buffer count after its value mask (OpenVDB LeafNode::readBuffers); upstream
+  read them before it, which broke the 2013-era bunny_cloud.vdb (file version 220).
+- compression.ts: inactive-value defaults follow OpenVDB (background / -background instead of 0), so level sets whose inactive interior
+  is -background decode correctly; lz4 Blosc chunks are decoded through the new blosc.ts instead of raising an error.
+- blosc.ts (new, not from upstream): Blosc 1.x chunk decoder, lz4 codec, with byte shuffle and split streams. Other codecs
+  (blosclz, snappy, zlib, zstd) and bit shuffle raise VdbUnsupportedError naming the codec.

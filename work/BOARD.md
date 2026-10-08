@@ -881,7 +881,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - For the bunny, the shape stays recognizable while reading as cloud.
   - Report the conversion parameters and timings.
 
-### [~] P4-H In-browser `.vdb` import: drop a VDB, get a Nubis cloud · Sonnet
+### [x] P4-H In-browser `.vdb` import: drop a VDB, get a Nubis cloud · Sonnet
 - **Owns:**
   - `packages/runtime/src/import/**` (new; renderer-agnostic)
   - `vendor/vdb-web-tools/**` (vendored copy plus its Apache-2.0 LICENSE and

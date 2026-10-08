@@ -1,0 +1,382 @@
+{
+  "url": "http://127.0.0.1:56734/vdb-drop/?url=/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/webgpu-cloud-audit-8c9f29/artifacts/research/vdbs/cloud.0001.vdb",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:50:47.024Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-H/cloud-0001-blosc/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.24533791666666668,
+          "lightGridReduce": 0.079287,
+          "lightGrid": 0.600754,
+          "marchNear": 0.1526280833333334,
+          "marchFar": 2.201558033333334,
+          "composite": 0.42855523333333345,
+          "dome": 0.14448904999999998
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "frames": 103,
+        "cloudsReady": true,
+        "source": "cloud.0001.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 224,
+          "fileBytes": 333639,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                0.019999999552965164,
+                0.019999999552965164,
+                0.019999999552965164
+              ],
+              "indexBBox": {
+                "min": [
+                  -66,
+                  -3,
+                  -17
+                ],
+                "max": [
+                  -6,
+                  58,
+                  45
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            23.80952380952381,
+            23.80952380952381,
+            23.80952380952381
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1190.4762170854076,
+          "sourceWidthMeters": 1500.0000000000002,
+          "dims": [
+            199,
+            206,
+            202
+          ],
+          "cropOffset": [
+            -205,
+            -60,
+            -18
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            190,
+            197,
+            193
+          ],
+          "occupiedFraction": 0.5373306260225477,
+          "sizeMeters": [
+            1592,
+            1616,
+            1648
+          ],
+          "houdiniMinMeters": [
+            -1651.904761904762,
+            -155.9047619047619,
+            -491.9047619047619
+          ],
+          "densityRef": 10.000000953674316,
+          "notes": [],
+          "timings": {
+            "parseMs": 8.599999994039536,
+            "resampleMs": 133.59999999403954,
+            "channelsMs": 2339.7000000178814,
+            "totalMs": 2567.4000000059605,
+            "uploadMs": 31,
+            "sdfGpuMs": 54
+          }
+        },
+        "pageMs": {
+          "readMs": 36.89999997615814,
+          "importWallMs": 2568.2000000178814,
+          "firstFrameMs": 46.89999997615814
+        },
+        "error": null,
+        "compare": null
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-H/cloud-0001-blosc/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.38421021666666655,
+          "lightGridReduce": 0.079287,
+          "lightGrid": 0.600754,
+          "marchNear": 0.15409494999999998,
+          "marchFar": 1.9672304166666672,
+          "composite": 0.4825496333333334,
+          "dome": 0.12032861666666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "frames": 198,
+        "cloudsReady": true,
+        "source": "cloud.0001.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 224,
+          "fileBytes": 333639,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                0.019999999552965164,
+                0.019999999552965164,
+                0.019999999552965164
+              ],
+              "indexBBox": {
+                "min": [
+                  -66,
+                  -3,
+                  -17
+                ],
+                "max": [
+                  -6,
+                  58,
+                  45
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            23.80952380952381,
+            23.80952380952381,
+            23.80952380952381
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1190.4762170854076,
+          "sourceWidthMeters": 1500.0000000000002,
+          "dims": [
+            199,
+            206,
+            202
+          ],
+          "cropOffset": [
+            -205,
+            -60,
+            -18
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            190,
+            197,
+            193
+          ],
+          "occupiedFraction": 0.5373306260225477,
+          "sizeMeters": [
+            1592,
+            1616,
+            1648
+          ],
+          "houdiniMinMeters": [
+            -1651.904761904762,
+            -155.9047619047619,
+            -491.9047619047619
+          ],
+          "densityRef": 10.000000953674316,
+          "notes": [],
+          "timings": {
+            "parseMs": 8.599999994039536,
+            "resampleMs": 133.59999999403954,
+            "channelsMs": 2339.7000000178814,
+            "totalMs": 2567.4000000059605,
+            "uploadMs": 31,
+            "sdfGpuMs": 54
+          }
+        },
+        "pageMs": {
+          "readMs": 36.89999997615814,
+          "importWallMs": 2568.2000000178814,
+          "firstFrameMs": 46.89999997615814
+        },
+        "error": null,
+        "compare": null
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-H/cloud-0001-blosc/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6158286833333334,
+          "lightGridReduce": 0.079287,
+          "lightGrid": 0.192656,
+          "marchNear": 0.20416833333333337,
+          "marchFar": 1.2902331666666667,
+          "composite": 0.6331667000000001,
+          "dome": 0.07515998333333336
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "frames": 293,
+        "cloudsReady": true,
+        "source": "cloud.0001.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 224,
+          "fileBytes": 333639,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                0.019999999552965164,
+                0.019999999552965164,
+                0.019999999552965164
+              ],
+              "indexBBox": {
+                "min": [
+                  -66,
+                  -3,
+                  -17
+                ],
+                "max": [
+                  -6,
+                  58,
+                  45
+                ]
+              },
+              "compression": "blosc",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            23.80952380952381,
+            23.80952380952381,
+            23.80952380952381
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 1190.4762170854076,
+          "sourceWidthMeters": 1500.0000000000002,
+          "dims": [
+            199,
+            206,
+            202
+          ],
+          "cropOffset": [
+            -205,
+            -60,
+            -18
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            190,
+            197,
+            193
+          ],
+          "occupiedFraction": 0.5373306260225477,
+          "sizeMeters": [
+            1592,
+            1616,
+            1648
+          ],
+          "houdiniMinMeters": [
+            -1651.904761904762,
+            -155.9047619047619,
+            -491.9047619047619
+          ],
+          "densityRef": 10.000000953674316,
+          "notes": [],
+          "timings": {
+            "parseMs": 8.599999994039536,
+            "resampleMs": 133.59999999403954,
+            "channelsMs": 2339.7000000178814,
+            "totalMs": 2567.4000000059605,
+            "uploadMs": 31,
+            "sdfGpuMs": 54
+          }
+        },
+        "pageMs": {
+          "readMs": 36.89999997615814,
+          "importWallMs": 2568.2000000178814,
+          "firstFrameMs": 46.89999997615814
+        },
+        "error": null,
+        "compare": null
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

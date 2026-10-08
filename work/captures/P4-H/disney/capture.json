@@ -1,0 +1,382 @@
+{
+  "url": "http://127.0.0.1:56504/vdb-drop/?url=/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/webgpu-cloud-audit-8c9f29/artifacts/research/disney-cloud/wdas_cloud_eighth.vdb",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:50:24.606Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-H/disney/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4823717666666667,
+          "lightGridReduce": 0.040583,
+          "lightGrid": 0.210406,
+          "marchNear": 0.3666639666666667,
+          "marchFar": 2.3482363166666667,
+          "composite": 1.0363112666666667,
+          "dome": 0.3038904833333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "frames": 102,
+        "cloudsReady": true,
+        "source": "wdas_cloud_eighth.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 223,
+          "fileBytes": 10032545,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                1.6666666269302368,
+                1.6666666269302368,
+                1.6666666269302368
+              ],
+              "indexBBox": {
+                "min": [
+                  -131,
+                  -41,
+                  -179
+                ],
+                "max": [
+                  118,
+                  128,
+                  127
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            4.88599348534202,
+            4.88599348534202,
+            4.88599348534202
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 2.931596161099911,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            165,
+            196,
+            118
+          ],
+          "cropOffset": [
+            -87,
+            -111,
+            -31
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            156,
+            187,
+            109
+          ],
+          "occupiedFraction": 0.17529768455918576,
+          "sizeMeters": [
+            1320,
+            944,
+            1568
+          ],
+          "houdiniMinMeters": [
+            -698.442996742671,
+            -250.442996742671,
+            -890.442996742671
+          ],
+          "densityRef": 0.8677927255630493,
+          "notes": [],
+          "timings": {
+            "parseMs": 44,
+            "resampleMs": 196,
+            "channelsMs": 1563.300000011921,
+            "totalMs": 1911.800000011921,
+            "uploadMs": 81.30000001192093,
+            "sdfGpuMs": 26.400000005960464
+          }
+        },
+        "pageMs": {
+          "readMs": 112.59999999403954,
+          "importWallMs": 1912.6000000238419,
+          "firstFrameMs": 47.79999998211861
+        },
+        "error": null,
+        "compare": null
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-H/disney/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7709578166666664,
+          "lightGridReduce": 0.040583,
+          "lightGrid": 0.210406,
+          "marchNear": 0.3597569333333334,
+          "marchFar": 1.8816031999999998,
+          "composite": 1.0091421999999999,
+          "dome": 0.19940050000000004
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "frames": 198,
+        "cloudsReady": true,
+        "source": "wdas_cloud_eighth.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 223,
+          "fileBytes": 10032545,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                1.6666666269302368,
+                1.6666666269302368,
+                1.6666666269302368
+              ],
+              "indexBBox": {
+                "min": [
+                  -131,
+                  -41,
+                  -179
+                ],
+                "max": [
+                  118,
+                  128,
+                  127
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            4.88599348534202,
+            4.88599348534202,
+            4.88599348534202
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 2.931596161099911,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            165,
+            196,
+            118
+          ],
+          "cropOffset": [
+            -87,
+            -111,
+            -31
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            156,
+            187,
+            109
+          ],
+          "occupiedFraction": 0.17529768455918576,
+          "sizeMeters": [
+            1320,
+            944,
+            1568
+          ],
+          "houdiniMinMeters": [
+            -698.442996742671,
+            -250.442996742671,
+            -890.442996742671
+          ],
+          "densityRef": 0.8677927255630493,
+          "notes": [],
+          "timings": {
+            "parseMs": 44,
+            "resampleMs": 196,
+            "channelsMs": 1563.300000011921,
+            "totalMs": 1911.800000011921,
+            "uploadMs": 81.30000001192093,
+            "sdfGpuMs": 26.400000005960464
+          }
+        },
+        "pageMs": {
+          "readMs": 112.59999999403954,
+          "importWallMs": 1912.6000000238419,
+          "firstFrameMs": 47.79999998211861
+        },
+        "error": null,
+        "compare": null
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-H/disney/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.709424033333333,
+          "lightGridReduce": 0.040583,
+          "lightGrid": 0.168992,
+          "marchNear": 0.34190645000000003,
+          "marchFar": 1.1751648500000007,
+          "composite": 1.0018401833333332,
+          "dome": 0.1543559166666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "frames": 294,
+        "cloudsReady": true,
+        "source": "wdas_cloud_eighth.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 223,
+          "fileBytes": 10032545,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                1.6666666269302368,
+                1.6666666269302368,
+                1.6666666269302368
+              ],
+              "indexBBox": {
+                "min": [
+                  -131,
+                  -41,
+                  -179
+                ],
+                "max": [
+                  118,
+                  128,
+                  127
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            4.88599348534202,
+            4.88599348534202,
+            4.88599348534202
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 2.931596161099911,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            165,
+            196,
+            118
+          ],
+          "cropOffset": [
+            -87,
+            -111,
+            -31
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            156,
+            187,
+            109
+          ],
+          "occupiedFraction": 0.17529768455918576,
+          "sizeMeters": [
+            1320,
+            944,
+            1568
+          ],
+          "houdiniMinMeters": [
+            -698.442996742671,
+            -250.442996742671,
+            -890.442996742671
+          ],
+          "densityRef": 0.8677927255630493,
+          "notes": [],
+          "timings": {
+            "parseMs": 44,
+            "resampleMs": 196,
+            "channelsMs": 1563.300000011921,
+            "totalMs": 1911.800000011921,
+            "uploadMs": 81.30000001192093,
+            "sdfGpuMs": 26.400000005960464
+          }
+        },
+        "pageMs": {
+          "readMs": 112.59999999403954,
+          "importWallMs": 1912.6000000238419,
+          "firstFrameMs": 47.79999998211861
+        },
+        "error": null,
+        "compare": null
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
