@@ -1,3 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>runtime-tests/generate</title></head>
-<body><div id="app"></div><script type="module" src="./main.ts"></script></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>runtime-tests/generate</title>
+<style>
+  body { background: #111; color: #ddd; font: 11px/1.4 ui-monospace, monospace; margin: 8px; }
+  #wrap { display: flex; gap: 12px; align-items: flex-start; }
+  canvas { background: #000; image-rendering: pixelated; }
+  pre { white-space: pre-wrap; margin: 0; width: 360px; flex: none; }
+</style></head>
+<body><div id="wrap"><canvas id="view" width="1536" height="1044"></canvas><pre id="out">running...</pre></div><script type="module" src="./main.ts"></script></body></html>

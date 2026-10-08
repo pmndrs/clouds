@@ -1,0 +1,152 @@
+{
+  "url": "http://127.0.0.1:61450/runtime-tests/generate/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:54:35.797Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P3-A/view.jpg",
+      "report": {
+        "gpuMs": {
+          "generate256x256x32": 4.490143,
+          "generate256x256x32Sliced": 4.691963,
+          "perJob256x256x32": 0.0795247966101695,
+          "generate512x512x64": 42.141783,
+          "generate512x512x64Sliced": 41.94092999999999,
+          "perJob512x512x64": 0.36155974137931024
+        },
+        "frameMs": 17.19999998807907,
+        "renderSize": [
+          1536,
+          1044
+        ],
+        "sdf256": {
+          "rawSamples": {
+            "n": 2000,
+            "maxOvershoot": 0.10318756103515625,
+            "maxUndershoot": -0.463623046875,
+            "medianAbs": 0.03125,
+            "p99Abs": 0.359466552734375,
+            "signFlips": 0
+          },
+          "rawAll": {
+            "n": 2097152,
+            "maxOvershoot": 1.6547927856445312,
+            "maxUndershoot": -0.518524169921875,
+            "medianAbs": 0.0742034912109375,
+            "p99Abs": 0.385406494140625,
+            "signFlips": 0
+          },
+          "conservativeSamples": {
+            "n": 2000,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.463623046875,
+            "medianAbs": 8.016094207763672,
+            "p99Abs": 8.3450927734375,
+            "signFlips": 0
+          },
+          "conservativeAll": {
+            "n": 2097152,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.518524169921875,
+            "medianAbs": 8.065139770507812,
+            "p99Abs": 8.381103515625,
+            "signFlips": 0
+          },
+          "voxelMeters": 8
+        },
+        "timings": [
+          {
+            "dims": [
+              256,
+              256,
+              32
+            ],
+            "oneShotGpuMs": 4.490143,
+            "slicedGpuMs": 4.691963,
+            "wallMs": 6.399999976158142,
+            "jobs": 59,
+            "perJobMs": 0.0795247966101695,
+            "byStage": {
+              "seed2d": {
+                "sum": 0.00475,
+                "max": 0.00475,
+                "count": 1
+              },
+              "jfa2d": {
+                "sum": 0.125576,
+                "max": 0.013166,
+                "count": 10
+              },
+              "nvdf": {
+                "sum": 0.07108,
+                "max": 0.021874,
+                "count": 4
+              },
+              "jfa3d": {
+                "sum": 4.425897000000001,
+                "max": 0.139533,
+                "count": 40
+              },
+              "sdf": {
+                "sum": 0.06466,
+                "max": 0.019956,
+                "count": 4
+              }
+            }
+          },
+          {
+            "dims": [
+              512,
+              512,
+              64
+            ],
+            "oneShotGpuMs": 42.141783,
+            "slicedGpuMs": 41.94092999999999,
+            "wallMs": 55.30000001192093,
+            "jobs": 116,
+            "perJobMs": 0.36155974137931024,
+            "byStage": {
+              "seed2d": {
+                "sum": 0.010875,
+                "max": 0.010875,
+                "count": 1
+              },
+              "jfa2d": {
+                "sum": 0.457529,
+                "max": 0.043582,
+                "count": 11
+              },
+              "nvdf": {
+                "sum": 0.8519329999999999,
+                "max": 0.122538,
+                "count": 8
+              },
+              "jfa3d": {
+                "sum": 40.16623199999999,
+                "max": 0.844766,
+                "count": 88
+              },
+              "sdf": {
+                "sum": 0.454361,
+                "max": 0.063998,
+                "count": 8
+              }
+            }
+          }
+        ],
+        "checks": 11,
+        "failures": []
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

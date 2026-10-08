@@ -11,3 +11,4 @@ export { MARCH_WGSL } from './shaders/march.wgsl';
 export { COMPOSITE_WGSL } from './shaders/composite.wgsl';
 export { FRAME_WGSL, FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 export * from './shaders/atmosphere.wgsl';
+export * from './generate';
