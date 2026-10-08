@@ -1,0 +1,127 @@
+{
+  "url": "http://127.0.0.1:57340/open-water/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T16:59:57.690Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/P7-D/before/ow/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.709202400000001,
+          "lightGridReduce": 0.294537,
+          "lightGrid": 0.6116840000000001,
+          "marchNear": 0.15458235000000004,
+          "marchFar": 1.4595999833333335,
+          "composite": 0.35625081666666664,
+          "dome": 0.26527293333333335,
+          "resolveNear": 0.056521366666666656,
+          "resolveFar": 0.15726768333333335,
+          "cloudsTotal": 3.355716133333334,
+          "total": 5.064918533333335
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "horizon",
+        "frames": 138,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 807.0999999940395,
+          "encodeSubmitMsTotal": 3
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/P7-D/before/ow/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.5796321333333339,
+          "lightGridReduce": 0.294537,
+          "lightGrid": 0.6461667878787879,
+          "marchNear": 0.16485585,
+          "marchFar": 1.6055025999999997,
+          "composite": 0.41076185000000004,
+          "dome": 0.2574495,
+          "resolveNear": 0.05589,
+          "resolveFar": 0.24600878333333343,
+          "cloudsTotal": 3.681172371212121,
+          "total": 5.260804504545455
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "sunset",
+        "frames": 236,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 807.0999999940395,
+          "encodeSubmitMsTotal": 3
+        }
+      }
+    },
+    {
+      "name": "flight",
+      "file": "work/captures/P7-D/before/ow/flight.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.8527474333333331,
+          "lightGridReduce": 0.294537,
+          "lightGrid": 0.6121334897959183,
+          "marchNear": 1.2165584833333336,
+          "marchFar": 0.16996480000000005,
+          "composite": 0.49460573333333346,
+          "dome": 0.3148137499999999,
+          "resolveNear": 0.1922360166666667,
+          "resolveFar": 0.1022747666666667,
+          "cloudsTotal": 3.397124039795919,
+          "total": 5.249871473129252
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "flight",
+        "frames": 334,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 807.0999999940395,
+          "encodeSubmitMsTotal": 3
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

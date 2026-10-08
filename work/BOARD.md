@@ -1123,7 +1123,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The core bundle size is reported against the < 60 KB gzip target.
   - `pnpm check` green.
 
-### [~] P7-D Demo polish for the showcase scenes · Sonnet
+### [x] P7-D Demo polish for the showcase scenes · Sonnet
 - **Owns:**
   - `examples/lab/{open-water,onsen,plains-flight,three-adapter}/**`
   - `examples/lab/scenes/{ocean,terrain}/**`
@@ -1261,6 +1261,10 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-09: Open follow-ups from P7-D:
+  - open-water `cruise` blocky columns plus a reflection column at cloud altitude
+  - the sky layer needs a `weatherOrigin` for streaming swaps
+  - blocky bricks at the horizon at open-water sunset
 - 2026-10-09: The phone check in the iOS Simulator is blocked: the Simulator app and the iOS platform aren't installed (`open -a Simulator` reports "Unable to find application"; `simctl list` hangs). The user can install it from Xcode → Settings → Components → iOS, or run `xcodebuild -downloadPlatform iOS`. Real-device testing (iPhone, Android, an iGPU laptop) needs the user's hardware.
 - 2026-10-09: P7-B: the full `@clouds/runtime` entry is 70.8 KB gzipped, over the 60 KB target; the `@clouds/three`-used subset is 51 KB. → split subpath exports (`/generate`, `/import`, `/dome`) before publish. Packages export source only (no dist build yet), and the importer reaches `vendor/` from outside the package; fix both in the publish task. Lockfile resynced by the orchestrator.
 - 2026-10-09: P5-B is accepted with an orchestrator re-measure at 2560×1440 high: ground 1.94, edge 1.86, inside 2.97 ms (≤ 3 ms). Next levers: the composite (about 1 ms, now the largest pass) and the temporal history memory (about 63 MB at 1440p; phones).

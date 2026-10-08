@@ -6,6 +6,7 @@
 //   ?preset= ?seed= ?quality= ?jobs= (generation jobs per frame) ?border= (coverage fade at the window edge, fraction) ?heading= (compass degrees)
 //   ?sunDrift=<deg/s> (azimuth drift, measures the light grid's steady update cost; off by default)
 //   ?k=<near>,<far> (temporal amortization rates, 1/2/4; default from the quality preset)
+//   ?hud=0 hides the debug text, ?clean=1 hides all UI. ?sky=0 turns the distant sky layer off (see the weather-origin note at the layer's configure call)
 //   ?x0= ?z0= (start position)  ?exposure=  ?probe=1 (print where clouds are along the flight line, for placing the path)
 // Lines tagged `// INTEGRATION` are what clouds cost this scene; the streaming cloudscape is content, tagged `// CONTENT`.
 import { ACESFilmicToneMapping, CanvasTexture, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, RepeatWrapping, Scene, SRGBColorSpace } from 'three';
@@ -24,8 +25,10 @@ const num = (k: string, d: number) => (query.has(k) ? Number(query.get(k)) : d);
 const DURATION = 40;
 const BASE_Y = num('base', 600);           // metres: the volume's floor (cloud bases sit a little above it)
 const HEADING = num('heading', 0);         // compass degrees, north = -Z
-const START: [number, number] = [num('x0', 0), num('z0', 0)];
+const START: [number, number] = [num('x0', 2048), num('z0', 2048)]; // the first window then spans world 0..4096, so its box-relative sky-layer weather equals the streamer's world weather
 const LATERAL = num('lat', 50);            // metres to the right of the line, phased in between t = 24 and 32 (steers the descent into a gap)
+const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
+const SKY_LAYER = query.get('sky') !== '0';
 const SUN_DRIFT = num('sunDrift', 0);
 const SUN = { elevation: num('sunEl', 38), azimuth: num('sunAz', 110) };
 
@@ -103,7 +106,7 @@ try {
     return m;
   })();
 
-  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as CloudQuality) ?? 'high' }); // INTEGRATION
+  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality }); // INTEGRATION
   if (query.has('k')) { const [kn, kf] = query.get('k')!.split(',').map(Number); clouds.settings.temporalNear = kn; clouds.settings.temporalFar = kf ?? kn; } // ?k=<near>,<far>: temporal amortization override (1, 2 or 4)
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera); // INTEGRATION
@@ -169,6 +172,14 @@ try {
     const p = poseAt(0);
     const first = await stream.start(p.x, p.z);
     show(first, 0);
+    if (SKY_LAYER) { // INTEGRATION: cloud cover from the window's edge to the horizon, the same weather recipe as the stream
+      // NOTE (weather origin): the layer bakes its weather box-relative (uv = (xz - boxMin) / extent) while the streamer's is world-anchored (uv = xz / 4096).
+      // They coincide only while the window's min corner is (0, 0), i.e. the first window. After a swap the layer's field shifts by the window step until
+      // SkyLayerOptions gains a weather origin. See work/reports/P7-D.md.
+      const l = clouds.core.skyLayer, preset = CLOUD_PRESETS[presetName];
+      l.configure({ weather: { ...preset.weather, seed, border: num('border', 0) }, shape: { ...preset.params, seed }, voxelSize: WINDOW.voxel, rimWidth: 0 });
+      l.settings.enabled = true;
+    }
   }
 
   let probeLines: string[] | undefined;
@@ -220,9 +231,11 @@ try {
   resize();
   const hud = document.createElement('pre');
   hud.style.cssText = 'position:fixed;left:8px;top:8px;margin:0;padding:4px 6px;background:#0008;color:#fff;font:12px monospace;pointer-events:none';
+  hud.style.display = SHOW_HUD ? '' : 'none';
   document.body.appendChild(hud);
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;right:8px;top:8px;display:flex;gap:4px;flex-wrap:wrap;max-width:60vw;justify-content:flex-end';
+  if (!SHOW_UI) bar.style.display = 'none';
   document.body.appendChild(bar);
 
   let bookmark = 'start';
@@ -289,6 +302,7 @@ try {
 
   if (query.has('t')) await seek(Math.min(DURATION, Math.max(0, Number(query.get('t')))));
   else applyCamera();
+  if (SKY_LAYER) for (let i = 0; i < 600 && (clouds.core.skyLayer.info?.frames ?? 0) < 20; i++) await nextFrame(); // the layer's first amortization cycle
   harness.ready({
     bookmark: name => applyBookmark(name),
     report: () => ({

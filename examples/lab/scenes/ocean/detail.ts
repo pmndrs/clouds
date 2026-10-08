@@ -14,14 +14,14 @@ export interface DetailTile {
  * @param slopeRms target RMS slope magnitude (both axes)
  * @param spread angular spread around +X, radians (waves travel along the sampled uv's +x; the shader rotates uv by the wind)
  */
-export function bakeDetailTile(size: number, kMin: number, kMax: number, slopeRms: number, spread: number, seed: number, waveCount = 48): DetailTile {
+export function bakeDetailTile(size: number, kMin: number, kMax: number, slopeRms: number, spread: number, seed: number, waveCount = 160): DetailTile {
   let s = seed >>> 0;
   const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
   const waves: { kx: number; ky: number; a: number; ph: number }[] = [];
   const slope = Math.sqrt(2 / waveCount) * slopeRms; // per-wave slope amplitude (a*k) so RMS total = slopeRms
   for (let i = 0; i < waveCount; i++) {
     const k = kMin * Math.pow(kMax / kMin, rnd());
-    const ang = (rnd() * 2 - 1) * spread + (rnd() < 0.5 ? 0 : 0); // travel angle
+    const ang = (rnd() * 2 - 1) * spread + (rnd() < 0.5 ? 0 : 0) + (rnd() - 0.5) * 0.35; // travel angle (jittered so the integer lattice does not read as a grid)
     const kx = Math.round(Math.cos(ang) * k), ky = Math.round(Math.sin(ang) * k);
     if (kx === 0 && ky === 0) { i--; continue; }
     waves.push({ kx, ky, a: slope, ph: rnd() * Math.PI * 2 });

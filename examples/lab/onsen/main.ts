@@ -5,6 +5,7 @@
 //   ?time=<hours>   solar time of day (default 18.6, golden hour)     ?bookmark=vantage|valley|sunset
 //   ?terrain=0      hide the terrain (A/B for its GPU cost)           ?drift=0  freeze the camera drift
 //   ?quality=       cloud quality                                      ?exposure=  tone-mapping exposure     ?haze=  aerial-perspective distance scale
+//   ?hud=0 hides the debug text, ?clean=1 hides all UI (hud and bookmark buttons)   ?drift=0 also freezes the camera; ?fogdrift=0 freezes the valley fog's slow flow
 //   ?skylayer=1     enable the distant procedural sky layer (P3-C1)    ?seed=  cloud seed     ?reflect=0  no cloud reflection in the pool
 import { ACESFilmicToneMapping, IcosahedronGeometry, Mesh, PerspectiveCamera, Scene, type BufferGeometry } from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -26,17 +27,18 @@ const num = (k: string, d: number) => (query.has(k) ? Number(query.get(k)) : d);
 
 /** Camera bookmarks. `eye` is x, height above the ground, z (z grows south), `az` a compass heading (north = -Z, valley ahead), `time` shifts the sun from the default golden hour. */
 const BOOKMARKS = {
-  vantage: { eye: [0.4, 2.2, 11], az: 10, pitch: -5, dTime: 0 },
+  vantage: { eye: [0.4, 2.2, 11], az: 6, pitch: 1, dTime: 0 },
   valley: { eye: [1, 2.2, 10], az: -12, pitch: -14, dTime: 0 },
-  sunset: { eye: [-1, 1.7, 11.5], az: -34, pitch: -5, dTime: 0.45 },
+  sunset: { eye: [-1, 1.7, 11.5], az: -22, pitch: 0, dTime: 0.45 },
 } as const;
 type BookmarkName = keyof typeof BOOKMARKS;
 const NAMES = Object.keys(BOOKMARKS) as BookmarkName[];
 const isName = (n: string): n is BookmarkName => n in BOOKMARKS;
 const TIME = num('time', 18.6);
+const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
 
-// Cloud region (CONTENT): 512 x 512 x 96 voxels at 12 m = 6.1 km square, 1152 m tall, centred over the valley north of the terrace; its floor is at y = 0.
-const FIELD = { dims: [512, 512, 96] as [number, number, number], voxel: 12, centre: [0, -4600] as const };
+// Cloud region (CONTENT): 512 x 512 x 112 voxels at 12 m = 6.1 km square, 1344 m tall, centred over the valley north of the terrace; its floor is at y = 0.
+const FIELD = { dims: [512, 512, 112] as [number, number, number], voxel: 12, centre: [0, -4600] as const };
 const EXTENT = [FIELD.dims[0] * FIELD.voxel, FIELD.dims[2] * FIELD.voxel, FIELD.dims[1] * FIELD.voxel] as const;
 const MIN = [FIELD.centre[0] - EXTENT[0] / 2, 0, FIELD.centre[1] - EXTENT[2] / 2] as const;
 
@@ -124,7 +126,7 @@ try {
     gen.generate(enc);
     // Heroes: asset box centre in region-local metres; y lifts the box so its bottom sits at `bottom` (world y).
     const load = async (n: string): Promise<{ asset: CloudVolumeAsset; gpu: ReturnType<typeof uploadCloudVolume> }> => { const asset = await loadCloudVolume(`/clouds/heroes/${n}/`); return { asset, gpu: uploadCloudVolume(device, asset) }; };
-    const [fog, fair, tower] = await Promise.all([load('valley-fog'), load('fairweather'), load('tower')]);
+    const [fog, fair, hero] = await Promise.all([load('valley-fog'), load('fairweather'), load('sim-congestus')]);
     const place = (h: { asset: CloudVolumeAsset; gpu: ReturnType<typeof uploadCloudVolume> }, x: number, z: number, bottom: number, o: Omit<StampOptions, 'position'>) => {
       const s = o.scale ?? 1, half = (h.asset.dims[2] * h.asset.voxelSizeMeters * s) / 2;
       stampCloud(device, enc, gen.volume, h.gpu, { ...o, position: [x - MIN[0], bottom + half, z - MIN[2]] });
@@ -138,7 +140,7 @@ try {
       place(fog, x, z, field.base(x, z) + 8, { yaw: -Math.atan(slope) + jitter, scale: s, mode: 'max', detailType: 0.8, densityScale: num('fogd', 0.16) });
     }
     // A towering cloud beyond the valley, rising behind the far ridges; fair-weather cumulus floating over the valley and one drifting close.
-    place(tower, 900, -6500, 260, { scale: 1.05, yaw: 0.4, mode: 'max' });
+    place(hero, num('hx', 300), num('hz', -2300), num('hb', 70), { scale: num('hs', 1.55), yaw: 0.4, mode: 'max' }); // the hero: a simulated congestus (656 x 608 x 808 m at scale 1), rising from the valley behind the far ridge
     for (const [x, z, bottom, s, yaw] of [[-1500, -4700, 700, 1.7, 0.5], [1400, -3300, 760, 1.4, 2.2], [-600, -6400, 640, 1.9, 1.1], [-2300, -2400, 820, 1.2, 0.2], [2300, -5600, 700, 1.5, 3.0]] as const) place(fair, x, z, bottom, { scale: s, yaw, mode: 'max' });
     device.queue.submit([enc.finish()]);
     const rebuild = createSdfRebuilder(device, gen.volume, { scratch }); // the SDF must follow the stamps
@@ -172,9 +174,11 @@ try {
 
   const hud = document.createElement('pre');
   hud.style.cssText = 'position:fixed;left:8px;top:8px;margin:0;padding:4px 6px;background:#0008;color:#fff;font:12px monospace;pointer-events:none';
+  if (!SHOW_HUD) hud.style.display = 'none';
   document.body.appendChild(hud);
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;right:8px;top:8px;display:flex;gap:4px';
+  if (!SHOW_UI) bar.style.display = 'none';
   for (const name of NAMES) { const b = document.createElement('button'); b.textContent = name; b.onclick = () => applyBookmark(name); bar.appendChild(b); }
   document.body.appendChild(bar);
 
@@ -188,6 +192,10 @@ try {
     const dt = Math.min(0.25, (now - last) / 1000); last = now;
     if (frame > 30) { frameTimes.push(dt * 1000); if (frameTimes.length > 240) frameTimes.shift(); }
     pose((now - t0) / 1000);
+    if (clouds.isReady && query.get('fogdrift') !== '0') { // the whole cloud box flows slowly along the valley with the wind: a uniform write per frame (no re-stamp, no light-grid rebuild), so nothing can pop
+      const t = (now - t0) / 1000 + num('driftT', 0);
+      clouds.core.setVolumePosition([MIN[0] + 150 * Math.sin(t * 0.017), MIN[1], MIN[2] + 35 * Math.sin(t * 0.011 + 1)]); // INTEGRATION-adjacent; peak speed about 2.5 m/s
+    }
     sky.update(camera); // INTEGRATION (the sky needs this anyway)
     void sky.updateAerialPerspective(); // INTEGRATION (the sky needs this anyway)
     terrain.update();

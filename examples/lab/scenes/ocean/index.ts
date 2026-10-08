@@ -5,7 +5,7 @@ import { BufferAttribute, BufferGeometry, DirectionalLight, Vector3, type Object
 import { bakeDetailTile } from './detail';
 import { MeshPhysicalNodeMaterial, Mesh, LightingNode, type WebGPURenderer } from 'three/webgpu';
 import {
-  Fn, If, texture, vec2, positionGeometry, cameraViewMatrix, clamp, cos, dot, float, length, max, normalize, positionWorld, cameraPosition, positionViewDirection, normalView, cameraWorldMatrix, pow, sin, smoothstep, uniform, vec3, vec4,
+  Fn, If, texture, vec2, positionGeometry, cameraViewMatrix, clamp, cos, dot, float, length, max, mix, normalize, positionWorld, cameraPosition, positionViewDirection, normalView, cameraWorldMatrix, pow, sin, smoothstep, uniform, vec3, vec4,
 } from 'three/tsl';
 
 /** The pieces of @pmndrs/sky this module reads. Kept structural so any Sky instance fits. */
@@ -114,10 +114,12 @@ function buildGrid(rings: number, segments: number, r0: number, radius: number):
 
 /** Applies `env * T + rgb` to the specular IBL radiance, after three's own EnvironmentNode has written it. */
 class ReflectionLighting extends LightingNode {
-  constructor(private readonly env: any, private readonly reflection: (dir: any) => any) { super(); }
+  constructor(private readonly env: any, private readonly reflection: (dir: any) => any, private readonly smoothNormal: () => any) { super(); }
   setup(builder: any): null {
     this.env?.setup(builder);
-    const dir = positionViewDirection.negate().reflect(normalView).normalize().transformDirection(cameraWorldMatrix);
+    // The cloud picture is blurry (a 256^2 dome): look it up with a low-passed normal, not the sparkly detail normal, or it speckles.
+    const nSmooth = this.smoothNormal();
+    const dir = normalize(cameraPosition.sub(positionWorld)).negate().reflect(nSmooth).normalize();
     const c = this.reflection(dir);
     const radiance = builder.context.radiance;
     radiance.assign(radiance.mul(c.a).add(c.rgb));
@@ -148,7 +150,7 @@ export function createOcean(renderer: WebGPURenderer, scene: Scene, sky: OceanSk
   const uScatterK = uniform(settings.scatterStrength);
   const uCamXZ = uniform(new Vector3());
 
-  const tileA = bakeDetailTile(256, 1, 14, 0.07, 0.7, 11), tileB = bakeDetailTile(256, 2, 26, 0.17, 0.9, 29);
+  const tileA = bakeDetailTile(256, 1, 14, 0.07, 0.7, 11), tileB = bakeDetailTile(256, 2, 26, 0.13, 1.1, 29);
   const uDetail = uniform(1);
 
   // Wind rotation applied to (dx, dz) in-shader so windDirection is live; per-wave constants stay JS literals.
@@ -184,7 +186,7 @@ export function createOcean(renderer: WebGPURenderer, scene: Scene, sky: OceanSk
   if (options.reflection) {
     const hook = options.reflection;
     const base = material.setupEnvironment.bind(material);
-    material.setupEnvironment = (builder: any) => new ReflectionLighting(base(builder), hook) as any;
+    material.setupEnvironment = (builder: any) => new ReflectionLighting(base(builder), hook, () => normalize(mix(s.n, vec3(0, 1, 0), 0.85))) as any;
   }
   material.positionNode = Fn(() => {
     const wx = positionGeometry.x.add(uCamXZ.x), wz = positionGeometry.z.add(uCamXZ.z);
@@ -212,12 +214,18 @@ export function createOcean(renderer: WebGPURenderer, scene: Scene, sky: OceanSk
     const c2 = cos(0.6), s2 = sin(0.6);
     const sB2 = texture(tileB.texture, rot(pr.div(TILE_B * 1.37), float(c2), float(s2)).add(vec2(uTime.mul(-0.45), uTime.mul(0.2)))).xy.mul(wtB);
     // slopes are in the tile frame (+x = wind); rotate back to world
-    const dsl = sA.add(sB1).add(sB2.mul(0.8)).mul(uDetail);
+    // macro amplitude variation (patches of calmer and rougher water, ~170 m) hides the tile period
+    const macro = texture(tileA.texture, pr.div(173).add(vec2(uTime.mul(0.02), 0.31))).xy.dot(vec2(1, 0.6)).mul(3).add(1).clamp(0.45, 1.5);
+    const macro2 = texture(tileA.texture, rot(pr.div(61), float(0.8), float(0.6)).add(vec2(0.7, uTime.mul(0.015)))).xy.dot(vec2(0.6, 1)).mul(3).add(1).clamp(0.55, 1.4);
+    const dsl = sA.mul(macro).add(sB1.mul(macro2)).add(sB2.mul(0.8).mul(macro)).mul(uDetail);
     const dw = vec2(dsl.x.mul(cw).sub(dsl.y.mul(sw)), dsl.x.mul(sw).add(dsl.y.mul(cw)));
     const varLost = float(tileA.variance).mul(float(1).sub(wtA.mul(wtA))).add(float(tileB.variance * 1.64).mul(float(1).sub(wtB.mul(wtB))));
     return vec4(v.sx.add(dw.x), v.sz.add(dw.y), v.lost.add(varLost), v.dy);
   })();
-  const s = { n: normalize(vec3(surfaceVec.x.negate(), 1, surfaceVec.y.negate())), lost: surfaceVec.z, height: surfaceVec.w };
+  const nDist = Fn(() => length(cameraPosition.sub(positionWorld)))();
+  // At grazing angles a real sea self-shadows: facets facing away are hidden, so the visible slope is biased toward the viewer and the mean tilt vanishes. Flatten with range.
+  const flat = smoothstep(250, 4000, nDist).mul(0.75);
+  const s = { n: normalize(vec3(surfaceVec.x.negate().mul(float(1).sub(flat)), 1, surfaceVec.y.negate().mul(float(1).sub(flat)))), lost: surfaceVec.z, height: surfaceVec.w };
   material.normalNode = normalize(cameraViewMatrix.mul(vec4(s.n, 0)).xyz);
   const r0 = uRough.mul(uRough);
   material.roughnessNode = clamp(pow(r0.mul(r0).add(s.lost.mul(0.3)), 0.25), 0.04, 0.6);

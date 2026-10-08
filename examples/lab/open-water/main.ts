@@ -5,7 +5,7 @@ import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
 import { pass, vec4 } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three'; // INTEGRATION
-import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type CloudPresetName, type VolumeGenerator } from '@clouds/runtime'; // CONTENT
+import { CLOUD_PRESETS, type NvdfParams, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type CloudPresetName, type VolumeGenerator } from '@clouds/runtime'; // CONTENT
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { createOcean } from '../scenes/ocean';
 import { CameraRig } from '../flagship/controls';
@@ -18,6 +18,7 @@ const BOOKMARKS = {
   shore: { pos: [0, 2, 0], sunEl: 34, sunAz: 120, lookAz: 20, pitch: 8 },
   horizon: { pos: [0, 25, 400], sunEl: 45, sunAz: 200, lookAz: 350, pitch: 1 },
   sunset: { pos: [0, 4, 300], sunEl: 4, sunAz: 355, lookAz: 355, pitch: 5 },
+  cruise: { pos: [0, 300, 900], sunEl: 40, sunAz: 150, lookAz: 90, pitch: -14 }, // open sea from 300 m: shows the detail-tile crosshatch if it comes back
   flight: { pos: [0, 300, -1000], sunEl: 40, sunAz: 150, lookAz: 0, pitch: 0 },
 } as const;
 type BookmarkName = keyof typeof BOOKMARKS;
@@ -26,6 +27,9 @@ const isName = (n: string): n is BookmarkName => n in BOOKMARKS;
 
 // Cloudscape: 512 x 512 x 64 voxels at 8 m = 4.1 km square, 512 m tall, base 150 m, centred 2.3 km north of the origin.
 const FIELD = { dims: [512, 512, 64] as [number, number, number], voxel: 8, base: 150, centre: [0, -2300] as const };
+// ?hud=0 hides the debug text, ?clean=1 hides all UI (hud and bookmark buttons). ?sky=0 turns the distant sky layer off. ?quality=auto|low|medium|high|ultra.
+const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
+const SKY_LAYER = query.get('sky') !== '0';
 const JOBS_PER_FRAME = Number(query.get('jobs') ?? 2);
 
 try {
@@ -43,7 +47,7 @@ try {
   const sun = sky.createSun({ physical: true });
   sun.attach(scene);
   await sky.compileAsync();
-  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as CloudQuality) ?? 'high' }); // INTEGRATION
+  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality }); // INTEGRATION
   const ocean = createOcean(renderer, scene, sky, { sun, reflection: query.get('reflect') === '0' ? undefined : dir => { const r = clouds.reflection(dir); return query.has('refgain') ? vec4(r.rgb.mul(Number(query.get('refgain'))), r.a) : r; } }); // INTEGRATION (cloud reflections on the water)
   ocean.mesh.visible = query.get('ocean') !== '0';
   if (query.has('wave')) { ocean.settings.waveScale = Number(query.get('wave')); ocean.settings.choppiness = 0.2; } // ?wave=0.05: near-flat water for judging reflections
@@ -54,7 +58,7 @@ try {
   // ---- cloudscape: generated on the GPU at startup, a few jobs per frame; the scene renders without clouds until it is done ----
   const device = sharedBackend(renderer).device; // CONTENT
   const cloudPos: [number, number, number] = [FIELD.centre[0], FIELD.base, FIELD.centre[1]];
-  const gen: { current?: VolumeGenerator; frames: number; startMs: number; doneMs: number; gpuSubmitMs: number; source: string } = { frames: 0, startMs: 0, doneMs: 0, gpuSubmitMs: 0, source: 'none' };
+  const gen: { weatherOpts?: Parameters<typeof encodeProceduralWeatherMap>[2]; params?: Partial<NvdfParams>; current?: VolumeGenerator; frames: number; startMs: number; doneMs: number; gpuSubmitMs: number; source: string } = { frames: 0, startMs: 0, doneMs: 0, gpuSubmitMs: 0, source: 'none' };
   await clouds.setNoise(await loadCloudNoise('/clouds/noise/')); // INTEGRATION
   if (query.get('cloud')) {
     await clouds.load({ volume: `/clouds/${query.get('cloud')}/`, position: [0, 500, -400] }); // asset fallback (also loads the noise)
@@ -63,7 +67,10 @@ try {
     const encoder = device.createCommandEncoder();
     const preset = CLOUD_PRESETS[(query.get('preset') as CloudPresetName) ?? 'cumulus'] ?? CLOUD_PRESETS.cumulus; // CONTENT
     const seed = Number(query.get('seed') ?? 7);
-    const weather = encodeProceduralWeatherMap(device, encoder, { ...preset.weather, size: [FIELD.dims[0], FIELD.dims[1]], seed });
+    const weatherOpts = { ...preset.weather, coverageLo: Number(query.get('lo') ?? 0.56), coverageHi: Number(query.get('hi') ?? 0.9), // sparser than the preset: fair-weather cumulus with blue sky between, all the way out
+       size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}) }; // border 0: one continuous field the sky layer carries to the horizon
+    gen.weatherOpts = weatherOpts; gen.params = { ...preset.params, seed };
+    const weather = encodeProceduralWeatherMap(device, encoder, weatherOpts);
     device.queue.submit([encoder.finish()]);
     gen.current = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params: { ...preset.params, seed } }); // CONTENT
     gen.startMs = performance.now(); gen.source = 'generated';
@@ -78,7 +85,10 @@ try {
     gen.gpuSubmitMs += performance.now() - t; gen.frames++;
     if (g.done) {
       gen.doneMs = performance.now() - gen.startMs;
-      void clouds.setVolume(g.volume, { position: cloudPos }).then(() => ready()); // INTEGRATION (the volume stays caller-owned: `g` stays alive; the harness waits for the clouds)
+      void clouds.setVolume(g.volume, { position: cloudPos }).then(() => {
+        if (SKY_LAYER && gen.weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: gen.weatherOpts, shape: gen.params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; for (const k of Object.keys(l.settings)) { const v = query.get('sky_' + k); if (v !== null) (l.settings as unknown as Record<string, number | boolean>)[k] = typeof (l.settings as unknown as Record<string, unknown>)[k] === 'boolean' ? v === '1' : Number(v); } } // INTEGRATION (cloud cover to the horizon)
+        skyWait = SKY_LAYER; if (!SKY_LAYER) ready();
+      }); // INTEGRATION (the volume stays caller-owned: `g` stays alive; the harness waits for the clouds)
       gen.current = undefined;
     }
   };
@@ -87,6 +97,7 @@ try {
   addEventListener('resize', resize);
   resize();
 
+  let skyWait = false, readyFired = false;
   let bookmark: BookmarkName = isName(query.get('bookmark') ?? '') ? (query.get('bookmark') as BookmarkName) : 'shore';
   const applyBookmark = (name: string) => {
     if (!isName(name)) throw new Error(`unknown bookmark: ${name}`);
@@ -99,10 +110,12 @@ try {
   };
   const hud = document.createElement('pre');
   hud.style.cssText = 'position:fixed;left:8px;top:8px;margin:0;padding:4px 6px;background:#0008;color:#fff;font:12px monospace;pointer-events:none';
+  hud.style.display = SHOW_HUD ? '' : 'none';
   document.body.appendChild(hud);
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;right:8px;top:8px;display:flex;gap:4px';
   for (const name of NAMES) { const b = document.createElement('button'); b.textContent = name; b.onclick = () => applyBookmark(name); bar.appendChild(b); }
+  bar.style.display = SHOW_UI ? 'flex' : 'none';
   document.body.appendChild(bar);
 
   const frameTimes: number[] = [], sceneGpu: number[] = [];
@@ -132,6 +145,7 @@ try {
         `clouds ${clouds.isReady ? 'on' : gen.current ? `generating ${gen.current.jobsDone}/${gen.current.jobsTotal}` : 'loading'}\n` +
         Object.entries(g).map(([k, v]) => `${k.padEnd(12)} ${v.toFixed(2)}`).join('\n');
     }
+    if (skyWait && !readyFired && (clouds.core.skyLayer.info?.frames ?? 0) >= 20) { readyFired = true; ready(); } // the layer needs its first amortization cycle
     harness.frame();
   });
   applyBookmark(bookmark);

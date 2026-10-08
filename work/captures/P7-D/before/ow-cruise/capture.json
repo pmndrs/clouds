@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:60261/open-water/?hud=0&clean=1&sky=0",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T17:06:00.497Z",
+  "shots": [
+    {
+      "name": "cruise",
+      "file": "work/captures/P7-D/before/ow-cruise/cruise.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 2.639945333333333,
+          "lightGridReduce": 0.166497,
+          "lightGrid": 0.5334112941176471,
+          "marchNear": 0.21596028333333328,
+          "marchFar": 0.4786407166666666,
+          "composite": 0.34243153333333326,
+          "dome": 0.27098623333333344,
+          "resolveNear": 0.07162956666666664,
+          "resolveFar": 0.14030483333333335,
+          "cloudsTotal": 2.2198614607843137,
+          "total": 4.859806794117647
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "cruise",
+        "frames": 144,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 799.8999999761581,
+          "encodeSubmitMsTotal": 3
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

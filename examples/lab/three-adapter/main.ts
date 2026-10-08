@@ -10,6 +10,7 @@ import { CameraRig } from '../flagship/controls';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
+const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1'; // ?hud=0 hides the debug text, ?clean=1 hides all UI
 try {
   const renderer = new WebGPURenderer({ antialias: false, trackTimestamp: true });
   renderer.toneMapping = ACESFilmicToneMapping;
@@ -77,10 +78,12 @@ try {
   };
   const hud = document.createElement('pre');
   hud.style.cssText = 'position:fixed;left:8px;top:8px;margin:0;color:#fff;font:12px monospace;text-shadow:0 0 3px #000;pointer-events:none';
+  if (!SHOW_HUD) hud.style.display = 'none';
   document.body.appendChild(hud);
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;right:8px;top:8px;display:flex;gap:4px';
   for (const name of objectsOn ? [...BOOKMARK_NAMES, ...OBJECT_BOOKMARKS] : BOOKMARK_NAMES) { const b = document.createElement('button'); b.textContent = name; b.onclick = () => applyBookmark(name); bar.appendChild(b); }
+  if (!SHOW_UI) bar.style.display = 'none';
   document.body.appendChild(bar);
 
   const frameTimes: number[] = [], sceneGpu: number[] = [];
