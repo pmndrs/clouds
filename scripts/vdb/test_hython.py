@@ -50,8 +50,8 @@ def main():
     meta, nvdf, sdf = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'sdf'), '--sdf-grid', 'surface'])
     check_common(meta, nvdf, sdf, 8.0)
     # depth parameter moves the gradient: a shorter depth saturates more of the interior
-    _, a, _ = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'd1'), '--depth', '24'])
-    _, b, _ = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'd2'), '--depth', '200'])
+    _, a, _ = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'd1'), '--depth', '24', '--mapping', 'legacy'])
+    _, b, _ = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'd2'), '--depth', '200', '--mapping', 'legacy'])
     assert (a[:, 0] == 255).sum() > (b[:, 0] == 255).sum()
     print('test_hython: OK')
 

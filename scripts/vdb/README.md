@@ -55,3 +55,14 @@ Resampling to a different voxel size uses an area-average (down) / linear (up) f
 $HYTHON scripts/vdb/vdb_to_nvdf.py --mode pack ".../NVDFs/Examples/ParkouringCloud/VDB/ParkouringCloud.vdb" --out work/captures/scratch/pack-parkouring
 python3 scripts/vdb/check_parity.py work/captures/scratch/pack-parkouring assets/clouds/parkouring
 ```
+
+## Fitted mapping (P4-B, default for `fog` and `sdf`)
+
+`--mapping pack` (default) derives profile, detail type and density scale from the SDF depth and the height
+fraction with the compact relation in `nvdf_math.PACK_FIT`, fitted to the pack's parkouring and stormbird
+(`python3 -I scripts/vdb/fit_pack_mapping.py plot|fit`, plots in `work/captures/P4-B/fit-vs-pack.png`):
+profile = `sat((d_eff - 1.4) / 66)^1.05 * baseLift(h)`, `d_eff = depth * exp(0.64 * lowFreqNoise)` (3 voxel
+correlation, `--seed`, `--profile-noise` 0 disables, `--profile-gain`), detail type = smoothstep of height lowered by
+depth, density scale = height ramp (times `0.5 + 0.5 * density/p99` in fog mode, `--scale-gain`, `--scale-floor`).
+`--mapping legacy` restores the P4-A behaviour (`--depth`, `--gamma`, `--detail-bottom/top`).
+Explicit `--detail-grid` / `--scale-grid` still override either mapping.

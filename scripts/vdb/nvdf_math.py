@@ -202,3 +202,54 @@ def scale_from_density(density: np.ndarray, ref: float | None) -> tuple[np.ndarr
         ref = float(np.percentile(pos, 99)) if pos.size else 1.0
     ref = max(ref, 1e-9)
     return np.clip(density / ref, 0.0, 1.0).astype(np.float32), ref
+
+
+# ---------------------------------------------------------------- pack-fitted mapping (P4-B)
+# Parameters fitted by scripts/vdb/fit_pack_mapping.py against assets/clouds/{parkouring,stormbird}
+# (profile / detail type / density scale versus SDF depth and height fraction). See work/reports/P4-B.md.
+
+PACK_FIT = {
+    'profile': {'d0': 1.4, 'D': 66.0, 'g': 1.05, 'base': 0.1, 'baseH': 0.22, 'sigma': 0.64, 'corrVox': 3.0},
+    'detail': {'lo': 0.1, 'hi': 0.75, 'depthShift': 0.25, 'depthRef': 32.0},
+    'scale': {'s0': 0.04, 's1': 0.75, 'h1': 0.6},
+}
+
+
+def height_fraction(mask: np.ndarray) -> np.ndarray:
+    """Per-slice height fraction 0..1 over the occupied z range of the cloud (axis 0 of texture order), broadcast to mask shape."""
+    nz = mask.shape[0]
+    zs = np.flatnonzero(mask.any(axis=(1, 2)))
+    z0, z1 = (int(zs[0]), int(zs[-1])) if len(zs) else (0, nz - 1)
+    col = np.clip((np.arange(nz) - z0) / max(z1 - z0, 1), 0.0, 1.0)
+    return np.broadcast_to(col[:, None, None], mask.shape).astype(np.float32)
+
+
+def smooth_noise(shape, corr_vox: float, seed: int = 1) -> np.ndarray:
+    """Deterministic zero-mean unit-variance low-frequency noise (gaussian-blurred white noise)."""
+    rng = np.random.default_rng(seed)
+    n = gaussian_blur(rng.standard_normal(shape).astype(np.float32), corr_vox)
+    n = n - n.mean()
+    return (n / max(float(n.std()), 1e-9)).astype(np.float32)
+
+
+def pack_profile(depth_m, hfrac, noise, prm=None):
+    """Fitted Nubis profile: sat((d_eff - d0) / D)^g * baseLift(h). d_eff = depth * exp(sigma * noise) reproduces the
+    pack's wide spread (p10..p90) at a given depth; the base lift thins the cloud floor like the pack's flat bases."""
+    q = (prm or PACK_FIT)['profile']
+    d_eff = np.maximum(depth_m, 0.0) * np.exp(q['sigma'] * noise)
+    core = np.power(np.clip((d_eff - q['d0']) / q['D'], 0.0, 1.0), q['g'])
+    lift = q['base'] + (1.0 - q['base']) * smoothstep(0.0, q['baseH'], hfrac)
+    return (core * lift).astype(np.float32)
+
+
+def pack_detail(depth_m, hfrac, prm=None):
+    """Detail type: wispy at the cloud base, billowy at the top; deeper voxels read a little more wispy."""
+    q = (prm or PACK_FIT)['detail']
+    h = hfrac - q['depthShift'] * np.clip(depth_m / q['depthRef'], 0.0, 1.0)
+    return smoothstep(q['lo'], q['hi'], h).astype(np.float32)
+
+
+def pack_scale(hfrac, prm=None):
+    """Density scale rising with height: thin sheets at the base, dense towers at the top."""
+    q = (prm or PACK_FIT)['scale']
+    return (q['s0'] + (q['s1'] - q['s0']) * smoothstep(0.0, q['h1'], hfrac)).astype(np.float32)

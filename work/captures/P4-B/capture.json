@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:63073/flagship/?cloud=houdini-test",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:27:41.460Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-B/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4712242500000002,
+          "skyCompute": 0.046917,
+          "lightGrid": 0.097115,
+          "marchNear": 0.10277873333333333,
+          "marchFar": 0.4651103499999999,
+          "composite": 0.2938213999999999
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 92,
+        "assetLoadMs": 61.400000005960464,
+        "firstCloudFrameMs": 100.7999999821186
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-B/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7192903833333333,
+          "skyCompute": 0.349703,
+          "lightGrid": 0.097115,
+          "marchNear": 0.1532407166666667,
+          "marchFar": 0.6903783333333334,
+          "composite": 0.3720651833333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 188,
+        "assetLoadMs": 61.400000005960464,
+        "firstCloudFrameMs": 100.7999999821186
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P4-B/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7745438833333329,
+          "skyCompute": 0.046957,
+          "lightGrid": 0.097115,
+          "marchNear": 0.13936111666666665,
+          "marchFar": 0.45284729999999995,
+          "composite": 0.33335535
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 284,
+        "assetLoadMs": 61.400000005960464,
+        "firstCloudFrameMs": 100.7999999821186
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-B/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.69994075,
+          "skyCompute": 0.130248,
+          "lightGrid": 0.10195144444444443,
+          "marchNear": 0.11726629999999998,
+          "marchFar": 0.49799044999999986,
+          "composite": 0.3707777333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 379,
+        "assetLoadMs": 61.400000005960464,
+        "firstCloudFrameMs": 100.7999999821186
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -408,7 +408,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Works with `sky.applyHaze` before the clouds node.
   - `pnpm check` green.
 
-### [~] P4-B Fit Guerrilla's profile-from-SDF mapping for authored clouds · Sonnet
+### [x] P4-B Fit Guerrilla's profile-from-SDF mapping for authored clouds · Sonnet
 - **Owns:** `scripts/vdb/**`, `assets/clouds/houdini-test/**`, `work/captures/P4-B/`, report.
 - **Does:**
   - Measure, from the pack (`assets/clouds/{parkouring,stormbird}` NVDF + SDF,

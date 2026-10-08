@@ -240,21 +240,37 @@ def convert(args):
         extra['channels'] = {'r': args.profile_grid, 'g': args.detail_grid if detail_c is not None else 'constant 0.5', 'b': args.scale_grid if scale_c is not None else 'constant 1.0'}
     else:
         driver = given_c if (mode == 'sdf' and given_c is not None) else nm.gaussian_blur(sdf_c, args.smooth)
-        prof_c = nm.profile_from_sdf(driver, mask_c, args.depth, args.gamma)
+        legacy = args.mapping == 'legacy'
+        depth_c = np.where(mask_c, np.maximum(-driver, 0.0), 0.0)
+        hfrac = nm.height_fraction(mask_c)
+        if legacy:
+            prof_c = nm.profile_from_sdf(driver, mask_c, args.depth, args.gamma)
+        else:
+            noise = nm.smooth_noise(mask_c.shape, nm.PACK_FIT['profile']['corrVox'], args.seed)
+            prof_c = np.where(mask_c, nm.pack_profile(depth_c, hfrac, noise * args.profile_noise), 0.0)
+            prof_c = prof_c * args.profile_gain
+            prof_c = np.clip(prof_c, 0.0, 1.0)
         r8_c = nm.quantize_unorm8(prof_c)
         r8_c = np.where(mask_c, np.maximum(r8_c, 1), 0).astype(np.uint8)
         if detail_c is None:
-            detail_c = nm.detail_from_height(mask_c, args.detail_bottom, args.detail_top)
+            detail_c = (nm.detail_from_height(mask_c, args.detail_bottom, args.detail_top) if legacy
+                        else nm.pack_detail(depth_c, hfrac))
         if scale_c is None:
             if density_c is not None:
-                scale_c, ref = nm.scale_from_density(density_c, args.density_ref)
-                scale_c = args.scale_floor + (1.0 - args.scale_floor) * scale_c
+                dn, ref = nm.scale_from_density(density_c, args.density_ref)
                 extra['densityRef'] = ref
+                if legacy:
+                    scale_c = args.scale_floor + (1.0 - args.scale_floor) * dn
+                else:
+                    # pack height trend, modulated by the artist's density (half weight so a thin density does not zero it)
+                    scale_c = np.clip(nm.pack_scale(hfrac) * (0.5 + 0.5 * dn) * args.scale_gain, 0.0, 1.0)
+                    scale_c = np.maximum(scale_c, args.scale_floor)
             else:
-                scale_c = np.full(mask_c.shape, args.density_scale, np.float32)
+                scale_c = (np.full(mask_c.shape, args.density_scale, np.float32) if legacy
+                           else np.clip(nm.pack_scale(hfrac) * args.scale_gain, 0.0, 1.0))
         g8 = nm.quantize_unorm8(np.where(mask_c, detail_c, 0.0))
         b8 = nm.quantize_unorm8(np.where(mask_c, scale_c, 0.0))
-        extra['profileMapping'] = {'depthMeters': args.depth, 'gamma': args.gamma, 'smoothVoxels': args.smooth if mode == 'fog' else 0,
+        extra['profileMapping'] = {'mapping': args.mapping, 'packFit': (nm.PACK_FIT if args.mapping == 'pack' else None), 'depthMeters': args.depth, 'gamma': args.gamma, 'smoothVoxels': args.smooth if mode == 'fog' else 0,
                                    'detail': args.detail_grid or f'height heuristic {args.detail_bottom}->{args.detail_top}',
                                    'densityScale': args.scale_grid or ('density / p99' if density_c is not None else args.density_scale)}
     nvdf = nm.pack_rgba8(r8_c, g8, b8)
@@ -335,6 +351,11 @@ def parser():
     g.add_argument('--density-grid', default='density')
     g.add_argument('--iso', type=float, default=0.05, help='fog: density threshold that defines the cloud surface (default 0.05)')
     g.add_argument('--sdf-offset', type=float, default=0.0, help='sdf: surface is at sdf == offset metres (default 0; positive grows the cloud)')
+    g.add_argument('--mapping', choices=['pack', 'legacy'], default='pack', help='pack (default): mapping fitted to the Nubis pack (nvdf_math.PACK_FIT, scripts/vdb/fit_pack_mapping.py); legacy: P4-A saturate(-sdf/depth)^gamma, height-ramp detail, density/p99 scale')
+    g.add_argument('--seed', type=int, default=1, help='pack mapping: seed of the low-frequency profile variation')
+    g.add_argument('--profile-noise', type=float, default=1.0, help='pack mapping: scale of the profile spread (0 = smooth depth-only profile)')
+    g.add_argument('--profile-gain', type=float, default=1.0, help='pack mapping: multiply the profile (then clamp to 1)')
+    g.add_argument('--scale-gain', type=float, default=1.0, help='pack mapping: multiply the density scale (then clamp to 1)')
     g.add_argument('--depth', type=float, default=96.0, help='metres from the surface at which profile reaches 1 (default 96)')
     g.add_argument('--gamma', type=float, default=1.0, help='profile = saturate(-sdf/depth)^gamma (default 1)')
     g.add_argument('--smooth', type=float, default=1.0, help='fog: gaussian sigma (voxels) applied to the SDF that drives the profile (default 1)')
