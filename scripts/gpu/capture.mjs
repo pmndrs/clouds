@@ -55,7 +55,7 @@ if (!url) {
   let base = 'http://127.0.0.1:5173';
   if (flag('serve')) {
     const port = await freePort();
-    const vite = spawn(join(root, 'node_modules/.bin/vite'), ['--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    const vite = spawn(join(root, 'node_modules/.bin/vite'), ['--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, CLOUDS_NO_WATCH: '1' } }); // no hot reload mid-capture
     children.push(vite);
     let log = ''; vite.stdout.on('data', d => { log += d; }); vite.stderr.on('data', d => { log += d; });
     base = `http://127.0.0.1:${port}`;
