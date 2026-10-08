@@ -1,0 +1,985 @@
+{
+  "url": "http://127.0.0.1:59222/plains-flight/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T15:27:06.444Z",
+  "shots": [
+    {
+      "name": "t0",
+      "file": "work/captures/P5-B/plains-run2/t0.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4814638833333333,
+          "lightGridReduce": 0.101989,
+          "lightGrid": 0.76821,
+          "marchNear": 0.14732473333333335,
+          "resolveNear": 0.05766300000000002,
+          "marchFar": 1.058221583333333,
+          "resolveFar": 0.09753873333333334,
+          "composite": 0.6386976166666667,
+          "dome": 0.11363711666666669,
+          "cloudsTotal": 2.983281783333333,
+          "cloudsMarch": 2.113082783333333,
+          "total": 3.4647456666666665
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t0",
+        "simT": 0,
+        "frames": 94,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": 0,
+          "y": 2,
+          "yaw": 0,
+          "pitch": 0.6702689359975338
+        },
+        "windowCentre": [
+          0,
+          0
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 94,
+          "bytes": 63502800
+        },
+        "swapEvents": [],
+        "swapGpu": [],
+        "stream": {
+          "windows": 1,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.09999999403953552,
+          "generations": []
+        }
+      }
+    },
+    {
+      "name": "t5",
+      "file": "work/captures/P5-B/plains-run2/t5.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8603973500000001,
+          "lightGridReduce": 0.101989,
+          "lightGrid": 0.76821,
+          "marchNear": 0.20136011666666662,
+          "resolveNear": 0.09235203333333333,
+          "marchFar": 1.129960333333333,
+          "resolveFar": 0.12595438333333334,
+          "composite": 0.621595483333333,
+          "dome": 0.21139896666666666,
+          "cloudsTotal": 3.2528203166666656,
+          "cloudsMarch": 2.3826213166666657,
+          "total": 4.1132176666666656
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t5",
+        "simT": 4.999999999999988,
+        "frames": 190,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -112.49979166666591,
+          "y": 5.703703703703697,
+          "yaw": 0.02393888576415846,
+          "pitch": 0.3394813917257646
+        },
+        "windowCentre": [
+          0,
+          0
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 190,
+          "bytes": 63502800
+        },
+        "swapEvents": [],
+        "swapGpu": [],
+        "stream": {
+          "windows": 1,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.09999999403953552,
+          "generations": []
+        }
+      }
+    },
+    {
+      "name": "t10",
+      "file": "work/captures/P5-B/plains-run2/t10.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.3645456500000004,
+          "lightGridReduce": 0.101989,
+          "lightGrid": 0.76821,
+          "marchNear": 0.25134285000000006,
+          "resolveNear": 0.08918623333333332,
+          "marchFar": 0.65937735,
+          "resolveFar": 0.1578733333333333,
+          "composite": 0.6593650333333334,
+          "dome": 0.29491626666666665,
+          "cloudsTotal": 2.9822600666666665,
+          "cloudsMarch": 2.1120610666666666,
+          "total": 4.346805716666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t10",
+        "simT": 10,
+        "frames": 286,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -600,
+          "y": 160,
+          "yaw": -0.03835697098652554,
+          "pitch": 0.018238665009637785
+        },
+        "windowCentre": [
+          0,
+          0
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 3,
+          "frames": 286,
+          "bytes": 63502800
+        },
+        "swapEvents": [],
+        "swapGpu": [],
+        "stream": {
+          "windows": 1,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.09999999403953552,
+          "generations": []
+        }
+      }
+    },
+    {
+      "name": "t15",
+      "file": "work/captures/P5-B/plains-run2/t15.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.3207547999999999,
+          "lightGridReduce": 0.1283475,
+          "lightGrid": 0.7551615,
+          "marchNear": 1.0006238500000002,
+          "resolveNear": 0.04179441666666666,
+          "marchFar": 1.6860020500000001,
+          "resolveFar": 0.07591833333333332,
+          "composite": 0.4477257666666667,
+          "dome": 0.1391033833333333,
+          "cloudsTotal": 4.274676800000001,
+          "cloudsMarch": 3.3911678000000007,
+          "total": 4.5954316
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t15",
+        "simT": 15,
+        "frames": 382,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -1200,
+          "y": 612,
+          "yaw": 0.03751999907098956,
+          "pitch": 0.5734434117529968
+        },
+        "windowCentre": [
+          0,
+          -1144
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 4,
+          "frames": 382,
+          "bytes": 63502800
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666881,
+            "frame": 292,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.600000000000364,
+              16.699999999999818,
+              16.699999999999818,
+              16.600000000000364
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666881,
+            "lightGridPeakMs": 0.76821,
+            "cloudsPeakMs": 3.908732,
+            "lightGridBeforeMedianMs": 0.76821
+          }
+        ],
+        "stream": {
+          "windows": 2,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "t20",
+      "file": "work/captures/P5-B/plains-run2/t20.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.3973925333333335,
+          "lightGridReduce": 0.1283475,
+          "lightGrid": 0.7551615,
+          "marchNear": 0.21905498333333343,
+          "resolveNear": 0.07907248333333332,
+          "marchFar": 1.1845492000000002,
+          "resolveFar": 0.17472571666666672,
+          "composite": 0.9766560666666669,
+          "dome": 0.26819875,
+          "cloudsTotal": 3.785766200000001,
+          "cloudsMarch": 2.902257200000001,
+          "total": 5.183158733333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t20",
+        "simT": 19.999999999999822,
+        "frames": 477,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -1799.9999999999786,
+          "y": 1074.5599999999952,
+          "yaw": -0.021760844435571813,
+          "pitch": 0.11487144583494303
+        },
+        "windowCentre": [
+          0,
+          -1144
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 5,
+          "frames": 477,
+          "bytes": 63502800
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666881,
+            "frame": 292,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.600000000000364,
+              16.699999999999818,
+              16.699999999999818,
+              16.600000000000364
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666881,
+            "lightGridPeakMs": 0.76821,
+            "cloudsPeakMs": 3.908732,
+            "lightGridBeforeMedianMs": 0.76821
+          }
+        ],
+        "stream": {
+          "windows": 2,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "t25",
+      "file": "work/captures/P5-B/plains-run2/t25.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.2133614499999996,
+          "lightGridReduce": 0.13524466666666668,
+          "lightGrid": 0.7522013333333334,
+          "marchNear": 0.15293720000000002,
+          "resolveNear": 0.055988116666666664,
+          "marchFar": 1.2948593166666666,
+          "resolveFar": 0.10258321666666666,
+          "composite": 0.7168133666666666,
+          "dome": 0.21961059999999996,
+          "cloudsTotal": 3.4302378166666663,
+          "cloudsMarch": 2.542791816666666,
+          "total": 4.643599266666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t25",
+        "simT": 24.999999999999538,
+        "frames": 573,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2.1484374999981055,
+          "z": -2399.9999999999445,
+          "y": 1200,
+          "yaw": -0.0026528758940572443,
+          "pitch": -0.2792526803190927
+        },
+        "windowCentre": [
+          0,
+          -2264
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 6,
+          "frames": 573,
+          "bytes": 63502800
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666881,
+            "frame": 292,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.600000000000364,
+              16.699999999999818,
+              16.699999999999818,
+              16.600000000000364
+            ]
+          },
+          {
+            "simT": 23.86666666666627,
+            "frame": 483,
+            "setVolumeMs": 0.29999998211860657,
+            "centre": [
+              0,
+              -2264
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.700000000000728,
+              16.700000000000728,
+              16.599999999998545,
+              16.700000000000728
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666881,
+            "lightGridPeakMs": 0.76821,
+            "cloudsPeakMs": 3.908732,
+            "lightGridBeforeMedianMs": 0.76821
+          },
+          {
+            "simT": 23.86666666666627,
+            "lightGridPeakMs": 0.746281,
+            "cloudsPeakMs": 3.8974830000000003,
+            "lightGridBeforeMedianMs": 0.742113
+          }
+        ],
+        "stream": {
+          "windows": 3,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -4312
+              ],
+              "centre": [
+                0,
+                -2264
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "t30",
+      "file": "work/captures/P5-B/plains-run2/t30.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.6071031000000002,
+          "lightGridReduce": 0.13524466666666668,
+          "lightGrid": 0.7522013333333334,
+          "marchNear": 0.205633,
+          "resolveNear": 0.07471076666666665,
+          "marchFar": 1.257461283333334,
+          "resolveFar": 0.1359436333333334,
+          "composite": 0.9326343166666669,
+          "dome": 0.3584447166666668,
+          "cloudsTotal": 3.852273716666668,
+          "cloudsMarch": 2.964827716666668,
+          "total": 5.459376816666668
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t30",
+        "simT": 29.999999999999254,
+        "frames": 669,
+        "cloudsReady": true,
+        "pose": {
+          "x": 42.187499999994756,
+          "z": -2999.9999999999104,
+          "y": 1200,
+          "yaw": 0.02601151360629601,
+          "pitch": -0.1889766654292113
+        },
+        "windowCentre": [
+          0,
+          -2264
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 7,
+          "frames": 669,
+          "bytes": 63502800
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666881,
+            "frame": 292,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.600000000000364,
+              16.699999999999818,
+              16.699999999999818,
+              16.600000000000364
+            ]
+          },
+          {
+            "simT": 23.86666666666627,
+            "frame": 483,
+            "setVolumeMs": 0.29999998211860657,
+            "centre": [
+              0,
+              -2264
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.700000000000728,
+              16.700000000000728,
+              16.599999999998545,
+              16.700000000000728
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666881,
+            "lightGridPeakMs": 0.76821,
+            "cloudsPeakMs": 3.908732,
+            "lightGridBeforeMedianMs": 0.76821
+          },
+          {
+            "simT": 23.86666666666627,
+            "lightGridPeakMs": 0.746281,
+            "cloudsPeakMs": 3.8974830000000003,
+            "lightGridBeforeMedianMs": 0.742113
+          }
+        ],
+        "stream": {
+          "windows": 3,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -4312
+              ],
+              "centre": [
+                0,
+                -2264
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "t35",
+      "file": "work/captures/P5-B/plains-run2/t35.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8821490833333332,
+          "lightGridReduce": 0.138464,
+          "lightGrid": 0.75253375,
+          "marchNear": 0.12800361666666668,
+          "resolveNear": 0.04807503333333333,
+          "marchFar": 1.4292359000000006,
+          "resolveFar": 0.09332705,
+          "composite": 0.6561031500000001,
+          "dome": 0.1896789500000001,
+          "cloudsTotal": 3.4354214500000007,
+          "cloudsMarch": 2.5444237000000007,
+          "total": 4.317570533333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t35",
+        "simT": 34.99999999999897,
+        "frames": 765,
+        "cloudsReady": true,
+        "pose": {
+          "x": 50,
+          "z": -3599.9999999998763,
+          "y": 820,
+          "yaw": -0.03902504021873082,
+          "pitch": -0.017728428851105385
+        },
+        "windowCentre": [
+          48,
+          -3384
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 8,
+          "frames": 765,
+          "bytes": 63502800
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666881,
+            "frame": 292,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.600000000000364,
+              16.699999999999818,
+              16.699999999999818,
+              16.600000000000364
+            ]
+          },
+          {
+            "simT": 23.86666666666627,
+            "frame": 483,
+            "setVolumeMs": 0.29999998211860657,
+            "centre": [
+              0,
+              -2264
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.700000000000728,
+              16.700000000000728,
+              16.599999999998545,
+              16.700000000000728
+            ]
+          },
+          {
+            "simT": 33.183333333332406,
+            "frame": 675,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              48,
+              -3384
+            ],
+            "before": 16.69999999999891,
+            "after": [
+              16.69999999999891,
+              16.600000000000364,
+              16.700000000000728,
+              16.599999999998545
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666881,
+            "lightGridPeakMs": 0.76821,
+            "cloudsPeakMs": 3.908732,
+            "lightGridBeforeMedianMs": 0.76821
+          },
+          {
+            "simT": 23.86666666666627,
+            "lightGridPeakMs": 0.746281,
+            "cloudsPeakMs": 3.8974830000000003,
+            "lightGridBeforeMedianMs": 0.742113
+          },
+          {
+            "simT": 33.183333333332406,
+            "lightGridPeakMs": 0.753531,
+            "cloudsPeakMs": 3.260202,
+            "lightGridBeforeMedianMs": 0.746281
+          }
+        ],
+        "stream": {
+          "windows": 4,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -4312
+              ],
+              "centre": [
+                0,
+                -2264
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.29999998211860657,
+              "origin": [
+                -2000,
+                -5432
+              ],
+              "centre": [
+                48,
+                -3384
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "t40",
+      "file": "work/captures/P5-B/plains-run2/t40.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.5941603499999992,
+          "lightGridReduce": 0.138464,
+          "lightGrid": 0.75253375,
+          "marchNear": 0.24179568333333332,
+          "resolveNear": 0.11310106666666665,
+          "marchFar": 0.9229519,
+          "resolveFar": 0.16922861666666666,
+          "composite": 0.7454261666666667,
+          "dome": 0.34070315000000007,
+          "cloudsTotal": 3.4242043333333334,
+          "cloudsMarch": 2.5332065833333335,
+          "total": 5.018364683333333
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "t40",
+        "simT": 39.999999999998685,
+        "frames": 861,
+        "cloudsReady": true,
+        "pose": {
+          "x": 50,
+          "z": -4199.999999999843,
+          "y": 360,
+          "yaw": 0.03651781002909438,
+          "pitch": -0.01941628889601573
+        },
+        "windowCentre": [
+          48,
+          -3384
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 9,
+          "frames": 861,
+          "bytes": 63502800
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666881,
+            "frame": 292,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.600000000000364,
+              16.699999999999818,
+              16.699999999999818,
+              16.600000000000364
+            ]
+          },
+          {
+            "simT": 23.86666666666627,
+            "frame": 483,
+            "setVolumeMs": 0.29999998211860657,
+            "centre": [
+              0,
+              -2264
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.700000000000728,
+              16.700000000000728,
+              16.599999999998545,
+              16.700000000000728
+            ]
+          },
+          {
+            "simT": 33.183333333332406,
+            "frame": 675,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              48,
+              -3384
+            ],
+            "before": 16.69999999999891,
+            "after": [
+              16.69999999999891,
+              16.600000000000364,
+              16.700000000000728,
+              16.599999999998545
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666881,
+            "lightGridPeakMs": 0.76821,
+            "cloudsPeakMs": 3.908732,
+            "lightGridBeforeMedianMs": 0.76821
+          },
+          {
+            "simT": 23.86666666666627,
+            "lightGridPeakMs": 0.746281,
+            "cloudsPeakMs": 3.8974830000000003,
+            "lightGridBeforeMedianMs": 0.742113
+          },
+          {
+            "simT": 33.183333333332406,
+            "lightGridPeakMs": 0.753531,
+            "cloudsPeakMs": 3.260202,
+            "lightGridBeforeMedianMs": 0.746281
+          }
+        ],
+        "stream": {
+          "windows": 4,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                -2048,
+                -4312
+              ],
+              "centre": [
+                0,
+                -2264
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.29999998211860657,
+              "origin": [
+                -2000,
+                -5432
+              ],
+              "centre": [
+                48,
+                -3384
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -15,8 +15,8 @@ export const MARCH_RADIANCE_LIMIT = 60000;
 /**
  * SDF sphere-trace march with the Nubis lighting model (N3 s110-128) driven by the sky atmosphere (atmosphereWgsl).
  * Concatenate COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + MARCH_WGSL. Group 1: 0 Frame, 1 scene depth,
- * 2 colour out (premultiplied radiance, a = transmittance), 3 depth out (rg32float: x = transmittance-weighted mean cloud
- * distance or 0, y = scene distance the ray was marched against), 4/5 light grid + sampler, 6 sky light (storage).
+ * 2 colour out (premultiplied radiance, a = transmittance), 3 depth out (rgba16float, distances / DEPTH_PACK: x = transmittance-weighted mean cloud
+ * distance or 0, y = distance the ray was marched to, z = scene distance), 4/5 light grid + sampler, 6 sky light (storage).
  * Group 2: the atmosphere (sky LUTs, see atmosphereWgsl).
  *
  * Direct light: transmittance toward the sun = exp(-(tauMicro + tauInline + tauGrid)): a short full-density sample from every lit
@@ -35,7 +35,7 @@ export function marchWgsl(mode: MarchLightingMode): string {
   return /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(2) var marchColor: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(3) var marchDepth: texture_storage_2d<rg32float, write>;
+@group(1) @binding(3) var marchDepth: texture_storage_2d<rgba16float, write>;
 ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
 // [0] sun radiance (illuminance, exposure units), [1] sky ambient from above, [2] from below (mean radiance per hemisphere)
 @group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
@@ -59,20 +59,14 @@ const MICRO_DEPTH = 40.0;   // Q-1: metres below the SDF surface within which th
 
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  if (any(vec2<f32>(gid.xy) >= frame.renderSize)) { return; }
-  let px = vec2<i32>(gid.xy);
-  let uv = (vec2<f32>(gid.xy) + 0.5) / frame.renderSize;
+  // Temporal amortization (P5-B): the dispatch covers only this frame's traced pixels (all of them when k = 1 or on a cut).
+  let pxu = tracedPixel(gid.xy);
+  if (any(vec2<f32>(pxu) >= frame.renderSize)) { return; }
+  let px = vec2<i32>(pxu);
+  let uv = (vec2<f32>(pxu) + 0.5) / frame.renderSize;
 
   // Farthest scene depth over the output pixels this march pixel covers.
-  let ratio = frame.outputSize / frame.renderSize;
-  let lo = vec2<i32>(floor(vec2<f32>(gid.xy) * ratio));
-  let hi = min(vec2<i32>(ceil(vec2<f32>(gid.xy + vec2<u32>(1u)) * ratio)) - vec2<i32>(1), lo + vec2<i32>(3));
-  let dmax = vec2<i32>(textureDimensions(sceneDepth)) - vec2<i32>(1);
-  var depth = 0.0;
-  for (var y = lo.y; y <= hi.y; y++) {
-    for (var x = lo.x; x <= hi.x; x++) { depth = max(depth, textureLoad(sceneDepth, min(vec2<i32>(x, y), dmax), 0)); }
-  }
-  let sceneEnd = sceneDistance(depth, uv);
+  let sceneEnd = passSceneEnd(pxu, uv);
 
   let origin = frame.cameraPos;
   let dir = normalize(unprojectDepth(uv, 1.0) - origin);
@@ -101,8 +95,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var weightSum = 0.0;
 
   if (interval.x <= interval.y && t < tEnd && !hidden) {
-    let jitterAnimated = ign(vec2<f32>(gid.xy), frame.frameIndex);
-    let jitterStatic = ign(vec2<f32>(gid.xy), 0u);
+    let jitterAnimated = ign(vec2<f32>(pxu), frame.frameIndex);
+    let jitterStatic = ign(vec2<f32>(pxu), 0u);
     let cosSun = dot(dir, frame.sunDir);
     let phase = cloudPhase(cosSun);
     let sunRelax = valueRemap(cosSun, 0.0, 0.9, 0.0, 1.0);
@@ -211,7 +205,7 @@ ${atm ? `  if (meanDistance > 0.0) {
   }` : ''}
   radiance = clamp(radiance, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   textureStore(marchColor, px, vec4(radiance, T));
-  textureStore(marchDepth, px, vec4(meanDistance, tEnd, 0.0, 0.0));
+  textureStore(marchDepth, px, vec4(meanDistance, tEnd, sceneEnd, 0.0) / DEPTH_PACK);
 }
 `;
 }

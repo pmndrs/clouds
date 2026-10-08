@@ -5,6 +5,7 @@
 //   ?bookmark=t0..t40 | swapA | swapB   (the capture harness applies bookmarks; swapA/swapB bracket a forced window swap at a fixed pose)
 //   ?preset= ?seed= ?quality= ?jobs= (generation jobs per frame) ?border= (coverage fade at the window edge, fraction) ?heading= (compass degrees)
 //   ?sunDrift=<deg/s> (azimuth drift, measures the light grid's steady update cost; off by default)
+//   ?k=<near>,<far> (temporal amortization rates, 1/2/4; default from the quality preset)
 //   ?x0= ?z0= (start position)  ?exposure=  ?probe=1 (print where clouds are along the flight line, for placing the path)
 // Lines tagged `// INTEGRATION` are what clouds cost this scene; the streaming cloudscape is content, tagged `// CONTENT`.
 import { ACESFilmicToneMapping, CanvasTexture, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, RepeatWrapping, Scene, SRGBColorSpace } from 'three';
@@ -103,6 +104,7 @@ try {
   })();
 
   const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as CloudQuality) ?? 'high' }); // INTEGRATION
+  if (query.has('k')) { const [kn, kf] = query.get('k')!.split(',').map(Number); clouds.settings.temporalNear = kn; clouds.settings.temporalFar = kf ?? kn; } // ?k=<near>,<far>: temporal amortization override (1, 2 or 4)
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera); // INTEGRATION
   post.outputNode = clouds.node(scenePass.getTextureNode(), scenePass); // INTEGRATION
@@ -293,6 +295,7 @@ try {
       gpuMs: gpuMs(), frameMs: { p50: quant(frameTimes, 0.5), p95: quant(frameTimes, 0.95) }, renderSize: [renderer.domElement.width, renderer.domElement.height],
       bookmark, simT, frames: frame, cloudsReady: clouds.isReady, pose: pose(), windowCentre: shownCentre,
       playback: play ? { frames: playFrames.length, p50: quant(playFrames, 0.5), p95: quant(playFrames, 0.95), p99: quant(playFrames, 0.99), max: Math.max(0, ...playFrames), over20ms: playFrames.filter(x => x > 20).length, over25ms: playFrames.filter(x => x > 25).length, slowFrames } : null,
+      temporal: clouds.core.temporalInfo,
       probe: probeLines,
       swapEvents: swaps,
       swapGpu: swapGpu(),

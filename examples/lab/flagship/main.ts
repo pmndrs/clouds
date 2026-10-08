@@ -25,6 +25,7 @@ const state = {
   timeRate: 0.5, // hours of sky time per real second when animating
 };
 const ANIMATE_WARMUP_FRAMES = 30;
+const PAN_PER_FRAME = Number(query.get('pan') ?? 0) * Math.PI / 180;   // ?pan=D yaws the camera D degrees per frame (a motion test for the temporal resolve)
 
 try {
   const app = document.getElementById('app')!;
@@ -166,6 +167,7 @@ try {
     last = now;
     if (frame > ANIMATE_WARMUP_FRAMES) { frameTimes.push(dt * 1000); if (frameTimes.length > 240) frameTimes.shift(); }
     if (state.animateTime) { setTime(state.time + dt * state.timeRate); timeInput.value = String(state.time); }
+    if (PAN_PER_FRAME !== 0) { const p = camera.position, t = rig.orbit.target, dx = t.x - p.x, dz = t.z - p.z, c = Math.cos(PAN_PER_FRAME), sn = Math.sin(PAN_PER_FRAME); rig.set([p.x, p.y, p.z], [p.x + dx * c - dz * sn, t.y, p.z + dx * sn + dz * c]); }
     rig.update(dt);
     // keep the near plane proportional to altitude so depth precision holds from 2 m to tens of km
     camera.near = Math.min(200, Math.max(0.5, camera.position.y * 0.002));
@@ -203,7 +205,7 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
+    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

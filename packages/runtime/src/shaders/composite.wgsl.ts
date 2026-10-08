@@ -13,7 +13,7 @@ export const COMPOSITE_SKY_BINDING = 9;
  * Depth-aware upsample of the near and far march outputs to output resolution, merged front to back
  * (rgb = near.rgb + near.a * far.rgb, a = near.a * far.a). Per-pass bindings are group 1:
  * 0 Frame, 1 scene depth, 2/3 near colour/depth, 4 output (rgba16float), 5/6 far colour/depth
- * (depth textures are rg32float, see march.wgsl.ts: x = mean cloud distance or 0, y = the distance the ray was marched to).
+ * (depth textures are rgba16float x DEPTH_PACK, see march.wgsl.ts: x = mean cloud distance or 0, y = the distance the ray was marched to, z = scene distance).
  * Output is what the caller blends: scene * a + rgb.
  *
  * Cloud shadows: for opaque-depth pixels the sun ray is intersected with the volume box and the light grid (summed sun
@@ -50,7 +50,7 @@ fn cloudShadow(p: vec3<f32>) -> f32 {
 
 fn tapResult(colorTex: texture_2d<f32>, depthTex: texture_2d<f32>, tap: vec2<i32>, sceneT: f32, pixelEnd: f32, strict: bool) -> vec4<f32> {
   // w < 0 marks a skipped tap
-  let d = textureLoad(depthTex, tap, 0).xy;
+  let d = textureLoad(depthTex, tap, 0).xy * DEPTH_PACK;
   if (strict && d.y < pixelEnd * 0.97 - 1.0) { return vec4(0.0, 0.0, 0.0, -1.0); }
   var c = textureLoad(colorTex, tap, 0);
   if (d.x > 0.0 && d.x > sceneT * 1.02 + 1.0) { c = vec4(0.0, 0.0, 0.0, 1.0); }
@@ -118,12 +118,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let volumeEnd = select(0.0, min(interval.y, sceneT), hit);   // 0 disables the tap rejection
   let split = frame.splitDistance;
 
-  let near = upsample(nearColor, nearDepth, uv, sceneT, min(volumeEnd, split));
-  var result = near;
-  // The far layer only matters where the near layer lets light through and the ray reaches past the split.
-  if (near.a > 0.004 && (!hit || volumeEnd > split)) {
-    let far = upsample(farColor, farDepth, uv, sceneT, volumeEnd);
-    result = vec4(near.rgb + near.a * far.rgb, near.a * far.a);
+  // A ray that misses the voxel box has no voxel cloud: the march traced exactly nothing there, so skip the upsamples (P5-B).
+  var result = vec4(0.0, 0.0, 0.0, 1.0);
+  if (hit) {
+    let near = upsample(nearColor, nearDepth, uv, sceneT, min(volumeEnd, split));
+    result = near;
+    // The far layer only matters where the near layer lets light through and the ray reaches past the split.
+    if (near.a > 0.004 && volumeEnd > split) {
+      let far = upsample(farColor, farDepth, uv, sceneT, volumeEnd);
+      result = vec4(near.rgb + near.a * far.rgb, near.a * far.a);
+    }
   }
   if (sceneT < FAR_T) { result.a *= cloudShadow(origin + dir * sceneT); }
   if (frame.skyEnabled > 0.5) {

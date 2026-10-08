@@ -1,0 +1,236 @@
+{
+  "url": "http://127.0.0.1:60021/flagship/?s.temporalNear=4&s.temporalFar=4&bookmark=edge&pan=0.4",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T15:28:37.348Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P5-B/motion-flagship-k44/view.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9230994285714286,
+          "skyCompute": 0.048164,
+          "lightGridReduce": 0.023164,
+          "lightGrid": 0.022332,
+          "marchNear": 0.09359233333333333,
+          "resolveNear": 0.043306,
+          "marchFar": 0.2326107777777778,
+          "resolveFar": 0.080552,
+          "composite": 0.2941921111111111,
+          "dome": 0.08509788888888889
+        },
+        "frameMs": {
+          "p50": 0,
+          "p95": 0,
+          "last": 0
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 10,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 10,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 25.69999998807907,
+        "firstCloudFrameMs": 41.900000005960464
+      }
+    },
+    {
+      "name": "view-2",
+      "file": "work/captures/P5-B/motion-flagship-k44/view-2.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7459651333333334,
+          "skyCompute": 0.158535,
+          "lightGridReduce": 0.023164,
+          "lightGrid": 0.022332,
+          "marchNear": 0.09117894117647059,
+          "resolveNear": 0.04506270588235294,
+          "marchFar": 0.23266041176470587,
+          "resolveFar": 0.08207929411764706,
+          "composite": 0.29687341176470594,
+          "dome": 0.08509135294117647
+        },
+        "frameMs": {
+          "p50": 0,
+          "p95": 0,
+          "last": 0
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 18,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 18,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 25.69999998807907,
+        "firstCloudFrameMs": 41.900000005960464
+      }
+    },
+    {
+      "name": "view-3",
+      "file": "work/captures/P5-B/motion-flagship-k44/view-3.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7274794782608696,
+          "skyCompute": 0.128329,
+          "lightGridReduce": 0.023164,
+          "lightGrid": 0.022332,
+          "marchNear": 0.09488219999999999,
+          "resolveNear": 0.04815356,
+          "marchFar": 0.24352112,
+          "resolveFar": 0.08760779999999999,
+          "composite": 0.31867648,
+          "dome": 0.09087088
+        },
+        "frameMs": {
+          "p50": 0,
+          "p95": 0,
+          "last": 0
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 26,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 26,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 25.69999998807907,
+        "firstCloudFrameMs": 41.900000005960464
+      }
+    },
+    {
+      "name": "view-4",
+      "file": "work/captures/P5-B/motion-flagship-k44/view-4.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8910075806451613,
+          "skyCompute": 0.135204,
+          "lightGridReduce": 0.023164,
+          "lightGrid": 0.022332,
+          "marchNear": 0.12120090909090907,
+          "resolveNear": 0.06137187878787878,
+          "marchFar": 0.32120884848484854,
+          "resolveFar": 0.11667736363636363,
+          "composite": 0.42544624242424234,
+          "dome": 0.09675366666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045,
+          "last": 16.699999999999932
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 34,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 34,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 25.69999998807907,
+        "firstCloudFrameMs": 41.900000005960464
+      }
+    },
+    {
+      "name": "view-5",
+      "file": "work/captures/P5-B/motion-flagship-k44/view-5.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8516062051282051,
+          "skyCompute": 0.184497,
+          "lightGridReduce": 0.023164,
+          "lightGrid": 0.022332,
+          "marchNear": 0.11788478048780487,
+          "resolveNear": 0.0603691707317073,
+          "marchFar": 0.31179160975609765,
+          "resolveFar": 0.11294095121951221,
+          "composite": 0.4108654390243901,
+          "dome": 0.098162
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045,
+          "last": 16.600000000000023
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 42,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 42,
+          "bytes": 63502800
+        },
+        "assetLoadMs": 25.69999998807907,
+        "firstCloudFrameMs": 41.900000005960464
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
