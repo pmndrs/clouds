@@ -1,0 +1,1808 @@
+{
+  "url": "http://127.0.0.1:60066/runtime-tests/stamp/?empty=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T13:55:56.282Z",
+  "shots": [
+    {
+      "name": "overview",
+      "file": "work/captures/P4-C/empty/overview.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.949221,
+          "marchNear": 0.20904395000000006,
+          "marchFar": 1.7359345833333333,
+          "composite": 0.5925132166666666,
+          "dome": 0.11598021666666666,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "mean": 16.665151515151535
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "overview",
+        "frames": 97,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    },
+    {
+      "name": "parkouring",
+      "file": "work/captures/P4-C/empty/parkouring.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.949221,
+          "marchNear": 0.2665688833333334,
+          "marchFar": 0.791446266666667,
+          "composite": 0.9247421000000002,
+          "dome": 0.11693858333333328,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "mean": 16.6664596273292
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "parkouring",
+        "frames": 192,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    },
+    {
+      "name": "stormbird",
+      "file": "work/captures/P4-C/empty/stormbird.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.949221,
+          "marchNear": 0.1704124833333333,
+          "marchFar": 2.061825566666666,
+          "composite": 0.5772891166666667,
+          "dome": 0.12313294999999998,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728,
+          "mean": 16.666250000000005
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "stormbird",
+        "frames": 286,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    },
+    {
+      "name": "houdini",
+      "file": "work/captures/P4-C/empty/houdini.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.949221,
+          "marchNear": 0.2871755666666667,
+          "marchFar": 0.7543072666666668,
+          "composite": 0.8979043666666668,
+          "dome": 0.14241380000000003,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "houdini",
+        "frames": 380,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    },
+    {
+      "name": "tunnel",
+      "file": "work/captures/P4-C/empty/tunnel.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.949221,
+          "marchNear": 0.18750488333333334,
+          "marchFar": 2.2155850833333326,
+          "composite": 0.5945514,
+          "dome": 0.0996914833333333,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "tunnel",
+        "frames": 475,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    },
+    {
+      "name": "tunnelSide",
+      "file": "work/captures/P4-C/empty/tunnelSide.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.949221,
+          "marchNear": 0.21176975000000003,
+          "marchFar": 1.3751658333333336,
+          "composite": 0.7062691,
+          "dome": 0.15402735000000006,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "tunnelSide",
+        "frames": 570,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    },
+    {
+      "name": "plan",
+      "file": "work/captures/P4-C/empty/plan.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.060915,
+          "lightGrid": 0.2650147058823529,
+          "marchNear": 0.26556803333333334,
+          "marchFar": 0.8407768833333333,
+          "composite": 0.9956347833333333,
+          "dome": 0.1740395666666667,
+          "stamp": {
+            "parkouring": 0.023,
+            "stormbird": 0.029,
+            "houdini": 0.081,
+            "tunnel": 0.008
+          },
+          "sdfRebuild": 68.115
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "mean": 16.66624999999999
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "plan",
+        "frames": 665,
+        "cloudsReady": true,
+        "failures": [],
+        "region": {
+          "dims": [
+            384,
+            384,
+            96
+          ],
+          "voxelSize": 8,
+          "kind": "empty",
+          "generationGpuMs": 0,
+          "occupiedVoxels": 586062
+        },
+        "timestampQuery": true,
+        "stamps": [
+          {
+            "name": "parkouring",
+            "mode": "replace",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              813,
+              204,
+              1506
+            ],
+            "worldCentroid": [
+              -854,
+              309,
+              -1785
+            ],
+            "assetDims": [
+              108,
+              108,
+              51
+            ],
+            "boundsVoxels": [
+              [
+                46,
+                133,
+                0
+              ],
+              [
+                157,
+                244,
+                52
+              ]
+            ],
+            "voxels": 640692,
+            "gpuMs": 0.023,
+            "wallMs": 10.7
+          },
+          {
+            "name": "stormbird",
+            "mode": "replace",
+            "yawDeg": 45,
+            "scale": 1,
+            "positionLocal": [
+              2342,
+              248,
+              1005
+            ],
+            "worldCentroid": [
+              775,
+              364,
+              -2298
+            ],
+            "assetDims": [
+              83,
+              116,
+              62
+            ],
+            "boundsVoxels": [
+              [
+                221,
+                54,
+                0
+              ],
+              [
+                365,
+                197,
+                63
+              ]
+            ],
+            "voxels": 1297296,
+            "gpuMs": 0.029,
+            "wallMs": 0.8
+          },
+          {
+            "name": "houdini",
+            "mode": "max",
+            "yawDeg": 0,
+            "scale": 1.5,
+            "positionLocal": [
+              2350,
+              420,
+              2050
+            ],
+            "worldCentroid": [
+              731,
+              519,
+              -1307
+            ],
+            "assetDims": [
+              114,
+              87,
+              70
+            ],
+            "boundsVoxels": [
+              [
+                207,
+                190,
+                0
+              ],
+              [
+                381,
+                323,
+                96
+              ]
+            ],
+            "voxels": 2221632,
+            "gpuMs": 0.081,
+            "wallMs": 0.8
+          },
+          {
+            "name": "tunnel",
+            "mode": "cutout",
+            "yawDeg": 0,
+            "scale": 1,
+            "positionLocal": [
+              2311,
+              214,
+              1002
+            ],
+            "worldCentroid": [
+              771,
+              360,
+              -2302
+            ],
+            "assetDims": [
+              96,
+              40,
+              40
+            ],
+            "boundsVoxels": [
+              [
+                239,
+                104,
+                5
+              ],
+              [
+                338,
+                147,
+                48
+              ]
+            ],
+            "voxels": 183051,
+            "gpuMs": 0.008,
+            "wallMs": 0.6
+          }
+        ],
+        "sdfRebuild": {
+          "oneShotGpuMs": 68.115,
+          "byStage": {
+            "seed": 0.874,
+            "jfa3d": 66.805,
+            "sdf": 0.437
+          },
+          "slicedJobs": 528,
+          "slicedGpuMs": 32.012,
+          "slicedAvgJobMs": 0.061,
+          "slicedWorstJobMs": 0.307
+        },
+        "emptyTarget": {
+          "dims": [
+            192,
+            192,
+            80
+          ],
+          "stampsGpuMs": 0.553,
+          "voxels": [
+            623376,
+            2275200,
+            617100,
+            354277
+          ],
+          "occupied": 240633
+        },
+        "sdfCheck": {
+          "all": {
+            "n": 14155776,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.9681396484375,
+            "medianAbs": 8.417327880859375,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "stampedBoxes": {
+            "n": 5728608,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.9630126953125,
+            "medianAbs": 8.176071166992188,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "empty": {
+            "n": 2949120,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.03668212890625,
+            "medianAbs": 8.185867309570312,
+            "signFlips": 0,
+            "overshootVoxels": 0
+          },
+          "cpuCheckMs": 6378
+        },
+        "notes": [
+          "PASS sliced SDF rebuild (528 jobs of 4 z) is bit-identical to one shot (0 differing texels)",
+          "PASS stamped region has occupied voxels (586062, 4.1%)",
+          "PASS SDF never overshoots the CPU EDT after stamping, whole region: n=14155776 maxOver=-4.000m maxUnder=-9.97m medianAbs=8.42m signFlips=0 overVoxels=0",
+          "PASS SDF never overshoots the CPU EDT inside the stamped boxes (+12 voxels): n=5728608 maxOver=-4.000m maxUnder=-8.96m medianAbs=8.18m signFlips=0 overVoxels=0",
+          "PASS empty target gains the stamped clouds (240633 occupied voxels)",
+          "PASS SDF never overshoots the CPU EDT for an empty target + 4 stamps (max, max, replace, cutout): n=2949120 maxOver=-4.000m maxUnder=-9.04m medianAbs=8.19m signFlips=0 overVoxels=0",
+          "PASS GPU stamps match the CPU composite: R/G/B within 2/255 for 99.9994% / 100.0000% / 100.0000% of texels (G/B over 186516 cloud voxels; max diff R 181, G/B 1 /255)",
+          "PASS occupied voxel count GPU 240633 vs CPU composite 242687 (-0.85%)"
+        ]
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

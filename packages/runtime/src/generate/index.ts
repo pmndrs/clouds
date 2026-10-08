@@ -7,3 +7,5 @@ export { CLOUD_PRESETS } from './presets';
 export type { CloudPreset, CloudPresetName } from './presets';
 export { createStreamingCloudscape } from './streaming';
 export type { StreamingCloudscapeOptions, StreamingCloudscape, StreamingUpdate, StreamingStats } from './streaming';
+export { stampCloud, createSdfRebuilder, createEmptyCloudVolume } from './stamp';
+export type { StampMode, StampOptions, StampResult, SdfRebuilder, SdfRebuilderOptions } from './stamp';

@@ -695,7 +695,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Phase 4 — Authored clouds
 
-### [~] P4-C GPU stamping of authored clouds into a cloudscape · Sonnet
+### [x] P4-C GPU stamping of authored clouds into a cloudscape · Sonnet
 - **Owns:**
   - `packages/runtime/src/generate/stamp.ts` and its shader (new)
   - one export line in `packages/runtime/src/generate/index.ts`
@@ -823,6 +823,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-08: P4-C finding: the generator's single jump-flood round can overshoot the true distance by up to 6.7 m on sparse fields; stamping uses 2 rounds and never overshoots. → verify the generator's SDF on sparse presets and default to 2 rounds or a larger margin (P3 follow-up). Also, `createSdfRebuilder` reads the generator's params layout in `shaders.ts`, so keep them in sync. The cumulus preset looks columnar in taller (96-slice) volumes.
 - 2026-10-08: P3-C1 is committed as experimental, off by default. It works (clouds to the horizon, 1.35 ms) but fails visually: peaked cones, static ¼-res hatching, cliff edges, a blocky horizon band, darker shading than voxels. → escalated to Fable as P3-C2.
 - 2026-10-08: P3-D accepted: world-anchored generation (overlap byte-identical), streaming swaps with no pop (0.20/255), and the flight demo. It exposed performance problems on large generated volumes: the light grid costs about 3 ms/frame (vs 0.07 on Parkouring) and the march under thick bases 8–24 ms → P3-E. Streaming scratch is about 300 MB → P5.
 - 2026-10-08: P3-B accepted: generated cumulus fields read as real cumulus. Follow-up for the P3 art pass: thick generated undersides go charcoal-black in their cores, seen from the ground (`work/captures/P3-B/cumulus/ground.jpg`), and need lighter blue-grey bases. Congestus height is capped by the 512 m volume.
