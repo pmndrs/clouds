@@ -1,0 +1,163 @@
+{
+  "url": "http://127.0.0.1:50250/flagship/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T12:02:59.879Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P1-06/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.233400866666667,
+          "skyCompute": 0.176956,
+          "lightGrid": 0.057494,
+          "marchNear": 0.4983927666666669,
+          "marchFar": 1.3341628,
+          "composite": 1.28203105
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.799999999999955,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 96
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P1-06/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.4479107000000002,
+          "skyCompute": 0.196289,
+          "lightGrid": 0.057494,
+          "marchNear": 0.42439354999999984,
+          "marchFar": 1.634209766666667,
+          "composite": 1.1032415333333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 191
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P1-06/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6054581333333334,
+          "skyCompute": 0.159706,
+          "lightGrid": 0.057494,
+          "marchNear": 3.7872330833333336,
+          "marchFar": 0.35071693333333326,
+          "composite": 0.35842915
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.799999999999272
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 286
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P1-06/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.592997283333333,
+          "skyCompute": 0.148498,
+          "lightGrid": 0.057494,
+          "marchNear": 0.32564013333333325,
+          "marchFar": 0.8975882999999999,
+          "composite": 0.8666242666666669
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 381
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P1-06/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.9244089500000001,
+          "skyCompute": 0.090124,
+          "lightGrid": 0.07788722222222223,
+          "marchNear": 0.45266453333333334,
+          "marchFar": 1.1991109666666664,
+          "composite": 1.1675495500000004
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 476
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

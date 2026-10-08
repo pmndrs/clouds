@@ -1,0 +1,163 @@
+{
+  "url": "http://127.0.0.1:50340/flagship/?cloud=stormbird",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T12:03:08.733Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P1-06/stormbird/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.9025255333333335,
+          "skyCompute": 0.171872,
+          "lightGrid": 0.077575,
+          "marchNear": 0.42124683333333335,
+          "marchFar": 1.6455873333333335,
+          "composite": 0.9736451333333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 97
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P1-06/stormbird/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7981892166666664,
+          "skyCompute": 0.147122,
+          "lightGrid": 0.077575,
+          "marchNear": 0.2722056166666667,
+          "marchFar": 1.1418623833333335,
+          "composite": 0.5988819333333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 193
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P1-06/stormbird/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5158171166666666,
+          "skyCompute": 0.065708,
+          "lightGrid": 0.077575,
+          "marchNear": 3.9943883500000013,
+          "marchFar": 0.1439131333333333,
+          "composite": 0.32296866666666674
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 289
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P1-06/stormbird/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.7358679833333335,
+          "skyCompute": 0.254539,
+          "lightGrid": 0.077575,
+          "marchNear": 0.43026014999999984,
+          "marchFar": 1.1930054166666662,
+          "composite": 0.9916667166666663
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 385
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P1-06/stormbird/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.6091398333333329,
+          "skyCompute": 0.117624,
+          "lightGrid": 0.0631741111111111,
+          "marchNear": 0.5259316500000001,
+          "marchFar": 1.2684966166666662,
+          "composite": 1.1396111166666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.69999999999891
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 481
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

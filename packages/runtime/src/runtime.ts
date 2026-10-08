@@ -7,11 +7,27 @@ import { COMMON_WGSL } from './shaders/common.wgsl';
 import { COMPOSITE_WGSL } from './shaders/composite.wgsl';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
-import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_SKY_LIGHT_BINDING, MARCH_WGSL, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
+import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, MARCH_WGSL, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, volumeUniformData, volumeWgsl, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
 
 export type CloudQuality = 'high' | 'medium' | 'low';
-const RENDER_SCALE: Record<CloudQuality, number> = { high: 0.5, medium: 0.35, low: 0.25 };
+/**
+ * Quality presets (Nubis near/far split, s157-160): the march runs twice. Near covers [0, splitDistance) at nearScale of the
+ * output resolution (linear), far covers the rest at farScale. maxSteps and the transmittance cutoff are per pass.
+ */
+export interface CloudQualityPreset {
+  nearScale: number;
+  farScale: number;
+  splitDistance: number;
+  maxSteps: number;
+  /** Rays stop once transmittance falls below this. */
+  transmittanceCutoff: number;
+}
+export const CLOUD_QUALITY_PRESETS: Record<CloudQuality, CloudQualityPreset> = {
+  high: { nearScale: 0.33, farScale: 0.5, splitDistance: 200, maxSteps: 768, transmittanceCutoff: 0.01 },
+  medium: { nearScale: 0.25, farScale: 0.4, splitDistance: 200, maxSteps: 512, transmittanceCutoff: 0.02 },
+  low: { nearScale: 0.2, farScale: 0.3, splitDistance: 160, maxSteps: 320, transmittanceCutoff: 0.03 },
+};
 
 /** Live knobs. Safe to change every frame. */
 export interface CloudSettings {
@@ -37,6 +53,10 @@ export interface CloudSettings {
   mipDistanceScale: number;
   baseMip: number;
   maxSteps: number;
+  /** Rays stop once transmittance falls below this (the quality presets set it). */
+  transmittanceCutoff: number;
+  /** Near/far boundary along the ray, metres. */
+  splitDistance: number;
 }
 
 export interface CloudFrame {
@@ -61,7 +81,9 @@ export interface CloudRuntime {
   readonly settings: CloudSettings;
   /** Texture to blend: scene * a + rgb. Owned by the runtime unless one was passed to resize(). */
   readonly output: GPUTexture | null;
+  /** Far-pass (half-res) size; `nearRenderSize` is the near pass. */
   readonly renderSize: [number, number];
+  readonly nearRenderSize: [number, number];
   /** True once the volume, noise and output exist, so `encode` writes `output`. Present the plain scene until then. */
   readonly ready: boolean;
   setVolume(asset: CloudVolumeAsset, options: { position: [number, number, number] }): Promise<void>;
@@ -87,7 +109,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     densityScale: 0.2, lightDensityScale: 1.5, msStrength: 1, ambientStrength: 1,
     silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 1,
     windOffset: [0, 0, 0], windVelocity: [3, 0, 1.5], animSpeed: 1,
-    mipDistanceScale: 0.01, baseMip: 0, maxSteps: 768,
+    mipDistanceScale: 0.01, baseMip: 0, maxSteps: CLOUD_QUALITY_PRESETS[quality].maxSteps,
+    transmittanceCutoff: CLOUD_QUALITY_PRESETS[quality].transmittanceCutoff, splitDistance: CLOUD_QUALITY_PRESETS[quality].splitDistance,
   };
 
   const volumeLayout = createVolumeBindGroupLayout(device);
@@ -100,6 +123,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: MARCH_LIGHT_GRID_BINDING, visibility: C, texture: { sampleType: 'float', viewDimension: '3d' } },
     { binding: MARCH_LIGHT_GRID_BINDING + 1, visibility: C, sampler: { type: 'filtering' } },
     { binding: MARCH_SKY_LIGHT_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
+    { binding: MARCH_NEAR_BINDING, visibility: C, texture: { sampleType: 'unfilterable-float' } },
   ] });
   const atmosphereLayout = options.atmosphereLayout ?? createAtmosphereBindGroupLayout(device);
   const skyLightLayout = device.createBindGroupLayout({ label: 'cloud sky light', entries: [
@@ -111,6 +135,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: 2, visibility: C, texture: { sampleType: 'unfilterable-float' } },
     { binding: 3, visibility: C, texture: { sampleType: 'unfilterable-float' } },
     { binding: 4, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
+    { binding: 5, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: 6, visibility: C, texture: { sampleType: 'unfilterable-float' } },
   ] });
   const pipeline = (label: string, code: string, group1: GPUBindGroupLayout, group2?: GPUBindGroupLayout) => device.createComputePipeline({
     label,
@@ -123,7 +149,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
 
   const samplers = createVolumeSamplers(device);
   const volumeUniforms = device.createBuffer({ label: 'cloud volume uniforms', size: VOLUME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-  const frameUniforms = device.createBuffer({ label: 'cloud frame uniforms', size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  // One frame uniform per march pass (render size and pass mode differ); the composite reads the near one.
+  const frameUniforms = [0, 1].map(i => device.createBuffer({ label: `cloud frame uniforms ${i ? 'far' : 'near'}`, size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }));
+  const dummyNear = device.createTexture({ label: 'cloud dummy near', size: [1, 1], format: 'rgba16float', usage: GPUTextureUsage.TEXTURE_BINDING });
   const frameF32: Float32Array<ArrayBuffer> = new Float32Array(new ArrayBuffer(FRAME_UNIFORM_BYTES));
   const frameU32 = new Uint32Array(frameF32.buffer);
 
@@ -135,10 +163,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   let noise: GPUTexture | null = null;
   let volumeGroup: GPUBindGroup | null = null;
   let outW = 0, outH = 0;
-  let renderW = 0, renderH = 0;
+  let nearW = 0, nearH = 0, farW = 0, farH = 0;
   let output: GPUTexture | null = null, ownsOutput = false;
-  let marchColor: GPUTexture | null = null, marchDepth: GPUTexture | null = null;
-  let marchGroups: [GPUBindGroup, GPUBindGroup] | null = null, compositeGroup: GPUBindGroup | null = null;
+  let targets: { color: GPUTexture; depth: GPUTexture }[] | null = null;   // [near, far]
+  let marchGroups: GPUBindGroup[] | null = null, compositeGroup: GPUBindGroup | null = null;
   let boundDepth: GPUTextureView | null = null;
   let lastTime = -1;
 
@@ -148,18 +176,22 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       : null;
   };
   const releaseTargets = () => {
-    marchColor?.destroy(); marchDepth?.destroy();
+    for (const t of targets ?? []) { t.color.destroy(); t.depth.destroy(); }
     if (ownsOutput) output?.destroy();
-    marchColor = marchDepth = output = null; marchGroups = null; compositeGroup = null; boundDepth = null;
+    targets = null; output = null; marchGroups = null; compositeGroup = null; boundDepth = null;
   };
   const allocate = (externalOutput?: GPUTexture) => {
     releaseTargets();
     if (!outW) return;
-    renderW = Math.max(1, Math.round(outW * RENDER_SCALE[quality]));
-    renderH = Math.max(1, Math.round(outH * RENDER_SCALE[quality]));
+    const preset = CLOUD_QUALITY_PRESETS[quality];
     const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING;
-    marchColor = device.createTexture({ label: 'cloud march colour', size: [renderW, renderH], format: 'rgba16float', usage });
-    marchDepth = device.createTexture({ label: 'cloud march depth', size: [renderW, renderH], format: 'rg32float', usage });
+    const make = (name: string, scale: number) => {
+      const w = Math.max(1, Math.round(outW * scale)), h = Math.max(1, Math.round(outH * scale));
+      return { w, h, color: device.createTexture({ label: `cloud ${name} colour`, size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: `cloud ${name} depth`, size: [w, h], format: 'rg32float', usage }) };
+    };
+    const near = make('near', preset.nearScale), far = make('far', preset.farScale);
+    nearW = near.w; nearH = near.h; farW = far.w; farH = far.h;
+    targets = [near, far];
     ownsOutput = !externalOutput;
     output = externalOutput ?? device.createTexture({ label: 'cloud composite', size: [outW, outH], format: 'rgba16float', usage });
   };
@@ -168,8 +200,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   return {
     settings,
     get output() { return output; },
-    get renderSize(): [number, number] { return [renderW, renderH]; },
-    get ready() { return !disposed && !!volumeGroup && !!output && !!marchColor && !!lightGrid; },
+    get renderSize(): [number, number] { return [farW, farH]; },
+    get nearRenderSize(): [number, number] { return [nearW, nearH]; },
+    get ready() { return !disposed && !!volumeGroup && !!output && !!targets && !!lightGrid; },
     get extent() { return volume ? volume.extentMeters : null; },
     async setVolume(asset, opts) {
       if (disposed) return;
@@ -185,31 +218,45 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       noise = uploadCloudNoise(device, asset);
       rebuildVolumeGroup();
     },
-    setQuality(q) { if (q !== quality) { quality = q; if (outW) allocate(externalOutput); } },
+    setQuality(q) {
+      if (q === quality) return;
+      quality = q;
+      const p = CLOUD_QUALITY_PRESETS[q];
+      settings.maxSteps = p.maxSteps; settings.transmittanceCutoff = p.transmittanceCutoff; settings.splitDistance = p.splitDistance;
+      if (outW) allocate(externalOutput);
+    },
     resize(width, height, out) {
       if (width === outW && height === outH && out === externalOutput && output) return;
       outW = width; outH = height; externalOutput = out;
       allocate(out);
     },
     encode(encoder, frame, timer) {
-      if (disposed || !volumeGroup || !output || !marchColor || !marchDepth || !lightGrid) return;
+      if (disposed || !volumeGroup || !output || !targets || !lightGrid) return;
       if (frame.depth !== boundDepth || !marchGroups || !compositeGroup) {
         boundDepth = frame.depth;
         const grid = lightGrid;
-        marchGroups = [0, 1].map(i => device.createBindGroup({ label: `cloud march ${i}`, layout: marchLayout, entries: [
-          { binding: 0, resource: { buffer: frameUniforms } },
-          { binding: 1, resource: frame.depth },
-          { binding: 2, resource: marchColor!.createView() },
-          { binding: 3, resource: marchDepth!.createView() },
-          ...grid.bindGroupEntries(MARCH_LIGHT_GRID_BINDING, i as 0 | 1),
-          { binding: MARCH_SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } },
-        ] })) as [GPUBindGroup, GPUBindGroup];
+        const [near, far] = targets;
+        // march groups: index = pass * 2 + light-grid slot
+        marchGroups = [0, 1, 2, 3].map(i => {
+          const pass = i >> 1, slot = (i & 1) as 0 | 1;
+          return device.createBindGroup({ label: `cloud march ${pass ? 'far' : 'near'} ${slot}`, layout: marchLayout, entries: [
+            { binding: 0, resource: { buffer: frameUniforms[pass] } },
+            { binding: 1, resource: frame.depth },
+            { binding: 2, resource: targets![pass].color.createView() },
+            { binding: 3, resource: targets![pass].depth.createView() },
+            ...grid.bindGroupEntries(MARCH_LIGHT_GRID_BINDING, slot),
+            { binding: MARCH_SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } },
+            { binding: MARCH_NEAR_BINDING, resource: pass ? near.color.createView() : dummyNear.createView() },
+          ] });
+        });
         compositeGroup = device.createBindGroup({ label: 'cloud composite', layout: compositeLayout, entries: [
-          { binding: 0, resource: { buffer: frameUniforms } },
+          { binding: 0, resource: { buffer: frameUniforms[0] } },
           { binding: 1, resource: frame.depth },
-          { binding: 2, resource: marchColor.createView() },
-          { binding: 3, resource: marchDepth.createView() },
+          { binding: 2, resource: near.color.createView() },
+          { binding: 3, resource: near.depth.createView() },
           { binding: 4, resource: output.createView() },
+          { binding: 5, resource: far.color.createView() },
+          { binding: 6, resource: far.depth.createView() },
         ] });
       }
       const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, frame.time - lastTime));
@@ -222,11 +269,15 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[16] = frame.cameraPosition[0]; f[17] = frame.cameraPosition[1]; f[18] = frame.cameraPosition[2]; f[19] = frame.time;
       f[20] = frame.sunDirection[0]; f[21] = frame.sunDirection[1]; f[22] = frame.sunDirection[2]; f[23] = settings.densityScale;
       f[24] = settings.windOffset[0]; f[25] = settings.windOffset[1]; f[26] = settings.windOffset[2]; f[27] = settings.mipDistanceScale;
-      f[28] = renderW; f[29] = renderH; f[30] = outW; f[31] = outH;
+      f[30] = outW; f[31] = outH;
       f[32] = settings.baseMip; frameU32[33] = settings.maxSteps >>> 0; frameU32[34] = frame.frameIndex >>> 0; f[35] = settings.lightDensityScale;
       f[36] = settings.msStrength; f[37] = settings.ambientStrength; f[38] = settings.silverStrength; f[39] = settings.ambientExtinction;
       f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = 0; f[43] = 0;
-      device.queue.writeBuffer(frameUniforms, 0, f);
+      f[44] = settings.splitDistance; f[45] = settings.transmittanceCutoff;
+      for (let pass = 0; pass < 2; pass++) {
+        f[28] = pass ? farW : nearW; f[29] = pass ? farH : nearH; frameU32[46] = pass;
+        device.queue.writeBuffer(frameUniforms[pass], 0, f);
+      }
 
       // The grid holds extinction-scaled optical depth; it re-slices over 8 frames when the sun or the scale moves.
       const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: settings.densityScale, frameIndex: frame.frameIndex }, timer);
@@ -239,13 +290,15 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       sky.dispatchWorkgroups(1);
       sky.end();
 
-      const march = encoder.beginComputePass({ label: 'cloud march', timestampWrites: timer?.passTimestampWrites('march') });
-      march.setPipeline(marchPipeline);
-      march.setBindGroup(0, volumeGroup);
-      march.setBindGroup(1, marchGroups[gridStep.front]);
-      march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere);
-      march.dispatchWorkgroups(Math.ceil(renderW / 8), Math.ceil(renderH / 8));
-      march.end();
+      for (let pass = 0; pass < 2; pass++) {
+        const march = encoder.beginComputePass({ label: pass ? 'cloud march far' : 'cloud march near', timestampWrites: timer?.passTimestampWrites(pass ? 'marchFar' : 'marchNear') });
+        march.setPipeline(marchPipeline);
+        march.setBindGroup(0, volumeGroup);
+        march.setBindGroup(1, marchGroups[pass * 2 + gridStep.front]);
+        march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere);
+        march.dispatchWorkgroups(Math.ceil((pass ? farW : nearW) / 8), Math.ceil((pass ? farH : nearH) / 8));
+        march.end();
+      }
 
       const composite = encoder.beginComputePass({ label: 'cloud composite', timestampWrites: timer?.passTimestampWrites('composite') });
       composite.setPipeline(compositePipeline);
@@ -259,7 +312,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       disposed = true;
       releaseTargets(); volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; marchGroups = null; compositeGroup = null; lightGrid = null;
-      volumeUniforms.destroy(); frameUniforms.destroy(); skyLightBuffer.destroy();
+      volumeUniforms.destroy(); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
     },
   };
 }

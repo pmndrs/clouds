@@ -266,7 +266,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
     `edge` and `inside` thanks to the light grid; report the drop.
   - The light grid update stays at or under 0.1 ms per frame.
 
-### [~] P1-06 Performance: near/far split and in-cloud cost · Sonnet
+### [x] P1-06 Performance: near/far split and in-cloud cost · Sonnet
 - **Owns:**
   - `packages/runtime/src/{runtime.ts,shaders/march.wgsl.ts,shaders/frame.wgsl.ts,shaders/composite.wgsl.ts}`
   - `examples/lab/flagship/{main.ts,three-bridge.ts}`

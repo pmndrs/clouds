@@ -5,6 +5,8 @@ import { atmosphereWgsl } from './atmosphere.wgsl';
 /** Bindings in the march pass (group 1): the light grid texture + sampler, then the per-frame sky light buffer. */
 export const MARCH_LIGHT_GRID_BINDING = 4;
 export const MARCH_SKY_LIGHT_BINDING = 6;
+/** Near-pass colour, read by the far pass to skip pixels hidden behind opaque near cloud (a dummy texture for the near pass). */
+export const MARCH_NEAR_BINDING = 7;
 export const MARCH_ATMOSPHERE_GROUP = 2;
 /** Radiance written to the half-float targets never exceeds this (f16 max is 65504). */
 export const MARCH_RADIANCE_LIMIT = 60000;
@@ -27,6 +29,7 @@ ${FRAME_WGSL}
 ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
 // [0] sun radiance (illuminance, exposure units), [1] sky ambient from above, [2] from below (mean radiance per hemisphere)
 @group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
+@group(1) @binding(${MARCH_NEAR_BINDING}) var nearColor: texture_2d<f32>;
 ${atmosphereWgsl(MARCH_ATMOSPHERE_GROUP)}
 
 const INLINE_NEAR = 16.0;   // first in-line sun sample covers 0..16 m
@@ -35,6 +38,11 @@ const INLINE_FAR = 48.0;    // second covers 16..48 m, the grid takes over from 
 const MS_NORMALISATION = 3.0 / (4.0 * PI);
 const AMBIENT_GAIN = 1.5;
 const STEP_GROWTH_FROM = 256u;
+const STEP_MIN = 1.5;
+const STEP_SQRT = 0.12;
+const SDF_SKIP_MARGIN = 6.0;     // metres: closer than this to the surface, fetch the real distance
+const SDF_SKIP_RANGE = 24.0;     // metres: refetch at least this often so the inner-glow remap stays accurate
+const LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3; // segments thinner than this skip the sun/ambient evaluation
 
 fn henyeyGreenstein(cosTheta: f32, g: f32) -> f32 {
   let g2 = g * g;
@@ -65,15 +73,29 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let origin = frame.cameraPos;
   let dir = normalize(unprojectDepth(uv, 1.0) - origin);
   let interval = volumeRayInterval(origin, dir);
-  let tEnd = min(interval.y, sceneEnd);
-  var t = max(interval.x, 0.0);
+  let isNear = frame.passMode == 0u;
+  let tCap = select(FAR_T, frame.splitDistance, isNear);
+  let tEnd = min(min(interval.y, sceneEnd), tCap);
+  var t = max(interval.x, select(frame.splitDistance, 0.0, isNear));
+
+  // Far pass: pixels whose neighbourhood in the near pass is (almost) opaque contribute nothing; skip them.
+  var hidden = false;
+  if (!isNear) {
+    let nd = vec2<i32>(textureDimensions(nearColor));
+    let c = vec2<i32>(floor(uv * vec2<f32>(nd))) - vec2<i32>(1);
+    var maxT = 0.0;
+    for (var y = 0; y < 4; y++) {
+      for (var x = 0; x < 4; x++) { maxT = max(maxT, textureLoad(nearColor, clamp(c + vec2<i32>(x, y), vec2<i32>(0), nd - vec2<i32>(1)), 0).a); }
+    }
+    hidden = maxT < 0.02;
+  }
 
   var T = 1.0;
   var radiance = vec3(0.0);
   var depthSum = 0.0;
   var weightSum = 0.0;
 
-  if (interval.x <= interval.y && t < tEnd) {
+  if (interval.x <= interval.y && t < tEnd && !hidden) {
     let jitterAnimated = ign(vec2<f32>(gid.xy), frame.frameIndex);
     let jitterStatic = ign(vec2<f32>(gid.xy), 0u);
     let cosSun = dot(dir, frame.sunDir);
@@ -82,16 +104,28 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunRadiance = skyLight[0].xyz;
     let ambientUp = skyLight[1].xyz;
     let ambientDown = skyLight[2].xyz;
+    let sunInline0 = frame.sunDir * (0.5 * INLINE_NEAR);
+    let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
+    let sunGrid = frame.sunDir * INLINE_FAR;
+    let invExtentY = 1.0 / cloudVolume.extent.y;
     var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, 0.0, 0.0);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
     let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, 0.0, 0.0);
     var capped = true;
+    // Lipschitz bound on the signed distance: |sdf(p + s) - sdf(p)| <= s, so the last fetched value minus the distance
+    // travelled since is a conservative (more negative would be wrong) bound while we are deep inside; refetch when it nears 0.
+    var sdfBound = 0.0;
+    var sdfFetchT = -1.0e9;
 
     for (var i = 0u; i < frame.maxSteps; i++) {
-      if (t >= tEnd || T < 0.01) { capped = false; break; }
+      if (t >= tEnd || T < frame.tCutoff) { capped = false; break; }
       let p = origin + dir * t;
-      let sdf = cloudDistance(p);
-      var step = max(sdf, max(1.0, sqrt(t) * 0.08));
+      var sdf = sdfBound + (t - sdfFetchT);   // upper bound of the true distance at t
+      if (sdf > -SDF_SKIP_MARGIN || t - sdfFetchT > SDF_SKIP_RANGE) {
+        sdf = cloudDistance(p);
+        sdfBound = sdf; sdfFetchT = t;
+      }
+      var step = max(sdf, max(STEP_MIN, sqrt(t) * STEP_SQRT));
       // Never silently truncate a long ray at the step cap: coarsen the step once a ray has used a lot of them.
       if (i > STEP_GROWTH_FROM) { step *= 1.0 + 0.02 * f32(i - STEP_GROWTH_FROM); }
       if (sdf < 0.0) {
@@ -105,21 +139,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
           if (d.x > 0.0) {
             let sigma = d.x * frame.extinction;
             let stepT = exp(-sigma * ds);
-            if (sigma * ds > 1.0e-4) {
+            if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
-              let d0 = cloudDensity(ps + frame.sunDir * (0.5 * INLINE_NEAR), ts, lightInputs).x;
-              let d1 = cloudDensity(ps + frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR)), ts, lightInputs).x;
+              let d0 = cloudDensity(ps + sunInline0, ts, lightInputs).x;
+              let d1 = cloudDensity(ps + sunInline1, ts, lightInputs).x;
               let tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * frame.extinction;
-              let grid = lightGridSample(ps + frame.sunDir * INLINE_FAR);
+              let grid = lightGridSample(ps + sunGrid);
               let tau = tauInline + grid.x * frame.lightDensityScale;
               // Inner glow: the profile is an in-scatter probability; extinction relaxes deep inside and toward the sun.
               let relax = mix(0.25, valueRemap(sdf, -128.0, 0.0, 0.05, 0.25), sunRelax);
               let ms = d.y * exp(-tau * relax);
               // Ambient: dark where the profile is high, sky light attenuated by the density above, ground light from below.
-              let h = saturate((ps.y - cloudVolume.minCorner.y) / cloudVolume.extent.y);
+              let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               let tauUp = grid.y * frame.lightDensityScale * frame.ambientExtinction;
               let skyAbove = ambientUp * exp(-tauUp);
-              let ambient = AMBIENT_GAIN * frame.ambientStrength * pow(1.0 - saturate(d.y), 0.5) * mix(ambientDown, skyAbove, 0.3 + 0.7 * h);
+              let ambient = AMBIENT_GAIN * frame.ambientStrength * sqrt(1.0 - saturate(d.y)) * mix(ambientDown, skyAbove, 0.3 + 0.7 * h);
               let lit = sunRadiance * (exp(-tau) * phase + frame.msStrength * ms * MS_NORMALISATION) + ambient;
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);
@@ -135,7 +169,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
     // Ran out of steps with cloud left to march: finish thin remainders rather than dropping them as transparent.
     if (capped && t < tEnd && T < 0.3) { T = 0.0; }
-    if (T < 0.01) { T = 0.0; }
+    if (T < frame.tCutoff) {
+      // Early-out at the cutoff: let the remaining light continue as the mean colour of what was accumulated,
+      // so a high cutoff does not darken or brighten the ray by the ignored residual (what the sky would show through it).
+      radiance /= max(1.0 - T, 0.5);
+      T = 0.0;
+    }
   }
 
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);
@@ -145,7 +184,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
   radiance = clamp(radiance, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   textureStore(marchColor, px, vec4(radiance, T));
-  textureStore(marchDepth, px, vec4(meanDistance, sceneEnd, 0.0, 0.0));
+  textureStore(marchDepth, px, vec4(meanDistance, tEnd, 0.0, 0.0));
 }
 `;
 

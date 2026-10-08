@@ -24,16 +24,20 @@ fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f
   let n = textureSampleLevel(cloudNoise, repeatSampler, (p - inputs.wind) * cloudVolume.noiseScale, mip);
 
   let wispy = mix(n.r, n.g, profile);
-  let billowy = mix(n.b * 0.3, n.a * 0.3, pow(profile, 0.25));
+  let billowy = mix(n.b * 0.3, n.a * 0.3, sqrt(sqrt(profile)));
   var noiseComposite = mix(wispy, billowy, type_);
 
   if (hf) {
-    let hhf = saturate(mix(1.0 - pow(abs(abs(n.g * 2.0 - 1.0) * 2.0 - 1.0), 4.0), pow(abs(abs(n.a * 2.0 - 1.0) * 2.0 - 1.0), 2.0), type_));
+    let tg = abs(abs(n.g * 2.0 - 1.0) * 2.0 - 1.0);
+    let ta = abs(abs(n.a * 2.0 - 1.0) * 2.0 - 1.0);
+    let tg2 = tg * tg;
+    let hhf = saturate(mix(1.0 - tg2 * tg2, ta * ta, type_));
     noiseComposite = mix(hhf, noiseComposite, valueRemap(rayDistance, 50.0, 150.0, 0.9, 1.0));
   }
 
   var d = valueErosion(profile, noiseComposite);
-  let poweredScale = pow(saturate(densityScale), 4.0);
+  let ds2 = saturate(densityScale) * saturate(densityScale);
+  let poweredScale = ds2 * ds2;
   d = d * poweredScale;
   d = pow(d, mix(0.3, 0.6, max(EPSILON, poweredScale)));
   if (hf) {
