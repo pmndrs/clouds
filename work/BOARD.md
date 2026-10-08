@@ -13,7 +13,7 @@ The protocol is in [README.md](README.md). Phase goals and measures are in
 
 These tasks run in parallel. File ownership is disjoint; respect it.
 
-### [~] P0-01 Move the old labs under `examples/lab/legacy/` · Haiku
+### [x] P0-01 Move the old labs under `examples/lab/legacy/` · Haiku
 - **Owns:**
   - `examples/lab/{authored,clouds,cloudscape,coverage-study,density-study,layer-only,lighting,lighting-bench,lod-study,quality-bench,react,react-density,realism,reconstruction,scenes,three}/`, moved to `examples/lab/legacy/<same name>/`
   - `examples/lab/index.html` and `examples/lab/main.ts`, which become a short index linking the new pages and the legacy ones
