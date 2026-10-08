@@ -1,0 +1,127 @@
+{
+  "source": "houdini-openvdb",
+  "sourcePath": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-soft.vdb",
+  "runtime": "21.0.671",
+  "grid": "density",
+  "gridClass": "fog",
+  "sourceDimensions": [
+    172,
+    70,
+    103
+  ],
+  "sourceIndexBounds": {
+    "min": [
+      -89,
+      -30,
+      -46
+    ],
+    "max": [
+      82,
+      39,
+      56
+    ]
+  },
+  "destinationDimensions": [
+    172,
+    70,
+    103
+  ],
+  "bounds": {
+    "min": [
+      -716.0,
+      -244.0,
+      -372.0
+    ],
+    "max": [
+      660.0,
+      316.0,
+      452.0
+    ]
+  },
+  "voxelSize": [
+    8.0,
+    8.0,
+    8.0
+  ],
+  "encoding": "r8unorm",
+  "payloadBytes": 1240120,
+  "sourceStats": {
+    "activeVoxelCount": 545114,
+    "positiveVoxelCount": 545114,
+    "positiveVoxelFraction": 0.4395655259168468,
+    "mass": 158611.31550762276,
+    "peakDensity": 0.4000000059604645,
+    "peakIndex": [
+      31,
+      28,
+      3
+    ],
+    "background": 0.0
+  },
+  "readbackParity": {
+    "samples": [
+      {
+        "index": [
+          31,
+          26,
+          0
+        ],
+        "source": 0.0007802964537404478,
+        "readback": 0.0007802964537404478,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          16,
+          29,
+          51
+        ],
+        "source": 0.2319827526807785,
+        "readback": 0.2319827526807785,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          31,
+          28,
+          3
+        ],
+        "source": 0.4000000059604645,
+        "readback": 0.4000000059604645,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          114,
+          41,
+          102
+        ],
+        "source": 0.0016501465579494834,
+        "readback": 0.0016501465579494834,
+        "absError": 0.0
+      }
+    ],
+    "maxAbsError": 0.0
+  },
+  "r8Normalization": "none; native Houdini fog density is expected in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.0019607676887044706,
+  "indexToWorldMatrix": [
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ]
+}

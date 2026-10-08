@@ -1,0 +1,119 @@
+{
+  "source": "self-authored-houdini-cloud-noise-detail",
+  "runtime": "21.0.671",
+  "sourceVDB": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-detail.vdb",
+  "outputCLDA": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-detail.clda",
+  "grid": "density",
+  "gridClass": "fog",
+  "authoringNodes": [
+    "vdbfromparticles",
+    "cloudnoise",
+    "cloudnoise"
+  ],
+  "voxelSize": 8.0,
+  "sourcePointCount": 854,
+  "cloudNoise": {
+    "coarse": {
+      "spatialscale": 1.0,
+      "noiseamount": 0.78,
+      "noisetype": "snoise",
+      "noiseoctaves": 4,
+      "noiseelementsize": 200.0,
+      "noiseelementscale1": 1.35,
+      "noiseelementscale2": 0.55,
+      "noiseelementscale3": 1.0,
+      "noiseoffset1": 0.0,
+      "noiseoffset2": 0.0,
+      "noiseoffset3": 0.0,
+      "noiserough": 0.65,
+      "smoothvalleys": true,
+      "absnoise": true,
+      "advectnoise": true,
+      "advectamp": 0.35,
+      "advectelemsize": 120.0,
+      "advectrough": 0.5
+    },
+    "fine": {
+      "spatialscale": 1.0,
+      "noiseamount": 0.48,
+      "noisetype": "snoise",
+      "noiseoctaves": 4,
+      "noiseelementsize": 50.0,
+      "noiseelementscale1": 0.85,
+      "noiseelementscale2": 0.45,
+      "noiseelementscale3": 1.0,
+      "noiseoffset1": 0.0,
+      "noiseoffset2": 0.0,
+      "noiseoffset3": 0.0,
+      "noiserough": 0.72,
+      "smoothvalleys": true,
+      "absnoise": true,
+      "advectnoise": true,
+      "advectamp": 0.18,
+      "advectelemsize": 50.0,
+      "advectrough": 0.5
+    }
+  },
+  "nativeStats": {
+    "activeVoxelCount": 784206,
+    "volumeMin": 5.2790831261972926e-08,
+    "volumeMax": 1.0,
+    "volumeAverage": 0.8335887184314444,
+    "background": 0.0
+  },
+  "r8Normalization": "none; native density is already in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.00196078431372549,
+  "conversionChecks": {
+    "positiveVoxelCount": 784206,
+    "positiveVoxelFraction": 0.4968297411335386,
+    "mass": 653705.2745262521,
+    "peakDensity": 1.0,
+    "readbackParity": {
+      "samples": [
+        {
+          "index": [
+            50,
+            46,
+            0
+          ],
+          "source": 0.0022778515703976154,
+          "readback": 0.0022778515703976154,
+          "absError": 0.0
+        },
+        {
+          "index": [
+            101,
+            52,
+            54
+          ],
+          "source": 1.0,
+          "readback": 1.0,
+          "absError": 0.0
+        },
+        {
+          "index": [
+            50,
+            50,
+            3
+          ],
+          "source": 1.0,
+          "readback": 1.0,
+          "absError": 0.0
+        },
+        {
+          "index": [
+            118,
+            46,
+            110
+          ],
+          "source": 0.0042501166462898254,
+          "readback": 0.0042501166462898254,
+          "absError": 0.0
+        }
+      ],
+      "maxAbsError": 0.0
+    },
+    "quantizationMaxAbsError": 0.001960774496489903
+  }
+}

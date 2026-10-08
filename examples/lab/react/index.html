@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clouds · React WebGPU bindings</title>
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #09111d; color: #e7eff7; }
+      body { margin: 0; min-width: 320px; }
+      #app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+      header { padding: 18px 22px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; background: #0e1b2b; }
+      h1 { margin: 0; font-size: 18px; letter-spacing: .02em; }
+      p { margin: 0; color: #a8bacb; font-size: 13px; }
+      .controls { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+      button { border: 1px solid #47627e; background: #172b43; color: #e7eff7; padding: 7px 10px; border-radius: 5px; cursor: pointer; }
+      button[aria-pressed="true"] { background: #2b6084; border-color: #7fc7ed; }
+      #canvas { min-height: 0; position: relative; }
+      #canvas canvas { display: block; width: 100%; height: calc(100vh - 78px) !important; }
+      #status { position: absolute; left: 14px; bottom: 14px; max-width: min(720px, calc(100% - 28px)); padding: 8px 10px; border-radius: 5px; background: #07111cdd; color: #b9d5e8; font: 12px ui-monospace, monospace; }
+    </style>
+  </head>
+  <body><div id="app"></div><script type="module" src="./main.tsx"></script></body>
+</html>

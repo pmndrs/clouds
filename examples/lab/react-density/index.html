@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clouds · React density adapter</title>
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #08111d; color: #e7eff7; }
+      body { margin: 0; min-width: 320px; }
+      #app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+      header { padding: 16px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; background: #0f1e30; }
+      h1 { margin: 0; font-size: 18px; }
+      p { margin: 3px 0 0; color: #a9bdcf; font-size: 13px; }
+      .controls { display: flex; gap: 7px; margin-left: auto; flex-wrap: wrap; }
+      button { border: 1px solid #48637d; background: #182e46; color: #e7eff7; padding: 7px 9px; border-radius: 5px; cursor: pointer; }
+      button[aria-pressed="true"] { background: #2b6387; border-color: #85cbed; }
+      button:disabled { opacity: .5; cursor: wait; }
+      #canvas { min-height: 0; position: relative; }
+      #canvas canvas { display: block; width: 100%; height: calc(100vh - 108px) !important; }
+      #status { position: absolute; left: 14px; bottom: 14px; max-width: min(900px, calc(100% - 28px)); padding: 8px 10px; border-radius: 5px; background: #07111cdd; color: #b9d5e8; font: 12px ui-monospace, monospace; white-space: pre-wrap; }
+      #evidence { position: absolute; right: 14px; bottom: 14px; max-width: min(440px, calc(100% - 28px)); max-height: 35vh; overflow: auto; margin: 0; padding: 8px 10px; border-radius: 5px; background: #07111cdd; color: #b9d5e8; font: 11px ui-monospace, monospace; }
+    </style>
+  </head>
+  <body><div id="app"></div><script type="module" src="./main.tsx"></script></body>
+</html>

@@ -9,7 +9,7 @@ struct Params {
   sun: vec4<f32>,
   grid: vec4<f32>, // min global cell X/Z, side, cellSize
   lo: vec4<f32>, // lo.w = enable camera-relative view-density fade
-  hi: vec4<f32>,
+  hi: vec4<f32>, // hi.w = filter unresolved procedural detail
   settings: vec4<f32>, // density multiplier, desired step metres, max steps, detail strength
   flags: vec4<f32>, // skip empty cells, cached lighting, shadows, diagnostic constant light
   casterLo: vec4<f32>,
@@ -19,13 +19,15 @@ struct Params {
   hazeColor: vec4<f32>, // w = use scene shadow map instead of reference box
   currentVP: mat4x4<f32>, // unjittered guide projection
   previousVP: mat4x4<f32>,
-
+  quality: vec4<f32>, // view substeps, direct-light steps, stationary-light flag, persistent LOD enabled
 }
 struct Cell { lo: vec4<f32>, hi: vec4<f32> } // lo.w extinction; hi.w atlas index
 @group(0) @binding(0) var<uniform> p: Params;
 @group(0) @binding(1) var atlas: texture_3d<f32>;
 @group(0) @binding(2) var linearSampler: sampler;
 @group(0) @binding(3) var<storage, read> cells: array<Cell>;
+@group(0) @binding(6) var coarseAtlas: texture_3d<f32>;
+@group(0) @binding(7) var<storage, read> refinement: array<f32>;
 @group(0) @binding(5) var candidates: texture_3d<u32>;
 ${REFERENCE_SHADOW_WGSL}
 ${TRAVERSAL_WGSL}
@@ -35,13 +37,23 @@ fn cellIndex(c: vec2<i32>) -> i32 {
   if (any(local < vec2(0)) || any(local >= vec2<i32>(i32(p.grid.z)))) { return -1; }
   return local.x + local.y * i32(p.grid.z);
 }
-fn tileDensity(world: vec3<f32>, cell: Cell) -> f32 {
+fn tileDensity(world: vec3<f32>, cell: Cell, owner: i32) -> f32 {
   let uvw = (world - cell.lo.xyz) / (cell.hi.xyz - cell.lo.xyz);
   if (any(uvw <= vec3(0.0)) || any(uvw >= vec3(1.0))) { return 0.0; }
   let tile = u32(cell.hi.w);
   let offset = vec3<f32>(f32(tile & 1u), f32((tile >> 1u) & 1u), f32((tile >> 2u) & 1u));
-  let halfTexel = 1.0 / f32(textureDimensions(atlas).x);
-  return textureSampleLevel(atlas, linearSampler, (offset + clamp(uvw, vec3(halfTexel), vec3(1.0-halfTexel))) * 0.5, 0.0).r;
+  var weight = 1.0;
+  if (p.quality.w > 0.5) { weight = refinement[u32(owner)]; }
+  var coarse = 0.0;
+  if (weight < 1.0) {
+    let halfTexel = 1.0 / vec3<f32>(textureDimensions(coarseAtlas));
+    coarse = textureSampleLevel(coarseAtlas, linearSampler, (offset + clamp(uvw, halfTexel, vec3(1.0)-halfTexel)) * 0.5, 0.0).r;
+  }
+  if (weight <= 0.0) { return coarse; }
+  let halfTexel = 1.0 / vec3<f32>(textureDimensions(atlas));
+  let fine = textureSampleLevel(atlas, linearSampler, (offset + clamp(uvw, halfTexel, vec3(1.0)-halfTexel)) * 0.5, 0.0).r;
+  // Shared by view and sun rays. Never draw two copies of the formation.
+  return mix(coarse, fine, weight);
 }
 // Resolve overlapping extinction at each world sample, never sort cloud boxes.
 fn candidateBits(world:vec3<f32>) -> u32 {
@@ -52,15 +64,18 @@ fn candidateBits(world:vec3<f32>) -> u32 {
 fn extinctionAt(world: vec3<f32>) -> f32 {
   let c = vec2<i32>(floor(world.xz / p.grid.w));
   var sigma = 0.0;
+  // Always evaluate the complete local 3 × 3 owner stencil. The coarse
+  // candidate mask accelerates empty-space traversal, but it is sampled at a
+  // different resolution than the view quadrature and cannot be allowed to
+  // change extinction at an occupied quadrature point.
   var bits=511u;
-  if(p.flags.x>0.5){bits=candidateBits(world);}
   loop {
     if(bits==0u){break;}
     let bit=firstTrailingBit(bits); bits=bits & (bits-1u);
     let index = cellIndex(c + vec2(i32(bit%3u)-1,i32(bit/3u)-1));
     if (index >= 0) {
       let cell = cells[index];
-      if (cell.lo.w > 0.0) { sigma += tileDensity(world, cell) * cell.lo.w; }
+      if (cell.lo.w > 0.0) { sigma += tileDensity(world, cell, index) * cell.lo.w; }
     }
   }
   return sigma * p.settings.x;
@@ -87,10 +102,36 @@ fn nextEmptyVoxel(world:vec3<f32>,ray:vec3<f32>,ds:f32,i:u32)->u32 {
 fn directLight(world: vec3<f32>) -> f32 {
   let segment = boxInterval(world, p.sun.xyz, p.lo.xyz, p.hi.xyz);
   let start = max(0.0, segment.x); let end = max(start, segment.y);
-  let ds = (end-start) / 48.0;
+  let steps = max(1u, u32(p.quality.y));
   var tau = 0.0;
-  for (var i = 0u; i < 48u; i++) {
-    tau += extinctionAt(world+p.sun.xyz*(start+(f32(i)+0.5)*ds))*ds;
+  if (p.quality.z < 0.5) {
+    // Existing behavior: exactly the requested midpoint samples over the
+    // remaining ray length. This is retained as the default comparison arm.
+    let ds = (end-start) / f32(steps);
+    for (var i = 0u; i < steps; i++) {
+      tau += extinctionAt(world+p.sun.xyz*(start+(f32(i)+0.5)*ds))*ds;
+    }
+  } else {
+    // Diagnostic stationary quadrature. Its planes are anchored in absolute
+    // world space along the sun axis, so camera motion and resident-grid
+    // rebases do not move them. The projected box span bounds every parallel
+    // chord, hence this evaluates at most budget + 1 clipped segments.
+    let span = max(1e-4, dot(abs(p.sun.xyz), p.hi.xyz-p.lo.xyz));
+    let ds = span/f32(steps);
+    let axisStart = dot(world+p.sun.xyz*start,p.sun.xyz);
+    let firstBoundary = (floor(axisStart/ds)+1.0)*ds;
+    let firstLength = min(end-start,clamp(firstBoundary-axisStart,0.0,ds));
+    var t = start;
+    if (firstLength > 0.0) {
+      tau += extinctionAt(world+p.sun.xyz*(t+0.5*firstLength))*firstLength;
+      t += firstLength;
+    }
+    for (var i = 0u; i < steps; i++) {
+      let segmentLength = min(ds,end-t);
+      if (segmentLength <= 0.0) { break; }
+      tau += extinctionAt(world+p.sun.xyz*(t+0.5*segmentLength))*segmentLength;
+      t += segmentLength;
+    }
   }
   return exp(-tau);
 }
@@ -168,13 +209,24 @@ fn lightAt(world:vec3<f32>) -> f32 {
 fn worldAt(ndc:vec2<f32>,depth:f32) -> vec3<f32> {
   let h=p.inverseVP*vec4(ndc,depth,1.0); return h.xyz/h.w;
 }
-fn detailFactor(world:vec3<f32>, distance:f32) -> f32 {
-  // Sub-voxel modulation fades with projected footprint, without changing the
-  // broad voxel source or switching a distant formation into a flat layer.
-  if(p.settings.w==0.0 || distance*p.camera.w>=45.0){return 1.0;}
-  let fade=1.0-smoothstep(8.0,45.0,distance*p.camera.w);
+fn detailFactor(world:vec3<f32>, distance:f32, ray:vec3<f32>, ds:f32) -> f32 {
+  if(p.settings.w==0.0 || p.quality.w>0.5){return 1.0;}
   let n=sin(world.x*0.075+sin(world.z*0.041))*sin(world.y*0.091+world.z*0.025);
-  return 1.0 - p.settings.w*fade*(0.5+0.5*n);
+  if(p.hi.w<0.5){
+    // Previous behavior, retained only for the sampling diagnostic.
+    let fade=1.0-smoothstep(8.0,45.0,distance*p.camera.w);
+    return 1.0-p.settings.w*fade*(0.5+0.5*n);
+  }
+  // Bound the combined phase change over a ray segment. The nested z sine
+  // has derivative at most 0.041. Fade modulation before its Nyquist limit;
+  // pixel footprint alone cannot prevent aliasing along the view ray.
+  let rayFrequency=abs(0.075*ray.x)+abs(0.041*ray.z)+abs(0.091*ray.y+0.025*ray.z);
+  let pixelFrequency=length(vec2(0.075,0.041))+length(vec2(0.091,0.025));
+  let phaseWidth=max(ds*rayFrequency,distance*p.camera.w*pixelFrequency);
+  let resolved=1.0-smoothstep(1.5707963,3.1415927,phaseWidth);
+  // Retain the mean extinction as detail becomes unresolvable. Fading the
+  // entire term to 1 would change density with resolution and sample budget.
+  return 1.0-p.settings.w*(0.5+0.5*resolved*n);
 }
 @compute @workgroup_size(8,8)
 fn main(@builtin(global_invocation_id) id:vec3<u32>) {
@@ -212,26 +264,46 @@ fn main(@builtin(global_invocation_id) id:vec3<u32>) {
       let segmentEnd=min(end,latticeEnd);
       if(segmentEnd<=segmentStart){i++;continue;}
       let segmentDs=segmentEnd-segmentStart;
-      let t=0.5*(segmentStart+segmentEnd);
-      let world=p.camera.xyz+ray*t;
+      let segmentMid=0.5*(segmentStart+segmentEnd);
+      let candidateWorld=p.camera.xyz+ray*segmentMid;
       let fullSegment=segmentStart==latticeStart && segmentEnd==latticeEnd;
-      if(p.flags.x>0.5 && fullSegment && candidateBits(world)==0u) {
-        i=nextEmptyVoxel(world,ray,ds,i); continue;
+      let substeps=max(1u,u32(p.quality.x));
+      let subDs=segmentDs/f32(substeps);
+      // A nominal segment may cross occupied support even when its midpoint is
+      // empty, so test the active-cell neighborhood at every quadrature point
+      // before skipping it. The coarse mask is used only to choose the next
+      // voxel face; it never decides density. The higher-order rule advances
+      // one nominal segment to retain exact parity.
+      if(p.flags.x>0.5 && fullSegment) {
+        var segmentHasCandidates=false;
+        for(var probe=0u;probe<substeps;probe++){
+          let probeT=segmentStart+(f32(probe)+0.5)*subDs;
+          if(!emptyCell(p.camera.xyz+ray*probeT)){segmentHasCandidates=true;break;}
+        }
+        if(!segmentHasCandidates){
+          if(substeps==1u){i=nextEmptyVoxel(candidateWorld,ray,ds,i);}else{i++;}
+          continue;
+        }
       }
-      var sigma=extinctionAt(world)*viewDensityFade(world);
-      if(sigma>0.0) {
-        sigma*=detailFactor(world,t);
-        let segmentT=exp(-sigma*segmentDs);
-        let sunlight=lightAt(world);
-        var lighting=p.ambientRadiance.rgb+p.sunRadiance.rgb*phase*sunlight;
-        if(p.flags.w>0.5){lighting=vec3(1.0);}
-        // Distance haze treats distant cloud radiance and background coherently
-        // enough for the coverage study; physical atmosphere composition is P3.
-        let haze=1.0-exp(-t*p.sunRadiance.w);
-        lighting=mix(lighting,p.hazeColor.rgb,haze*p.ambientRadiance.w);
-        if(p.flags.w>0.5){lighting=vec3(1.0);}
-        /* GUIDE_ACCUMULATE */
-        L+=T*(1.0-segmentT)*lighting; T*=segmentT;
+      for(var sub=0u;sub<substeps;sub++){
+        let t=segmentStart+(f32(sub)+0.5)*subDs;
+        let world=p.camera.xyz+ray*t;
+        var sigma=extinctionAt(world)*viewDensityFade(world);
+        if(sigma>0.0) {
+          sigma*=detailFactor(world,t,ray,subDs);
+          let segmentT=exp(-sigma*subDs);
+          let sunlight=lightAt(world);
+          var lighting=p.ambientRadiance.rgb+p.sunRadiance.rgb*phase*sunlight;
+          if(p.flags.w>0.5){lighting=vec3(1.0);}
+          // Distance haze treats distant cloud radiance and background coherently
+          // enough for the coverage study; physical atmosphere composition is P3.
+          let haze=1.0-exp(-t*p.sunRadiance.w);
+          lighting=mix(lighting,p.hazeColor.rgb,haze*p.ambientRadiance.w);
+          if(p.flags.w>0.5){lighting=vec3(1.0);}
+          /* GUIDE_ACCUMULATE */
+          L+=T*(1.0-segmentT)*lighting; T*=segmentT;
+        }
+        if(p.sun.w>0.5 && T<0.0001){break;}
       }
       if(p.sun.w>0.5 && T<0.0001){break;}
       i++;

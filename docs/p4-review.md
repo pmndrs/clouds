@@ -6,6 +6,11 @@ is pending recorded human evidence and a validated preset.** This guide
 defines what to inspect and how to report it; it does not pre-accept a preset
 or waive a known defect.
 
+The user reports the five reconstruction methods seem stable beyond the volume
+artifacts. The later 2026-09-18 retest confirms prominent banding persists and
+authorizes a separate quality bench while implementation proceeds through P6.
+Keep the Major artifact gate and preset acceptance pending.
+
 P4 asks whether reconstruction preserves useful cloud detail and scene
 composition while reducing the cost of rendering. It is a visual and
 measurement gate. A clean technical check, a fast isolated cloud pass, or a
@@ -16,6 +21,56 @@ readable opacity/thickness and the same scene composition at Native resolution.
 Reduced modes may soften fine detail. Banding, angular voxel silhouettes, and
 coarse cloud shadows remain known debt. The first frame after a reset may have
 less detail and converge, but old geometry must never persist.
+
+### Active review failure — volume banding and strobing (2026-09-18)
+
+The user reports pronounced symmetric V-shaped arcs within clouds, crosshatching
+on distant formations and strobing during camera motion. The supplied stills
+show the spatial patterns; the motion symptom is user-reported. **Impact: Major.
+Disposition: fix or retest the spatial rendering baseline before accepting P4
+image quality or presets.** This is not an acceptable stylized appearance or an
+issue to waive because it was listed as known. Distance/LOD work does not
+substitute for this fix.
+
+The earlier marcher used regular camera-relative samples with
+direction-dependent spacing and filtered periodic fine-density modulation for
+projected pixel size but not ray-step size. The current default-on detail filter
+adds ray-step and pixel-footprint filtering, but the reported orbit and motion
+failed the user retest. The independent bench now isolates view-ray and light-ray
+under-sampling as contributors; it does not establish a complete production fix. Isolate native versus FSR, detail on/off,
+step size, density sampling, lighting and empty-space skipping at matching poses.
+Increasing Max cloud samples to 640 is diagnostic, not a condition for accepting
+an artifact at the default budget. Do not mask the defect with blur or FSR.
+
+Earlier spot observations at 502×608 and 1265×880 improved after detail filtering,
+but the user's later orbit/motion retest failed. Do not treat that spot result
+as acceptance. The default-on filter only suppresses unresolved fine modulation.
+
+**Current experiment:** select **Volume integration → Quality experiment** for
+four physical samples per primary segment and 192 light samples; **Dense light
+reference** raises light samples to 256. Both wipe sides use the selected
+integration setting. Compare at Native mode first, then test reconstruction.
+Expect higher cost and possible remaining bands, voxel edges and cache artifacts.
+The default remains 1× / 48; these are diagnostic budgets, not named presets.
+See the [quality bench](research/cloud-quality-bench.md) for measured scope.
+
+The filter retains the nominal density multiplier 0.92 at default strength,
+including coarse pixels where the old fade returned 1. Distant clouds may
+therefore be slightly thinner; this is an intentional density correction.
+It does not prove mass preservation for every voxel shape or fix all lattice
+and lighting artifacts.
+
+The viewer exposes **Fine density detail** and **Filter unresolved detail**;
+turning the latter off reproduces the older pixel-only filtering. Native and
+reconstructed sides share this setting. **Show comparison divider** is also
+default-on and can be disabled for an unobstructed image.
+
+Pass requires no conspicuous coherent arcs, crosshatching or strobing on the
+reported orbit/flight in the native baseline at the proposed review settings,
+followed by the same comparison across reconstruction methods. Existing optical
+and traversal checks must continue to pass. Fine detail/temporal-quality judgments
+remain provisional until that baseline is corrected; control and reset testing
+can continue. The user need not report the same pattern repeatedly.
 
 ## Earlier gates still matter
 
@@ -77,7 +132,7 @@ The terms below keep review findings precise:
 Use one fixed seed, one fixed flight, and identical output resolution/settings
 for every mode. Keep the browser and device visible in the review record. The
 actual controls are **Method**, **Input scale**, **Native comparison wipe**,
-**Sharpness**, **Guide view**, **Reset history**, **Overview**, **Foreground
+**Show comparison divider**, **Sharpness**, **Guide view**, **Reset history**, **Overview**, **Foreground
 edges**, **Inside cloud**, **Camera cut**, **Fixed flight**, **Play flight**,
 **Moving geometry**, **Density**, **Sun elevation**, **Change world seed**,
 **Max cloud samples**, **Run P4 checks**, **Benchmark output**, **Measure all
@@ -120,6 +175,8 @@ five methods**, **Save image**, and **Export evidence**.
 Use Final image for quality/performance comparisons. In the in-app browser, if
 file export does not download, use standalone Chrome; Live evidence remains
 readable in either viewer.
+
+The comparison divider is visible by default and follows **Left native / right selected**. Toggle **Show comparison divider** to inspect an unobstructed boundary. It is hidden when **Native comparison wipe** is off and during benchmarks; **Save image** includes it when shown.
 
 ## Deeper critical cases
 
@@ -290,6 +347,13 @@ preserve the exact pose/settings so a reviewer can replay it.
 ## Acceptance record
 
 P4 status: **pending**.
+
+2026-09-18 technical update: all **29 P4 GPU checks**, **19 P2 checks**, and
+**23 P3 GPU checks** pass in the Codex in-app browser. `pnpm check` passes with
+53 tests, type checking, and the lab build. These results support continued P4 review; they do not accept image
+quality, a preset, or RTX/Windows performance. The earlier performance tables
+are historical pre-filter diagnostic runs, and no new performance claim is
+made for the detail-filter change.
 
 The integrated viewer and [technical evidence](p4-evidence.md) are available. Fill this section after your review:
 

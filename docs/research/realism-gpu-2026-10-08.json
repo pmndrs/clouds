@@ -1,0 +1,186 @@
+{
+  "date": "2026-10-08T06:56:50.950Z",
+  "source": "houdini-vdb-detail",
+  "originalDescriptor": {
+    "id": "houdini-cloudnoise-detail",
+    "revision": 0,
+    "dimensions": [
+      180,
+      79,
+      111
+    ],
+    "bounds": {
+      "min": [
+        -748,
+        -276,
+        -404
+      ],
+      "max": [
+        692,
+        356,
+        484
+      ]
+    },
+    "extinctionScale": 0.025,
+    "encoding": "r8unorm"
+  },
+  "displayPlacement": "translated to center Y=1700 m; scale, density and extinction unchanged",
+  "sourceStatistics": {
+    "nonzeroFraction": 0.49071539894324706,
+    "meanDensity": 0.41414832802517165,
+    "intermediateFraction": 0.11612878701486297,
+    "peakDensity": 1,
+    "largestClusterFraction": 0.450629110122781,
+    "secondLargestClusterFraction": 0,
+    "centroid": [
+      0.5001034008352342,
+      0.4836544391006035,
+      0.49413383443559383
+    ]
+  },
+  "generationMs": 0,
+  "camera": [
+    1007.9999999999999,
+    1915.9999999999998,
+    1080
+  ],
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "runtime": {
+    "appearance": "realistic-experiment",
+    "cacheUpdates": 1,
+    "lightCacheSize": [
+      192,
+      158,
+      192
+    ],
+    "lightCacheBytes": 46596096,
+    "refinedDensityBytes": 46596096,
+    "source": {
+      "id": "houdini-cloudnoise-detail",
+      "revision": 0,
+      "dimensions": [
+        180,
+        79,
+        111
+      ],
+      "bounds": {
+        "min": [
+          -720,
+          1384,
+          -444
+        ],
+        "max": [
+          720,
+          2016,
+          444
+        ]
+      },
+      "extinctionScale": 0.025,
+      "encoding": "r8unorm"
+    },
+    "renderSize": [
+      1112,
+      578
+    ],
+    "occupiedBrickFraction": 0.6984472049689441,
+    "densityPayloadBytes": 1578420,
+    "outputPayloadBytes": 20567552,
+    "groundReceiver": "explicit-material-mask-and-ray-plane",
+    "settings": {
+      "densityMultiplier": 1,
+      "detailErosion": 0,
+      "earlyTermination": true,
+      "viewSteps": 512,
+      "lightSteps": 128,
+      "occupancy": false,
+      "castShadow": false,
+      "receiveShadow": false,
+      "constantLight": false,
+      "sunDirection": [
+        -0.6710100716628342,
+        0.573576436351046,
+        -0.46984631039295444
+      ]
+    },
+    "depth": "webgpu-zero-to-one",
+    "temporalHistory": false
+  },
+  "tests": [
+    {
+      "name": "Homogeneous T matches exp(-2)",
+      "error": 0.00008137698661270232,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Constant-light L + T conserves energy",
+      "error": 0.00048828125,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Optical-depth cache maps density-grid texel centers",
+      "error": 0,
+      "tolerance": 0.002,
+      "passed": true
+    },
+    {
+      "name": "Static source and sunlight reuse cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Camera movement does not rebuild source light cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Density changes invalidate cache once",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Density scale halves cached optical depth",
+      "error": 0,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Lit output is finite and populated",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Lighting leaves view transmittance unchanged",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Lit fixture differs from uniform-light control",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Zero density gives zero radiance and unit T",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Resize preserves valid bindings",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    }
+  ],
+  "errors": []
+}

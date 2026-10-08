@@ -1,0 +1,895 @@
+{
+  "phase": "P4",
+  "generatedAt": "2026-10-08T06:21:56.093Z",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "device": "metal-3",
+  "mode": "fsr3",
+  "scale": 0.6666667,
+  "display": [
+    960,
+    600
+  ],
+  "cloud": {
+    "persistentSupport": false,
+    "refinementUploads": 0,
+    "refinedCells": 81,
+    "coarseAtlasBytes": 0,
+    "refinementBufferBytes": 1156,
+    "worldRevision": 17,
+    "gridMin": [
+      -4,
+      -3
+    ],
+    "side": 9,
+    "residentCells": 81,
+    "activeCells": 54,
+    "worldUploads": 18,
+    "worldUploadCpuMs": 0,
+    "cacheUpdates": 5,
+    "candidateUpdates": 5,
+    "candidateBytes": 991232,
+    "atlasBytes": 884736,
+    "cellBufferBytes": 9248,
+    "lightCacheSize": [
+      132,
+      32,
+      132
+    ],
+    "lightCacheBytes": 4460544,
+    "frameTargetBytes": 14336000,
+    "renderSize": [
+      640,
+      400
+    ],
+    "sceneSize": [
+      640,
+      400
+    ],
+    "temporalGuides": true,
+    "directionalShadowMap": true,
+    "materialReceivers": 12,
+    "settings": {
+      "sunRadiance": [
+        10.5,
+        10,
+        9
+      ],
+      "ambientRadiance": [
+        0.28,
+        0.34,
+        0.43
+      ],
+      "hazeColor": [
+        0.48,
+        0.64,
+        0.86
+      ],
+      "hazeDensity": 0.00005555555555555556,
+      "hazeStrength": 0.75,
+      "density": 0.7,
+      "stepMetres": 24,
+      "maxSteps": 320,
+      "detail": 0.16,
+      "detailFiltering": true,
+      "viewSubsteps": 1,
+      "lightSteps": 48,
+      "lightSampling": "normalized",
+      "refinementMode": "auto",
+      "fineReady": true,
+      "skipEmpty": true,
+      "distanceFade": true,
+      "earlyTermination": true,
+      "cachedLighting": true,
+      "shadows": true,
+      "geometryShadows": true,
+      "constantLight": false,
+      "sunDirection": [
+        -0.6275068715971329,
+        0.6427876096865393,
+        -0.43938504177070525
+      ],
+      "casterMin": [
+        950,
+        0,
+        850
+      ],
+      "casterMax": [
+        1250,
+        1800,
+        1150
+      ]
+    }
+  },
+  "guideAllocation": {
+    "plain": {
+      "runtime": "plain",
+      "allocated": false,
+      "temporalGuides": false
+    },
+    "guided": {
+      "runtime": "guided",
+      "allocated": true,
+      "temporalGuides": true
+    }
+  },
+  "camera": [
+    1325.528389676474,
+    900,
+    4357.5417693844065
+  ],
+  "target": [
+    825.528389676474,
+    1100,
+    957.5417693844065
+  ],
+  "flightTime": 12,
+  "seed": 17,
+  "resetCount": 26,
+  "lastReset": "benchmark completed",
+  "comparison": true,
+  "divider": true,
+  "wipe": 0.5,
+  "settings": {
+    "sharpness": 0.2,
+    "rcasDenoise": false,
+    "maxAccumulation": 24,
+    "exposure": 1,
+    "autoExposure": false,
+    "lockThinFeatures": true,
+    "detectShadingChanges": true,
+    "debugView": 0
+  },
+  "upscalerPassGpuMs": {
+    "reconstruct": 0.065536,
+    "exposure": 0.131072,
+    "shadingChange": 0.065536,
+    "accumulate": 0.196608,
+    "rcas": 0.065536,
+    "blit": 0,
+    "easu": 0
+  },
+  "cpuSubmitMs": 1.1000000089406967,
+  "tests": [
+    {
+      "name": "Guide outputs are finite",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Static cloud has zero unjittered motion",
+      "error": 1.7374318130036759e-12,
+      "tolerance": 0.000001,
+      "passed": true
+    },
+    {
+      "name": "Homogeneous guide fixture retains Beer transmittance",
+      "error": 0.000284621328557666,
+      "tolerance": 0.002,
+      "passed": true
+    },
+    {
+      "name": "Cloud guide depth follows extinction-weighted distance",
+      "error": 2.587894292194193e-7,
+      "tolerance": 0.000002,
+      "passed": true
+    },
+    {
+      "name": "Mixed cloud pixels provide reactive weight",
+      "error": 0.00037823505145295755,
+      "tolerance": 0.002,
+      "passed": true
+    },
+    {
+      "name": "Camera translation produces current-minus-previous NDC motion",
+      "error": 0.000011236131683238504,
+      "tolerance": 0.00005,
+      "passed": true
+    },
+    {
+      "name": "Empty sky guides have far depth, zero motion and zero reactivity",
+      "error": 3.874465852315989e-13,
+      "tolerance": 0.000001,
+      "passed": true
+    },
+    {
+      "name": "Opaque foreground guides retain scene device depth",
+      "error": 5.4111625735764335e-8,
+      "tolerance": 0.000001,
+      "passed": true
+    },
+    {
+      "name": "Moving opaque geometry supplies object motion to temporal guides",
+      "error": 0.0000044730964683208085,
+      "tolerance": 0.00005,
+      "passed": true
+    },
+    {
+      "name": "Guides resize independently of the scene target",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "GPU constant HDR L/T conservation",
+      "passed": true,
+      "error": 0.0015625000000003553,
+      "tolerance": 0.02
+    },
+    {
+      "name": "GPU constant HDR values stay above SDR range",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "GPU empty optical preserves full scene through T=1",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.02
+    },
+    {
+      "name": "GPU foreground edge rejects depth-disparate cloud taps",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.02
+    },
+    {
+      "name": "GPU all-rejected disocclusion returns clear optical identity",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.02
+    },
+    {
+      "name": "GPU reused input texture rebuilds binding after resize",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.02
+    },
+    {
+      "name": "FSR1 spatial preserves constant linear HDR input",
+      "error": 0,
+      "tolerance": 0.03,
+      "passed": true
+    },
+    {
+      "name": "FSR3 temporal restores camera jitter after endFrame",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "FSR3 temporal accepts packed guides and preserves constant HDR input",
+      "error": 0.001953125,
+      "tolerance": 0.03,
+      "passed": true
+    },
+    {
+      "name": "FSR3 resize rebuilds output with finite pixels",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "FSR3 reset matches a fresh history after a color change",
+      "error": 0,
+      "tolerance": 0.03,
+      "passed": true
+    },
+    {
+      "name": "FSR3 reset output remains close to the changed HDR input",
+      "error": 0.005859375,
+      "tolerance": 0.03,
+      "passed": true
+    },
+    {
+      "name": "Unresolved density detail integrates its mean extinction",
+      "error": 0.00002875620197884121,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Camera translation does not strobe unresolved density detail",
+      "error": 0.0009765625,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Four-substep sampling preserves occupancy/full-march parity",
+      "error": 0,
+      "tolerance": 0.00001,
+      "passed": true
+    },
+    {
+      "name": "Filtered density retains radiance/transmittance conservation",
+      "error": 0.00048828125,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Coarse pixel footprint retains nominal detail mean",
+      "error": 0.00002875620197884121,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Resolved density detail agrees with dense source quadrature",
+      "error": 0.00032328708093931624,
+      "tolerance": 0.002,
+      "passed": true
+    },
+    {
+      "name": "Resolved density detail remains present",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    }
+  ],
+  "benchmarks": [
+    {
+      "mode": "native",
+      "clipStart": 0,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        320,
+        180
+      ],
+      "scene": [
+        320,
+        180
+      ],
+      "scale": 1,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 1,
+          "p95": 1.1999999947845936
+        },
+        "gpuMs": {
+          "p50": 1.671168,
+          "p95": 15.843328
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "native",
+      "clipStart": 12,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        320,
+        180
+      ],
+      "scene": [
+        320,
+        180
+      ],
+      "scale": 1,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7999999970197678,
+          "p95": 1
+        },
+        "gpuMs": {
+          "p50": 1.736704,
+          "p95": 12.3011072
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "native",
+      "clipStart": 20,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        320,
+        180
+      ],
+      "scene": [
+        320,
+        180
+      ],
+      "scale": 1,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.5999999940395355,
+          "p95": 0.7000000029802322
+        },
+        "gpuMs": {
+          "p50": 1.8022399999999998,
+          "p95": 12.763136
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "bilinear",
+      "clipStart": 0,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7000000029802322,
+          "p95": 0.9000000059604645
+        },
+        "gpuMs": {
+          "p50": 1.507328,
+          "p95": 13.4086656
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "bilinear",
+      "clipStart": 12,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7999999970197678,
+          "p95": 0.9000000059604645
+        },
+        "gpuMs": {
+          "p50": 1.933312,
+          "p95": 12.3142144
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "bilinear",
+      "clipStart": 20,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7000000029802322,
+          "p95": 0.9450000032782554
+        },
+        "gpuMs": {
+          "p50": 1.8022399999999998,
+          "p95": 14.434304000000001
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "cloud",
+      "clipStart": 0,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        320,
+        180
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7000000029802322,
+          "p95": 1
+        },
+        "gpuMs": {
+          "p50": 1.4745599999999999,
+          "p95": 14.942207999999999
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "cloud",
+      "clipStart": 12,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        320,
+        180
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7999999970197678,
+          "p95": 1
+        },
+        "gpuMs": {
+          "p50": 1.31072,
+          "p95": 13.8805248
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "cloud",
+      "clipStart": 20,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        320,
+        180
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7000000029802322,
+          "p95": 0.9000000059604645
+        },
+        "gpuMs": {
+          "p50": 1.245184,
+          "p95": 12.419071999999996
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "fsr1",
+      "clipStart": 0,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 1,
+          "p95": 1.1449999995529652
+        },
+        "gpuMs": {
+          "p50": 1.835008,
+          "p95": 13.6675328
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "fsr1",
+      "clipStart": 12,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 1,
+          "p95": 1.3000000037252903
+        },
+        "gpuMs": {
+          "p50": 2.064384,
+          "p95": 13.998489600000001
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "fsr1",
+      "clipStart": 20,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.7999999970197678,
+          "p95": 1
+        },
+        "gpuMs": {
+          "p50": 1.933312,
+          "p95": 14.6604032
+        }
+      },
+      "runtime": "plain",
+      "guideAllocation": {
+        "allocated": false,
+        "temporalGuides": false
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "fsr3",
+      "clipStart": 0,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 1.1499999985098839,
+          "p95": 1.3450000025331974
+        },
+        "gpuMs": {
+          "p50": 2.064384,
+          "p95": 14.0836864
+        }
+      },
+      "runtime": "guided",
+      "guideAllocation": {
+        "allocated": true,
+        "temporalGuides": true
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "fsr3",
+      "clipStart": 12,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 1.0999999940395355,
+          "p95": 1.490000007301569
+        },
+        "gpuMs": {
+          "p50": 3.5717119999999998,
+          "p95": 14.352384
+        }
+      },
+      "runtime": "guided",
+      "guideAllocation": {
+        "allocated": true,
+        "temporalGuides": true
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    },
+    {
+      "mode": "fsr3",
+      "clipStart": 20,
+      "display": [
+        320,
+        180
+      ],
+      "internal": [
+        213,
+        120
+      ],
+      "scene": [
+        213,
+        120
+      ],
+      "scale": 0.6666667,
+      "cloudSamples": 320,
+      "sharpness": 0.2,
+      "metrics": {
+        "sampleCount": 32,
+        "warmupFrames": 32,
+        "cpuSubmitMs": {
+          "p50": 0.9500000029802322,
+          "p95": 1.1450000062584875
+        },
+        "gpuMs": {
+          "p50": 2.195456,
+          "p95": 14.375321600000001
+        }
+      },
+      "runtime": "guided",
+      "guideAllocation": {
+        "allocated": true,
+        "temporalGuides": true
+      },
+      "timer": "GPU queue span including scene/clouds/reconstruction/present and marker overhead; excludes wipe and environment refresh"
+    }
+  ],
+  "errors": [],
+  "limits": [
+    "Only FSR3 generates guides; both diagnostic runtimes stay allocated; production net benefit remains unverified",
+    "Known distance/LOD and shadow mismatch",
+    "Single representative cloud depth",
+    "Mixed pixels reactive",
+    "No full-cloud wind/advection",
+    "Approximate atmosphere",
+    "No accepted preset or RTX result"
+  ]
+}

@@ -1,1 +1,49 @@
-{"name":"@clouds/three","version":"0.0.0","private":true,"type":"module","exports":"./src/index.ts","license":"MIT","peerDependencies":{"three":"0.186.0"},"dependencies":{"@clouds/core":"workspace:*"}}
+{
+  "name": "@clouds/three",
+  "version": "0.0.0-preview.1",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./layers": {
+      "types": "./dist/layers.d.ts",
+      "import": "./dist/layers.js"
+    },
+    "./environment": {
+      "types": "./dist/environment.d.ts",
+      "import": "./dist/environment.js"
+    },
+    "./reconstruction": {
+      "types": "./dist/reconstruction.d.ts",
+      "import": "./dist/reconstruction.js"
+    },
+    "./optical-resolve": {
+      "types": "./dist/optical-resolve.d.ts",
+      "import": "./dist/optical-resolve.js"
+    }
+  },
+  "peerDependencies": {
+    "three": "0.186.0",
+    "@pmndrs/upscaler": "0.2.0"
+  },
+  "dependencies": {
+    "@clouds/core": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@pmndrs/upscaler": {
+      "optional": true
+    }
+  }
+}

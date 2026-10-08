@@ -1,0 +1,221 @@
+{
+  "date": "2026-10-08T08:23:12.100Z",
+  "source": "morphology",
+  "originalDescriptor": null,
+  "displayPlacement": null,
+  "sourceStatistics": null,
+  "generationMs": 740.8000000119209,
+  "camera": [
+    400,
+    149.99999999999955,
+    3099.9999999999995
+  ],
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "runtime": {
+    "appearance": "realistic-experiment",
+    "densityEvaluator": "procedural-weather-boundary-erosion",
+    "morphologyNoiseBytes": 2484124,
+    "morphologyNoise": {
+      "seed": 17,
+      "volumeResolution": 64,
+      "weatherResolution": 128
+    },
+    "cacheUpdates": 1,
+    "lightCacheSize": [
+      192,
+      128,
+      192
+    ],
+    "lightCacheBytes": 37748736,
+    "refinedDensityBytes": 0,
+    "source": {
+      "id": "morphology-conservative-domain",
+      "revision": 0,
+      "dimensions": [
+        96,
+        64,
+        96
+      ],
+      "bounds": {
+        "min": [
+          -2000,
+          900,
+          -2000
+        ],
+        "max": [
+          2000,
+          3500,
+          2000
+        ]
+      },
+      "encoding": "r8unorm",
+      "extinctionScale": 0.006
+    },
+    "renderSize": [
+      945,
+      644
+    ],
+    "occupiedBrickFraction": 1,
+    "densityPayloadBytes": 589824,
+    "outputPayloadBytes": 19474560,
+    "groundReceiver": "explicit-material-mask-and-ray-plane",
+    "settings": {
+      "densityMultiplier": 1,
+      "detailErosion": 0,
+      "earlyTermination": true,
+      "viewSteps": 512,
+      "lightSteps": 128,
+      "occupancy": false,
+      "castShadow": false,
+      "receiveShadow": false,
+      "constantLight": false,
+      "sunDirection": [
+        -0.6710100716628342,
+        0.573576436351046,
+        -0.46984631039295444
+      ],
+      "multipleScatteringStrength": 0.5,
+      "directLightOnly": false,
+      "morphologyCoverage": 0.55,
+      "morphologyErosion": 0.85,
+      "weatherScale": 10000,
+      "shapeScale": 2250,
+      "erosionScale": 450,
+      "edgeSoftness": 0.025
+    },
+    "depth": "webgpu-zero-to-one",
+    "temporalHistory": false
+  },
+  "tests": [
+    {
+      "name": "Homogeneous T matches exp(-2)",
+      "error": 0.00008137698661270232,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Constant-light L + T conserves energy",
+      "error": 0.00048828125,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Optical-depth cache maps density-grid texel centers",
+      "error": 0,
+      "tolerance": 0.002,
+      "passed": true
+    },
+    {
+      "name": "Static source and sunlight reuse cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Camera movement does not rebuild source light cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Density changes invalidate cache once",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Density scale halves cached optical depth",
+      "error": 0,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Lit output is finite and populated",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Lighting leaves view transmittance unchanged",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Lit fixture differs from uniform-light control",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Zero density gives zero radiance and unit T",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Resize preserves valid bindings",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Malformed procedural domain is rejected before allocation",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural source produces finite occupied cloud pixels",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural constant-light L + T conserves energy",
+      "error": 0.00048828125,
+      "tolerance": 0.001,
+      "passed": true
+    },
+    {
+      "name": "Procedural static source reuses sunlight cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural inside view reuses sunlight cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural erosion invalidates sunlight cache once",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural zero coverage clears view radiance and extinction",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural zero coverage clears sunlight optical depth",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Procedural mip resources remain valid after resize",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    }
+  ],
+  "errors": []
+}

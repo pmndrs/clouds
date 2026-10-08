@@ -5,6 +5,7 @@ import { createCloudWorld, type WorldSnapshot } from '../../../packages/three/sr
 import { createCloudscapeAtlas } from '../../../packages/three/src/sources/cloudscape-atlas';
 import { runUpscalerChecks } from './upscaler-checks';
 import { runOpticalGpuChecks } from './optical-checks';
+import { runSamplingChecks } from './sampling-checks';
 
 export async function runReconstructionChecks(renderer:WebGPURenderer){
   const results:{name:string;passed:boolean;error:number;tolerance:number}[]=[];
@@ -45,6 +46,6 @@ export async function runReconstructionChecks(renderer:WebGPURenderer){
     cloud.resize(23,17,46,34);cloud.render(scene,camera,false);const resized=await cloud.readGuides();
     check('Guides resize independently of the scene target',resized.length===23*17*4&&resized.every(Number.isFinite)?0:1,0);
   }finally{cloud.dispose();geometry.dispose();material.dispose();}
-  results.push(...await runOpticalGpuChecks(renderer),...await runUpscalerChecks(renderer));
+  results.push(...await runOpticalGpuChecks(renderer),...await runUpscalerChecks(renderer),...await runSamplingChecks(renderer));
   return results;
 }

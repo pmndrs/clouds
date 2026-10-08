@@ -186,6 +186,14 @@ export async function runUpscalerChecks(renderer: WebGPURenderer): Promise<Upsca
     const reset = await readOutput(renderer, adapter.outputTexture, display);
     const noResetError = maxError(noReset, [4, 2, 1]);
     const resetError = maxError(reset, [4, 2, 1]);
+    adapter.configure({ displayWidth: resizedDisplay.width, displayHeight: resizedDisplay.height, renderWidth: resizedLow.width, renderHeight: resizedLow.height, mode: 'fsr3' });
+    await temporalFrame(adapter, camera, resizedColor, resizedGuides, true);
+    await device.queue.onSubmittedWorkDone();
+    const resized = await readOutput(renderer, adapter.outputTexture, resizedDisplay);
+    check('FSR3 resize rebuilds output with finite pixels', finiteError(resized), 0);
+    // The comparison is against a fresh history, not concurrent execution.
+    // Release diagnostic timestamp pools before allocating the fresh runtime.
+    adapter.dispose();
     const freshAdapter = createReconstructionAdapter(renderer, { alpha: false });
     try {
       freshAdapter.configure({ displayWidth: display.width, displayHeight: display.height, renderWidth: low.width, renderHeight: low.height, mode: 'fsr3' });
@@ -203,11 +211,7 @@ export async function runUpscalerChecks(renderer: WebGPURenderer): Promise<Upsca
     }
     changed.destroy();
 
-    adapter.configure({ displayWidth: resizedDisplay.width, displayHeight: resizedDisplay.height, renderWidth: resizedLow.width, renderHeight: resizedLow.height, mode: 'fsr3' });
-    await temporalFrame(adapter, camera, resizedColor, resizedGuides, true);
-    await device.queue.onSubmittedWorkDone();
-    const resized = await readOutput(renderer, adapter.outputTexture, resizedDisplay);
-    check('FSR3 resize rebuilds output with finite pixels', finiteError(resized), 0);
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     results.push({ name: 'FSR GPU integration completed without validation errors', passed: false, error: Number.POSITIVE_INFINITY, tolerance: 0 });

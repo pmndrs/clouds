@@ -1,0 +1,2858 @@
+{
+  "version": 1,
+  "date": "2026-09-19T14:41:55.975Z",
+  "renderSize": [
+    640,
+    640
+  ],
+  "fovDegrees": 42,
+  "selfShadowing": false,
+  "temporalHistory": false,
+  "viewSteps": [
+    256,
+    512
+  ],
+  "convergenceLimits": {
+    "maxAbsT": 0.002,
+    "supportMeanAbsT": 0.0005
+  },
+  "gates": {
+    "maxAbsT": 0.02,
+    "supportMeanAbsT": 0.005,
+    "silhouetteMismatchFraction": 0.05,
+    "opacityRelativeError": 0.03,
+    "minimumReferenceSupport": 16
+  },
+  "fixture": {
+    "id": "lod-weather-17-formation-0",
+    "revision": 1,
+    "dimensions": [
+      64,
+      64,
+      64
+    ],
+    "bounds": {
+      "min": [
+        -320,
+        650,
+        -280
+      ],
+      "max": [
+        320,
+        2450,
+        280
+      ]
+    },
+    "extinctionScale": 0.0024,
+    "encoding": "r8unorm"
+  },
+  "rows": [
+    {
+      "distanceMetres": 20000,
+      "angleDegrees": 20,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 911,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 1.0132789611816407e-8,
+        "supportMeanAbsT": 0.000004019878567508233,
+        "p95AbsT": 0,
+        "referenceSupportCount": 911,
+        "candidateSupportCount": 911,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 312.638671875,
+        "candidateIntegratedOpacity": 312.636962890625,
+        "opacityRelativeError": 0.0000054663243185836286,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 1051,
+            "maxAbsT": 0.13720703125,
+            "meanAbsT": 0.00005149245262145996,
+            "supportMeanAbsT": 0.019532179174595623,
+            "p95AbsT": 0.072998046875,
+            "referenceSupportCount": 911,
+            "candidateSupportCount": 1051,
+            "supportSymmetricDifferenceCount": 140,
+            "silhouetteMismatchFraction": 0.13320647002854424,
+            "referenceIntegratedOpacity": 312.636962890625,
+            "candidateIntegratedOpacity": 317.534423828125,
+            "opacityRelativeError": 0.01566500932013391,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.13720703125 exceeds 0.02.",
+              "supportMeanAbsT 0.019532179174595623 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13320647002854424 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 949,
+            "maxAbsT": 0.0400390625,
+            "meanAbsT": 0.000011102557182312012,
+            "supportMeanAbsT": 0.004445211653714436,
+            "p95AbsT": 0.019433593749999978,
+            "referenceSupportCount": 911,
+            "candidateSupportCount": 949,
+            "supportSymmetricDifferenceCount": 38,
+            "silhouetteMismatchFraction": 0.040042149631190724,
+            "referenceIntegratedOpacity": 312.636962890625,
+            "candidateIntegratedOpacity": 313.892578125,
+            "opacityRelativeError": 0.0040162085211091075,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.0400390625 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 919,
+            "maxAbsT": 0.01220703125,
+            "meanAbsT": 0.0000029993057250976563,
+            "supportMeanAbsT": 0.001180588615342764,
+            "p95AbsT": 0.005419921874999956,
+            "referenceSupportCount": 911,
+            "candidateSupportCount": 919,
+            "supportSymmetricDifferenceCount": 8,
+            "silhouetteMismatchFraction": 0.008705114254624592,
+            "referenceIntegratedOpacity": 312.636962890625,
+            "candidateIntegratedOpacity": 313.175048828125,
+            "opacityRelativeError": 0.0017211206650835063,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 939,
+            "maxAbsT": 0.0234375,
+            "meanAbsT": 0.000007322430610656738,
+            "supportMeanAbsT": 0.0028847073848509053,
+            "p95AbsT": 0.010278320312499978,
+            "referenceSupportCount": 911,
+            "candidateSupportCount": 939,
+            "supportSymmetricDifferenceCount": 28,
+            "silhouetteMismatchFraction": 0.029818956336528223,
+            "referenceIntegratedOpacity": 312.636962890625,
+            "candidateIntegratedOpacity": 313.4599609375,
+            "opacityRelativeError": 0.002632440000905853,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.0234375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 915,
+            "maxAbsT": 0.0078125,
+            "meanAbsT": 0.000001881718635559082,
+            "supportMeanAbsT": 0.0007286863900273224,
+            "p95AbsT": 0.003564453124999978,
+            "referenceSupportCount": 911,
+            "candidateSupportCount": 915,
+            "supportSymmetricDifferenceCount": 4,
+            "silhouetteMismatchFraction": 0.004371584699453552,
+            "referenceIntegratedOpacity": 312.636962890625,
+            "candidateIntegratedOpacity": 312.9306640625,
+            "opacityRelativeError": 0.0009394320145623676,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 20000,
+      "angleDegrees": 90,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 698,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 1.0132789611816407e-8,
+        "supportMeanAbsT": 0.000005946118373925501,
+        "p95AbsT": 0,
+        "referenceSupportCount": 698,
+        "candidateSupportCount": 698,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 282.90283203125,
+        "candidateIntegratedOpacity": 282.903076171875,
+        "opacityRelativeError": 8.629840261656756e-7,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 789,
+            "maxAbsT": 0.15625,
+            "meanAbsT": 0.00004947841167449951,
+            "supportMeanAbsT": 0.024872328996356146,
+            "p95AbsT": 0.08349609374999989,
+            "referenceSupportCount": 698,
+            "candidateSupportCount": 789,
+            "supportSymmetricDifferenceCount": 91,
+            "silhouetteMismatchFraction": 0.11533586818757921,
+            "referenceIntegratedOpacity": 282.903076171875,
+            "candidateIntegratedOpacity": 289.39306640625,
+            "opacityRelativeError": 0.022940684570117824,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.15625 exceeds 0.02.",
+              "supportMeanAbsT 0.024872328996356146 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.11533586818757921 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 720,
+            "maxAbsT": 0.04443359375,
+            "meanAbsT": 0.000010774731636047364,
+            "supportMeanAbsT": 0.005690171983506944,
+            "p95AbsT": 0.02027587890624999,
+            "referenceSupportCount": 698,
+            "candidateSupportCount": 720,
+            "supportSymmetricDifferenceCount": 22,
+            "silhouetteMismatchFraction": 0.030555555555555555,
+            "referenceIntegratedOpacity": 282.903076171875,
+            "candidateIntegratedOpacity": 284.64306640625,
+            "opacityRelativeError": 0.006150481846715183,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04443359375 exceeds 0.02.",
+              "supportMeanAbsT 0.005690171983506944 exceeds 0.005."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 713,
+            "maxAbsT": 0.01220703125,
+            "meanAbsT": 0.000003476738929748535,
+            "supportMeanAbsT": 0.0018527979268934082,
+            "p95AbsT": 0.009960937499999989,
+            "referenceSupportCount": 698,
+            "candidateSupportCount": 713,
+            "supportSymmetricDifferenceCount": 15,
+            "silhouetteMismatchFraction": 0.021037868162692847,
+            "referenceIntegratedOpacity": 282.903076171875,
+            "candidateIntegratedOpacity": 283.69921875,
+            "opacityRelativeError": 0.0028141884807265627,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 712,
+            "maxAbsT": 0.02587890625,
+            "meanAbsT": 0.000006912946701049805,
+            "supportMeanAbsT": 0.0035907873946629215,
+            "p95AbsT": 0.012805175781249983,
+            "referenceSupportCount": 698,
+            "candidateSupportCount": 712,
+            "supportSymmetricDifferenceCount": 14,
+            "silhouetteMismatchFraction": 0.019662921348314606,
+            "referenceIntegratedOpacity": 282.903076171875,
+            "candidateIntegratedOpacity": 283.930908203125,
+            "opacityRelativeError": 0.0036331596147987826,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02587890625 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 705,
+            "maxAbsT": 0.0068359375,
+            "meanAbsT": 0.0000020354986190795898,
+            "supportMeanAbsT": 0.0010565575132978724,
+            "p95AbsT": 0.00537109375,
+            "referenceSupportCount": 698,
+            "candidateSupportCount": 705,
+            "supportSymmetricDifferenceCount": 7,
+            "silhouetteMismatchFraction": 0.009929078014184398,
+            "referenceIntegratedOpacity": 282.903076171875,
+            "candidateIntegratedOpacity": 283.287109375,
+            "opacityRelativeError": 0.0013574727016813504,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 20000,
+      "angleDegrees": 150,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 831,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 2.0861625671386717e-8,
+        "supportMeanAbsT": 0.000007932366877256317,
+        "p95AbsT": 0,
+        "referenceSupportCount": 831,
+        "candidateSupportCount": 831,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 301.96533203125,
+        "candidateIntegratedOpacity": 301.961181640625,
+        "opacityRelativeError": 0.000013744593119618386,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 955,
+            "maxAbsT": 0.138671875,
+            "meanAbsT": 0.0000497138500213623,
+            "supportMeanAbsT": 0.020723576570680628,
+            "p95AbsT": 0.07941894531249999,
+            "referenceSupportCount": 831,
+            "candidateSupportCount": 955,
+            "supportSymmetricDifferenceCount": 124,
+            "silhouetteMismatchFraction": 0.12984293193717278,
+            "referenceIntegratedOpacity": 301.961181640625,
+            "candidateIntegratedOpacity": 307.260986328125,
+            "opacityRelativeError": 0.017551278143451865,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.138671875 exceeds 0.02.",
+              "supportMeanAbsT 0.020723576570680628 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.12984293193717278 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 861,
+            "maxAbsT": 0.04638671875,
+            "meanAbsT": 0.000010709166526794433,
+            "supportMeanAbsT": 0.004693114383710802,
+            "p95AbsT": 0.017578125,
+            "referenceSupportCount": 831,
+            "candidateSupportCount": 861,
+            "supportSymmetricDifferenceCount": 30,
+            "silhouetteMismatchFraction": 0.03484320557491289,
+            "referenceIntegratedOpacity": 301.961181640625,
+            "candidateIntegratedOpacity": 303.349609375,
+            "opacityRelativeError": 0.004598033849355572,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04638671875 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 840,
+            "maxAbsT": 0.01123046875,
+            "meanAbsT": 0.0000026875734329223635,
+            "supportMeanAbsT": 0.0011500767299107142,
+            "p95AbsT": 0.005395507812499978,
+            "referenceSupportCount": 831,
+            "candidateSupportCount": 840,
+            "supportSymmetricDifferenceCount": 9,
+            "silhouetteMismatchFraction": 0.010714285714285714,
+            "referenceIntegratedOpacity": 301.961181640625,
+            "candidateIntegratedOpacity": 302.51904296875,
+            "opacityRelativeError": 0.0018474604089638617,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 854,
+            "maxAbsT": 0.0244140625,
+            "meanAbsT": 0.000007025599479675293,
+            "supportMeanAbsT": 0.0030374638649004683,
+            "p95AbsT": 0.01171875,
+            "referenceSupportCount": 831,
+            "candidateSupportCount": 854,
+            "supportSymmetricDifferenceCount": 23,
+            "silhouetteMismatchFraction": 0.026932084309133488,
+            "referenceIntegratedOpacity": 301.961181640625,
+            "candidateIntegratedOpacity": 302.83203125,
+            "opacityRelativeError": 0.002883978677800479,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.0244140625 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 837,
+            "maxAbsT": 0.00732421875,
+            "meanAbsT": 0.0000017577409744262694,
+            "supportMeanAbsT": 0.0007452560297192353,
+            "p95AbsT": 0.0035156249999999667,
+            "referenceSupportCount": 831,
+            "candidateSupportCount": 837,
+            "supportSymmetricDifferenceCount": 6,
+            "silhouetteMismatchFraction": 0.007168458781362007,
+            "referenceIntegratedOpacity": 301.961181640625,
+            "candidateIntegratedOpacity": 302.2705078125,
+            "opacityRelativeError": 0.0010243905199812749,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 12000,
+      "angleDegrees": 20,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 2518,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 2.2649765014648438e-8,
+        "supportMeanAbsT": 0.000003296577144559174,
+        "p95AbsT": 0,
+        "referenceSupportCount": 2518,
+        "candidateSupportCount": 2518,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 865.847900390625,
+        "candidateIntegratedOpacity": 865.842529296875,
+        "opacityRelativeError": 0.000006203276288568518,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2922,
+            "maxAbsT": 0.142578125,
+            "meanAbsT": 0.00014353632926940917,
+            "supportMeanAbsT": 0.019598426270533882,
+            "p95AbsT": 0.0771484375,
+            "referenceSupportCount": 2518,
+            "candidateSupportCount": 2922,
+            "supportSymmetricDifferenceCount": 404,
+            "silhouetteMismatchFraction": 0.13826146475017112,
+            "referenceIntegratedOpacity": 865.842529296875,
+            "candidateIntegratedOpacity": 879.563720703125,
+            "opacityRelativeError": 0.015847213485104008,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.142578125 exceeds 0.02.",
+              "supportMeanAbsT 0.019598426270533882 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13826146475017112 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2636,
+            "maxAbsT": 0.0439453125,
+            "meanAbsT": 0.0000309145450592041,
+            "supportMeanAbsT": 0.004442692526555387,
+            "p95AbsT": 0.01904296875,
+            "referenceSupportCount": 2518,
+            "candidateSupportCount": 2636,
+            "supportSymmetricDifferenceCount": 118,
+            "silhouetteMismatchFraction": 0.044764795144157814,
+            "referenceIntegratedOpacity": 865.842529296875,
+            "candidateIntegratedOpacity": 869.442626953125,
+            "opacityRelativeError": 0.004157912708646377,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.0439453125 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2555,
+            "maxAbsT": 0.0107421875,
+            "meanAbsT": 0.000008099079132080078,
+            "supportMeanAbsT": 0.0011292578889432485,
+            "p95AbsT": 0.005859375,
+            "referenceSupportCount": 2518,
+            "candidateSupportCount": 2555,
+            "supportSymmetricDifferenceCount": 37,
+            "silhouetteMismatchFraction": 0.014481409001956947,
+            "referenceIntegratedOpacity": 865.842529296875,
+            "candidateIntegratedOpacity": 867.339111328125,
+            "opacityRelativeError": 0.0017284690698496062,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2600,
+            "maxAbsT": 0.02490234375,
+            "meanAbsT": 0.000020205974578857422,
+            "supportMeanAbsT": 0.0028525015024038463,
+            "p95AbsT": 0.0107421875,
+            "referenceSupportCount": 2518,
+            "candidateSupportCount": 2600,
+            "supportSymmetricDifferenceCount": 82,
+            "silhouetteMismatchFraction": 0.031538461538461536,
+            "referenceIntegratedOpacity": 865.842529296875,
+            "candidateIntegratedOpacity": 868.129150390625,
+            "opacityRelativeError": 0.0026409202786641783,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02490234375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2548,
+            "maxAbsT": 0.0068359375,
+            "meanAbsT": 0.000005225539207458496,
+            "supportMeanAbsT": 0.0007177619395113815,
+            "p95AbsT": 0.00341796875,
+            "referenceSupportCount": 2518,
+            "candidateSupportCount": 2548,
+            "supportSymmetricDifferenceCount": 30,
+            "silhouetteMismatchFraction": 0.011773940345368918,
+            "referenceIntegratedOpacity": 865.842529296875,
+            "candidateIntegratedOpacity": 866.6572265625,
+            "opacityRelativeError": 0.0009409300629833827,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 12000,
+      "angleDegrees": 90,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 1954,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 3.814697265625e-8,
+        "supportMeanAbsT": 0.000007496641504605936,
+        "p95AbsT": 0,
+        "referenceSupportCount": 1954,
+        "candidateSupportCount": 1954,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 802.658935546875,
+        "candidateIntegratedOpacity": 802.646240234375,
+        "opacityRelativeError": 0.000015816571569530105,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2289,
+            "maxAbsT": 0.1630859375,
+            "meanAbsT": 0.00014154911041259767,
+            "supportMeanAbsT": 0.024735317005242462,
+            "p95AbsT": 0.08281249999999996,
+            "referenceSupportCount": 1954,
+            "candidateSupportCount": 2289,
+            "supportSymmetricDifferenceCount": 335,
+            "silhouetteMismatchFraction": 0.14635211882918306,
+            "referenceIntegratedOpacity": 802.646240234375,
+            "candidateIntegratedOpacity": 820.478271484375,
+            "opacityRelativeError": 0.022216551148103548,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.1630859375 exceeds 0.02.",
+              "supportMeanAbsT 0.024735317005242462 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.14635211882918306 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2034,
+            "maxAbsT": 0.04638671875,
+            "meanAbsT": 0.000029854178428649903,
+            "supportMeanAbsT": 0.005629998041113569,
+            "p95AbsT": 0.0205078125,
+            "referenceSupportCount": 1954,
+            "candidateSupportCount": 2034,
+            "supportSymmetricDifferenceCount": 80,
+            "silhouetteMismatchFraction": 0.03933136676499508,
+            "referenceIntegratedOpacity": 802.646240234375,
+            "candidateIntegratedOpacity": 807.404296875,
+            "opacityRelativeError": 0.005927962285396907,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04638671875 exceeds 0.02.",
+              "supportMeanAbsT 0.005629998041113569 exceeds 0.005."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 1992,
+            "maxAbsT": 0.013671875,
+            "meanAbsT": 0.000009028315544128418,
+            "supportMeanAbsT": 0.0017010179389432732,
+            "p95AbsT": 0.00927734375,
+            "referenceSupportCount": 1954,
+            "candidateSupportCount": 1992,
+            "supportSymmetricDifferenceCount": 38,
+            "silhouetteMismatchFraction": 0.019076305220883535,
+            "referenceIntegratedOpacity": 802.646240234375,
+            "candidateIntegratedOpacity": 804.767578125,
+            "opacityRelativeError": 0.0026429300783936435,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2023,
+            "maxAbsT": 0.02685546875,
+            "meanAbsT": 0.000019419193267822266,
+            "supportMeanAbsT": 0.003584510550543747,
+            "p95AbsT": 0.01220703125,
+            "referenceSupportCount": 1954,
+            "candidateSupportCount": 2023,
+            "supportSymmetricDifferenceCount": 69,
+            "silhouetteMismatchFraction": 0.034107760751359364,
+            "referenceIntegratedOpacity": 802.646240234375,
+            "candidateIntegratedOpacity": 805.468505859375,
+            "opacityRelativeError": 0.0035162011400886777,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02685546875 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 1979,
+            "maxAbsT": 0.0068359375,
+            "meanAbsT": 0.000005615949630737305,
+            "supportMeanAbsT": 0.0010182600903233957,
+            "p95AbsT": 0.0048828125,
+            "referenceSupportCount": 1954,
+            "candidateSupportCount": 1979,
+            "supportSymmetricDifferenceCount": 25,
+            "silhouetteMismatchFraction": 0.012632642748863061,
+            "referenceIntegratedOpacity": 802.646240234375,
+            "candidateIntegratedOpacity": 803.642822265625,
+            "opacityRelativeError": 0.0012416205063877147,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 12000,
+      "angleDegrees": 150,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 2336,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 3.695487976074219e-8,
+        "supportMeanAbsT": 0.000006270735231164383,
+        "p95AbsT": 0,
+        "referenceSupportCount": 2336,
+        "candidateSupportCount": 2336,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 851.396484375,
+        "candidateIntegratedOpacity": 851.3955078125,
+        "opacityRelativeError": 0.0000011470126056685363,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2716,
+            "maxAbsT": 0.1435546875,
+            "meanAbsT": 0.00014097750186920166,
+            "supportMeanAbsT": 0.020699187827917895,
+            "p95AbsT": 0.0787353515625,
+            "referenceSupportCount": 2336,
+            "candidateSupportCount": 2716,
+            "supportSymmetricDifferenceCount": 380,
+            "silhouetteMismatchFraction": 0.13991163475699558,
+            "referenceIntegratedOpacity": 851.3955078125,
+            "candidateIntegratedOpacity": 866.407470703125,
+            "opacityRelativeError": 0.017632184751826332,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.1435546875 exceeds 0.02.",
+              "supportMeanAbsT 0.020699187827917895 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13991163475699558 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2439,
+            "maxAbsT": 0.04736328125,
+            "meanAbsT": 0.00003014683723449707,
+            "supportMeanAbsT": 0.00468161419895449,
+            "p95AbsT": 0.01806640625,
+            "referenceSupportCount": 2336,
+            "candidateSupportCount": 2439,
+            "supportSymmetricDifferenceCount": 103,
+            "silhouetteMismatchFraction": 0.04223042230422304,
+            "referenceIntegratedOpacity": 851.3955078125,
+            "candidateIntegratedOpacity": 855.21875,
+            "opacityRelativeError": 0.004490559501920675,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04736328125 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2361,
+            "maxAbsT": 0.01123046875,
+            "meanAbsT": 0.000007472038269042969,
+            "supportMeanAbsT": 0.0011225712092333758,
+            "p95AbsT": 0.005859375,
+            "referenceSupportCount": 2336,
+            "candidateSupportCount": 2361,
+            "supportSymmetricDifferenceCount": 25,
+            "silhouetteMismatchFraction": 0.010588733587462939,
+            "referenceIntegratedOpacity": 851.3955078125,
+            "candidateIntegratedOpacity": 852.939453125,
+            "opacityRelativeError": 0.0018134290095878894,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2413,
+            "maxAbsT": 0.02490234375,
+            "meanAbsT": 0.000019664764404296876,
+            "supportMeanAbsT": 0.003005165703999171,
+            "p95AbsT": 0.011474609375,
+            "referenceSupportCount": 2336,
+            "candidateSupportCount": 2413,
+            "supportSymmetricDifferenceCount": 77,
+            "silhouetteMismatchFraction": 0.031910484873601326,
+            "referenceIntegratedOpacity": 851.3955078125,
+            "candidateIntegratedOpacity": 853.8349609375,
+            "opacityRelativeError": 0.002865240775427291,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02490234375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 2355,
+            "maxAbsT": 0.00732421875,
+            "meanAbsT": 0.000004884004592895508,
+            "supportMeanAbsT": 0.0007277567675159235,
+            "p95AbsT": 0.00390625,
+            "referenceSupportCount": 2336,
+            "candidateSupportCount": 2355,
+            "supportSymmetricDifferenceCount": 19,
+            "silhouetteMismatchFraction": 0.008067940552016985,
+            "referenceIntegratedOpacity": 851.3955078125,
+            "candidateIntegratedOpacity": 852.2587890625,
+            "opacityRelativeError": 0.0010139603064362392,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 8000,
+      "angleDegrees": 20,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 5731,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 5.900859832763672e-8,
+        "supportMeanAbsT": 0.000003450600353341476,
+        "p95AbsT": 0,
+        "referenceSupportCount": 5731,
+        "candidateSupportCount": 5731,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 1968.041259765625,
+        "candidateIntegratedOpacity": 1968.02490234375,
+        "opacityRelativeError": 0.000008311523853391169,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 6612,
+            "maxAbsT": 0.14013671875,
+            "meanAbsT": 0.00032592296600341796,
+            "supportMeanAbsT": 0.0196338245094147,
+            "p95AbsT": 0.074951171875,
+            "referenceSupportCount": 5731,
+            "candidateSupportCount": 6612,
+            "supportSymmetricDifferenceCount": 881,
+            "silhouetteMismatchFraction": 0.13324258923169993,
+            "referenceIntegratedOpacity": 1968.02490234375,
+            "candidateIntegratedOpacity": 1998.97021484375,
+            "opacityRelativeError": 0.015724045190254842,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.14013671875 exceeds 0.02.",
+              "supportMeanAbsT 0.0196338245094147 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13324258923169993 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5999,
+            "maxAbsT": 0.04736328125,
+            "meanAbsT": 0.0000703352689743042,
+            "supportMeanAbsT": 0.004438361797278713,
+            "p95AbsT": 0.0185546875,
+            "referenceSupportCount": 5731,
+            "candidateSupportCount": 5999,
+            "supportSymmetricDifferenceCount": 268,
+            "silhouetteMismatchFraction": 0.044674112352058676,
+            "referenceIntegratedOpacity": 1968.02490234375,
+            "candidateIntegratedOpacity": 1976.214599609375,
+            "opacityRelativeError": 0.004161378880862619,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04736328125 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5812,
+            "maxAbsT": 0.0126953125,
+            "meanAbsT": 0.000018590688705444335,
+            "supportMeanAbsT": 0.001147696172789057,
+            "p95AbsT": 0.005859375,
+            "referenceSupportCount": 5731,
+            "candidateSupportCount": 5812,
+            "supportSymmetricDifferenceCount": 81,
+            "silhouetteMismatchFraction": 0.013936682725395734,
+            "referenceIntegratedOpacity": 1968.02490234375,
+            "candidateIntegratedOpacity": 1971.39599609375,
+            "opacityRelativeError": 0.0017129324664465955,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5909,
+            "maxAbsT": 0.02490234375,
+            "meanAbsT": 0.00004585146903991699,
+            "supportMeanAbsT": 0.0028394517367574886,
+            "p95AbsT": 0.0107421875,
+            "referenceSupportCount": 5731,
+            "candidateSupportCount": 5909,
+            "supportSymmetricDifferenceCount": 178,
+            "silhouetteMismatchFraction": 0.030123540362159418,
+            "referenceIntegratedOpacity": 1968.02490234375,
+            "candidateIntegratedOpacity": 1973.20263671875,
+            "opacityRelativeError": 0.00263092929811699,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02490234375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5777,
+            "maxAbsT": 0.00830078125,
+            "meanAbsT": 0.000011910200119018554,
+            "supportMeanAbsT": 0.0007157288601350182,
+            "p95AbsT": 0.00341796875,
+            "referenceSupportCount": 5731,
+            "candidateSupportCount": 5777,
+            "supportSymmetricDifferenceCount": 46,
+            "silhouetteMismatchFraction": 0.007962610351393456,
+            "referenceIntegratedOpacity": 1968.02490234375,
+            "candidateIntegratedOpacity": 1969.87255859375,
+            "opacityRelativeError": 0.0009388378408218304,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 8000,
+      "angleDegrees": 90,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 4444,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 5.900859832763672e-8,
+        "supportMeanAbsT": 0.00000543877629950495,
+        "p95AbsT": 0,
+        "referenceSupportCount": 4443,
+        "candidateSupportCount": 4444,
+        "supportSymmetricDifferenceCount": 1,
+        "silhouetteMismatchFraction": 0.000225022502250225,
+        "referenceIntegratedOpacity": 1814.123046875,
+        "candidateIntegratedOpacity": 1814.120361328125,
+        "opacityRelativeError": 0.0000014803554144941329,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5142,
+            "maxAbsT": 0.16552734375,
+            "meanAbsT": 0.00031924307346343995,
+            "supportMeanAbsT": 0.024807526786148386,
+            "p95AbsT": 0.08275146484374996,
+            "referenceSupportCount": 4444,
+            "candidateSupportCount": 5142,
+            "supportSymmetricDifferenceCount": 698,
+            "silhouetteMismatchFraction": 0.13574484636328277,
+            "referenceIntegratedOpacity": 1814.120361328125,
+            "candidateIntegratedOpacity": 1854.20751953125,
+            "opacityRelativeError": 0.02209729798400864,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.16552734375 exceeds 0.02.",
+              "supportMeanAbsT 0.024807526786148386 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13574484636328277 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 4613,
+            "maxAbsT": 0.04931640625,
+            "meanAbsT": 0.00006643950939178467,
+            "supportMeanAbsT": 0.0055059982488348145,
+            "p95AbsT": 0.02099609375,
+            "referenceSupportCount": 4444,
+            "candidateSupportCount": 4613,
+            "supportSymmetricDifferenceCount": 169,
+            "silhouetteMismatchFraction": 0.036635595057446346,
+            "referenceIntegratedOpacity": 1814.120361328125,
+            "candidateIntegratedOpacity": 1823.8388671875,
+            "opacityRelativeError": 0.005357145020002996,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04931640625 exceeds 0.02.",
+              "supportMeanAbsT 0.0055059982488348145 exceeds 0.005."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 4502,
+            "maxAbsT": 0.01220703125,
+            "meanAbsT": 0.000019182562828063964,
+            "supportMeanAbsT": 0.0015580640375111063,
+            "p95AbsT": 0.00732421875,
+            "referenceSupportCount": 4444,
+            "candidateSupportCount": 4502,
+            "supportSymmetricDifferenceCount": 58,
+            "silhouetteMismatchFraction": 0.01288316303864949,
+            "referenceIntegratedOpacity": 1814.120361328125,
+            "candidateIntegratedOpacity": 1817.88232421875,
+            "opacityRelativeError": 0.0020737118500069374,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 4580,
+            "maxAbsT": 0.02734375,
+            "meanAbsT": 0.00004393219947814941,
+            "supportMeanAbsT": 0.0035939845455786024,
+            "p95AbsT": 0.01220703125,
+            "referenceSupportCount": 4444,
+            "candidateSupportCount": 4580,
+            "supportSymmetricDifferenceCount": 136,
+            "silhouetteMismatchFraction": 0.029694323144104803,
+            "referenceIntegratedOpacity": 1814.120361328125,
+            "candidateIntegratedOpacity": 1820.541748046875,
+            "opacityRelativeError": 0.003539669613789504,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02734375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 4488,
+            "maxAbsT": 0.00732421875,
+            "meanAbsT": 0.000012795329093933105,
+            "supportMeanAbsT": 0.001035367316315731,
+            "p95AbsT": 0.0048828125,
+            "referenceSupportCount": 4444,
+            "candidateSupportCount": 4488,
+            "supportSymmetricDifferenceCount": 44,
+            "silhouetteMismatchFraction": 0.00980392156862745,
+            "referenceIntegratedOpacity": 1814.120361328125,
+            "candidateIntegratedOpacity": 1816.45654296875,
+            "opacityRelativeError": 0.001287776539211914,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 8000,
+      "angleDegrees": 150,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 5281,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 6.496906280517579e-8,
+        "supportMeanAbsT": 0.00000485414990058701,
+        "p95AbsT": 0,
+        "referenceSupportCount": 5281,
+        "candidateSupportCount": 5281,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 1917.878662109375,
+        "candidateIntegratedOpacity": 1917.86181640625,
+        "opacityRelativeError": 0.000008783508288513042,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 6085,
+            "maxAbsT": 0.14208984375,
+            "meanAbsT": 0.00031660735607147217,
+            "supportMeanAbsT": 0.020696986377875926,
+            "p95AbsT": 0.07783203125000004,
+            "referenceSupportCount": 5281,
+            "candidateSupportCount": 6085,
+            "supportSymmetricDifferenceCount": 804,
+            "silhouetteMismatchFraction": 0.13212818405916188,
+            "referenceIntegratedOpacity": 1917.86181640625,
+            "candidateIntegratedOpacity": 1951.372314453125,
+            "opacityRelativeError": 0.017472842808700383,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.14208984375 exceeds 0.02.",
+              "supportMeanAbsT 0.020696986377875926 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13212818405916188 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5506,
+            "maxAbsT": 0.04638671875,
+            "meanAbsT": 0.00006792724132537842,
+            "supportMeanAbsT": 0.0046679811654331636,
+            "p95AbsT": 0.01904296875,
+            "referenceSupportCount": 5281,
+            "candidateSupportCount": 5506,
+            "supportSymmetricDifferenceCount": 225,
+            "silhouetteMismatchFraction": 0.040864511442063205,
+            "referenceIntegratedOpacity": 1917.86181640625,
+            "candidateIntegratedOpacity": 1926.519287109375,
+            "opacityRelativeError": 0.004514126424054701,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04638671875 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5349,
+            "maxAbsT": 0.01123046875,
+            "meanAbsT": 0.000016943812370300292,
+            "supportMeanAbsT": 0.001115543282038699,
+            "p95AbsT": 0.005859375,
+            "referenceSupportCount": 5281,
+            "candidateSupportCount": 5349,
+            "supportSymmetricDifferenceCount": 68,
+            "silhouetteMismatchFraction": 0.012712656571321743,
+            "referenceIntegratedOpacity": 1917.86181640625,
+            "candidateIntegratedOpacity": 1921.357177734375,
+            "opacityRelativeError": 0.001822530329465925,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5431,
+            "maxAbsT": 0.02490234375,
+            "meanAbsT": 0.00004433870315551758,
+            "supportMeanAbsT": 0.0029981961194991713,
+            "p95AbsT": 0.01123046875,
+            "referenceSupportCount": 5281,
+            "candidateSupportCount": 5431,
+            "supportSymmetricDifferenceCount": 150,
+            "silhouetteMismatchFraction": 0.02761922297919352,
+            "referenceIntegratedOpacity": 1917.86181640625,
+            "candidateIntegratedOpacity": 1923.36083984375,
+            "opacityRelativeError": 0.0028672678033729478,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02490234375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 5314,
+            "maxAbsT": 0.00732421875,
+            "meanAbsT": 0.000011070966720581055,
+            "supportMeanAbsT": 0.0007152392265713211,
+            "p95AbsT": 0.00341796875,
+            "referenceSupportCount": 5281,
+            "candidateSupportCount": 5314,
+            "supportSymmetricDifferenceCount": 33,
+            "silhouetteMismatchFraction": 0.0062100112909296195,
+            "referenceIntegratedOpacity": 1917.86181640625,
+            "candidateIntegratedOpacity": 1919.81103515625,
+            "opacityRelativeError": 0.0010163499441542183,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 4000,
+      "angleDegrees": 20,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 23404,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 2.962350845336914e-7,
+        "supportMeanAbsT": 0.000004704641167108187,
+        "p95AbsT": 0,
+        "referenceSupportCount": 23404,
+        "candidateSupportCount": 23404,
+        "supportSymmetricDifferenceCount": 0,
+        "silhouetteMismatchFraction": 0,
+        "referenceIntegratedOpacity": 7995.912109375,
+        "candidateIntegratedOpacity": 7995.846435546875,
+        "opacityRelativeError": 0.000008213425463744047,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 26951,
+            "maxAbsT": 0.13818359375,
+            "meanAbsT": 0.0013216108083724976,
+            "supportMeanAbsT": 0.01951335909671719,
+            "p95AbsT": 0.0751953125,
+            "referenceSupportCount": 23404,
+            "candidateSupportCount": 26951,
+            "supportSymmetricDifferenceCount": 3547,
+            "silhouetteMismatchFraction": 0.13160921672665207,
+            "referenceIntegratedOpacity": 7995.846435546875,
+            "candidateIntegratedOpacity": 8121.955078125,
+            "opacityRelativeError": 0.01577176895462723,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.13818359375 exceeds 0.02.",
+              "supportMeanAbsT 0.01951335909671719 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13160921672665207 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 24407,
+            "maxAbsT": 0.04345703125,
+            "meanAbsT": 0.000284724235534668,
+            "supportMeanAbsT": 0.004405994566108084,
+            "p95AbsT": 0.0185546875,
+            "referenceSupportCount": 23404,
+            "candidateSupportCount": 24407,
+            "supportSymmetricDifferenceCount": 1003,
+            "silhouetteMismatchFraction": 0.041094767894456506,
+            "referenceIntegratedOpacity": 7995.846435546875,
+            "candidateIntegratedOpacity": 8028.914306640625,
+            "opacityRelativeError": 0.004135631088003546,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04345703125 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 23726,
+            "maxAbsT": 0.0126953125,
+            "meanAbsT": 0.00007626593112945556,
+            "supportMeanAbsT": 0.0011521202511221866,
+            "p95AbsT": 0.005859375,
+            "referenceSupportCount": 23404,
+            "candidateSupportCount": 23725,
+            "supportSymmetricDifferenceCount": 323,
+            "silhouetteMismatchFraction": 0.013613757059765658,
+            "referenceIntegratedOpacity": 7995.846435546875,
+            "candidateIntegratedOpacity": 8009.6357421875,
+            "opacityRelativeError": 0.0017245587132992358,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 24086,
+            "maxAbsT": 0.0244140625,
+            "meanAbsT": 0.00018569767475128173,
+            "supportMeanAbsT": 0.0028220511429097816,
+            "p95AbsT": 0.0107421875,
+            "referenceSupportCount": 23404,
+            "candidateSupportCount": 24086,
+            "supportSymmetricDifferenceCount": 682,
+            "silhouetteMismatchFraction": 0.02831520385286058,
+            "referenceIntegratedOpacity": 7995.846435546875,
+            "candidateIntegratedOpacity": 8016.91015625,
+            "opacityRelativeError": 0.002634332821786409,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.0244140625 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 23602,
+            "maxAbsT": 0.00830078125,
+            "meanAbsT": 0.00004888534545898437,
+            "supportMeanAbsT": 0.0007253465344568257,
+            "p95AbsT": 0.00341796875,
+            "referenceSupportCount": 23404,
+            "candidateSupportCount": 23602,
+            "supportSymmetricDifferenceCount": 198,
+            "silhouetteMismatchFraction": 0.008389119566138463,
+            "referenceIntegratedOpacity": 7995.846435546875,
+            "candidateIntegratedOpacity": 8003.385986328125,
+            "opacityRelativeError": 0.0009429334144952639,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 4000,
+      "angleDegrees": 90,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 17798,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 2.1636486053466796e-7,
+        "supportMeanAbsT": 0.000004430690070513541,
+        "p95AbsT": 0,
+        "referenceSupportCount": 17797,
+        "candidateSupportCount": 17797,
+        "supportSymmetricDifferenceCount": 2,
+        "silhouetteMismatchFraction": 0.0001123721766490617,
+        "referenceIntegratedOpacity": 7283.49755859375,
+        "candidateIntegratedOpacity": 7283.478759765625,
+        "opacityRelativeError": 0.0000025810166027747736,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 20722,
+            "maxAbsT": 0.16162109375,
+            "meanAbsT": 0.001283608078956604,
+            "supportMeanAbsT": 0.024719456242912122,
+            "p95AbsT": 0.08275146484375018,
+            "referenceSupportCount": 17797,
+            "candidateSupportCount": 20722,
+            "supportSymmetricDifferenceCount": 2925,
+            "silhouetteMismatchFraction": 0.1411543287327478,
+            "referenceIntegratedOpacity": 7283.478759765625,
+            "candidateIntegratedOpacity": 7446.63232421875,
+            "opacityRelativeError": 0.0224004997933673,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.16162109375 exceeds 0.02.",
+              "supportMeanAbsT 0.024719456242912122 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.1411543287327478 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 18541,
+            "maxAbsT": 0.04541015625,
+            "meanAbsT": 0.0002703016996383667,
+            "supportMeanAbsT": 0.00556061513588129,
+            "p95AbsT": 0.020751953125,
+            "referenceSupportCount": 17797,
+            "candidateSupportCount": 18541,
+            "supportSymmetricDifferenceCount": 744,
+            "silhouetteMismatchFraction": 0.040127285475432824,
+            "referenceIntegratedOpacity": 7283.478759765625,
+            "candidateIntegratedOpacity": 7323.83349609375,
+            "opacityRelativeError": 0.005540585434400796,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04541015625 exceeds 0.02.",
+              "supportMeanAbsT 0.00556061513588129 exceeds 0.005."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 18061,
+            "maxAbsT": 0.01513671875,
+            "meanAbsT": 0.00008215546607971191,
+            "supportMeanAbsT": 0.0016722842035324732,
+            "p95AbsT": 0.0078125,
+            "referenceSupportCount": 17797,
+            "candidateSupportCount": 18061,
+            "supportSymmetricDifferenceCount": 264,
+            "silhouetteMismatchFraction": 0.014617130834394552,
+            "referenceIntegratedOpacity": 7283.478759765625,
+            "candidateIntegratedOpacity": 7300.004638671875,
+            "opacityRelativeError": 0.0022689540879201778,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 18351,
+            "maxAbsT": 0.02685546875,
+            "meanAbsT": 0.00017690837383270265,
+            "supportMeanAbsT": 0.003603784896769931,
+            "p95AbsT": 0.0126953125,
+            "referenceSupportCount": 17797,
+            "candidateSupportCount": 18351,
+            "supportSymmetricDifferenceCount": 554,
+            "silhouetteMismatchFraction": 0.030189090512778596,
+            "referenceIntegratedOpacity": 7283.478759765625,
+            "candidateIntegratedOpacity": 7309.38525390625,
+            "opacityRelativeError": 0.0035568846968750747,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02685546875 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 17947,
+            "maxAbsT": 0.00927734375,
+            "meanAbsT": 0.0000527113676071167,
+            "supportMeanAbsT": 0.0010592032921588567,
+            "p95AbsT": 0.0048828125,
+            "referenceSupportCount": 17797,
+            "candidateSupportCount": 17947,
+            "supportSymmetricDifferenceCount": 150,
+            "silhouetteMismatchFraction": 0.00835794283167103,
+            "referenceIntegratedOpacity": 7283.478759765625,
+            "candidateIntegratedOpacity": 7293.0732421875,
+            "opacityRelativeError": 0.001317293938560719,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 4000,
+      "angleDegrees": 150,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 21683,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 2.86102294921875e-7,
+        "supportMeanAbsT": 0.0000050217552345155195,
+        "p95AbsT": 0,
+        "referenceSupportCount": 21683,
+        "candidateSupportCount": 21682,
+        "supportSymmetricDifferenceCount": 1,
+        "silhouetteMismatchFraction": 0.00004611907946317391,
+        "referenceIntegratedOpacity": 7843.39208984375,
+        "candidateIntegratedOpacity": 7843.34521484375,
+        "opacityRelativeError": 0.00000597636831909723,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 25028,
+            "maxAbsT": 0.140625,
+            "meanAbsT": 0.0012902015447616578,
+            "supportMeanAbsT": 0.020468354739566687,
+            "p95AbsT": 0.07763671875,
+            "referenceSupportCount": 21682,
+            "candidateSupportCount": 25028,
+            "supportSymmetricDifferenceCount": 3346,
+            "silhouetteMismatchFraction": 0.1336902669010708,
+            "referenceIntegratedOpacity": 7843.34521484375,
+            "candidateIntegratedOpacity": 7980.034423828125,
+            "opacityRelativeError": 0.01742741205954914,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.140625 exceeds 0.02.",
+              "supportMeanAbsT 0.020468354739566687 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.1336902669010708 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 22639,
+            "maxAbsT": 0.04296875,
+            "meanAbsT": 0.00027687907218933107,
+            "supportMeanAbsT": 0.004617804694056716,
+            "p95AbsT": 0.01904296875,
+            "referenceSupportCount": 21682,
+            "candidateSupportCount": 22639,
+            "supportSymmetricDifferenceCount": 957,
+            "silhouetteMismatchFraction": 0.04227218516718936,
+            "referenceIntegratedOpacity": 7843.34521484375,
+            "candidateIntegratedOpacity": 7878.4619140625,
+            "opacityRelativeError": 0.004477260436311112,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.04296875 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 22016,
+            "maxAbsT": 0.01171875,
+            "meanAbsT": 0.00007009804248809814,
+            "supportMeanAbsT": 0.001126788383306459,
+            "p95AbsT": 0.005859375,
+            "referenceSupportCount": 21682,
+            "candidateSupportCount": 22016,
+            "supportSymmetricDifferenceCount": 334,
+            "silhouetteMismatchFraction": 0.01517078488372093,
+            "referenceIntegratedOpacity": 7843.34521484375,
+            "candidateIntegratedOpacity": 7857.723388671875,
+            "opacityRelativeError": 0.0018331685568185759,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 22332,
+            "maxAbsT": 0.0244140625,
+            "meanAbsT": 0.00018070578575134276,
+            "supportMeanAbsT": 0.002965020766165144,
+            "p95AbsT": 0.01123046875,
+            "referenceSupportCount": 21682,
+            "candidateSupportCount": 22332,
+            "supportSymmetricDifferenceCount": 650,
+            "silhouetteMismatchFraction": 0.029106215296435606,
+            "referenceIntegratedOpacity": 7843.34521484375,
+            "candidateIntegratedOpacity": 7865.7197265625,
+            "opacityRelativeError": 0.0028526746057798923,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.0244140625 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 21869,
+            "maxAbsT": 0.00732421875,
+            "meanAbsT": 0.00004583954811096191,
+            "supportMeanAbsT": 0.0007235913279070831,
+            "p95AbsT": 0.00390625,
+            "referenceSupportCount": 21682,
+            "candidateSupportCount": 21869,
+            "supportSymmetricDifferenceCount": 187,
+            "silhouetteMismatchFraction": 0.008550916822899995,
+            "referenceIntegratedOpacity": 7843.34521484375,
+            "candidateIntegratedOpacity": 7851.31640625,
+            "opacityRelativeError": 0.0010162999572126824,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 1000,
+      "angleDegrees": 20,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 220668,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 0.0000025469064712524412,
+        "supportMeanAbsT": 0.000004324803338612758,
+        "p95AbsT": 0,
+        "referenceSupportCount": 220667,
+        "candidateSupportCount": 220664,
+        "supportSymmetricDifferenceCount": 5,
+        "silhouetteMismatchFraction": 0.000022658473362698715,
+        "referenceIntegratedOpacity": 83553.7578125,
+        "candidateIntegratedOpacity": 83553.22338867188,
+        "opacityRelativeError": 0.00000639616747488822,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 254505,
+            "maxAbsT": 0.1123046875,
+            "meanAbsT": 0.015228731036186218,
+            "supportMeanAbsT": 0.02396948683934255,
+            "p95AbsT": 0.08349609375,
+            "referenceSupportCount": 220664,
+            "candidateSupportCount": 254505,
+            "supportSymmetricDifferenceCount": 33841,
+            "silhouetteMismatchFraction": 0.13296791811555764,
+            "referenceIntegratedOpacity": 83553.22338867188,
+            "candidateIntegratedOpacity": 84821.501953125,
+            "opacityRelativeError": 0.01517928947580349,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.1123046875 exceeds 0.02.",
+              "supportMeanAbsT 0.02396948683934255 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13296791811555764 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 231073,
+            "maxAbsT": 0.02734375,
+            "meanAbsT": 0.003234478235244751,
+            "supportMeanAbsT": 0.005377695086482411,
+            "p95AbsT": 0.021484375,
+            "referenceSupportCount": 220664,
+            "candidateSupportCount": 231073,
+            "supportSymmetricDifferenceCount": 10409,
+            "silhouetteMismatchFraction": 0.04504637062746405,
+            "referenceIntegratedOpacity": 83553.22338867188,
+            "candidateIntegratedOpacity": 83893.16674804688,
+            "opacityRelativeError": 0.004068584616941175,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02734375 exceeds 0.02.",
+              "supportMeanAbsT 0.005377695086482411 exceeds 0.005."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 224709,
+            "maxAbsT": 0.0146484375,
+            "meanAbsT": 0.0007901215553283692,
+            "supportMeanAbsT": 0.0012798410249478215,
+            "p95AbsT": 0.0068359375,
+            "referenceSupportCount": 220664,
+            "candidateSupportCount": 224708,
+            "supportSymmetricDifferenceCount": 4046,
+            "silhouetteMismatchFraction": 0.018005509347645176,
+            "referenceIntegratedOpacity": 83553.22338867188,
+            "candidateIntegratedOpacity": 83707.83374023438,
+            "opacityRelativeError": 0.00185044149455833,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 227539,
+            "maxAbsT": 0.01806640625,
+            "meanAbsT": 0.0020996665954589842,
+            "supportMeanAbsT": 0.0034324365651327905,
+            "p95AbsT": 0.01318359375,
+            "referenceSupportCount": 220664,
+            "candidateSupportCount": 227539,
+            "supportSymmetricDifferenceCount": 6875,
+            "silhouetteMismatchFraction": 0.03021460057396754,
+            "referenceIntegratedOpacity": 83553.22338867188,
+            "candidateIntegratedOpacity": 83769.02758789062,
+            "opacityRelativeError": 0.0025828351135524074,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 222796,
+            "maxAbsT": 0.00830078125,
+            "meanAbsT": 0.0004914897680282593,
+            "supportMeanAbsT": 0.0007647908130503913,
+            "p95AbsT": 0.00390625,
+            "referenceSupportCount": 220664,
+            "candidateSupportCount": 222796,
+            "supportSymmetricDifferenceCount": 2132,
+            "silhouetteMismatchFraction": 0.009569292087829225,
+            "referenceIntegratedOpacity": 83553.22338867188,
+            "candidateIntegratedOpacity": 83636.6875,
+            "opacityRelativeError": 0.0009989334695068275,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 1000,
+      "angleDegrees": 90,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 173756,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 0.0000021213293075561525,
+        "supportMeanAbsT": 0.000004542615165087824,
+        "p95AbsT": 0,
+        "referenceSupportCount": 173755,
+        "candidateSupportCount": 173752,
+        "supportSymmetricDifferenceCount": 5,
+        "silhouetteMismatchFraction": 0.00002877598471419692,
+        "referenceIntegratedOpacity": 76532.71362304688,
+        "candidateIntegratedOpacity": 76532.33837890625,
+        "opacityRelativeError": 0.000004903055476031101,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 205575,
+            "maxAbsT": 0.12744140625,
+            "meanAbsT": 0.014574726819992065,
+            "supportMeanAbsT": 0.028376395666119422,
+            "p95AbsT": 0.0986328125,
+            "referenceSupportCount": 173752,
+            "candidateSupportCount": 205575,
+            "supportSymmetricDifferenceCount": 31823,
+            "silhouetteMismatchFraction": 0.15479995135595281,
+            "referenceIntegratedOpacity": 76532.33837890625,
+            "candidateIntegratedOpacity": 78252.1865234375,
+            "opacityRelativeError": 0.0224721755660516,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.12744140625 exceeds 0.02.",
+              "supportMeanAbsT 0.028376395666119422 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.15479995135595281 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 183115,
+            "maxAbsT": 0.03271484375,
+            "meanAbsT": 0.0031264239549636842,
+            "supportMeanAbsT": 0.00658300266610122,
+            "p95AbsT": 0.02587890625,
+            "referenceSupportCount": 173752,
+            "candidateSupportCount": 183115,
+            "supportSymmetricDifferenceCount": 9363,
+            "silhouetteMismatchFraction": 0.05113180241924474,
+            "referenceIntegratedOpacity": 76532.33837890625,
+            "candidateIntegratedOpacity": 76964.75659179688,
+            "opacityRelativeError": 0.005650137210622687,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.03271484375 exceeds 0.02.",
+              "supportMeanAbsT 0.00658300266610122 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.05113180241924474 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 177365,
+            "maxAbsT": 0.0166015625,
+            "meanAbsT": 0.0009014099836349487,
+            "supportMeanAbsT": 0.0018733451872727145,
+            "p95AbsT": 0.00830078125,
+            "referenceSupportCount": 173752,
+            "candidateSupportCount": 177365,
+            "supportSymmetricDifferenceCount": 3613,
+            "silhouetteMismatchFraction": 0.020370422574916135,
+            "referenceIntegratedOpacity": 76532.33837890625,
+            "candidateIntegratedOpacity": 76723.07885742188,
+            "opacityRelativeError": 0.0024922860395468678,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 180231,
+            "maxAbsT": 0.02099609375,
+            "meanAbsT": 0.0020375996828079224,
+            "supportMeanAbsT": 0.004234876927474325,
+            "p95AbsT": 0.01611328125,
+            "referenceSupportCount": 173752,
+            "candidateSupportCount": 180231,
+            "supportSymmetricDifferenceCount": 6479,
+            "silhouetteMismatchFraction": 0.0359483107789448,
+            "referenceIntegratedOpacity": 76532.33837890625,
+            "candidateIntegratedOpacity": 76810.57788085938,
+            "opacityRelativeError": 0.0036355808256580465,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02099609375 exceeds 0.02."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 176024,
+            "maxAbsT": 0.0107421875,
+            "meanAbsT": 0.0005818814039230347,
+            "supportMeanAbsT": 0.0011819524721238296,
+            "p95AbsT": 0.00537109375,
+            "referenceSupportCount": 173752,
+            "candidateSupportCount": 176024,
+            "supportSymmetricDifferenceCount": 2272,
+            "silhouetteMismatchFraction": 0.012907330818524746,
+            "referenceIntegratedOpacity": 76532.33837890625,
+            "candidateIntegratedOpacity": 76641.94409179688,
+            "opacityRelativeError": 0.0014321490132442418,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    },
+    {
+      "distanceMetres": 1000,
+      "angleDegrees": 150,
+      "convergence": {
+        "width": 640,
+        "height": 640,
+        "pixelCount": 409600,
+        "unionSupportCount": 212927,
+        "maxAbsT": 0.00048828125,
+        "meanAbsT": 0.0000028014183044433594,
+        "supportMeanAbsT": 0.0000049785071585566885,
+        "p95AbsT": 0,
+        "referenceSupportCount": 212925,
+        "candidateSupportCount": 212921,
+        "supportSymmetricDifferenceCount": 8,
+        "silhouetteMismatchFraction": 0.000037571562084658125,
+        "referenceIntegratedOpacity": 83297.68432617188,
+        "candidateIntegratedOpacity": 83297.11743164062,
+        "opacityRelativeError": 0.000006805645749168606,
+        "referenceEmpty": false,
+        "candidateEmpty": false
+      },
+      "converged": true,
+      "endpointMaxAbsT": 0,
+      "comparisons": [
+        {
+          "name": "16x16x16",
+          "directRepresentation": true,
+          "payloadBytes": 4096,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 246158,
+            "maxAbsT": 0.11376953125,
+            "meanAbsT": 0.015086740851402283,
+            "supportMeanAbsT": 0.024474555635062133,
+            "p95AbsT": 0.08642578125,
+            "referenceSupportCount": 212921,
+            "candidateSupportCount": 246158,
+            "supportSymmetricDifferenceCount": 33237,
+            "silhouetteMismatchFraction": 0.13502303398630147,
+            "referenceIntegratedOpacity": 83297.11743164062,
+            "candidateIntegratedOpacity": 84690.3642578125,
+            "opacityRelativeError": 0.016726230980505054,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.11376953125 exceeds 0.02.",
+              "supportMeanAbsT 0.024474555635062133 exceeds 0.005.",
+              "silhouetteMismatchFraction 0.13502303398630147 exceeds 0.05."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x32x32",
+          "directRepresentation": true,
+          "payloadBytes": 32768,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 222705,
+            "maxAbsT": 0.02783203125,
+            "meanAbsT": 0.0032252854108810423,
+            "supportMeanAbsT": 0.005540904158177297,
+            "p95AbsT": 0.02197265625,
+            "referenceSupportCount": 212921,
+            "candidateSupportCount": 222705,
+            "supportSymmetricDifferenceCount": 9784,
+            "silhouetteMismatchFraction": 0.04393255652095822,
+            "referenceIntegratedOpacity": 83297.11743164062,
+            "candidateIntegratedOpacity": 83662.8359375,
+            "opacityRelativeError": 0.004390530154413913,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": false,
+            "inconclusive": false,
+            "reasons": [
+              "maxAbsT 0.02783203125 exceeds 0.02.",
+              "supportMeanAbsT 0.005540904158177297 exceeds 0.005."
+            ]
+          },
+          "usableAtThisPose": false
+        },
+        {
+          "name": "32x64x32",
+          "directRepresentation": true,
+          "payloadBytes": 65536,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 216549,
+            "maxAbsT": 0.013671875,
+            "meanAbsT": 0.000755816102027893,
+            "supportMeanAbsT": 0.0012438985644559661,
+            "p95AbsT": 0.0068359375,
+            "referenceSupportCount": 212921,
+            "candidateSupportCount": 216549,
+            "supportSymmetricDifferenceCount": 3628,
+            "silhouetteMismatchFraction": 0.01675371394003205,
+            "referenceIntegratedOpacity": 83297.11743164062,
+            "candidateIntegratedOpacity": 83460.02392578125,
+            "opacityRelativeError": 0.001955727871067295,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x32x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 219788,
+            "maxAbsT": 0.01806640625,
+            "meanAbsT": 0.0021078526973724366,
+            "supportMeanAbsT": 0.0035718146222154987,
+            "p95AbsT": 0.013671875,
+            "referenceSupportCount": 212921,
+            "candidateSupportCount": 219788,
+            "supportSymmetricDifferenceCount": 6867,
+            "silhouetteMismatchFraction": 0.03124374397146341,
+            "referenceIntegratedOpacity": 83297.11743164062,
+            "candidateIntegratedOpacity": 83530.38598632812,
+            "opacityRelativeError": 0.0028004397016371703,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        },
+        {
+          "name": "32x64x32-half",
+          "directRepresentation": false,
+          "payloadBytes": 262144,
+          "metrics": {
+            "width": 640,
+            "height": 640,
+            "pixelCount": 409600,
+            "unionSupportCount": 215210,
+            "maxAbsT": 0.00830078125,
+            "meanAbsT": 0.0004977691173553467,
+            "supportMeanAbsT": 0.0008021167006935087,
+            "p95AbsT": 0.00439453125,
+            "referenceSupportCount": 212921,
+            "candidateSupportCount": 215210,
+            "supportSymmetricDifferenceCount": 2289,
+            "silhouetteMismatchFraction": 0.010636122856744576,
+            "referenceIntegratedOpacity": 83297.11743164062,
+            "candidateIntegratedOpacity": 83386.69311523438,
+            "opacityRelativeError": 0.0010753755514680565,
+            "referenceEmpty": false,
+            "candidateEmpty": false
+          },
+          "gate": {
+            "passed": true,
+            "inconclusive": false,
+            "reasons": []
+          },
+          "usableAtThisPose": true
+        }
+      ]
+    }
+  ],
+  "selection": [
+    {
+      "distanceMetres": 20000,
+      "representation": "32x64x32",
+      "reason": "Passes provisional optical gates at all three tested angles."
+    },
+    {
+      "distanceMetres": 12000,
+      "representation": "32x64x32",
+      "reason": "Passes provisional optical gates at all three tested angles."
+    },
+    {
+      "distanceMetres": 8000,
+      "representation": "32x64x32",
+      "reason": "Passes provisional optical gates at all three tested angles."
+    },
+    {
+      "distanceMetres": 4000,
+      "representation": "32x64x32",
+      "reason": "Passes provisional optical gates at all three tested angles."
+    },
+    {
+      "distanceMetres": 1000,
+      "representation": "32x64x32",
+      "reason": "Passes provisional optical gates at all three tested angles."
+    }
+  ],
+  "limitations": "One bounded fixture at the recorded image size; provisional engineering gates, not human visual acceptance, performance evidence or a world LOD policy. CPU-blended arms retain full-size uploads."
+}

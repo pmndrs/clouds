@@ -14,8 +14,8 @@ import { createCloudscapeAtlas } from '../sources/cloudscape-atlas';
 function settings() {
   return {
     sunRadiance: new Vector3(1, 2, 3), ambientRadiance: new Vector3(4, 5, 6), hazeColor: new Vector3(7, 8, 9),
-    hazeDensity: 0.1, hazeStrength: 0.2, density: 0.3, stepMetres: 24, maxSteps: 320, detail: 0.16,
-    skipEmpty: true, distanceFade: true, earlyTermination: true, cachedLighting: true, shadows: true, geometryShadows: true, constantLight: false,
+    hazeDensity: 0.1, hazeStrength: 0.2, density: 0.3, stepMetres: 24, maxSteps: 320, viewSubsteps: 1, lightSteps: 48, detail: 0.16, detailFiltering: true,
+    refinementMode: 'auto' as 'auto' | 'coarse' | 'fine', fineReady: true, skipEmpty: true, distanceFade: true, earlyTermination: true, cachedLighting: true, shadows: true, geometryShadows: true, constantLight: false,
     sunDirection: new Vector3(0, 1, 0), casterMin: new Vector3(1, 2, 3), casterMax: new Vector3(4, 5, 6),
   };
 }
@@ -39,7 +39,10 @@ function renderer(): WebGPURenderer {
 
 describe('cloudscape environment capture contract', () => {
   it('owns an independent runtime, copies settings, and disables distance fading', () => {
-    const sourceSettings = settings();
+    const sourceSettings = { ...settings(), lightSampling: 'world-stationary' as const };
+    sourceSettings.detailFiltering = false;
+    sourceSettings.refinementMode = 'coarse';
+    sourceSettings.fineReady = false;
     const captureSettings = settings();
     const cloudscape = {
       settings: captureSettings,
@@ -59,6 +62,10 @@ describe('cloudscape environment capture contract', () => {
     expect(capture.probePosition.toArray()).toEqual([12, 350, -8]);
     expect(capture.cloudscape).toBe(cloudscape);
     expect(capture.cloudscape.settings.distanceFade).toBe(false);
+    expect(capture.cloudscape.settings.detailFiltering).toBe(false);
+    expect(capture.cloudscape.settings.lightSampling).toBe('world-stationary');
+    expect(capture.cloudscape.settings.refinementMode).toBe('coarse');
+    expect(capture.cloudscape.settings.fineReady).toBe(false);
     expect(capture.cloudscape.settings.sunRadiance.toArray()).toEqual(sourceSettings.sunRadiance.toArray());
     expect(capture.cloudscape.settings.sunRadiance).not.toBe(sourceSettings.sunRadiance);
     expect(capture.needsRefresh).toBe(true);

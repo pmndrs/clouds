@@ -1,8 +1,63 @@
 # P4 evidence — reconstruction review preview
 
-Date: 2026-09-17. Viewer: [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/).
-Status: **runnable technical preview; human review and preset acceptance pending**.
-P2 distance/LOD and P3 atmosphere work remain open. No P5 work is included.
+> **Evidence correction:** the earlier small production orbit audit disabled cloud
+> self-shadowing. Its 4×/192 versus 4×/256 equality does not validate lighting
+> convergence or a banding fix. The audit setting is corrected; a lit rerun and
+> full-size cached/direct-light comparison remain pending. See the
+> [corrected research note](research/cloud-quality-bench.md#production-atlasworld-audit--lighting-evidence-withdrawn).
+
+
+Updated 2026-09-18. Viewer: [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/).
+Status: **technical preview; prominent banding remains an active failure**.
+The user rejected the detail-filter retest and authorized independent quality
+research alongside P5/P6 implementation. Reconstruction controls are reported
+stable, but image quality and presets are not accepted.
+
+## Latest quality continuation
+
+The [independent bench](research/cloud-quality-bench.md) provides analytic and
+voxel sources, an expensive reference and motion-error measurement. Its lower-cost
+192-view-evaluation candidate reduced isolated voxel spatial error about 6.3×
+and motion residual about 5.6×. Those are bench results, not proof that the user's
+full scene is fixed. Production 4× view / 192 or 256 light budgets are opt-in.
+Strict four-substep skip/full parity exposed a defect during integration; a
+conservative density path replaces candidate-mask density pruning pending a
+provably conservative optimized mask. Rebenchmark default throughput after this
+change; historical timing tables below do not describe its cost.
+
+## Earlier 2026-09-18 detail-filter packet — user retest failed
+
+The cloudscape now enables **detail filtering** by default. It suppresses
+unresolved periodic fine-density modulation using both ray-step and pixel
+footprint information while preserving the nominal modulation mean (density multiplier 1 − detail/2). It does
+not add jitter or blue noise, increase the default 320 samples, or change the
+ray lattice, LOD, or lighting cache. The P4 viewer exposes **Fine density
+detail** and **Filter unresolved detail**; turning the filter off reproduces
+the older pixel-only filtering. Native and reconstructed sides share the
+setting. **Show comparison divider** is default-on and toggleable.
+
+This preserves the periodic term's nominal mean, not exact integrated mass of
+an arbitrary finite voxel lobe. The old pixel fade removed the whole term at
+large footprints; the corrected path retains a 0.92 multiplier at default
+strength. Distant/coarse-pixel extinction can therefore be about 8% lower than
+that old limit, deliberately avoiding a resolution-dependent density increase.
+The coarse-pixel GPU check covers this mean retention. The underlying source
+sampling, direction-dependent ray lattice, and view/light density mismatch
+remain limitations; this is not exact density preintegration or a complete
+sampling solution.
+
+Native foreground crosshatching was reduced or removed in spot observations at
+502×608 and 1265×880. This was the basis of the retest that the user subsequently rejected. The Major image-quality gate remains open
+until the reported angles and camera motion are retested. Coarse voxels,
+shadows, LOD, wind, and performance remain open.
+
+Seven new P4 GPU regressions pass: coarse-pixel mean error 0.0000287562 (tolerance 0.001), mean T error 0.0000287562 (tolerance 0.001),
+translation difference 0 (0.001), skip/full parity 0 (1e-5), L+T error
+0.00048828125 (0.001), resolved detail versus dense CPU quadrature 0.0003232871
+(0.002), and resolved detail remains present. All 29 P4, 19 P2, and 23 P3
+GPU checks pass in the in-app browser. FSR3 flight reached 40 seconds with no
+errors; this establishes functional progression only, not temporal-quality
+sign-off. `pnpm check` passes with 53 tests, type checking, and build.
 
 ## Delivered
 
@@ -19,7 +74,7 @@ P2 distance/LOD and P3 atmosphere work remain open. No P5 work is included.
   moving geometry, cuts, density/sun/source changes, reset and resize controls.
 - Critical [human review guide](p4-review.md) and [ownership/input contract](decisions/reconstruction.md).
 
-## Automated evidence
+## Automated evidence — historical 2026-09-17 baseline
 
 Local Apple M5 Pro / Metal 3, Chromium 152 in the Codex in-app browser:
 **22 P4 GPU checks passed**, with no reported application/GPU validation errors
@@ -88,6 +143,10 @@ rejected. Zero timings are invalid evidence and must not be reported as speedups
 
 ### 1080p diagnostic run (67% input)
 
+These tables are historical pre-filter diagnostic runs. The detail-filter
+change has no new performance claim; do not use these results to accept a
+preset or infer RTX/Windows behavior.
+
 Corrected timestamps produced the following GPU queue spans, in milliseconds.
 Each cell is **p50 / p95**, from 32 measured frames after 32 warm-up frames.
 Seed 17, density 0.7, sun elevation 40°, 320 samples, sharpness 0.2, auto exposure
@@ -131,8 +190,10 @@ selecting any preset. No failure is hidden by quoting isolated shader timings.
 ## Regression and standalone-browser check
 
 After the shared runtime changes, standalone Chrome also reported **19/19 P2**,
-**23/23 P3** and **22/22 P4** GPU checks passing. These preserve the previous
-technical contracts; they do not close the earlier visual defects.
+**23/23 P3** and **22/22 P4** GPU checks passing. This is the historical
+2026-09-17 baseline; the 2026-09-18 in-app-browser update above reports 29 P4
+checks after the detail-filter changes. These technical results do not close
+the earlier visual defects.
 
 
 Chrome playback progressed from 12 seconds to the 40-second endpoint. The
@@ -141,3 +202,17 @@ at `artifacts/p4/2026-09-17/foreground-native-fsr3.png` and
 `chrome-technical-report.json` (artifacts are excluded from Git). The timing tables
 above record the separate in-app-browser diagnostic runs; the Chrome technical
 report is not a benchmark report. Image/report downloads were verified in Chrome.
+
+## Guide-allocation correction — 2026-10-08
+
+The reconstruction viewer now measures separate runtime arms. Native, reduced
+bilinear, cloud-only spatial, and FSR1 use a plain cloudscape with no temporal
+guide allocation; FSR3 alone uses the guide-enabled cloudscape and receives the
+packed motion/depth/reactivity input. The native comparison remains a separate
+plain cloudscape. The viewer records the selected runtime and guide allocation
+for every benchmark clip, and hands the shared scene materials between the two
+cloud shadow receivers so only one receiver owns them at a time.
+
+This removes the earlier all-guided benchmark bias. Existing timing tables above
+remain historical diagnostic evidence and are not reinterpreted as a preset or
+speedup claim; a fresh browser run is required for fair arm-to-arm timings.

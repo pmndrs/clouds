@@ -1,0 +1,118 @@
+{
+  "source": "self-authored-houdini-cloud-billowy",
+  "runtime": "21.0.671",
+  "sourceVDB": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-billowy.vdb",
+  "outputCLDA": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-billowy.clda",
+  "grid": "density",
+  "gridClass": "fog",
+  "authoringNodes": [
+    "vdbfromparticles",
+    "cloudbillowynoise"
+  ],
+  "voxelSize": 8.0,
+  "sourcePointCount": 854,
+  "cloudNoise": {
+    "cloudBillowy": {
+      "usealphamask": false,
+      "doiter": true,
+      "densityscale": 1.0,
+      "nnoises": 3,
+      "amplitude": 0.35,
+      "elementsize": 180.0,
+      "worleyblend": 0.8,
+      "worleyerosion": 0.85,
+      "oct": 5,
+      "advectnoise": true,
+      "advect_ampscale": 0.35,
+      "advect_elementsizecale": 0.45,
+      "advect_oct": 4,
+      "fogisovalue": 0.5,
+      "amplitude_atten": 0.55,
+      "elementsize_atten": 0.45,
+      "nnoises_atten": 1.0,
+      "worleyblend_atten": 0.75,
+      "worleyerosion_atten": 0.8,
+      "oct_atten": 1.0
+    }
+  },
+  "nativeStats": {
+    "activeVoxelCount": 790012,
+    "volumeMin": 2.8930951290483193e-28,
+    "volumeMax": 1.0,
+    "volumeAverage": 0.5041911330303217,
+    "background": 0.0,
+    "sourceDimensions": [
+      178,
+      75,
+      109
+    ],
+    "globalMean": 0.27372920000515644,
+    "saturatedVoxelCount": 221898,
+    "saturatedVoxelFraction": 0.1524914957220905,
+    "saturatedActiveFraction": 0.28087927778312227
+  },
+  "r8Normalization": "none; native density is already in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.00196078431372549,
+  "densityAuthoringTransform": {
+    "operation": "native Cloud Billowy Noise displacement with Worley erosion",
+    "densityScale": 1.0,
+    "normalization": "none; native billowy output"
+  },
+  "conversionChecks": {
+    "positiveVoxelCount": 790012,
+    "positiveVoxelFraction": 0.5429076040270763,
+    "mass": 398317.0453875034,
+    "peakDensity": 1.0,
+    "globalMean": 0.27372920000515644,
+    "saturatedVoxelCount": 221898,
+    "saturatedVoxelFraction": 0.1524914957220905,
+    "saturatedActiveFraction": 0.28087927778312227,
+    "readbackParity": {
+      "samples": [
+        {
+          "index": [
+            30,
+            27,
+            0
+          ],
+          "source": 6.961190251013372e-24,
+          "readback": 6.961190251013372e-24,
+          "absError": 0.0
+        },
+        {
+          "index": [
+            120,
+            45,
+            53
+          ],
+          "source": 0.6053475737571716,
+          "readback": 0.6053475737571716,
+          "absError": 0.0
+        },
+        {
+          "index": [
+            34,
+            30,
+            6
+          ],
+          "source": 1.0,
+          "readback": 1.0,
+          "absError": 0.0
+        },
+        {
+          "index": [
+            120,
+            45,
+            108
+          ],
+          "source": 5.997867234576397e-24,
+          "readback": 5.997867234576397e-24,
+          "absError": 0.0
+        }
+      ],
+      "maxAbsError": 0.0
+    },
+    "quantizationMaxAbsError": 0.0019607824437758437
+  }
+}

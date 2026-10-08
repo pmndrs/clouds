@@ -1,5 +1,8 @@
 node_modules/
+.pnpm-store/
 dist/
 artifacts/
 .DS_Store
 *.tsbuildinfo
+__pycache__/
+*.pyc

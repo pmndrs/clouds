@@ -1,0 +1,44 @@
+{
+  "source": "self-authored-houdini-cloud-noise",
+  "runtime": "21.0.671",
+  "sourceVDB": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise.vdb",
+  "outputCLDA": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise.clda",
+  "grid": "density",
+  "gridClass": "fog",
+  "authoringNodes": [
+    "vdbfromparticles",
+    "cloudnoise"
+  ],
+  "voxelSize": 16.0,
+  "sourcePointCount": 525,
+  "cloudNoise": {
+    "spatialscale": 1.0,
+    "noiseamount": 0.62,
+    "noisetype": "snoise",
+    "noiseoctaves": 4,
+    "noiseelementsize": 115.0,
+    "noiseelementscale1": 1.25,
+    "noiseelementscale2": 0.72,
+    "noiseelementscale3": 1.0,
+    "noiseoffset1": 0.0,
+    "noiseoffset2": 0.0,
+    "noiseoffset3": 0.0,
+    "noiserough": 0.55,
+    "smoothvalleys": true,
+    "absnoise": true,
+    "advectnoise": true,
+    "advectamp": 0.2,
+    "advectelemsize": 90.0,
+    "advectrough": 0.5
+  },
+  "nativeStats": {
+    "activeVoxelCount": 45825,
+    "volumeMin": 1.3798877262161113e-05,
+    "volumeMax": 1.0,
+    "volumeAverage": 0.7232596198743243,
+    "background": 0.0
+  },
+  "r8Normalization": "none; native density is already in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.00196078431372549
+}

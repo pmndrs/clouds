@@ -1,0 +1,127 @@
+{
+  "source": "houdini-openvdb",
+  "sourcePath": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-billowy.vdb",
+  "runtime": "21.0.671",
+  "grid": "density",
+  "gridClass": "fog",
+  "sourceDimensions": [
+    178,
+    75,
+    109
+  ],
+  "sourceIndexBounds": {
+    "min": [
+      -92,
+      -32,
+      -49
+    ],
+    "max": [
+      85,
+      42,
+      59
+    ]
+  },
+  "destinationDimensions": [
+    178,
+    75,
+    109
+  ],
+  "bounds": {
+    "min": [
+      -740.0,
+      -260.0,
+      -396.0
+    ],
+    "max": [
+      684.0,
+      340.0,
+      476.0
+    ]
+  },
+  "voxelSize": [
+    8.0,
+    8.0,
+    8.0
+  ],
+  "encoding": "r8unorm",
+  "payloadBytes": 1455150,
+  "sourceStats": {
+    "activeVoxelCount": 790012,
+    "positiveVoxelCount": 790012,
+    "positiveVoxelFraction": 0.5429076040270763,
+    "mass": 398317.0453875034,
+    "peakDensity": 1.0,
+    "peakIndex": [
+      34,
+      30,
+      6
+    ],
+    "background": 0.0
+  },
+  "readbackParity": {
+    "samples": [
+      {
+        "index": [
+          30,
+          27,
+          0
+        ],
+        "source": 6.961190251013372e-24,
+        "readback": 6.961190251013372e-24,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          120,
+          45,
+          53
+        ],
+        "source": 0.6053475737571716,
+        "readback": 0.6053475737571716,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          34,
+          30,
+          6
+        ],
+        "source": 1.0,
+        "readback": 1.0,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          120,
+          45,
+          108
+        ],
+        "source": 5.997867234576397e-24,
+        "readback": 5.997867234576397e-24,
+        "absError": 0.0
+      }
+    ],
+    "maxAbsError": 0.0
+  },
+  "r8Normalization": "none; native Houdini fog density is expected in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.0019607824437758437,
+  "indexToWorldMatrix": [
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ]
+}

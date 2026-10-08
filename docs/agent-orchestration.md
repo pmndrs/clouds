@@ -12,6 +12,18 @@ Prepared 2026-09-16. Applies to implementing the [phase plan](implementation-pla
 
 ## Model routing
 
+**Credit-conscious policy, 2026-09-19:** the user reports using paid credits.
+Apply the bounded worker routing below to the [next milestones](next-milestones.md).
+Keep this task focused on contracts, integration, difficult rendering decisions
+and acceptance; delegate routine implementation rather than doing it twice.
+Use one active phase under the [sequential milestone order](next-milestones.md#sequential-dispatch-order--revised-2026-09-19).
+Support work in a later phase is limited to diagnosing a current dependency;
+do not launch an unrelated asset or packaging wave just because a slot is free.
+Default to one worker, adding a second for a ready independent packet. Do not
+launch a third worker without a concrete reason recorded in the queue. Do not
+run a full research/review sweep for every packet. These controls do not enforce
+a monetary cap or change the parent task's selected model.
+
 | Work | Initial routing | Escalation |
 | --- | --- | --- |
 | Docs, fixture metadata, simple validation or tests | `gpt-5.6-luna`, low/medium reasoning | Orchestrator clarifies the brief before increasing model capability |
@@ -20,7 +32,16 @@ Prepared 2026-09-16. Applies to implementing the [phase plan](implementation-pla
 
 These model names are available in this session; Luna is described by the session as the fast/affordable coding option. Availability and prices should be checked when a later run starts. This is a proposed allocation, not a claim that the smallest model always gives the cheapest completed result. The [official model guidance](https://developers.openai.com/api/docs/guides/latest-model) also emphasizes completed-task efficiency when discussing stronger models. No dollar budget or percentage savings has been verified or promised.
 
-Default to two implementation workers at once, using a third only for genuinely independent work or focused review. This session supports four active agents including the orchestrator. Do not occupy slots merely to appear parallel. No recursive delegation without an explicit packet instruction. Use child agents in this task, not sidebar tasks, for implementation subtasks.
+The session supports four active agents including the orchestrator, but the
+current credit-conscious default above deliberately uses fewer. No recursive
+delegation without an explicit packet instruction. Use child agents in this
+task, not sidebar tasks, for implementation subtasks.
+
+Official [pricing guidance](https://learn.chatgpt.com/docs/pricing), checked
+2026-09-19, identifies Luna for focused coding and recommends smaller models and
+narrower context for routine work. Exact account charges and completed-task
+savings are not established by this project plan; do not substitute API dollar
+rates for the user's Codex credit usage.
 
 ## Narrow context, bounded iteration
 

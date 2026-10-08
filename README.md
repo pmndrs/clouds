@@ -1,6 +1,22 @@
 # WebGPU Clouds
 
-Voxel-first cloud library for Three.js WebGPU, with independent lightweight clouds and later R3F v10 bindings. P2 adds a cloudscape viewer with a bounded world of voxel formations, alongside the first-cloud reference and independent 2D layer. These are correctness prototypes with provisional appearance and APIs.
+Voxel-first cloud library for Three.js WebGPU, with independent lightweight clouds and R3F v10 preview bindings. P2 adds a cloudscape viewer with a bounded world of voxel formations, alongside the first-cloud reference and independent 2D layer. These are correctness prototypes with provisional appearance and APIs.
+
+## Library preview
+
+The user-authorized P5/P6 continuation packages the existing runtimes while a
+separate rendering-quality bench investigates persistent volume banding.
+These are unpublished previews, not accepted production visuals or presets.
+
+- [Three.js API and lifecycle example](http://127.0.0.1:5173/three/)
+- [R3F v10 lifecycle example](http://127.0.0.1:5173/react/)
+- [Authored asset and mesh conversion](http://127.0.0.1:5173/authored/)
+- [Independent cloud-quality bench](http://127.0.0.1:5173/quality-bench/)
+- [Lighting isolation bench](http://127.0.0.1:5173/lighting-bench/)
+- [Persistent weather source study](http://127.0.0.1:5173/coverage-study/) — experimental source map; not yet a distant renderer
+- [Bounded LOD study](http://127.0.0.1:5173/lod-study/) — coarse fallback and single-field transitions; isolated from the cloudscape
+- [Public API ownership contract](docs/decisions/public-api.md)
+- [Build, pack and independent consumer checks](docs/release-preview.md)
 
 ## Implementation planning
 

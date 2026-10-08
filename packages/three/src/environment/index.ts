@@ -104,7 +104,13 @@ function copyCloudSettings(target: Cloudscape, source: CloudscapeSettingsSource)
   to.density = from.density;
   to.stepMetres = from.stepMetres;
   to.maxSteps = from.maxSteps;
+  to.viewSubsteps = from.viewSubsteps;
+  to.lightSteps = from.lightSteps;
+  to.lightSampling = from.lightSampling ?? 'normalized';
   to.detail = from.detail;
+  to.detailFiltering = from.detailFiltering;
+  to.refinementMode = from.refinementMode;
+  to.fineReady = from.fineReady;
   to.skipEmpty = from.skipEmpty;
   // The capture is a fixed probe and must not use camera-distance fading.
   to.distanceFade = false;

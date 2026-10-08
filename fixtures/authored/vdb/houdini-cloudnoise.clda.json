@@ -1,0 +1,127 @@
+{
+  "source": "houdini-openvdb",
+  "sourcePath": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise.vdb",
+  "runtime": "21.0.671",
+  "grid": "density",
+  "gridClass": "fog",
+  "sourceDimensions": [
+    73,
+    30,
+    33
+  ],
+  "sourceIndexBounds": {
+    "min": [
+      -36,
+      -13,
+      -16
+    ],
+    "max": [
+      36,
+      16,
+      16
+    ]
+  },
+  "destinationDimensions": [
+    73,
+    30,
+    33
+  ],
+  "bounds": {
+    "min": [
+      -584.0,
+      -216.0,
+      -264.0
+    ],
+    "max": [
+      584.0,
+      264.0,
+      264.0
+    ]
+  },
+  "voxelSize": [
+    16.0,
+    16.0,
+    16.0
+  ],
+  "encoding": "r8unorm",
+  "payloadBytes": 72270,
+  "sourceStats": {
+    "activeVoxelCount": 45825,
+    "positiveVoxelCount": 45825,
+    "positiveVoxelFraction": 0.6340805313408053,
+    "mass": 33143.372080740846,
+    "peakDensity": 1.0,
+    "peakIndex": [
+      43,
+      13,
+      3
+    ],
+    "background": 0.0
+  },
+  "readbackParity": {
+    "samples": [
+      {
+        "index": [
+          43,
+          11,
+          0
+        ],
+        "source": 0.004157369490712881,
+        "readback": 0.004157369490712881,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          63,
+          16,
+          16
+        ],
+        "source": 1.0,
+        "readback": 1.0,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          43,
+          13,
+          3
+        ],
+        "source": 1.0,
+        "readback": 1.0,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          46,
+          20,
+          32
+        ],
+        "source": 0.002461055526509881,
+        "readback": 0.002461055526509881,
+        "absError": 0.0
+      }
+    ],
+    "maxAbsError": 0.0
+  },
+  "r8Normalization": "none; native Houdini fog density is expected in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.001960745512270462,
+  "indexToWorldMatrix": [
+    16.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    16.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    16.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ]
+}

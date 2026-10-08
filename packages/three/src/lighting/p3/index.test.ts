@@ -52,5 +52,28 @@ describe('P3 directional shadow bridge', () => {
     expect(DIRECTIONAL_SHADOW_WGSL).toContain('fn sceneShadowAt(');
     expect(DIRECTIONAL_SHADOW_WGSL).toContain('textureLoad(directionalShadowMap');
   });
-});
 
+  it('rejects overlapping receiver ownership and permits handoff after disposal', () => {
+    const cache = new Storage3DTexture(4, 4, 4), material = new MeshStandardNodeMaterial();
+    const original = () => float(0.8); material.receivedShadowNode = original;
+    const first = createCloudShadowReceiver(cache), second = createCloudShadowReceiver(cache);
+    first.attach(material); const hook = material.receivedShadowNode;
+    expect(() => second.attach(material)).toThrow(/already has a cloud shadow receiver/);
+    expect(material.receivedShadowNode).toBe(hook);
+    expect(second.attachedCount).toBe(0);
+    first.dispose(); second.attach(material); first.dispose();
+    expect(material.receivedShadowNode).not.toBe(original);
+    second.dispose(); expect(material.receivedShadowNode).toBe(original);
+    material.dispose(); cache.dispose();
+  });
+
+  it('preserves a later user hook and releases ownership on detach', () => {
+    const cache = new Storage3DTexture(4, 4, 4), material = new MeshStandardNodeMaterial();
+    const first = createCloudShadowReceiver(cache), second = createCloudShadowReceiver(cache);
+    first.attach(material); const replacement = () => float(0.6);
+    material.receivedShadowNode = replacement;
+    first.detach(material); second.attach(material); second.detach(material);
+    expect(material.receivedShadowNode).toBe(replacement);
+    first.dispose(); second.dispose(); material.dispose(); cache.dispose();
+  });
+});

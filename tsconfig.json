@@ -3,8 +3,15 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["@webgpu/types", "node"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "@webgpu/types",
+      "node"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
@@ -12,9 +19,48 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@clouds/core": ["packages/core/src/index.ts"],
-      "@clouds/three": ["packages/three/src/index.ts"]
-    }
+      "@clouds/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@clouds/three": [
+        "packages/three/src/index.ts"
+      ],
+      "@clouds/react": [
+        "packages/react/src/index.ts"
+      ],
+      "@clouds/assets": [
+        "packages/assets/src/index.ts"
+      ],
+      "@clouds/tools": [
+        "packages/tools/src/index.ts"
+      ],
+      "@clouds/three/layers": [
+        "packages/three/src/layers/index.ts"
+      ],
+      "@clouds/three/environment": [
+        "packages/three/src/environment/index.ts"
+      ],
+      "@clouds/react/layers": [
+        "packages/react/src/layers.tsx"
+      ]
+    },
+    "jsx": "react-jsx"
   },
-  "include": ["packages/**/*.ts", "examples/**/*.ts", "bench/**/*.ts", "fixtures/**/*.ts", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "packages/**/*.ts",
+    "examples/**/*.ts",
+    "bench/**/*.ts",
+    "experiments/**/*.ts",
+    "fixtures/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "packages/**/*.tsx",
+    "examples/**/*.tsx"
+  ],
+  "exclude": [
+    "packages/**/dist",
+    "node_modules",
+    "dist",
+    "artifacts"
+  ]
 }

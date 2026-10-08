@@ -14,12 +14,26 @@ import { createCloudShadowReceiver, getDirectionalShadowSnapshot } from '../ligh
 import { cloudscapeShader, LIGHT_CACHE_WGSL, CANDIDATE_WGSL } from './shaders';
 
 type Atlas = ReturnType<typeof createCloudscapeAtlas>;
-export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initialWorld: WorldSnapshot, options: { temporalGuides?: boolean } = {}) {
+export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initialWorld: WorldSnapshot, options: { temporalGuides?: boolean; persistent?: { coarseAtlas: Atlas } } = {}) {
+  const coarseSource = options.persistent?.coarseAtlas;
+  if (coarseSource && (coarseSource.tileCount !== source.tileCount || coarseSource.dimensions.some((n, i) => n !== source.dimensions[i] / (i === 1 ? 1 : 2)) || coarseSource.data.length !== coarseSource.dimensions.reduce((a, b) => a * b, 1))) throw new Error('Coarse atlas must halve X/Z and preserve Y and tile identity.');
   const backend = sharedBackend(renderer), { device } = backend;
   const atlas = new Data3DTexture(source.data, ...source.dimensions);
   atlas.format = RedFormat; atlas.type = UnsignedByteType; atlas.unpackAlignment = 1;
   atlas.minFilter = atlas.magFilter = LinearFilter; atlas.generateMipmaps = false; atlas.needsUpdate = true;
   renderer.initTexture(atlas);
+  const coarseAtlas = coarseSource ? new Data3DTexture(coarseSource.data, ...coarseSource.dimensions) : atlas;
+  if (coarseSource) {
+    coarseAtlas.format = RedFormat; coarseAtlas.type = UnsignedByteType; coarseAtlas.unpackAlignment = 1;
+    coarseAtlas.minFilter = coarseAtlas.magFilter = LinearFilter; coarseAtlas.generateMipmaps = false; coarseAtlas.needsUpdate = true;
+    renderer.initTexture(coarseAtlas);
+  }
+  const capacitySide = options.persistent ? 33 : 17;
+  const refinementWeights = new Float32Array(capacitySide ** 2);
+  refinementWeights.fill(options.persistent ? 0 : 1);
+  const refinementBuffer = device.createBuffer({ label: 'cloudscape-refinement', size: refinementWeights.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(refinementBuffer, 0, refinementWeights);
+  let refinementUploads = 0;
   const target = new RenderTarget(1, 1, { type: HalfFloatType, depthBuffer: true, count: options.temporalGuides ? 3 : 2 });
   target.texture.name = 'output'; target.textures[1].name = 'cloudReceiver'; target.textures[1].type = UnsignedByteType;
   if (options.temporalGuides) target.textures[2].name = 'velocity';
@@ -36,8 +50,8 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
   const candidates = new Storage3DTexture(1, 1, 1); candidates.format = RedIntegerFormat; candidates.type = UnsignedIntType; candidates.generateMipmaps = false;
   const material = new MeshBasicNodeMaterial({ colorNode: texture(output), depthWrite: false, depthTest: false });
   const quad = new QuadMesh(material);
-  const params = device.createBuffer({ label: 'cloudscape-frame', size: 384, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-  const cellBuffer = device.createBuffer({ label: 'cloudscape-resident-cells', size: 17 * 17 * 32, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  const params = device.createBuffer({ label: 'cloudscape-frame', size: 400, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const cellBuffer = device.createBuffer({ label: 'cloudscape-resident-cells', size: capacitySide * capacitySide * 32, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
   const sampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
   const pipeline = device.createComputePipeline({ layout: 'auto', compute: { module: device.createShaderModule({ code: cloudscapeShader(!!guides) }), entryPoint: 'main' } });
   const lightPipeline = device.createComputePipeline({ layout: 'auto', compute: { module: device.createShaderModule({ code: LIGHT_CACHE_WGSL }), entryPoint: 'main' } });
@@ -48,21 +62,24 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
   const receiverHook = createCloudShadowReceiver(light);
   let directionalShadow: DirectionalLight | null = null;
   let shadowBinding: GPUBindGroup | undefined, shadowTexture: GPUTexture | undefined;
+  const diagnosticDefaults: { lightSampling?: 'normalized' | 'world-stationary' } = { lightSampling: 'normalized' };
   const settings = {
     sunRadiance: new Vector3(10.5, 10, 9), ambientRadiance: new Vector3(0.28, 0.34, 0.43),
     hazeColor: new Vector3(0.48, 0.64, 0.86), hazeDensity: 1 / 18000, hazeStrength: 0.75,
-    density: 1, stepMetres: 24, maxSteps: 320, detail: 0.16,
-    skipEmpty: true, distanceFade: true, earlyTermination: true, cachedLighting: true, shadows: true, geometryShadows: true, constantLight: false,
+    density: 1, stepMetres: 24, maxSteps: 320, detail: 0.16, detailFiltering: true,
+    viewSubsteps: 1, lightSteps: 48, ...diagnosticDefaults,
+    refinementMode: 'auto' as 'auto' | 'coarse' | 'fine', fineReady: true,
+    skipEmpty: true, distanceFade: !options.persistent, earlyTermination: true, cachedLighting: true, shadows: true, geometryShadows: true, constantLight: false,
     sunDirection: new Vector3(-0.65, 0.75, 0.2).normalize(),
     casterMin: new Vector3(950, 0, 850), casterMax: new Vector3(1250, 1800, 1150),
   };
   let world: WorldSnapshot, worldBinding: GPUBindGroup | undefined, frameBinding: GPUBindGroup | undefined, cacheBinding: GPUBindGroup | undefined, candidateBinding: GPUBindGroup | undefined;
   let disposed = false, lightDirty = true, lightKey = '', cacheUpdates = 0, worldUploads = 0, cacheWidth = 1, candidateWidth = 1, candidateDirty = true, candidateUpdates = 0, worldUploadCpuMs = 0;
-  const values = new Float32Array(96), inverse = new Matrix4(), position = new Vector3();
+  const values = new Float32Array(100), inverse = new Matrix4(), position = new Vector3();
   const ensureAlive = () => { if (disposed) throw new Error('Cloudscape has been disposed.'); };
   function setWorld(next: WorldSnapshot) {
     ensureAlive(); if (world === next) return;
-    if (!Number.isInteger(next.side) || next.side < 1 || next.side > 17 || next.cells.length !== next.side ** 2) throw new Error('Invalid cloud world grid.');
+    if (!Number.isInteger(next.side) || next.side < 1 || next.side > capacitySide || next.cells.length !== next.side ** 2) throw new Error('Invalid cloud world grid.');
     if (!Number.isFinite(next.cellSize) || next.cellSize <= 0) throw new Error('Invalid cloud cell size.');
     if (next.gridMin.length !== 2 || !next.gridMin.every(Number.isSafeInteger)) throw new Error('Invalid cloud grid origin.');
     const data = new Float32Array(next.cells.length * 8);
@@ -74,7 +91,7 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
       data.set([...cell.bounds.min, cell.active ? cell.extinctionScale : 0, ...cell.bounds.max, cell.atlasIndex], i * 8);
     });
     const uploadStart = performance.now(); device.queue.writeBuffer(cellBuffer, 0, data); worldUploadCpuMs = performance.now() - uploadStart; world = next; worldUploads++;
-    const size = (next.side + 2) * 12; cacheWidth = size;
+    const size = (options.persistent ? Math.min(next.side + 2, 11) : next.side + 2) * 12; cacheWidth = size;
     light.setSize(size, 32, size); renderer.initTexture(light);
     candidateWidth = (next.side + 2) * 8; candidates.setSize(candidateWidth, 32, candidateWidth); renderer.initTexture(candidates);
     receiverHook.setBounds(new Vector3((next.gridMin[0] - 1) * next.cellSize, 0, (next.gridMin[1] - 1) * next.cellSize), new Vector3((next.gridMin[0] + next.side + 1) * next.cellSize, 4000, (next.gridMin[1] + next.side + 1) * next.cellSize));
@@ -95,8 +112,9 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
     camera.getWorldPosition(position).toArray(values, 16); values[19] = 2 * Math.abs(Math.tan(camera.fov * Math.PI / 360)) / renderHeight;
     const sun = settings.sunDirection.clone().normalize(); sun.toArray(values, 20); values[23] = +settings.earlyTermination;
     values.set([world.gridMin[0], world.gridMin[1], world.side, world.cellSize], 24);
-    values.set([(world.gridMin[0] - 1) * world.cellSize, 700, (world.gridMin[1] - 1) * world.cellSize], 28); values[31] = +settings.distanceFade;
+    values.set([(world.gridMin[0] - 1) * world.cellSize, 700, (world.gridMin[1] - 1) * world.cellSize], 28); values[31] = options.persistent ? 0 : +settings.distanceFade;
     values.set([(world.gridMin[0] + world.side + 1) * world.cellSize, 3500, (world.gridMin[1] + world.side + 1) * world.cellSize], 32);
+    values[35] = +settings.detailFiltering;
     values.set([settings.density, settings.stepMetres, settings.maxSteps, settings.detail], 36);
     values.set([+settings.skipEmpty, +settings.cachedLighting, +settings.shadows, +settings.constantLight], 40);
     settings.casterMin.toArray(values, 44); settings.casterMax.toArray(values, 48); values[51] = +settings.geometryShadows;
@@ -105,25 +123,44 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
     settings.hazeColor.toArray(values, 60); values[63] = +(directionalShadow !== null);
     receiverHook.setEnabled(settings.shadows);
     currentVP.toArray(values, 64); previousVP.toArray(values, 80);
+    const lightSampling = settings.lightSampling ?? 'normalized';
+    values.set([settings.viewSubsteps, settings.lightSteps, lightSampling === 'world-stationary' ? 1 : 0, options.persistent ? 1 : 0], 96);
+    if (coarseSource) {
+      let changed = false;
+      world.cells.forEach((cell, i) => {
+        const dx = position.x - Math.max(cell.bounds.min[0], Math.min(cell.bounds.max[0], position.x));
+        const dy = position.y - Math.max(cell.bounds.min[1], Math.min(cell.bounds.max[1], position.y));
+        const dz = position.z - Math.max(cell.bounds.min[2], Math.min(cell.bounds.max[2], position.z));
+        const distance = Math.max(1, Math.hypot(dx, dy, dz));
+        const voxel = Math.max(...cell.bounds.max.map((n, axis) => (n - cell.bounds.min[axis]) / (coarseSource.dimensions[axis] / 2)));
+        const pixels = voxel / (distance * values[19]);
+        const linear = Math.max(0, Math.min(1, (pixels - 1) / 2));
+        const weight = Math.fround(!cell.active || !settings.fineReady || settings.refinementMode === 'coarse' ? 0 : settings.refinementMode === 'fine' ? 1 : linear * linear * (3 - 2 * linear));
+        if (refinementWeights[i] !== weight) { refinementWeights[i] = weight; changed = true; }
+      });
+      if (changed) { device.queue.writeBuffer(refinementBuffer, 0, refinementWeights); refinementUploads++; lightDirty = true; }
+    }
     device.queue.writeBuffer(params, 0, values);
-    const key = `${sun.toArray().map(v => v.toPrecision(12))}|${settings.density}|${settings.skipEmpty}`;
+    const key = `${sun.toArray().map(v => v.toPrecision(12))}|${settings.density}|${settings.skipEmpty}|${settings.lightSteps}|${lightSampling}`;
     if (key !== lightKey) { lightDirty = true; lightKey = key; }
   }
   const commonEntries = (): GPUBindGroupEntry[] => [
     { binding: 0, resource: { buffer: params } }, { binding: 1, resource: backend.texture(atlas).createView() },
     { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: cellBuffer } },
+    { binding: 6, resource: backend.texture(coarseAtlas).createView() }, { binding: 7, resource: { buffer: refinementBuffer } },
   ];
   function render(scene: Scene, camera: PerspectiveCamera, present = true, measure = false) {
     ensureAlive();
     if (renderer.reversedDepthBuffer || camera.coordinateSystem !== WebGPUCoordinateSystem) throw new Error('Cloudscape requires conventional WebGPU perspective depth.');
-    if (!Number.isFinite(settings.density) || settings.density < 0 || !Number.isFinite(settings.stepMetres) || settings.stepMetres <= 0 || !Number.isInteger(settings.maxSteps) || settings.maxSteps < 1 || settings.maxSteps > 1024 || !Number.isFinite(settings.detail) || settings.detail < 0 || settings.detail > 1 || !settings.sunDirection.toArray().every(Number.isFinite) || settings.sunDirection.lengthSq() === 0) throw new Error('Invalid cloudscape settings.');
+    if (!Number.isFinite(settings.density) || settings.density < 0 || !Number.isFinite(settings.stepMetres) || settings.stepMetres <= 0 || !Number.isInteger(settings.maxSteps) || settings.maxSteps < 1 || settings.maxSteps > 1024 || ![1, 2, 4].includes(settings.viewSubsteps) || !Number.isInteger(settings.lightSteps) || settings.lightSteps < 1 || settings.lightSteps > 2048 || !['normalized', 'world-stationary'].includes(settings.lightSampling ?? 'normalized') || !Number.isFinite(settings.detail) || settings.detail < 0 || settings.detail > 1 || !settings.sunDirection.toArray().every(Number.isFinite) || settings.sunDirection.lengthSq() === 0) throw new Error('Invalid cloudscape settings.');
     if (![settings.sunRadiance, settings.ambientRadiance, settings.hazeColor].every(v => v.toArray().every(n => Number.isFinite(n) && n >= 0)) || !Number.isFinite(settings.hazeDensity) || settings.hazeDensity < 0 || !Number.isFinite(settings.hazeStrength) || settings.hazeStrength < 0 || settings.hazeStrength > 1) throw new Error('Invalid cloudscape lighting.');
+    if (!['auto', 'coarse', 'fine'].includes(settings.refinementMode)) throw new Error('Invalid refinement mode.');
     const previousTarget = renderer.getRenderTarget(), previousMRT = renderer.getMRT(), previousFace = renderer.getActiveCubeFace(), previousMip = renderer.getActiveMipmapLevel();
     let measuredCache = false, measuredCandidates = false;
     try {
       upload(camera);
       if (!worldBinding) worldBinding = device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [...commonEntries(), { binding: 4, resource: backend.texture(light).createView() }, { binding: 5, resource: backend.texture(candidates).createView() }] });
-      if (!cacheBinding) cacheBinding = device.createBindGroup({ layout: lightPipeline.getBindGroupLayout(0), entries: [...commonEntries(), { binding: 4, resource: backend.texture(light).createView() }, { binding: 5, resource: backend.texture(candidates).createView() }] });
+      if (!cacheBinding) cacheBinding = device.createBindGroup({ layout: lightPipeline.getBindGroupLayout(0), entries: [...commonEntries(), { binding: 4, resource: backend.texture(light).createView() }] });
       if (!candidateBinding) candidateBinding = device.createBindGroup({ layout: candidatePipeline.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: params } }, { binding: 3, resource: { buffer: cellBuffer } }, { binding: 4, resource: backend.texture(candidates).createView() },
       ] });
@@ -224,6 +261,9 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
       } finally { staging.destroy(); }
     },
     get evidence() { return {
+      persistentSupport: !!options.persistent, refinementUploads,
+      refinedCells: refinementWeights.subarray(0, world.cells.length).filter(n => n > 0).length,
+      coarseAtlasBytes: coarseSource?.data.byteLength ?? 0, refinementBufferBytes: refinementBuffer.size,
       worldRevision: world.revision, gridMin: world.gridMin, side: world.side, residentCells: world.cells.length, activeCells: world.cells.filter(c => c.active).length,
       worldUploads, worldUploadCpuMs, cacheUpdates, candidateUpdates, candidateBytes: candidateWidth * 32 * candidateWidth * 4, atlasBytes: source.data.byteLength, cellBufferBytes: cellBuffer.size,
       lightCacheSize: [cacheWidth, 32, cacheWidth], lightCacheBytes: cacheWidth * 32 * cacheWidth * 8,
@@ -231,6 +271,6 @@ export function createCloudscape(renderer: WebGPURenderer, source: Atlas, initia
       directionalShadowMap: directionalShadow !== null, materialReceivers: receiverHook.attachedCount,
       settings: { ...settings, sunRadiance: settings.sunRadiance.toArray(), ambientRadiance: settings.ambientRadiance.toArray(), hazeColor: settings.hazeColor.toArray(), sunDirection: settings.sunDirection.toArray(), casterMin: settings.casterMin.toArray(), casterMax: settings.casterMax.toArray() },
     }; },
-    dispose() { if (disposed) return; disposed = true; receiverHook.dispose(); shadowParams.destroy(); fallbackShadow.destroy(); atlas.dispose(); light.dispose(); candidates.dispose(); target.dispose(); guides?.dispose(); output.dispose(); optical.dispose(); material.dispose(); params.destroy(); cellBuffer.destroy(); timer?.dispose(); lightTimer?.dispose(); candidateTimer?.dispose(); },
+    dispose() { if (disposed) return; disposed = true; receiverHook.dispose(); shadowParams.destroy(); fallbackShadow.destroy(); atlas.dispose(); if (coarseSource) coarseAtlas.dispose(); refinementBuffer.destroy(); light.dispose(); candidates.dispose(); target.dispose(); guides?.dispose(); output.dispose(); optical.dispose(); material.dispose(); params.destroy(); cellBuffer.destroy(); timer?.dispose(); lightTimer?.dispose(); candidateTimer?.dispose(); },
   };
 }

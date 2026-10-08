@@ -32,6 +32,11 @@ interface AttachedMaterial {
   hook: ShadowNodeHook;
 }
 
+// A material hook is shared by every view using that material. Stacking runtime
+// hooks would multiply unrelated caches and retain disposed textures when
+// runtimes are removed out of order. Require an explicit detach/attach handoff.
+const materialOwners = new WeakMap<NodeMaterial, object>();
+
 /**
  * A bounded cloud receiver for Three's NodeMaterial shadow hook.
  *
@@ -59,6 +64,7 @@ export function createCloudShadowReceiver(lightCache: Storage3DTexture) {
   const boundsHi = uniform(new Vector4(1, CLOUD_CACHE_Y_MAX, 1, 0)).setGroup(renderGroup);
   const enabled = uniform(0, 'float').setGroup(renderGroup);
   const attached = new Map<NodeMaterial, AttachedMaterial>();
+  const owner = {};
   let disposed = false;
 
   const cloudTransmittance = Fn(() => {
@@ -87,6 +93,7 @@ export function createCloudShadowReceiver(lightCache: Storage3DTexture) {
     ensureAlive();
     if (!material || typeof material !== 'object') throw new Error('A NodeMaterial is required.');
     if (attached.has(material)) return material;
+    if (materialOwners.has(material)) throw new Error('This material already has a cloud shadow receiver. Detach it before assigning another runtime, or use a separate material per view.');
 
     const previous = material.receivedShadowNode;
     const hook = ((shadow: ShadowValue) => {
@@ -98,6 +105,7 @@ export function createCloudShadowReceiver(lightCache: Storage3DTexture) {
       return customized.mul(cloudTransmittance());
     }) as ShadowNodeHook;
     attached.set(material, { previous, hook });
+    materialOwners.set(material, owner);
     material.receivedShadowNode = hook as unknown as NodeMaterial['receivedShadowNode'];
     material.needsUpdate = true;
     return material;
@@ -114,6 +122,7 @@ export function createCloudShadowReceiver(lightCache: Storage3DTexture) {
       material.needsUpdate = true;
     }
     attached.delete(material);
+    if (materialOwners.get(material) === owner) materialOwners.delete(material);
     return material;
   }
 
@@ -144,6 +153,7 @@ export function createCloudShadowReceiver(lightCache: Storage3DTexture) {
           material.receivedShadowNode = record.previous;
           material.needsUpdate = true;
         }
+        if (materialOwners.get(material) === owner) materialOwners.delete(material);
       }
       attached.clear();
       disposed = true;

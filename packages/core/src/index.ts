@@ -35,7 +35,9 @@ export interface ResourceContract {
 }
 export interface Disposable { dispose(): void }
 export function validateDensityDescriptor(d: DensityDescriptor): void {
-  if (!d.id || !Number.isSafeInteger(d.revision) || d.revision < 0) throw new Error('Invalid density identity/revision');
+  if (!d || typeof d !== 'object') throw new Error('Invalid density descriptor');
+  if (!Array.isArray(d.dimensions) || d.dimensions.length !== 3 || !d.bounds || !Array.isArray(d.bounds.min) || !Array.isArray(d.bounds.max) || d.bounds.min.length !== 3 || d.bounds.max.length !== 3) throw new Error('Density dimensions and bounds must have exactly three components');
+  if (typeof d.id !== 'string' || !d.id || !Number.isSafeInteger(d.revision) || d.revision < 0) throw new Error('Invalid density identity/revision');
   if (!d.dimensions.every(n => Number.isSafeInteger(n) && n > 0)) throw new Error('Density dimensions must be positive integers');
   if (!Number.isFinite(d.extinctionScale) || d.extinctionScale < 0) throw new Error('Extinction scale must be finite and nonnegative');
   for (let i = 0; i < 3; i++) {

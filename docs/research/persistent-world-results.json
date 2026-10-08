@@ -1,0 +1,344 @@
+{
+  "phase": "P2",
+  "generatedAt": "2026-09-19T22:15:21.525Z",
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "generationCpuMs": 718.3000000715256,
+  "cloud": {
+    "persistentSupport": true,
+    "refinementUploads": 2,
+    "refinedCells": 593,
+    "coarseAtlasBytes": 221184,
+    "refinementBufferBytes": 4356,
+    "worldRevision": 0,
+    "gridMin": [
+      -16,
+      -16
+    ],
+    "side": 33,
+    "residentCells": 1089,
+    "activeCells": 1080,
+    "worldUploads": 1,
+    "worldUploadCpuMs": 0.10000002384185791,
+    "cacheUpdates": 2,
+    "candidateUpdates": 1,
+    "candidateBytes": 10035200,
+    "atlasBytes": 884736,
+    "cellBufferBytes": 34848,
+    "lightCacheSize": [
+      132,
+      32,
+      132
+    ],
+    "lightCacheBytes": 4460544,
+    "frameTargetBytes": 4958592,
+    "renderSize": [
+      444,
+      349
+    ],
+    "sceneSize": [
+      444,
+      349
+    ],
+    "temporalGuides": false,
+    "directionalShadowMap": false,
+    "materialReceivers": 0,
+    "settings": {
+      "sunRadiance": [
+        10.5,
+        10,
+        9
+      ],
+      "ambientRadiance": [
+        0.28,
+        0.34,
+        0.43
+      ],
+      "hazeColor": [
+        0.48,
+        0.64,
+        0.86
+      ],
+      "hazeDensity": 0.00005555555555555556,
+      "hazeStrength": 0.75,
+      "density": 1,
+      "stepMetres": 24,
+      "maxSteps": 512,
+      "detail": 0,
+      "detailFiltering": true,
+      "viewSubsteps": 2,
+      "lightSteps": 48,
+      "lightSampling": "normalized",
+      "refinementMode": "auto",
+      "fineReady": true,
+      "skipEmpty": true,
+      "distanceFade": false,
+      "earlyTermination": true,
+      "cachedLighting": true,
+      "shadows": true,
+      "geometryShadows": true,
+      "constantLight": false,
+      "sunDirection": [
+        -0.6859943405700354,
+        0.6859943405700353,
+        0.24253562503633297
+      ],
+      "casterMin": [
+        950,
+        0,
+        850
+      ],
+      "casterMax": [
+        1250,
+        1800,
+        1150
+      ]
+    }
+  },
+  "cpuSubmit": {
+    "sampleCount": 600,
+    "warmupFrames": 30,
+    "cpuSubmitMs": {
+      "p50": 1.899999976158142,
+      "p95": 3.600000023841858
+    }
+  },
+  "tests": [
+    {
+      "name": "Empty world has zero radiance and unit transmittance",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Homogeneous world volume matches physical optical depth",
+      "passed": true,
+      "error": 0.003621628671442334,
+      "tolerance": 0.006
+    },
+    {
+      "name": "Linear world radiance / transmittance conservation",
+      "passed": true,
+      "error": 0.00048828125,
+      "tolerance": 0.001
+    },
+    {
+      "name": "Overlapping world cells sum extinction in one march",
+      "passed": true,
+      "error": 0.00000667572021484375,
+      "tolerance": 0.001
+    },
+    {
+      "name": "Opaque-ray cutoff stays within optical error budget",
+      "passed": true,
+      "error": 0.00048828125,
+      "tolerance": 0.001
+    },
+    {
+      "name": "Cell traversal matches full sample lattice",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.00001
+    },
+    {
+      "name": "GPU candidate mask matches CPU conservative reference",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Camera motion within cell avoids world upload",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Unchanged lighting reuses the cache",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Sun change refreshes lighting once",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Sun magnitude does not rebuild normalized lighting cache",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Resident-window shift refreshes lighting",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "World output resizes without stale bindings",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Disposed world rejects render",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Traversal preserves shaped cloud edges and thin density",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.00001
+    },
+    {
+      "name": "Shaped comparison contains visible density",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "World rebase preserves same-camera cloud density",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0.00001
+    },
+    {
+      "name": "Rebase fixture contains visible cloud density",
+      "passed": true,
+      "error": 0,
+      "tolerance": 0
+    },
+    {
+      "name": "Small camera crossing keeps cloud density continuous",
+      "passed": true,
+      "error": 0.003173828125,
+      "tolerance": 0.04
+    }
+  ],
+  "persistentTests": [
+    {
+      "name": "Fixed region survives a camera cut without changing its snapshot",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Zero coverage is exactly empty",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Cloud at 20 km retains its optical depth despite legacy fade setting",
+      "error": 0.004528457757778437,
+      "tolerance": 0.015,
+      "passed": true
+    },
+    {
+      "name": "Camera travel does not upload or rebase world cells",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Returning to a pose reproduces distant support",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Equal-density coarse/fine endpoints do not double extinction",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Automatic projected-size policy refines the nearby formation",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Equal-density transition preserves optical depth",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Unavailable fine data retains coarse support",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Unavailable fine data selects zero refinement weights",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Large-region candidate traversal preserves the full sample lattice",
+      "error": 0,
+      "tolerance": 0.00001,
+      "passed": true
+    },
+    {
+      "name": "Unchanged refinement reuses light cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Refinement changes refresh shared lighting once",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Stable fine endpoint reuses refreshed cache",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Transition fixture exercises a partial weight",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Partial LOD integrates one blended extinction field",
+      "error": 0.003908337779212734,
+      "tolerance": 0.015,
+      "passed": true
+    },
+    {
+      "name": "Shaped coarse formation remains visible at 20 km",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    },
+    {
+      "name": "Distant automatic policy retains coarse representation",
+      "error": 0,
+      "tolerance": 0,
+      "passed": true
+    }
+  ],
+  "calibration": [],
+  "errors": [],
+  "camera": [
+    1968.9081962313503,
+    1100,
+    3813.3770349947736
+  ],
+  "pathTime": 12,
+  "thinLayer": true
+}

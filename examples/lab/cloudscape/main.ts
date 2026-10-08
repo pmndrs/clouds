@@ -5,6 +5,9 @@ import {
   HemisphereLight, WebGPUCoordinateSystem, Vector3,
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createPersistentCloudWorld } from '../../../packages/three/src/world/persistent';
+import { createCoarseCloudscapeAtlas } from '../../../packages/three/src/sources/atlas-lod';
+import { runPersistentWorldChecks } from './persistent-checks';
 import { createCloudWorld } from '../../../packages/three/src/world';
 import { createCloudscapeAtlas } from '../../../packages/three/src/sources/cloudscape-atlas';
 import { createCloudscape } from '../../../packages/three/src/cloudscape';
@@ -15,13 +18,13 @@ import { downloadCanvasCapture, MeasurementCollector } from '../harness';
 import { runCloudscapeChecks } from './checks';
 import { createFlightClock } from './playback';
 
-document.querySelector('#app')!.innerHTML = `<div class="shell"><aside class="sidebar"><header><span class="eyebrow">pmndrs / clouds</span><h1>Cloudscape</h1><span class="badge">P2 · Coverage study</span><p>Travel from the ground into a resident world of voxel clouds. Drag to orbit; scroll to explore.</p></header>
-<section class="section"><h2>WEATHER</h2><label>Cloud population <input id="coverage" type="range" min="0" max="1" step="0.05" value="0.75"></label><label>Density <input id="density" type="range" min="0" max="2" step="0.005" value="1"></label><label>Sun elevation <input id="sun" type="range" min="15" max="80" value="45"></label><div class="row"><label for="layer">High thin-cloud layer</label><input type="checkbox" id="layer" checked></div></section>
+document.querySelector('#app')!.innerHTML = `<div class="shell"><aside class="sidebar"><header><span class="eyebrow">pmndrs / clouds</span><h1>Cloudscape</h1><span class="badge">P2 · Coverage study</span><p>Travel through a fixed world of clouds. Full-detail density is the quality baseline. Drag to orbit; scroll to explore.</p></header>
+<section class="section"><h2>WEATHER</h2><label>World mode<select id="worldmode"><option value="persistent">Persistent region · full detail</option><option value="legacy">Legacy resident window</option></select></label><label>Coverage <input id="coverage" type="range" min="0" max="1" step="0.05" value="0.75"></label><label>Density <input id="density" type="range" min="0" max="2" step="0.005" value="1"></label><label>Sun elevation <input id="sun" type="range" min="15" max="80" value="45"></label><div class="row"><label for="layer">High thin-cloud layer</label><input type="checkbox" id="layer" checked></div></section>
 <section class="section"><h2>FLIGHT</h2><div class="row"><button id="ground">Ground</button><button id="horizon">Horizon</button><button id="inside">Inside</button></div><label>Ground → cloud → beyond<input id="flight" type="range" min="0" max="40" step="0.02" value="0"></label><button id="play" class="full">Play 40-second flight</button><p id="position">—</p></section>
-<section class="section"><h2>QUALITY & REFERENCE</h2><div class="row"><label for="scale">Render scale</label><select id="scale"><option value="0.5">Half</option><option value="0.75">Three-quarter</option><option value="1">Native</option></select></div><div class="row"><label for="samples">Max view samples</label><select id="samples"><option value="192">192</option><option value="320" selected>320</option><option value="512">512</option></select></div><div class="row"><label for="detail">Projected fine detail</label><input type="checkbox" id="detail" checked></div><div class="row"><label for="opaque">Stop fully opaque rays</label><input type="checkbox" id="opaque" checked></div><div class="row"><label for="skip">Conservative cloud lookup</label><input type="checkbox" id="skip" checked></div><div class="row"><label for="shadows">Reference shadows</label><input type="checkbox" id="shadows" checked></div><div class="row"><label for="cache">Cached cloud lighting</label><input type="checkbox" id="cache" checked></div></section>
-<section class="section"><div id="status" role="status" class="result">Generating eight voxel forms…</div><div class="stack" style="margin-top:10px"><button id="verify">Run P2 checks</button><button id="benchmark">Measure flight views</button><button id="report">Export evidence</button><button id="capture">Save image</button><button id="sheet">Save flight sheet</button></div><details><summary>Evidence</summary><pre id="evidence"></pre></details></section>
+<section class="section"><h2>QUALITY & REFERENCE</h2><div class="row"><label for="scale">Render scale</label><select id="scale"><option value="0.5">Half</option><option value="0.75">Three-quarter</option><option value="1">Native</option></select></div><div class="row"><label for="samples">Max view samples</label><select id="samples"><option value="192">192</option><option value="320" selected>320</option><option value="512">512</option></select></div><div class="row"><label for="detail">Full detail (coarse is experimental)</label><input type="checkbox" id="detail" checked></div><div class="row"><label for="opaque">Stop fully opaque rays</label><input type="checkbox" id="opaque" checked></div><div class="row"><label for="skip">Conservative cloud lookup</label><input type="checkbox" id="skip" checked></div><div class="row"><label for="shadows">Reference shadows</label><input type="checkbox" id="shadows" checked></div><div class="row"><label for="cache">Cached cloud lighting</label><input type="checkbox" id="cache" checked></div></section>
+<section class="section"><div id="status" role="status" class="result">Generating eight voxel forms…</div><div class="stack" style="margin-top:10px"><button id="verify">Run P2 checks</button><button id="verifyPersistent">Check persistent coverage</button><button id="benchmark">Measure flight views</button><button id="report">Export evidence</button><button id="capture">Save image</button><button id="sheet">Save flight sheet</button></div><details><summary>Evidence</summary><pre id="evidence"></pre></details></section>
 <div class="footer">Review R2: horizon coverage, repetition and transitions.<br>R2 accepted for progression; distance / LOD remains open.<br><a href="/lighting/">P3 lighting</a> · <a href="/clouds/">P1 correctness reference</a> · <a href="/layer-only/">2D layer</a> · <a href="/">P0 lab</a></div></aside>
-<main class="main"><header class="topbar"><div><h2>Ground to cloudscape</h2><p>Stable world cells · shared voxel atlas · one volume integration</p></div><span id="device" class="badge">Connecting</span></header><div id="stage" class="stage"><div class="caption">Near and distant formations remain volumetric. The optional high layer is separate thin coverage. P2 prototype: stylized forms; 4.4–7.7 km distance fade. Distant coverage and shadow matching need revision.</div></div><footer class="statusbar"><span>Grid <strong id="grid">—</strong></span><span>GPU data <strong id="memory">—</strong></span><span>CPU submit <strong id="timing">—</strong></span></footer></main></div>`;
+<main class="main"><header class="topbar"><div><h2>Ground to cloudscape</h2><p>Stable world cells · shared voxel atlas · one volume integration</p></div><span id="device" class="badge">Connecting</span></header><div id="stage" class="stage"><div class="caption">Near and distant formations remain volumetric. The optional high layer is separate thin coverage. Fixed region prototype: stylized forms and coarse lighting. Fine density shares world support with shadows. Coarse LOD failed current source error gates. Region edges and lighting quality remain under review.</div></div><footer class="statusbar"><span>Grid <strong id="grid">—</strong></span><span>GPU data <strong id="memory">—</strong></span><span>CPU submit <strong id="timing">—</strong></span></footer></main></div>`;
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const errors: string[] = [];
 function fail(error: unknown) { const message = error instanceof Error ? error.message : String(error); errors.push(message); $('status').textContent = message; $('status').classList.add('error'); console.error(error); }
@@ -35,7 +38,11 @@ async function boot() {
   device.addEventListener('uncapturederror', e => fail((e as GPUUncapturedErrorEvent).error.message));
   const info = device.adapterInfo; $('device').textContent = info.description || info.architecture || 'WebGPU';
   const start = performance.now(), atlas = createCloudscapeAtlas(); const generationMs = performance.now() - start;
-  let world = createCloudWorld();
+  const persistent = !new URLSearchParams(location.search).has('legacy');
+  ($<HTMLSelectElement>('worldmode')).value = persistent ? 'persistent' : 'legacy';
+  const makeWorld = (coverage = .75) => persistent ? createPersistentCloudWorld({ coverage }) : createCloudWorld({ coverage });
+  let world = makeWorld();
+  const coarseAtlas = persistent ? createCoarseCloudscapeAtlas(atlas) : undefined;
   const camera = new PerspectiveCamera(58, 1, 1, 80000); camera.coordinateSystem = WebGPUCoordinateSystem; camera.updateProjectionMatrix();
   const scene = new Scene(); scene.background = new Color(0.36, 0.56, 0.81); scene.fog = new FogExp2(new Color(0.36, 0.56, 0.81), 0.000055);
   const controls = new OrbitControls(camera, renderer.domElement); controls.maxDistance = 50000; controls.minDistance = 1; controls.maxPolarAngle = Math.PI - 0.01;
@@ -45,11 +52,13 @@ async function boot() {
   const box = new Mesh(new BoxGeometry(300, 1800, 300), boxMaterial); box.position.set(1100, 900, 1000); scene.add(box);
   const sun = new DirectionalLight(0xffeedb, 2); scene.add(sun, new HemisphereLight(0xc2d8ff, 0x506046, 1.2));
   const thin = createCloudLayer({ radius: 150000, height: 9000, cloudScale: 0.00035, wind: [8, 2], coverage: 0.53, density: 0.35 }); scene.add(thin.mesh);
-  const cloud = createCloudscape(renderer, atlas, world.snapshot);
+  const cloud = createCloudscape(renderer, atlas, world.snapshot, coarseAtlas ? { persistent: { coarseAtlas } } : {});
+  if (persistent) { cloud.settings.refinementMode = 'fine'; cloud.settings.detail = 0; cloud.settings.maxSteps = 512; cloud.settings.viewSubsteps = 2; ($<HTMLSelectElement>('samples')).value = '512'; }
+  else document.querySelector('.caption')!.textContent = 'Legacy resident window: 4.4–7.7 km view fade. Preserved for comparison.';
   const central = world.snapshot.cells.filter(c => c.active).sort((a, b) => Math.hypot(a.cellX, a.cellZ) - Math.hypot(b.cellX, b.cellZ))[0];
   const center = new Vector3().fromArray(central.bounds.min).add(new Vector3().fromArray(central.bounds.max)).multiplyScalar(0.5);
   const path: CameraPath = { name: 'cloudscape-ground-to-inside', durationSeconds: 40, keyframes: [
-    { timeSeconds: 0, position: [center.x, 80, center.z + 7500], target: [center.x, 1500, center.z], up: [0, 1, 0], fovDegrees: 58 },
+    { timeSeconds: 0, position: [center.x, 80, center.z + (persistent ? 20000 : 7500)], target: [center.x, 1500, center.z], up: [0, 1, 0], fovDegrees: 58 },
     { timeSeconds: 12, position: [center.x + 600, 1100, center.z + 2500], target: [center.x, center.y, center.z], up: [0, 1, 0], fovDegrees: 58 },
     { timeSeconds: 20, position: [center.x, center.y, center.z], target: [center.x, center.y + 50, center.z - 2000], up: [0, 1, 0], fovDegrees: 58 },
     { timeSeconds: 30, position: [center.x - 1500, 2600, center.z - 6500], target: [center.x - 1800, 2000, center.z - 9000], up: [0, 1, 0], fovDegrees: 58 },
@@ -57,6 +66,7 @@ async function boot() {
   ] };
   const flightClock = createFlightClock(path.durationSeconds);
   let alive = true, checking = false, playing = false, raf = 0, lastFrame = 0, lastUi = 0;
+  let persistentTests: unknown = null;
   let measurements = new MeasurementCollector(30), tests: Awaited<ReturnType<typeof runCloudscapeChecks>> = [], calibration: unknown[] = [];
   const reset = () => { measurements = new MeasurementCollector(30); };
   function applyFlight(t: number, resetMetrics = true) { const pose = sampleCameraPath(path, t); camera.position.fromArray(pose.position); controls.target.fromArray(pose.target); camera.lookAt(controls.target); controls.update(); cloud.setWorld(world.update(camera.position.toArray())); if (resetMetrics) reset(); }
@@ -66,7 +76,7 @@ async function boot() {
   function resize() { const w = Math.max(1, $('stage').clientWidth), h = Math.max(1, $('stage').clientHeight); renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); const s = Number($<HTMLSelectElement>('scale').value); cloud.resize(Math.max(1, Math.round(w * s)), Math.max(1, Math.round(h * s))); reset(); }
   const observer = new ResizeObserver(resize); observer.observe($('stage')); resize();
   const draw = () => { cloud.setWorld(world.update(camera.position.toArray())); cloud.render(scene, camera); };
-  const evidence = () => ({ phase: 'P2', generatedAt: new Date().toISOString(), device: { vendor: info.vendor, architecture: info.architecture }, browser: navigator.userAgent, generationCpuMs: generationMs, cloud: cloud.evidence, cpuSubmit: measurements.count > 30 ? measurements.summarize() : null, tests, calibration, errors: [...errors], camera: camera.position.toArray(), pathTime: flightClock.time, thinLayer: thin.mesh.visible });
+  const evidence = () => ({ phase: 'P2', generatedAt: new Date().toISOString(), device: { vendor: info.vendor, architecture: info.architecture }, browser: navigator.userAgent, generationCpuMs: generationMs, cloud: cloud.evidence, cpuSubmit: measurements.count > 30 ? measurements.summarize() : null, tests, persistentTests, calibration, errors: [...errors], camera: camera.position.toArray(), pathTime: flightClock.time, thinLayer: thin.mesh.visible });
   function frame(t: number) {
     if (!alive) return;
     if (!checking) {
@@ -74,18 +84,34 @@ async function boot() {
         if (playing) { const next = flightClock.advance(lastFrame ? t - lastFrame : 0); $<HTMLInputElement>('flight').value = String(next); applyFlight(next, false); if (next >= 40) { playing = false; $('play').textContent = 'Play 40-second flight'; } }
         thin.update(t / 1000); const start = performance.now(); draw(); const ms = performance.now() - start;
         if (measurements.count < 630) measurements.add({ frameIndex: measurements.count, timeSeconds: t / 1000, cpuSubmitMs: ms });
-        if (t - lastUi > 700) { const e = cloud.evidence; $('grid').textContent = `${e.activeCells} / ${e.residentCells}`; $('memory').textContent = `${((e.candidateBytes + e.atlasBytes + e.lightCacheBytes + e.cellBufferBytes + e.frameTargetBytes) / 1048576).toFixed(1)} MiB`; $('timing').textContent = `${ms.toFixed(2)} ms`; $('position').textContent = `${(camera.position.x / 1000).toFixed(1)}, ${(camera.position.y / 1000).toFixed(1)}, ${(camera.position.z / 1000).toFixed(1)} km`; $('evidence').textContent = JSON.stringify(evidence(), null, 2); lastUi = t; }
+        if (t - lastUi > 700) { const e = cloud.evidence; $('grid').textContent = `${e.activeCells} / ${e.residentCells}`; $('memory').textContent = `${((e.candidateBytes + e.atlasBytes + e.coarseAtlasBytes + e.refinementBufferBytes + e.lightCacheBytes + e.cellBufferBytes + e.frameTargetBytes) / 1048576).toFixed(1)} MiB`; $('timing').textContent = `${ms.toFixed(2)} ms`; $('position').textContent = `${(camera.position.x / 1000).toFixed(1)}, ${(camera.position.y / 1000).toFixed(1)}, ${(camera.position.z / 1000).toFixed(1)} km`; $('evidence').textContent = JSON.stringify(evidence(), null, 2); lastUi = t; }
       } catch (e) { fail(e); alive = false; return; }
     }
     lastFrame = t; raf = requestAnimationFrame(frame);
   }
+  function lockAudit(locked: boolean) {
+    document.querySelectorAll<HTMLInputElement | HTMLButtonElement | HTMLSelectElement>('button,input,select').forEach(input => { input.disabled = locked; });
+    controls.enabled = !locked;
+  }
   async function verify() {
-    if (checking) return; checking = true; $('status').textContent = 'Checking world overlap, empty traversal and residency…'; device.pushErrorScope('validation');
+    if (checking) return; checking = true; lockAudit(true); $('status').textContent = 'Checking world overlap, empty traversal and residency…'; device.pushErrorScope('validation');
     try { tests = await runCloudscapeChecks(renderer); $('status').textContent = tests.every(t => t.passed) ? `Passed ${tests.length} P2 GPU checks. R2 coverage issues remain open.` : 'P2 checks need attention. Open Evidence.'; }
-    catch (e) { fail(e); } finally { const error = await device.popErrorScope(); if (error) fail(error.message); checking = false; reset(); }
+    catch (e) { fail(e); } finally { const error = await device.popErrorScope(); if (error) fail(error.message); checking = false; lockAudit(false); reset(); }
   }
   $('verify').onclick = () => void verify();
-  $('coverage').onchange = () => { world = createCloudWorld({ coverage: Number($<HTMLInputElement>('coverage').value) }); cloud.setWorld(world.update(camera.position.toArray())); reset(); };
+  $('worldmode').onchange = () => { location.search = ($<HTMLSelectElement>('worldmode')).value === 'legacy' ? '?legacy=1' : ''; };
+  $('verifyPersistent').onclick = async () => {
+    if (checking) return; checking = true; lockAudit(true); $('status').textContent = 'Checking persistent formations, LOD endpoints and cache agreement…';
+    device.pushErrorScope('validation');
+    try {
+      persistentTests = await runPersistentWorldChecks(renderer);
+      $('status').textContent = (persistentTests as { passed: boolean }[]).every(row => row.passed) ? 'Persistent-world checks pass. Lighting quality and finite edges remain open.' : 'Persistent-world checks need attention.';
+    } catch (error) { fail(error); } finally {
+      const error = await device.popErrorScope(); if (error) fail(error.message);
+      checking = false; lockAudit(false); reset();
+    }
+  };
+  $('coverage').onchange = () => { world = makeWorld(Number($<HTMLInputElement>('coverage').value)); cloud.setWorld(world.update(camera.position.toArray())); reset(); };
   $('density').oninput = () => { cloud.settings.density = Number($<HTMLInputElement>('density').value); reset(); };
   $('sun').oninput = setSun; $('layer').onchange = () => { thin.mesh.visible = $<HTMLInputElement>('layer').checked; reset(); };
   $('ground').onclick = () => { playing = false; $('play').textContent = 'Play 40-second flight'; flightClock.seek(0); applyFlight(0); $<HTMLInputElement>('flight').value = '0'; };
@@ -94,7 +120,7 @@ async function boot() {
   $('flight').oninput = () => { playing = false; $('play').textContent = 'Play 40-second flight'; flightClock.seek(Number($<HTMLInputElement>('flight').value)); applyFlight(flightClock.time); };
   $('play').onclick = () => { if (flightClock.time >= 40) { flightClock.seek(0); $<HTMLInputElement>('flight').value = '0'; } playing = !playing; lastFrame = 0; $('play').textContent = playing ? 'Pause flight' : 'Play 40-second flight'; };
   $('scale').onchange = resize; $('samples').onchange = () => { cloud.settings.maxSteps = Number($<HTMLSelectElement>('samples').value); reset(); };
-  $('detail').onchange = () => { cloud.settings.detail = $<HTMLInputElement>('detail').checked ? 0.16 : 0; reset(); };
+  $('detail').onchange = () => { if (persistent) cloud.settings.refinementMode = $<HTMLInputElement>('detail').checked ? 'fine' : 'coarse'; else cloud.settings.detail = $<HTMLInputElement>('detail').checked ? 0.16 : 0; reset(); };
   for (const [id, key] of [['opaque', 'earlyTermination'], ['skip', 'skipEmpty'], ['cache', 'cachedLighting'], ['shadows', 'shadows']] as const) $(id).onchange = () => { cloud.settings[key] = $<HTMLInputElement>(id).checked; reset(); };
   $('benchmark').onclick = async () => {
     if (checking) return; checking = true; playing = false; $('play').textContent = 'Play 40-second flight'; calibration = [];

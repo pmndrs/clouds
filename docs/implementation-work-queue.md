@@ -1,8 +1,95 @@
 # Implementation work queue
 
-Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 views were reported working and stylized forms accepted provisionally; silhouette choice and shadow retest remain open. P2 implementation is now available at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/) with local technical evidence recorded and R2 feedback received. The user accepts the current P2 stage as sufficient to continue provisionally; distance/LOD, coverage/weather and view/shadow quality debt remain tracked. The first P3 lighting/environment slice is runnable at [`/lighting/`](http://127.0.0.1:5173/lighting/): P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 human review is pending; P4 now has a reconstruction comparison preview at [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/). R4 visual review and preset acceptance remain pending; P4 remains the maximum authorized phase. See the [critical review guide](p4-review.md) and [P4 evidence](p4-evidence.md). See the [human review guide](human-review.md), [overall status](project-status.md), [P1 evidence](p1-evidence.md), [P2 evidence](p2-evidence.md), and [P3 evidence](p3-evidence.md). Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
+## Completed local source packet — 2026-10-08
+
+Weather/base-boundary/erosion source and mip resources are implemented. See
+[the packet evidence and next steps](research/morphology-study.md). A bounded
+Luna worker owned original noise generation and checks; root integrated raw
+WebGPU resources, the shared evaluator and the viewer. 129 unit tests, 21 GPU
+checks, build/pack and independent-consumer validation pass. Appearance remains
+below target; these checks do not close dynamic banding or world LOD quality.
+
+Next dispatch: lighting convergence and sky-radiance calibration using this
+same source; then integrate the source with resident voxels and distance
+representations. VDB authoring remains parked; do not request a minor review.
+
+
+**Current execution directive — 2026-10-08:** the user withdraws the small
+shape-review stops and authorizes completing the platform through P6, then
+advancing realism autonomously toward three-geospatial's visual quality. Earlier
+sequential/checkpoint text below is historical and no longer blocks compatible
+platform/asset work. Do not request another appearance review of orb/placeholder
+clouds. Use bounded lower-cost workers for platform, assets and source work; root
+owns GPU integration and visual acceptance. Technical preview readiness does
+not imply realistic appearance, final presets, hardware coverage or publication.
+
+
+Prepared 2026-09-16. **P0.1–P0.4 are accepted locally as of 2026-09-16.** P1.1–P1.3 and the L1 preview are technically accepted locally as of 2026-09-17; R1 views were reported working and stylized forms accepted provisionally; silhouette choice and shadow retest remain open. P2 implementation is now available at [`/cloudscape/`](http://127.0.0.1:5173/cloudscape/) with local technical evidence recorded and R2 feedback received. The user accepts the current P2 stage as sufficient to continue provisionally; distance/LOD, coverage/weather and view/shadow quality debt remain tracked. The first P3 lighting/environment slice is runnable at [`/lighting/`](http://127.0.0.1:5173/lighting/): P3.1 and P3.2 bounded prototypes are integrated, P3.3 is partial, and P3 is not complete. R3 human review is pending; P4 now has a reconstruction comparison preview at [`/reconstruction/`](http://127.0.0.1:5173/reconstruction/). R4 visual review and preset acceptance remain pending; The 2026-09-18 follow-up authorizes progression through P6 while rendering quality is investigated independently; publication is separate. See the [critical review guide](p4-review.md) and [P4 evidence](p4-evidence.md). See the [human review guide](human-review.md), [overall status](project-status.md), [P1 evidence](p1-evidence.md), [P2 evidence](p2-evidence.md), and [P3 evidence](p3-evidence.md). Dependencies mean accepted output, not merely a running producer. Phase details: [implementation plan](implementation-plan.md). Dispatch rules: [orchestration](agent-orchestration.md).
+
+## Active quality packet — revised 2026-10-08
+
+The user parks VDB authoring/import work: the bundled asset is an understood
+self-authored test fixture, not a known external cloud rendered incorrectly.
+No further Houdini/VDB candidate generation is scheduled. Authored VDB sources
+can be supplied later; this does not block procedural rendering work.
+
+The readable Tidewater audit is complete. Next: one bounded procedural
+weather/base-boundary/erosion source packet, integrated with the existing
+voxel transport and shared view/light density. Establish convincing formation
+and rim detail before more source variants or performance tuning. Then evaluate
+footprint filtering and lighting/temporal convergence without treating analytic
+transport checks as visual approval. Root owns integration/visual judgment;
+lower-cost workers can own noise generation and focused source checks.
+
+Reference notes: [density hierarchy](research/tidewater-density-reference.md),
+[transport/lighting](research/tidewater-transport-reference.md). No Tidewater
+source or assets have been copied, and its full game has not been executed.
+
+## Current platform handoff — 2026-10-08
+
+The user directive remains: skip minor human checkpoints, complete platform
+foundations through P6, and keep publication separate. The current packet has
+122 unit tests, typecheck/build, and packed online-consumer validation passing.
+P4 smoke evidence records 29 GPU checks and 15 timing rows at 320×180 across
+five modes. Native, bilinear, cloud-only and FSR1 are guide-free; FSR3 uses
+guides. Both comparison runtimes remain allocated.
+Dense React parity is exactly zero after field/camera replacement and remount.
+
+Platform and asset foundations now cover realistic reference appearance, GPU
+density bake and optical-depth cache, ray jitter and multiple-scattering
+approximation, CPU density generation, React density bindings, Houdini 21 fog
+VDB conversion, four CLDA variants with representative native readback parity, and finite curved/concave
+mesh checks. Broad visual quality, presets, RTX/Windows, streaming, and
+publication remain open. Chrome now renders the detailed and lower-density
+native candidates; 12 analytic transport/cache checks pass with no captured GPU
+errors. Shapes remain too smooth. VDB authoring is parked; next is the procedural
+source packet above, then lighting comparison. See [realism progress](realism-progress.md).
+
+## Current handoff — 2026-09-20
+
+P2.7 now has a runnable [density comparison](http://127.0.0.1:5173/density-study/).
+Two narrow workers: Luna high for the source and Luna medium for extraction/
+optical audit; each received one focused correction. Root built the viewer,
+reviewed/tuned the source, ran GPU evidence, and retained failed LOD gates.
+109 unit tests and build/type checks pass; five new GPU checks pass. Costs/token
+savings were not measured.
+
+**Needs human shape-direction review** before replacing the world atlas:
+[p2-density-review.md](p2-density-review.md). The new density is still simplified;
+P2/P3 realism is not approved. Coarsening fails current normalized-source gates,
+so Cloudscape defaults to full detail. Automatic LOD remains open. Resume from
+shape feedback, then iterate density/LOD and proceed to P3 lighting in sequence.
+No new P4–P6 feature work was started.
 
 ## First dispatch wave
+
+**Current scheduling update, 2026-09-19:** use the
+[sequential order](next-milestones.md#sequential-dispatch-order--revised-2026-09-19).
+One active phase: P2 LOD/coverage and density, then P3 lighting/atmosphere,
+P4 presets, and P5/P6 acceptance/assets. Existing later previews are retained.
+P2.5 bounded proof is delivered by one Luna worker and reviewed by root; world
+integration now exists as a finite-region prototype (2026-09-20); production-atlas transition quality and lighting agreement remain open. Actual VDB import A2.1 and
+expanded mesh bench A2.2 stay queued. The earlier parallel wave is superseded.
 
 When implementation begins, the orchestrator performs P0.1 first: workspace setup, package/tool choices, initial shared contracts and exact reference pins. After that is accepted:
 
@@ -81,6 +168,12 @@ Update one row per dispatched packet. Local P0 acceptance does not claim RTX/Win
 
 ### P4 checkpoint
 
+2026-09-18: the user reports the reconstruction methods are stable apart from
+volume artifacts. A default-on, mean-preserving detail filter is ready for
+retesting the reported arcs/crosshatching/strobing; see [P4 review](p4-review.md).
+Blue-noise/jitter remains a possible follow-up if residual sampling aliasing
+warrants it. This historical checkpoint did not accept a preset. The later 2026-09-18 instruction authorizes P5/P6 progression alongside the quality bench.
+
 | Packet | State | Delivery / remaining gate |
 | --- | --- | --- |
 | P4.1 | ready-for-review | [Reconstruction contract](decisions/reconstruction.md); weighted cloud depth, opaque motion, reactivity, one jitter/history owner |
@@ -96,15 +189,70 @@ State vocabulary: `ready`, `running`, `needs-decision`, `ready-for-review`, `acc
 
 ## R2 follow-up (2026-09-17)
 
-Viewer playback now uses a precise clock rather than accumulating through a stepped slider; Chrome playback and zero density were verified. The user accepts the current P2 stage as fine for continuing provisionally. Remaining P2 work: persistent distant representation with shared weather identity, consistent view/shadow transition, coherent weather coverage, and spatial sampling quality diagnosis. The latest camera turn/down observation shows shadows beyond view-faded clouds because view density fades with horizontal camera distance while shadow density remains unfaded; the tower does not control the fade. Preserve the existing lookup/reference tests, but add approach-distance and shadow-agreement checks: same-camera region continuity alone did not catch the reported horizon problem. P2.4–P2.6 remain future tracked packets and do not block compatible P3 lighting work. P3.1 and P3.2 bounded prototypes are integrated and ready for review; P3.3 is running partially. The `/lighting/` scene is runnable, but P3 is not complete and R3 is pending. P4 remains the maximum authorized phase.
+Viewer playback now uses a precise clock rather than accumulating through a stepped slider; Chrome playback and zero density were verified. The user accepts the current P2 stage as fine for continuing provisionally. Remaining P2 work: persistent distant representation with shared weather identity, consistent view/shadow transition, coherent weather coverage, and spatial sampling quality diagnosis. The latest camera turn/down observation shows shadows beyond view-faded clouds because view density fades with horizontal camera distance while shadow density remains unfaded; the tower does not control the fade. Preserve the existing lookup/reference tests, but add approach-distance and shadow-agreement checks: same-camera region continuity alone did not catch the reported horizon problem. This was the pre-integration state; the 2026-09-20 P2.6 checkpoint below supersedes its distance-support status. P3.1 and P3.2 bounded prototypes are integrated and ready for review; P3.3 is running partially. The `/lighting/` scene is runnable, but P3 is not complete and R3 is pending. The 2026-09-18 follow-up authorizes progression through P6 while rendering quality is investigated independently; publication is separate.
 
 ### Next bounded P2 packets
 
 | Packet | Owner | Output | Gate |
 | --- | --- | --- | --- |
-| P2.4 | O contract + W world/weather source | Persistent coherent weather/profile source, deterministic global identity, density/coverage separated | Clear-to-covered progression; camera-independent formation identity |
-| P2.5 | O integration + focused W representation experiment | Broad coarse representation and near refinement from the same source, explicit overlap ownership, matched shadow density | Long-distance approach/reference comparisons, no missing far formation or duplicate optical depth |
-| P2.6 | W capture/metrics + O acceptance | Banding diagnostics, transition and shadow agreement captures, generation/update/frame measurements | Revised R2 review with stated quality limits |
+| P2.4 | running — O design/viewer + Luna source | Experimental coherent CPU weather/profile source and source-map viewer; production generation not connected | Source continuity/coverage checks; formation and optical acceptance still open |
+| P2.5 | bounded candidate measured; finite world prototype integrated | [LOD study/evidence](p2-lod-evidence.md): per-axis coarse filtering, 30 distance/angle/image-size poses, stale-load rejection, single-density transitions; finite cloudscape support now shares density with sun rays | 32×64×32 passes provisional fixture gates at both image sizes; human/full-world/lighting acceptance remains open |
+| P2.6 | active — Luna source + O integration/acceptance | Fixed 72.6 km cloudscape, regional coverage, GPU coarse/fine blend; 18 new GPU checks | Approach/retreat review and production-atlas transition error remain; lighting appearance follows in P3 |
 
-These packets remain future tracked work and are not blockers to compatible P3
-lighting. Source basis and open design choices: [Nubis LOD research](research/nubis-lod.md).
+P2.4 remains an isolated source experiment; P2.5/P2.6 now have a finite-region
+integration checkpoint. P2 remains the single active phase. Source basis and open design choices:
+[Nubis LOD research](research/nubis-lod.md).
+
+**2026-09-19 continuation:** P2.4 now has a bounded CPU source experiment and
+[coverage map](http://127.0.0.1:5173/coverage-study/). The
+[distance/refinement decision](decisions/distance-coverage.md) defines ownership,
+fallback readiness and test gates for P2.5. Moving the camera overlay changes
+only residency illustration; it never changes the weather source. This is
+source-level progress and does not close distant rendering or shadow continuity.
+
+
+## Parallel continuation — 2026-09-18
+
+The user rejected the banding retest and explicitly requested a dedicated
+unconstrained-cost quality reference bench while remaining phases proceed.
+
+| Packet | Owner | State / scope |
+| --- | --- | --- |
+| Quality reference | `cloud_quality_bench`, Sol high | Independent `quality-bench/` source, orbit/zoom and dense reference; research Hillaire/Nubis and sample patterns; optimize only after quality evidence |
+| P5.1 / P5.3 / P6.1–2 preview | Root | Public entry points, ESM/declarations, independent packed consumers, vanilla/layer/environment examples, compatibility/release artifacts |
+| P5.2 | `react_bindings`, Luna high | Pinned R3F v10 wrappers and lifecycle example using the same vanilla runtime |
+| A1 / A2 | `asset_pipeline`, Luna high | Validated dense transport, cancellation, mesh-to-density reference, authored fixture and preview |
+
+Root integrates the quality result only after inspection. Production acceptance
+still needs rendering, performance, distant coverage and RTX evidence. A3/A4
+sparse and VDB round-trip experiments remain conditional, not advertised APIs.
+
+## Local preview handoff — 2026-09-18
+
+- Quality bench delivered and frozen; isolated and small production motion audits
+  plus opt-in production sampling are integrated. Full-size cached-lighting
+  acceptance and optimization remain open.
+- P5.1/P5.2/P5.3: local preview implemented; public packages, vanilla/R3F scenes,
+  lifecycle controls, measured optical parity and packed consumers pass. R5 API
+  feedback and multi-view stress remain open.
+- A1/A2: bounded dense loader and mesh conversion delivered; a Blender-authored
+  float density and separate mesh-derived fixture render in the same viewer.
+- P6.1/P6.2: local package archives, checksums, changelog, attribution and review
+  guides delivered. Two-device validation, rendering gates and publication are
+  explicitly unaccepted. This is not a completed production release.
+
+See [P5/P6 evidence](p5-p6-evidence.md).
+
+## Independent continuation — 2026-09-19
+
+The user authorized continuing library work while they review lighting.
+Rendering presets, integrator optimization, final reconstruction comparisons
+and visual/release acceptance remain open.
+
+| Packet | Delivery | Gate |
+| --- | --- | --- |
+| Shared-renderer lifecycle | Two independent cloud views, three create/resize/dispose cycles, caller source retention and host cubemap-face restoration | 28 local GPU checks passed; no asynchronous render-job concurrency, device-loss or memory-leak claim |
+| Receiver ownership | Reject overlapping receiver ownership before mutating a material; allow explicit handoff and preserve later caller hooks | Focused unit regressions passed |
+| React lifecycle hardening | Commit-time frame refs; manual layer disposal clears its frame registration and removes its owned mesh | Browser disposal/remount/camera checks; parity recorded in current evidence |
+| Asset input hardening | Strict CLDA length/header validation; mesh vertex/triangle limits checked before copying; portable revision and transformed-coordinate validation | Asset/tools regressions passed |
+| Consumer refresh | Rebuild archives and independent installed consumer from the hardened sources | See current P5/P6 evidence; nothing published |

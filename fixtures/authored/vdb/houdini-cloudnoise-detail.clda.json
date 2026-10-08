@@ -1,0 +1,127 @@
+{
+  "source": "houdini-openvdb",
+  "sourcePath": "/Users/dex/Developer/WebGPUClouds/fixtures/authored/vdb/houdini-cloudnoise-detail.vdb",
+  "runtime": "21.0.671",
+  "grid": "density",
+  "gridClass": "fog",
+  "sourceDimensions": [
+    180,
+    79,
+    111
+  ],
+  "sourceIndexBounds": {
+    "min": [
+      -93,
+      -34,
+      -50
+    ],
+    "max": [
+      86,
+      44,
+      60
+    ]
+  },
+  "destinationDimensions": [
+    180,
+    79,
+    111
+  ],
+  "bounds": {
+    "min": [
+      -748.0,
+      -276.0,
+      -404.0
+    ],
+    "max": [
+      692.0,
+      356.0,
+      484.0
+    ]
+  },
+  "voxelSize": [
+    8.0,
+    8.0,
+    8.0
+  ],
+  "encoding": "r8unorm",
+  "payloadBytes": 1578420,
+  "sourceStats": {
+    "activeVoxelCount": 784206,
+    "positiveVoxelCount": 784206,
+    "positiveVoxelFraction": 0.4968297411335386,
+    "mass": 653705.2745262521,
+    "peakDensity": 1.0,
+    "peakIndex": [
+      50,
+      50,
+      3
+    ],
+    "background": 0.0
+  },
+  "readbackParity": {
+    "samples": [
+      {
+        "index": [
+          50,
+          46,
+          0
+        ],
+        "source": 0.0022778515703976154,
+        "readback": 0.0022778515703976154,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          101,
+          52,
+          54
+        ],
+        "source": 1.0,
+        "readback": 1.0,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          50,
+          50,
+          3
+        ],
+        "source": 1.0,
+        "readback": 1.0,
+        "absError": 0.0
+      },
+      {
+        "index": [
+          118,
+          46,
+          110
+        ],
+        "source": 0.0042501166462898254,
+        "readback": 0.0042501166462898254,
+        "absError": 0.0
+      }
+    ],
+    "maxAbsError": 0.0
+  },
+  "r8Normalization": "none; native Houdini fog density is expected in [0,1]",
+  "extinctionScale": 0.025,
+  "quantizationMaxAbsError": 0.001960774496489903,
+  "indexToWorldMatrix": [
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ]
+}

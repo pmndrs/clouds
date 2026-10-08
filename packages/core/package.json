@@ -1,1 +1,21 @@
-{"name":"@clouds/core","version":"0.0.0","private":true,"type":"module","exports":"./src/index.ts","license":"MIT"}
+{
+  "name": "@clouds/core",
+  "version": "0.0.0-preview.1",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  }
+}
