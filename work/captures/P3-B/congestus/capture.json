@@ -1,0 +1,139 @@
+{
+  "url": "http://127.0.0.1:53830/cloudscape-gen/?preset=congestus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:41:33.205Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P3-B/congestus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 2.862329,
+          "marchNear": 0.09595971666666664,
+          "marchFar": 2.9430350499999998,
+          "composite": 0.5269120833333333,
+          "dome": 0.09262916666666669,
+          "cloudsTotal": 6.520865016666666
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.799999999999727,
+          "mean": 16.667045454545452
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 119,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "congestus",
+          "params": {
+            "topFraction": 0.92,
+            "domeExponent": 1.35,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "baseDefault": 0.06,
+            "coverageThreshold": 0.1,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 468.5
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P3-B/congestus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.6882391111111112,
+          "marchNear": 0.13862709999999998,
+          "marchFar": 0.9101007666666667,
+          "composite": 0.3384280833333333,
+          "dome": 0.07928566666666667,
+          "cloudsTotal": 2.154680727777778
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.666120218579234
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 214,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "congestus",
+          "params": {
+            "topFraction": 0.92,
+            "domeExponent": 1.35,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "baseDefault": 0.06,
+            "coverageThreshold": 0.1,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 468.5
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P3-B/congestus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.6840702941176471,
+          "marchNear": 0.13798956666666667,
+          "marchFar": 0.9475292500000002,
+          "composite": 0.46977125000000003,
+          "dome": 0.12882518333333337,
+          "cloudsTotal": 2.3681855441176474
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 309,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "congestus",
+          "params": {
+            "topFraction": 0.92,
+            "domeExponent": 1.35,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "baseDefault": 0.06,
+            "coverageThreshold": 0.1,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 468.5
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

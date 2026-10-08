@@ -3,3 +3,5 @@ export type { NvdfParams, VolumeGenerator, VolumeGeneratorOptions, GenerateProgr
 export { encodeProceduralWeatherMap } from './weather';
 export type { ProceduralWeatherOptions } from './weather';
 export { signedDistanceCpu, squaredDistanceToMask } from './cpu-edt';
+export { CLOUD_PRESETS } from './presets';
+export type { CloudPreset, CloudPresetName } from './presets';

@@ -1,7 +1,7 @@
 // P3-A: GPU Nubis voxel-field generator test. Generates 256x256x32 from a procedural weather map, compares the SDF with a
 // CPU exact EDT, times full generation (256^2 x 32 and 512^2 x 64, plus per-job cost), and draws profile / SDF slices.
 import { installCloudsHarness } from '../../harness/clouds-contract';
-import { createVolumeGenerator, encodeProceduralWeatherMap, signedDistanceCpu, type VolumeGenerator } from '../../../../packages/runtime/src/generate';
+import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap, signedDistanceCpu, type CloudPresetName, type VolumeGenerator } from '../../../../packages/runtime/src/generate';
 import { fromHalfBits } from '../../../../packages/runtime/src/half';
 
 const harness = installCloudsHarness();
@@ -78,12 +78,13 @@ async function readTexture(tex: GPUTexture, bytesPerTexel: number): Promise<Arra
 }
 
 interface Built { gen: VolumeGenerator; weather: GPUTexture; times: PassTimes; wallMs: number }
-async function build(dims: Dims, opts: { margin?: number; sliceDepth?: number; seed?: number } = {}): Promise<Built> {
+async function build(dims: Dims, opts: { margin?: number; sliceDepth?: number; seed?: number; preset?: CloudPresetName } = {}): Promise<Built> {
+  const preset = opts.preset ? CLOUD_PRESETS[opts.preset] : undefined;
   const times = new PassTimes();
   const enc = device.createCommandEncoder();
-  const weather = encodeProceduralWeatherMap(device, enc, { size: [dims[0], dims[1]], seed: opts.seed ?? 3 });
+  const weather = encodeProceduralWeatherMap(device, enc, { ...preset?.weather, size: [dims[0], dims[1]], seed: opts.seed ?? 3 });
   device.queue.submit([enc.finish()]);
-  const gen = createVolumeGenerator(device, { dims, voxelSize: VOXEL, weather, marginVoxels: opts.margin, sliceDepth: opts.sliceDepth, timestamps: times.writes });
+  const gen = createVolumeGenerator(device, { dims, voxelSize: VOXEL, weather, params: preset?.params, marginVoxels: opts.margin, sliceDepth: opts.sliceDepth, timestamps: times.writes });
   await device.queue.onSubmittedWorkDone();
   const t0 = performance.now();
   const e2 = device.createCommandEncoder();
@@ -159,6 +160,23 @@ check(sCons.signFlips === 0 && fCons.signFlips === 0, 'conservative field has no
 check(Math.abs(fCons.maxUndershoot) <= 4 * VOXEL, `conservative undershoot bounded (${fCons.maxUndershoot.toFixed(2)} m)`);
 const vol = main.gen.volume;
 check(vol.dims.join() === DIMS.join() && vol.extentMeters.join() === [DIMS[0] * VOXEL, DIMS[2] * VOXEL, DIMS[1] * VOXEL].join(), 'GpuCloudVolume shape: dims (x,row,up), extent (x,up,z)');
+
+// ---------- 1b. the same conservativeness check on every weather preset (billow-eroded surfaces) ----------
+const presetStats: Record<string, { occupiedPct: number; maxOvershoot: number; maxUndershoot: number; signFlips: number }> = {};
+for (const name of Object.keys(CLOUD_PRESETS) as CloudPresetName[]) {
+  const b = await build(DIMS, { preset: name, seed: 7 });
+  const nv = new Uint8Array(await readTexture(b.gen.volume.nvdf, 4));
+  const hs = new Uint16Array(await readTexture(b.gen.volume.sdf, 2));
+  const g = new Float32Array(N); for (let i = 0; i < N; i++) g[i] = fromHalfBits(hs[i]);
+  const m = new Uint8Array(N); let occ = 0; for (let i = 0; i < N; i++) { m[i] = nv[i * 4] > 0 ? 1 : 0; occ += m[i]; }
+  const c = signedDistanceCpu(m, DIMS, VOXEL);
+  const st = stats(all, g, c);
+  presetStats[name] = { occupiedPct: 100 * occ / N, maxOvershoot: st.maxOvershoot, maxUndershoot: st.maxUndershoot, signFlips: st.signFlips };
+  log(`preset ${name}: occupied ${(100 * occ / N).toFixed(1)}%, conservative vs exact EDT (all voxels): ${fmt(st)}`);
+  check(occ > 0.005 * N, `preset ${name} makes clouds`);
+  check(st.maxOvershoot <= 1e-3 && st.signFlips === 0, `preset ${name}: SDF never overshoots the exact EDT of the NVDF mask (max ${st.maxOvershoot.toExponential(2)} m), no sign flips`);
+  b.gen.destroy(); b.weather.destroy();
+}
 
 // ---------- 2. amortization ----------
 {
@@ -267,6 +285,6 @@ harness.ready({
     frameMs, renderSize: [canvas.width, canvas.height],
     sdf256: { rawSamples: sRaw, rawAll: fRaw, conservativeSamples: sCons, conservativeAll: fCons, voxelMeters: VOXEL },
     timings: timings.map(t => ({ dims: t.dims, oneShotGpuMs: t.unslicedMs, slicedGpuMs: t.slicedMs, wallMs: t.wallMs, jobs: t.jobs, perJobMs: t.perJobMs, byStage: t.byLabel })),
-    checks: lines.filter(l => l.startsWith('PASS') || l.startsWith('FAIL')).length, failures,
+    presetStats, checks: lines.filter(l => l.startsWith('PASS') || l.startsWith('FAIL')).length, failures,
   }),
 });

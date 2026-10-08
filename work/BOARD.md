@@ -516,7 +516,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Phase 3 — Whole sky and generated cloudscapes
 
-### [~] P3-B Generator quality: natural cumulus fields · Sonnet (Fable on failure)
+### [x] P3-B Generator quality: natural cumulus fields · Sonnet (Fable on failure)
 - **Owns:**
   - `packages/runtime/src/generate/**`
   - `examples/lab/runtime-tests/generate/**`
@@ -635,6 +635,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-08: P3-B accepted: generated cumulus fields read as real cumulus. Follow-up for the P3 art pass: thick generated undersides go charcoal-black in their cores, seen from the ground (`work/captures/P3-B/cumulus/ground.jpg`), and need lighter blue-grey bases. Congestus height is capped by the 512 m volume.
 - 2026-10-08: P2-03 accepted as the working demo: 60 fps at 2560×1440, whole-frame GPU about 4.3 ms, shadows on the water. Known gaps: boxy generated clouds (P3-B), cloud reflections need `clouds.reflection()` in the adapter plus an ocean hook (P2-05), and ocean tile crosshatch at 300 m.
 - 2026-10-08: P4-A follow-up: the mode-2 profile mapping (`saturate(−sdf/depth)^γ`) saturates too fast, so authored clouds read as soft sphere clusters (`work/captures/P4-A/edge.jpg`). Fit Guerrilla's profile-vs-SDF relation from the pack data (it ships both) in P4-B.
 - 2026-10-08: P2-A ocean polish for Phase 2: a darker LOD band about 1–3 km out at grazing angles (see `work/captures/P2-A/sunset.jpg`), faint tile repetition, no foam. The page calibrates for about 6 s before ready (`?nocal=1` skips it).

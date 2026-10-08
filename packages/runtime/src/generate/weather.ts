@@ -6,11 +6,15 @@ export interface ProceduralWeatherOptions {
   seed?: number;
   /** fBm frequency across the whole map. Default 4. */
   scale?: number;
-  /** Coverage ramps from 0 at `coverageLo` to 1 at `coverageHi` of the fBm value. Defaults 0.5 / 0.68. */
+  /** Coverage ramps from 0 at `coverageLo` to 1 at `coverageHi` of the fBm value. Defaults 0.42 / 0.8 (a wide ramp: coverage stays a smooth, peaked field). */
   coverageLo?: number;
   coverageHi?: number;
   /** Width (fraction of the map) of the fade to zero at the borders. Default 0.08. */
   border?: number;
+  /** 0..1: blend from plain fBm (0) to one dome per Worley cell (1). Default 0. */
+  cellular?: number;
+  /** Worley cells across the map when `cellular` > 0. Default 6. */
+  cellScale?: number;
 }
 
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
@@ -34,12 +38,12 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm',
     usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
   });
-  const data = new ArrayBuffer(32);
+  const data = new ArrayBuffer(48);
   const u = new Uint32Array(data), f = new Float32Array(data);
   u[0] = w; u[1] = h;
   f[2] = options.seed ?? 1; f[3] = options.scale ?? 4;
-  f[4] = options.coverageLo ?? 0.5; f[5] = options.coverageHi ?? 0.68; f[6] = options.border ?? 0.08;
-  const uniforms = device.createBuffer({ label: 'weather params', size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  f[4] = options.coverageLo ?? 0.42; f[5] = options.coverageHi ?? 0.8; f[6] = options.border ?? 0.08; f[7] = options.cellular ?? 0; f[8] = options.cellScale ?? 6;
+  const uniforms = device.createBuffer({ label: 'weather params', size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(uniforms, 0, data);
   const bindGroup = device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),

@@ -1,0 +1,142 @@
+{
+  "url": "http://127.0.0.1:53916/cloudscape-gen/?preset=stratocumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:41:39.993Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P3-B/stratocumulus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 2.901702,
+          "marchNear": 0.11395448333333337,
+          "marchFar": 1.6392431000000003,
+          "composite": 0.5606864500000001,
+          "dome": 0.09269795,
+          "cloudsTotal": 5.308283983333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.665217391304346
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 123,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "stratocumulus",
+          "params": {
+            "topFraction": 0.3,
+            "domeExponent": 3.2,
+            "billowAmp": 0.28,
+            "billowCellMeters": 200,
+            "baseDefault": 0.1,
+            "coverageThreshold": 0.1,
+            "scaleBase": 0.35,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 472.90000000596046
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P3-B/stratocumulus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.7013038888888888,
+          "marchNear": 0.13984226666666666,
+          "marchFar": 0.8697325000000001,
+          "composite": 0.5210879833333333,
+          "dome": 0.08103551666666665,
+          "cloudsTotal": 2.313002155555556
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.665775401069517
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 218,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "stratocumulus",
+          "params": {
+            "topFraction": 0.3,
+            "domeExponent": 3.2,
+            "billowAmp": 0.28,
+            "billowCellMeters": 200,
+            "baseDefault": 0.1,
+            "coverageThreshold": 0.1,
+            "scaleBase": 0.35,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 472.90000000596046
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P3-B/stratocumulus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.6130002941176471,
+          "marchNear": 0.14667964999999997,
+          "marchFar": 1.16068015,
+          "composite": 0.8446781499999998,
+          "dome": 0.13285140000000004,
+          "cloudsTotal": 2.8978896441176465
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66541666666667
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 313,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "stratocumulus",
+          "params": {
+            "topFraction": 0.3,
+            "domeExponent": 3.2,
+            "billowAmp": 0.28,
+            "billowCellMeters": 200,
+            "baseDefault": 0.1,
+            "coverageThreshold": 0.1,
+            "scaleBase": 0.35,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 472.90000000596046
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

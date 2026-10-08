@@ -1,0 +1,136 @@
+{
+  "url": "http://127.0.0.1:53714/cloudscape-gen/?preset=cumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:41:26.033Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P3-B/cumulus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 3.812467,
+          "marchNear": 0.10189226666666669,
+          "marchFar": 2.7587453333333345,
+          "composite": 0.5453084499999998,
+          "dome": 0.1436539833333333,
+          "cloudsTotal": 7.362067033333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.66629213483146
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 120,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.8,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 852.5999999940395
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P3-B/cumulus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.8657905555555554,
+          "marchNear": 0.1467768833333333,
+          "marchFar": 1.1156525000000004,
+          "composite": 0.47312671666666684,
+          "dome": 0.08652093333333334,
+          "cloudsTotal": 2.6878675888888894
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.666486486486484
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 216,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.8,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 852.5999999940395
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P3-B/cumulus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGrid": 0.7049931764705881,
+          "marchNear": 0.1308646666666667,
+          "marchFar": 1.6476957333333337,
+          "composite": 0.5708725666666667,
+          "dome": 0.1211598166666667,
+          "cloudsTotal": 3.175585959803922
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 312,
+        "cloudsReady": true,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.8,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 28,
+          "wallMs": 852.5999999940395
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
