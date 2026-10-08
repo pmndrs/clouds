@@ -785,6 +785,34 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   and `backlit` read as towering cumulus. Include a side-by-side with the old
   tower.
 
+### [~] P4-F Scripted fluid-sim hero clouds (Houdini Pyro) · Sonnet
+- **Owns:** `scripts/vdb/authoring/sim/**` (new) and `assets/clouds/heroes/sim-*/**` (new; each under 4 MB).
+- **Why:** scripted Cloud SOP recipes top out at "pile of soft spheres"
+  (`work/captures/P4-E2/`). Guerrilla grew their clouds with fluid simulation
+  (Nubis³ s63–64, Aero solver).
+- **Does:** a hython script that grows clouds with Houdini 21's SOP-level Pyro
+  (Pyro Source → Pyro Solver SOP, or the DOP pyro network if SOP Pyro isn't
+  suitable):
+  - **Source:** a broad flat disc or ellipse emitting density and temperature
+    near the ground of the sim domain.
+  - **Physics:** buoyancy plus turbulence and disturbance, so rising thermals
+    form billowing turrets. Run for a few hundred frames at a voxel size that
+    keeps the run under about 10 minutes.
+  - **Output:** cache one late frame as a VDB, optionally add a light Cloud
+    Noise pass, then convert with `vdb_to_nvdf.py --mode fog` at 8 m.
+  - Make two clouds: `sim-cumulus` (fair-weather, about 700 m) and
+    `sim-congestus` (towering, about 1 km).
+  - Document the recipe and its knobs in the README, so a human artist could
+    take it over.
+- **Acceptance:**
+  - Flagship captures (`?cloud=heroes/sim-cumulus` and `heroes/sim-congestus`;
+    the orchestrator adds the whitelist entries) at `ground`, `edge` and
+    `backlit` read as cauliflower cumulus with internal structure, not
+    spheres. Include a side-by-side with `heroes/tower`.
+  - Sim time and file sizes are reported.
+  - If Houdini Indie limits or performance block it, report exactly what and
+    why.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
