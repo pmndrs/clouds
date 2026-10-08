@@ -1016,6 +1016,23 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Frame p95 ≤ 1.5× p50.
   - Parity passes; `pnpm check` green.
 
+## Phase 7 — Release
+
+### [~] P7-A React Three Fiber v10 bindings · Sonnet
+- **Owns:** `packages/react/**` (new `@clouds/react`; stub exists) and `examples/lab/r3f/**` (wired).
+- **Read-only:** `packages/three` (the adapter; consume its public API), `packages/runtime`, `node_modules/@react-three/fiber` (v10 alpha) and `node_modules/@pmndrs/sky` (its `react` entry, `<Sky>`, `useSky`, `<AutoHaze>`, and how it hooks the R3F v10 render pipeline: `useRenderPipeline`).
+- **Does:** idiomatic R3F v10 bindings.
+  - `<Clouds volume="/clouds/parkouring/" position={[0, 500, 0]} quality="high" {...settings} />` and `useClouds()` for the instance.
+  - Generated cloudscapes: `<Cloudscape preset="cumulus" />`, using the generator and streaming helpers.
+  - Integrates with the R3F v10 render pipeline (`useRenderPipeline` or equivalent) so the clouds node composites after the scene pass and haze, and works with `@pmndrs/sky/react`'s `<Sky>` and `useSky()` for lighting.
+  - Lifecycle: mount/unmount, prop changes (volume swap, settings), Suspense for asset loading, dispose.
+- **Demo page:** `r3f/` is a minimal R3F app with `<Canvas>` (WebGPU), `<Sky>`, ground and `<Clouds>`, plus bookmarks and the capture contract.
+- **Acceptance:**
+  - A capture of the demo matches the three-adapter page's image for the same bookmark (report the mean |Δ|).
+  - Remount and prop-change tests: unit tests where possible, plus a page mode that swaps volume and settings and remounts, with no GPU errors and no leaks (report the `device.destroy` and texture counts if available).
+  - The user-facing code in the demo is ≤ 20 lines for clouds.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
