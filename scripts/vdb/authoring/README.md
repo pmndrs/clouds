@@ -24,7 +24,7 @@ Edit the `RECIPES` dict at the top of the script; every value is a real parm nam
 
 | Node / parm | Effect | Used here |
 | --- | --- | --- |
-| Source shapes | Overall silhouette. Ellipsoids (rx, ry, rz) give a fog bank; stacked spheres give a tower. Overlap them generously. | 8 to 30 spheres |
+| Source shapes | Overall silhouette. Ellipsoids (rx, ry, rz) give a fog bank; a single stacked column of spheres gives a smoke plume, not a cumulus. A cumulus tower is a broad flat foot plus rings of domed cells (6 per layer, 6 layers, radius about 100 m, ring radius 190-225 m, so mid-height is as wide as the base), a slim core, and a +x drift of 0.13 m per m of height for shear. Overlap them generously. | 8 to 30 spheres |
 | cloud `uniformsamples=By Size`, `divsize` | Authoring voxel size (m). 4 m then area-averaged to 8 m keeps the fine noise clean. | 4 |
 | cloud `exteriorband` / `interiorband` (with `useworldspaceunits`) | Width in metres of the soft density shoulder. **The noise only erodes where density has a gradient**, so a narrow band (the 0.1 default, or 50 m) leaves the spheres smooth. 120-200 m is what made the erosion visible. | 60 to 200 |
 | cloud `densitymultiplier` | Steepness of the shoulder. With wide bands keep it low (2); high values re-saturate to 1 and hide the noise. | 2 |
@@ -36,14 +36,14 @@ Edit the `RECIPES` dict at the top of the script; every value is a real parm nam
 | cloudnoise `noiseoctaves`, `noiserough` | Fractal detail and roughness of each pass. | 3-4, 0.5-0.6 |
 | cloudnoise `advectnoise`, `advectamp`, `advectelemsize` | Domain warp: swirls the lumps so they look sheared and rolled instead of uniform. | on for big passes |
 | vdbsmooth | One light mean filter before resampling, so no voxel stair-steps remain. | 1 x r1 |
-| flat base `volumewrangle` | `@density *= smooth(base, base+fade, @P.y)`: flat bottom for fair-weather cumulus and ground fog. | fairweather 40 m, fog 0 m |
+| flat base `volumewrangle` | `@density *= smooth(base, base+fade, @P.y)`: flat bottom for fair-weather cumulus and ground fog. | tower 15 m, fairweather 40 m, fog 0 m |
 | `--iso` (converter) | Density level that counts as the cloud surface. 0.3 for towers and cumulus; 0.15 for thin fog so it stays connected. | see recipes |
-| `scale` (recipe) | Scales the layout and every length parm together. Needed because of the size budget below. | tower 0.77 |
+| `scale` (recipe) | Scales the layout and every length parm together. Needed when over the size budget below. | 1 (all) |
 
 ## Size budget
 
 `nvdf.bin` (4 bytes) + `sdf.bin` (2 bytes) are dense over the bounding box, so size = 6 x dims. The 4 MB cap is about
-650 k voxels at 8 m. The tower as first authored (1.2 km x 800 m wide) was 7.5 MB, so it is built at scale 0.77. The
+650 k voxels at 8 m. The P4-E column tower (1.2 km x 800 m wide) was 7.5 MB and had to be built at scale 0.77. The P4-E2 congestus tower is about 690 x 930 x 580 m and is 3.58 MiB at scale 1. The
 fog bank is thin and long, so it fits full size. To author a bigger cloud, raise `--voxel-size` in `convert` to 12
 (the loader accepts it, only 8 m is verified), or accept a bigger file.
 
@@ -52,3 +52,7 @@ fog bank is thin and long, so it fits full size. To author a bigger cloud, raise
 1. Copy a recipe and a `*_spheres` function (or replace the sources by a curve + sweep, or any closed polygon / point-with-pscale model; for points set the Cloud SOP `input` to 1).
 2. Start with a wide band and low `densitymultiplier`, look at the preview PNG, then add noise passes coarse to fine.
 3. Convert and render in the flagship; judge the edge and backlit views. If the base is too dark use the converter's `--scale-gain` (P4-B), not the VDB.
+
+## Tower (P4-E2 rebuild)
+
+The first tower (one stacked column of spheres) read as a smoke plume. The congestus recipe: 5 flattened foot ellipsoids (y centre 125, ry 125, wide in x/z), then 6 layers of 4-6 domed cells (ry = 1.2 rx) on rings, a slim core, 2 crowning domes at different heights, everything leaning +x with height. Cloud SOP bands 200 m, secondary shapes 160 points at 42 m, 3 Cloud Noise passes (210 / 70 / 28 m), flat base wrangle at 15 m. The cells keep notches between them because the core is narrow; if you widen the core the silhouette fills in to a column again.

@@ -1,0 +1,121 @@
+{
+  "url": "http://127.0.0.1:62402/flagship/?cloud=heroes/tower",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:00:15.592Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-E2/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5963523833333334,
+          "skyCompute": 0.136123,
+          "lightGridReduce": 0.041412,
+          "lightGrid": 0.033704,
+          "marchNear": 0.2292568166666666,
+          "marchFar": 1.01655425,
+          "composite": 0.71581645,
+          "dome": 0.1253771666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "heroes/tower",
+        "frames": 94,
+        "assetLoadMs": 55.5,
+        "firstCloudFrameMs": 42.69999998807907
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-E2/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0930715999999998,
+          "skyCompute": 0.135456,
+          "lightGridReduce": 0.041412,
+          "lightGrid": 0.033704,
+          "marchNear": 0.25602736666666676,
+          "marchFar": 1.2006913333333336,
+          "composite": 0.8166014333333336,
+          "dome": 0.10932821666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "heroes/tower",
+        "frames": 188,
+        "assetLoadMs": 55.5,
+        "firstCloudFrameMs": 42.69999998807907
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-E2/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0005418833333333,
+          "skyCompute": 0.113999,
+          "lightGridReduce": 0.041412,
+          "lightGrid": 0.02947155555555556,
+          "marchNear": 0.26692436666666663,
+          "marchFar": 0.9347634499999999,
+          "composite": 0.8792956000000003,
+          "dome": 0.09115128333333337
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "heroes/tower",
+        "frames": 283,
+        "assetLoadMs": 55.5,
+        "firstCloudFrameMs": 42.69999998807907
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

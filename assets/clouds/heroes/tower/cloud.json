@@ -2,52 +2,52 @@
   "name": "tower",
   "source": "tower.vdb (fog mode, via scripts/vdb/vdb_to_nvdf.py)",
   "dims": [
-    74,
-    69,
-    117
+    82,
+    68,
+    112
   ],
   "voxelSizeMeters": 8.0,
   "layout": "x fastest, then y (map row, +Y = up in the source image), then z (slice, up); texel (x,y,z) at ((z*dims[1]+y)*dims[0]+x)",
   "cropOffset": [
-    -40,
-    -35,
-    0
+    -36,
+    -36,
+    4
   ],
   "occupiedMin": [
-    -39,
-    -34,
-    1
+    -35,
+    -35,
+    5
   ],
   "occupiedMax": [
-    32,
-    32,
-    115
+    44,
+    30,
+    114
   ],
   "margin": 1,
   "boundsMeters": {
     "note": "source axes: x = map column, y = map row, z = up; origin = corner of source-lattice voxel (0,0,0). VDB mapping: x = hou X, row = hou Z, up = hou Y.",
     "min": [
-      -320.0,
-      -280.0,
-      0.0
+      -288.0,
+      -288.0,
+      32.0
     ],
     "max": [
-      272.0,
-      272.0,
-      936.0
+      368.0,
+      256.0,
+      928.0
     ],
     "size": [
-      592.0,
-      552.0,
-      936.0
+      656.0,
+      544.0,
+      896.0
     ]
   },
   "houdini": {
     "note": "world position (hou axes x, y-up, z, metres after --world-scale) of the crop min corner and of source voxel (0,0,0) corner",
     "cropMinWorld": [
-      -322.0,
-      -2.0,
-      -282.0
+      -290.0,
+      30.0,
+      -290.0
     ],
     "sourceOriginCornerWorld": [
       -2.0,
@@ -60,7 +60,7 @@
   "nvdf": {
     "file": "nvdf.bin",
     "format": "rgba8unorm",
-    "bytes": 2389608,
+    "bytes": 2498048,
     "channels": {
       "r": "dimensional profile (0 none, 1 full cloud)",
       "g": "detail type (0 wispy, 1 billowy)",
@@ -71,7 +71,7 @@
   "sdf": {
     "file": "sdf.bin",
     "format": "r16unorm little-endian",
-    "bytes": 1194804,
+    "bytes": 1249024,
     "encoding": {
       "minMeters": -256.0,
       "maxMeters": 4096.0,
@@ -86,7 +86,7 @@
     "mode": "fog",
     "grid": "density",
     "clampedToGrid": false,
-    "densityRef": 1.506266322135922,
+    "densityRef": 1.3642859268188474,
     "profileMapping": {
       "mapping": "pack",
       "packFit": {

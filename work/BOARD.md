@@ -774,7 +774,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Integration lines ≤ 20 for clouds (content lines separate).
   - `pnpm check` green.
 
-### [~] P4-E2 Rebuild the tower hero cloud · Sonnet
+### [x] P4-E2 Rebuild the tower hero cloud · Sonnet
 - **Owns:** `scripts/vdb/authoring/**` and `assets/clouds/heroes/tower/**`.
 - **Does:** the P4-E tower reads as a smoke or explosion column (a narrow stalk
   with a lobed head; `work/captures/P4-E/tower-*.jpg`). Rebuild it as towering

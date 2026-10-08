@@ -44,20 +44,28 @@ PX_MAX = 8 * 1024 * 1024  # voxel read guard for previews
 
 
 def tower_spheres(rnd):
-    """Towering cumulus / congestus: a wide flat-ish foot, a thick boiling trunk, and a cauliflower head with
-    side turrets.  ~900 m wide and ~1.2 km tall as authored (see the README for the runtime size note)."""
-    s = [(0, 170, 0, 190), (-190, 150, 60, 150), (200, 160, -50, 150), (40, 130, 200, 140), (-30, 150, -210, 140)]
-    # trunk: stacked, shrinking-then-swelling spheres leaning slightly
-    for i in range(7):
-        y = 260 + i * 110
-        r = 190 - 10 * i + (60 if i >= 4 else 0)
-        s.append((20 * math.sin(i * 0.9), y, 15 * math.cos(i * 0.7), r))
-    # head: ring of turrets around the top
-    for i in range(9):
-        a = i / 9 * math.tau + rnd.random() * 0.4
-        d = 150 + rnd.random() * 120
-        s.append((math.cos(a) * d, 800 + rnd.random() * 280, math.sin(a) * d * 0.9, 120 + rnd.random() * 80))
-    s += [(0, 1000, 0, 230), (0, 1100, 0, 150)]
+    """Towering cumulus / congestus: a broad flat-ish base, then a stack of domed turrets (cells) at different
+    heights.  Width stays about constant (slightly widening) with height; the whole stack drifts in +x with altitude
+    (shear).  ~560 m wide, ~900 m tall.  Spheres are (x, y, z, rx[, ry, rz])."""
+    s = []
+    # broad, squat foot: overlapping flattened ellipsoids (base plane is flattened by the flat_base wrangle)
+    for x, z, rx, rz in [(0, 0, 230, 200), (-150, 70, 150, 130), (150, -60, 160, 140), (30, 150, 140, 120), (-40, -160, 150, 120)]:
+        s.append((x, 125, z, rx, 125, rz))
+    # turrets: (height, lateral radius of ring, cell radius, count).  Each ring of cells is a layer of the tower;
+    # upper layers are about as wide as the base and the cells get taller (domed) toward the top.
+    layers = [(210, 190, 105, 6), (330, 215, 100, 6), (450, 225, 100, 6), (560, 225, 95, 6), (660, 205, 95, 5), (740, 160, 95, 4)]
+    for li, (y, ring, r, n) in enumerate(layers):
+        for i in range(n):
+            a = (i / n) * math.tau + rnd.random() * 0.9 + li * 0.7
+            d = ring * (0.6 + 0.4 * rnd.random())
+            yy = y + (rnd.random() - 0.5) * 120
+            rr = r * (0.75 + 0.5 * rnd.random())
+            s.append((math.cos(a) * d + 0.13 * yy, yy, math.sin(a) * d * 0.9, rr, rr * 1.2, rr))
+    # slim core so the stack is one connected mass but the cells still stand proud with notches between them
+    for y in range(200, 760, 120):
+        s.append((0.13 * y, y, 0, 130 + 0.03 * (y - 180), 110, 120))
+    # two dominant turrets crowning the top, at different heights
+    s += [(0.13 * 800 - 60, 810, 20, 110, 130, 105), (0.13 * 700 + 150, 720, -70, 95, 110, 95)]
     return s
 
 
@@ -98,10 +106,10 @@ def fairweather_spheres(rnd):
 
 RECIPES = {
     'tower': dict(
-        seed=11, spheres=tower_spheres, voxel=4.0, scale=0.77,
+        seed=11, spheres=tower_spheres, voxel=4.0, base=15.0, basefade=45.0,
         cloud=dict(
             densitymultiplier=2.0, exteriorband=200.0, interiorband=200.0, smoothiterations=1,
-            addsecondary=1, secondaryiterations=1, scatterpoints=140, secondaryshapesize=55.0,
+            addsecondary=1, secondaryiterations=1, scatterpoints=160, secondaryshapesize=42.0,
             secondaryscalemultiplier=1.0, secondarynoisemin=0.0, secondarynoisemax=1.0,
             billow=0.0, offset=0.12, flatten=0,
         ),
