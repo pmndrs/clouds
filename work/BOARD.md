@@ -514,6 +514,8 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The integration-line count stays ≤ 20.
   - `pnpm check` green.
 
+- [x] P2-06 Phase 2 acceptance by the orchestrator: all measures pass ([report](reports/P2-06.md)).
+
 ## Phase 3 — Whole sky and generated cloudscapes
 
 ### [x] P3-B Generator quality: natural cumulus fields · Sonnet (Fable on failure)
