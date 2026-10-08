@@ -454,7 +454,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Main-view captures and parity are unchanged.
   - `pnpm check` green.
 
-### [~] P2-03 Open-water demo scene · Sonnet
+### [r] P2-03 Open-water demo scene · Sonnet
 - **Owns:** `examples/lab/open-water/**` (page wired into vite).
 - **Read-only:** `packages/three` (the adapter), `packages/runtime`,
   `examples/lab/scenes/ocean` (P2-A).
@@ -481,6 +481,46 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Shadows visible on the water.
   - Captures at all bookmarks in `work/captures/P2-03/`.
   - The integration-line count is ≤ 20.
+
+## Phase 3 — Whole sky and generated cloudscapes
+
+### [~] P3-B Generator quality: natural cumulus fields · Sonnet (Fable on failure)
+- **Owns:**
+  - `packages/runtime/src/generate/**`
+  - `examples/lab/runtime-tests/generate/**`
+  - a new preview page `examples/lab/cloudscape-gen/**` (vite input added by
+    the orchestrator)
+- **Problem:** P2-03 shows generated clouds as boxy, flat-topped masses with
+  vertical walls and stacked shelves (`work/captures/P2-03/{horizon,sunset}.jpg`).
+  - The NVDF profile comes from a 2D coverage edge gradient times height
+    gradients, which gives vertical walls.
+  - Nothing provides mid-scale structure (100–500 m lobes and billows). In
+    Nubis that comes from fluid-sim profiles. The runtime up-rez noise only adds
+    detail at roughly 100 m and below, so it can't fix silhouettes.
+- **Does:** bake natural cumulus structure into the NVDF at generation time
+  (free at runtime):
+  - **Rounded, height-varying envelopes:** the coverage boundary shrinks toward
+    the top for domes and slightly at the base. Bases are flat-ish but soft, and
+    cloud height varies with local coverage (towering where coverage is high).
+  - **3D mid-frequency billow structure:** an inverted-Worley / Perlin-Worley
+    fBm at about 60–400 m, applied as profile erosion, weighted to the tops and
+    sides. This gives cauliflower lobes.
+  - **Profile gradient:** match the fitted pack statistics from P4-B
+    (`scripts/vdb/nvdf_math.py` `PACK_FIT`): profile vs SDF depth, detail type
+    by height (wispy bases, billowy tops), density scale.
+  - **Find and fix the shelves/terraces cause:** quantization? Slice
+    amortization? SDF conservativeness? Name it in the report.
+  - Weather presets: `cumulus` (scattered fair weather), `congestus`
+    (towering), `stratocumulus` (broken deck).
+- **Acceptance:**
+  - The `cloudscape-gen` preview page renders a 4 km field (512×512×64) with
+    the runtime at ground, horizon and above-layer bookmarks for each preset.
+    Side-by-side against the P2-03 captures, Tidewater P0-04 and Parkouring.
+    Silhouettes must read as cumulus: domed lobes, no vertical walls, no
+    terraces.
+  - Generation cost is still amortizable (report per-job ms).
+  - The SDF stays conservative (test page).
+  - `pnpm check` green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
