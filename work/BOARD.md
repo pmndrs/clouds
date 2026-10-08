@@ -956,6 +956,34 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Parity passes (or a documented variant); `pnpm check` green.
   - Be honest about what remains versus offline.
 
+## Phase 5 — Scale down to laptops and phones
+
+### [~] P5-A Generator and streaming memory diet · Sonnet
+- **Owns:**
+  - `packages/runtime/src/generate/**`
+  - `examples/lab/runtime-tests/{generate,stamp}/**`
+  - `examples/lab/plains-flight/**`, measurement only
+- **Problem:**
+  - The 3D jump flood allocates about 268 MB of seed buffers at 512²×64.
+  - Streaming shares a scratch of about 300 MB.
+  - Phones can't afford this, and it's wasteful on desktop.
+- **Does:** cut peak memory by 8× or more with identical SDF guarantees. Options:
+  - packed seeds (for example u32 voxel index, or 3×10-bit coordinates)
+  - a single ping-pong pair instead of four buffers
+  - tiled or banded JFA with halo
+  - an exact separable EDT on the GPU (Felzenszwalb in 3 passes) instead of
+    JFA; often cheaper and exact
+  Also report and reduce the generator's total footprint (weather maps,
+  intermediates). Add a `memoryBytes` report to the generator and streaming
+  APIs.
+- **Acceptance:**
+  - Peak scratch ≤ 40 MB at 512²×64.
+  - The SDF never overshoots the CPU EDT (test pages).
+  - Output is identical or better (report the max |Δ| SDF vs the old path).
+  - Generation time no worse than +20%.
+  - Plains flight still has no pop.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
