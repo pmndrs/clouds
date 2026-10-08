@@ -18,6 +18,8 @@ These are unpublished previews, not accepted production visuals or presets.
 - [Public API ownership contract](docs/decisions/public-api.md)
 - [Build, pack and independent consumer checks](docs/release-preview.md)
 
+**Start here: [audit and reset plan (2026-10-08)](docs/AUDIT-2026-10.md).** It supersedes the phase/gate planning docs below, which are kept for history.
+
 ## Implementation planning
 
 - [Overall status: what works now and what comes next](docs/project-status.md)
