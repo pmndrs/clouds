@@ -1211,6 +1211,29 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Plains-flight streaming swaps stay invisible (mean |d| ≤ 1/255).
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
+### [~] P6-B Storm cell and lightning · Sonnet (Fable on failure)
+- **Owns:**
+  - `packages/runtime/src/generate/{evolution.ts,weather.ts,shaders.ts,presets.ts}`, for the storm cell
+  - `packages/runtime/src/shaders/march.wgsl.ts`, `packages/runtime/src/shaders/frame.wgsl.ts` and minimal `runtime.ts`, for lightning
+  - a new `packages/runtime/src/lightning.ts`
+  - the three adapter's settings pass-through only if needed
+  - a new `examples/lab/storm/` page and its `vite.config.ts` input line
+- **Does:**
+  1. **Storm cell:** a cumulonimbus life cycle on top of P6-A evolution. One cell grows from cumulus through congestus to a tall cell with a flattened, spreading anvil top over about 2 minutes of sim time, then the surrounding field keeps evolving. Weather map `type`/`top` drive it. No new volume format.
+  2. **Lightning:** flashes are transient point lights inside the cloud.
+     - Use the Nubis³ glow term `pow(1 - d/r, 12) * (1 - sat(rho*5))` from `docs/research/nubis-sources.md` §4 [N3 s130, SY s71] as secondary light energy, added to the march.
+     - An API on the runtime: `runtime.flash({ position, radius, intensity, duration })`, and/or an automatic `lightning: { rate }` setting.
+     - It costs nothing when no flash is active: branch on a uniform.
+     - Flicker profile: 2–4 strokes over about 0.3 s.
+     - The temporal resolve must not smear the flash for many frames. Handle it, for example by resetting or weighting history during a flash, and document the choice.
+  3. **Demo page `storm/`:** a time-lapse storm build with periodic lightning, bookmarks `ground`, `distant` and `inside`, and `?hud=0&clean=1`, using the capture harness contract.
+- **Acceptance:**
+  - Captures of the storm at t = 0, 30, 60, 90 and 120 s sim time, showing the build-up and anvil.
+  - Flash frames lit from inside: the glow is soft and volumetric, not a sprite.
+  - Cost: ≤ +1 ms over the same static cloudscape at 2560×1440 high, both outside and during flashes.
+  - Flagship and open-water A/B unchanged with no flash.
+  - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
