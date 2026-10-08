@@ -1180,7 +1180,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     the docs import paths if subpaths changed. You may edit `docs/guide/*.md`
     and package READMEs only for import paths.
 
-### [~] P7-E Sky-layer and handoff fixes at cloud altitude · Sonnet (Fable on failure)
+### [x] P7-E Sky-layer and handoff fixes at cloud altitude · Sonnet (Fable on failure)
 - **Owns:**
   - `packages/runtime/src/{sky-layer.ts,shaders/sky-layer.wgsl.ts,shaders/composite.wgsl.ts,dome.ts,shaders/dome.wgsl.ts}`
   - minimal `runtime.ts`
@@ -1199,6 +1199,16 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Clean before/after captures for each bug, with root causes named.
   - No regression on the P3-C2 bookmarks or the flagship (A/B).
   - 60 fps holds.
+  - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
+
+### [~] P7-F Slab-sided generated clouds · Sonnet (Fable on failure)
+- **Owns:** `packages/runtime/src/generate/{weather.ts,shaders.ts,presets.ts,generator.ts}` and its tests; `examples/lab/open-water/**` and `examples/lab/cloudscape-gen/**` for measurement only.
+- **Problem:** at the cumulus preset's `cellular` 0.75, generated clouds seen from cloud altitude read as extruded slabs with flat vertical faces and straight creases (`work/captures/P7-E/ow-after-preset-cells/cruise.jpg`). P7-E worked around it in the demo (`cellular` 0.55); the engine still does it. The P3 note "the cumulus preset looks columnar" is the same issue.
+- **Does:** root-cause it in the generator (suspects: Worley F1 gradient creases at cell borders, coverage → profile mapping that extrudes a 2D mask vertically, a height profile that doesn't round tops and taper sides). Fix it in the engine so the presets give rounded, tapered cumulus at their defaults, then restore the open-water demo to the preset value.
+- **Acceptance:**
+  - Before/after captures from open-water `cruise` and `horizon` at preset defaults, plus cloudscape-gen `ground`, `horizon` and `above` bookmarks: no flat vertical faces or straight creases.
+  - Generation cost per job is not more than 10% higher.
+  - Plains-flight streaming swaps stay invisible (mean |d| ≤ 1/255).
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
 ## Ahead of phase (parallel, no file overlap with P1)

@@ -1,6 +1,8 @@
 import { FRAME_WGSL } from './frame.wgsl';
 import { lightGridWgsl } from './light-grid.wgsl';
+import { BILLOW_WGSL } from '../generate/shaders';
 import { LIGHTING_WGSL } from './lighting.wgsl';
+import { SKY_FIELD_WGSL, SKY_PARAMS_WGSL } from './sky-layer.wgsl';
 
 /** Dome refresh pass bindings (group 1). Group 0 is the volume; there is no atmosphere group (sun and ambient come from the sky light buffer). */
 export const DOME_FRAME_BINDING = 0;      // Frame uniform (same struct as the march)
@@ -9,6 +11,10 @@ export const DOME_OUT_BINDING = 2;        // rgba16float storage, write
 export const DOME_PARAMS_BINDING = 3;     // DomeParams uniform
 export const DOME_LIGHT_GRID_BINDING = 4; // + sampler at 5
 export const DOME_SKY_LIGHT_BINDING = 6;
+/** P7-E: the distant sky layer's baked weather window, its sampler and its params, so the dome sees the clouds beyond the voxel box too. */
+export const DOME_SKY_WEATHER_BINDING = 7;
+export const DOME_SKY_SAMPLER_BINDING = 8;
+export const DOME_SKY_PARAMS_BINDING = 9;
 export const DOME_PARAM_BYTES = 48;
 /** The dome is refreshed over this many frames (1/16 of the texels per frame, 4x4 interleave). */
 export const DOME_REFRESH_FRAMES = 16;
@@ -77,17 +83,28 @@ ${FRAME_WGSL}
 struct DomeParams {
   origin: vec3<f32>, densityScale: f32,   // reference point (world, m); P*S density multiplier
   size: u32, slot: u32, maxSteps: u32, slotCount: u32,
-  stepMin: f32, stepRel: f32, maxDistance: f32, _p1: f32,
+  stepMin: f32, stepRel: f32, maxDistance: f32, skyOn: f32,   // skyOn: 1 when the sky layer's weather window is bound and the layer is on
 }
 @group(1) @binding(${DOME_PARAMS_BINDING}) var<uniform> dome: DomeParams;
 ${lightGridWgsl(1, DOME_LIGHT_GRID_BINDING)}
 @group(1) @binding(${DOME_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
+@group(1) @binding(${DOME_SKY_WEATHER_BINDING}) var skyWeather: texture_2d<f32>;
+@group(1) @binding(${DOME_SKY_SAMPLER_BINDING}) var skySampler: sampler;
+@group(1) @binding(${DOME_SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
+${SKY_PARAMS_WGSL}
+${BILLOW_WGSL}
+${SKY_FIELD_WGSL}
 ${DOME_OCT_WGSL}
 ${LIGHTING_WGSL}
 
 const SDF_SKIP_MARGIN = 6.0;
 const SDF_SKIP_RANGE = 48.0;
 const LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3;
+
+const SKY_SUN_T = array<f32, 6>(64.0, 100.0, 145.0, 205.0, 285.0, 400.0);
+const SKY_SUN_L = array<f32, 6>(32.0, 40.0, 50.0, 70.0, 90.0, 140.0);
+const SKY_UP_T = array<f32, 3>(24.0, 80.0, 192.0);
+const SKY_UP_L = array<f32, 3>(48.0, 64.0, 160.0);
 
 fn shade(texel: vec2<u32>) {
   let dir = domeOctDecode((vec2<f32>(texel) + 0.5) / f32(dome.size));
@@ -96,9 +113,23 @@ fn shade(texel: vec2<u32>) {
   var T = 1.0;
   var radiance = vec3(0.0);
   let interval = volumeRayInterval(origin, dir);
-  let tEnd = min(interval.y, dome.maxDistance);
-  var t = max(interval.x, 0.0);
-  if (dir.y > -0.02 && interval.x <= interval.y && t < tEnd) {
+  let boxHit = interval.x <= interval.y && interval.y > 0.0;
+  let sky = dome.skyOn > 0.5;
+  // The ray runs through the voxel box (SDF march below) and, with the sky layer on, through the analytic cloud field outside it
+  // (the same field the layer renders in the main view; without this the reflection of a cloud ends flat at the box wall).
+  var tEnd = select(min(interval.y, dome.maxDistance), dome.maxDistance, sky);
+  var t = select(max(interval.x, 0.0), 0.0, sky);
+  if (sky) {   // clip to the cloud shell's slab
+    let sy = SKY.shell.x - origin.y;
+    let sy1 = SKY.shell.y - origin.y;
+    if (abs(dir.y) > 1.0e-4) {
+      let ta = sy / dir.y;
+      let tb = sy1 / dir.y;
+      t = max(t, min(ta, tb));
+      tEnd = min(tEnd, max(ta, tb));
+    } else if (sy > 0.0 || sy1 < 0.0) { tEnd = -1.0; }
+  }
+  if (dir.y > -0.02 && (sky || boxHit) && t < tEnd) {
     let jitter = ign(vec2<f32>(texel), frame.frameIndex);
     let cosSun = dot(dir, frame.sunDir);
     let phase = cloudPhase(cosSun);
@@ -111,43 +142,77 @@ fn shade(texel: vec2<u32>) {
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let sunGrid = frame.sunDir * INLINE_FAR;
     let invExtentY = 1.0 / cloudVolume.extent.y;
+    let ext = dome.densityScale * frame.extinction;
     var depthMax = 0.0;
     var sdfBound = 0.0;
     var sdfFetchT = -1.0e9;
     var capped = true;
     for (var i = 0u; i < dome.maxSteps; i++) {
       if (t >= tEnd || T < frame.tCutoff) { capped = false; break; }
-      let p = origin + dir * t;
-      var sdf = sdfBound + (t - sdfFetchT);
-      if (sdf > -SDF_SKIP_MARGIN || t - sdfFetchT > SDF_SKIP_RANGE) {
-        sdf = cloudDistance(p);
-        sdfBound = sdf; sdfFetchT = t;
-      }
-      let step = max(sdf, max(dome.stepMin, t * dome.stepRel));
-      if (sdf < 0.0) {
-        let ts = t + jitter * step;
-        let ds = min(step, tEnd - t);
-        if (ts < tEnd) {
-          let ps = origin + dir * ts;
-          let m = sampleModeling(ps, 0.0);
-          let ps0 = m.x * m.z;   // P * S
-          if (ps0 > 0.0) {
-            let sigma = ps0 * dome.densityScale * frame.extinction;
-            let stepT = exp(-sigma * ds);
-            if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
-              let m0 = sampleModeling(ps + sunInline0, 0.0);
-              let m1 = sampleModeling(ps + sunInline1, 0.0);
-              let tauInline = (m0.x * m0.z * INLINE_NEAR + m1.x * m1.z * (INLINE_FAR - INLINE_NEAR)) * dome.densityScale * frame.extinction;
-              let grid = lightGridSample(ps + sunGrid);
-              let tau = tauInline + grid.x * frame.lightDensityScale;
-              let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
-              let lit = cloudInScatter(ps0, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
-              depthMax = max(depthMax, -sdf);
-              radiance += lit * (T * (1.0 - stepT));
+      let inBox = boxHit && t >= interval.x && t < interval.y;
+      var step = max(dome.stepMin, t * dome.stepRel);
+      if (inBox) {
+        let p = origin + dir * t;
+        var sdf = sdfBound + (t - sdfFetchT);
+        if (sdf > -SDF_SKIP_MARGIN || t - sdfFetchT > SDF_SKIP_RANGE) {
+          sdf = cloudDistance(p);
+          sdfBound = sdf; sdfFetchT = t;
+        }
+        step = max(sdf, step);
+        if (sdf < 0.0) {
+          let ts = t + jitter * step;
+          let ds = min(step, tEnd - t);
+          if (ts < tEnd) {
+            let ps = origin + dir * ts;
+            let m = sampleModeling(ps, 0.0);
+            let ps0 = m.x * m.z;   // P * S
+            if (ps0 > 0.0) {
+              let sigma = ps0 * ext;
+              let stepT = exp(-sigma * ds);
+              if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
+                let m0 = sampleModeling(ps + sunInline0, 0.0);
+                let m1 = sampleModeling(ps + sunInline1, 0.0);
+                let tauInline = (m0.x * m0.z * INLINE_NEAR + m1.x * m1.z * (INLINE_FAR - INLINE_NEAR)) * ext;
+                let grid = lightGridSample(ps + sunGrid);
+                let tau = tauInline + grid.x * frame.lightDensityScale;
+                let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
+                let lit = cloudInScatter(ps0, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
+                depthMax = max(depthMax, -sdf);
+                radiance += lit * (T * (1.0 - stepT));
+              }
+              T *= stepT;
             }
-            T *= stepT;
           }
         }
+        if (t + step > interval.y) { step = max(interval.y - t, 0.0) + 1.0e-3; }   // continue just past the wall in the sky field
+      } else if (sky) {
+        let ts = t + jitter * step;
+        let ps = origin + dir * ts;
+        let sp = skyModel(ps, -1.0, true);
+        let ps0 = sp.m.x * sp.m.z;
+        if (ps0 > 0.0) {
+          let ds = min(step, tEnd - t);
+          let sigma = ps0 * ext;
+          let stepT = exp(-sigma * ds);
+          if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
+            // The layer's light: two in-line cheap samples, six farther along the sun ray, three straight up (the voxel light grid, analytically).
+            let c0 = skyModelCheap(ps + sunInline0);
+            let c1 = skyModelCheap(ps + sunInline1);
+            var sunFar = 0.0;
+            for (var k = 0; k < 6; k++) { sunFar += skyModelCheap(ps + frame.sunDir * SKY_SUN_T[k]) * SKY_SUN_L[k]; }
+            var gridUp = 0.0;
+            for (var k = 0; k < 3; k++) { gridUp += skyModelCheap(ps + vec3(0.0, SKY_UP_T[k], 0.0)) * SKY_UP_L[k]; }
+            let tau = (c0 * INLINE_NEAR + c1 * (INLINE_FAR - INLINE_NEAR)) * ext + sunFar * ext * frame.lightDensityScale;
+            let lit = cloudInScatter(ps0, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
+            depthMax = max(depthMax, sp.depth);
+            radiance += lit * (T * (1.0 - stepT));
+          }
+          T *= stepT;
+        } else {
+          step = max(step, sp.skip);
+          if (sp.empty2d) { step = max(step, skyEmptySkip(ps, dir) - jitter * step); }
+        }
+        if (boxHit && t < interval.x) { step = min(step, max(interval.x - t, 0.0) + 1.0e-3); }   // do not step over the box: its clouds are the SDF march's
       }
       t += step;
     }

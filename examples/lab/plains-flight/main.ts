@@ -6,7 +6,8 @@
 //   ?preset= ?seed= ?quality= ?jobs= (generation jobs per frame) ?border= (coverage fade at the window edge, fraction) ?heading= (compass degrees)
 //   ?sunDrift=<deg/s> (azimuth drift, measures the light grid's steady update cost; off by default)
 //   ?k=<near>,<far> (temporal amortization rates, 1/2/4; default from the quality preset)
-//   ?hud=0 hides the debug text, ?clean=1 hides all UI. ?sky=0 turns the distant sky layer off (see the weather-origin note at the layer's configure call)
+//   ?hud=0 hides the debug text, ?clean=1 hides all UI. ?sky=0 turns the distant sky layer off (its weatherOrigin is [0, 0]: the streamer's weather is world-anchored)
+//   ?swapyaw=<deg> (heading of the swapA/swapB views; 0 = along the track) ?wo=0 (sky layer without weatherOrigin, for A/B)
 //   ?x0= ?z0= (start position)  ?exposure=  ?probe=1 (print where clouds are along the flight line, for placing the path)
 // Lines tagged `// INTEGRATION` are what clouds cost this scene; the streaming cloudscape is content, tagged `// CONTENT`.
 import { ACESFilmicToneMapping, CanvasTexture, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, RepeatWrapping, Scene, SRGBColorSpace } from 'three';
@@ -25,7 +26,7 @@ const num = (k: string, d: number) => (query.has(k) ? Number(query.get(k)) : d);
 const DURATION = 40;
 const BASE_Y = num('base', 600);           // metres: the volume's floor (cloud bases sit a little above it)
 const HEADING = num('heading', 0);         // compass degrees, north = -Z
-const START: [number, number] = [num('x0', 2048), num('z0', 2048)]; // the first window then spans world 0..4096, so its box-relative sky-layer weather equals the streamer's world weather
+const START: [number, number] = [num('x0', 2048), num('z0', 2048)];
 const LATERAL = num('lat', 50);            // metres to the right of the line, phased in between t = 24 and 32 (steers the descent into a gap)
 const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
 const SKY_LAYER = query.get('sky') !== '0';
@@ -173,11 +174,10 @@ try {
     const first = await stream.start(p.x, p.z);
     show(first, 0);
     if (SKY_LAYER) { // INTEGRATION: cloud cover from the window's edge to the horizon, the same weather recipe as the stream
-      // NOTE (weather origin): the layer bakes its weather box-relative (uv = (xz - boxMin) / extent) while the streamer's is world-anchored (uv = xz / 4096).
-      // They coincide only while the window's min corner is (0, 0), i.e. the first window. After a swap the layer's field shifts by the window step until
-      // SkyLayerOptions gains a weather origin. See work/reports/P7-D.md.
+      // weatherOrigin [0, 0]: the streamer's weather is world-anchored (uv = xz / 4096), so the layer anchors its weather and billow noise at the world origin too
+      // and stays on the streamer's field after every window swap (the layer re-bakes for the new box). ?wo=0 restores the old box-relative behaviour (A/B).
       const l = clouds.core.skyLayer, preset = CLOUD_PRESETS[presetName];
-      l.configure({ weather: { ...preset.weather, seed, border: num('border', 0) }, shape: { ...preset.params, seed }, voxelSize: WINDOW.voxel, rimWidth: 0 });
+      l.configure({ weather: { ...preset.weather, seed, border: num('border', 0) }, shape: { ...preset.params, seed }, voxelSize: WINDOW.voxel, rimWidth: 0, ...(query.get('wo') === '0' ? {} : { weatherOrigin: [0, 0] as [number, number] }) });
       l.settings.enabled = true;
     }
   }
@@ -242,7 +242,7 @@ try {
   const applyBookmark = async (name: string) => {
     if (!(name in BOOKMARK_TIMES)) throw new Error(`unknown bookmark: ${name}`);
     bookmark = name;
-    yawOverride = name.startsWith('swap') ? Math.PI / 2 : null;
+    yawOverride = name.startsWith('swap') ? (num('swapyaw', 90) * Math.PI) / 180 : null;   // ?swapyaw=<compass deg>: default 90 looks across the flight line; 0 looks along it (far-field check)
     if (name === 'swapB') {
       // Same pose as swapA; a new window centred 700 m ahead of the camera replaces the shown one, so the picture should not change.
       await seek(BOOKMARK_TIMES[name]);

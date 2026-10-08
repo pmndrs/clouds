@@ -56,6 +56,16 @@ export interface SkyLayerOptions {
    * (default when `border` > 0: border times the box size). < 0: no mask, the layer also covers the box (debug).
    */
   rimWidth?: number;
+  /**
+   * World position (x, z, metres) of the weather map's uv origin, i.e. the world point the generator's map pixel (0, 0) corner sits at.
+   * Default: the volume box's min corner, which is right for a static volume (the layer's weather is then box-relative, like the generator's).
+   * A streaming cloudscape moves the box and keeps its weather anchored in the world (generate/streaming.ts: uv = xz / weatherExtent), so
+   * pass `[0, 0]` there: the baked window and the billow noise then stay on the streamer's world field when the box is swapped, and the layer
+   * (which is re-baked for the new box) continues the voxel clouds instead of shifting by the window step.
+   */
+  weatherOrigin?: [number, number];
+  /** World extent (x, z, metres) that the weather map's uv [0, 1] spans. Default: the volume box's extent (the streamer's `weatherExtent`, 4096 m, when the box is 4096 m). */
+  weatherExtent?: [number, number];
 }
 
 export interface SkyLayer {
@@ -64,10 +74,12 @@ export interface SkyLayer {
   configure(options: SkyLayerOptions): void;
   readonly configured: boolean;
   /** Resolved parameters actually in use (after defaults): for reports and tests. */
-  readonly info: { rimWidth: number; windowSize: number; windowResolution: number; shell: [number, number]; resets: number; frames: number } | null;
+  readonly info: { rimWidth: number; windowSize: number; windowResolution: number; shell: [number, number]; weatherOrigin: [number, number]; resets: number; frames: number } | null;
   /** Bake / compile what is missing. True when the layer can render this frame. Call before `encode`. */
   prepare(encoder: GPUCommandEncoder, box: SkyBox, uniformLighting: boolean): boolean;
   encode(encoder: GPUCommandEncoder, args: SkyEncodeArgs): void;
+  /** The baked weather window, its sampler and the params buffer while the layer is enabled and baked (the reflection dome samples the same field outside the box), else null. */
+  readonly domeResources: { weather: GPUTexture; sampler: GPUSampler; params: GPUBuffer } | null;
   /** Drop the temporal history: the next frame traces every pixel. Call on a cut the layer cannot detect itself. */
   reset(): void;
   dispose(): void;
@@ -208,6 +220,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   let resolved: NvdfParams = { ...NVDF_DEFAULTS };
   let rimWidth = 0, windowSize = 0, windowRes = 0, voxelSize = 8;
   let shell: [number, number] = [0, 0];
+  const wOrigin: [number, number] = [0, 0];   // resolved weather origin (world x, z) and extent
+  const wExtent: [number, number] = [1, 1];
   const pipelines: Record<'atmosphere' | 'uniform', GPUComputePipeline | null | 'pending'> = { atmosphere: null, uniform: null };
   let resolvePipeline: GPUComputePipeline | null | 'pending' = null;
   let group: GPUBindGroup | null = null;
@@ -273,13 +287,14 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   return {
     settings,
     get configured() { return !!options; },
-    get info() { return options ? { rimWidth, windowSize, windowResolution: windowRes, shell, resets, frames } : null; },
+    get info() { return options ? { rimWidth, windowSize, windowResolution: windowRes, shell, weatherOrigin: [wOrigin[0], wOrigin[1]] as [number, number], resets, frames } : null; },
     configure(o) {
       options = o;
       resolved = { ...NVDF_DEFAULTS, ...o.shape };
       voxelSize = o.voxelSize ?? 8;
       dirty = true;
     },
+    get domeResources() { return weather && baked && settings.enabled && options && !disposed ? { weather, sampler, params: paramBuffer } : null; },
     reset() { needReset = true; },
     prepare(encoder, box, uniformLighting) {
       if (disposed || !options) return false;
@@ -291,8 +306,10 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         windowSize = options.window?.size ?? 51200;
         windowRes = options.window?.resolution ?? 2048;
         const cx = minX + sx / 2, cz = minZ + sz / 2;
-        const origin: [number, number] = [(cx - windowSize / 2 - minX) / sx, (cz - windowSize / 2 - minZ) / sz];
-        const size: [number, number] = [windowSize / sx, windowSize / sz];
+        wOrigin[0] = options.weatherOrigin?.[0] ?? minX; wOrigin[1] = options.weatherOrigin?.[1] ?? minZ;
+        wExtent[0] = options.weatherExtent?.[0] ?? sx; wExtent[1] = options.weatherExtent?.[1] ?? sz;
+        const origin: [number, number] = [(cx - windowSize / 2 - wOrigin[0]) / wExtent[0], (cz - windowSize / 2 - wOrigin[1]) / wExtent[1]];
+        const size: [number, number] = [windowSize / wExtent[0], windowSize / wExtent[1]];
         weather?.destroy();
         weather = encodeProceduralWeatherMap(device, encoder, { ...options.weather, size: [windowRes, windowRes], border: 0, window: { origin, size }, mipLevels: WEATHER_MIPS });
         encodeMaxMips(encoder, weather);
@@ -340,6 +357,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       p[36] = frames % period; p[37] = Math.floor(frames / period); p[38] = cut ? 1 : 0; p[39] = 0;
       p.set(prevViewProj, 40);
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
+      p[60] = wOrigin[0]; p[61] = wOrigin[1]; p[62] = 0; p[63] = 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
       // Remember this frame's view for the next frame's reprojection.

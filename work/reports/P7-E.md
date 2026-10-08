@@ -1,0 +1,30 @@
+# P7-E Sky-layer and handoff fixes at cloud altitude
+Status: ready for review
+Changed: packages/runtime/src/{sky-layer.ts,runtime.ts,shaders/sky-layer.wgsl.ts,shaders/dome.wgsl.ts}, examples/lab/{open-water,plains-flight}/main.ts. (composite.wgsl.ts, dome.ts untouched.)
+Verified:
+- `pnpm check` -> exit 0; `node scripts/check-packed-consumer.mjs` -> PACKED CONSUMER OK.
+- captures (2560x1440, `?hud=0&clean=1`): work/captures/P7-E/ (see below). Reg A/B at 1920x1080: cloudscape-gen?sky=1 horizon/ground/seamNorth/above mean |d| 0.59-0.93/255, flagship ground/edge 0.08/0.05 (`reg-gen-*-before-after.jpg`: no regression; horizon band is slightly smoother).
+- 60 fps: p50 16.7 / p95 16.7-16.8 ms in every shot (open-water cruise/sunset/horizon/shore, plains t0/t25/swapA/swapB). GPU total 5.0-5.9 ms.
+
+## Bug 1: open-water `cruise` (bug1-cruise-before-after.jpg, bug1-reflection-only-before-after.jpg)
+Two independent causes, found by toggling (`?sky=0`, `sky_enabled=0`, `reflect=0`, `sky_debug=1/7`, top-down and from-outside cameras):
+1. **Tall white column in the water = the reflection dome only marched the voxel box.** At the cruise pose the only voxel cloud is the box's SE corner; the main view continues it with the sky layer, the dome (voxel SDF march, interval clipped to the box) ends it flat at the wall x = 2048. Reproduces with the layer off and disappears with `reflect=0`. Fix: the dome now also marches the layer's analytic field outside the box (shared `SKY_FIELD_WGSL`, the same cheap P*S density the voxel light grid sums; sun/ambient light from the same cheap samples the layer uses), clipped to the cloud shell, with the box still rendered by the SDF march. New dome bindings 7-9 (weather window, sampler, sky params), `SkyLayer.domeResources`, `DomeParams.skyOn`. Dome GPU 0.17 -> 0.4-0.9 ms. The reflection now mirrors the whole field, no cut.
+2. **Vertical-sided "blocks" = the weather field, not the handoff.** Not the box wall (the camera is outside the box, rays east never touch it), not the temporal resolve (`sky_temporal=0`), not step/skip overshoot (`sky_maxSteps=1024, stepMin=2`, empty-space skip off, step cap: images identical), not the layer vs voxel (voxel-only top-down shows the same polygonal cones). `sky_debug=1` shows polygonal prisms with constant first-hit distance, i.e. flat faces. They are the Voronoi bisector creases of the weather's `cellular` blend (preset 0.75, cells of 400 m): the coverage cones meet in straight lines and `f = s - h^p` with p = 1.6 turns each into a near-vertical wall (P3-C2 noted the same at seamHigh). From 300 m the near layer clouds are saturated white and flat-lit, so the faces read as blocks. The weather generator is out of scope (generate/**), so the demo content uses `cellular` 0.55 (`?cellular=` overrides; `?cells=` for cellScale). With the preset's 0.75 the blocks come back (`ow-after-preset-cells/`).
+Open: an engine-side fix (soften the creases in weather.ts, or a lower blend in the preset) would help every user of the cumulus preset.
+
+## Bug 2: `weatherOrigin` (bug2-weatherorigin-swap-along-track.jpg, pf-swap{A,B}-{before,after}.jpg)
+- `SkyLayerOptions.weatherOrigin` (world x, z of the weather map's uv origin; default the box min corner = old behaviour) and `weatherExtent` (world metres the uv 0..1 spans; default the box extent). The bake window uv and the billow/profile-noise anchor (`SkyParams.wOrigin`, params 60 -> 64 floats) both use it; the layer already re-bakes when `setVolume`/`swapVolume` moves the box, so after a swap the far field stays on the streamer's world field. `info.weatherOrigin` reports it.
+- plains-flight passes `weatherOrigin: [0, 0]` (the streamer is `uv = xz / 4096`); `?wo=0` restores the old behaviour, `?swapyaw=0` points swapA/swapB along the track (default 90 = across). The old START (2048, 2048) workaround stays (no need any more, kept so baselines do not move).
+- Measure, swapA vs swapB looking along the track at t = 20 (window moves 700 m): far-cloud strip (rows 860-900) mean |d| 2.6 -> 1.41/255 (p99 17.0 -> 14.3); rows 900-960 6.66 -> 5.55. The remaining difference is the jitter noise floor and the window's near edge. Rows 3 and 6 of the figure are the 4x difference (before / after).
+
+## Bug 3: sunset horizon bricks (bug3-sunset-horizon-before-after.jpg)
+Root cause: aliasing of the quarter-resolution layer. `sky_resolutionScale=1` shows the truth: thin stacked terraces (cloud tops of successive rows, sub-pixel in height at 4 m camera height); at 0.25 each layer pixel was a single point sample at its centre, so neighbouring pixels disagreed and the bilinear/clamped resolve turned that into hard rectangles. Not the empty-skip, steps, temporal (`sky_temporal=0`) or billow (`sky_debug=4`). Fix: the trace pixel is sampled at a per-cycle Halton offset (+-1 layer pixel, `SKY_SUBPIXEL_SPAN`), so the temporal history converges to the average over the pixel instead of a point. No cost. Near cloud edges stay crisp; the horizon band is now soft strata. `sky_debug=6` (no jitter) also turns the offset off.
+
+## Open issues
+- The dome's sky branch is the cheap P*S field (no billow), as the voxel dome's is; 0.4-0.9 ms on cruise.
+- The layer/voxel seam (layer cloud left of a box wall looks smoother than the voxel cloud) is unchanged; the cut at the wall is only visible when looking along the wall.
+- Billow noise in the layer is now anchored at weatherOrigin; for non-streaming scenes nothing changes.
+
+## Orchestrator review
+Accepted. `pnpm check` exit 0, re-run independently. Cruise: the reflection column is gone, and reflections of clouds that cross the box wall now continue. Sunset: zoomed 2× on the band above the horizon, the bricks are replaced by a soft mottle. Some stair-stepping remains on bright rims (quarter-resolution upsample), which is minor. Cloudscape-gen horizon A/B shows no regression. Cruise clouds cost 4.1 ms (dome 0.9) at 1440p, within the 6 ms in-cloud budget.
+**Not fixed in the engine:** slab-sided clouds at the preset `cellular` 0.75 (`ow-after-preset-cells/cruise.jpg`); the demo works around it at 0.55. → P7-F.

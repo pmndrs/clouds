@@ -3,7 +3,7 @@ import type { GpuTimer } from './gpu-timer';
 import { createLightGrid, type LightGrid } from './light-grid';
 import { createAtmosphereBindGroupLayout } from './shaders/atmosphere.wgsl';
 import { defaultDomeSettings, type CloudDome } from './dome';
-import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_WGSL } from './shaders/dome.wgsl';
+import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_SKY_PARAMS_BINDING, DOME_SKY_SAMPLER_BINDING, DOME_SKY_WEATHER_BINDING, DOME_WGSL } from './shaders/dome.wgsl';
 import { uploadCloudNoise, uploadCloudVolume, type GpuCloudVolume } from './resources';
 import { COMMON_WGSL } from './shaders/common.wgsl';
 import { COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPLER_BINDING, COMPOSITE_SKY_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
@@ -13,6 +13,7 @@ import { TEMPORAL_BINDINGS, TEMPORAL_PARAM_BYTES, TEMPORAL_WGSL } from './shader
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
+import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, volumeUniformData, volumeWgsl, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
 
 export type CloudQuality = 'ultra' | 'high' | 'medium' | 'low' | 'mobile';
@@ -414,6 +415,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: DOME_PARAMS_BINDING, visibility: C, buffer: { type: 'uniform' } },
     ...createLightGridLayoutEntries(DOME_LIGHT_GRID_BINDING),
     { binding: DOME_SKY_LIGHT_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
+    { binding: DOME_SKY_WEATHER_BINDING, visibility: C, texture: { sampleType: 'float' } },
+    { binding: DOME_SKY_SAMPLER_BINDING, visibility: C, sampler: { type: 'filtering' } },
+    { binding: DOME_SKY_PARAMS_BINDING, visibility: C, buffer: { type: 'uniform' } },
   ] });
   const domePipeline = pipeline('cloud dome', COMMON_WGSL + volumeWgsl(0) + DOME_WGSL, domeLayout);
   const domeTexture = device.createTexture({ label: 'cloud reflection dome', size: [domeSize, domeSize], format: 'rgba16float', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST });
@@ -426,6 +430,11 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   }
   const domeFrameBuffer = device.createBuffer({ label: 'cloud dome frame', size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const domeParamBuffer = device.createBuffer({ label: 'cloud dome params', size: DOME_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  // Stand-ins for the sky layer's weather window and params while the layer is off (the dome shader then skips the sky field: DomeParams.skyOn = 0).
+  const domeSkyDummy = device.createTexture({ label: 'cloud dome dummy weather', size: [1, 1], format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING });
+  const domeSkyDummyParams = device.createBuffer({ label: 'cloud dome dummy sky params', size: SKY_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM });
+  const domeSkySampler = device.createSampler({ label: 'cloud dome sky', magFilter: 'linear', minFilter: 'linear' });
+  let domeSkyKey: GPUTexture | null = null;
   const domeDepth = device.createTexture({ label: 'cloud dome dummy depth', size: [1, 1], format: 'depth32float', usage: GPUTextureUsage.TEXTURE_BINDING });
   const domeParamData = new ArrayBuffer(DOME_PARAM_BYTES);
   const domeParamF32 = new Float32Array(domeParamData), domeParamU32 = new Uint32Array(domeParamData);
@@ -833,7 +842,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         device.queue.writeBuffer(domeFrameBuffer, 0, df);
         domeParamF32[0] = domeRef[0]; domeParamF32[1] = domeRef[1]; domeParamF32[2] = domeRef[2]; domeParamF32[3] = domeSettings.densityScale;
         domeParamU32[4] = domeSize; domeParamU32[5] = domeSlot; domeParamU32[6] = domeSettings.maxSteps >>> 0; domeParamU32[7] = slots;
-        domeParamF32[8] = domeSettings.stepMin; domeParamF32[9] = domeSettings.stepRel; domeParamF32[10] = domeSettings.maxDistance; domeParamF32[11] = 0;
+        domeParamF32[8] = domeSettings.stepMin; domeParamF32[9] = domeSettings.stepRel; domeParamF32[10] = domeSettings.maxDistance;
+        const skyRes = skyLayer.domeResources;
+        domeParamF32[11] = skyRes ? 1 : 0;
+        if ((skyRes?.weather ?? null) !== domeSkyKey) { domeSkyKey = skyRes?.weather ?? null; domeGroups = null; }   // the layer re-bakes its window when the box moves
         device.queue.writeBuffer(domeParamBuffer, 0, domeParamData);
         domeSlot = (domeSlot + slots) % DOME_REFRESH_FRAMES;
         domeRefreshFrames = Math.min(DOME_REFRESH_FRAMES, domeRefreshFrames + slots);
@@ -844,6 +856,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           { binding: DOME_PARAMS_BINDING, resource: { buffer: domeParamBuffer } },
           ...lightGrid!.bindGroupEntries(DOME_LIGHT_GRID_BINDING, slot as 0 | 1),
           { binding: DOME_SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } },
+          { binding: DOME_SKY_WEATHER_BINDING, resource: (skyRes?.weather ?? domeSkyDummy).createView() },
+          { binding: DOME_SKY_SAMPLER_BINDING, resource: domeSkySampler },
+          { binding: DOME_SKY_PARAMS_BINDING, resource: { buffer: skyRes?.params ?? domeSkyDummyParams } },
         ] }));
         const pass = encoder.beginComputePass({ label: 'cloud dome', timestampWrites: timer?.passTimestampWrites('dome') });
         pass.setPipeline(domePipeline);
@@ -860,7 +875,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
       volumeUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
-      skyLayer.dispose(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
+      skyLayer.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };
 }

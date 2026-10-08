@@ -67,7 +67,8 @@ try {
     const encoder = device.createCommandEncoder();
     const preset = CLOUD_PRESETS[(query.get('preset') as CloudPresetName) ?? 'cumulus'] ?? CLOUD_PRESETS.cumulus; // CONTENT
     const seed = Number(query.get('seed') ?? 7);
-    const weatherOpts = { ...preset.weather, coverageLo: Number(query.get('lo') ?? 0.56), coverageHi: Number(query.get('hi') ?? 0.9), // sparser than the preset: fair-weather cumulus with blue sky between, all the way out
+    const weatherOpts = { ...preset.weather, coverageLo: Number(query.get('lo') ?? 0.56), coverageHi: Number(query.get('hi') ?? 0.9), cellular: Number(query.get('cellular') ?? 0.55), // preset 0.75: near the cells' Voronoi borders the coverage cones meet in straight creases, which read as flat-faced prisms from 300 m (P7-E)
+        ...(query.has('cells') ? { cellScale: Number(query.get('cells')) } : {}), // sparser than the preset: fair-weather cumulus with blue sky between, all the way out
        size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}) }; // border 0: one continuous field the sky layer carries to the horizon
     gen.weatherOpts = weatherOpts; gen.params = { ...preset.params, seed };
     const weather = encodeProceduralWeatherMap(device, encoder, weatherOpts);
@@ -87,7 +88,7 @@ try {
       gen.doneMs = performance.now() - gen.startMs;
       void clouds.setVolume(g.volume, { position: cloudPos }).then(() => {
         if (SKY_LAYER && gen.weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: gen.weatherOpts, shape: gen.params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; for (const k of Object.keys(l.settings)) { const v = query.get('sky_' + k); if (v !== null) (l.settings as unknown as Record<string, number | boolean>)[k] = typeof (l.settings as unknown as Record<string, unknown>)[k] === 'boolean' ? v === '1' : Number(v); } } // INTEGRATION (cloud cover to the horizon)
-        skyWait = SKY_LAYER; if (!SKY_LAYER) ready();
+        skyWait = SKY_LAYER && clouds.core.skyLayer.settings.enabled; if (!skyWait) ready();
       }); // INTEGRATION (the volume stays caller-owned: `g` stays alive; the harness waits for the clouds)
       gen.current = undefined;
     }
@@ -102,7 +103,10 @@ try {
   const applyBookmark = (name: string) => {
     if (!isName(name)) throw new Error(`unknown bookmark: ${name}`);
     bookmark = name;
-    const b = BOOKMARKS[name];
+    const b: { pos: number[]; sunEl: number; sunAz: number; lookAz: number; pitch: number } = { ...BOOKMARKS[name], pos: [...BOOKMARKS[name].pos] };
+    if (query.has('pos')) b.pos = query.get('pos')!.split(',').map(Number); // ?pos=x,y,z ?az= ?pitch=: free camera for debugging
+    if (query.has('az')) b.lookAz = Number(query.get('az'));
+    if (query.has('pitch')) b.pitch = Number(query.get('pitch'));
     sky.setSunDirection({ elevation: b.sunEl, azimuth: b.sunAz });
     const az = (b.lookAz * Math.PI) / 180, pitch = (b.pitch * Math.PI) / 180;
     const d = [Math.sin(az) * Math.cos(pitch), Math.sin(pitch), -Math.cos(az) * Math.cos(pitch)];

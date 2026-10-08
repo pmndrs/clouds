@@ -17,8 +17,8 @@ export const SKY_BACK_BINDING = 8;
 export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
 } as const;
-/** SkyParams uniform: 10 vec4 + mat4 + vec4 = 60 floats. */
-export const SKY_PARAM_FLOATS = 60;
+/** SkyParams uniform: 10 vec4 + mat4 + 2 vec4 = 64 floats. */
+export const SKY_PARAM_FLOATS = 64;
 export const SKY_PARAM_BYTES = SKY_PARAM_FLOATS * 4;
 /** Temporal amortization: one pixel of every 4x4 block per frame, 16 frames per cycle. */
 export const SKY_TEMPORAL_PERIOD = 16;
@@ -53,7 +53,7 @@ export const SKY_TEMPORAL_PERIOD = 16;
  * jitter changes every 16-frame cycle, so the history converges to a jitter-averaged image: no static hatch).
  * Trace: concatenate COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + skyLayerWgsl(mode). Group 1 as above, group 2 the atmosphere.
  */
-const SKY_PARAMS_WGSL = /* wgsl */ `
+export const SKY_PARAMS_WGSL = /* wgsl */ `
 struct SkyParams {
   window: vec4<f32>,   // weather window: min x, min z, size x, size z (world metres)
   box: vec4<f32>,      // volume box: min x, min z, size x, size z
@@ -67,6 +67,7 @@ struct SkyParams {
   temporal: vec4<f32>, // phase (0..15), cycle (jitter seed), full trace (1 = every pixel), 0
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,  // previous camera position, w = 1 when the history is valid
+  wOrigin: vec4<f32>,  // P7-E: world position (x, z) of the weather map's uv origin: the billow and shape noise are anchored there (default: the box min corner)
 }
 const BAYER4 = array<u32, 16>(0u, 8u, 2u, 10u, 12u, 4u, 14u, 6u, 3u, 11u, 1u, 9u, 15u, 7u, 13u, 5u);
 fn bayerIndex(px: vec2<i32>) -> u32 { return BAYER4[u32(px.y & 3) * 4u + u32(px.x & 3)]; }
@@ -89,30 +90,9 @@ fn skySceneEnd(px: vec2<i32>, uv: vec2<f32>) -> f32 {
 }
 `;
 
-export function skyLayerWgsl(mode: 'atmosphere' | 'uniform'): string {
-  const atm = mode === 'atmosphere';
-  return /* wgsl */ `
-${FRAME_WGSL}
-${SKY_PARAMS_WGSL}
-@group(1) @binding(${SKY_COLOR_BINDING}) var skyColorOut: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(${SKY_DEPTH_BINDING}) var skyDepthOut: texture_storage_2d<rg32float, write>;
-@group(1) @binding(${SKY_WEATHER_BINDING}) var skyWeather: texture_2d<f32>;
-@group(1) @binding(${SKY_SAMPLER_BINDING}) var skySampler: sampler;
-@group(1) @binding(${SKY_LIGHT_STORAGE_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
-@group(1) @binding(${SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
-@group(1) @binding(${SKY_BACK_BINDING}) var skyBackOut: texture_storage_2d<rgba16float, write>;
-${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
-${LIGHTING_WGSL}
-${BILLOW_WGSL}
-
-// Cheap sun samples beyond the in-line ones (segment midpoints and lengths, metres from the sample), then the 'up' ones.
-const SKY_SUN_T = array<f32, 6>(64.0, 100.0, 145.0, 205.0, 285.0, 400.0);
-const SKY_SUN_L = array<f32, 6>(32.0, 40.0, 50.0, 70.0, 90.0, 140.0);
-const SKY_UP_T = array<f32, 3>(24.0, 80.0, 192.0);
-const SKY_UP_L = array<f32, 3>(48.0, 64.0, 160.0);
-const SKY_LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3;
-const SKY_LIGHT_REFRESH_M = 24.0;      // lighting varies slowly along the ray: re-evaluate every (24 m + 3% of the distance)
-const SKY_LIGHT_REFRESH_REL = 0.03;
+/** The analytic sky field shared by the layer's trace and the reflection dome: the generator's shape law evaluated from the baked weather window.
+ * The includer declares `SKY` (SkyParams), `skyWeather` and `skySampler`, and provides BILLOW_WGSL and COMMON_WGSL. */
+export const SKY_FIELD_WGSL = /* wgsl */ `
 // The generator's billow envelope: on over f00 in (NEAR_A, NEAR_B), off again over (NEAR_C, NEAR_D).
 const NEAR_A = -0.55;
 const NEAR_B = -0.3;
@@ -250,7 +230,7 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   var f0 = sm.f;
   // Signed distance to the surface in smooth-field units (positive inside) and the gradient of that quantity.
   var fs = sm.f;
-  let pm = vec3(p.x - SKY.box.x, p.z - SKY.box.y, p.y - SKY.shell.x);
+  let pm = vec3(p.x - SKY.wOrigin.x, p.z - SKY.wOrigin.y, p.y - SKY.shell.x);
   let withBillow = lodDistance >= 0.0 && SKY.billow.x > 0.0;
   if (withBillow && sm.f > NEAR_A && sm.f < 0.5) {
     let b = select(billowGrad(pm, SKY.billow.y, u32(SKY.billow.z * 131.0), lodDistance), bGiven, useGiven);
@@ -302,12 +282,6 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   return r;
 }
 
-// Full up-rez density at a light-sample point (the in-line sun samples: the surface detail matters there).
-fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, b: vec4<f32>) -> f32 {
-  let sm = skyModelB(p, rayDistance, true, b, true);
-  if (!(sm.m.x > 0.0)) { return 0.0; }
-  return cloudDensityShaped(p, rayDistance, inputs, sm.m, saturate(sm.hz)).x;
-}
 // The cheap term (profile * density scale) of the smooth field, the one the voxel light grid sums.
 fn skyModelCheap(p: vec3<f32>) -> f32 {
   let sm = skyModel(p, -1.0, true);
@@ -341,6 +315,47 @@ fn skyEmptySkip(p: vec3<f32>, dir: vec3<f32>) -> f32 {
   return 0.0;
 }
 
+`;
+
+export function skyLayerWgsl(mode: 'atmosphere' | 'uniform'): string {
+  const atm = mode === 'atmosphere';
+  return /* wgsl */ `
+${FRAME_WGSL}
+${SKY_PARAMS_WGSL}
+@group(1) @binding(${SKY_COLOR_BINDING}) var skyColorOut: texture_storage_2d<rgba16float, write>;
+@group(1) @binding(${SKY_DEPTH_BINDING}) var skyDepthOut: texture_storage_2d<rg32float, write>;
+@group(1) @binding(${SKY_WEATHER_BINDING}) var skyWeather: texture_2d<f32>;
+@group(1) @binding(${SKY_SAMPLER_BINDING}) var skySampler: sampler;
+@group(1) @binding(${SKY_LIGHT_STORAGE_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
+@group(1) @binding(${SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
+@group(1) @binding(${SKY_BACK_BINDING}) var skyBackOut: texture_storage_2d<rgba16float, write>;
+${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
+${LIGHTING_WGSL}
+${BILLOW_WGSL}
+
+const SKY_HALTON_BASE = 1u;
+const SKY_SUBPIXEL_SPAN = 2.0;   // jitter range in layer pixels
+fn radicalInverse(i0: u32, base: u32) -> f32 {
+  var i = i0; var f = 1.0; var r = 0.0;
+  let b = f32(base);
+  for (var k = 0; k < 8 && i > 0u; k++) { f = f / b; r += f * f32(i % base); i = i / base; }
+  return r;
+}
+// Cheap sun samples beyond the in-line ones (segment midpoints and lengths, metres from the sample), then the 'up' ones.
+const SKY_SUN_T = array<f32, 6>(64.0, 100.0, 145.0, 205.0, 285.0, 400.0);
+const SKY_SUN_L = array<f32, 6>(32.0, 40.0, 50.0, 70.0, 90.0, 140.0);
+const SKY_UP_T = array<f32, 3>(24.0, 80.0, 192.0);
+const SKY_UP_L = array<f32, 3>(48.0, 64.0, 160.0);
+const SKY_LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3;
+const SKY_LIGHT_REFRESH_M = 24.0;      // lighting varies slowly along the ray: re-evaluate every (24 m + 3% of the distance)
+const SKY_LIGHT_REFRESH_REL = 0.03;
+${SKY_FIELD_WGSL}
+// Full up-rez density at a light-sample point (the in-line sun samples: the surface detail matters there).
+fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, b: vec4<f32>) -> f32 {
+  let sm = skyModelB(p, rayDistance, true, b, true);
+  if (!(sm.m.x > 0.0)) { return 0.0; }
+  return cloudDensityShaped(p, rayDistance, inputs, sm.m, saturate(sm.hz)).x;
+}
 fn heat(x0: f32) -> vec3<f32> {
   let x = saturate(x0);
   return vec3(smoothstep(0.25, 0.6, x), smoothstep(0.0, 0.35, x) * (1.0 - smoothstep(0.7, 1.0, x)), 1.0 - smoothstep(0.1, 0.5, x));
@@ -360,7 +375,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let sceneEnd = skySceneEnd(px, uv);
 
   let origin = frame.cameraPos;
-  let dir = normalize(unprojectDepth(uv, 1.0) - origin);
+  // P7-E: the pixel is point-sampled at a Halton offset that changes every cycle, so the resolved history converges to the average over
+  // the layer pixel instead of one point per pixel: thin stacked layers near the horizon (sub-pixel in height) otherwise alias to bricks.
+  let subPx = (vec2<f32>(radicalInverse(SKY_HALTON_BASE + u32(SKY.temporal.y) % 16u, 2u), radicalInverse(SKY_HALTON_BASE + u32(SKY.temporal.y) % 16u, 3u)) - 0.5) * SKY_SUBPIXEL_SPAN;
+  let dir = normalize(unprojectDepth((vec2<f32>(px) + 0.5 + select(subPx, vec2<f32>(0.0), SKY.billow.w == 6.0)) / frame.renderSize, 1.0) - origin);
   // Shell: slab between shell.x and shell.y. (Curvature is applied to the sample, not the slab: it is a few tens of metres.)
   var t0 = 0.0;
   var t1 = SKY.shell.z;
