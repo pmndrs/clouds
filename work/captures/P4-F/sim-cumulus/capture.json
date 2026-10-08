@@ -1,0 +1,121 @@
+{
+  "url": "http://127.0.0.1:61928/flagship/?cloud=heroes/sim-cumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T15:00:05.928Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-F/sim-cumulus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8521787999999996,
+          "skyCompute": 0.298245,
+          "lightGridReduce": 0.04037,
+          "lightGrid": 0.04987,
+          "marchNear": 0.2231851333333333,
+          "marchFar": 0.9608701333333334,
+          "composite": 0.5887886500000001,
+          "dome": 0.19563898333333324
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "heroes/sim-cumulus",
+        "frames": 93,
+        "assetLoadMs": 37.10000002384186,
+        "firstCloudFrameMs": 43.69999998807907
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-F/sim-cumulus/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.3389534666666667,
+          "skyCompute": 0.96032,
+          "lightGridReduce": 0.04037,
+          "lightGrid": 0.04987,
+          "marchNear": 0.21989178333333342,
+          "marchFar": 1.8610716833333332,
+          "composite": 0.5889791500000001,
+          "dome": 0.17995625000000004
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "heroes/sim-cumulus",
+        "frames": 187,
+        "assetLoadMs": 37.10000002384186,
+        "firstCloudFrameMs": 43.69999998807907
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-F/sim-cumulus/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.506833633333333,
+          "skyCompute": 0.518742,
+          "lightGridReduce": 0.04037,
+          "lightGrid": 0.10509044444444443,
+          "marchNear": 0.2314138666666667,
+          "marchFar": 0.8599453666666668,
+          "composite": 0.6769889666666667,
+          "dome": 0.19861561666666672
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "heroes/sim-cumulus",
+        "frames": 281,
+        "assetLoadMs": 37.10000002384186,
+        "firstCloudFrameMs": 43.69999998807907
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

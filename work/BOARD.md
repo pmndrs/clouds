@@ -785,7 +785,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   and `backlit` read as towering cumulus. Include a side-by-side with the old
   tower.
 
-### [~] P4-F Scripted fluid-sim hero clouds (Houdini Pyro) · Sonnet
+### [x] P4-F Scripted fluid-sim hero clouds (Houdini Pyro) · Sonnet
 - **Owns:** `scripts/vdb/authoring/sim/**` (new) and `assets/clouds/heroes/sim-*/**` (new; each under 4 MB).
 - **Why:** scripted Cloud SOP recipes top out at "pile of soft spheres"
   (`work/captures/P4-E2/`). Guerrilla grew their clouds with fluid simulation
