@@ -152,23 +152,36 @@ const report: Record<string, unknown> = {};
   const gpu = halves(await readGrid(device, grid, grid.frontTexture));
   const cpu = cpuGrid(asset, position, grid.dims, sun, 1, 128);
   let max = 0; for (let i = 0; i < cpu.length; i++) max = Math.max(max, cpu[i]);
+  // P3-E: the grid now marches a grid-resolution reduced volume (2x2x2 box filtered) instead of the full-res NVDF, so a sharp
+  // synthetic cone differs from the full-res CPU march near the cloud edge. Tolerance: worst |error| <= 4% of the channel max, and
+  // <= 5% relative where the value is above 10% of the channel max (the part of the grid that moves the lighting).
   const candidates: number[] = [];
   for (let i = 0; i < cpu.length; i++) if (cpu[i] > 0.01 * max) candidates.push(i);
-  const stride = Math.max(1, Math.floor(candidates.length / 60));
-  let worst = 0, n = 0;
-  for (let c = 0; c < candidates.length; c += stride) {
-    const i = candidates[c];
-    worst = Math.max(worst, Math.abs(gpu[i] - cpu[i]) / cpu[i]); n++;
-  }
-  let worstAll = 0; for (const i of candidates) worstAll = Math.max(worstAll, Math.abs(gpu[i] - cpu[i]) / cpu[i]);
+  const parity = (g: Float32Array, c: Float32Array) => {
+    const out = [0, 1].map(ch => {
+      let chMax = 0; for (let v = 0; v < c.length / 2; v++) chMax = Math.max(chMax, c[v * 2 + ch]);
+      let abs = 0, rel = 0, n10 = 0, sum = 0;
+      for (let v = 0; v < c.length / 2; v++) {
+        const cv = c[v * 2 + ch], gv = g[v * 2 + ch];
+        abs = Math.max(abs, Math.abs(gv - cv) / chMax);
+        if (cv > 0.1 * chMax) { n10++; rel = Math.max(rel, Math.abs(gv - cv) / cv); sum += Math.abs(gv - cv) / cv; }
+      }
+      return { chMax, abs, rel, n10, mean: sum / n10 };
+    });
+    return out;
+  };
+  const par = parity(gpu, cpu);
+  par.forEach((p, ch) => {
+    check(p.abs <= 0.04, `${ch ? 'up' : 'sun'}: worst abs error ${(p.abs * 100).toFixed(2)}% of max (${p.chMax.toFixed(1)}) <= 4%`);
+    check(p.rel <= 0.05, `${ch ? 'up' : 'sun'}: worst rel error ${(p.rel * 100).toFixed(2)}% (mean ${(p.mean * 100).toFixed(2)}%) over ${p.n10} voxels above 10% of max <= 5%`);
+  });
+  const worst = Math.max(...par.map(p => p.rel)), worstAll = Math.max(...par.map(p => p.abs)), n = par[0].n10 + par[1].n10;
   const sunMax = Math.max(...Array.from({ length: cpu.length / 2 }, (_, v) => cpu[v * 2]));
   const upMax = Math.max(...Array.from({ length: cpu.length / 2 }, (_, v) => cpu[v * 2 + 1]));
-  check(n >= 20, `compared ${n} sampled voxels (${candidates.length} candidates > 1% of max=${max.toFixed(2)})`);
-  check(worst <= 0.02, `sampled-voxel max relative error ${(worst * 100).toFixed(3)}% <= 2%`);
-  check(worstAll <= 0.02, `all-candidate max relative error ${(worstAll * 100).toFixed(3)}% <= 2%`);
+  check(n >= 20, `compared ${n} voxels above 10% of max (${candidates.length} candidates > 1% of max=${max.toFixed(2)})`);
   check(sunMax > 1 && upMax > 1, `non-trivial sums: sun max ${sunMax.toFixed(2)}, up max ${upMax.toFixed(2)} density*m`);
-  let zerosOk = true; for (let i = 0; i < cpu.length; i++) if (cpu[i] === 0 && gpu[i] > 1e-3) zerosOk = false;
-  check(zerosOk, 'voxels with no cloud along the ray are zero');
+  let zerosOk = true; for (let i = 0; i < cpu.length; i++) if (cpu[i] === 0 && gpu[i] > 0.01 * max) zerosOk = false;
+  check(zerosOk, 'voxels with no cloud along the ray stay below 1% of max (reduced-volume filtering leaks at most one cell)');
   report.parity = { voxels: n, worstSampledPct: worst * 100, worstAllPct: worstAll * 100, gridDims: grid.dims };
 
   // 2. sun change: exactly 8 frames, front never partial
@@ -188,8 +201,8 @@ const report: Record<string, unknown> = {};
   check(!same(A, B), 'frame 8 front differs from old grid');
   const cpuB = cpuGrid(asset, position, grid.dims, sunB, 1, 128);
   const gpuB = halves(B);
-  let wB = 0, nB = 0; for (let i = 0; i < cpuB.length; i++) if (cpuB[i] > 0.01 * max) { wB = Math.max(wB, Math.abs(gpuB[i] - cpuB[i]) / cpuB[i]); nB++; }
-  check(wB <= 0.02, `new-sun grid matches CPU on ${nB} voxels, max error ${(wB * 100).toFixed(3)}%`);
+  const parB = parity(gpuB, cpuB);
+  parB.forEach((p, ch) => check(p.abs <= 0.04 && p.rel <= 0.05, `new-sun ${ch ? 'up' : 'sun'}: abs ${(p.abs * 100).toFixed(2)}% of max, rel ${(p.rel * 100).toFixed(2)}% over ${p.n10} voxels`));
   const idle = await frame(device, grid, bindGroup, sunB, 9);
   check(idle.dispatch === null, 'no work recorded once the grid is current');
   check(fronts.slice(0, 7).every(f => f === fronts[0]) && fronts[7] !== fronts[0], `front index flips only on frame 8 (${fronts.join(',')})`);

@@ -42,10 +42,16 @@ ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
 
 const STEP_GROWTH_FROM = 256u;
-const STEP_MIN = 1.5;
-const STEP_SQRT = 0.12;
+const STEP_MIN = 3.0;
+const STEP_SQRT = 0.2;
 const SDF_SKIP_MARGIN = 6.0;     // metres: closer than this to the surface, fetch the real distance
 const SDF_SKIP_RANGE = 24.0;     // metres: refetch at least this often so the inner-glow remap stays accurate
+const DENSE_STEP_GAIN = 3.0;     // P3-E: step *= 1 + gain * (1 - T)^2: samples deep in thick media carry little weight (T * (1 - stepT)), so they are spaced wider
+const INLINE_REUSE_DIST = 4.0;   // P3-E: the two in-line sun samples are reused for steps closer than this to where they were taken
+const DEPTH_CAP = 0.5;        // fraction of the depth below the surface a widened step may cover
+const SPARSE_GAIN = 1.0;   // P3-E: inside the SDF but with almost no density (eroded haze) the step grows by this per consecutive thin sample...
+const SPARSE_MAX = 6.0;     // ...up to this many
+const SPARSE_THIN = 0.1;   // a sample is thin when sigma * step is below this (optical depth of the segment)
 const LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3; // segments thinner than this skip the sun/ambient evaluation
 
 @compute @workgroup_size(8, 8)
@@ -114,6 +120,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     // travelled since is a conservative (more negative would be wrong) bound while we are deep inside; refetch when it nears 0.
     var sdfBound = 0.0;
     var sdfFetchT = -1.0e9;
+    var sparseRun = 0.0;
+    var inlineT = -1.0e9;
+    var tauInline = 0.0;
 
     for (var i = 0u; i < frame.maxSteps; i++) {
       if (t >= tEnd || T < frame.tCutoff) { capped = false; break; }
@@ -125,6 +134,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       }
       var step = max(sdf, max(STEP_MIN, sqrt(t) * STEP_SQRT));
       // Never silently truncate a long ray at the step cap: coarsen the step once a ray has used a lot of them.
+      {
+        // P3-E: widen the step in thin or dark-deep media, but never by more than half the depth below the surface (the SDF is a bound,
+        // so such a step stays inside the cloud and cannot skip across a skin or a bulge).
+        let wide = step * (1.0 + sparseRun * SPARSE_GAIN) * (1.0 + DENSE_STEP_GAIN * (1.0 - T) * (1.0 - T));
+        step = min(wide, max(step, -sdf * DEPTH_CAP));
+      }
       if (i > STEP_GROWTH_FROM) { step *= 1.0 + 0.02 * f32(i - STEP_GROWTH_FROM); }
       if (sdf < 0.0) {
         // Jitter moves the sample, not the advance. Animated near the camera, static far away.
@@ -134,14 +149,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
           inputs.hfDetails = select(0u, 1u, ts < 150.0);
           let ps = origin + dir * ts;
           let d = cloudDensity(ps, ts, inputs);
+          sparseRun = select(0.0, min(sparseRun + 1.0, SPARSE_MAX), d.x * frame.extinction * step < SPARSE_THIN);
           if (d.x > 0.0) {
             let sigma = d.x * frame.extinction;
             let stepT = exp(-sigma * ds);
             if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
-              let d0 = cloudDensity(ps + sunInline0, ts, lightInputs).x;
-              let d1 = cloudDensity(ps + sunInline1, ts, lightInputs).x;
-              let tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * frame.extinction;
+              if (ts - inlineT >= INLINE_REUSE_DIST) {
+                let d0 = cloudDensity(ps + sunInline0, ts, lightInputs).x;
+                let d1 = cloudDensity(ps + sunInline1, ts, lightInputs).x;
+                tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * frame.extinction;
+                inlineT = ts;
+              }
               let grid = lightGridSample(ps + sunGrid);
               let tau = tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);

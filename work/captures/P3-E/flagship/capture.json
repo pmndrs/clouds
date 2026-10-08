@@ -1,0 +1,121 @@
+{
+  "url": "http://127.0.0.1:63697/flagship/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T13:28:38.431Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/P3-E-flag-after/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7585604666666664,
+          "skyCompute": 0.362661,
+          "lightGridReduce": 0.021206,
+          "lightGrid": 0.022788,
+          "marchNear": 0.28546635000000004,
+          "marchFar": 0.6079558166666668,
+          "composite": 0.8331480333333331,
+          "dome": 0.08754158333333335
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 96,
+        "assetLoadMs": 29.299999982118607,
+        "firstCloudFrameMs": 46.10000002384186
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/scratch/P3-E-flag-after/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.133916666666667,
+          "skyCompute": 0.271078,
+          "lightGridReduce": 0.021206,
+          "lightGrid": 0.022788,
+          "marchNear": 0.2861810499999999,
+          "marchFar": 0.9233421500000003,
+          "composite": 0.8683979,
+          "dome": 0.10102543333333336
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 192,
+        "assetLoadMs": 29.299999982118607,
+        "firstCloudFrameMs": 46.10000002384186
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/scratch/P3-E-flag-after/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5397029000000002,
+          "skyCompute": 0.086998,
+          "lightGridReduce": 0.021206,
+          "lightGrid": 0.022788,
+          "marchNear": 2.2817451000000006,
+          "marchFar": 0.38061838333333325,
+          "composite": 0.5185122666666668,
+          "dome": 0.05133676666666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "parkouring",
+        "frames": 288,
+        "assetLoadMs": 29.299999982118607,
+        "firstCloudFrameMs": 46.10000002384186
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

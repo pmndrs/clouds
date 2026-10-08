@@ -661,7 +661,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     sequence while the camera moves.
   - `pnpm check` green; the flagship is unchanged with the layer off.
 
-### [~] P3-E Performance on large generated volumes · Sonnet
+### [x] P3-E Performance on large generated volumes · Sonnet
 - **Owns:**
   - `packages/runtime/src/{light-grid.ts,shaders/light-grid.wgsl.ts,shaders/march.wgsl.ts,shaders/lighting.wgsl.ts}`
   - `shaders/density.wgsl.ts`, algebraic changes only, parity must pass

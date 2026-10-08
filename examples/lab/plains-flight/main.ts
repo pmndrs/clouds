@@ -4,6 +4,7 @@
 //   ?play=1      real-time playback from page ready (the flight runs once, then holds its last pose)
 //   ?bookmark=t0..t40 | swapA | swapB   (the capture harness applies bookmarks; swapA/swapB bracket a forced window swap at a fixed pose)
 //   ?preset= ?seed= ?quality= ?jobs= (generation jobs per frame) ?border= (coverage fade at the window edge, fraction) ?heading= (compass degrees)
+//   ?sunDrift=<deg/s> (azimuth drift, measures the light grid's steady update cost; off by default)
 //   ?x0= ?z0= (start position)  ?exposure=  ?probe=1 (print where clouds are along the flight line, for placing the path)
 // Lines tagged `// INTEGRATION` are what clouds cost this scene; the streaming cloudscape is content, tagged `// CONTENT`.
 import { ACESFilmicToneMapping, CanvasTexture, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, RepeatWrapping, Scene, SRGBColorSpace } from 'three';
@@ -24,6 +25,7 @@ const BASE_Y = num('base', 600);           // metres: the volume's floor (cloud 
 const HEADING = num('heading', 0);         // compass degrees, north = -Z
 const START: [number, number] = [num('x0', 0), num('z0', 0)];
 const LATERAL = num('lat', 50);            // metres to the right of the line, phased in between t = 24 and 32 (steers the descent into a gap)
+const SUN_DRIFT = num('sunDrift', 0);
 const SUN = { elevation: num('sunEl', 38), azimuth: num('sunAz', 110) };
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -132,6 +134,7 @@ try {
     camera.rotation.set(p.pitch, -p.yaw, 0);
     camera.near = Math.min(50, Math.max(0.2, p.y * 0.05));
     camera.updateProjectionMatrix();
+    if (SUN_DRIFT) sky.setSunDirection({ elevation: SUN.elevation, azimuth: SUN.azimuth + SUN_DRIFT * performance.now() / 1000 });
     ground.position.set(Math.round(p.x / TILE) * TILE, 0, Math.round(p.z / TILE) * TILE);
     // Deterministic noise drift: wind is a function of simulated time, not of wall time.
     const s = clouds.settings; s.windVelocity[0] = s.windVelocity[1] = s.windVelocity[2] = 0;
@@ -245,7 +248,10 @@ try {
   const slowFrames: { simT: number; frame: number; ms: number; cloudsGpuMs: number }[] = [];
   const mean = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
   const quant = (a: number[], p: number) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : 0; };
-  const gpuMs = () => { const c = clouds.timings; const sum = Object.values(c).reduce((x, y) => x + y, 0); return { scene: mean(sceneGpu), ...c, cloudsTotal: sum, total: mean(sceneGpu) + sum }; };
+  const gpuMs = () => { const c = clouds.timings; const sum = Object.values(c).reduce((x, y) => x + y, 0); // cloudsTotal sums every pass's rolling average, so a pass that is idle (the light grid with a static sun) still counts its last build;
+    // cloudsMarch leaves the light grid out (what a frame costs between builds).
+    const grid = (c.lightGrid ?? 0) + (c.lightGridReduce ?? 0);
+    return { scene: mean(sceneGpu), ...c, cloudsTotal: sum, cloudsMarch: sum - grid, total: mean(sceneGpu) + sum }; };
   let busy = false, last = performance.now(), playStart = -1;
   const passHistory: { frame: number; lightGrid: number; clouds: number }[] = [];   // latest GPU ms per frame (lags 2-3 frames)
   const swapGpu = () => swaps.map(sw => {

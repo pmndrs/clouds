@@ -5,6 +5,14 @@ import type { GpuTimer } from './gpu-timer';
 export { lightGridWgsl, LIGHT_GRID_MAX_STEPS } from './shaders/light-grid.wgsl';
 
 export const LIGHT_GRID_SLICE_PASSES = 8;
+/** Grids above this many voxels spread a rebuild over proportionally more frames (one more 8-frame block per ~1 M voxels). */
+const PASS_BLOCK_VOXELS = 1 << 20;
+
+/** Number of frames a sun-driven rebuild is spread over: 8 for small grids (Parkouring), 16 at 256x256x32, never more than the slice count. */
+export function lightGridPasses(dims: readonly [number, number, number]): number {
+  const voxels = dims[0] * dims[1] * dims[2];
+  return Math.max(1, Math.min(dims[2], LIGHT_GRID_SLICE_PASSES * Math.max(1, Math.round(voxels / PASS_BLOCK_VOXELS))));
+}
 export const LIGHT_GRID_RESTART_DEGREES = 0.5;
 const MIN_AXIS = 16;
 const PARAM_RING = 8;
@@ -121,6 +129,8 @@ export interface LightGrid {
   readonly views: [GPUTextureView, GPUTextureView];
   readonly sampler: GPUSampler;
   readonly scheduler: LightGridScheduler;
+  /** Sun-independent reduced volume (r = profile*scale at grid resolution, g = upward optical depth), built on the first encode and after invalidate(). */
+  readonly reduced: GPUTexture;
   /** Index of the finished (sampleable) texture. Changes only on the frame a build completes. */
   readonly frontIndex: 0 | 1;
   readonly frontTexture: GPUTexture;
@@ -145,6 +155,11 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
   });
   const textures: [GPUTexture, GPUTexture] = [make(0), make(1)];
   const views: [GPUTextureView, GPUTextureView] = [textures[0].createView(), textures[1].createView()];
+  const reduced = device.createTexture({
+    label: 'light grid reduced', dimension: '3d', format: 'rgba16float', size: { width: dims[0], height: dims[1], depthOrArrayLayers: dims[2] },
+    usage: TEXTURE_BINDING | STORAGE_BINDING,
+  });
+  const reducedView = reduced.createView();
   const sampler = device.createSampler({ label: 'light grid', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge', addressModeW: 'clamp-to-edge' });
 
   const passLayout = device.createBindGroupLayout({
@@ -152,7 +167,14 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     entries: [
       { binding: 0, visibility: COMPUTE, buffer: { type: 'uniform' } },
       { binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } },
+      { binding: 2, visibility: COMPUTE, texture: { sampleType: 'float', viewDimension: '3d' } },
+      { binding: 3, visibility: COMPUTE, sampler: { type: 'filtering' } },
     ],
+  });
+  // The reduce pass writes the reduced volume, so it cannot share a bind group with the build (which samples it).
+  const reduceLayout = device.createBindGroupLayout({
+    label: 'light grid reduce',
+    entries: [{ binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } }],
   });
   const module = device.createShaderModule({ label: 'light grid build', code: volumeWgsl(0) + LIGHT_GRID_BUILD_WGSL });
   const pipeline = device.createComputePipeline({
@@ -160,18 +182,25 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, passLayout] }),
     compute: { module, entryPoint: 'buildLightGrid' },
   });
+  const reducePipeline = device.createComputePipeline({
+    label: 'light grid reduce',
+    layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, reduceLayout] }),
+    compute: { module, entryPoint: 'reduceLightGrid' },
+  });
+  const reduceGroup = device.createBindGroup({ label: 'light grid reduce', layout: reduceLayout, entries: [{ binding: 1, resource: reducedView }] });
+  let reducedValid = false;
   const paramBuffers = Array.from({ length: PARAM_RING }, (_, i) => device.createBuffer({ label: `light grid params ${i}`, size: LIGHT_GRID_PARAM_BYTES, usage: BUF_UNIFORM | BUF_COPY_DST }));
   const passBindGroups = [0, 1].map(t => paramBuffers.map((b, i) => device.createBindGroup({
     label: `light grid pass ${t}/${i}`, layout: passLayout,
-    entries: [{ binding: 0, resource: { buffer: b } }, { binding: 1, resource: views[t] }],
+    entries: [{ binding: 0, resource: { buffer: b } }, { binding: 1, resource: views[t] }, { binding: 2, resource: reducedView }, { binding: 3, resource: sampler }],
   })));
-  const scheduler = new LightGridScheduler(dims[2]);
+  const scheduler = new LightGridScheduler(dims[2], lightGridPasses(dims));
   const paramData = new ArrayBuffer(LIGHT_GRID_PARAM_BYTES);
   const f32 = new Float32Array(paramData), u32 = new Uint32Array(paramData);
   let ring = 0;
 
   return {
-    dims, format: 'rgba16float', textures, views, sampler, scheduler,
+    dims, format: 'rgba16float', textures, views, sampler, scheduler, reduced,
     get frontIndex() { return scheduler.front; },
     get frontTexture() { return textures[scheduler.front]; },
     get frontView() { return views[scheduler.front]; },
@@ -188,6 +217,15 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       const result = scheduler.step(params.sunDirection, params.densityScale, params.frameIndex);
       const d = result.dispatch;
       if (!d) return result;
+      if (!reducedValid) {
+        const rp = encoder.beginComputePass({ label: 'light grid reduce', timestampWrites: timer?.passTimestampWrites('lightGridReduce') });
+        rp.setPipeline(reducePipeline);
+        rp.setBindGroup(0, volumeBindGroup);
+        rp.setBindGroup(1, reduceGroup);
+        rp.dispatchWorkgroups(Math.ceil(dims[0] / 8), Math.ceil(dims[1] / 8), 1);
+        rp.end();
+        reducedValid = true;
+      }
       const slot = ring++ % PARAM_RING;
       f32[0] = d.sun[0]; f32[1] = d.sun[1]; f32[2] = d.sun[2]; f32[3] = d.densityScale;
       u32[4] = d.z0; u32[5] = LIGHT_GRID_MAX_STEPS; u32[6] = 0; u32[7] = 0;
@@ -200,7 +238,7 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       pass.end();
       return result;
     },
-    invalidate() { scheduler.invalidate(); },
-    destroy() { textures[0].destroy(); textures[1].destroy(); paramBuffers.forEach(b => b.destroy()); },
+    invalidate() { reducedValid = false; scheduler.invalidate(); },
+    destroy() { textures[0].destroy(); textures[1].destroy(); reduced.destroy(); paramBuffers.forEach(b => b.destroy()); },
   };
 }
