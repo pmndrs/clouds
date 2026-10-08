@@ -1,18 +1,20 @@
 // Flagship shell: three WebGPURenderer + @pmndrs/sky + ground, orbit/free-fly camera, HUD, bookmarks and the window.__clouds contract.
-// P1 plugs the cloud pass in through cloud-hook.ts.
+// Frame: scene -> render target (+depth); runtime encodes march + composite; a QuadMesh blends scene * a + rgb and tone-maps.
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
-import { GpuTimer } from '@clouds/runtime';
+import { createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQuality } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
-import { BOOKMARK_NAMES, bookmarkTime, isBookmarkName, resolveBookmark, type BookmarkName } from './bookmarks';
-import { cloudPass } from './cloud-hook';
+import { BOOKMARK_NAMES, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, type BookmarkName } from './bookmarks';
+import { createCloudBridge } from './three-bridge';
 import { CameraRig } from './controls';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['low', 'medium', 'high'] as const;
+const CLOUDS = ['parkouring', 'stormbird'] as const;
+const cloudName = CLOUDS.includes(query.get('cloud') as never) ? (query.get('cloud') as string) : 'parkouring';
 const state = {
   bookmark: (isBookmarkName(query.get('bookmark') ?? '') ? query.get('bookmark') : 'ground') as BookmarkName,
   time: query.has('time') ? Number(query.get('time')) : bookmarkTime('ground'),
@@ -32,6 +34,12 @@ try {
   await renderer.init();
   const { device } = sharedBackend(renderer);
   const timer = new GpuTimer(device);
+  const runtime = createCloudRuntime(device, { quality: state.quality as CloudQuality });
+  const bridge = createCloudBridge(renderer, runtime);
+  const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume(`/clouds/${cloudName}/`), loadCloudNoise('/clouds/noise/')]);
+  await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset) });
+  await runtime.setNoise(noiseAsset);
+  for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number>)[key.slice(2)] = Number(value);
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(70, 1, 1, 1500000);
@@ -41,6 +49,7 @@ try {
   sky.attach(scene);
   const ground = sky.createGround({ mode: 'plane', size: 2000000, color: 0x34461f, roughness: 1 });
   ground.attach(scene);
+  if (query.get('noground') === '1') ground.mesh.visible = false;
   const sun = sky.createSun({ physical: true }); // sun light colour/intensity come from the sky LUTs, not hard-coded
   sun.attach(scene);
   await sky.compileAsync();
@@ -52,6 +61,7 @@ try {
     renderSize.width = Math.max(1, Math.round(innerWidth * state.scale));
     renderSize.height = Math.max(1, Math.round(innerHeight * state.scale));
     renderer.setSize(renderSize.width, renderSize.height, false);
+    bridge.resize(renderSize.width, renderSize.height);
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
   };
@@ -99,7 +109,7 @@ try {
   scaleInput.oninput = () => { state.scale = Number(scaleInput.value); resize(); };
   const qualitySel = el('select', {}, label('quality'));
   for (const q of QUALITIES) el('option', { value: q, textContent: q }, qualitySel);
-  qualitySel.onchange = () => { state.quality = qualitySel.value; };
+  qualitySel.onchange = () => { state.quality = qualitySel.value; runtime.setQuality(state.quality as CloudQuality); };
   const animateBox = el('input', { type: 'checkbox' }, label('animate'));
   animateBox.onchange = () => { state.animateTime = animateBox.checked; };
   const modeBtn = el('button', { textContent: 'mode: orbit (F)' });
@@ -125,6 +135,34 @@ try {
     ].join('\n');
   };
 
+  // Sun and ambient come from the sky: the physical sun light carries luminanceScale x T(sun) as colour x intensity.
+  // TEMPORARY ambient (P1-02 replaces it with sky-view LUT lookups): sky irradiance ~ the sun's scattered-away share,
+  // tinted by what the atmosphere removed from the sun (1 - T), ground bounce from the sun colour.
+  const frameData: CloudFrame = {
+    view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16),
+    cameraPosition: [0, 0, 0], depth: undefined as unknown as GPUTextureView, depthKind: 'depth32float',
+    sunDirection: [0, 1, 0], sunRadiance: [0, 0, 0], ambientTop: [0, 0, 0], ambientBottom: [0, 0, 0], time: 0, frameIndex: 0,
+  };
+  const SKY_AMBIENT_FRACTION = 0.035, GROUND_BOUNCE_FRACTION = 0.03;
+  const luma = (r: number, g: number, b: number) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const updateSkyLighting = () => {
+    const l = sun.light;
+    const dir = frameData.sunDirection as number[];
+    dir[0] = l.position.x - sun.target.position.x; dir[1] = l.position.y - sun.target.position.y; dir[2] = l.position.z - sun.target.position.z;
+    const n = Math.hypot(dir[0], dir[1], dir[2]) || 1; dir[0] /= n; dir[1] /= n; dir[2] /= n;
+    const E = [l.color.r * l.intensity, l.color.g * l.intensity, l.color.b * l.intensity];
+    const e0 = sky.baker.sky.luminanceScale.value as number; // sun illuminance above the atmosphere, sky units
+    const lumE = luma(E[0], E[1], E[2]);
+    const removed = E.map(v => Math.max(0.02, 1 - v / e0));
+    const tintNorm = luma(removed[0], removed[1], removed[2]) || 1;
+    const rad = frameData.sunRadiance as number[], top = frameData.ambientTop as number[], bottom = frameData.ambientBottom as number[];
+    for (let i = 0; i < 3; i++) {
+      rad[i] = E[i];
+      top[i] = (removed[i] / tintNorm) * lumE * SKY_AMBIENT_FRACTION;
+      bottom[i] = E[i] * GROUND_BOUNCE_FRACTION * Math.max(0, dir[1]);
+    }
+  };
+
   // ---- frame loop ----
   const t0 = performance.now();
   let last = t0, frame = 0;
@@ -140,13 +178,16 @@ try {
     ground.mesh.position.set(camera.position.x, 0, camera.position.z);
     sky.update(camera);
 
+    bridge.renderScene(scene, camera);
+    bridge.fillFrame(camera, frameData);
+    updateSkyLighting();
+    frameData.time = (now - t0) / 1000; frameData.frameIndex = frame;
     timer.beginFrame();
     const encoder = device.createCommandEncoder({ label: 'flagship cloud encoder' });
-    cloudPass.current({ renderer, device, camera, scene, sky, timer, encoder, quality: state.quality, renderSize, time: (now - t0) / 1000, frame });
+    runtime.encode(encoder, frameData, timer);
     timer.endFrame(encoder);
     device.queue.submit([encoder.finish()]);
-
-    renderer.render(scene, camera);
+    bridge.present();
 
     // three timestamps: resolve asynchronously, one request in flight, never awaited by the loop
     if (!timestampBusy) {
@@ -165,7 +206,7 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, animateTime: state.animateTime, quality: state.quality, frames: frame }),
+    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

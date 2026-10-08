@@ -1,0 +1,70 @@
+{
+  "url": "http://127.0.0.1:52545/flagship/?cloud=stormbird",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T11:34:47.430Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P1-01/stormbird/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6014072666666667,
+          "march": 0.49230961666666667,
+          "composite": 0.3335603833333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045,
+          "last": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 96
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/P1-01/stormbird/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6436005333333333,
+          "march": 9.189977050000001,
+          "composite": 0.2890366000000001
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 191
+      }
+    }
+  ],
+  "console": [
+    "warning: THREE.WARNING: Multiple instances of Three.js being imported."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

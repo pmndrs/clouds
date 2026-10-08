@@ -95,7 +95,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 ### Wave A (parallel)
 
-### [~] P1-01 First image: density, SDF march, composite and the flagship frame · Sonnet
+### [x] P1-01 First image: density, SDF march, composite and the flagship frame · Sonnet
 - **Owns:**
   - `packages/runtime/src/{runtime.ts,shaders/density.wgsl.ts,shaders/march.wgsl.ts,shaders/composite.wgsl.ts}`
   - export lines added to `packages/runtime/src/index.ts`
@@ -189,7 +189,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
     grid ever bound.
   - It reports per-frame GPU ms for the update slice on Parkouring's real dims.
 
-### [~] P1-04 Density parity test · Sonnet
+### [x] P1-04 Density parity test · Sonnet
 - **Owns:**
   - `packages/runtime/src/reference/density.ts` and its test
   - `examples/lab/runtime-tests/density/**`
@@ -220,4 +220,5 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-08: density parity gate: formula ≤ 1e-3 (measured 2.8e-7) and end to end ≤ 5e-3. Hardware trilinear filtering quantizes weights to 1/256, and the Nubis sharpen `pow` amplifies that at cloud edges (P1-04).
 - 2026-10-08: known issue: animating the sky's time of day costs about 10–11 ms of GPU in `@pmndrs/sky` 0.5 (P0-03). P1-02 measures it. Budgets read `scene` with `animateTime` off until it is resolved.

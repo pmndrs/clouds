@@ -1,0 +1,46 @@
+/**
+ * Up-rezzed voxel cloud density: a line-for-line port of GetVoxelCloudDensitySamples + GetUprezzedVoxelCloudDensity
+ * from assets/nubis-voxel-clouds/Code Fragments/VoxelCloudSampler.cg.
+ * Needs COMMON_WGSL and volumeWgsl(0) concatenated before it. The signature is fixed by work/specs/P1-runtime.md.
+ *
+ * Deviations from the Decima source: the world is y-up, so the NVDF (x, row, up) is addressed as (x, z, y) by
+ * volumeUvw, and noise is sampled at `(p - wind) * noiseScale` with a horizontal (xz) wind. The reflection-dome
+ * branch is not ported. The `fineDetailMipDistanceScale` constant (not published) is passed in.
+ */
+export const DENSITY_WGSL = /* wgsl */ `
+struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, _p0: f32, _p1: f32 }
+
+// x = full up-rezzed density (0..1, before extinction scaling), y = profile * density scale (cheap).
+fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
+  let modeling = sampleModeling(p, inputs.baseMip);
+  let profile = modeling.x;
+  let type_ = modeling.y;
+  let densityScale = modeling.z;
+  if (!(profile > 0.0)) { return vec2(0.0); }
+  let hf = inputs.hfDetails != 0u;
+
+  // GetUprezzedVoxelCloudDensity
+  let mip = log2(1.0 + abs(rayDistance * inputs.mipDistanceScale)) + inputs.baseMip;
+  let n = textureSampleLevel(cloudNoise, repeatSampler, (p - inputs.wind) * cloudVolume.noiseScale, mip);
+
+  let wispy = mix(n.r, n.g, profile);
+  let billowy = mix(n.b * 0.3, n.a * 0.3, pow(profile, 0.25));
+  var noiseComposite = mix(wispy, billowy, type_);
+
+  if (hf) {
+    let hhf = saturate(mix(1.0 - pow(abs(abs(n.g * 2.0 - 1.0) * 2.0 - 1.0), 4.0), pow(abs(abs(n.a * 2.0 - 1.0) * 2.0 - 1.0), 2.0), type_));
+    noiseComposite = mix(hhf, noiseComposite, valueRemap(rayDistance, 50.0, 150.0, 0.9, 1.0));
+  }
+
+  var d = valueErosion(profile, noiseComposite);
+  let poweredScale = pow(saturate(densityScale), 4.0);
+  d = d * poweredScale;
+  d = pow(d, mix(0.3, 0.6, max(EPSILON, poweredScale)));
+  if (hf) {
+    let f = fractionFromValue(rayDistance, 50.0, 150.0);
+    d = pow(d, mix(0.5, 1.0, f)) * mix(0.666, 1.0, f);
+  }
+  // Scale down close to the camera so the viewer can see inside and animated noise artifacts are hidden.
+  return vec2(d * valueRemap(rayDistance, 10.0, 120.0, 0.25, 1.0), profile * densityScale);
+}
+`;
