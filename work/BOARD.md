@@ -67,7 +67,7 @@ These tasks run in parallel. File ownership is disjoint; respect it.
   - `report.gpuMs` has a non-zero scene entry.
   - Frame-time stability: time of day animates during capture, and no frame exceeds 1.5× the median after warm-up. Add a `?animateTime=1` mode and record `frameMs` p50/p95 in the report.
 
-### [~] P0-04 Tidewater reference captures · Sonnet
+### [x] P0-04 Tidewater reference captures · Sonnet
 - **Owns:** `work/captures/P0-04/` and `work/reports/P0-04.md`. Read-only access to `/Users/dex/Developer/tidewater` (MIT; do not modify it).
 - **Does:**
   - Run Tidewater's dev server and capture its clouds at 4 views comparable to our bookmarks: ground looking up at cumulus, distant horizon, low sun with backlit clouds, and the highest viewpoint reachable (boat or hill).
