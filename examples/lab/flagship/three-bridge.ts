@@ -5,7 +5,7 @@ import { MeshBasicNodeMaterial, QuadMesh, StorageTexture, WebGPURenderer } from 
 import { texture, vec4 } from 'three/tsl';
 import { Matrix4, Vector3 } from 'three';
 import type { CloudFrame, CloudRuntime } from '@clouds/runtime';
-import { sharedBackend } from '../../../packages/three/src/gpu/backend';
+import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 
 export function createCloudBridge(renderer: WebGPURenderer, runtime: CloudRuntime) {
   const backend = sharedBackend(renderer);

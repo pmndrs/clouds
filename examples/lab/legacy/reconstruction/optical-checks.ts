@@ -3,8 +3,8 @@ import {
   OrthographicCamera, PlaneGeometry, RGBAFormat, RenderTarget, Scene, WebGPUCoordinateSystem,
   type Texture, type WebGPURenderer,
 } from 'three/webgpu';
-import { sharedBackend } from '../../../../packages/three/src/gpu/backend';
-import { createOpticalResolve } from '../../../../packages/three/src/optical-resolve';
+import { sharedBackend } from '../../../../packages/legacy/three/src/gpu/backend';
+import { createOpticalResolve } from '../../../../packages/legacy/three/src/optical-resolve';
 
 export interface OpticalGpuCheckResult {
   readonly name: string;

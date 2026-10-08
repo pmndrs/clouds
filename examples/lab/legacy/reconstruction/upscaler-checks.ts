@@ -1,7 +1,7 @@
 import { PerspectiveCamera, WebGPUCoordinateSystem, type Texture, type WebGPURenderer } from 'three/webgpu';
 
-import { sharedBackend } from '../../../../packages/three/src/gpu/backend';
-import { createReconstructionAdapter, type ReconstructionAdapter } from '../../../../packages/three/src/reconstruction/adapter';
+import { sharedBackend } from '../../../../packages/legacy/three/src/gpu/backend';
+import { createReconstructionAdapter, type ReconstructionAdapter } from '../../../../packages/legacy/three/src/reconstruction/adapter';
 
 export interface UpscalerCheckResult {
   readonly name: string;

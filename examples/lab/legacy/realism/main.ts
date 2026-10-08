@@ -3,14 +3,14 @@ import '../../style.css';
 import { WebGPURenderer, Scene, PerspectiveCamera, Vector3, ACESFilmicToneMapping, Mesh, PlaneGeometry, MeshBasicNodeMaterial } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SkyAtmosphereBaker } from '@pmndrs/sky';
-import { createReferenceCloud } from '../../../../packages/three/src/volumetric';
+import { createReferenceCloud } from '../../../../packages/legacy/three/src/volumetric';
 import { createCloudLayerField, summarizeCloudLayerField } from '../../../../experiments/cloudscape-density/source';
 import { decodeDenseAsset, type DenseDensityField } from '../../../../packages/assets/src/index';
-import { sharedBackend } from '../../../../packages/three/src/gpu/backend';
+import { sharedBackend } from '../../../../packages/legacy/three/src/gpu/backend';
 import { downloadCanvasCapture } from '../../harness';
 import { runRealismChecks, runMorphologyChecks } from './checks';
-import { createMorphologyNoise, type MorphologyNoiseResources } from '../../../../packages/three/src/sources/morphology-noise';
-import { createMorphologyDomain, MORPHOLOGY_BOUNDS } from '../../../../packages/three/src/volumetric/morphology';
+import { createMorphologyNoise, type MorphologyNoiseResources } from '../../../../packages/legacy/three/src/sources/morphology-noise';
+import { createMorphologyDomain, MORPHOLOGY_BOUNDS } from '../../../../packages/legacy/three/src/volumetric/morphology';
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 document.querySelector('#app')!.innerHTML=`<div class="shell"><aside class="sidebar"><header><span class="eyebrow">pmndrs / clouds</span><h1>Cloud layer</h1><span class="badge">Realism development</span><p>Weather-driven volume, eroded detail and self-lighting. Drag to orbit; scroll to fly closer.</p></header>
 <section class="section"><h2>WEATHER</h2><label>Cloud source<select id="source"><option value="morphology">Procedural · weather / shape / erosion</option><option value="houdini-detail">VDB import fixture · two noise passes</option><option value="houdini-billowy">VDB import fixture · billowy noise</option><option value="houdini-soft">VDB import fixture · reduced density</option><option value="houdini">VDB import fixture · baseline</option><option value="procedural">Previous procedural source</option></select></label><label>Domain<select id="domain"><option value="local">Local field · 4 km</option><option value="layer">Broad field · 9 km</option></select></label><label>Coverage<input id="coverage" type="range" min="0" max="1" step=".05" value=".55"></label><label>Edge erosion<input id="erosion" type="range" min="0" max="1" step=".05" value=".85"></label><label>Seed<select id="seed"><option>17</option><option>29</option><option>53</option></select></label><label>Weather scale (m)<input id="weatherScale" type="range" min="8000" max="24000" step="1000" value="10000"></label><label>Shape scale (m)<input id="shapeScale" type="range" min="1000" max="5000" step="250" value="2250"></label><label>Erosion scale (m)<input id="erosionScale" type="range" min="200" max="1200" step="50" value="450"></label><label>Optical density<input id="density" type="range" min="0" max="2" step=".05" value="1"></label><label>Sun elevation<input id="sun" type="range" min="5" max="85" value="35"></label></section>

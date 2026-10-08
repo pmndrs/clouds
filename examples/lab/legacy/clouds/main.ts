@@ -5,8 +5,8 @@ import {
   HemisphereLight, Vector3, WebGPUCoordinateSystem, Vector2,
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createDensityField, type DensityPreset } from '../../../../packages/three/src/sources/index';
-import { createReferenceCloud, referenceGroundReceiver } from '../../../../packages/three/src/volumetric/index';
+import { createDensityField, type DensityPreset } from '../../../../packages/legacy/three/src/sources/index';
+import { createReferenceCloud, referenceGroundReceiver } from '../../../../packages/legacy/three/src/volumetric/index';
 import { MeasurementCollector, downloadCanvasCapture } from '../../harness';
 import { runCloudChecks, type CloudCheck } from './checks';
 import compatibility from '../../../../fixtures/compatibility.json';

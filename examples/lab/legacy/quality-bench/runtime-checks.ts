@@ -1,9 +1,9 @@
 import {
   Color, PerspectiveCamera, Scene, Vector3, WebGPUCoordinateSystem, WebGPURenderer,
 } from 'three/webgpu';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { createCloudWorld } from '../../../../packages/three/src/world';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { createCloudWorld } from '../../../../packages/legacy/three/src/world';
 import { compareFrames, compareTemporalResidual, summarizeMotion } from './metrics';
 
 export interface ProductionPreview {

@@ -1,5 +1,5 @@
 import { PerspectiveCamera, type Scene, type WebGPURenderer } from 'three/webgpu';
-import { type createReferenceCloud } from '@clouds/three';
+import { type createReferenceCloud } from '@clouds/legacy-three';
 import { createBlendedField, volumeAverage, volumeAverageAxes, type LodField } from '../../../../experiments/lod/reference';
 import { compareOpticalImages, evaluateOpticalMetrics, DEFAULT_OPTICAL_GATES, type OpticalImageMetrics, type OpticalMetricEvaluation } from '../../../../experiments/lod/image-metrics';
 

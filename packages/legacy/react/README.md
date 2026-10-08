@@ -1,11 +1,11 @@
-# @clouds/react
+# @clouds/legacy-react
 
 Unpublished WebGPU preview for React 19.2.3 and React Three Fiber 10.0.0-alpha.5.
 
 ```tsx
 import { Canvas } from '@react-three/fiber/webgpu';
-import { Cloudscape } from '@clouds/react';
-import { CloudLayer } from '@clouds/react/layers';
+import { Cloudscape } from '@clouds/legacy-react';
+import { CloudLayer } from '@clouds/legacy-react/layers';
 
 <Canvas camera={{ position: [0, 1200, 2800], near: 1, far: 20000 }}>
   <Cloudscape />

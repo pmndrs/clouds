@@ -6,10 +6,10 @@ import {
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SkyAtmosphereBaker } from '@pmndrs/sky';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { createCloudWorld } from '../../../../packages/three/src/world';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { createCloudscapeEnvironment } from '../../../../packages/three/src/environment';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { createCloudWorld } from '../../../../packages/legacy/three/src/world';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { createCloudscapeEnvironment } from '../../../../packages/legacy/three/src/environment';
 import { downloadCanvasCapture } from '../../harness';
 import { runLightingChecks } from './checks';
 

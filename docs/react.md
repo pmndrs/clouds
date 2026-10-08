@@ -1,13 +1,13 @@
 # React bindings
 
-`@clouds/react` is the React Three Fiber v10 WebGPU adapter for the vanilla
-`@clouds/three` runtime. It uses the renderer and frame loop owned by the
+`@clouds/legacy-react` is the React Three Fiber v10 WebGPU adapter for the vanilla
+`@clouds/legacy-three` runtime. It uses the renderer and frame loop owned by the
 caller. It does not create a renderer, device, or animation loop.
 
 ```tsx
 import { Canvas } from '@react-three/fiber/webgpu'
-import { Cloudscape } from '@clouds/react'
-import { CloudLayer } from '@clouds/react/layers'
+import { Cloudscape } from '@clouds/legacy-react'
+import { CloudLayer } from '@clouds/legacy-react/layers'
 
 export function SkyView() {
   return (
@@ -36,8 +36,8 @@ volumetric runtime.
 the same caller-owned renderer and render phase:
 
 ```tsx
-import { DensityCloud } from '@clouds/react'
-import { createDensityField } from '@clouds/three'
+import { DensityCloud } from '@clouds/legacy-react'
+import { createDensityField } from '@clouds/legacy-three'
 
 const field = createDensityField('cumulus', 64, 17)
 

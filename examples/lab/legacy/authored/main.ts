@@ -1,6 +1,6 @@
 import { createLabRenderer } from '../../harness/renderer';
 import { fetchDenseAsset, decodeDenseAsset, type DenseDensityField } from '@clouds/assets';
-import { createReferenceCloud } from '@clouds/three';
+import { createReferenceCloud } from '@clouds/legacy-three';
 import { WebGPURenderer, Scene, PerspectiveCamera, Color, Vector3, Box3, Box3Helper, ACESFilmicToneMapping } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createMeshBench, type MeshBenchResult } from './mesh-bench';

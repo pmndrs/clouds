@@ -1,7 +1,7 @@
 import { compareFrames, compareTemporalResidual, summarizeMotion, type MotionMetrics } from './metrics';
 import { CLOUD_QUALITY_WGSL, PRESENT_WGSL } from './shaders';
-import { createDensityField } from '../../../../packages/three/src/sources/density';
-import { CANDIDATE_WGSL, LIGHT_CACHE_WGSL, cloudscapeShader } from '../../../../packages/three/src/cloudscape/shaders';
+import { createDensityField } from '../../../../packages/legacy/three/src/sources/density';
+import { CANDIDATE_WGSL, LIGHT_CACHE_WGSL, cloudscapeShader } from '../../../../packages/legacy/three/src/cloudscape/shaders';
 import { runProductionCloudAudit } from './runtime-checks';
 import './style.css';
 

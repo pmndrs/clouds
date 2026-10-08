@@ -1,5 +1,5 @@
 import { validateDensityDescriptor, type DensityDescriptor, type Vec3 } from '../../packages/core/src/index';
-import type { DenseDensityField } from '../../packages/three/src/sources/density';
+import type { DenseDensityField } from '../../packages/legacy/three/src/sources/density';
 
 /** World-space extent used by the cumulus candidate source (metres). */
 export const CUMULUS_BOUNDS: { readonly min: Vec3; readonly max: Vec3 } = {

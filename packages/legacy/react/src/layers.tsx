@@ -3,7 +3,7 @@ import {
   createCloudLayer,
   type CloudLayer as CloudLayerRuntime,
   type CloudLayerOptions,
-} from '@clouds/three/layers';
+} from '@clouds/legacy-three/layers';
 import { useEffect, useRef } from 'react';
 
 export interface CloudLayerProps extends CloudLayerOptions {

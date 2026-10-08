@@ -1,7 +1,7 @@
 import { PerspectiveCamera, type Scene, type WebGPURenderer } from 'three/webgpu';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { type DenseDensityField } from '../../../../packages/three/src/sources/density';
-import { type createReferenceCloud } from '../../../../packages/three/src/volumetric';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { type DenseDensityField } from '../../../../packages/legacy/three/src/sources/density';
+import { type createReferenceCloud } from '../../../../packages/legacy/three/src/volumetric';
 import { createBlendedField } from '../../../../experiments/lod/reference';
 import { compareOpticalImages, evaluateOpticalMetrics, DEFAULT_OPTICAL_GATES, type OpticalImageMetrics, type OpticalMetricEvaluation } from '../../../../experiments/lod/image-metrics';
 

@@ -1,7 +1,7 @@
 import { Scene, PerspectiveCamera, type WebGPURenderer } from 'three/webgpu';
-import { createReferenceCloud } from '../../../../packages/three/src/volumetric';
-import { createMorphologyNoise } from '../../../../packages/three/src/sources/morphology-noise';
-import { createMorphologyDomain } from '../../../../packages/three/src/volumetric/morphology';
+import { createReferenceCloud } from '../../../../packages/legacy/three/src/volumetric';
+import { createMorphologyNoise } from '../../../../packages/legacy/three/src/sources/morphology-noise';
+import { createMorphologyDomain } from '../../../../packages/legacy/three/src/volumetric/morphology';
 export async function runRealismChecks(renderer:WebGPURenderer){
   const results:{name:string;error:number;tolerance:number;passed:boolean}[]=[];
   const check=(name:string,error:number,tolerance=0)=>results.push({name,error,tolerance,passed:Number.isFinite(error)&&error<=tolerance});

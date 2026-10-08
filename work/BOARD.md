@@ -358,7 +358,7 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 
 Spec: [specs/P2-api.md](specs/P2-api.md).
 
-### [~] P2-00 Move the legacy packages aside · Haiku
+### [x] P2-00 Move the legacy packages aside · Haiku
 - **Owns:**
   - `packages/three` → `packages/legacy/three`, renamed `@clouds/legacy-three`
   - `packages/react` → `packages/legacy/react`, renamed `@clouds/legacy-react`
@@ -418,7 +418,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - A capture shows a slice visualization.
   - No three imports.
 
-### [~] P4-A VDB → NVDF converter (Houdini) · Sonnet
+### [x] P4-A VDB → NVDF converter (Houdini) · Sonnet
 - **Owns:** `scripts/vdb/**` (new), `assets/clouds/README.md` (append a section only), `work/captures/P4-A/`, report.
 - **Does:** a hython converter
   (`/Applications/Houdini/Houdini21.0.671/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython`,
@@ -458,6 +458,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-08: P4-A follow-up: the mode-2 profile mapping (`saturate(−sdf/depth)^γ`) saturates too fast, so authored clouds read as soft sphere clusters (`work/captures/P4-A/edge.jpg`). Fit Guerrilla's profile-vs-SDF relation from the pack data (it ships both) in P4-B.
 - 2026-10-08: P2-A ocean polish for Phase 2: a darker LOD band about 1–3 km out at grazing angles (see `work/captures/P2-A/sunset.jpg`), faint tile repetition, no foam. The page calibrates for about 6 s before ready (`?nocal=1` skips it).
 - 2026-10-08: P3-A generator note for Phase 3: the jump flood allocates about 268 MB of seed buffers at 512²×64. Packed seeds or a tiled flood are needed before phones (P5). Not double-buffered, so render the old volume until `done`.
 - 2026-10-08: density parity gate: formula ≤ 1e-3 (measured 2.8e-7) and end to end ≤ 5e-3. Hardware trilinear filtering quantizes weights to 1/256, and the Nubis sharpen `pow` amplifies that at cloud edges (P1-04).

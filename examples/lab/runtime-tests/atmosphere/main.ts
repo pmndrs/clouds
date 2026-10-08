@@ -8,7 +8,7 @@ import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
 import { atmosphereWgsl } from '../../../../packages/runtime/src/shaders/atmosphere.wgsl';
 import { installCloudsHarness } from '../../harness/clouds-contract';
-import { sharedBackend } from '../../../../packages/three/src/gpu/backend';
+import { sharedBackend } from '../../../../packages/legacy/three/src/gpu/backend';
 import { createSkyBridge } from '../../flagship/sky-bridge';
 
 const harness = installCloudsHarness();

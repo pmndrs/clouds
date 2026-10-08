@@ -1,6 +1,6 @@
 import { Scene, PerspectiveCamera, WebGPUCoordinateSystem, BoxGeometry, PlaneGeometry, Mesh, MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
-import { createDensityField } from '../../../../packages/three/src/sources/index';
-import { createReferenceCloud, referenceGroundReceiver } from '../../../../packages/three/src/volumetric/index';
+import { createDensityField } from '../../../../packages/legacy/three/src/sources/index';
+import { createReferenceCloud, referenceGroundReceiver } from '../../../../packages/legacy/three/src/volumetric/index';
 
 export interface CloudCheck { name: string; passed: boolean; error: number; tolerance: number }
 

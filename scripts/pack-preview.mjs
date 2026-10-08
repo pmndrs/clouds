@@ -3,7 +3,7 @@ import { mkdir, readdir, readFile, writeFile, copyFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 const output=path.resolve('artifacts/release');await mkdir(output,{recursive:true});
-const names=['core','three','react','assets','tools'];
+const names=['core','legacy/three','legacy/react','assets','tools'];
 for(const name of names){const r=spawnSync('pnpm',['pack','--pack-destination',output],{cwd:`packages/${name}`,stdio:'inherit'});if(r.status!==0)process.exit(r.status??1);}
 await copyFile('vendor/pmndrs-upscaler-0.2.0.tgz',`${output}/pmndrs-upscaler-0.2.0.tgz`);
 await copyFile('vendor/README.md',`${output}/UPSCALER-PROVENANCE.md`);

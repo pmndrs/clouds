@@ -4,7 +4,7 @@ import {
   type DenseDensityField,
   type ReferenceCloudSettings,
   type ReferenceCloud as ReferenceCloudRuntime,
-} from '@clouds/three';
+} from '@clouds/legacy-three';
 import { Vector2, type PerspectiveCamera } from 'three/webgpu';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
@@ -43,7 +43,7 @@ function asError(value: unknown): Error {
 function resolutionNumber(value: number | undefined): number {
   const resolved = value ?? 1;
   if (!Number.isFinite(resolved) || resolved <= 0 || resolved > 1) {
-    throw new Error('@clouds/react DensityCloud resolutionScale must be finite and between 0 (exclusive) and 1.');
+    throw new Error('@clouds/legacy-react DensityCloud resolutionScale must be finite and between 0 (exclusive) and 1.');
   }
   return resolved;
 }
@@ -137,7 +137,7 @@ export function useDensityCloud(options: UseDensityCloudOptions): ReferenceCloud
     try {
       const camera = frameState.camera;
       if (!(camera as { isPerspectiveCamera?: boolean }).isPerspectiveCamera) {
-        throw new Error('@clouds/react DensityCloud requires a THREE.PerspectiveCamera. Orthographic cameras are unsupported by the volumetric runtime.');
+        throw new Error('@clouds/legacy-react DensityCloud requires a THREE.PerspectiveCamera. Orthographic cameras are unsupported by the volumetric runtime.');
       }
       const perspective = camera as PerspectiveCamera;
       if (perspective.coordinateSystem !== renderer.coordinateSystem) {

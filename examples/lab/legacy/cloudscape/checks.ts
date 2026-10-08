@@ -1,8 +1,8 @@
 import { Scene, PerspectiveCamera, WebGPUCoordinateSystem } from 'three/webgpu';
-import { createCloudWorld, type WorldSnapshot } from '../../../../packages/three/src/world';
-import { buildCandidateMasks } from '../../../../packages/three/src/world-candidates';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
+import { createCloudWorld, type WorldSnapshot } from '../../../../packages/legacy/three/src/world';
+import { buildCandidateMasks } from '../../../../packages/legacy/three/src/world-candidates';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
 import type { WebGPURenderer } from 'three/webgpu';
 
 export async function runCloudscapeChecks(renderer: WebGPURenderer) {

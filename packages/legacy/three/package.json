@@ -1,5 +1,5 @@
 {
-  "name": "@clouds/three",
+  "name": "@clouds/legacy-three",
   "version": "0.0.0-preview.1",
   "private": true,
   "type": "module",

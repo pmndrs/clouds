@@ -1,5 +1,5 @@
 import { Color, CubeRenderTarget, PerspectiveCamera, Scene, Vector3, WebGPUCoordinateSystem, type WebGPURenderer } from 'three/webgpu';
-import { createCloudscape, createCloudscapeAtlas, createCloudWorld, createDensityField, createReferenceCloud } from '@clouds/three';
+import { createCloudscape, createCloudscapeAtlas, createCloudWorld, createDensityField, createReferenceCloud } from '@clouds/legacy-three';
 
 /** Sequential shared-renderer checks. The caller pauses its frame loop first. */
 export async function runLifecycleChecks(renderer: WebGPURenderer, progress: (message: string) => void) {

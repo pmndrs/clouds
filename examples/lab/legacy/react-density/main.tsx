@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber/webgpu';
-import { DensityCloud, type DensityCloudHandle } from '@clouds/react';
-import { createDensityField, createReferenceCloud, type DenseDensityField, type ReferenceCloudSettings } from '@clouds/three';
+import { DensityCloud, type DensityCloudHandle } from '@clouds/legacy-react';
+import { createDensityField, createReferenceCloud, type DenseDensityField, type ReferenceCloudSettings } from '@clouds/legacy-three';
 import { useCallback, useEffect, useMemo, useRef, useState, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PerspectiveCamera, Vector3, WebGPURenderer, type Scene as ThreeScene } from 'three/webgpu';

@@ -1,9 +1,9 @@
 import '../../style.css';
 import { WebGPURenderer, Scene, PerspectiveCamera, Color, Mesh, PlaneGeometry, SphereGeometry, MeshStandardNodeMaterial, DirectionalLight, HemisphereLight, ACESFilmicToneMapping, Vector2 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createCloudscape, createCloudWorld, createCloudscapeAtlas, createReferenceCloud, createDensityField, type Cloudscape, type ReferenceCloud } from '@clouds/three';
-import { createCloudLayer, type CloudLayer } from '@clouds/three/layers';
-import { createCloudscapeEnvironment, type CloudscapeEnvironmentCapture } from '@clouds/three/environment';
+import { createCloudscape, createCloudWorld, createCloudscapeAtlas, createReferenceCloud, createDensityField, type Cloudscape, type ReferenceCloud } from '@clouds/legacy-three';
+import { createCloudLayer, type CloudLayer } from '@clouds/legacy-three/layers';
+import { createCloudscapeEnvironment, type CloudscapeEnvironmentCapture } from '@clouds/legacy-three/environment';
 import { runLifecycleChecks } from './lifecycle-checks';
 
 const app = document.querySelector('#app')!;

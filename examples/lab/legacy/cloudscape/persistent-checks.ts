@@ -1,9 +1,9 @@
 import { PerspectiveCamera, Scene, WebGPUCoordinateSystem, type WebGPURenderer } from 'three/webgpu';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { createPersistentCloudWorld } from '../../../../packages/three/src/world/persistent';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { createCoarseCloudscapeAtlas } from '../../../../packages/three/src/sources/atlas-lod';
-import type { WorldSnapshot } from '../../../../packages/three/src/world';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { createPersistentCloudWorld } from '../../../../packages/legacy/three/src/world/persistent';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { createCoarseCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/atlas-lod';
+import type { WorldSnapshot } from '../../../../packages/legacy/three/src/world';
 
 /** Optical/support checks. These intentionally do not certify lighting quality. */
 export async function runPersistentWorldChecks(renderer: WebGPURenderer) {

@@ -8,11 +8,11 @@ import {
 import { texture, uv, uniform, mix, step, velocity, vec3 } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SkyAtmosphereBaker } from '@pmndrs/sky';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { createCloudWorld } from '../../../../packages/three/src/world';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { createReconstructionAdapter } from '../../../../packages/three/src/reconstruction/adapter';
-import { createOpticalResolve } from '../../../../packages/three/src/optical-resolve';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { createCloudWorld } from '../../../../packages/legacy/three/src/world';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { createReconstructionAdapter } from '../../../../packages/legacy/three/src/reconstruction/adapter';
+import { createOpticalResolve } from '../../../../packages/legacy/three/src/optical-resolve';
 import { sampleCameraPath, type CameraPath } from '../../../../bench/camera';
 import { MeasurementCollector, downloadCanvasCapture } from '../../harness';
 import { createFlightClock } from '../cloudscape/playback';

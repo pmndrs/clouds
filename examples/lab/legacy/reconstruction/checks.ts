@@ -1,8 +1,8 @@
 import { Scene, PerspectiveCamera, WebGPUCoordinateSystem, Matrix4, Vector3, Color, Mesh, BoxGeometry, MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { velocity } from 'three/tsl';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { createCloudWorld, type WorldSnapshot } from '../../../../packages/three/src/world';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { createCloudWorld, type WorldSnapshot } from '../../../../packages/legacy/three/src/world';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
 import { runUpscalerChecks } from './upscaler-checks';
 import { runOpticalGpuChecks } from './optical-checks';
 import { runSamplingChecks } from './sampling-checks';

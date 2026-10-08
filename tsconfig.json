@@ -25,11 +25,11 @@
       "@clouds/core": [
         "packages/core/src/index.ts"
       ],
-      "@clouds/three": [
-        "packages/three/src/index.ts"
+      "@clouds/legacy-three": [
+        "packages/legacy/three/src/index.ts"
       ],
-      "@clouds/react": [
-        "packages/react/src/index.ts"
+      "@clouds/legacy-react": [
+        "packages/legacy/react/src/index.ts"
       ],
       "@clouds/assets": [
         "packages/assets/src/index.ts"
@@ -37,14 +37,14 @@
       "@clouds/tools": [
         "packages/tools/src/index.ts"
       ],
-      "@clouds/three/layers": [
-        "packages/three/src/layers/index.ts"
+      "@clouds/legacy-three/layers": [
+        "packages/legacy/three/src/layers/index.ts"
       ],
-      "@clouds/three/environment": [
-        "packages/three/src/environment/index.ts"
+      "@clouds/legacy-three/environment": [
+        "packages/legacy/three/src/environment/index.ts"
       ],
-      "@clouds/react/layers": [
-        "packages/react/src/layers.tsx"
+      "@clouds/legacy-react/layers": [
+        "packages/legacy/react/src/layers.tsx"
       ]
     },
     "jsx": "react-jsx"

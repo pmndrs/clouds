@@ -1,12 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber/webgpu';
-import { Cloudscape, type CloudscapeHandle } from '@clouds/react';
-import { CloudLayer, type CloudLayer as CloudLayerRuntime } from '@clouds/react/layers';
+import { Cloudscape, type CloudscapeHandle } from '@clouds/legacy-react';
+import { CloudLayer, type CloudLayer as CloudLayerRuntime } from '@clouds/legacy-react/layers';
 import {
   createCloudscape,
   createCloudscapeAtlas,
   createCloudWorld,
   type CloudscapeSettings,
-} from '@clouds/three';
+} from '@clouds/legacy-three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { useCallback, useEffect, useMemo, useRef, useState, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

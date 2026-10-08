@@ -3,10 +3,10 @@ import {
   PlaneGeometry, MeshStandardNodeMaterial, AmbientLight, Color, Vector3, RenderTarget,
   type WebGPURenderer,
 } from 'three/webgpu';
-import { runEnvironmentChecks } from '../../../../packages/three/src/environment/checks';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { createCloudWorld, type WorldSnapshot } from '../../../../packages/three/src/world';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
+import { runEnvironmentChecks } from '../../../../packages/legacy/three/src/environment/checks';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { createCloudWorld, type WorldSnapshot } from '../../../../packages/legacy/three/src/world';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
 
 export async function runLightingChecks(renderer:WebGPURenderer){
   const results:{name:string;passed:boolean;error:number;tolerance:number}[]=[];

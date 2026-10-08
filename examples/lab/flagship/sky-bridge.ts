@@ -6,7 +6,7 @@ import {
   ATMOSPHERE_UNIFORM_FLOATS, ATMOSPHERE_UNIFORM_BYTES, createAtmosphereBindGroup, createAtmosphereBindGroupLayout, createAtmosphereSampler,
   writeAtmosphereUniforms, type AtmosphereUniformValues,
 } from '../../../packages/runtime/src/shaders/atmosphere.wgsl';
-import { sharedBackend } from '../../../packages/three/src/gpu/backend';
+import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 
 export interface SkyBridgeOptions {
   /** World-space planet centre in metres, for `sky.update(camera, { planetCenter })`. Omit for the sky's flat convention (y = altitude). */

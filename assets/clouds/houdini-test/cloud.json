@@ -1,0 +1,98 @@
+{
+  "name": "houdini-test",
+  "source": "test-cloud.vdb (fog mode, via scripts/vdb/vdb_to_nvdf.py)",
+  "dims": [
+    114,
+    87,
+    70
+  ],
+  "voxelSizeMeters": 8.0,
+  "layout": "x fastest, then y (map row, +Y = up in the source image), then z (slice, up); texel (x,y,z) at ((z*dims[1]+y)*dims[0]+x)",
+  "cropOffset": [
+    -52,
+    -39,
+    -6
+  ],
+  "occupiedMin": [
+    -44,
+    -31,
+    2
+  ],
+  "occupiedMax": [
+    53,
+    39,
+    55
+  ],
+  "margin": 8,
+  "boundsMeters": {
+    "note": "source axes: x = map column, y = map row, z = up; origin = corner of source-lattice voxel (0,0,0). VDB mapping: x = hou X, row = hou Z, up = hou Y.",
+    "min": [
+      -416.0,
+      -312.0,
+      -48.0
+    ],
+    "max": [
+      496.0,
+      384.0,
+      512.0
+    ],
+    "size": [
+      912.0,
+      696.0,
+      560.0
+    ]
+  },
+  "houdini": {
+    "note": "world position (hou axes x, y-up, z, metres after --world-scale) of the crop min corner and of source voxel (0,0,0) corner",
+    "cropMinWorld": [
+      -418.0,
+      -50.0,
+      -314.0
+    ],
+    "sourceOriginCornerWorld": [
+      -2.0,
+      -2.0,
+      -2.0
+    ],
+    "sourceVoxelSizeMeters": 4.0,
+    "worldScale": 1.0
+  },
+  "nvdf": {
+    "file": "nvdf.bin",
+    "format": "rgba8unorm",
+    "bytes": 2777040,
+    "channels": {
+      "r": "dimensional profile (0 none, 1 full cloud)",
+      "g": "detail type (0 wispy, 1 billowy)",
+      "b": "density scale",
+      "a": "unused"
+    }
+  },
+  "sdf": {
+    "file": "sdf.bin",
+    "format": "r16unorm little-endian",
+    "bytes": 1388520,
+    "encoding": {
+      "minMeters": -256.0,
+      "maxMeters": 4096.0,
+      "decode": "meters = minMeters + v * (maxMeters - minMeters)",
+      "rounding": "down"
+    },
+    "source": "exact 3D EDT of (profile > 0) on the cropped lattice, signed (negative inside), surface at half a voxel from the nearest centres",
+    "outsideCrop": "treat as far / empty (distance >= margin*voxel from the occupied bounds, except where the crop is clamped to the grid)"
+  },
+  "converter": {
+    "script": "scripts/vdb/vdb_to_nvdf.py",
+    "mode": "fog",
+    "grid": "density",
+    "clampedToGrid": false,
+    "densityRef": 1.0,
+    "profileMapping": {
+      "depthMeters": 96.0,
+      "gamma": 1.0,
+      "smoothVoxels": 1.0,
+      "detail": "height heuristic 0.15->0.85",
+      "densityScale": "density / p99"
+    }
+  }
+}

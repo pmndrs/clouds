@@ -1,5 +1,5 @@
 import { ACESFilmicToneMapping, Color, PerspectiveCamera, Scene, Vector3, WebGPURenderer } from 'three/webgpu';
-import { createReferenceCloud } from '@clouds/three';
+import { createReferenceCloud } from '@clouds/legacy-three';
 import {
   LOD_HYSTERESIS,
   LodResidencyController,

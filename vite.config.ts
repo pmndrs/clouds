@@ -3,15 +3,15 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
   root: 'examples/lab',
   resolve: { alias: {
-    '@clouds/three/layers': fileURLToPath(new URL('./packages/three/src/layers/index.ts', import.meta.url)),
-    '@clouds/three/environment': fileURLToPath(new URL('./packages/three/src/environment/index.ts', import.meta.url)),
-    '@clouds/react/layers': fileURLToPath(new URL('./packages/react/src/layers.tsx', import.meta.url)),
-    '@clouds/react': fileURLToPath(new URL('./packages/react/src/index.ts', import.meta.url)),
+    '@clouds/legacy-three/layers': fileURLToPath(new URL('./packages/legacy/three/src/layers/index.ts', import.meta.url)),
+    '@clouds/legacy-three/environment': fileURLToPath(new URL('./packages/legacy/three/src/environment/index.ts', import.meta.url)),
+    '@clouds/legacy-react/layers': fileURLToPath(new URL('./packages/legacy/react/src/layers.tsx', import.meta.url)),
+    '@clouds/legacy-react': fileURLToPath(new URL('./packages/legacy/react/src/index.ts', import.meta.url)),
     '@clouds/assets': fileURLToPath(new URL('./packages/assets/src/index.ts', import.meta.url)),
     '@clouds/tools': fileURLToPath(new URL('./packages/tools/src/index.ts', import.meta.url)),
     '@clouds/runtime': fileURLToPath(new URL('./packages/runtime/src/index.ts', import.meta.url)),
     '@clouds/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
-    '@clouds/three': fileURLToPath(new URL('./packages/three/src/index.ts', import.meta.url)),
+    '@clouds/legacy-three': fileURLToPath(new URL('./packages/legacy/three/src/index.ts', import.meta.url)),
   } },
   // Runtime assets are served at /clouds/<name>/... and /nubis-voxel-clouds/... in dev and build.
   publicDir: fileURLToPath(new URL('./assets', import.meta.url)),

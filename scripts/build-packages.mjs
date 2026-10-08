@@ -10,13 +10,14 @@ const packages = {
   assets: { index: 'index.ts' },
   tools: { index: 'index.ts' },
 };
+const dirs = { three: 'legacy/three', react: 'legacy/react' };
 const typesRoot = 'artifacts/package-types';
 await mkdir('artifacts', { recursive: true });
 await rm(typesRoot, { recursive: true, force: true });
 const result = spawnSync('pnpm', ['exec', 'tsc', '-p', 'tsconfig.packages.json'], { stdio: 'inherit' });
 if (result.status !== 0) process.exit(result.status ?? 1);
 for (const [name, entries] of Object.entries(packages)) {
-  const base = `packages/${name}`, outdir = `${base}/dist`;
+  const base = `packages/${dirs[name] ?? name}`, outdir = `${base}/dist`;
   await rm(outdir, { recursive: true, force: true });
   const entryPoints = Object.fromEntries(Object.entries(entries).map(([key, file]) => [key, `${base}/src/${file}`]));
   const output = await build({ entryPoints, outdir, bundle: true, splitting: true, format: 'esm', platform: 'neutral', target: 'es2022', sourcemap: true, metafile: true, packages: 'external', jsx: 'automatic' });
@@ -41,7 +42,7 @@ for (const [name, entries] of Object.entries(packages)) {
     await writeFile('artifacts/package-boundaries.json', JSON.stringify({ vanilla, layer }, null, 2));
   }
 
-  await cp(`${typesRoot}/${name}/src`, `${outdir}/types`, { recursive: true });
+  await cp(`${typesRoot}/${dirs[name] ?? name}/src`, `${outdir}/types`, { recursive: true });
   await cp('LICENSE', `${base}/LICENSE`);
   const manifest = JSON.parse(await readFile(`${base}/package.json`, 'utf8'));
   // Public subpath declaration forwarding keeps source types without leaking workspace paths.

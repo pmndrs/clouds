@@ -1,5 +1,5 @@
-import { createDensityField } from '../../packages/three/src/sources/index';
-import type { DenseDensityField } from '../../packages/three/src/sources/index';
+import { createDensityField } from '../../packages/legacy/three/src/sources/index';
+import type { DenseDensityField } from '../../packages/legacy/three/src/sources/index';
 
 /**
  * Redistributable synthetic authored-volume fixture. It deliberately uses the

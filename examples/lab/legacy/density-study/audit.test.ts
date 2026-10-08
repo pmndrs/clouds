@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import type { DenseDensityField } from '../../../../packages/three/src/sources/density';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import type { DenseDensityField } from '../../../../packages/legacy/three/src/sources/density';
 import { coarsenDensityField, extractAtlasField } from './audit';
 
 describe('density audit field preparation', () => {

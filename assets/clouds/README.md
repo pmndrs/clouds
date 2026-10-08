@@ -45,3 +45,12 @@ folder's `NOTICE.md`. Do not edit by hand.
 median |diff| 4.4 m (Parkouring) and 4.9 m (Stormbird), p90 10-12 m, sign mismatch 0 and 529 of
 about 0.55 M voxels beyond one 17 m quantum. The 529 are all at grid z = 0..1, where the pack's own SDF
 is flat zero at the floor. 4, 6, 10, 12 and 16 m all fit worse (median 21-110 m).
+
+## Artist pipeline: Houdini VDB to NVDF
+
+`scripts/vdb/vdb_to_nvdf.py` (run with hython, see `scripts/vdb/README.md`) writes this same format from VDBs:
+`--mode pack` (Nubis NVDF VDBs; reproduces the TGA-derived `parkouring` and `stormbird` byte for byte apart from
+two 1/255 differences), `--mode fog` (artist density VDB; profile = saturate(-sdf / depth)^gamma, default depth
+96 m), `--mode sdf` (level set). VDB axes map as texture x = VDB X, texture y = VDB Z, texture z = VDB Y. The
+`houdini-test/` cloud is a noise-displaced sphere cluster made by `scripts/vdb/make_test_cloud.py` and converted
+with `--mode fog` (8 m voxels, from a 4 m VDB).

@@ -15,12 +15,12 @@ const installArgs=['install',...(online?[]:['--offline']),'--ignore-scripts','--
 const install=spawnSync('pnpm',installArgs,{cwd:destination,stdio:'inherit',env:{...process.env,CI:'true'}});if(install.status!==0)process.exit(install.status??1);
 await writeFile(`${destination}/tsconfig.json`,JSON.stringify({compilerOptions:{target:'ES2022',module:'ESNext',moduleResolution:'Bundler',strict:true,noEmit:true,skipLibCheck:false,types:['@webgpu/types'],lib:['ES2022','DOM'],jsx:'react-jsx'},include:['*.ts']},null,2));
 const entries={
- vanilla:`export { createCloudscape, createCloudWorld, createCloudscapeAtlas, createReferenceCloud } from '@clouds/three';`,
- layer:`export { createCloudLayer } from '@clouds/three/layers';`,
- environment:`export { createCloudscapeEnvironment } from '@clouds/three/environment';`,
- react:`export * from '@clouds/react';`,
+ vanilla:`export { createCloudscape, createCloudWorld, createCloudscapeAtlas, createReferenceCloud } from '@clouds/legacy-three';`,
+ layer:`export { createCloudLayer } from '@clouds/legacy-three/layers';`,
+ environment:`export { createCloudscapeEnvironment } from '@clouds/legacy-three/environment';`,
+ react:`export * from '@clouds/legacy-react';`,
  assets:`export * from '@clouds/assets'; export * from '@clouds/tools';`,
- reconstruction:`export * from '@clouds/three/reconstruction';`,
+ reconstruction:`export * from '@clouds/legacy-three/reconstruction';`,
 };
 const reports={};
 for(const [name,source] of Object.entries(entries)){
@@ -37,8 +37,8 @@ for(const config of ['tsconfig.json','tsconfig.nodenext.json']) {
  const typecheck=spawnSync(process.execPath,[path.resolve('node_modules/typescript/bin/tsc'),'-p',`${destination}/${config}`],{cwd:destination,stdio:'inherit'});if(typecheck.status!==0)process.exit(typecheck.status??1);
 }
 await writeFile(`${destination}/smoke.ts`, `
-import { createReferenceCloud, createDensityField, createCloudscape, createCloudscapeAtlas, createCloudWorld } from '@clouds/three';
-import { createCloudLayer } from '@clouds/three/layers';
+import { createReferenceCloud, createDensityField, createCloudscape, createCloudscapeAtlas, createCloudWorld } from '@clouds/legacy-three';
+import { createCloudLayer } from '@clouds/legacy-three/layers';
 import { encodeDenseAsset, decodeDenseAsset } from '@clouds/assets';
 import { WebGPURenderer, Scene, PerspectiveCamera, Color } from 'three/webgpu';
 const status=document.querySelector('#status');

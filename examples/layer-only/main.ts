@@ -12,7 +12,7 @@ import {
   Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
-import { createCloudLayer } from '../../packages/three/src/layers';
+import { createCloudLayer } from '../../packages/legacy/three/src/layers';
 
 const app = document.querySelector<HTMLElement>('#app')!;
 const errorElement = document.querySelector<HTMLDivElement>('#error')!;

@@ -5,14 +5,14 @@ import {
   HemisphereLight, WebGPUCoordinateSystem, Vector3,
 } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createPersistentCloudWorld } from '../../../../packages/three/src/world/persistent';
-import { createCoarseCloudscapeAtlas } from '../../../../packages/three/src/sources/atlas-lod';
+import { createPersistentCloudWorld } from '../../../../packages/legacy/three/src/world/persistent';
+import { createCoarseCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/atlas-lod';
 import { runPersistentWorldChecks } from './persistent-checks';
-import { createCloudWorld } from '../../../../packages/three/src/world';
-import { createCloudscapeAtlas } from '../../../../packages/three/src/sources/cloudscape-atlas';
-import { createCloudscape } from '../../../../packages/three/src/cloudscape';
-import { referenceGroundReceiver } from '../../../../packages/three/src/volumetric';
-import { createCloudLayer } from '../../../../packages/three/src/layers';
+import { createCloudWorld } from '../../../../packages/legacy/three/src/world';
+import { createCloudscapeAtlas } from '../../../../packages/legacy/three/src/sources/cloudscape-atlas';
+import { createCloudscape } from '../../../../packages/legacy/three/src/cloudscape';
+import { referenceGroundReceiver } from '../../../../packages/legacy/three/src/volumetric';
+import { createCloudLayer } from '../../../../packages/legacy/three/src/layers';
 import { sampleCameraPath, type CameraPath } from '../../../../bench/camera';
 import { downloadCanvasCapture, MeasurementCollector } from '../../harness';
 import { runCloudscapeChecks } from './checks';

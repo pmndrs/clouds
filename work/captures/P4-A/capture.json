@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:57550/flagship/?cloud=houdini-test",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T12:18:22.496Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P4-A/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5388547666666667,
+          "skyCompute": 0.124708,
+          "lightGrid": 0.219518,
+          "marchNear": 0.17707264999999997,
+          "marchFar": 0.7410784333333332,
+          "composite": 0.44823536666666663
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 95,
+        "assetLoadMs": 27.100000023841858,
+        "firstCloudFrameMs": 51.5
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P4-A/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5700226166666665,
+          "skyCompute": 0.074874,
+          "lightGrid": 0.219518,
+          "marchNear": 0.1505790166666667,
+          "marchFar": 0.8984571833333331,
+          "composite": 0.4252485166666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 191,
+        "assetLoadMs": 27.100000023841858,
+        "firstCloudFrameMs": 51.5
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P4-A/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5783349333333335,
+          "skyCompute": 0.057458,
+          "lightGrid": 0.219518,
+          "marchNear": 0.1566336333333333,
+          "marchFar": 0.6609704166666667,
+          "composite": 0.4130526666666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 286,
+        "assetLoadMs": 27.100000023841858,
+        "firstCloudFrameMs": 51.5
+      }
+    },
+    {
+      "name": "backlit",
+      "file": "work/captures/P4-A/backlit.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5885485499999998,
+          "skyCompute": 0.042791,
+          "lightGrid": 0.09914433333333333,
+          "marchNear": 0.14821783333333333,
+          "marchFar": 0.7194092500000001,
+          "composite": 0.44211543333333325
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "backlit",
+        "timeOfDay": 17.6,
+        "sunElevation": 19.481079685240942,
+        "sunAzimuth": 284.73086424947815,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "houdini-test",
+        "frames": 381,
+        "assetLoadMs": 27.100000023841858,
+        "firstCloudFrameMs": 51.5
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

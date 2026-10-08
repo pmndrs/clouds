@@ -12,7 +12,7 @@ import {
   type CloudscapeSettings,
   type CloudWorld,
   type WorldSnapshot,
-} from '@clouds/three';
+} from '@clouds/legacy-three';
 import {
   Matrix4,
   Vector2,
@@ -78,7 +78,7 @@ function isCloudWorld(value: CloudWorld | WorldSnapshot): value is CloudWorld {
 function qualityNumber(value: number | undefined, fallback: number, name: string): number {
   const resolved = value ?? fallback;
   if (!Number.isFinite(resolved) || resolved <= 0 || resolved > 1) {
-    throw new Error(`@clouds/react ${name} must be finite and between 0 (exclusive) and 1.`);
+    throw new Error(`@clouds/legacy-react ${name} must be finite and between 0 (exclusive) and 1.`);
   }
   return resolved;
 }
@@ -200,7 +200,7 @@ export function useCloudscape(options: UseCloudscapeOptions = {}): CloudscapeRun
     try {
       const camera = frameState.camera;
       if (!(camera as { isPerspectiveCamera?: boolean }).isPerspectiveCamera) {
-        throw new Error('@clouds/react Cloudscape requires a THREE.PerspectiveCamera. Orthographic cameras are unsupported by the volumetric runtime.');
+        throw new Error('@clouds/legacy-react Cloudscape requires a THREE.PerspectiveCamera. Orthographic cameras are unsupported by the volumetric runtime.');
       }
       const perspective = camera as PerspectiveCamera;
       // R3F callers may replace the camera with a fresh Three camera. Apply

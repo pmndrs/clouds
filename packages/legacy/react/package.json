@@ -1,5 +1,5 @@
 {
-  "name": "@clouds/react",
+  "name": "@clouds/legacy-react",
   "version": "0.0.0-preview.1",
   "private": true,
   "type": "module",
@@ -29,6 +29,6 @@
     "react-dom": ">=19.0 <19.3"
   },
   "dependencies": {
-    "@clouds/three": "workspace:*"
+    "@clouds/legacy-three": "workspace:*"
   }
 }

@@ -4,7 +4,7 @@ import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
 import { createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQuality } from '@clouds/runtime';
-import { sharedBackend } from '../../../packages/three/src/gpu/backend';
+import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { BOOKMARK_NAMES, INSIDE_POINT, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
 import { createCloudBridge } from './three-bridge';
@@ -14,7 +14,7 @@ import { createSkyBridge } from './sky-bridge';
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['low', 'medium', 'high'] as const;
-const CLOUDS = ['parkouring', 'stormbird'] as const;
+const CLOUDS = ['parkouring', 'stormbird', 'houdini-test'] as const;
 const cloudName = CLOUDS.includes(query.get('cloud') as never) ? (query.get('cloud') as string) : 'parkouring';
 const state = {
   bookmark: (isBookmarkName(query.get('bookmark') ?? '') ? query.get('bookmark') : 'ground') as BookmarkName,
@@ -203,7 +203,7 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
+    report: () => ({ gpuMs: gpuMs(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: state.quality, cloud: cloudName, frames: frame, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

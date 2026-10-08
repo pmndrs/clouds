@@ -65,9 +65,9 @@ importers:
 
   packages/core: {}
 
-  packages/react:
+  packages/legacy/react:
     dependencies:
-      '@clouds/three':
+      '@clouds/legacy-three':
         specifier: workspace:*
         version: link:../three
       '@react-three/fiber':
@@ -83,17 +83,19 @@ importers:
         specifier: 0.186.0
         version: 0.186.0
 
-  packages/three:
+  packages/legacy/three:
     dependencies:
       '@clouds/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../core
       '@pmndrs/upscaler':
         specifier: '>=0.5.0'
         version: 0.5.0(three@0.186.0)
       three:
         specifier: 0.186.0
         version: 0.186.0
+
+  packages/runtime: {}
 
   packages/tools:
     dependencies:

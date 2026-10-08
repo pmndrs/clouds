@@ -1,7 +1,7 @@
 import { Color, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createReferenceCloud } from '../../../../packages/three/src/volumetric';
-import { sharedBackend } from '../../../../packages/three/src/gpu/backend';
+import { createReferenceCloud } from '../../../../packages/legacy/three/src/volumetric';
+import { sharedBackend } from '../../../../packages/legacy/three/src/gpu/backend';
 import { createCumulusField } from '../../../../experiments/cumulus/source';
 import { coarsenDensityField, extractAtlasField, runDensityAudit } from './audit';
 import { compareOpticalImages } from '../../../../experiments/lod/image-metrics';

@@ -41,7 +41,7 @@ Atmosphere resources are baked as `transmittanceLUT` (256x64) and `multiScatterL
 
 ## Relevance to this repository
 
-The most actionable upgrades are: add a conservative density candidate and erosion refinement split; add distance/pixel-cone adaptive stepping plus early transmittance exit; use six light-cone taps with a cheap/full density choice; expose weather scale/coverage/height profiles rather than only one 3D field; add a reduced-resolution cloud pass with temporal hit-distance reprojection; and add a projected cloud shadow bake. Our current `experiments/cloudscape-density/source.ts` already has deterministic fractal/Worley ingredients, while `packages/three/src/volumetric/realistic-shader.ts` already has an optical-depth cache and jitter. The missing pieces are the hierarchy, temporal reconstruction, and resource-backed 3D mip strategy.
+The most actionable upgrades are: add a conservative density candidate and erosion refinement split; add distance/pixel-cone adaptive stepping plus early transmittance exit; use six light-cone taps with a cheap/full density choice; expose weather scale/coverage/height profiles rather than only one 3D field; add a reduced-resolution cloud pass with temporal hit-distance reprojection; and add a projected cloud shadow bake. Our current `experiments/cloudscape-density/source.ts` already has deterministic fractal/Worley ingredients, while `packages/legacy/three/src/volumetric/realistic-shader.ts` already has an optical-depth cache and jitter. The missing pieces are the hierarchy, temporal reconstruction, and resource-backed 3D mip strategy.
 
 ## Evidence and limits
 
