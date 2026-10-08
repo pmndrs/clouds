@@ -1,0 +1,78 @@
+{
+  "url": "http://127.0.0.1:50049/storm/?hud=0&clean=1&sim=100&play=1&timeScale=1&rate=3&sunEl=3&exposure=0.5",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T17:58:19.255Z",
+  "shots": [
+    {
+      "name": "distant",
+      "file": "work/captures/P6-B/auto/distant.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6255132333333332,
+          "lightGridReduce": 0.11920349999999999,
+          "lightGrid": 0.7652285555555555,
+          "marchNear": 0.10370534999999997,
+          "marchFar": 0.9372849500000001,
+          "composite": 0.20257881666666672,
+          "dome": 0.07983351666666667,
+          "resolveNear": 0.046931883333333334,
+          "resolveFar": 0.10443795000000006,
+          "cloudsTotal": 2.359204522222222,
+          "cloudsMarch": 1.4747724666666664,
+          "total": 2.9847177555555553
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "distant",
+        "simT": 104.06359999999381,
+        "timeScale": 1,
+        "frames": 244,
+        "cloudsReady": true,
+        "mode": "play",
+        "storm": {
+          "ph": 0.9505299999999485,
+          "height": 1700,
+          "radius": 560,
+          "envT": 1,
+          "x": 312.19079999998144,
+          "z": 156.09539999999072,
+          "grow": 120
+        },
+        "lightning": {
+          "rate": 3,
+          "flashHeld": false,
+          "flashFrames": 78,
+          "calmFrames": 105,
+          "cloudsTotalDuringFlash": {
+            "mean": 2.1128638076923076,
+            "p95": 3.6158590000000004,
+            "max": 4.0772699999999995
+          },
+          "cloudsTotalCalm": {
+            "mean": 1.9773246000000002,
+            "p95": 3.0533599999999996
+          }
+        },
+        "evolution": {
+          "swaps": 2,
+          "memoryMB": 112.59375
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

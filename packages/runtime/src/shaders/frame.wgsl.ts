@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 304;
+export const FRAME_UNIFORM_BYTES = 336;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -27,6 +27,10 @@ struct Frame {
   texDims: vec4<f32>,
   // P5-C tier levers: x = distance (m) within which the high-frequency detail octave is evaluated, y = far pass limit (m, FAR_T = none), zw = 0
   misc: vec4<f32>,
+  // P6-B lightning: flash = (position xyz in metres, radius in metres; radius 0 = no flash this frame, the march's glow branch is skipped),
+  // flashColor = linear RGB of the flash, already multiplied by its envelope; flashColor.w is the envelope 0..1 (unused by the march).
+  flash: vec4<f32>,
+  flashColor: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

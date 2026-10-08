@@ -13,6 +13,30 @@ export const MARCH_ATMOSPHERE_GROUP = 2;
 export const MARCH_RADIANCE_LIMIT = 60000;
 
 /**
+ * P6-B lightning: in-scattered radiance (per unit scattering, in units of the scene light reference) at sample p from the flash point light.
+ * Nubis³ s130 glow = pow(1 - d/r, 12) * (1 - sat(rho * 5)) lights the thin, wispy cloud near the discharge. On its own it vanishes wherever
+ * rho > 0.2, which is all of a cumulonimbus's body, so two more terms carry the light through dense cloud (documented deviation):
+ * a wider core pow(1 - d/r, 3) falling as 1/(1 + (d/CORE)^2), the point light's inverse-square law with a finite core, attenuated by
+ * exp(-FLASH_DIFFUSE * sigma * d): in dense media multiple scattering carries light much farther than the single-scatter exp(-sigma d)
+ * (the same relaxation the inner glow uses for the sun), so a flash lights a soft ball of cloud around it.
+ */
+const FLASH_WGSL = /* wgsl */ `
+const FLASH_CORE = 90.0;       // metres: size of the finite core of the point light
+const FLASH_DIFFUSE = 0.012;    // relaxation of the extinction for light that diffuses through dense cloud (the inner glow uses 0.05-0.25)
+const FLASH_GAIN = 2.2;       // gain of the diffuse term
+const FLASH_WISP = 6.0;        // gain of the Nubis wisp term relative to the diffuse one
+fn flashGlow(p: vec3<f32>, rho: f32) -> vec3<f32> {
+  let r = frame.flash.w;
+  let d = length(p - frame.flash.xyz);
+  let x = saturate(1.0 - d / r);
+  if (x <= 0.0) { return vec3(0.0); }
+  let wisp = pow(x, 12.0) * (1.0 - saturate(rho * 5.0));
+  let core = x * x / (1.0 + (d / FLASH_CORE) * (d / FLASH_CORE) * 0.25) * exp(-FLASH_DIFFUSE * rho * frame.extinction * d);
+  return frame.flashColor.xyz * (FLASH_WISP * wisp + FLASH_GAIN * core);
+}
+`;
+
+/**
  * SDF sphere-trace march with the Nubis lighting model (N3 s110-128) driven by the sky atmosphere (atmosphereWgsl).
  * Concatenate COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + MARCH_WGSL. Group 1: 0 Frame, 1 scene depth,
  * 2 colour out (premultiplied radiance, a = transmittance), 3 depth out (direct: r32uint packDepth(mean cloud distance or 0, distance the ray was marched to,
@@ -42,6 +66,7 @@ ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
 @group(1) @binding(${MARCH_NEAR_BINDING}) var nearColor: texture_2d<f32>;
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
+${FLASH_WGSL}
 
 const STEP_GROWTH_FROM = 256u;
 const STEP_MIN = 3.0;
@@ -91,6 +116,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var T = 1.0;
   var depthMax = 0.0;   // deepest point below the cloud surface this ray reached (thin silhouettes stay shallow)
   var radiance = vec3(0.0);
+  var flashAcc = vec3(0.0);   // P6-B: secondary light energy from the lightning glow, kept apart so the edge darkening (a sun term) does not touch it
   var depthSum = 0.0;
   var weightSum = 0.0;
 
@@ -112,6 +138,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
     let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
+    let flashOn = frame.flash.w > 0.0;   // uniform: the whole glow below is skipped (never evaluated) when no flash is active
+    let flashRef = dot(sunRadiance + ambientUp, vec3(0.2126, 0.7152, 0.0722));   // exposure reference: the scene's own light, no literal brightness
     let sunMicro = frame.sunDir * (0.5 * frame.microDist);
     let microOn = frame.microDist > 0.0;
     var capped = true;
@@ -178,6 +206,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);
               radiance += lit * w;
+              if (flashOn) { flashAcc += flashGlow(ps, d.x) * (flashRef * w); }
               depthSum += ts * w;
               weightSum += w;
             }
@@ -192,10 +221,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (T < frame.tCutoff) {
       // Early-out at the cutoff: let the remaining light continue as the mean colour of what was accumulated,
       // so a high cutoff does not darken or brighten the ray by the ignored residual (what the sky would show through it).
-      radiance /= max(1.0 - T, 0.5);
+      let keep = 1.0 / max(1.0 - T, 0.5);
+      radiance *= keep; flashAcc *= keep;
       T = 0.0;
     }
-    radiance *= cloudEdgeFactor(depthMax, frontness);
+    radiance = radiance * cloudEdgeFactor(depthMax, frontness) + flashAcc;
   }
 
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);

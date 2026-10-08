@@ -13,8 +13,8 @@
 //     swap never jumps them; (3) the content is generated for the time the swap is expected to happen, not the time it started.
 import type { GpuCloudVolume } from '../resources';
 import { CLOUD_PRESETS, type CloudPreset, type CloudPresetName } from './presets';
-import { createGeneratorScratch, createVolumeGenerator, type GeneratorScratch, type NvdfParams, type VolumeGenerator } from './volume-generator';
-import { encodeProceduralWeatherMap, type ProceduralWeatherOptions } from './weather';
+import { createGeneratorScratch, createVolumeGenerator, NVDF_DEFAULTS, type GeneratorScratch, type NvdfParams, type VolumeGenerator } from './volume-generator';
+import { encodeProceduralWeatherMap, type ProceduralWeatherOptions, type StormCellOptions } from './weather';
 
 export interface EvolvingCloudscapeOptions {
   /** A preset name or a preset object. Default 'cumulus'. */
@@ -41,6 +41,13 @@ export interface EvolvingCloudscapeOptions {
   /** z slices per job. Default 4. */
   sliceDepth?: number;
   weather?: Partial<ProceduralWeatherOptions>;
+  /**
+   * A cumulonimbus life cycle on top of the field (P6-B): one cell grows from cumulus through congestus to a tall tower with a spreading anvil over
+   * `storm.growSeconds` (default 120 s of simulated time) while the surrounding field keeps evolving. The cell's centre is in the pattern frame, in map uv, and it
+   * is carried by the wind. The NVDF stage then reads base/top from the weather map (`useMapHeights`) for the whole field; use the 'storm' preset and a taller volume
+   * (about 2 km, e.g. dims [256, 256, 128] at 16 m). Its time is `start`-relative: pass a negative `start` to begin with a young cell.
+   */
+  storm?: StormCellOptions;
   params?: Partial<NvdfParams>;
   /** Called once per generation job pass with the stage name, to attach timestamp queries (measuring the generation's GPU cost). */
   timestamps?: (label: string) => GPUComputePassTimestampWrites | undefined;
@@ -92,6 +99,10 @@ export function createEvolvingCloudscape(device: GPUDevice, options: EvolvingClo
   const drift = options.drift ?? [0.0012, -0.0008];
   const cadence = Math.max(0.2, options.cadence ?? 1.5);
   const genSeconds = cadence * Math.min(0.95, Math.max(0.05, options.generationShare ?? 0.8));
+  const nvdfParams: Partial<NvdfParams> & { coverageThreshold: number } = {
+    ...preset.params, seed, ...(options.storm ? { useMapHeights: true } : {}), ...options.params,
+    coverageThreshold: options.params?.coverageThreshold ?? preset.params.coverageThreshold ?? NVDF_DEFAULTS.coverageThreshold,
+  };
   const scratch: GeneratorScratch = createGeneratorScratch(device, dims, 'evolution scratch');
   const stats: EvolveStats = { swaps: 0, generations: [], worstEncodeMs: 0 };
 
@@ -110,6 +121,8 @@ export function createEvolvingCloudscape(device: GPUDevice, options: EvolvingClo
     const weather = encodeProceduralWeatherMap(device, encoder, {
       ...preset.weather, border: options.border ?? 0.06, ...options.weather, size: [dims[0], dims[1]], seed,
       evolve: { time, lifeSeconds: life, advection: [adv[0] / ref, adv[1] / ref], drift },
+      extentMeters: ref, heightMeters: dims[2] * voxel,
+      ...(options.storm ? { storm: { coverageThreshold: nvdfParams.coverageThreshold, ...options.storm } } : {}),
       window: { origin: [0, 0], size: [dims[0] * voxel / ref, dims[1] * voxel / ref] },
     });
     device.queue.submit([encoder.finish()]);
@@ -117,7 +130,7 @@ export function createEvolvingCloudscape(device: GPUDevice, options: EvolvingClo
     if (!slot.gen) {
       slot.gen = createVolumeGenerator(device, {
         dims, voxelSize: voxel, weather, origin, scratch, sliceDepth: options.sliceDepth ?? 4,
-        params: { ...preset.params, seed, ...options.params }, label: `evolution volume ${i}`, timestamps: options.timestamps,
+        params: nvdfParams, label: `evolution volume ${i}`, timestamps: options.timestamps,
       });
     } else slot.gen.restart({ weather, origin });
     slot.weather?.destroy();

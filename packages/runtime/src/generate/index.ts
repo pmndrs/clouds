@@ -1,7 +1,7 @@
 export { createVolumeGenerator, createGeneratorScratch, scratchBytes, jfaStepSequence, NVDF_DEFAULTS } from './volume-generator';
 export type { NvdfParams, VolumeGenerator, VolumeGeneratorOptions, GenerateProgress, GeneratorScratch, GeneratorMemory } from './volume-generator';
 export { encodeProceduralWeatherMap } from './weather';
-export type { ProceduralWeatherOptions } from './weather';
+export type { ProceduralWeatherOptions, StormCellOptions } from './weather';
 export { signedDistanceCpu, squaredDistanceToMask } from './cpu-edt';
 export { CLOUD_PRESETS } from './presets';
 export type { CloudPreset, CloudPresetName } from './presets';

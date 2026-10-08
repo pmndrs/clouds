@@ -39,6 +39,7 @@ export default defineConfig({
     vdbDrop: fileURLToPath(new URL('./examples/lab/vdb-drop/index.html', import.meta.url)),
     r3f: fileURLToPath(new URL('./examples/lab/r3f/index.html', import.meta.url)),
     evolve: fileURLToPath(new URL('./examples/lab/evolve/index.html', import.meta.url)),
+    storm: fileURLToPath(new URL('./examples/lab/storm/index.html', import.meta.url)),
     gpuSmoke: fileURLToPath(new URL('./examples/lab/gpu-smoke/index.html', import.meta.url)),
     reactDensity: fileURLToPath(new URL('./examples/lab/legacy/react-density/index.html', import.meta.url)),
     realism: fileURLToPath(new URL('./examples/lab/legacy/realism/index.html', import.meta.url)),

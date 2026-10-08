@@ -11,6 +11,7 @@ import { controlledCost, describeDevice, DynamicScale, selectTier, type AutoQual
 import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { TEMPORAL_BINDINGS, TEMPORAL_PARAM_BYTES, TEMPORAL_WGSL } from './shaders/temporal.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
+import { createLightning, type FlashOptions, type LightningSettings } from './lightning';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
@@ -133,6 +134,8 @@ export interface CloudSettings {
   farLimit: number;
   /** 0..1: how dark the full cloud shadow makes opaque scene pixels (folded into the composite alpha). 0 disables. */
   shadowStrength: number;
+  /** P6-B: automatic lightning (`rate` flashes per second inside `region`, see LightningSettings). Off by default (rate 0). Flashes from `flash()` work regardless. */
+  lightning: LightningSettings;
 }
 
 export interface CloudUniformLighting {
@@ -187,6 +190,15 @@ export interface CloudRuntime {
   swapVolume(volume: GpuCloudVolume, options: { position: [number, number, number] }): boolean;
   /** Move the volume box without rebuilding anything (a uniform write). For fields that drift with the wind; sub-voxel to few-voxel moves keep the light grid valid. */
   setVolumePosition(position: [number, number, number]): void;
+  /**
+   * P6-B: a lightning flash, a transient point light inside the cloud (Nubis³ glow term in the march). `position` is in world metres, `radius` the
+   * reach of the glow, `intensity` a multiple of the scene's own light (sun + sky ambient, so it follows exposure), `duration` seconds (default 0.3,
+   * with 2-4 return strokes). One flash is rendered at a time (the brightest). Costs nothing while no flash is active. The temporal history is
+   * not cut; the resolve favours fresh samples while a flash is up so it does not smear.
+   */
+  flash(options: FlashOptions): void;
+  /** Envelope 0..1 of the flash rendered by the last `encode` (0 = none active). For tooling. */
+  readonly flashLevel: number;
   setNoise(asset: CloudNoiseAsset): Promise<void>;
   setQuality(quality: CloudQuality): void;
   /** The tier in effect (for 'auto', the one it picked). */
@@ -276,6 +288,8 @@ const TEMPORAL_CUT_POSITION_M = 25;
 const TEMPORAL_CUT_TURN_COS = Math.cos(15 * Math.PI / 180);
 const TEMPORAL_SUN_JUMP_COS = Math.cos(0.5 * Math.PI / 180);
 /** Neighbourhood clip of the history: mean +- gamma sigma of the fresh samples, plus this fraction of the mean. */
+/** P6-B: weight of a fresh sample in the resolve while a lightning flash is up (and the frame after). */
+const FLASH_BLEND = 0.85;
 const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
@@ -314,7 +328,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   let quality: CloudQuality = autoPick ? autoPick.tier : ((options.quality as CloudQuality | undefined) ?? 'high');
   const startPreset = CLOUD_QUALITY_PRESETS[quality];
   const dynamic = wantAuto ? new DynamicScale({ ...options.auto, budgetMs: options.auto?.budgetMs ?? options.budgetMs ?? 3 }) : null;
+  const lightning = createLightning();
   const settings: CloudSettings = {
+    lightning: lightning.settings,
     densityScale: 0.2, lightDensityScale: 1.5, msStrength: 1.4, ambientStrength: 1, // P1-09 art defaults (Nubis neutral: 1, 1)
     silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.08, // 0.3 left bases charcoal; tuned by orchestrator sweep (P1-09)
     edgeDarkening: 0.5, glowBoost: 12, ambientSkyBias: 0.9, wispyBias: 1, glowFront: 1, deepScatter: 1.2, deepAttenuation: 0.35, ambientFloor: 0.15,
@@ -477,7 +493,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const compositeGroups: (GPUBindGroup | undefined)[] = new Array(4).fill(undefined);
   const forgetGroups = () => { marchGroups.fill(undefined); resolveGroups.fill(undefined); compositeGroups.fill(undefined); boundDepth = null; };
   let boundDepth: GPUTextureView | null = null;
-  let lastTime = -1;
+  let lastTime = -1, flashPrev = false, flashLevelNow = 0;
   let autoFrames = 0;
 
   const makeLightGrid = () => {
@@ -611,6 +627,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       needReset = true;
       rebuildVolumeGroup();
     },
+    flash(options) { lightning.flash(options); },
+    get flashLevel() { return flashLevelNow; },
     resetTemporal() { needReset = true; },
     get temporalInfo() {
       const m = memory();
@@ -679,6 +697,15 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[64] = near.rw; f[65] = near.rh; f[66] = far.rw; f[67] = far.rh;
       f[68] = near.w; f[69] = near.h; f[70] = far.w; f[71] = far.h;
       f[72] = settings.detailDistance; f[73] = Math.max(settings.farLimit, f[44] + 1); f[74] = outCW; f[75] = outCH;
+      // P6-B lightning: the flash to render this frame (radius 0 = none; the march skips the glow on a uniform branch).
+      const flash = lightning.update(frame.time);
+      if (flash) { f[76] = flash.position[0]; f[77] = flash.position[1]; f[78] = flash.position[2]; f[79] = flash.radius; f[80] = flash.color[0]; f[81] = flash.color[1]; f[82] = flash.color[2]; f[83] = flash.level; }
+      else { f[79] = 0; f[80] = f[81] = f[82] = f[83] = 0; }
+      // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
+      // the frame after it, the resolve takes mostly fresh samples (blend FLASH_BLEND); the neighbourhood clip already pulls the history toward the fresh ones.
+      flashLevelNow = flash ? flash.level : 0;
+      const flashFrame = flash !== null || flashPrev;
+      flashPrev = flash !== null;
       // The distant sky layer: bakes its weather window / compiles its pipeline on first use (async), then renders.
       const skyActive = skyLayer.settings.enabled && skyLayer.prepare(encoder, skyBox, !!uniformLighting);
       f[53] = skyActive ? 1 : 0;
@@ -716,7 +743,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         device.queue.writeBuffer(frameUniforms[pass], 0, f);
         resolveF32.set(prevViewProj, 0);
         resolveF32[16] = prevCam[0]; resolveF32[17] = prevCam[1]; resolveF32[18] = prevCam[2]; resolveF32[19] = prevValid && !cut ? 1 : 0;
-        resolveF32[20] = Math.min(1, Math.max(0.02, settings.temporalBlend)); resolveF32[21] = TEMPORAL_CLIP_SIGMA; resolveF32[22] = TEMPORAL_CLIP_MARGIN; resolveF32[23] = 0;
+        resolveF32[20] = Math.min(1, Math.max(0.02, flashFrame ? Math.max(settings.temporalBlend, FLASH_BLEND) : settings.temporalBlend)); resolveF32[21] = TEMPORAL_CLIP_SIGMA; resolveF32[22] = TEMPORAL_CLIP_MARGIN; resolveF32[23] = 0;
         resolveF32[24] = t.prw; resolveF32[25] = t.prh; resolveF32[26] = 0; resolveF32[27] = 0;
         device.queue.writeBuffer(resolveParams[pass], 0, resolveF32);
       }

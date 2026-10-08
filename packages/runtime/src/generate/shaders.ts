@@ -335,6 +335,10 @@ struct WeatherParams {
   uvOrigin: vec2<f32>, uvSize: vec2<f32>,   // window of the map's own uv space this texture shows (default 0,0 / 1,1)
   evo: vec4<f32>,    // evolution: time (s), life cycle (s), pattern advection (uv, x then y)
   drift: vec4<f32>,  // evolution: fBm drift per second (uv units of the fBm domain, x then y), unused zw
+  storm0: vec4<f32>, // storm cell: centre (pattern-space uv), age (s), seconds to grow into a full cell
+  storm1: vec4<f32>, // storm cell: tower radius (m), tower height (m), anvil radius (m), coverage threshold of the NVDF stage
+  storm2: vec4<f32>, // storm cell: anvil spread direction (xy), on (> 0.5), unused
+  dims: vec4<f32>,   // metres spanned by uv 0..1, height of the volume in metres (storm only: the heights are written as fractions of it), unused zw
 }
 @group(0) @binding(0) var<uniform> W: WeatherParams;
 @group(0) @binding(1) var outTex: texture_storage_2d<rgba8unorm, write>;
@@ -364,6 +368,68 @@ fn hashS(p: vec2<i32>, salt: u32) -> f32 {
   h = (h ^ (h >> 15u)) * 2246822519u;
   h = h ^ (h >> 13u);
   return f32(h) * (1.0 / 4294967295.0);
+}
+// Storm cell (P6-B): one cumulonimbus built on the evolving field. Life cycle by age/grow = ph: cumulus (0) -> congestus (~0.35) -> tall cell with a spreading
+// anvil (0.5-1) -> anvil outlives the dissipating tower (ph 1.7 .. 3.6). The shape stage reads one [base, top] interval and one mass per column, so the cell is
+// written as three parts that the columns choose between: a tower (base on the ground, a cauliflower of tall turrets, top = the turrets or, once there is an
+// anvil, at least the anvil's top), the anvil (a plate at the tropopause, its underside flaring down into the tower like a trumpet, mass tapering to a thin
+// rim, stretched downwind) and the low field (suppressed under the anvil). Columns take the tower's values inside its footprint and the anvil's/field's outside
+// (a power-weighted blend of those two), blended over the footprint's rim, so every channel is continuous.
+struct Storm { s: f32, base: f32, top: f32, typ: f32 }
+fn stormCell(uvc: vec2<f32>, sB: f32, bgBase: f32, bgTop: f32, bgType: f32, bf: f32) -> Storm {
+  let ext = W.dims.x; let H = W.dims.y;
+  let ph = W.storm0.z / max(W.storm0.w, 1.0);
+  let towerR = W.storm1.x; let towerH = W.storm1.y; let anvilR = W.storm1.z;
+  let rise = smoothstep(0.0, 0.75, ph);
+  let envT = smoothstep(0.0, 0.06, ph) * (1.0 - smoothstep(1.7, 2.6, ph));
+  let p = (uvc - W.storm0.xy) * ext;
+  let wob = 1.0 + 0.5 * (fbm(p / 650.0 + vec2<f32>(5.3, 1.7 + W.seed)) - 0.5);       // ragged footprint
+  let R = mix(0.4, 1.0, rise) * towerR * wob;
+  let Ht = mix(0.2, 1.0, pow(rise, 0.85)) * towerH * envT;
+  let r = length(p);
+  // Tower: a core and six turrets (taller, narrower, around it) of steep-sided, round-topped mass. A column takes the height of the turrets by a power-weighted blend.
+  var sT = 0.0; var topW = 0.0; var topSum = 0.0;
+  for (var i = 0; i < 7; i++) {
+    var c = vec2<f32>(0.0); var Ri = 1.3 * R; var hi = 0.88; var n = 6.0; var gain = 0.86;
+    if (i > 0) {
+      let a = 6.2831853 * (f32(i - 1) / 6.0 + 0.25 * hashS(vec2<i32>(i, 11), 1u)) + W.seed;
+      c = vec2<f32>(cos(a), sin(a)) * (0.65 + 0.35 * hashS(vec2<i32>(i, 11), 2u)) * R;
+      Ri = R * (0.4 + 0.22 * hashS(vec2<i32>(i, 11), 3u));
+      hi = 0.8 + 0.35 * hashS(vec2<i32>(i, 11), 4u);
+      n = 2.5; gain = 1.0;
+    }
+    // The core (a broad body, n = 6: a wide plateau and a steep edge) fills the footprint so no moat opens between the turrets and the anvil.
+    // Turrets: s = 1 - (r/Ri)^2.5 under the dome law h = s^(1/1.6): h = 0.94 at r = 0.4 Ri, 0.59 at 0.8, 0.40 at 0.9: steep sides, rounded top.
+    let si = clamp(1.0 - pow(length(p - c) / Ri, n), 0.0, 1.0) * gain * envT * bf;
+    let wi = pow(si, 20.0) + 1e-12;
+    topW += wi; topSum += wi * hi;
+    sT = max(sT, si);
+  }
+  // Anvil: starts when the tower nears the tropopause; centre drifts downwind as it spreads; the mass tapers to a thin rim.
+  let tA = smoothstep(0.42, 1.05, ph);
+  let envA = smoothstep(0.42, 0.56, ph) * (1.0 - smoothstep(2.6, 3.6, ph));
+  let AR = max(mix(towerR, anvilR, tA), 1.0) * (1.0 + 0.5 * (fbm(p / 420.0 + vec2<f32>(9.1, 3.3 + W.seed)) - 0.5));
+  let dir = normalize(W.storm2.xy + vec2<f32>(1e-4));
+  let pa = p - dir * (AR - towerR) * 0.25;
+  let ra = length(vec2<f32>(dot(pa, dir), dot(pa, vec2<f32>(-dir.y, dir.x)) / 0.8)) / AR;
+  let tap = clamp((1.0 - ra) / 0.5, 0.0, 1.0);
+  let sA = tap * tap * (3.0 - 2.0 * tap) * envA * bf;
+  let sBg = sB * (1.0 - smoothstep(0.05, 0.5, sA));     // the low field does not survive under the anvil
+  // Heights as fractions of the volume.
+  let topA = 0.68 * towerH / H;
+  let baseT = 40.0 / H;
+  let baseA0 = topA - mix(0.08, 0.15, tA) * towerH / H;
+  let topTower = max(max(Ht * topSum / topW / H, 1.1 * topA * smoothstep(0.42, 0.56, ph) * envT), baseT + 0.03);   // once the anvil exists the tower reaches at least its top
+  let flare = pow(smoothstep(1.0 * R, 2.4 * R, r), 2.5) * envA;      // the anvil's underside comes down toward the tower
+  let baseAnvil = mix(baseT, baseA0, flare);
+  let wB = pow(sBg, 4.0) + 1e-6; let wA = pow(sA, 4.0) + 1e-6; let ba = wB + wA;
+  let kT = (1.0 - smoothstep(1.1 * R, 1.6 * R, r)) * envT;   // the tower owns the columns of its footprint, however little mass the valleys between turrets carry
+  var o: Storm;
+  o.s = max(sT, (1.0 - kT) * max(sBg, sA));
+  o.base = mix((wB * bgBase + wA * baseAnvil) / ba, baseT, kT);
+  o.top = mix((wB * bgTop + wA * topA) / ba, topTower, kT);
+  o.typ = mix((wB * bgType + wA * 0.2) / ba, 0.95, kT);
+  return o;
 }
 // Evolving cellular mass: every Worley cell carries a cumulus with its own life cycle (grows over the first 22 percent, mature to 66
 // percent, dissipates over the rest). A cell restarts each cycle with a new jitter, strength and radius while its envelope is zero, so
@@ -426,6 +492,16 @@ fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {
   let cloudType = clamp(0.6 * t + 0.5 * cellType - 0.05, 0.0, 1.0);
   let base = 0.06 + 0.14 * fbm(q * 1.3 + vec2<f32>(5.0, 3.0));
   let top = min(0.98, base + 0.2 + 0.7 * cov * (0.55 + 0.45 * fbm(q * 1.1 + vec2<f32>(11.0, 29.0))));
+  if (W.storm2.z > 0.5) {
+    let k = 512.0 / W.dims.y;   // the base/top fractions above are of a 512 m volume
+    let thr = W.storm1.w;
+    let bf = select(1.0, smoothstep(0.0, W.border, edge), W.border > 0.0);
+    // Low field in the storm path: tops from a gentle fBm (not from the mass: height ~ mass * dome law would make cones); the dome law rounds them.
+    let bgTop = min(0.98, base + 0.22 + 0.38 * fbm(q * 1.1 + vec2<f32>(11.0, 29.0)));
+    let st = stormCell(uvc, clamp((cov - thr) / (1.0 - thr), 0.0, 1.0), base * k, bgTop * k, cloudType, bf);
+    textureStore(outTex, vec2<i32>(g.xy), vec4<f32>(thr + st.s * (1.0 - thr), st.typ, st.base, min(0.98, st.top)));
+    return;
+  }
   textureStore(outTex, vec2<i32>(g.xy), vec4<f32>(cov, cloudType, base, top));
 }
 `;

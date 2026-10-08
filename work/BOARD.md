@@ -1211,7 +1211,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Plains-flight streaming swaps stay invisible (mean |d| ≤ 1/255).
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
-### [~] P6-B Storm cell and lightning · Sonnet (Fable on failure)
+### [x] P6-B Storm cell and lightning · Sonnet (Fable on failure)
 - **Owns:**
   - `packages/runtime/src/generate/{evolution.ts,weather.ts,shaders.ts,presets.ts}`, for the storm cell
   - `packages/runtime/src/shaders/march.wgsl.ts`, `packages/runtime/src/shaders/frame.wgsl.ts` and minimal `runtime.ts`, for lightning

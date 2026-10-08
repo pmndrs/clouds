@@ -2,7 +2,7 @@
 import type { NvdfParams } from './volume-generator';
 import type { ProceduralWeatherOptions } from './weather';
 
-export type CloudPresetName = 'cumulus' | 'congestus' | 'stratocumulus';
+export type CloudPresetName = 'cumulus' | 'congestus' | 'stratocumulus' | 'storm';
 export interface CloudPreset { weather: Partial<ProceduralWeatherOptions>; params: Partial<NvdfParams> }
 
 export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
@@ -15,6 +15,12 @@ export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
   congestus: {
     weather: { scale: 4, cellular: 0.8, cellScale: 4.5, coverageLo: 0.5, coverageHi: 0.85 },
     params: { topFraction: 0.92, domeExponent: 1.35, billowAmp: 0.4, billowCellMeters: 400, baseDefault: 0.06, coverageThreshold: 0.1 },
+  },
+  // Fair-weather cumulus around a storm cell (P6-B): for a ~2 km tall volume read through the weather map's base/top (EvolvingCloudscapeOptions.storm
+  // sets useMapHeights), scattered smaller cells, bigger billows for the cell's cauliflower tower.
+  storm: {
+    weather: { scale: 5, cellular: 0.75, cellScale: 8, coverageLo: 0.5, coverageHi: 0.85 },
+    params: { topFraction: 0.65, domeExponent: 1.6, billowAmp: 0.45, billowCellMeters: 1100, coverageThreshold: 0.15, baseLift: 0.03 },
   },
   // Broken stratocumulus deck: wide, flat-topped, low cells with gaps.
   stratocumulus: {

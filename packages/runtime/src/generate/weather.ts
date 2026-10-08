@@ -28,10 +28,40 @@ export interface ProceduralWeatherOptions {
    * layer drifts by `drift` uv units per second. `border` stays attached to the window.
    */
   evolve?: { time: number; lifeSeconds?: number; advection?: [number, number]; drift?: [number, number] };
+  /**
+   * A cumulonimbus on top of the evolving field (P6-B; requires `evolve`; the NVDF stage must read the map's base/top: `params.useMapHeights`). Its life cycle
+   * runs on `evolve.time - start`: cumulus -> congestus -> a tall cell with an anvil over `growSeconds`, then the tower decays (from 1.7x) and the anvil
+   * outlives it (to 3.6x). The cell is in the advected pattern frame, so the wind carries it.
+   */
+  storm?: StormCellOptions;
+  /** Metres spanned by the map's uv 0..1 (storm geometry is in metres). Default 4096. */
+  extentMeters?: number;
+  /** Height of the volume the map's base/top fractions refer to, metres. Only the storm cell path uses it (it writes both fields as fractions of this). Default 512. */
+  heightMeters?: number;
   /** Allocate this many mip levels (the pass writes level 0 only; the sky layer fills the rest with coverage maxima). Default 1. */
   mipLevels?: number;
 }
 
+export interface StormCellOptions {
+  /** Cell centre at time 0 in the pattern frame, map uv (0..1 spans `extentMeters`). Default [0.5, 0.5]. */
+  center?: [number, number];
+  /** `evolve.time` (s) at which the cell's age is 0. Negative: it is already a young cell at time 0. Default 0. */
+  start?: number;
+  /** Seconds from age 0 until the cell is mature (tower at full height, anvil spreading). Default 120. */
+  growSeconds?: number;
+  /** Mature tower radius, metres. Default 520. */
+  towerRadius?: number;
+  /** Mature tower top above the volume base, metres. Default 0.9 of the volume height. */
+  towerHeight?: number;
+  /** Anvil radius at full spread, metres. Default 1500. */
+  anvilRadius?: number;
+  /** Direction the anvil is carried (wind shear), map uv axes. Default [1, 0.35]. */
+  shear?: [number, number];
+  /** The NVDF stage's coverage threshold (NvdfParams.coverageThreshold; the storm writes its mass relative to it). Default 0.15. */
+  coverageThreshold?: number;
+}
+
+const WEATHER_PARAM_BYTES = 160;
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
 
 /**
@@ -53,7 +83,7 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm', mipLevelCount: Math.max(1, options.mipLevels ?? 1),
     usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
   });
-  const data = new ArrayBuffer(96);
+  const data = new ArrayBuffer(WEATHER_PARAM_BYTES);
   const u = new Uint32Array(data), f = new Float32Array(data);
   u[0] = w; u[1] = h;
   f[2] = options.seed ?? 1; f[3] = options.scale ?? 4;
@@ -66,7 +96,15 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     f[16] = e.time; f[17] = e.lifeSeconds ?? 600; f[18] = e.advection?.[0] ?? 0; f[19] = e.advection?.[1] ?? 0;
     f[20] = e.drift?.[0] ?? 0; f[21] = e.drift?.[1] ?? 0;
   }
-  const uniforms = device.createBuffer({ label: 'weather params', size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const ext = options.extentMeters ?? 4096, volH = options.heightMeters ?? 512;
+  f[36] = ext; f[37] = volH;
+  if (options.storm) {
+    const st = options.storm, c = st.center ?? [0.5, 0.5];
+    f[24] = c[0]; f[25] = c[1]; f[26] = (options.evolve?.time ?? 0) - (st.start ?? 0); f[27] = st.growSeconds ?? 120;
+    f[28] = st.towerRadius ?? 520; f[29] = st.towerHeight ?? 0.9 * volH; f[30] = st.anvilRadius ?? 1500; f[31] = st.coverageThreshold ?? 0.15;
+    f[32] = st.shear?.[0] ?? 1; f[33] = st.shear?.[1] ?? 0.35; f[34] = options.evolve ? 1 : 0;
+  }
+  const uniforms = device.createBuffer({ label: 'weather params', size: WEATHER_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(uniforms, 0, data);
   const bindGroup = device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),

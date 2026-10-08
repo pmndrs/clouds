@@ -1,0 +1,140 @@
+{
+  "url": "http://127.0.0.1:65085/storm/?hud=0&clean=1&sim=120&sunEl=3&exposure=0.5&flash=hold",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T17:56:29.954Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P6-B/flash120/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6104288333333333,
+          "lightGridReduce": 0.069742,
+          "lightGrid": 0.504113,
+          "marchNear": 0.14484091666666662,
+          "marchFar": 1.8504166999999998,
+          "composite": 0.3567125833333333,
+          "dome": 0.2175910666666667,
+          "resolveNear": 0.08979993333333335,
+          "resolveFar": 0.14544708333333334,
+          "cloudsTotal": 3.378663283333333,
+          "cloudsMarch": 2.804808283333333,
+          "total": 3.9890921166666664
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "simT": 120,
+        "timeScale": 4,
+        "frames": 93,
+        "cloudsReady": true,
+        "mode": "frozen",
+        "storm": {
+          "ph": 1.0833333333333333,
+          "height": 1700,
+          "radius": 560,
+          "envT": 1,
+          "x": 360,
+          "z": 180,
+          "grow": 120
+        },
+        "lightning": {
+          "rate": 0.25,
+          "flashHeld": true,
+          "flashFrames": 32,
+          "calmFrames": 0,
+          "cloudsTotalDuringFlash": {
+            "mean": 3.5252814062500004,
+            "p95": 4.092549999999999,
+            "max": 4.295133000000001
+          },
+          "cloudsTotalCalm": {
+            "mean": 0,
+            "p95": 0
+          }
+        },
+        "evolution": {
+          "swaps": 1,
+          "memoryMB": 64.296875
+        }
+      }
+    },
+    {
+      "name": "distant",
+      "file": "work/captures/P6-B/flash120/distant.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.713855016666667,
+          "lightGridReduce": 0.069742,
+          "lightGrid": 0.504113,
+          "marchNear": 0.13018116666666665,
+          "marchFar": 1.078126683333333,
+          "composite": 0.22226613333333328,
+          "dome": 0.22053971666666664,
+          "resolveNear": 0.08072871666666664,
+          "resolveFar": 0.09313051666666665,
+          "cloudsTotal": 2.3988279333333327,
+          "cloudsMarch": 1.8249729333333327,
+          "total": 3.1126829499999995
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "distant",
+        "simT": 120,
+        "timeScale": 4,
+        "frames": 188,
+        "cloudsReady": true,
+        "mode": "frozen",
+        "storm": {
+          "ph": 1.0833333333333333,
+          "height": 1700,
+          "radius": 560,
+          "envT": 1,
+          "x": 360,
+          "z": 180,
+          "grow": 120
+        },
+        "lightning": {
+          "rate": 0.25,
+          "flashHeld": true,
+          "flashFrames": 127,
+          "calmFrames": 0,
+          "cloudsTotalDuringFlash": {
+            "mean": 2.6330998346456704,
+            "p95": 3.8400119999999998,
+            "max": 4.423463
+          },
+          "cloudsTotalCalm": {
+            "mean": 0,
+            "p95": 0
+          }
+        },
+        "evolution": {
+          "swaps": 1,
+          "memoryMB": 64.296875
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
