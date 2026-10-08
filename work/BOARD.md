@@ -429,6 +429,31 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
     `work/captures/P4-A/` (side-by-side image).
   - Pack parity (P4-A `check_parity.py`) still passes for mode `pack`.
 
+### [~] P2-04 Reflection dome: clouds in reflections · Sonnet
+- **Owns:**
+  - `packages/runtime/src/{runtime.ts,dome.ts,shaders/dome.wgsl.ts}`
+  - export lines in `index.ts`
+  - `examples/lab/runtime-tests/dome/**` (new; add its vite input line)
+- **Does:** per Nubis (`cRenderDome`: no up-rez, `P·S` density) and spec
+  [P2-api.md](specs/P2-api.md) "Cloud reflections".
+  - The runtime keeps an octahedral rgba16f dome, 256² by default, with
+    radiance and T, seen from a reference point (default: the camera's x/z at
+    ground height).
+  - Each frame it refreshes 1/16 of the texels in an interleaved pattern, so a
+    full refresh takes 16 frames. Use the same lighting as the march, with
+    cheap density, larger steps and a capped step count.
+  - Expose `runtime.dome` (texture plus parameters), and a WGSL helper
+    `cloudDomeSample(dir) -> vec4` that the adapter can wrap as a TSL function.
+  - P2-02 may need a runtime-side uniform lighting mode (no sky). If its report
+    asks for one, the orchestrator will forward the request to you.
+- **Acceptance:**
+  - Test page: the dome rendered as a panorama next to the main view, with the
+    clouds in the right directions.
+  - Per-frame dome cost ≤ 0.15 ms at 256².
+  - A sun change refreshes within 16 frames with no stall.
+  - Main-view captures and parity are unchanged.
+  - `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
