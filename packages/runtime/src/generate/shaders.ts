@@ -9,7 +9,7 @@ struct Params {
   voxelSize: f32, covThreshold: f32, useHeights: f32, baseDefault: f32,
   topFrac: f32, domeExp: f32, billowAmp: f32, billowCell: f32,
   seed: f32, scaleBase: f32, scaleTop: f32, sigma: f32,
-  detailBias: f32, baseLift: f32, p1: f32, p2: f32,
+  detailBias: f32, baseLift: f32, originX: f32, originY: f32,   // origin: world metres of voxel (0,0) along x and the map row
 }
 @group(0) @binding(0) var<uniform> P: Params;
 const NONE: u32 = 0xffffffffu;
@@ -54,20 +54,8 @@ fn jfa(@builtin(global_invocation_id) g: vec3<u32>) {
 }
 `;
 
-/**
- * Cloud shape (shared by the occupancy and profile passes). Why it is built like this, in terms of the old generator's artefacts:
- * the old occupancy was "profile(height) * edge(2D distance) > 0" with the column's base/top read off a saturating coverage ramp, so
- * a cloud was a stack of per-column [base, top] intervals: the silhouette was a heightfield of a steep, 8-bit-quantised map (vertical
- * walls where the ramp is steep, terraces where it quantises, flat plateaus where it saturates). Here the cloud is the level set
- * f > 0 of a smooth 3D field instead:
- *   s = (coverage - threshold) / (1 - threshold)   smooth 2D "mass" (peaks at lobe centres)
- *   h = (z - base) / (topFrac - base)               height above the flat base
- *   f = s - h^p + noise                             p = 2 gives hemispherical domes (s = 1 - r^2), p > 2 flatter, p < 2 towers
- * so cloud height follows local mass, the sides are rounded by construction, and the base is flat but soft.
- * The noise is inverted-Worley billow (a few octaves from billowCell metres down), applied only near the surface (so it cannot
- * punch holes in the interior or float islands far outside) and strongest on tops.
- */
-const SHAPE = /* wgsl */ `
+/** Hash, 3D Worley and the inverted-Worley billow of the generator, parameter-free so the distant sky layer shares them. */
+export const BILLOW_WGSL = /* wgsl */ `
 fn hashu(p: vec3<i32>, s: u32) -> u32 {
   var h = (u32(p.x) * 0x8da6b343u) ^ (u32(p.y) * 0xd8163841u) ^ (u32(p.z) * 0xcb1ab31fu) ^ (s * 0x9e3779b9u);
   h = h ^ (h >> 15u); h = h * 0x2c1b3c6du; h = h ^ (h >> 12u); h = h * 0x297a2d39u; h = h ^ (h >> 15u);
@@ -90,16 +78,32 @@ fn worleyF1(q: vec3<f32>, s: u32) -> f32 {
   } } }
   return sqrt(m);
 }
-/** Centred billow in about [-0.5, 0.5]: inverted Worley, three octaves, cell size halves each octave. */
-fn billow(pm: vec3<f32>) -> f32 {
-  var a = 0.0; var wsum = 0.0; var amp = 0.55; var cell = P.billowCell;
-  let s0 = u32(P.seed * 131.0);
-  for (var o = 0u; o < 3u; o++) {
+/** Centred billow in about [-0.5, 0.5]: inverted Worley, up to three octaves, cell size halves each octave. cell0 metres, s0 the seed. */
+fn billowAt(pm: vec3<f32>, cell0: f32, s0: u32, octaves: u32) -> f32 {
+  var a = 0.0; var wsum = 0.0; var amp = 0.55; var cell = cell0;
+  for (var o = 0u; o < octaves; o++) {
     let w = 1.0 - clamp(worleyF1(pm / cell + vec3<f32>(f32(o) * 7.3, f32(o) * 3.1, 0.0), s0 + o * 17u) * 1.1, 0.0, 1.0);
     a += amp * w; wsum += amp; cell *= 0.5; amp *= 0.55;
   }
   return a / wsum - 0.36;
 }
+`;
+
+/**
+ * Cloud shape (shared by the occupancy and profile passes). Why it is built like this, in terms of the old generator's artefacts:
+ * the old occupancy was "profile(height) * edge(2D distance) > 0" with the column's base/top read off a saturating coverage ramp, so
+ * a cloud was a stack of per-column [base, top] intervals: the silhouette was a heightfield of a steep, 8-bit-quantised map (vertical
+ * walls where the ramp is steep, terraces where it quantises, flat plateaus where it saturates). Here the cloud is the level set
+ * f > 0 of a smooth 3D field instead:
+ *   s = (coverage - threshold) / (1 - threshold)   smooth 2D "mass" (peaks at lobe centres)
+ *   h = (z - base) / (topFrac - base)               height above the flat base
+ *   f = s - h^p + noise                             p = 2 gives hemispherical domes (s = 1 - r^2), p > 2 flatter, p < 2 towers
+ * so cloud height follows local mass, the sides are rounded by construction, and the base is flat but soft.
+ * The noise is inverted-Worley billow (a few octaves from billowCell metres down), applied only near the surface (so it cannot
+ * punch holes in the interior or float islands far outside) and strongest on tops.
+ */
+const SHAPE = /* wgsl */ `${BILLOW_WGSL}
+fn billow(pm: vec3<f32>) -> f32 { return billowAt(pm, P.billowCell, u32(P.seed * 131.0), 3u); }
 fn valueNoise3(p: vec3<f32>, s: u32) -> f32 {
   let i = vec3<i32>(floor(p));
   let f = fract(p);
@@ -132,7 +136,7 @@ fn shapeAt(p: vec3<i32>, w: vec4<f32>, withNoise: bool) -> Shape {
   // Fraction of the way up this column's own extent (column top is where s = h^p).
   r.hcol = clamp(r.h / pow(max(r.s, 0.05), 1.0 / P.domeExp), 0.0, 1.0);
   if (withNoise && P.billowAmp > 0.0 && r.f0 > -0.55 && r.f0 < 0.5 && r.s > 0.0) {
-    let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize;
+    let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize + vec3<f32>(P.originX, P.originY, 0.0);
     let b = billow(pm);
     // Strongest on tops and near the surface, none deep inside or far outside.
     let near = (1.0 - smoothstep(0.18, 0.45, r.f0)) * smoothstep(-0.55, -0.3, r.f0);
@@ -190,7 +194,7 @@ fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
   var depth = P.maxDist;
   if (sb != NONE) { depth = max(0.0, (length(vec3<f32>(unpackSeed(sb) - p)) - 0.5) * P.voxelSize); }
   // Smooth unit-ish noise with about 3 voxels of correlation.
-  let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize;
+  let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize + vec3<f32>(P.originX, P.originY, 0.0);
   let n = clamp((valueNoise3(pm / (3.0 * P.voxelSize), u32(P.seed * 53.0)) - 0.5) * 3.4, -2.5, 2.5);
   let hf = sh.hcol;
   let dEff = depth * exp(P.sigma * n);
@@ -249,6 +253,7 @@ struct WeatherParams {
   size: vec2<u32>, seed: f32, scale: f32,
   coverageLo: f32, coverageHi: f32, border: f32, cellular: f32,
   cellScale: f32, p0: f32, p1: f32, p2: f32,
+  uvOrigin: vec2<f32>, uvSize: vec2<f32>,   // window of the map's own uv space this texture shows (default 0,0 / 1,1)
 }
 @group(0) @binding(0) var<uniform> W: WeatherParams;
 @group(0) @binding(1) var outTex: texture_storage_2d<rgba8unorm, write>;
@@ -286,7 +291,7 @@ fn worleyF1(p: vec2<f32>) -> f32 {
 @compute @workgroup_size(8, 8, 1)
 fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {
   if (g.x >= W.size.x || g.y >= W.size.y) { return; }
-  let uv = (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(W.size.x), f32(W.size.y));
+  let uv = W.uvOrigin + (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(W.size.x), f32(W.size.y)) * W.uvSize;
   let q = uv * W.scale;
   let fb = fbm(q + vec2<f32>(W.seed * 13.0, 0.0));
   // Cellular mass: one dome per Worley cell (cumulus lobes), modulated by fBm so cells differ in size and some die out.
@@ -294,7 +299,7 @@ fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {
   let n = mix(fb, clamp(0.25 + 0.75 * cell * (0.45 + 1.1 * fb), 0.0, 1.0), W.cellular);
   let edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
   // Wide ramp (no saturation plateau): coverage stays a smooth, peaked mass field. Fade to nothing near the border.
-  let cov = smoothstep(W.coverageLo, W.coverageHi, n) * smoothstep(0.0, W.border, edge);
+  let cov = smoothstep(W.coverageLo, W.coverageHi, n) * select(1.0, smoothstep(0.0, W.border, edge), W.border > 0.0);
   let t = fbm(q * 0.7 + vec2<f32>(31.0, W.seed * 7.0));
   let cellType = 1.0 - clamp(worleyF1(q * 1.6) * 1.3, 0.0, 1.0);
   let cloudType = clamp(0.6 * t + 0.5 * cellType - 0.05, 0.0, 1.0);

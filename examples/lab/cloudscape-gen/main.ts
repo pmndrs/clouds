@@ -1,5 +1,6 @@
 // P3-B preview: a GPU-generated 4 km cloudscape (512 x 512 x 64 at 8 m) over a ground plane, rendered through @clouds/three.
 // ?preset=cumulus|congestus|stratocumulus  ?seed=N  ?jobs=N (generation jobs per frame)  ?bookmark=ground|horizon|above
+// ?sky=1 turns on the distant sky layer (P3-C1); sky_<setting>=N overrides a SkyLayerSettings field (sky_depthScale, sky_densityScale, sky_maxSteps, ...).
 // Any NvdfParams field can be overridden in the query (e.g. ?billowAmp=0.2&domeExponent=2.5) for tuning.
 import { ACESFilmicToneMapping, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Scene } from 'three';
 import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
@@ -18,6 +19,11 @@ const BOOKMARKS = {
   ground: { pos: [0, 2, -150], sunEl: 48, sunAz: 140, lookAz: 0, pitch: 12 },
   horizon: { pos: [0, 30, 1300], sunEl: 45, sunAz: 150, lookAz: 0, pitch: 2 },
   above: { pos: [0, 1250, -1400], sunEl: 40, sunAz: 150, lookAz: 0, pitch: -32 },
+  // Across the box boundary: east edge is x = 2048, south edge z = -250.
+  seamEast: { pos: [1450, 70, -2300], sunEl: 45, sunAz: 150, lookAz: 90, pitch: 7 },
+  seamSouth: { pos: [0, 70, -750], sunEl: 45, sunAz: 150, lookAz: 180, pitch: 8 },
+  seamNorth: { pos: [0, 60, 250], sunEl: 45, sunAz: 150, lookAz: 0, pitch: 7 },
+  seamHigh: { pos: [0, 520, 800], sunEl: 45, sunAz: 150, lookAz: 0, pitch: -3 },
 } as const;
 type BookmarkName = keyof typeof BOOKMARKS;
 const NAMES = Object.keys(BOOKMARKS) as BookmarkName[];
@@ -58,9 +64,17 @@ try {
   }
   const weatherOpts = { ...preset.weather, size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed: Number(query.get('seed') ?? 7) };
   for (const k of ['scale', 'cellular', 'cellScale', 'coverageLo', 'coverageHi']) { const v = query.get('w_' + k); if (v !== null) (weatherOpts as unknown as Record<string, number>)[k] = Number(v); }
+  const skyOn = query.get('sky') === '1';
   const encoder = device.createCommandEncoder();
   const weather = encodeProceduralWeatherMap(device, encoder, weatherOpts);
   device.queue.submit([encoder.finish()]);
+  if (skyOn) {
+    // The same weather recipe and shaping the generator gets: the sky layer continues that world-anchored field outward.
+    const layer = clouds.core.skyLayer;
+    layer.configure({ weather: weatherOpts, shape: params, rimWidth: query.get('sky_rim') === null ? undefined : Number(query.get('sky_rim')), window: { size: Number(query.get('sky_window') ?? 51200), resolution: Number(query.get('sky_res') ?? 2048) } });
+    for (const k of Object.keys(layer.settings)) { const v = query.get('sky_' + k); if (v !== null) (layer.settings as unknown as Record<string, number>)[k] = Number(v); }
+    layer.settings.enabled = true;
+  }
   const gen: { current?: VolumeGenerator; frames: number; startMs: number; doneMs: number } = { frames: 0, startMs: performance.now(), doneMs: 0 };
   gen.current = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params });
   const cloudPos: [number, number, number] = [FIELD.centre[0] - (FIELD.dims[0] * FIELD.voxel) / 2, FIELD.base, FIELD.centre[1] - (FIELD.dims[1] * FIELD.voxel) / 2];
@@ -125,7 +139,7 @@ try {
   const ready = () => harness.ready({
     bookmark: name => applyBookmark(name),
     report: () => ({
-      gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95), mean: mean(frameTimes) }, renderSize: [renderer.domElement.width, renderer.domElement.height], bookmark, frames: frame, cloudsReady: clouds.isReady,
+      gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95), mean: mean(frameTimes) }, renderSize: [renderer.domElement.width, renderer.domElement.height], bookmark, frames: frame, cloudsReady: clouds.isReady, sky: skyOn ? { ...clouds.core.skyLayer.settings, info: clouds.core.skyLayer.info } : null,
       generation: { preset: presetName, params, jobsPerFrame: JOBS_PER_FRAME, frames: gen.frames, wallMs: gen.doneMs },
     }),
   });

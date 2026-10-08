@@ -203,6 +203,47 @@ for (const name of Object.keys(CLOUD_PRESETS) as CloudPresetName[]) {
   check(w.diff === 0 && w.encoded === w.jobs, 'sliced generation over frames matches one-shot output and reports completion');
 }
 
+// ---------- 2b. world-anchored windows: two windows offset by 1/4 window agree in the overlap ----------
+const worldAnchor: Record<string, unknown> = {};
+{
+  const preset = CLOUD_PRESETS.cumulus, REF = 4096, seed = 7;
+  const make = async (origin: [number, number]) => {
+    const enc = device.createCommandEncoder();
+    const weather = encodeProceduralWeatherMap(device, enc, {
+      ...preset.weather, border: 0, size: [DIMS[0], DIMS[1]], seed,
+      window: { origin: [origin[0] / REF, origin[1] / REF], size: [DIMS[0] * VOXEL / REF, DIMS[1] * VOXEL / REF] },
+    });
+    device.queue.submit([enc.finish()]);
+    const gen = createVolumeGenerator(device, { dims: DIMS, voxelSize: VOXEL, weather, origin, sliceDepth: 4, params: { ...preset.params, seed } });
+    const e2 = device.createCommandEncoder(); gen.generate(e2); device.queue.submit([e2.finish()]);
+    await device.queue.onSubmittedWorkDone();
+    return { gen, weather, nvdf: new Uint8Array(await readTexture(gen.volume.nvdf, 4)), sdf: new Uint16Array(await readTexture(gen.volume.sdf, 2)) };
+  };
+  for (const [name, shift] of [['x quarter', [64, 0]], ['diagonal quarter', [64, 64]]] as [string, [number, number]][]) {
+    const a = await make([0, 0]);
+    const b = await make([shift[0] * VOXEL, shift[1] * VOXEL]);
+    const margin = 12; // voxels from a window edge: the jump flood sees only its own box, so depths differ near the edge
+    let n = 0, nInterior = 0, over1 = 0, over1Interior = 0, maxD = 0, maxDInterior = 0, sdfBad = 0, sdfBadInterior = 0, occA = 0, occMismatch = 0;
+    for (let z = 0; z < D3(); z++) for (let y = 0; y + shift[1] < DIMS[1]; y++) for (let x = 0; x + shift[0] < DIMS[0]; x++) {
+      const ia = (z * DIMS[1] + y + shift[1]) * DIMS[0] + x + shift[0], ib = (z * DIMS[1] + y) * DIMS[0] + x; // A voxel (x + shift) is B voxel x
+      const interior = x >= margin && y >= margin && x + shift[0] < DIMS[0] - margin && y + shift[1] < DIMS[1] - margin;
+      let d = 0; for (let c = 0; c < 4; c++) d = Math.max(d, Math.abs(a.nvdf[ia * 4 + c] - b.nvdf[ib * 4 + c]));
+      const sa = fromHalfBits(a.sdf[ia]), sb = fromHalfBits(b.sdf[ib]);
+      const sdfDiff = Math.abs(sa - sb) > 2 * VOXEL; // SDF is distance-limited by the box; allow 2 voxels
+      n++; maxD = Math.max(maxD, d); if (d > 1) over1++; if (sdfDiff) sdfBad++;
+      if (a.nvdf[ia * 4] > 0) occA++;
+      if ((a.nvdf[ia * 4] > 0) !== (b.nvdf[ib * 4] > 0)) occMismatch++;
+      if (interior) { nInterior++; maxDInterior = Math.max(maxDInterior, d); if (d > 1) over1Interior++; if (sdfDiff) sdfBadInterior++; }
+    }
+    worldAnchor[name] = { overlapVoxels: n, occupied: occA, occupancyMismatch: occMismatch, maxDelta: maxD, over1: over1, interiorVoxels: nInterior, interiorMaxDelta: maxDInterior, interiorOver1: over1Interior, sdfOver2Voxels: sdfBad, sdfOver2VoxelsInterior: sdfBadInterior };
+    log(`world anchor, window B offset ${name} (${shift.map(v => v * VOXEL).join(', ')} m): overlap ${n} voxels (${occA} occupied), occupancy mismatches ${occMismatch}; NVDF max |delta| ${maxD}/255 (${over1} voxels > 1); interior (>${margin} voxels from edges, ${nInterior} voxels) max ${maxDInterior}, ${over1Interior} > 1; SDF > 2 voxels apart: ${sdfBad} (interior ${sdfBadInterior})`);
+    check(occA > 1000, `world anchor (${name}): the overlap contains clouds`);
+    check(maxDInterior <= 1 && sdfBadInterior === 0, `world anchor (${name}): NVDF within 1/255 and SDF within 2 voxels across the overlap interior (max ${maxDInterior})`);
+    a.gen.destroy(); a.weather.destroy(); b.gen.destroy(); b.weather.destroy();
+  }
+}
+function D3() { return DIMS[2]; }
+
 // ---------- 3. timing ----------
 interface Timing { dims: Dims; unslicedMs: number | null; slicedMs: number | null; wallMs: number; jobs: number; perJobMs: number | null; byLabel: Record<string, { sum: number; max: number; count: number }> }
 async function time(dims: Dims): Promise<Timing> {
@@ -285,6 +326,6 @@ harness.ready({
     frameMs, renderSize: [canvas.width, canvas.height],
     sdf256: { rawSamples: sRaw, rawAll: fRaw, conservativeSamples: sCons, conservativeAll: fCons, voxelMeters: VOXEL },
     timings: timings.map(t => ({ dims: t.dims, oneShotGpuMs: t.unslicedMs, slicedGpuMs: t.slicedMs, wallMs: t.wallMs, jobs: t.jobs, perJobMs: t.perJobMs, byStage: t.byLabel })),
-    presetStats, checks: lines.filter(l => l.startsWith('PASS') || l.startsWith('FAIL')).length, failures,
+    presetStats, worldAnchor, checks: lines.filter(l => l.startsWith('PASS') || l.startsWith('FAIL')).length, failures,
   }),
 });

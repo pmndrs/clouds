@@ -105,6 +105,8 @@ export class Clouds {
   get settings(): CloudSettings { return this.runtime.settings; }
   /** Rolling-average GPU ms per cloud pass (empty without timestamp-query). */
   get timings(): Record<string, number> { return this.timer.averages(); }
+  /** Most recent GPU ms per cloud pass (lags the frame by 2-3; spikes show here, not in the rolling average). */
+  get lastTimings(): Record<string, number> { return this.timer.last(); }
   /** True once volume and noise are loaded and the first frame sized the output. */
   get isReady(): boolean { return this.runtime.ready; }
   /** The runtime (escape hatch for tooling). */

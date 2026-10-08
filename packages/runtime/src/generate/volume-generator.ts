@@ -55,6 +55,21 @@ export interface VolumeGeneratorOptions {
   /** Called once per job pass with the stage name, to attach timestamp queries. */
   timestamps?: (label: string) => GPUComputePassTimestampWrites | undefined;
   label?: string;
+  /** World position (metres) of voxel (0, 0) along x and the map row. Multiples of `voxelSize` keep windows on one lattice. Default [0, 0]. */
+  origin?: [number, number];
+  /** Shared seed/staging buffers (see `createGeneratorScratch`). Generators that share one must not generate at the same time; the caller owns it. */
+  scratch?: GeneratorScratch;
+}
+
+/** The big temporary buffers of a generator (4 jump-flood seed buffers and the SDF staging buffer, about 300 MB at 512 x 512 x 64). */
+export interface GeneratorScratch { dims: [number, number, number]; seeds: GPUBuffer[]; staging: GPUBuffer; destroy(): void }
+
+export function createGeneratorScratch(device: GPUDevice, dims: [number, number, number], label = 'generator scratch'): GeneratorScratch {
+  const [w, h, d] = dims;
+  const n = w * h * d;
+  const seeds = ['A0', 'B0', 'A1', 'B1'].map(name => device.createBuffer({ label: `${label} seeds3d ${name}`, size: n * 4, usage: GPUBufferUsage.STORAGE }));
+  const staging = device.createBuffer({ label: `${label} sdf staging`, size: Math.ceil(w * 2 / 256) * 256 * h * d, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  return { dims: [w, h, d], seeds, staging, destroy() { seeds.forEach(b => b.destroy()); staging.destroy(); } };
 }
 
 export interface GenerateProgress { done: boolean; jobsEncoded: number; jobsDone: number; jobsTotal: number }
@@ -65,8 +80,13 @@ export interface VolumeGenerator {
   readonly jobsTotal: number;
   readonly jobsDone: number;
   readonly done: boolean;
-  /** Restart from the first job (e.g. after the weather map changed). */
-  restart(): void;
+  /**
+   * Restart from the first job. With `next`, regenerate for a new window: a new weather map (the caller owns it and must keep it alive
+   * until the generation is done) and/or a new world origin. The volume is overwritten in place, so do not render it until `done`.
+   */
+  restart(next?: { weather?: GPUTexture; origin?: [number, number] }): void;
+  /** World origin (metres) of the volume's voxel (0, 0) along x and the map row. */
+  readonly origin: readonly [number, number];
   /** Encode up to `maxJobs` further jobs (default all remaining) into `encoder`. The caller submits. */
   generate(encoder: GPUCommandEncoder, maxJobs?: number): GenerateProgress;
   /** Stage name of each job, in order. */
@@ -74,7 +94,7 @@ export interface VolumeGenerator {
   destroy(): void;
 }
 
-const DEFAULTS: NvdfParams = {
+export const NVDF_DEFAULTS: NvdfParams = {
   coverageThreshold: 0.12, useMapHeights: false, baseDefault: 0.08, topFraction: 0.6, domeExponent: 2, billowAmp: 0.35, billowCellMeters: 320,
   baseLift: 0.1, seed: 1, scaleBase: 0.25, scaleTop: 0.85, profileSigma: 0.64, detailBias: 0.3,
 };
@@ -91,7 +111,7 @@ export function jfaStepSequence(maxDim: number, refine: 0 | 1 | 2 = 0): number[]
 }
 
 const PARAM_BYTES = 96, PARAM_STRIDE = 256;
-type Job = { label: string; pipeline: GPUComputePipeline; bindGroup: GPUBindGroup; slot: number; groups: [number, number, number]; copy?: { z0: number; n: number } };
+type Job = { label: string; pipeline: GPUComputePipeline; bindGroup: GPUBindGroup | 'nvdf' | 'profile'; slot: number; groups: [number, number, number]; copy?: { z0: number; n: number } };
 
 export function createVolumeGenerator(device: GPUDevice, options: VolumeGeneratorOptions): VolumeGenerator {
   const [w, h, d] = options.dims;
@@ -100,7 +120,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const margin = options.marginVoxels ?? 1;
   const maxDist = options.maxDistance ?? 4096;
   const sliceDepth = Math.max(1, Math.min(d, options.sliceDepth ?? d));
-  const p: NvdfParams = { ...DEFAULTS, ...options.params };
+  const p: NvdfParams = { ...NVDF_DEFAULTS, ...options.params };
   const label = options.label ?? 'generated cloud';
   const C = GPUShaderStage.COMPUTE, F = GPUShaderStage.FRAGMENT;
 
@@ -131,13 +151,15 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const size3: GPUExtent3D = { width: w, height: h, depthOrArrayLayers: d };
   const nvdf = device.createTexture({ label: `${label} nvdf`, dimension: '3d', format: 'rgba8unorm', size: size3, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.COPY_SRC });
   const sdf = device.createTexture({ label: `${label} sdf`, dimension: '3d', format: 'r16float', size: size3, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC });
-  const seedBuffer = (n: number, name: string) => device.createBuffer({ label: `${label} ${name}`, size: n * 4, usage: GPUBufferUsage.STORAGE });
-  const n3 = w * h * d;
-  const seeds3 = [seedBuffer(n3, 'seeds3d A0'), seedBuffer(n3, 'seeds3d B0'), seedBuffer(n3, 'seeds3d A1'), seedBuffer(n3, 'seeds3d B1')];
+  const scratch = options.scratch ?? createGeneratorScratch(device, [w, h, d], label);
+  if (scratch.dims[0] !== w || scratch.dims[1] !== h || scratch.dims[2] !== d) throw new Error('scratch dims differ from the volume dims');
+  const ownsScratch = !options.scratch;
+  const seeds3 = scratch.seeds;
   const rowBytes = Math.ceil(w * 2 / 256) * 256; // copyBufferToTexture rows are 256-byte aligned
-  const sdfStaging = device.createBuffer({ label: `${label} sdf staging`, size: rowBytes * h * d, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  const sdfStaging = scratch.staging;
   const sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
-  const weatherView = options.weather.createView();
+  let weatherView = options.weather.createView();
+  let origin: [number, number] = [...(options.origin ?? [0, 0])];
 
   // ---- plan ----
     const steps3 = jfaStepSequence(Math.max(w, h, d), options.refinePasses ?? 2);
@@ -153,42 +175,42 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     u[0] = dims[0]; u[1] = dims[1]; u[2] = dims[2]; u[4] = zStart; u[5] = zCount;
     f[6] = margin; f[7] = maxDist; f[8] = voxelSize; f[9] = p.coverageThreshold; f[10] = p.useMapHeights ? 1 : 0; f[11] = p.baseDefault;
     f[12] = p.topFraction; f[13] = p.domeExponent; f[14] = p.billowAmp; f[15] = p.billowCellMeters;
-    f[16] = p.seed; f[17] = p.scaleBase; f[18] = p.scaleTop; f[19] = p.profileSigma; f[20] = p.detailBias; f[21] = p.baseLift;
+    f[16] = p.seed; f[17] = p.scaleBase; f[18] = p.scaleTop; f[19] = p.profileSigma; f[20] = p.detailBias; f[21] = p.baseLift; f[22] = origin[0]; f[23] = origin[1];
   };
   const bgl = (x: { pipeline: GPUComputePipeline }) => x.pipeline.getBindGroupLayout(0);
   // One 256-byte-aligned parameter slot per dispatch (dynamic offsets): per z chunk, nvdf + profile + sdf + one per jump-flood step.
   const maxSlots = Math.ceil(d / sliceDepth) * (3 + steps3.length);
   const params = device.createBuffer({ label: `${label} params`, size: maxSlots * PARAM_STRIDE, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const uni = { buffer: params, size: PARAM_BYTES } as GPUBufferBinding;
-  const weatherEntriesBG: GPUBindGroupEntry[] = [{ binding: 1, resource: weatherView }, { binding: 2, resource: sampler }];
   const jfaBG = (set: GPUBuffer[], from: 0 | 1) => device.createBindGroup({
     label: `jfa ${from}`, layout: bgl(jfa),
     entries: [{ binding: 0, resource: uni }, { binding: 1, resource: { buffer: set[from * 2] } }, { binding: 2, resource: { buffer: set[from * 2 + 1] } }, { binding: 3, resource: { buffer: set[(1 - from) * 2] } }, { binding: 4, resource: { buffer: set[(1 - from) * 2 + 1] } }],
   });
   const jfa3BG = [jfaBG(seeds3, 0), jfaBG(seeds3, 1)];
   const final3 = steps3.length % 2; // seed set holding the last result
-  const nvdfBG = device.createBindGroup({
+  const makeNvdfBG = () => device.createBindGroup({
     label: 'nvdf', layout: bgl(nvdfK),
-    entries: [{ binding: 0, resource: uni }, ...weatherEntriesBG, { binding: 3, resource: { buffer: seeds3[0] } }, { binding: 4, resource: { buffer: seeds3[1] } }],
+    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: weatherView }, { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: seeds3[0] } }, { binding: 4, resource: { buffer: seeds3[1] } }],
   });
-  const profileBG = device.createBindGroup({
+  const makeProfileBG = () => device.createBindGroup({
     label: 'profile', layout: bgl(profileK),
-    entries: [{ binding: 0, resource: uni }, ...weatherEntriesBG, { binding: 3, resource: { buffer: seeds3[final3 * 2] } }, { binding: 4, resource: { buffer: seeds3[final3 * 2 + 1] } }, { binding: 5, resource: nvdf.createView() }],
+    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: weatherView }, { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: seeds3[final3 * 2] } }, { binding: 4, resource: { buffer: seeds3[final3 * 2 + 1] } }, { binding: 5, resource: nvdf.createView() }],
   });
   const sdfBG = device.createBindGroup({ label: 'sdf', layout: bgl(sdfK), entries: [{ binding: 0, resource: uni }, { binding: 1, resource: { buffer: seeds3[final3 * 2] } }, { binding: 2, resource: { buffer: seeds3[final3 * 2 + 1] } }, { binding: 3, resource: { buffer: sdfStaging } }] });
 
+  const bindings = { nvdf: makeNvdfBG(), profile: makeProfileBG() };
   const jobs: Job[] = [];
   const push = (j: Job) => jobs.push(j);
   // 3D stages, chunked in z
   const chunks: [number, number][] = [];
   for (let z = 0; z < d; z += sliceDepth) chunks.push([z, Math.min(sliceDepth, d - z)]);
-  for (const [z0, n] of chunks) push({ label: 'nvdf', pipeline: nvdfK.pipeline, bindGroup: nvdfBG, groups: [Math.ceil(w / 8), Math.ceil(h / 8), Math.ceil(n / 4)],
+  for (const [z0, n] of chunks) push({ label: 'nvdf', pipeline: nvdfK.pipeline, bindGroup: 'nvdf', groups: [Math.ceil(w / 8), Math.ceil(h / 8), Math.ceil(n / 4)],
     slot: addSlot((u, _i, f) => common(u, f, [w, h, d], z0, n)) });
   steps3.forEach((step, k) => {
     for (const [z0, n] of chunks) push({ label: 'jfa3d', pipeline: jfa.pipeline, bindGroup: jfa3BG[k % 2], groups: [Math.ceil(w / 8), Math.ceil(h / 8), Math.ceil(n / 4)],
       slot: addSlot((u, i, f) => { common(u, f, [w, h, d], z0, n); i[3] = step; }) });
   });
-  for (const [z0, n] of chunks) push({ label: 'profile', pipeline: profileK.pipeline, bindGroup: profileBG, groups: [Math.ceil(w / 8), Math.ceil(h / 8), Math.ceil(n / 4)],
+  for (const [z0, n] of chunks) push({ label: 'profile', pipeline: profileK.pipeline, bindGroup: 'profile', groups: [Math.ceil(w / 8), Math.ceil(h / 8), Math.ceil(n / 4)],
     slot: addSlot((u, _i, f) => common(u, f, [w, h, d], z0, n)) });
   for (const [z0, n] of chunks) push({ label: 'sdf', pipeline: sdfK.pipeline, bindGroup: sdfBG, groups: [Math.ceil(w / 16), Math.ceil(h / 8), Math.ceil(n / 4)], copy: { z0, n },
     slot: addSlot((u, _i, f) => common(u, f, [w, h, d], z0, n)) });
@@ -204,7 +226,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const run = (encoder: GPUCommandEncoder, j: Job) => {
     const pass = encoder.beginComputePass({ label: `${label} ${j.label}`, timestampWrites: options.timestamps?.(j.label) });
     pass.setPipeline(j.pipeline);
-    pass.setBindGroup(0, j.bindGroup, [j.slot * PARAM_STRIDE]);
+    pass.setBindGroup(0, typeof j.bindGroup === 'string' ? bindings[j.bindGroup] : j.bindGroup, [j.slot * PARAM_STRIDE]);
     pass.dispatchWorkgroups(...j.groups);
     pass.end();
     if (j.copy) {
@@ -217,8 +239,8 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const destroy = () => {
     if (destroyed) return;
     destroyed = true;
-    nvdf.destroy(); sdf.destroy(); params.destroy(); sdfStaging.destroy();
-    for (const b of seeds3) b.destroy();
+    nvdf.destroy(); sdf.destroy(); params.destroy();
+    if (ownsScratch) scratch.destroy();
   };
   const v = voxelSize;
   return {
@@ -227,7 +249,17 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     get jobsDone() { return cursor; },
     get done() { return cursor >= groupedJobs.length; },
     jobLabels,
-    restart() { cursor = 0; },
+    get origin() { return origin; },
+    restart(next) {
+      if (next?.weather) { weatherView = next.weather.createView(); bindings.nvdf = makeNvdfBG(); bindings.profile = makeProfileBG(); }
+      if (next?.origin) {
+        origin = [...next.origin];
+        const f = new Float32Array(all.buffer);
+        for (let i = 0; i < slots.length; i++) { f[i * (PARAM_STRIDE / 4) + 22] = origin[0]; f[i * (PARAM_STRIDE / 4) + 23] = origin[1]; }
+        device.queue.writeBuffer(params, 0, all);
+      }
+      cursor = 0;
+    },
     generate(encoder, maxJobs = Infinity) {
       let n = 0;
       while (cursor < groupedJobs.length && n < maxJobs) { for (const j of groupedJobs[cursor]) run(encoder, j); cursor++; n++; }

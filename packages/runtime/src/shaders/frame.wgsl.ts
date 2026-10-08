@@ -15,7 +15,7 @@ struct Frame {
   splitDistance: f32, tCutoff: f32, passMode: u32, _pad2: f32,
   // art controls (P1-09)
   edgeDarkening: f32, glowBoost: f32, ambientSkyBias: f32, wispyBias: f32,
-  glowFront: f32, _pad3: f32, _pad4: f32, _pad5: f32,
+  glowFront: f32, skyEnabled: f32, _pad4: f32, _pad5: f32,   // skyEnabled: 1 when the distant sky layer is merged by the composite
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

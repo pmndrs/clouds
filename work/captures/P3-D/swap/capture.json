@@ -1,0 +1,309 @@
+{
+  "url": "http://127.0.0.1:5291/plains-flight/",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T13:03:08.958Z",
+  "shots": [
+    {
+      "name": "swapA",
+      "file": "work/captures/P3-D/swap/swapA.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.3712962999999999,
+          "lightGrid": 3.0132955,
+          "marchNear": 0.18666516666666666,
+          "marchFar": 2.072618383333334,
+          "composite": 0.5044172666666666,
+          "dome": 0.07118291666666667,
+          "cloudsTotal": 5.848179233333334,
+          "total": 6.219475533333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "swapA",
+        "simT": 20,
+        "frames": 93,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -1800,
+          "y": 1074.56,
+          "yaw": 1.5707963267948966,
+          "pitch": 0.11487144583496268
+        },
+        "windowCentre": [
+          0,
+          -1144
+        ],
+        "playback": null,
+        "swapEvents": [
+          {
+            "simT": 15.383333333333677,
+            "frame": 3,
+            "setVolumeMs": 0.20000001788139343,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 0,
+            "after": [
+              16.700000000000045,
+              16.600000000000023,
+              16.699999999999932,
+              16.600000000000023
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 15.383333333333677,
+            "lightGridPeakMs": 3.319422,
+            "cloudsPeakMs": 6.158625,
+            "lightGridBeforeMedianMs": 0
+          }
+        ],
+        "stream": {
+          "windows": 2,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.30000001192092896,
+          "generations": [
+            {
+              "frames": 112,
+              "encodeMs": 0.5999999940395355,
+              "wallMs": 0.5999999940395355,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "swapA-2",
+      "file": "work/captures/P3-D/swap/swapA-2.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.39575428333333335,
+          "lightGrid": 3.0132955,
+          "marchNear": 0.19716778333333335,
+          "marchFar": 2.294587166666666,
+          "composite": 0.5690483333333335,
+          "dome": 0.07396831666666667,
+          "cloudsTotal": 6.1480671,
+          "total": 6.5438213833333325
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "swapA",
+        "simT": 20,
+        "frames": 188,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -1800,
+          "y": 1074.56,
+          "yaw": 1.5707963267948966,
+          "pitch": 0.11487144583496268
+        },
+        "windowCentre": [
+          0,
+          -1144
+        ],
+        "playback": null,
+        "swapEvents": [
+          {
+            "simT": 15.383333333333677,
+            "frame": 3,
+            "setVolumeMs": 0.20000001788139343,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 0,
+            "after": [
+              16.700000000000045,
+              16.600000000000023,
+              16.699999999999932,
+              16.600000000000023
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 15.383333333333677,
+            "lightGridPeakMs": 3.319422,
+            "cloudsPeakMs": 6.158625,
+            "lightGridBeforeMedianMs": 0
+          }
+        ],
+        "stream": {
+          "windows": 2,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.30000001192092896,
+          "generations": [
+            {
+              "frames": 112,
+              "encodeMs": 0.5999999940395355,
+              "wallMs": 0.5999999940395355,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "swapB",
+      "file": "work/captures/P3-D/swap/swapB.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.4519813833333333,
+          "lightGrid": 3.3162743333333338,
+          "marchNear": 0.2158189,
+          "marchFar": 2.3896308999999993,
+          "composite": 0.6367208833333335,
+          "dome": 0.0801848833333333,
+          "cloudsTotal": 6.638629900000001,
+          "total": 7.090611283333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "swapB",
+        "simT": 20,
+        "frames": 395,
+        "cloudsReady": true,
+        "pose": {
+          "x": 0,
+          "z": -1800,
+          "y": 1074.56,
+          "yaw": 1.5707963267948966,
+          "pitch": 0.11487144583496268
+        },
+        "windowCentre": [
+          0,
+          -2496
+        ],
+        "playback": null,
+        "swapEvents": [
+          {
+            "simT": 15.383333333333677,
+            "frame": 3,
+            "setVolumeMs": 0.20000001788139343,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 0,
+            "after": [
+              16.700000000000045,
+              16.600000000000023,
+              16.699999999999932,
+              16.600000000000023
+            ]
+          },
+          {
+            "simT": 20,
+            "frame": 303,
+            "setVolumeMs": 0.30000001192092896,
+            "centre": [
+              0,
+              -2496
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.699999999999818,
+              16.599999999999454,
+              16.700000000000728,
+              16.599999999999454
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 15.383333333333677,
+            "lightGridPeakMs": 3.319422,
+            "cloudsPeakMs": 6.158625,
+            "lightGridBeforeMedianMs": 0
+          },
+          {
+            "simT": 20,
+            "lightGridPeakMs": 3.922232,
+            "cloudsPeakMs": 7.0485989999999985,
+            "lightGridBeforeMedianMs": 2.707169
+          }
+        ],
+        "stream": {
+          "windows": 3,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.30000001192092896,
+          "generations": [
+            {
+              "frames": 112,
+              "encodeMs": 0.5999999940395355,
+              "wallMs": 0.5999999940395355,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            },
+            {
+              "frames": 112,
+              "encodeMs": 6.500000178813934,
+              "wallMs": 1841.0999999940395,
+              "origin": [
+                -2048,
+                -4544
+              ],
+              "centre": [
+                0,
+                -2496
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

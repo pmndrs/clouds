@@ -12,10 +12,15 @@ struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfD
 
 // x = full up-rezzed density (0..1, before extinction scaling), y = profile * density scale (cheap).
 fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
-  let modeling = sampleModeling(p, inputs.baseMip);
+  let hFrac = saturate((p.y - cloudVolume.minCorner.y) / max(cloudVolume.extent.y, 1.0));
+  return cloudDensityShaped(p, rayDistance, inputs, sampleModeling(p, inputs.baseMip), hFrac);
+}
+
+// The up-rez itself, given the modeling triple (profile, detail type, density scale) and the height fraction in the volume.
+// The voxel march feeds it the NVDF; the distant sky layer feeds it an analytic vertical profile (sky-layer.wgsl.ts).
+fn cloudDensityShaped(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, modeling: vec3<f32>, hFrac: f32) -> vec2<f32> {
   let profile = modeling.x;
   // Art bias (0 = Nubis): the detail type goes wispy toward the cloud base (Schneider SY s37).
-  let hFrac = saturate((p.y - cloudVolume.minCorner.y) / max(cloudVolume.extent.y, 1.0));
   let type_ = modeling.y * (1.0 - inputs.wispyBias * (1.0 - hFrac) * (1.0 - hFrac));
   let densityScale = modeling.z;
   if (!(profile > 0.0)) { return vec2(0.0); }

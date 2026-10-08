@@ -15,6 +15,12 @@ export interface ProceduralWeatherOptions {
   cellular?: number;
   /** Worley cells across the map when `cellular` > 0. Default 6. */
   cellScale?: number;
+  /**
+   * Evaluate this window of the map's uv space (origin and size in uv units; default [0,0] / [1,1]) into the texture. The fields are
+   * procedural in uv, so a window beyond [0,1] continues the same world-anchored weather outside the volume (the distant sky layer
+   * uses this). Set `border: 0` there, or the fade to zero at uv 0..1 would be evaluated outside the map.
+   */
+  window?: { origin: [number, number]; size: [number, number] };
 }
 
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
@@ -38,12 +44,14 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm',
     usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
   });
-  const data = new ArrayBuffer(48);
+  const data = new ArrayBuffer(64);
   const u = new Uint32Array(data), f = new Float32Array(data);
   u[0] = w; u[1] = h;
   f[2] = options.seed ?? 1; f[3] = options.scale ?? 4;
   f[4] = options.coverageLo ?? 0.42; f[5] = options.coverageHi ?? 0.8; f[6] = options.border ?? 0.08; f[7] = options.cellular ?? 0; f[8] = options.cellScale ?? 6;
-  const uniforms = device.createBuffer({ label: 'weather params', size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const win = options.window ?? { origin: [0, 0], size: [1, 1] };
+  f[12] = win.origin[0]; f[13] = win.origin[1]; f[14] = win.size[0]; f[15] = win.size[1];
+  const uniforms = device.createBuffer({ label: 'weather params', size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(uniforms, 0, data);
   const bindGroup = device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),

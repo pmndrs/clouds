@@ -1,0 +1,410 @@
+{
+  "url": "http://127.0.0.1:5291/plains-flight/?play=1",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-08T13:07:09.272Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/scratch/play4/view.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.43601676666666667,
+          "lightGrid": 4.066274666666668,
+          "marchNear": 0.20842385,
+          "marchFar": 1.8086202833333331,
+          "composite": 0.5265620333333334,
+          "dome": 0.07668631666666667,
+          "cloudsTotal": 6.686567150000001,
+          "total": 7.122583916666668
+        },
+        "frameMs": {
+          "p50": 16.69999999999709,
+          "p95": 16.700000000004366
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "start",
+        "simT": 40,
+        "frames": 2609,
+        "cloudsReady": true,
+        "pose": {
+          "x": 50,
+          "z": -4200,
+          "y": 360,
+          "yaw": 0.036517810029105105,
+          "pitch": -0.0194162888955106
+        },
+        "windowCentre": [
+          48,
+          -3712
+        ],
+        "playback": {
+          "frames": 2363,
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "p99": 33.29999999999927,
+          "max": 50,
+          "over20ms": 38,
+          "over25ms": 38,
+          "slowFrames": [
+            {
+              "simT": 13.55,
+              "frame": 812,
+              "ms": 33.3,
+              "cloudsGpuMs": 21.38
+            },
+            {
+              "simT": 13.62,
+              "frame": 815,
+              "ms": 33.4,
+              "cloudsGpuMs": 22.09
+            },
+            {
+              "simT": 13.67,
+              "frame": 817,
+              "ms": 33.4,
+              "cloudsGpuMs": 24.26
+            },
+            {
+              "simT": 13.72,
+              "frame": 819,
+              "ms": 33.4,
+              "cloudsGpuMs": 22.64
+            },
+            {
+              "simT": 13.78,
+              "frame": 822,
+              "ms": 33.3,
+              "cloudsGpuMs": 23.35
+            },
+            {
+              "simT": 13.83,
+              "frame": 824,
+              "ms": 33.3,
+              "cloudsGpuMs": 22.12
+            },
+            {
+              "simT": 13.9,
+              "frame": 827,
+              "ms": 33.3,
+              "cloudsGpuMs": 21.35
+            },
+            {
+              "simT": 13.97,
+              "frame": 830,
+              "ms": 33.3,
+              "cloudsGpuMs": 20.89
+            },
+            {
+              "simT": 14.07,
+              "frame": 835,
+              "ms": 33.4,
+              "cloudsGpuMs": 20.85
+            },
+            {
+              "simT": 14.2,
+              "frame": 842,
+              "ms": 33.3,
+              "cloudsGpuMs": 20.37
+            },
+            {
+              "simT": 14.28,
+              "frame": 846,
+              "ms": 33.4,
+              "cloudsGpuMs": 17.92
+            },
+            {
+              "simT": 14.37,
+              "frame": 850,
+              "ms": 33.3,
+              "cloudsGpuMs": 20.88
+            },
+            {
+              "simT": 14.42,
+              "frame": 852,
+              "ms": 33.4,
+              "cloudsGpuMs": 21.21
+            },
+            {
+              "simT": 14.48,
+              "frame": 855,
+              "ms": 33.4,
+              "cloudsGpuMs": 21.87
+            },
+            {
+              "simT": 14.55,
+              "frame": 858,
+              "ms": 33.3,
+              "cloudsGpuMs": 21.48
+            },
+            {
+              "simT": 14.6,
+              "frame": 860,
+              "ms": 33.2,
+              "cloudsGpuMs": 21.48
+            },
+            {
+              "simT": 14.65,
+              "frame": 862,
+              "ms": 33.3,
+              "cloudsGpuMs": 23.44
+            },
+            {
+              "simT": 14.7,
+              "frame": 864,
+              "ms": 33.2,
+              "cloudsGpuMs": 23.95
+            },
+            {
+              "simT": 14.73,
+              "frame": 865,
+              "ms": 33.5,
+              "cloudsGpuMs": 23.95
+            },
+            {
+              "simT": 14.83,
+              "frame": 869,
+              "ms": 50,
+              "cloudsGpuMs": 24.2
+            },
+            {
+              "simT": 14.87,
+              "frame": 870,
+              "ms": 33.4,
+              "cloudsGpuMs": 24.2
+            },
+            {
+              "simT": 14.9,
+              "frame": 871,
+              "ms": 33.3,
+              "cloudsGpuMs": 24.87
+            },
+            {
+              "simT": 14.97,
+              "frame": 874,
+              "ms": 33.4,
+              "cloudsGpuMs": 25.7
+            },
+            {
+              "simT": 15,
+              "frame": 875,
+              "ms": 33.3,
+              "cloudsGpuMs": 25.7
+            },
+            {
+              "simT": 15.03,
+              "frame": 876,
+              "ms": 33.3,
+              "cloudsGpuMs": 24.48
+            },
+            {
+              "simT": 15.08,
+              "frame": 878,
+              "ms": 33.4,
+              "cloudsGpuMs": 24.33
+            },
+            {
+              "simT": 15.12,
+              "frame": 879,
+              "ms": 33.4,
+              "cloudsGpuMs": 24.33
+            },
+            {
+              "simT": 15.15,
+              "frame": 880,
+              "ms": 33.2,
+              "cloudsGpuMs": 24.33
+            },
+            {
+              "simT": 15.2,
+              "frame": 882,
+              "ms": 33.4,
+              "cloudsGpuMs": 26.04
+            },
+            {
+              "simT": 15.25,
+              "frame": 884,
+              "ms": 33.4,
+              "cloudsGpuMs": 25.74
+            },
+            {
+              "simT": 15.28,
+              "frame": 885,
+              "ms": 33.3,
+              "cloudsGpuMs": 25.74
+            },
+            {
+              "simT": 15.32,
+              "frame": 886,
+              "ms": 33.3,
+              "cloudsGpuMs": 25.26
+            },
+            {
+              "simT": 15.38,
+              "frame": 889,
+              "ms": 33.4,
+              "cloudsGpuMs": 24.23
+            },
+            {
+              "simT": 15.42,
+              "frame": 890,
+              "ms": 33.3,
+              "cloudsGpuMs": 24.23
+            },
+            {
+              "simT": 15.5,
+              "frame": 894,
+              "ms": 33.2,
+              "cloudsGpuMs": 22.27
+            },
+            {
+              "simT": 15.53,
+              "frame": 895,
+              "ms": 33.4,
+              "cloudsGpuMs": 22.27
+            },
+            {
+              "simT": 15.63,
+              "frame": 900,
+              "ms": 33.4,
+              "cloudsGpuMs": 19.23
+            },
+            {
+              "simT": 15.85,
+              "frame": 912,
+              "ms": 33.4,
+              "cloudsGpuMs": 17.69
+            }
+          ]
+        },
+        "swapEvents": [
+          {
+            "simT": 16.032900000011857,
+            "frame": 923,
+            "setVolumeMs": 0.5,
+            "centre": [
+              0,
+              -1144
+            ],
+            "before": 16.69999999999891,
+            "after": [
+              16.600000000002183,
+              16.700000000000728,
+              16.69999999999709,
+              16.600000000002183
+            ]
+          },
+          {
+            "simT": 24.932500000011668,
+            "frame": 1457,
+            "setVolumeMs": 0.20000001788139343,
+            "centre": [
+              0,
+              -2464
+            ],
+            "before": 16.69999999999709,
+            "after": [
+              16.700000000000728,
+              16.599999999998545,
+              16.700000000000728,
+              16.599999999998545
+            ]
+          },
+          {
+            "simT": 35.91540000001168,
+            "frame": 2116,
+            "setVolumeMs": 0.4000000059604645,
+            "centre": [
+              48,
+              -3712
+            ],
+            "before": 16.69999999999709,
+            "after": [
+              16.700000000004366,
+              16.599999999998545,
+              16.69999999999709,
+              16.599999999998545
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 16.032900000011857,
+            "lightGridPeakMs": 3.061964,
+            "cloudsPeakMs": 13.634761,
+            "lightGridBeforeMedianMs": 3.061964
+          },
+          {
+            "simT": 24.932500000011668,
+            "lightGridPeakMs": 4.848968,
+            "cloudsPeakMs": 9.199901,
+            "lightGridBeforeMedianMs": 3.061964
+          },
+          {
+            "simT": 35.91540000001168,
+            "lightGridPeakMs": 4.848968,
+            "cloudsPeakMs": 9.906725,
+            "lightGridBeforeMedianMs": 4.848968
+          }
+        ],
+        "stream": {
+          "windows": 4,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.20000001788139343,
+          "generations": [
+            {
+              "frames": 112,
+              "encodeMs": 4.8999998569488525,
+              "wallMs": 2482.800000011921,
+              "origin": [
+                -2048,
+                -3192
+              ],
+              "centre": [
+                0,
+                -1144
+              ]
+            },
+            {
+              "frames": 112,
+              "encodeMs": 4.699999988079071,
+              "wallMs": 1849.5999999940395,
+              "origin": [
+                -2048,
+                -4512
+              ],
+              "centre": [
+                0,
+                -2464
+              ]
+            },
+            {
+              "frames": 112,
+              "encodeMs": 3.9000000953674316,
+              "wallMs": 1849.0999999940395,
+              "origin": [
+                -2000,
+                -5760
+              ],
+              "centre": [
+                48,
+                -3712
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

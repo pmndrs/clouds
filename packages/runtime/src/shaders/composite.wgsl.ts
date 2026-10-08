@@ -2,6 +2,8 @@ import { FRAME_WGSL } from './frame.wgsl';
 import { lightGridWgsl } from './light-grid.wgsl';
 
 export const COMPOSITE_LIGHT_GRID_BINDING = 7;
+/** Distant sky layer colour and depth (always bound; frame.skyEnabled gates the merge, so with the layer off the output is bit-identical). */
+export const COMPOSITE_SKY_BINDING = 9;
 
 /**
  * Depth-aware upsample of the near and far march outputs to output resolution, merged front to back
@@ -26,6 +28,8 @@ ${FRAME_WGSL}
 @group(1) @binding(5) var farColor: texture_2d<f32>;
 @group(1) @binding(6) var farDepth: texture_2d<f32>;
 ${lightGridWgsl(1, COMPOSITE_LIGHT_GRID_BINDING)}
+@group(1) @binding(${COMPOSITE_SKY_BINDING}) var skyColor: texture_2d<f32>;
+@group(1) @binding(${COMPOSITE_SKY_BINDING + 1}) var skyDepth: texture_2d<f32>;
 
 fn cloudShadow(p: vec3<f32>) -> f32 {
   let sun = frame.sunDir;
@@ -88,6 +92,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     result = vec4(near.rgb + near.a * far.rgb, near.a * far.a);
   }
   if (sceneT < FAR_T) { result.a *= cloudShadow(origin + dir * sceneT); }
+  if (frame.skyEnabled > 0.5) {
+    // Distant sky layer (sky-layer.wgsl.ts): merged with the voxel result in order of mean cloud distance, so sky cloud between
+    // the camera and the voxel box covers it and box cloud in front of the far sky covers that.
+    let sky = upsample(skyColor, skyDepth, uv, sceneT, sceneT);
+    let skyDist = textureLoad(skyDepth, clamp(vec2<i32>(uv * vec2<f32>(textureDimensions(skyDepth))), vec2<i32>(0), vec2<i32>(textureDimensions(skyDepth)) - vec2<i32>(1)), 0).x;
+    let nd = textureDimensions(nearDepth);
+    let fd = textureDimensions(farDepth);
+    var voxelDist = textureLoad(nearDepth, clamp(vec2<i32>(uv * vec2<f32>(nd)), vec2<i32>(0), vec2<i32>(nd) - vec2<i32>(1)), 0).x;
+    if (voxelDist <= 0.0) { voxelDist = textureLoad(farDepth, clamp(vec2<i32>(uv * vec2<f32>(fd)), vec2<i32>(0), vec2<i32>(fd) - vec2<i32>(1)), 0).x; }
+    if (skyDist > 0.0 && voxelDist > 0.0 && skyDist < voxelDist) {
+      result = vec4(sky.rgb + sky.a * result.rgb, sky.a * result.a);
+    } else {
+      result = vec4(result.rgb + result.a * sky.rgb, result.a * sky.a);
+    }
+  }
   textureStore(outputTex, vec2<i32>(gid.xy), result);
 }
 `;

@@ -556,7 +556,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The SDF stays conservative (test page).
   - `pnpm check` green.
 
-### [~] P3-C1 Distant sky layer (Nubis vertical-profile 2.5D) · Sonnet (Fable on failure)
+### [x] P3-C1 Distant sky layer (Nubis vertical-profile 2.5D) · Sonnet (Fable on failure)
 - **Owns:**
   - `packages/runtime/src/{sky-layer.ts,shaders/sky-layer.wgsl.ts}` (new)
   - runtime integration in `packages/runtime/src/runtime.ts` and
@@ -591,7 +591,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Flagship captures are unchanged with the layer off.
   - `pnpm check` green.
 
-### [~] P3-D Streaming cloudscape window and the plains flight demo · Sonnet
+### [x] P3-D Streaming cloudscape window and the plains flight demo · Sonnet
 - **Owns:**
   - `packages/runtime/src/generate/**`
   - `examples/lab/plains-flight/**` (new page, wired)
@@ -709,6 +709,8 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
+- 2026-10-08: P3-C1 is committed as experimental, off by default. It works (clouds to the horizon, 1.35 ms) but fails visually: peaked cones, static ¼-res hatching, cliff edges, a blocky horizon band, darker shading than voxels. → escalated to Fable as P3-C2.
+- 2026-10-08: P3-D accepted: world-anchored generation (overlap byte-identical), streaming swaps with no pop (0.20/255), and the flight demo. It exposed performance problems on large generated volumes: the light grid costs about 3 ms/frame (vs 0.07 on Parkouring) and the march under thick bases 8–24 ms → P3-E. Streaming scratch is about 300 MB → P5.
 - 2026-10-08: P3-B accepted: generated cumulus fields read as real cumulus. Follow-up for the P3 art pass: thick generated undersides go charcoal-black in their cores, seen from the ground (`work/captures/P3-B/cumulus/ground.jpg`), and need lighter blue-grey bases. Congestus height is capped by the 512 m volume.
 - 2026-10-08: P2-03 accepted as the working demo: 60 fps at 2560×1440, whole-frame GPU about 4.3 ms, shadows on the water. Known gaps: boxy generated clouds (P3-B), cloud reflections need `clouds.reflection()` in the adapter plus an ocean hook (P2-05), and ocean tile crosshatch at 300 m.
 - 2026-10-08: P4-A follow-up: the mode-2 profile mapping (`saturate(−sdf/depth)^γ`) saturates too fast, so authored clouds read as soft sphere clusters (`work/captures/P4-A/edge.jpg`). Fit Guerrilla's profile-vs-SDF relation from the pack data (it ships both) in P4-B.
