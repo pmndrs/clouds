@@ -270,6 +270,48 @@ Spec: [specs/P1-runtime.md](specs/P1-runtime.md). The phase goals and measures a
 - P1-07 Cloud shadow on the ground (from the light grid or a projected map).
 - P1-08 Visual acceptance and timing: all bookmarks on both clouds, side by side with Tidewater (`work/captures/P0-04/`), and a timing table against the P1 measures.
 
+
+## Ahead of phase (parallel, no file overlap with P1)
+
+### [~] P2-A Open-water scene module · Sonnet
+- **Owns:** `examples/lab/scenes/ocean/**` (new; reusable scene module) and `examples/lab/ocean/**` (preview page).
+- **Does:** `createOcean(renderer, scene, sky, options)`:
+  - three WebGPU water to the horizon with layered waves (Gerstner or FFT, in TSL)
+  - Fresnel reflection of `scene.environment` (the sky)
+  - a sun glint driven by the sky's sun
+  - a camera-following grid with distance LOD
+  - `update(dt, camera)` per frame
+
+  No literal sky colours. P2 composites clouds over it and reflects them.
+- **Acceptance:**
+  - The preview page meets the capture contract.
+  - `--shots shore,horizon,sunset` captures exit 0 and look like open ocean
+    under the sky at 1920×1080.
+  - Ocean GPU ≤ 2 ms at 1920×1080 (report it).
+  - 60 fps steady.
+
+### [~] P3-A GPU NVDF generator prototype · Sonnet
+- **Owns:** `packages/runtime/src/generate/**` (new) and `examples/lab/runtime-tests/generate/**`.
+- **Does:** compute passes that turn a 2D weather map into a Nubis voxel field in
+  the same formats as `uploadCloudVolume` (rgba8 NVDF, r16float SDF in metres),
+  so the existing runtime can render the result unchanged.
+  - **Weather map:** RG(B) for coverage, cloud type and base/top height.
+  - **Output:**
+    - **profile:** Nubis envelope method, `pow(h, 2) * pow(1 − h, 1.5)` times an
+      edge gradient from the coverage SDF
+    - **detail type:** wispy at the bases, billowy at the tops
+    - **density scale**
+  - **SDF:** a 3D jump flood over `profile > 0`, signed, with the same
+    conservative convention.
+  - **Amortization:** the work can be sliced across frames, for example by
+    z-slices or tiles.
+- **Acceptance:**
+  - The test page generates a 256×256×32 field from a procedural weather map.
+  - The SDF agrees with a CPU exact EDT within one voxel on ≥ 1000 samples.
+  - Full generation GPU ms is reported for 256² and 512² × 64, plus per-slice cost.
+  - A capture shows a slice visualization.
+  - No three imports.
+
 ## Decisions and escalations
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
