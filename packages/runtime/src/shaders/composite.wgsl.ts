@@ -2,7 +2,11 @@ import { FRAME_WGSL } from './frame.wgsl';
 import { lightGridWgsl } from './light-grid.wgsl';
 
 export const COMPOSITE_LIGHT_GRID_BINDING = 7;
-/** Distant sky layer colour and depth (always bound; frame.skyEnabled gates the merge, so with the layer off the output is bit-identical). */
+/**
+ * Distant sky layer: front colour, depth, back colour at this binding, +1, +2 (always bound; frame.skyEnabled gates the merge,
+ * so with the layer off the output is bit-identical). The layer is split at the voxel box (sky-layer.wgsl.ts): front = the cloud
+ * between the camera and the box, back = the cloud beyond it, both premultiplied, so the merge is front over voxel over back.
+ */
 export const COMPOSITE_SKY_BINDING = 9;
 
 /**
@@ -30,6 +34,7 @@ ${FRAME_WGSL}
 ${lightGridWgsl(1, COMPOSITE_LIGHT_GRID_BINDING)}
 @group(1) @binding(${COMPOSITE_SKY_BINDING}) var skyColor: texture_2d<f32>;
 @group(1) @binding(${COMPOSITE_SKY_BINDING + 1}) var skyDepth: texture_2d<f32>;
+@group(1) @binding(${COMPOSITE_SKY_BINDING + 2}) var skyBack: texture_2d<f32>;
 
 fn cloudShadow(p: vec3<f32>) -> f32 {
   let sun = frame.sunDir;
@@ -71,6 +76,35 @@ fn upsample(colorTex: texture_2d<f32>, depthTex: texture_2d<f32>, uv: vec2<f32>,
   return tapResult(colorTex, depthTex, clamp(vec2<i32>(round(m)), vec2<i32>(0), hi), sceneT, pixelEnd, false);
 }
 
+// Distant sky layer: merged per tap (front over the voxel result over back), then bilinear. Interpolating front and back
+// separately would leave cross terms where a cloud moves between the two textures across adjacent texels (rays that just graze
+// the box split there, their neighbours do not): 0.5c over 0.5c is not c. Per-tap merging makes both assignments identical.
+fn mergeSky(voxel: vec4<f32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
+  let size = vec2<f32>(textureDimensions(skyColor));
+  let m = uv * size - 0.5;
+  let b = floor(m);
+  let f = m - b;
+  let hi = vec2<i32>(size) - vec2<i32>(1);
+  var acc = vec4(0.0);
+  var wsum = 0.0;
+  var nearest = vec4(0.0);
+  for (var i = 0; i < 4; i++) {
+    let o = vec2<f32>(f32(i & 1), f32(i >> 1));
+    let w = mix(1.0 - f.x, f.x, o.x) * mix(1.0 - f.y, f.y, o.y);
+    let tap = clamp(vec2<i32>(b + o), vec2<i32>(0), hi);
+    let d = textureLoad(skyDepth, tap, 0).xy;
+    var front = textureLoad(skyColor, tap, 0);
+    var back = textureLoad(skyBack, tap, 0);
+    if (d.x > 0.0 && d.x > sceneT * 1.02 + 1.0) { front = vec4(0.0, 0.0, 0.0, 1.0); back = front; }
+    let c = vec4(front.rgb + front.a * (voxel.rgb + voxel.a * back.rgb), front.a * voxel.a * back.a);
+    if (i == 0 || ((f.x >= 0.5) == (o.x > 0.5) && (f.y >= 0.5) == (o.y > 0.5))) { nearest = c; }
+    if (d.y < sceneT * 0.97 - 1.0) { continue; }   // this tap's rays stopped at a nearer surface than this pixel's
+    acc += c * w; wsum += w;
+  }
+  if (wsum > 1e-4) { return acc / wsum; }
+  return nearest;
+}
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (any(vec2<f32>(gid.xy) >= frame.outputSize)) { return; }
@@ -93,19 +127,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
   if (sceneT < FAR_T) { result.a *= cloudShadow(origin + dir * sceneT); }
   if (frame.skyEnabled > 0.5) {
-    // Distant sky layer (sky-layer.wgsl.ts): merged with the voxel result in order of mean cloud distance, so sky cloud between
-    // the camera and the voxel box covers it and box cloud in front of the far sky covers that.
-    let sky = upsample(skyColor, skyDepth, uv, sceneT, sceneT);
-    let skyDist = textureLoad(skyDepth, clamp(vec2<i32>(uv * vec2<f32>(textureDimensions(skyDepth))), vec2<i32>(0), vec2<i32>(textureDimensions(skyDepth)) - vec2<i32>(1)), 0).x;
-    let nd = textureDimensions(nearDepth);
-    let fd = textureDimensions(farDepth);
-    var voxelDist = textureLoad(nearDepth, clamp(vec2<i32>(uv * vec2<f32>(nd)), vec2<i32>(0), vec2<i32>(nd) - vec2<i32>(1)), 0).x;
-    if (voxelDist <= 0.0) { voxelDist = textureLoad(farDepth, clamp(vec2<i32>(uv * vec2<f32>(fd)), vec2<i32>(0), vec2<i32>(fd) - vec2<i32>(1)), 0).x; }
-    if (skyDist > 0.0 && voxelDist > 0.0 && skyDist < voxelDist) {
-      result = vec4(sky.rgb + sky.a * result.rgb, sky.a * result.a);
-    } else {
-      result = vec4(result.rgb + result.a * sky.rgb, result.a * sky.a);
-    }
+    // Distant sky layer (sky-layer.wgsl.ts): the part in front of the voxel box over the voxel result over the part behind it.
+    result = mergeSky(result, uv, sceneT);
   }
   textureStore(outputTex, vec2<i32>(gid.xy), result);
 }

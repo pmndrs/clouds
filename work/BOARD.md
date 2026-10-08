@@ -628,7 +628,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Generation never stalls a frame.
   - `pnpm check` green.
 
-### [~] P3-C2 Sky layer quality and temporal amortization · Fable (escalated)
+### [x] P3-C2 Sky layer quality and temporal amortization · Fable (escalated)
 - **Owns:**
   - `packages/runtime/src/{sky-layer.ts,shaders/sky-layer.wgsl.ts,shaders/composite.wgsl.ts}`
   - `packages/runtime/src/generate/weather.ts`, only for shaping that must stay
@@ -813,7 +813,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - If Houdini Indie limits or performance block it, report exactly what and
     why.
 
-### [~] P3-F Lighting at scale: thick-cloud undersides and the day cycle · Sonnet
+### [x] P3-F Lighting at scale: thick-cloud undersides and the day cycle · Sonnet
 - **Owns:**
   - `packages/runtime/src/shaders/{lighting.wgsl.ts,march.wgsl.ts}`
   - default values in `runtime.ts` settings, with minimal re-read-before-edit

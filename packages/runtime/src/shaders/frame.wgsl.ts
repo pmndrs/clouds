@@ -10,12 +10,12 @@ struct Frame {
   renderSize: vec2<f32>, outputSize: vec2<f32>,
   baseMip: f32, maxSteps: u32, frameIndex: u32, lightDensityScale: f32,
   msStrength: f32, ambientStrength: f32, silverStrength: f32, ambientExtinction: f32,
-  phaseG: f32, silverG: f32, shadowStrength: f32, _pad1: f32,
+  phaseG: f32, silverG: f32, shadowStrength: f32, deepScatter: f32,
   // near/far split: marching range of this pass is [0, splitDistance) for passMode 0 (near) and [splitDistance, inf) for 1 (far)
   splitDistance: f32, tCutoff: f32, passMode: u32, _pad2: f32,
   // art controls (P1-09)
   edgeDarkening: f32, glowBoost: f32, ambientSkyBias: f32, wispyBias: f32,
-  glowFront: f32, skyEnabled: f32, _pad4: f32, _pad5: f32,   // skyEnabled: 1 when the distant sky layer is merged by the composite
+  glowFront: f32, skyEnabled: f32, deepAttenuation: f32, ambientFloor: f32,   // skyEnabled: 1 when the distant sky layer is merged by the composite
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

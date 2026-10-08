@@ -21,6 +21,8 @@ export interface ProceduralWeatherOptions {
    * uses this). Set `border: 0` there, or the fade to zero at uv 0..1 would be evaluated outside the map.
    */
   window?: { origin: [number, number]; size: [number, number] };
+  /** Allocate this many mip levels (the pass writes level 0 only; the sky layer fills the rest with coverage maxima). Default 1. */
+  mipLevels?: number;
 }
 
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
@@ -41,7 +43,7 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     pipelines.set(device, pipeline);
   }
   const texture = device.createTexture({
-    label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm',
+    label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm', mipLevelCount: Math.max(1, options.mipLevels ?? 1),
     usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
   });
   const data = new ArrayBuffer(64);
@@ -55,7 +57,7 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
   device.queue.writeBuffer(uniforms, 0, data);
   const bindGroup = device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),
-    entries: [{ binding: 0, resource: { buffer: uniforms } }, { binding: 1, resource: texture.createView() }],
+    entries: [{ binding: 0, resource: { buffer: uniforms } }, { binding: 1, resource: texture.createView({ baseMipLevel: 0, mipLevelCount: 1 }) }],
   });
   const pass = encoder.beginComputePass({ label: 'weather map' });
   pass.setPipeline(pipeline);

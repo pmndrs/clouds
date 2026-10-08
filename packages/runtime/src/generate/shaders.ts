@@ -54,7 +54,7 @@ fn jfa(@builtin(global_invocation_id) g: vec3<u32>) {
 }
 `;
 
-/** Hash, 3D Worley and the inverted-Worley billow of the generator, parameter-free so the distant sky layer shares them. */
+/** Hash, 3D Worley, the inverted-Worley billow and the value noise of the generator, parameter-free so the distant sky layer shares them. */
 export const BILLOW_WGSL = /* wgsl */ `
 fn hashu(p: vec3<i32>, s: u32) -> u32 {
   var h = (u32(p.x) * 0x8da6b343u) ^ (u32(p.y) * 0xd8163841u) ^ (u32(p.z) * 0xcb1ab31fu) ^ (s * 0x9e3779b9u);
@@ -87,6 +87,19 @@ fn billowAt(pm: vec3<f32>, cell0: f32, s0: u32, octaves: u32) -> f32 {
   }
   return a / wsum - 0.36;
 }
+/** Smooth value noise in [0, 1] (the profile's multiplicative depth noise); shared with the sky layer too. */
+fn valueNoise3(p: vec3<f32>, s: u32) -> f32 {
+  let i = vec3<i32>(floor(p));
+  let f = fract(p);
+  let u = f * f * (3.0 - 2.0 * f);
+  var r = 0.0;
+  for (var k = 0u; k < 8u; k++) {
+    let o = vec3<i32>(i32(k & 1u), i32((k >> 1u) & 1u), i32(k >> 2u));
+    let w = mix(1.0 - u, u, vec3<f32>(o));
+    r += w.x * w.y * w.z * (f32(hashu(i + o, s)) * (1.0 / 4294967295.0));
+  }
+  return r;
+}
 `;
 
 /**
@@ -104,18 +117,6 @@ fn billowAt(pm: vec3<f32>, cell0: f32, s0: u32, octaves: u32) -> f32 {
  */
 const SHAPE = /* wgsl */ `${BILLOW_WGSL}
 fn billow(pm: vec3<f32>) -> f32 { return billowAt(pm, P.billowCell, u32(P.seed * 131.0), 3u); }
-fn valueNoise3(p: vec3<f32>, s: u32) -> f32 {
-  let i = vec3<i32>(floor(p));
-  let f = fract(p);
-  let u = f * f * (3.0 - 2.0 * f);
-  var r = 0.0;
-  for (var k = 0u; k < 8u; k++) {
-    let o = vec3<i32>(i32(k & 1u), i32((k >> 1u) & 1u), i32(k >> 2u));
-    let w = mix(1.0 - u, u, vec3<f32>(o));
-    r += w.x * w.y * w.z * (f32(hashu(i + o, s)) * (1.0 / 4294967295.0));
-  }
-  return r;
-}
 struct Shape { s: f32, h: f32, f0: f32, f: f32, hcol: f32, base: f32, top: f32, cloudType: f32 }
 fn dome(h: f32, s: f32) -> f32 {
   // g(h): hemisphere-like height law; below the base a steep soft ramp (flat base: a ramp of about s/24 of the height, i.e. one or two voxels, so contours of the base do not stack into shelves).

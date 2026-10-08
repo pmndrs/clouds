@@ -1,0 +1,51 @@
+{
+  "url": "http://127.0.0.1:62345/flagship/?cloud=stormbird&time=15",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:29:45.202Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P3-F/day/storm-15/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.9156687666666667,
+          "skyCompute": 0.219997,
+          "lightGridReduce": 0.03079,
+          "lightGrid": 0.066705,
+          "marchNear": 0.37354150000000014,
+          "marchFar": 0.9127853499999999,
+          "composite": 1.1363613166666668,
+          "dome": 0.09422005000000003
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 15,
+        "sunElevation": 49.08506948284602,
+        "sunAzimuth": 259.9271921656391,
+        "animateTime": false,
+        "quality": "high",
+        "cloud": "stormbird",
+        "frames": 93,
+        "assetLoadMs": 71.69999998807907,
+        "firstCloudFrameMs": 92.40000000596046
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

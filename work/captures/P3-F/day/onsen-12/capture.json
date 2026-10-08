@@ -1,0 +1,56 @@
+{
+  "url": "http://127.0.0.1:62138/onsen/?time=12",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-08T14:29:30.584Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/P3-F/day/onsen-12/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.3329762000000003,
+          "lightGridReduce": 0.513942,
+          "lightGrid": 1.822112,
+          "marchNear": 0.11222103333333332,
+          "marchFar": 0.8552564000000002,
+          "composite": 0.4805009333333335,
+          "dome": 0.0977062833333334,
+          "cloudsTotal": 3.88173865,
+          "total": 5.21471485
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "vantage",
+        "frames": 97,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 75.93700566899652,
+          "azimuth": 174.0408789693697
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 728.4000000059605,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
