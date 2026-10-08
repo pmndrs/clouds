@@ -482,6 +482,38 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Captures at all bookmarks in `work/captures/P2-03/`.
   - The integration-line count is ≤ 20.
 
+### [~] P2-05 Reflections, depth sorting and presets: closing Phase 2 · Sonnet
+- **Owns:**
+  - `packages/three/**`
+  - `examples/lab/scenes/ocean/**` (add an optional reflection hook)
+  - `examples/lab/open-water/**`
+  - `examples/lab/three-adapter/**`
+- **Does:**
+  - **`clouds.reflection(dirNode)`:** a TSL function returning vec4 (rgb, T)
+    from `runtime.dome` (`cloudDomeWgsl` / octahedral decode, P2-04).
+    Reflective materials blend `env · T + rgb`.
+  - **`createOcean`:** accepts an optional `reflection: (dir) => vec4` and
+    blends it into the Fresnel reflection. The open-water page wires it.
+  - **`Clouds.setVolume`:** accept `GpuCloudVolume`, now that the runtime
+    supports it, and drop the page's `clouds.core` workaround.
+  - Add the `'ultra'` quality to the adapter types.
+  - **Depth-sorting test:** add `?objects=1` to the three-adapter page. It
+    places a tall tower or mesh that pierces the cloud, one object fully in
+    front of the cloud, and one fully behind it. Capture with bookmarks that
+    show each case. Clouds must occlude and be occluded correctly, with no halo
+    on silhouettes.
+  - **Preset cost table:** low/medium/high/ultra at 2560×1440 on the
+    three-adapter page and the open-water page (`ground`/`edge`/`inside` and
+    `shore`/`horizon`/`flight`).
+- **Acceptance:**
+  - Clouds are visible in the water reflection
+    (`work/captures/P2-05/open-water-*`).
+  - Depth captures pass a visual check; describe each.
+  - The preset table is in the report.
+  - The open-water page keeps 60 fps at 2560×1440 on high.
+  - The integration-line count stays ≤ 20.
+  - `pnpm check` green.
+
 ## Phase 3 — Whole sky and generated cloudscapes
 
 ### [~] P3-B Generator quality: natural cumulus fields · Sonnet (Fable on failure)
