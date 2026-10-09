@@ -1998,8 +1998,8 @@ Plan and tracker: [docs/research/TRACKING.md](../docs/research/TRACKING.md). Age
 - [x] RS-T Owner target studies: `docs/research/targets/santa-sleigh.md` (multi-body merging line, not one tower) and `frog.md` (surface-detail catalogue from zoomed shots) · Opus
 - [x] RS-V EmberGen CloudPack VDB inventory (`artifacts/research/vdbs/CloudPack/`, 10 clouds + `.ember` setup): grids, sizes, thumbnails, shape notes; doubles as a VDB-loader test list · Sonnet
 - [x] RS-N Native implementations that claim HZD-equivalent clouds (engine plugins, open-source ports): what they implement from the papers, code availability, licence, whether captures exist; for optional comparison, never as the target (owner 2026-10-10: the target is HZD and the photos, not Takram) · Sonnet
-- [~] RS-5 Topic guides (shape, layering, surface-detail, weather, authoring) with a ranked try-next list · Opus
-- [ ] RS-6 Index refresh; older overlapping notes get "superseded by" lines · Sonnet
+- [x] RS-5 Topic guides (shape, layering, surface-detail, weather, authoring) with a ranked try-next list · Opus
+- [x] RS-6 Index refresh; older overlapping notes get "superseded by" lines · Sonnet
 - [ ] RS-H (later, owner ask) Save the L1/L2 Houdini rigs as `.hip` files the owner can open and fix; survey Houdini's cloud tools beyond Pyro (Cloud FX, cloud shape/noise SOPs, VDB tools) for the authoring topic guide
 
 ## Decisions and escalations
