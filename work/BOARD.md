@@ -1770,7 +1770,7 @@ Owner direction:
   - `pnpm check`, bundle and packed consumer green.
   - Checkpoint-commit often.
 
-### [ ] P9-E High layer: cirrus and cirrostratus · Opus
+### [~] P9-E High layer: cirrus and cirrostratus · Opus (claimed: P9-E implementer)
 - **Owns:**
   - `packages/runtime/src/cirrus/**` (new)
   - `packages/runtime/src/shaders/composite.wgsl.ts` and `runtime.ts`: only the hook that draws the layer behind the low clouds
