@@ -16,7 +16,7 @@ This file is the single tracker. Update a source's row when you finish a step.
 | Raw dumps: slide text, speaker notes, page text, slide/page images | `artifacts/research/extracted/<id>/` (main checkout) | No: third-party material, local only |
 | Verbatim code transcribed from slides or papers, with slide/page numbers | `artifacts/research/extracted/<id>/code/` | No |
 | One note per source: metadata, summary, tags, key ideas, formulas, a slide/page index of every code listing, "what we use / don't use / should try" | `docs/research/sources/<id>.md` | Yes. Paraphrase; quote only short snippets and formulas |
-| Topic guides that combine all sources | `docs/research/topics/<topic>.md` | Yes |
+| Topic guides that combine all sources, with a combined ranked try-next list and the owner questions | `docs/research/topics/<topic>.md`, `topics/README.md` | Yes |
 | The index | `docs/research/README.md` | Yes |
 
 Local sources live at `/Users/dex/Developer/WebGPUClouds/artifacts/research/`: papers in `papers/`, Guerrilla's material in `nubis/`. The worktree has no `artifacts/`, so use that absolute path.
@@ -104,8 +104,8 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 | **RS-2** | The Nubis family: gp7, hfw, ne22, nut, n17, hzd15, syn, noise. One agent per source | Sonnet each; Opus review | RS-0 |
 | **RS-3** | Academic shape: hag, web18, bou08 (detail section), survey | Sonnet | RS-0 |
 | **RS-4** | Lighting and atmosphere: fb16, hil20, hog16, yus14, rdr2, mie (top-ups only) | Sonnet | RS-0; lowest priority |
-| **RS-5** | Topic guides: `topics/shape.md`, `layering.md`, `surface-detail.md`, `weather.md`, `authoring.md` (sims, noise generator, voxel pack), later `lighting.md` and `perf.md`. Each method lists: sources with slide/page, code pointer, our status, recommendation. Ends with a ranked "try next" list for the board | Opus | RS-1, RS-2, RS-3 |
-| **RS-6** | Index refresh: README points to `sources/` and `topics/`. Older notes that overlap get a "superseded by" line, not deletion | Sonnet | RS-5 |
+| **RS-5** ✅ done 2026-10-10 | Topic guides: `topics/shape.md`, `layering.md`, `surface-detail.md`, `weather.md`, `authoring.md` (sims, noise generator, voxel pack), later `lighting.md` and `perf.md`. Each method lists: sources with slide/page, code pointer, our status, recommendation. Ends with a ranked "try next" list for the board | Opus | RS-1, RS-2, RS-3 |
+| **RS-6** ✅ done 2026-10-10 | Index refresh: README points to `sources/` and `topics/`. Older notes that overlap get a "superseded by" line, not deletion | Sonnet | RS-5 |
 
 **Review:** each source note gets one Opus spot-check of five or more claims against the source before ✅. Disagreements are fixed in the note, not argued in the report.
 

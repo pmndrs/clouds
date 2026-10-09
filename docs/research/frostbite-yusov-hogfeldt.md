@@ -1,5 +1,7 @@
 # Frostbite clouds and Bouthors 2008: Hillaire 2016, Yusov 2014, Högfeldt 2016, Bouthors et al. 2008
 
+> **Superseded by / see also:** no source notes yet (RS-4, lighting is parked; `fb16`, `hog16`, `yus14` are still 🟦 here in [TRACKING.md](TRACKING.md)). For the Bouthors 2008 shape/detail side see [sources/bou08.md](sources/bou08.md) and [topics/surface-detail.md](topics/surface-detail.md); the lighting side of Bouthors stays in this note.
+
 Sources (local only, `artifacts/research/`): `s2016-pbs-frostbite-sky-clouds-new.pdf` (H16, 62 pp, course notes; printed page = PDF page), `Yusov-Clouds.pdf` (Y14, **44 slides, not the paper**), `hogfelt.pdf` (Hö, 52 pp thesis; printed page = PDF page). Fourth source added later: `bouthors08.pdf` (B08, 10 pp, Bouthors et al., "Interactive multiple anisotropic scattering in clouds"; section 1b). Citations are `[H16 p.N]`, `[Y14 sN]`, `[Hö p.N]`. Numbers marked "calc" are mine (Python), not from the sources. Read after `approximate-mie.md` and `rdr2-atmosphere.md`; what they already cover is not repeated.
 
 ## Read this first

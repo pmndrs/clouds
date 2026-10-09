@@ -1,5 +1,7 @@
 # Deck scene catalog: Schneider's cloud scenes, shape vocabulary and techniques
 
+> **Superseded by / see also:** [sources/n3.md](sources/n3.md) and [sources/syn.md](sources/syn.md) (figures lists per slide), [topics/layering.md](topics/layering.md) §7 (hero layout), [topics/surface-detail.md](topics/surface-detail.md); the owner-photo scene studies [targets/santa-sleigh.md](targets/santa-sleigh.md) and [targets/frog.md](targets/frog.md). Target scenes should now be judged against HZD and the owner's photos.
+
 A visual catalog of every cloud scene and reference image in the two decks, so we
 can pick target scenes to rebuild and list what our generated clouds lack. The
 formulas are in [nubis-sources.md](nubis-sources.md); this file does not repeat

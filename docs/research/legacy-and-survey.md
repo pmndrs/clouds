@@ -1,5 +1,7 @@
 # Legacy talk (2017) and 2021 survey: targeted findings
 
+> **Superseded by / see also:** [sources/n17.md](sources/n17.md) (Nubis 2017, full) and [sources/survey.md](sources/survey.md) (survey taxonomy and a ranked fetch list of 17); topic guides [topics/layering.md](topics/layering.md), [topics/weather.md](topics/weather.md), [topics/shape.md](topics/shape.md). Horizon/sunset material here is not yet covered by a source note.
+
 Two sources the owner added, read against five questions. Neither is a deep source
 for what we are building now, and this note says so where it is true.
 

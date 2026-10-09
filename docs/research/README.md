@@ -68,10 +68,13 @@ Papers are in `papers/`, Guerrilla's Nubis material in `nubis/` (owner reorganis
 | `papers/slides_public_release.pptx` (238 MB): RDR2, Bauer, SIGGRAPH 2019 | horizon sunset shadow perf | ✅ rdr2-atmosphere | 78 slides |
 | `cloud-photos/` (about 500 photos, 15 types, `manifest.json`) | shape sunset scene | ✅ photo-species-specs | Many misfiles (see that doc). Empty: stratus/fog valley, lenticular, mammatus, shelf, nimbostratus, cirrocumulus |
 | `nubis-pack/`, `nubis-src/` | authoring | ✅ (P0) | Guerrilla's voxel cloud pack, MIT per the owner; assets in `assets/nubis-voxel-clouds/` |
+| TileableVolumeNoise (GitHub sebh, MIT; web only) | noise shape | 🟦 [sources/tvn.md](sources/tvn.md) | Periodic Worley/Perlin-Worley recipe and the Nyquist rule for our noise bake |
+| psrdnoise (GitHub stegu, MIT; web only) | noise motion | 🟦 [sources/psrd.md](sources/psrd.md) | Periodic simplex with rotating gradients and analytic derivatives: curl and flow noise |
+| `vdbs/CloudPack/` (EmberGen, 10 VDBs plus `.ember`) | authoring | 🟦 [cloudpack-embergen.md](cloudpack-embergen.md) | Owner-supplied; Z-up; seeding vs our Pyro |
 | `disney-cloud/` | authoring | ✅ (P4-G) | WDAS cloud, CC BY-SA 3.0 |
 | `vdbs/` (bunny, cloud.0001, ...) | authoring | ✅ (P4-H) | Import test assets |
 | `node_modules/@takram/three-clouds` 0.7.6 and `@pmndrs/sky` 0.5.0 source (installed) | horizon sunset | ✅ (C2, `work/reports/C2.md`) | Takram: H16 eq. 21 front depth, per-pixel Bruneton AP, plus an extra exponential **haze** (3e-5/m, 1 km scale height) mixed over clouds and sky: the reason its horizon fades. pmndrs/sky: ozone (Chappuis) and multiple scattering are in the LUTs; its twilight ramp at -1 to -4 deg already goes orange, pink, lilac, purple, indigo (dark only at a fixed exposure). AP LUT 32^3 at 8 km/slice (256 km) |
-| Takram `three-clouds` density and lighting (`src/shaders/clouds.glsl`, `clouds.frag`, `CloudLayers.ts`); Sky Pro `tidewater/src/sky/SkyProClouds.js` density, weather and march | shape lighting | ✅ (X1, `work/reports/X1.md`) | Ported into `packages/runtime/src/procedural/` (NOTICE there). Takram: HZD layer model (per-layer weather channel, semicircle height gradient, coverage remap, 128^3 shape / 32^3 detail erosion, turbulence), 8-octave Wrenninge lighting. Sky Pro: height-field top = weather + coverage - 1 + noise dilation, flat-base floor mask, 64^3 noise erosion, coarse/fine march with weather-cell skips, 7-tap light cone |
+| **Baseline we ported from, not a target:** Takram `three-clouds` density and lighting (`src/shaders/clouds.glsl`, `clouds.frag`, `CloudLayers.ts`); Sky Pro `tidewater/src/sky/SkyProClouds.js` density, weather and march | shape lighting | ✅ (X1, `work/reports/X1.md`) | Ported into `packages/runtime/src/procedural/` (NOTICE there). Takram: HZD layer model (per-layer weather channel, semicircle height gradient, coverage remap, 128^3 shape / 32^3 detail erosion, turbulence), 8-octave Wrenninge lighting. Sky Pro: height-field top = weather + coverage - 1 + noise dilation, flat-base floor mask, 64^3 noise erosion, coarse/fine march with weather-cell skips, 7-tap light cone |
 
 ## External links
 
@@ -82,13 +85,20 @@ Papers are in `papers/`, Guerrilla's Nubis material in `nubis/` (owner reorganis
 | [Witcher 3 B&W cirrus (astralcode blog)](https://astralcode.blogspot.com/2019/05/reverse-engineering-rendering-of.html) | cirrus | A cheap textured dome cirrus with a normal map, sun-proximity front/back colour and a horizon bias. Our **low-tier cirrus fallback** (see legacy-and-survey) |
 | [Unity cloud shadows video (YouTube kMiilElp3Js)](https://www.youtube.com/watch?v=kMiilElp3Js) | shadow | Not reviewable (no transcript). From the title, a projected mobile cookie. P10 already covers it |
 
-## Where we are weakest, and which sources to read
+## Where we are weakest, and which guides to read
 
-| Gap | Read |
-| --- | --- |
-| Sunset colour (bodies should be mauve/slate with warm fringes) | **frostbite-yusov-hogfeldt sec. 1b (Bouthors order analysis: elevation-dependent body light, cheap port with constants)**, photo-species-specs (targets), rdr2-atmosphere (sun-weighted ambient, S36), approximate-mie. Still unread: nothing, but no source gives colour numbers; photos remain the target |
-| Horizon haze and distance | frostbite-yusov-hogfeldt (eq. 21-22: weighted depth, and clouds attenuate the haze under them), rdr2-atmosphere (transmittance-weighted depth, S62), legacy-and-survey (half-opaque depth), Ghost of Yōtei (depth variance) |
-| Cirrus | hzd-nubis-evolved (NE p.65), legacy-and-survey (Witcher fallback) |
-| Species shapes | hzd-nubis-evolved (profile tables), photo-species-specs (numbers), deck-scenes (vocabulary) |
-| Ground shadows and god rays | P10 reports; rdr2-atmosphere (ESM, free god rays, S35/S62); Ghost of Yōtei (fog shafts) |
-| Cost (high tier over budget) | rdr2-atmosphere (1 ray per 2×2 tile, S51–57); frostbite-yusov-hogfeldt (empty-sky skip from history, half-res, 5% EMA) |
+Owner priority (2026-10-10): **shape, layering and surface noise/detail** (match HZD, judged by the owner's photos). Lighting is acceptable for now. Start with the topic guide; the older notes are background.
+
+| Gap | Read first | Then |
+| --- | --- | --- |
+| Shape: dome profile, mushy billows, flat cores, no anvils | [topics/shape.md](topics/shape.md) (S1-S10) | sources gp7, nut, n17, hag; photo-species-specs (numbers) |
+| Layering: four summed layers, no type blend, no storms, empty horizon, weak alto and cirrus | [topics/layering.md](topics/layering.md) (L1-L9) | sources hzd15, n17, ne22, web18; deck-scenes |
+| Weather: Perlin continent, no states, no art direction, motion policy | [topics/weather.md](topics/weather.md) (W1-W8) | sources n17, nut, hzd15; cloud-motion-ideas |
+| Surface detail: plastic far clouds, blurred noise, undersampled lobes, no rim fuzz, near-camera shell | [topics/surface-detail.md](topics/surface-detail.md) (SD1-SD10) | sources n3 (§4, §7d), syn, bou08, noise; targets/santa-sleigh.md, targets/frog.md |
+| Authoring: heroes without a lobe ladder, no scene composition, rigs the owner cannot open | [topics/authoring.md](topics/authoring.md) (AU1-AU9) | cloudpack-embergen.md, sources noise, n3 s61-74 |
+| **What to do first** | [topics/README.md](topics/README.md): combined top 20 and the owner questions | |
+| Sunset colour (bodies should be mauve/slate with warm fringes) | **frostbite-yusov-hogfeldt sec. 1b (Bouthors order analysis: elevation-dependent body light, cheap port with constants)**, photo-species-specs (targets), rdr2-atmosphere (sun-weighted ambient, S36), approximate-mie. No source gives colour numbers; photos remain the target. *Lighting guide (`lighting.md`) is planned, not written.* | |
+| Horizon haze and distance | frostbite-yusov-hogfeldt (eq. 21-22: weighted depth, and clouds attenuate the haze under them), rdr2-atmosphere (transmittance-weighted depth, S62), sources/n17.md (half-opaque depth), Ghost of Yōtei (depth variance) | |
+| Cirrus | topics/layering.md L6, sources/ne22.md (NE p.65), legacy-and-survey (Witcher fallback) | |
+| Ground shadows and god rays | P10 reports; rdr2-atmosphere (ESM, free god rays, S35/S62); Ghost of Yōtei (fog shafts) | |
+| Cost (high tier over budget) | rdr2-atmosphere (1 ray per 2×2 tile, S51-57); frostbite-yusov-hogfeldt (empty-sky skip from history, half-res, 5% EMA); `perf.md` is planned | |

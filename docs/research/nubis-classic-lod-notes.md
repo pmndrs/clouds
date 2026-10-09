@@ -1,5 +1,7 @@
 # Classic Nubis / Decima LOD research (2015 and 2017)
 
+> **Superseded by / see also:** [sources/hzd15.md](sources/hzd15.md), [sources/n17.md](sources/n17.md), [sources/gp7.md](sources/gp7.md), [sources/nut.md](sources/nut.md); [topics/weather.md](topics/weather.md), [topics/layering.md](topics/layering.md), [topics/shape.md](topics/shape.md).
+
 Primary materials
 
 - 2015, Andrew Schneider, “The Real-time Volumetric Cloudscapes of Horizon: Zero Dawn,” SIGGRAPH Advances in Real-Time Rendering course. Official course page: https://advances.realtimerendering.com/s2015/ . Direct PDF: https://advances.realtimerendering.com/s2015/The%20Real-time%20Volumetric%20Cloudscapes%20of%20Horizon%20-%20Zero%20Dawn%20-%20ARTR.pdf

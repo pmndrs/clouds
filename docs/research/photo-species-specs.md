@@ -1,5 +1,7 @@
 # Photo-derived visual specs per cloud species
 
+> **Superseded by / see also:** it stays the numbers reference. Per-photo studies: [targets/santa-sleigh.md](targets/santa-sleigh.md), [targets/frog.md](targets/frog.md); the guides use these numbers as acceptance targets: [topics/shape.md](topics/shape.md), [topics/layering.md](topics/layering.md), [topics/README.md](topics/README.md) (reference frames).
+
 Source: the owner's reference photos at `artifacts/research/cloud-photos/` (274 manifest entries, filed into 12 type folders; many appear in two folders). These photos are not copied into the repo. Contact sheets and crops are in the gitignored `work/captures/scratch/photos/` (`sheet_<type>_<n>.jpg`).
 
 **How the numbers were made.** All 12 folders were reviewed on labelled contact sheets. Aspect ratios and edge stats come from a crude numpy segmentation (low-saturation and bright pixels = cloud, bottom 18% masked as ground) on 320 px wide thumbnails. It only counts clouds that do not touch the frame border, and it merges touching clouds. So numbers are "w:h of the connected blob", with n stated. Congestus and cumulonimbus were measured by hand because the mask merges tower and base deck. Colours are sRGB medians or k-means centres from 200 px thumbnails. They come from phone and Sony JPEGs that are HDR tone-mapped, so treat them as relative targets (+-10%).

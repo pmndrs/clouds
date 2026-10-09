@@ -1,5 +1,7 @@
 # Nubis distance rendering and the P2 coverage revision
 
+> **Superseded by / see also:** [sources/ne22.md](sources/ne22.md), [sources/n3.md](sources/n3.md) (§7 contradictions, §9 try-next), [sources/hfw.md](sources/hfw.md); [topics/surface-detail.md](topics/surface-detail.md) (steps, near-detail gate) and [topics/layering.md](topics/layering.md).
+
 Research date: 2026-09-17. Read the official 2022 and 2023 PDF slides, including the rendered diagrams. Page numbers below are one-based PDF pages, not video timestamps. This note distinguishes published mechanisms from our proposed adaptation.
 
 ## Verified source points

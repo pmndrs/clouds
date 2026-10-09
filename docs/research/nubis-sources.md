@@ -1,5 +1,7 @@
 # Nubis implementation reference
 
+> **Superseded by / see also:** [sources/n3.md](sources/n3.md) (slide-by-slide with the §7 contradiction list and §9 try-next), [sources/syn.md](sources/syn.md), [sources/gp7.md](sources/gp7.md); topic guides [topics/shape.md](topics/shape.md), [topics/surface-detail.md](topics/surface-detail.md), [topics/layering.md](topics/layering.md). Kept for its formulas and runtime mapping; where it differs from `sources/n3.md`, the source note wins.
+
 The code reference for this project. These are our notes, formulas and constants
 from Andrew Schneider's talks. Slide numbers are cited so they can be checked.
 
@@ -63,7 +65,7 @@ Envelope 2.5D [N3 s20]:
 - **One dense grid**, not many boxes. Switching between voxel boxes in the
   inner loop was slow, so the composited cloudscape is written into a single
   world grid [N3 s67–68]. Sparse formats were rejected only for schedule reasons
-  and are called "a good area to explore" [N3 s73].
+  and are called "a good area to explore" [N3 s73]. *(Correction 2026-10-10, `sources/n3.md` §7: the s73 notes also cite per-sample indirection cost, not only schedule.)*
 - **Noise** [N3 s89–90]
   - One 128³ RGBA8 texture, 8.4 MB (corrected 2026-10-10: the deck's "2 B/texel, 4.194 MB" caption is reused; the pack ships RGBA8, see `sources/n3.md` §7), tiling every 100 m (`uvw = pos * 0.01`).
   - R = low-frequency *Curly-Alligator* (wispy)
@@ -225,6 +227,7 @@ while T > limit and t < min(segment.end, maxDist):
 
 ## 6. Resolution and budget [N3 s44–45, s151–160, SY s80–81]
 
+- *(Correction 2026-10-10, `sources/n3.md` §7: the near/far split is not the voxel default; per s158 the 30 Hz build uses a single pass, 4 ms vs 2.1 ms for the 40/60 Hz split.)*
 - **No temporal upscaling for voxel or envelope clouds.** They can't resolve
   under fast flight [N3 s44, s157].
 - Instead, two passes: rays nearer than 200 m at 480×270, farther than 200 m at

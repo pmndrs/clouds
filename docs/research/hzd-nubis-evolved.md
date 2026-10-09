@@ -1,5 +1,7 @@
 # HZD (2015) and Nubis Evolved (2022): variety, noise, lighting, shadows
 
+> **Superseded by / see also:** [sources/hzd15.md](sources/hzd15.md), [sources/ne22.md](sources/ne22.md), [sources/nut.md](sources/nut.md), [sources/n17.md](sources/n17.md), [sources/hfw.md](sources/hfw.md), [sources/gp7.md](sources/gp7.md); topic guides [topics/shape.md](topics/shape.md), [topics/layering.md](topics/layering.md), [topics/weather.md](topics/weather.md). The source notes are exact (page-level, reviewed); this note stays as the earlier overview.
+
 Scope: what the two earlier Schneider talks add to `nubis-sources.md` (N3/SY formulas) and `deck-scenes.md`
 (scene catalog). Nothing here repeats those. Targets are the tasks in `docs/PLAN-2026-10-variety.md`.
 
@@ -12,7 +14,7 @@ Scope: what the two earlier Schneider talks add to `nubis-sources.md` (N3/SY for
 Source limits, so nobody over-trusts this note:
 - The HZD ARTR PDF has **no code and no numeric gradient constants**. The three height gradients are images only.
   The exact smoothstep constants were in the GPU Pro 7 chapter, which we do not have. Anything below marked
-  *(GPU Pro, unverified)* is recalled from memory and must not be treated as sourced.
+  *(GPU Pro, unverified)* is recalled from memory and must not be treated as sourced. *(Update 2026-10-10: GPU Pro 7 is now read, see `sources/gp7.md`, and the Nutshell gradient stops are exact in `sources/nut.md`; the 2015 swatches are an illustration, not the shipped curves.)*
 - Slide images are in `work/captures/scratch/hzd/` (gitignored): `hi/h-NN.png` (PDF page NN), `evs/*.png` contact sheets.
   HZD printed slide number = PDF page minus 1 or 2 (the notes pages repeat the slide number); use `sheets/`.
 
@@ -37,7 +39,7 @@ Source limits, so nobody over-trusts this note:
      This is the origin of height-dependent wispy-to-billowy detail (N3's per-voxel *detail type* generalises it).
 - **Weather map = 3 channels, 2D, over the player's region** (slides 39 to 42):
   - R = coverage, G = precipitation, B = cloud type. Slide 40 note: "Red is coverage, Green is precipitation and blue
-    is cloud type."
+    is cloud type." *(Sources disagree on G: GPU Pro 7 p.103 agrees; N17 p.53-56 and Nutshell s16 make R and G two coverage footprints; Häggström uses G as high-coverage fill. See `topics/layering.md` §1.)*
   - Slide 41: where red is high and blue low you get stratus; "more red have less of the blue signal, making them stratus".
   - Slide 42: precipitation "transitions the map from whatever it is to cumulonimbus clouds at 70% coverage".
     So cumulonimbus is **not a fourth type channel**; it is a precipitation override on coverage and type.
@@ -127,7 +129,7 @@ deck-sourced additions are in section 6.
   That 0.27 exponent is the NE equivalent of our `pow(rho*Sp, 0.3..0.6)`.
 - NE 99 (envelope model type): `noise_height_blend = Remap(h, type+0.1, type-0.1)`; `composite = lerp(wispy, billowy, blend)`.
   Type sets the **height at which noise flips from billowy (top) to wispy (bottom)**: 0.25 flips low, 0.75 high,
-  1.0 all billowy (NE 100). This is a per-cloud, height-driven detail-type rule that we can use for 9-D.
+  1.0 all billowy (NE 100). *(Correction 2026-10-10, `sources/ne22.md` review: as printed, `Remap(h, type+0.1, type-0.1)` puts billowy below the switch; the NE diagram has billowy above. Flip the argument order to match the diagram.)* This is a per-cloud, height-driven detail-type rule that we can use for 9-D.
 - NE 102: noise sample position is offset vertically by `(1 - saturate((max_h - min_h) * 0.0125)) * 40.0`, so thin
   clouds sample a different slice of the 3D noise than tall ones (thin clouds do not look like slices of tall ones).
   Very cheap variety.
@@ -246,7 +248,7 @@ deck-sourced additions are in section 6.
      **different angular speed per ring** (`ring_rotation_speed[n]`, `ring_skew[n]`, NE 149 to 150), and
      reprojection is rotated too (NE 155) so motion stays stable.
    - **Lighting overrides** by distance to the storm centre (NE 164 to 172): optical thickness scaled by
-     `pow(min(1 - dist/radius, 0)+1, 0.5)`, ambient settings lerped between normal and superstorm by a radius and
+     `pow(min(1 - dist/radius, 0)+1, 0.5)` *(Correction 2026-10-10, `sources/hfw.md` p.78 and `sources/ne22.md` p.165: as printed this is 1 inside the radius and thins outside; the intended thickening inside is `sqrt(1 + max(1 - d/r, 0))`, 1 to 1.41x)*, ambient settings lerped between normal and superstorm by a radius and
      height weight, and internal glow `pow(1 - d1/radius, 12) * (d2/height) * (1 - saturate(fine_density*5))`.
      N3 reuses the 12th-power glow. A darker rain-cloud absorption `T = e^(-5d..-20d)` is shown at NE 164.
    - **Lightning** (NE 173 to 182): system generates a position, triggers an intra-cloud flash then optionally a

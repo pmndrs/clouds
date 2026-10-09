@@ -1,9 +1,11 @@
 # Procedural shape, layering and surface detail: methods to implement
 
+> **Superseded by / see also:** [topics/shape.md](topics/shape.md), [topics/layering.md](topics/layering.md), [topics/weather.md](topics/weather.md), [topics/surface-detail.md](topics/surface-detail.md); sources [gp7](sources/gp7.md) (settles the "recalled" constants), [nut](sources/nut.md) (shipped gradient stops), [n17](sources/n17.md), [hag](sources/hag.md), [web18](sources/web18.md), [tvn](sources/tvn.md), [psrd](sources/psrd.md), [bou08](sources/bou08.md), [survey](sources/survey.md). The "fetch list" in section 5 is mostly done: GPU Pro 7, TileableVolumeNoise, Webanck 2018 are read.
+
 Scope: the shape, layering and surface-noise recipes in the papers, with the formulas, so implementers copy instead of inventing. Lighting is out of scope. Read `hzd-nubis-evolved.md` (profile tables, weather channels, NE 65 cirrus) and `nubis-sources.md` (N3/SY sampler) first; this note does not repeat them, it adds the chain between them and what we run in `packages/runtime/src/procedural/`.
 
 Source tags: **HZD** = Horizon 2015 ARTR deck (printed slide numbers). **N17** = Nubis 2017 deck (printed slide number follows its notes). **NE** = Nubis Evolved 2022 (PDF page). **FB** = Hillaire, Frostbite 2016 course notes (section). **HF** = Högfeldt 2016 thesis (section). **B08** = Bouthors et al. 2008 (section). **SV** = Goswami 2021 survey (section 2, "Modeling").
-**Trust levels.** *Sourced* = in a local source, cited. *Recalled* = the GPU Pro 7 listing (Schneider 2016) as widely reproduced, **not in any local source**; treat constants as starting values until we fetch the chapter (see section 5). The survey (SV) names techniques but gives no formulas.
+**Trust levels.** *Sourced* = in a local source, cited. *Recalled* = the GPU Pro 7 listing (Schneider 2016) as widely reproduced, **not in any local source**; treat constants as starting values until we fetch the chapter (see section 5). *(Update 2026-10-10: GPU Pro 7 is read, `sources/gp7.md` p.106-110 confirms the 0.625/0.25/0.125 weights, `Remap(base, cov, 1, 0, 1) * cov`, `saturate(h*10)`, `*0.2` and `(1-h)` curl strength. The recalled stratocumulus/cumulus gradients below are NOT confirmed: use the exact stops in `sources/nut.md`.)* The survey (SV) names techniques but gives no formulas.
 
 ## 1. What we already run
 
@@ -42,7 +44,7 @@ Not present at all: **anvil bias, per-sample cloud type, base-height and cloud-h
 
 ### M2. Type-blended height gradients (silhouette, base/top profile)
 - **Sourced (N17 s28-29):** `gradient(type) = remap(h, a, b, 0, 1) * remap(h, c, d, 1, 0)`, e.g. stratus `(0, 0.1, 0.2, 0.3)`; type moves the in/out points; type 0 stratus, 0.5 stratocumulus, 1 cumulus; cloud map blue channel is type (N17 s59). HZD s34 shows three gradients blended by type, constants not given.
-- **Recalled:** stratocumulus `(0, 0.2, 0.48, 0.625)`, cumulus roughly `(0, 0.1, 0.8, 1)` or `(0.01, 0.3, 0.6, 0.95)`; blend `type < 0.5 ? mix(stratus, strato, 2t) : mix(strato, cumulus, 2t - 1)`. Treat cumulus/strato as tunable; measure against `photo-species-specs.md`.
+- **Recalled:** stratocumulus `(0, 0.2, 0.48, 0.625)`, cumulus roughly `(0, 0.1, 0.8, 1)` or `(0.01, 0.3, 0.6, 0.95)`; blend `type < 0.5 ? mix(stratus, strato, 2t) : mix(strato, cumulus, 2t - 1)`. *(Superseded 2026-10-10: shipped stops are in `sources/nut.md` s7-8 and agree with the measured N17 p.30-32 strips; the N17 printed stratus pair is an example only, and GPU Pro Fig 4.10 / HZD s34 is an earlier illustration.)* Treat cumulus/strato as tunable; measure against `photo-species-specs.md`.
 - **We have:** one fixed semicircle per layer; type is implicit in which of 4 channels you paint. No continuous type, so a layer cannot go stratus to cumulus across the map.
 - **Suggest:** replace `procShapeAltering` with a 4-point trapezoid whose points are `mix`ed from a per-layer type (weather blue, or a hash of cluster). One `vec4` per type, three types, no texture. Smooth the trapezoid ends with smoothstep, not linear, to keep the dome top.
 
@@ -68,7 +70,7 @@ Not present at all: **anvil bias, per-sample cloud type, base-height and cloud-h
 ### M6. Weather-map channels and what each drives
 | Scheme | R | G | B | A | Source |
 | --- | --- | --- | --- | --- | --- |
-| HZD | coverage | precipitation | cloud type | | HZD s40; precip pushes to cumulonimbus at 70% cov (s42), biases at s38 |
+| HZD | coverage | precipitation (GP7 p.103 agrees; N17 and Nutshell s16 read G as a second coverage; see `topics/layering.md` §1) | cloud type | | HZD s40; precip pushes to cumulonimbus at 70% cov (s42), biases at s38 |
 | Nubis 2017 cloud map | coverage (Perlin) | coverage (Perlin-Worley) | type | | N17 s54-59: R gives connected formations, G gives isolated islands with connective tissue; low-frequency noise gates both; type from another low-frequency noise |
 | Högfeldt | coverage (also density) | cloud **height** | cloud **altitude** (base) | | HF 4.4: height 0 = invisible, 1 = max; altitude 0 = atmosphere start; example map gives five altitudes from one texture |
 | Frostbite | density | type index into a profile LUT | | | FB 5.3: LUT x = type, y = height; LUT R = density along height, G = **erosion amount** |
