@@ -1260,6 +1260,85 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - No regression to the cumulus presets (cloudscape-gen bookmarks, A/B).
   - `pnpm check` green; `node scripts/check-packed-consumer.mjs` passes.
 
+## Phase 8: comparison, docs site, gallery, mobile, sparse heroes (owner request, 2026-10-09)
+
+### [~] P8-A Side-by-side comparison page · Sonnet (Fable on failure)
+- **Owns:**
+  - `examples/lab/compare/**` (new), including any vendored code under `examples/lab/compare/vendor/` with a NOTICE
+  - the root `package.json` devDependencies and `pnpm-lock.yaml`, for the Takram packages
+  - the `compare` input line in `vite.config.ts`
+- **Does:** one page renders the same wide scene with two or three cloud implementations, split top/bottom or left/right (`?layout=rows|cols`, `?impls=ours,skypro,takram`, default `ours,takram`).
+  - **Implementations:**
+    - ours: `@clouds/three` with the generator's cumulus.
+    - Sky Pro: from `/Users/dex/Developer/tidewater/src/sky/` (MIT, author's permission). Vendor only what's needed and keep its licence header.
+    - Takram: `@takram/three-clouds` with `@takram/three-atmosphere`, from npm. It is WebGL plus postprocessing, so give it its own canvas and WebGLRenderer.
+  - **Each pane:** its own canvas and renderer.
+  - **Synced across panes:** the camera (orbit and free-fly, driven from one pane), sun azimuth and elevation, time of day, and FOV.
+  - **Comparable inputs:**
+    - Coverage is mapped per implementation, with each mapping documented.
+    - Wide scene: ground plane or ocean, with bookmarks `ground`, `horizon`, `sunset` and `above`.
+  - **Labels and timings:**
+    - Each pane is labelled with its implementation.
+    - Per-pane timing: GPU timestamp where the renderer allows it, otherwise CPU frame time, shown in the label.
+  - **Harness:** implement the capture contract so `capture.mjs --page compare/ --shots ground,horizon,sunset,above` works. Report per-pane timings in the report object.
+- **Acceptance:**
+  - Captures of all four bookmarks with three panes, plus two-pane rows and columns. All panes use the same view: the horizon at the same height and the sun in the same place.
+  - A short write-up in `work/reports/P8-A.md` of visible differences per bookmark, to guide what we adjust.
+  - `pnpm check` green; the packed consumer still passes (the core packages must not depend on Takram).
+
+### [~] P8-B Docs site compatible with pmndrs/docs · Sonnet
+- **Owns:**
+  - `docs/guide/**`, moving to `.mdx`
+  - `.github/workflows/docs.yml` (new)
+  - `scripts/check-docs.mjs`
+  - package README pointers
+- **Does:** make `docs/guide` buildable by `pmndrs/docs` (`.github/workflows/build.yml@v3`, `mdx: 'docs/guide'`), the same setup as react-three-fiber and drei.
+  - **Reference:** `~/Developer/r3f-docs-port/docs` and its `.github/workflows/docs.yml`.
+  - **Pages:** each page becomes `.mdx` with frontmatter `title`, `description` and `nav`, with subfolders for sections if useful.
+  - **Links:** relative links to source files become absolute GitHub URLs (`https://github.com/pmndrs/clouds/blob/main/...`; repo name TBD, keep it in one constant in `check-docs`). Images go next to the mdx.
+  - **Checks:** update `scripts/check-docs.mjs` for `.mdx` and frontmatter, keeping the link check and the sample type-check.
+  - **Local build:** if feasible, build locally with a clone of `pmndrs/docs` in the scratchpad (not committed) and record the result. Otherwise validate the frontmatter schema against pmndrs/docs' source.
+- **Acceptance:** `node scripts/check-docs.mjs` green; `pnpm check` green; a local pmndrs/docs build or a schema check is recorded in the report.
+
+### [~] P8-C Examples gallery · Sonnet
+- **Owns:**
+  - `examples/lab/{index.html,main.ts,style.css}`
+  - a new `examples/lab/gallery/thumbs/`
+  - `scripts/gallery-thumbs.mjs` (new)
+- **Does:** replace the stale lab index with a gallery.
+  - **Cards:** one per current page: open-water, plains-flight, onsen, storm, evolve, cloudscape-gen, vdb-drop, r3f, three-adapter, flagship, and compare once P8-A lands. Link compare even if the page isn't built yet.
+  - **Card contents:** a thumbnail, title, one-line description, the packages used, and the capture bookmark links.
+  - **Thumbnails:** `scripts/gallery-thumbs.mjs` regenerates them with the capture harness (`?hud=0&clean=1`) as small webp or jpg files.
+  - **Legacy and test pages:** a collapsed section.
+  - **Layout:** works at phone width.
+  - **Fallback:** a WebGPU-unavailable banner on the gallery.
+- **Acceptance:** a capture of the gallery at desktop and phone width; thumbnails regenerate with one command; `pnpm check` green.
+
+### [~] P8-D iOS Safari / WebKit bring-up · Sonnet (Fable on failure)
+- **Owns:**
+  - `examples/lab/gpu-smoke/**` and `examples/lab/harness/**`
+  - fixes in `packages/runtime/src/**` or `packages/three/src/**` that WebKit needs, kept minimal and reported
+- **Problem:** in the iOS 26.4 simulator (iPhone 17 Pro, Safari), even `/gpu-smoke/` renders a black page with no text. It is served by `vite --host 127.0.0.1 --port 5199` and opened with `xcrun simctl openurl booted <url>`.
+- **Does:** root-cause it.
+  - **Getting logs:** Playwright WebKit on macOS gives console logs; check whether it exposes WebGPU. You can also run Safari on the Mac with WebGPU, using `simctl` screenshots (`xcrun simctl io booted screenshot`) and the simulator's logs (`xcrun simctl spawn booted log show --last 2m --predicate 'process == "MobileSafari"'`).
+  - **Fallback:** every page shows a visible error overlay (`navigator.gpu` missing, adapter or device failure, shader compile errors) instead of black. Put it in the harness so all pages get it.
+  - Fix WebKit-specific WGSL or API issues (timestamp-query absence, format support, limits). Then get open-water, plains-flight and onsen rendering in the simulator, with `quality: 'auto'` picking the phone tier.
+- **Acceptance:**
+  - Simulator screenshots of gpu-smoke, open-water, plains-flight and onsen rendering, or a clear root cause if WebGPU is unavailable in the simulator.
+  - Chrome captures unchanged (A/B the flagship).
+  - `pnpm check` green.
+
+### [~] P8-E Sparse hero storage from WebVDB: design spike · Fable
+- **Owns:** `work/specs/P8-hero-vdb.md` (new) and `work/reports/P8-E.md`. Read-only everywhere else, including `/Users/dex/Developer/WebVDB`.
+- **Does:** design how hero clouds get 2–4 m effective voxels without dense textures, building on the owner's WebVDB repo. That repo ships `nanovdb-wgsl`, `three-nanovdb` and `vdb-web-tools` at 0.1.0; per its STATUS it is "WIP" in places.
+  - Decide the format: a sparse NVDF (profile, type, scale) plus SDF in NanoVDB trees, or a brick atlas with an indirection grid.
+  - Decide how the march samples it alongside the regional 8 m field: union in the density function, SDF min.
+  - Cover the light grid's interaction and the cost on desktop and phone.
+  - Say what in WebVDB must be finished or extended.
+  - Cover the conversion path from the existing hython/in-browser importer.
+  - Include prototype numbers if a quick measurement is cheap.
+- **Acceptance:** a spec the orchestrator can split into implementation tasks, with risks and an explicit recommendation.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
