@@ -1,0 +1,100 @@
+{
+  "url": "http://127.0.0.1:60703/open-water/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T08:42:01.481Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/review/2026-10-09-1741-q2-start/open-water/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0341843,
+          "lightGridReduce": 0.208331,
+          "lightGrid": 0.4745090303030304,
+          "marchNear": 0.07466896666666668,
+          "marchFar": 0.5632260333333333,
+          "shadowMap": 0.7912163166666665,
+          "composite": 0.3510127333333333,
+          "dome": 0.9792725999999999,
+          "skyWeather": 1.0539173666666666,
+          "resolveNear": 0.027339250000000013,
+          "resolveFar": 0.04574373333333334,
+          "skyWeatherMips": 0.111706,
+          "skyLayer": 2.0776802166666672,
+          "skyResolve": 0.14875401666666668,
+          "cloudsTotal": 6.907377263636363,
+          "total": 7.941561563636363
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 252,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 803.6999999880791,
+          "encodeSubmitMsTotal": 1.6000000834465027
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/review/2026-10-09-1741-q2-start/open-water/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8265545499999998,
+          "lightGridReduce": 0.208331,
+          "lightGrid": 0.5513239387755103,
+          "marchNear": 0.07791340000000001,
+          "marchFar": 0.6026373500000001,
+          "shadowMap": 0.9588803500000002,
+          "composite": 0.37335671666666687,
+          "dome": 0.70439215,
+          "skyWeather": 1.0539173666666666,
+          "resolveNear": 0.029082266666666672,
+          "resolveFar": 0.05130268333333334,
+          "skyWeatherMips": 0.111706,
+          "skyLayer": 2.1322653666666667,
+          "skyResolve": 0.1505804,
+          "cloudsTotal": 7.00568898877551,
+          "total": 7.83224353877551
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 347,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 803.6999999880791,
+          "encodeSubmitMsTotal": 1.6000000834465027
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

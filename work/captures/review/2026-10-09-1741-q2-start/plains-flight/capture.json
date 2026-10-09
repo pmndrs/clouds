@@ -1,0 +1,153 @@
+{
+  "url": "http://127.0.0.1:60783/plains-flight/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T08:42:08.371Z",
+  "shots": [
+    {
+      "name": "t25",
+      "file": "work/captures/review/2026-10-09-1741-q2-start/plains-flight/t25.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7444448333333333,
+          "skyWeather": 0.5272781500000001,
+          "lightGridReduce": 0.101286,
+          "lightGrid": 0.2499158571428572,
+          "marchNear": 0.07207733333333335,
+          "marchFar": 0.16818146666666667,
+          "shadowMap": 0.4729801666666667,
+          "composite": 0.3146590833333334,
+          "dome": 0.4434433,
+          "resolveNear": 0.026301733333333337,
+          "resolveFar": 0.03916178333333334,
+          "skyWeatherMips": 0.17283099999999998,
+          "skyLayer": 2.2597863499999993,
+          "skyResolve": 0.11503855000000002,
+          "cloudsTotal": 4.962940773809524,
+          "cloudsMarch": 4.611738916666667,
+          "total": 5.707385607142857
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "t25",
+        "simT": 24.99999999999986,
+        "frames": 201,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2050.1484374999995,
+          "z": -351.99999999998363,
+          "y": 1200,
+          "yaw": -0.0026528758940507925,
+          "pitch": -0.2792526803190927
+        },
+        "windowCentre": [
+          2048,
+          -216
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 201,
+          "bytes": 13803852
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666958,
+            "frame": 111,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              2048,
+              904
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.800000000000182,
+              16.59999999999991,
+              16.59999999999991,
+              16.800000000000182
+            ]
+          },
+          {
+            "simT": 23.866666666666593,
+            "frame": 111,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              2048,
+              -216
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.800000000000182,
+              16.59999999999991,
+              16.59999999999991,
+              16.800000000000182
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666958,
+            "lightGridPeakMs": 0.771989,
+            "cloudsPeakMs": 5.1100900000000005,
+            "lightGridBeforeMedianMs": 0.091416
+          },
+          {
+            "simT": 23.866666666666593,
+            "lightGridPeakMs": 0.771989,
+            "cloudsPeakMs": 5.1100900000000005,
+            "lightGridBeforeMedianMs": 0.091416
+          }
+        ],
+        "stream": {
+          "windows": 3,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.30000001192092896,
+              "wallMs": 0.30000001192092896,
+              "origin": [
+                0,
+                -1144
+              ],
+              "centre": [
+                2048,
+                904
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.20000001788139343,
+              "wallMs": 0.20000001788139343,
+              "origin": [
+                0,
+                -2264
+              ],
+              "centre": [
+                2048,
+                -216
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
