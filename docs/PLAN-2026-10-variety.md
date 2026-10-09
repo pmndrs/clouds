@@ -86,10 +86,34 @@ The P8-A comparison page (ours, Sky Pro and Takram at four bookmarks) produces a
 before/after on the same page. **Pass:** for each bookmark, the write-up no longer names our pane weakest on shape
 variety, horizon coverage or sunset colour.
 
-## Phase 13: sparse hero storage
+## Phase 13: sparse hero storage (spec: `work/specs/P8-hero-vdb.md`)
 
-Specified by P8-E (`work/specs/P8-hero-vdb.md`, in progress) on the owner's WebVDB. It feeds T6 and the 9-F library at
-2–4 m effective voxels. The task split comes from the spec.
+**Recommendation:** keep the regional 8 m field. Add a sparse layer that carries only the dimensional profile:
+- **Resolution:** 4 m by default, 2 m opt-in for one showcase hero.
+- **Wire format:** a NanoVDB Fp8 file `fine.nvdb` next to `nvdf.bin`/`sdf.bin`.
+- **Runtime format:** a brick pool (10³ bricks with an apron) plus an indirection grid over the regional volume.
+- **Sampling:** read in `cloudDensity` only, with one load and one trilinear fetch: 1.16–1.20× a plain fetch, measured. The NanoVDB tree is never marched on the GPU, which would cost 2.2–2.7×.
+- **Kept at 8 m:** detail type, density scale, SDF and the light grid. Q-1 self-shadowing already reads the fine field.
+- **Size:** about 2.3 MB on disk per 700 m hero at 4 m, against 22–29 MB dense. The core bundle grows by about 1.5 KB gzip.
+- **WebVDB:** we use its CPU reader and its `buildFromVdb`/`quantize('fp8')`/`writeNvdb`. It is vendored with a NOTICE until it is published; our parser additions go upstream.
+
+| Task | What | Size |
+| --- | --- | --- |
+| H1 | Runtime overlay (brick pool, indirection, `sampleModelingHero`) and a test page | M |
+| H2 | Converter `.vdb → fine.nvdb` (`vdb-to-nvdb.mjs`, hython path) | M |
+| H3 | Loader and static stamping with snapped transform | M |
+| H4 | In-browser importer export | S–M |
+| H5 | Instanced movable heroes (≤ 4): instance atlas, per-hero transform, SDF min | L (Fable) |
+| H6 | Tiers (off on mobile and low), art, captures, docs | S–M |
+| H7 | Upstream parser additions to WebVDB | S |
+
+Order: H1 ∥ H2 → H3 → H4 ∥ H6 → H5. Acceptance measures are in spec §7 and risks in §8.
+
+**Defaults taken, pending the owner:**
+- 4 m everywhere, with 2 m for one hero.
+- rgba8 pool now, r8 later.
+- Vendor WebVDB until it is published.
+- H5 deferred until the static heroes land.
 
 ## Order and parallelism
 

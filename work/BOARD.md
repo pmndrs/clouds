@@ -1328,7 +1328,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Chrome captures unchanged (A/B the flagship).
   - `pnpm check` green.
 
-### [~] P8-E Sparse hero storage from WebVDB: design spike · Fable
+### [x] P8-E Sparse hero storage from WebVDB: design spike · Fable
 - **Owns:** `work/specs/P8-hero-vdb.md` (new) and `work/reports/P8-E.md`. Read-only everywhere else, including `/Users/dex/Developer/WebVDB`.
 - **Does:** design how hero clouds get 2–4 m effective voxels without dense textures, building on the owner's WebVDB repo. That repo ships `nanovdb-wgsl`, `three-nanovdb` and `vdb-web-tools` at 0.1.0; per its STATUS it is "WIP" in places.
   - Decide the format: a sparse NVDF (profile, type, scale) plus SDF in NanoVDB trees, or a brick atlas with an indirection grid.
