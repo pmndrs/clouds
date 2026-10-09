@@ -1,0 +1,561 @@
+{
+  "url": "http://127.0.0.1:53379/compare/?impls=ours,takram&layout=rows&model=procedural&shaper=skypro",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T10:06:12.399Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/X1/procedural-skypro/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 1.3958633000000005,
+          "ours.lightGridReduce": 0.020581,
+          "ours.lightGrid": 0.066243,
+          "ours.marchNear": 0.05584703333333333,
+          "ours.marchFar": 0.05625545,
+          "ours.shadowMap": 0.011807434782608695,
+          "ours.composite": 0.46149636666666677,
+          "ours.dome": 0.14168345,
+          "ours.resolveNear": 0.015187333333333336,
+          "ours.resolveFar": 0.2439718833333333,
+          "ours.skyLayer": 1.7593086333333339,
+          "ours.skyResolve": 3.4498883500000006,
+          "ours.cloudsTotal": 6.28226993478261,
+          "ours.total": 7.67813323478261,
+          "takram.total": 9.628037633333332
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          [
+            1920,
+            539
+          ],
+          [
+            1920,
+            539
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "ours",
+          "takram"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 7,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural density (skypro shaper, our lighting)",
+            "gpuMs": {
+              "scene": 1.3958633000000005,
+              "lightGridReduce": 0.020581,
+              "lightGrid": 0.066243,
+              "marchNear": 0.05584703333333333,
+              "marchFar": 0.05625545,
+              "shadowMap": 0.011807434782608695,
+              "composite": 0.46149636666666677,
+              "dome": 0.14168345,
+              "resolveNear": 0.015187333333333336,
+              "resolveFar": 0.2439718833333333,
+              "skyLayer": 1.7593086333333339,
+              "skyResolve": 3.4498883500000006,
+              "cloudsTotal": 6.28226993478261,
+              "total": 7.67813323478261
+            },
+            "cpuMs": 0.48166666477918624,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/skypro"
+            }
+          },
+          "takram": {
+            "label": "Takram: @takram/three-clouds 0.7.6 (WebGL, postprocessing)",
+            "gpuMs": {
+              "total": 9.628037633333332
+            },
+            "cpuMs": 0.23833333253860473,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "stbn": "procedural (high-passed white noise, rank-transformed)",
+              "quality": "high",
+              "layers": "default (750/650 m, 1000/1200 m, 7500/500 m)",
+              "timer": true,
+              "site": "lat 35 lon 139.7"
+            }
+          }
+        },
+        "frames": 139
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/X1/procedural-skypro/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 1.8659972000000002,
+          "ours.lightGridReduce": 0.020581,
+          "ours.lightGrid": 0.053081666666666666,
+          "ours.marchNear": 0.05349496666666667,
+          "ours.marchFar": 0.08543059999999998,
+          "ours.shadowMap": 0.016843722222222222,
+          "ours.composite": 0.42019084999999995,
+          "ours.dome": 0.22395211666666673,
+          "ours.resolveNear": 0.13109956666666664,
+          "ours.resolveFar": 0.36983460000000007,
+          "ours.skyLayer": 2.0507810833333338,
+          "ours.skyResolve": 4.252062833333332,
+          "ours.cloudsTotal": 7.677353005555554,
+          "ours.total": 9.543350205555555,
+          "takram.total": 11.555245416666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          [
+            1920,
+            539
+          ],
+          [
+            1920,
+            539
+          ]
+        ],
+        "bookmark": "horizon",
+        "layout": "rows",
+        "impls": [
+          "ours",
+          "takram"
+        ],
+        "view": {
+          "position": [
+            0,
+            40,
+            0
+          ],
+          "lookAz": 15,
+          "pitch": 1.5,
+          "fov": 50,
+          "sunAz": 70,
+          "sunEl": 25,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural density (skypro shaper, our lighting)",
+            "gpuMs": {
+              "scene": 1.8659972000000002,
+              "lightGridReduce": 0.020581,
+              "lightGrid": 0.053081666666666666,
+              "marchNear": 0.05349496666666667,
+              "marchFar": 0.08543059999999998,
+              "shadowMap": 0.016843722222222222,
+              "composite": 0.42019084999999995,
+              "dome": 0.22395211666666673,
+              "resolveNear": 0.13109956666666664,
+              "resolveFar": 0.36983460000000007,
+              "skyLayer": 2.0507810833333338,
+              "skyResolve": 4.252062833333332,
+              "cloudsTotal": 7.677353005555554,
+              "total": 9.543350205555555
+            },
+            "cpuMs": 0.40500000019868215,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/skypro"
+            }
+          },
+          "takram": {
+            "label": "Takram: @takram/three-clouds 0.7.6 (WebGL, postprocessing)",
+            "gpuMs": {
+              "total": 11.555245416666667
+            },
+            "cpuMs": 0.20000000099341075,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "stbn": "procedural (high-passed white noise, rank-transformed)",
+              "quality": "high",
+              "layers": "default (750/650 m, 1000/1200 m, 7500/500 m)",
+              "timer": true,
+              "site": "lat 35 lon 139.7"
+            }
+          }
+        },
+        "frames": 234
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/X1/procedural-skypro/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 2.6262118833333323,
+          "ours.lightGridReduce": 0.020581,
+          "ours.lightGrid": 0.03191576470588235,
+          "ours.marchNear": 0.028238466666666667,
+          "ours.marchFar": 0.0249816,
+          "ours.shadowMap": 0.013608099999999995,
+          "ours.composite": 0.8309873500000002,
+          "ours.dome": 0.41167365000000006,
+          "ours.resolveNear": 0.014032499999999996,
+          "ours.resolveFar": 0.017815000000000004,
+          "ours.skyLayer": 1.1261107000000001,
+          "ours.skyResolve": 3.598400599999999,
+          "ours.cloudsTotal": 6.118344731372548,
+          "ours.total": 8.74455661470588,
+          "takram.total": 11.266863416666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            539
+          ],
+          [
+            1920,
+            539
+          ]
+        ],
+        "bookmark": "sunset",
+        "layout": "rows",
+        "impls": [
+          "ours",
+          "takram"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 355,
+          "pitch": 4,
+          "fov": 50,
+          "sunAz": 355,
+          "sunEl": 4,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural density (skypro shaper, our lighting)",
+            "gpuMs": {
+              "scene": 2.6262118833333323,
+              "lightGridReduce": 0.020581,
+              "lightGrid": 0.03191576470588235,
+              "marchNear": 0.028238466666666667,
+              "marchFar": 0.0249816,
+              "shadowMap": 0.013608099999999995,
+              "composite": 0.8309873500000002,
+              "dome": 0.41167365000000006,
+              "resolveNear": 0.014032499999999996,
+              "resolveFar": 0.017815000000000004,
+              "skyLayer": 1.1261107000000001,
+              "skyResolve": 3.598400599999999,
+              "cloudsTotal": 6.118344731372548,
+              "total": 8.74455661470588
+            },
+            "cpuMs": 0.5816666652758916,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/skypro"
+            }
+          },
+          "takram": {
+            "label": "Takram: @takram/three-clouds 0.7.6 (WebGL, postprocessing)",
+            "gpuMs": {
+              "total": 11.266863416666666
+            },
+            "cpuMs": 0.3100000003973643,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "stbn": "procedural (high-passed white noise, rank-transformed)",
+              "quality": "high",
+              "layers": "default (750/650 m, 1000/1200 m, 7500/500 m)",
+              "timer": true,
+              "site": "lat 35 lon 139.7"
+            }
+          }
+        },
+        "frames": 329
+      }
+    },
+    {
+      "name": "dusk",
+      "file": "work/captures/X1/procedural-skypro/dusk.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 2.737862316666666,
+          "ours.lightGridReduce": 0.020581,
+          "ours.lightGrid": 0.026272599999999997,
+          "ours.marchNear": 0.02681979999999999,
+          "ours.marchFar": 0.06051079999999998,
+          "ours.shadowMap": 0.01772121666666667,
+          "ours.composite": 0.8601145333333332,
+          "ours.dome": 0.3373379833333333,
+          "ours.resolveNear": 0.046793033333333324,
+          "ours.resolveFar": 0.025746883333333335,
+          "ours.skyLayer": 1.0946597333333334,
+          "ours.skyResolve": 3.190188916666666,
+          "ours.cloudsTotal": 5.7067464999999995,
+          "ours.total": 8.444608816666666,
+          "takram.total": 11.585344666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            539
+          ],
+          [
+            1920,
+            539
+          ]
+        ],
+        "bookmark": "dusk",
+        "layout": "rows",
+        "impls": [
+          "ours",
+          "takram"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 6,
+          "fov": 50,
+          "sunAz": 290,
+          "sunEl": 3,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural density (skypro shaper, our lighting)",
+            "gpuMs": {
+              "scene": 2.737862316666666,
+              "lightGridReduce": 0.020581,
+              "lightGrid": 0.026272599999999997,
+              "marchNear": 0.02681979999999999,
+              "marchFar": 0.06051079999999998,
+              "shadowMap": 0.01772121666666667,
+              "composite": 0.8601145333333332,
+              "dome": 0.3373379833333333,
+              "resolveNear": 0.046793033333333324,
+              "resolveFar": 0.025746883333333335,
+              "skyLayer": 1.0946597333333334,
+              "skyResolve": 3.190188916666666,
+              "cloudsTotal": 5.7067464999999995,
+              "total": 8.444608816666666
+            },
+            "cpuMs": 0.5950000012914339,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/skypro"
+            }
+          },
+          "takram": {
+            "label": "Takram: @takram/three-clouds 0.7.6 (WebGL, postprocessing)",
+            "gpuMs": {
+              "total": 11.585344666666666
+            },
+            "cpuMs": 0.32333333492279054,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "stbn": "procedural (high-passed white noise, rank-transformed)",
+              "quality": "high",
+              "layers": "default (750/650 m, 1000/1200 m, 7500/500 m)",
+              "timer": true,
+              "site": "lat 35 lon 139.7"
+            }
+          }
+        },
+        "frames": 424
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/X1/procedural-skypro/above.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 1.4477897000000002,
+          "ours.lightGridReduce": 0.020581,
+          "ours.lightGrid": 0.024816333333333333,
+          "ours.marchNear": 0.02551925,
+          "ours.marchFar": 0.024791999999999998,
+          "ours.shadowMap": 0.017654583333333324,
+          "ours.composite": 0.3641167333333332,
+          "ours.dome": 0.14220895,
+          "ours.resolveNear": 0.013535133333333333,
+          "ours.resolveFar": 0.0168803,
+          "ours.skyLayer": 3.4683859500000014,
+          "ours.skyResolve": 2.270428533333333,
+          "ours.cloudsTotal": 6.388918766666667,
+          "ours.total": 7.836708466666668,
+          "takram.total": 8.876387633333335
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          [
+            1920,
+            539
+          ],
+          [
+            1920,
+            539
+          ]
+        ],
+        "bookmark": "above",
+        "layout": "rows",
+        "impls": [
+          "ours",
+          "takram"
+        ],
+        "view": {
+          "position": [
+            0,
+            3000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -9,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 50,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural density (skypro shaper, our lighting)",
+            "gpuMs": {
+              "scene": 1.4477897000000002,
+              "lightGridReduce": 0.020581,
+              "lightGrid": 0.024816333333333333,
+              "marchNear": 0.02551925,
+              "marchFar": 0.024791999999999998,
+              "shadowMap": 0.017654583333333324,
+              "composite": 0.3641167333333332,
+              "dome": 0.14220895,
+              "resolveNear": 0.013535133333333333,
+              "resolveFar": 0.0168803,
+              "skyLayer": 3.4683859500000014,
+              "skyResolve": 2.270428533333333,
+              "cloudsTotal": 6.388918766666667,
+              "total": 7.836708466666668
+            },
+            "cpuMs": 0.6266666675607363,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/skypro"
+            }
+          },
+          "takram": {
+            "label": "Takram: @takram/three-clouds 0.7.6 (WebGL, postprocessing)",
+            "gpuMs": {
+              "total": 8.876387633333335
+            },
+            "cpuMs": 0.36333333402872087,
+            "renderSize": [
+              1920,
+              539
+            ],
+            "detail": {
+              "stbn": "procedural (high-passed white noise, rank-transformed)",
+              "quality": "high",
+              "layers": "default (750/650 m, 1000/1200 m, 7500/500 m)",
+              "timer": true,
+              "site": "lat 35 lon 139.7"
+            }
+          }
+        },
+        "frames": 519
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

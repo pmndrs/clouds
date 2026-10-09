@@ -1703,7 +1703,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - **Examples:** how our runtime would expose jobs without depending on the scheduler.
 - **Acceptance:** a spec the owner can review and implement upstream, with an API sketch, semantics, edge cases and our usage examples.
 
-### [~] X1 Procedural density experiment (HZD/Takram/Sky Pro style) in our runtime · Opus
+### [r] X1 Procedural density experiment (HZD/Takram/Sky Pro style) in our runtime · Opus (report: work/reports/X1.md)
 - **Owns:**
   - a new `packages/runtime/src/procedural/**` (density WGSL, noise textures and their loading or generation)
   - minimal hooks in `runtime.ts`, `march.wgsl.ts`, `density.wgsl.ts` and the sky layer behind a `densityModel: 'nvdf' | 'procedural'` setting (default unchanged)
