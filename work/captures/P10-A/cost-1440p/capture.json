@@ -1,0 +1,92 @@
+{
+  "url": "http://127.0.0.1:65096/cloudscape-gen/?sky=1",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-09T00:46:20.714Z",
+  "shots": [
+    {
+      "name": "above",
+      "file": "work/captures/P10-A/cost-1440p/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.102744,
+          "lightGrid": 0.2196898235294118,
+          "marchNear": 0.09273198333333332,
+          "marchFar": 0.6718627333333331,
+          "shadowMap": 0.3161639666666666,
+          "composite": 0.6528705833333335,
+          "dome": 0.34767809999999993,
+          "resolveNear": 0.0335814,
+          "resolveFar": 0.0608872,
+          "skyLayer": 0.9155033666666664,
+          "skyResolve": 0.17712920000000001,
+          "cloudsTotal": 3.5908423568627446
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000273,
+          "mean": 16.665957446808513
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "above",
+        "frames": 125,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 1,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.25,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 2,
+            "frames": 112
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 186.2999999821186
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

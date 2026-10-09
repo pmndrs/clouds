@@ -6,7 +6,8 @@ import { defaultDomeSettings, type CloudDome } from './dome';
 import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_SKY_PARAMS_BINDING, DOME_SKY_SAMPLER_BINDING, DOME_SKY_WEATHER_BINDING, DOME_WGSL } from './shaders/dome.wgsl';
 import { uploadCloudNoise, uploadCloudVolume, type GpuCloudVolume } from './resources';
 import { COMMON_WGSL } from './shaders/common.wgsl';
-import { COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPLER_BINDING, COMPOSITE_SKY_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
+import { COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPLER_BINDING, COMPOSITE_SHADOW_BINDING, COMPOSITE_SKY_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
+import { createCloudShadowMap, type CloudShadowMap } from './shadow-map';
 import { controlledCost, describeDevice, DynamicScale, selectTier, type AutoQualityInfo, type AutoQualityOptions } from './auto-quality';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { TEMPORAL_BINDINGS, TEMPORAL_PARAM_BYTES, TEMPORAL_WGSL } from './shaders/temporal.wgsl';
@@ -225,6 +226,12 @@ export interface CloudRuntime {
   readonly dome: CloudDome;
   /** Distant sky layer (P3-C1, Nubis vertical-profile 2.5D): cloud cover from the voxel region to the horizon. Off by default; see `skyLayer.configure`. */
   readonly skyLayer: SkyLayer;
+  /**
+   * Cloud shadow map (P10-A): optical depth along the sun ray over the voxel box and the sky layer's clouds, in two world-anchored cascades
+   * (near 8 km at 8 m texels, far 64 km), refreshed a slice per frame. The composite shadows opaque scene pixels with it; adapters read it
+   * through `cloudShadowMapWgsl()` (`shadowMap.textures`, `shadowMap.paramsBuffer`).
+   */
+  readonly shadowMap: CloudShadowMap;
   encode(encoder: GPUCommandEncoder, frame: CloudFrame, timer?: GpuTimer): void;
   dispose(): void;
 }
@@ -260,6 +267,8 @@ export interface CloudMemory {
   output: number;
   dome: number;
   lightGrid: number;
+  /** The cloud shadow map's two cascades. */
+  shadow: number;
   total: number;
 }
 
@@ -295,6 +304,7 @@ const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
 const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73];
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
+const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
 const TRACE_TEXEL_BYTES = 8 + 4;
 
@@ -319,7 +329,8 @@ export function estimateCloudMemory(width: number, height: number, quality: Clou
     const g = options.volumeDims.map(d => Math.max(16, Math.ceil((p.lightGridDivisor > 1 ? Math.max(1, Math.round(d / p.lightGridDivisor)) : d) / 2)));
     lightGrid = 3 * g[0] * g[1] * g[2] * 8;
   }
-  return { history, trace, sky, output, dome, lightGrid, total: history + trace + sky + output + dome + lightGrid };
+  const shadow = 2 * SHADOW_MAP_RESOLUTION ** 2 * 4;
+  return { history, trace, sky, output, dome, lightGrid, shadow, total: history + trace + sky + output + dome + lightGrid + shadow };
 }
 
 export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptions = {}): CloudRuntime {
@@ -373,6 +384,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const skyLightLayout = device.createBindGroupLayout({ label: 'cloud sky light', entries: [
     { binding: SKY_LIGHT_BINDING, visibility: C, buffer: { type: 'storage' } },
   ] });
+  const shadowMap = createCloudShadowMap(device, volumeLayout, { resolution: SHADOW_MAP_RESOLUTION });
   const compositeLayout = device.createBindGroupLayout({ label: 'cloud composite', entries: [
     { binding: 0, visibility: C, buffer: { type: 'uniform' } },
     { binding: 1, visibility: C, texture: { sampleType: 'depth' } },
@@ -387,6 +399,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: COMPOSITE_SKY_BINDING + 2, visibility: C, texture: { sampleType: 'unfilterable-float' } },
     { binding: COMPOSITE_SAMPLER_BINDING, visibility: C, sampler: { type: 'filtering' } },
     { binding: COMPOSITE_SAMPLER_BINDING + 1, visibility: C, sampler: { type: 'non-filtering' } },
+    ...shadowMap.bindGroupLayoutEntries(COMPOSITE_SHADOW_BINDING, C),
   ] });
   const pipeline = (label: string, code: string, group1: GPUBindGroupLayout, group2?: GPUBindGroupLayout) => device.createComputePipeline({
     label,
@@ -563,7 +576,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     const out = output && ownsOutput ? bytesOf(outCW, outCH, 8) : 0;
     const dm = bytesOf(domeSize, domeSize, 8);
     const g = lightGrid ? 3 * bytesOf(lightGrid.dims[0] * lightGrid.dims[1], lightGrid.dims[2], 8) : 0;
-    return { history, trace, sky, output: out, dome: dm, lightGrid: g, total: history + trace + sky + out + dm + g };
+    const sh = shadowMap.info.bytes;
+    return { history, trace, sky, output: out, dome: dm, lightGrid: g, shadow: sh, total: history + trace + sky + out + dm + g + sh };
   };
   /** Apply a tier's levers to the live settings (the ones that are not allocation-bound). */
   const applyPreset = (p: CloudQualityPreset) => {
@@ -581,6 +595,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get renderSize(): [number, number] { return [targets ? targets[1].rw : farW, targets ? targets[1].rh : farH]; },
     get nearRenderSize(): [number, number] { return [targets ? targets[0].rw : nearW, targets ? targets[0].rh : nearH]; },
     get skyLayer() { return skyLayer; },
+    shadowMap,
     get ready() { return !disposed && !!volumeGroup && !!output && !!targets && !!lightGrid; },
     get extent() { return volume ? volume.extentMeters : null; },
     get quality() { return quality; },
@@ -827,6 +842,17 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer });
       }
 
+      // Cloud shadow map: the sun-ray optical depth over the box and (with the layer on) out to the horizon, one slice per frame.
+      {
+        const skyRes = skyActive ? skyLayer.domeResources : null;
+        const ss = skyLayer.settings;
+        shadowMap.encode(encoder, {
+          volumeGroup, lightGrid: grid, gridFront: gridStep.front, gridSwapped: gridStep.swapped, sunDirection: frame.sunDirection, cameraPosition: frame.cameraPosition,
+          box: skyBox, extinction: settings.densityScale, lightDensityScale: settings.lightDensityScale, shadowStrength: settings.shadowStrength,
+          sky: skyRes ? { ...skyRes, key: [ss.densityScale, ss.curvature] } : null, timer,
+        });
+      }
+
       const composite = encoder.beginComputePass({ label: 'cloud composite', timestampWrites: timer?.passTimestampWrites('composite') });
       composite.setPipeline(compositePipeline);
       composite.setBindGroup(0, volumeGroup);
@@ -844,6 +870,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         { binding: COMPOSITE_SKY_BINDING + 2, resource: skyTarget!.back.createView() },
         { binding: COMPOSITE_SAMPLER_BINDING, resource: compositeLinear },
         { binding: COMPOSITE_SAMPLER_BINDING + 1, resource: compositeNearest },
+        ...shadowMap.bindGroupEntries(COMPOSITE_SHADOW_BINDING),
       ] }));
       composite.dispatchWorkgroups(Math.ceil(outCW / 8), Math.ceil(outCH / 8));
       composite.end();
@@ -902,7 +929,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
       volumeUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
-      skyLayer.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
+      skyLayer.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };
 }

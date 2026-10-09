@@ -53,7 +53,8 @@ export const SKY_TEMPORAL_PERIOD = 16;
  * jitter changes every 16-frame cycle, so the history converges to a jitter-averaged image: no static hatch).
  * Trace: concatenate COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + skyLayerWgsl(mode). Group 1 as above, group 2 the atmosphere.
  */
-export const SKY_PARAMS_WGSL = /* wgsl */ `
+/** The SkyParams struct and the Bayer helpers: needs no other WGSL (the cloud shadow map includes just this). */
+export const SKY_STRUCT_WGSL = /* wgsl */ `
 struct SkyParams {
   window: vec4<f32>,   // weather window: min x, min z, size x, size z (world metres)
   box: vec4<f32>,      // volume box: min x, min z, size x, size z
@@ -76,6 +77,9 @@ fn bayerPos(phase: u32) -> vec2<i32> {
   for (var i = 0u; i < 16u; i++) { if (BAYER4[i] == phase) { return vec2<i32>(i32(i & 3u), i32(i >> 2u)); } }
   return vec2<i32>(0);
 }
+`;
+/** skySceneEnd: needs FRAME_WGSL. */
+export const SKY_SCENE_END_WGSL = /* wgsl */ `
 // Farthest scene distance over the output pixels a layer pixel covers.
 fn skySceneEnd(px: vec2<i32>, uv: vec2<f32>) -> f32 {
   let ratio = frame.outputSize / frame.renderSize;
@@ -89,6 +93,7 @@ fn skySceneEnd(px: vec2<i32>, uv: vec2<f32>) -> f32 {
   return sceneDistance(depth, uv);
 }
 `;
+export const SKY_PARAMS_WGSL = SKY_STRUCT_WGSL + SKY_SCENE_END_WGSL;
 
 /** The analytic sky field shared by the layer's trace and the reflection dome: the generator's shape law evaluated from the baked weather window.
  * The includer declares `SKY` (SkyParams), `skyWeather` and `skySampler`, and provides BILLOW_WGSL and COMMON_WGSL. */

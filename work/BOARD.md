@@ -1371,7 +1371,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Generation cost per job ≤ +20%. Plains-flight swaps still invisible.
   - `pnpm check` green; packed consumer OK.
 
-### [~] P10-A Cloud shadow map · Sonnet (Fable on failure)
+### [x] P10-A Cloud shadow map · Sonnet (Fable on failure)
 - **Owns:**
   - a new `packages/runtime/src/shadow-map.ts` and `packages/runtime/src/shaders/shadow-map.wgsl.ts`
   - minimal hooks in `runtime.ts`

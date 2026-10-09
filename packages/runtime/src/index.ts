@@ -20,3 +20,4 @@ export * from './shaders/atmosphere.wgsl';
 export { createSkyLayer, SKY_LAYER_DEFAULTS, type SkyLayer, type SkyLayerSettings, type SkyLayerOptions, type SkyBox } from './sky-layer';
 export { skyLayerWgsl } from './shaders/sky-layer.wgsl';
 export { createLightning, flashEnvelope, strokeProfile, LIGHTNING_DEFAULTS, type Lightning, type FlashOptions, type FlashState, type LightningSettings } from './lightning';
+export { createCloudShadowMap, cloudShadowMapWgsl, SHADOW_MAP_DEFAULTS, type CloudShadowMap, type CloudShadowMapSettings, type ShadowMapEncodeArgs, type ShadowMapSky } from './shadow-map';

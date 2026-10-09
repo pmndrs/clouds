@@ -6,7 +6,7 @@ import { pass, vec4 } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three'; // INTEGRATION
 import { CLOUD_PRESETS, type NvdfParams, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type CloudPresetName, type VolumeGenerator } from '@clouds/runtime'; // CONTENT
-import { installCloudsHarness } from '../harness/clouds-contract';
+import { installCloudsHarness, readCloudColumns } from '../harness/clouds-contract';
 import { createOcean } from '../scenes/ocean';
 import { CameraRig } from '../flagship/controls';
 
@@ -49,6 +49,9 @@ try {
   await sky.compileAsync();
   const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality }); // INTEGRATION
   const ocean = createOcean(renderer, scene, sky, { sun, reflection: query.get('reflect') === '0' ? undefined : dir => { const r = clouds.reflection(dir); return query.has('refgain') ? vec4(r.rgb.mul(Number(query.get('refgain'))), r.a) : r; } }); // INTEGRATION (cloud reflections on the water)
+  // P10-A: ?shadowmap=0 falls back to the light-grid shadow, ?shadowdebug=1|2 outlines the shadow map's contour on the ground | on the cloud base plane, ?sunel= ?sunaz= override the bookmark's sun.
+  clouds.core.shadowMap.settings.enabled = query.get('shadowmap') !== '0'; clouds.core.shadowMap.settings.debug = (Number(query.get('shadowdebug') ?? 0) | 0) as 0 | 1 | 2;
+  for (const k of Object.keys(clouds.core.shadowMap.settings)) { const v = query.get('sm_' + k); if (v !== null && k !== 'enabled') (clouds.core.shadowMap.settings as unknown as Record<string, number>)[k] = Number(v); } // ?sm_steps=32 ?sm_refreshFrames=16 ...
   ocean.mesh.visible = query.get('ocean') !== '0';
   if (query.has('wave')) { ocean.settings.waveScale = Number(query.get('wave')); ocean.settings.choppiness = 0.2; } // ?wave=0.05: near-flat water for judging reflections
   const post = new RenderPipeline(renderer);
@@ -76,6 +79,7 @@ try {
     gen.current = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params: { ...preset.params, seed } }); // CONTENT
     gen.startMs = performance.now(); gen.source = 'generated';
   }
+  let genVolume: VolumeGenerator['volume'] | undefined;
   const stepGeneration = () => {
     const g = gen.current;
     if (!g) return;
@@ -85,7 +89,7 @@ try {
     device.queue.submit([encoder.finish()]);
     gen.gpuSubmitMs += performance.now() - t; gen.frames++;
     if (g.done) {
-      gen.doneMs = performance.now() - gen.startMs;
+      gen.doneMs = performance.now() - gen.startMs; genVolume = g.volume;
       void clouds.setVolume(g.volume, { position: cloudPos }).then(() => {
         if (SKY_LAYER && gen.weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: gen.weatherOpts, shape: gen.params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; for (const k of Object.keys(l.settings)) { const v = query.get('sky_' + k); if (v !== null) (l.settings as unknown as Record<string, number | boolean>)[k] = typeof (l.settings as unknown as Record<string, unknown>)[k] === 'boolean' ? v === '1' : Number(v); } } // INTEGRATION (cloud cover to the horizon)
         skyWait = SKY_LAYER && clouds.core.skyLayer.settings.enabled; if (!skyWait) ready();
@@ -107,7 +111,7 @@ try {
     if (query.has('pos')) b.pos = query.get('pos')!.split(',').map(Number); // ?pos=x,y,z ?az= ?pitch=: free camera for debugging
     if (query.has('az')) b.lookAz = Number(query.get('az'));
     if (query.has('pitch')) b.pitch = Number(query.get('pitch'));
-    sky.setSunDirection({ elevation: b.sunEl, azimuth: b.sunAz });
+    sky.setSunDirection({ elevation: Number(query.get('sunel') ?? b.sunEl), azimuth: Number(query.get('sunaz') ?? b.sunAz) });
     const az = (b.lookAz * Math.PI) / 180, pitch = (b.pitch * Math.PI) / 180;
     const d = [Math.sin(az) * Math.cos(pitch), Math.sin(pitch), -Math.cos(az) * Math.cos(pitch)];
     rig.set([...b.pos], [b.pos[0] + d[0] * 100, b.pos[1] + d[1] * 100, b.pos[2] + d[2] * 100]);
@@ -155,6 +159,7 @@ try {
   applyBookmark(bookmark);
   const ready = () => harness.ready({
     bookmark: name => applyBookmark(name),
+    fields: () => genVolume ? readCloudColumns(device, genVolume.nvdf, FIELD.dims, FIELD.voxel, { weather: gen.weatherOpts, params: gen.params, extentMeters: FIELD.dims[0] * FIELD.voxel, baseMeters: FIELD.base }) : Promise.reject(new Error('no generated field (asset cloud?)')),
     report: () => ({
       gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95) }, renderSize: [renderer.domElement.width, renderer.domElement.height], bookmark, frames: frame, cloudsReady: clouds.isReady,
       generation: { source: gen.source, frames: gen.frames, jobsPerFrame: JOBS_PER_FRAME, wallMs: gen.doneMs, encodeSubmitMsTotal: gen.gpuSubmitMs },

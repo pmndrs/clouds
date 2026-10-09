@@ -10,7 +10,7 @@ import { pass } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend } from '@clouds/three';
 import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type CloudPresetName, type NvdfParams, type VolumeGenerator } from '@clouds/runtime';
-import { installCloudsHarness } from '../harness/clouds-contract';
+import { installCloudsHarness, readCloudColumns } from '../harness/clouds-contract';
 import { CameraRig } from '../flagship/controls';
 
 const harness = installCloudsHarness();
@@ -54,6 +54,9 @@ try {
   const ground = new Mesh(new PlaneGeometry(400000, 400000).rotateX(-Math.PI / 2), new MeshStandardMaterial({ color: 0x2f3a28, roughness: 1 }));
   scene.add(ground);
   const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as 'high') ?? 'high' });
+  // P10-A: ?shadowmap=0 falls back to the light-grid shadow, ?shadowdebug=1|2 outlines the shadow map's contour on the ground | on the cloud base plane, ?sunel= ?sunaz= override the bookmark's sun.
+  clouds.core.shadowMap.settings.enabled = query.get('shadowmap') !== '0'; clouds.core.shadowMap.settings.debug = (Number(query.get('shadowdebug') ?? 0) | 0) as 0 | 1 | 2;
+  for (const k of Object.keys(clouds.core.shadowMap.settings)) { const v = query.get('sm_' + k); if (v !== null && k !== 'enabled') (clouds.core.shadowMap.settings as unknown as Record<string, number>)[k] = Number(v); } // ?sm_steps=32 ?sm_refreshFrames=16 ...
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera);
   post.outputNode = clouds.node(scenePass.getTextureNode(), scenePass);
@@ -82,6 +85,7 @@ try {
   const gen: { current?: VolumeGenerator; frames: number; startMs: number; doneMs: number } = { frames: 0, startMs: performance.now(), doneMs: 0 };
   gen.current = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params });
   const cloudPos: [number, number, number] = [FIELD.centre[0] - (FIELD.dims[0] * FIELD.voxel) / 2, FIELD.base, FIELD.centre[1] - (FIELD.dims[1] * FIELD.voxel) / 2];
+  let genVolume: VolumeGenerator['volume'] | undefined;
   const stepGeneration = () => {
     const g = gen.current;
     if (!g) return;
@@ -91,6 +95,7 @@ try {
     gen.frames++;
     if (g.done) {
       gen.doneMs = performance.now() - gen.startMs;
+      genVolume = g.volume;
       gen.current = undefined;
       void device.queue.onSubmittedWorkDone().then(() => clouds.core.setVolume(g.volume, { position: cloudPos })).then(() => { volumeReady = true; });
     }
@@ -119,7 +124,7 @@ try {
     if (!isName(name)) throw new Error(`unknown bookmark: ${name}`);
     bookmark = name;
     const b = BOOKMARKS[name];
-    sky.setSunDirection({ elevation: b.sunEl, azimuth: b.sunAz });
+    sky.setSunDirection({ elevation: Number(query.get('sunel') ?? b.sunEl), azimuth: Number(query.get('sunaz') ?? b.sunAz) });
     panAz = b.lookAz;
     lookFrom(b, panAz);
   };
@@ -157,6 +162,7 @@ try {
   applyBookmark(bookmark);
   const ready = () => harness.ready({
     bookmark: name => applyBookmark(name),
+    fields: () => readCloudColumns(device, genVolume!.nvdf, FIELD.dims, FIELD.voxel, { preset: presetName, weather: weatherOpts, params, extentMeters: FIELD.dims[0] * FIELD.voxel, baseMeters: FIELD.base }),
     report: () => ({
       gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95), mean: mean(frameTimes) }, renderSize: [renderer.domElement.width, renderer.domElement.height], bookmark, frames: frame, cloudsReady: clouds.isReady, sky: skyOn ? { ...clouds.core.skyLayer.settings, info: clouds.core.skyLayer.info } : null,
       generation: { preset: presetName, params, jobsPerFrame: JOBS_PER_FRAME, frames: gen.frames, wallMs: gen.doneMs },

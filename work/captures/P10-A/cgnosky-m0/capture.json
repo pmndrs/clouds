@@ -1,0 +1,60 @@
+{
+  "url": "http://127.0.0.1:64460/cloudscape-gen/?shadowmap=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T00:45:34.372Z",
+  "shots": [
+    {
+      "name": "above",
+      "file": "work/captures/P10-A/cgnosky-m0/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.095827,
+          "lightGrid": 0.15133370588235293,
+          "marchNear": 0.09840678333333336,
+          "marchFar": 0.8721005833333337,
+          "composite": 0.4084423166666667,
+          "dome": 0.1704910166666666,
+          "resolveNear": 0.04755499999999999,
+          "resolveFar": 0.14481166666666662,
+          "cloudsTotal": 1.9889680725490197
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045,
+          "mean": 16.665753424657535
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 104,
+        "cloudsReady": true,
+        "sky": null,
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 185.09999999403954
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1,5 +1,6 @@
 import { FRAME_WGSL } from './frame.wgsl';
 import { lightGridWgsl } from './light-grid.wgsl';
+import { cloudShadowMapWgsl } from './shadow-map.wgsl';
 
 export const COMPOSITE_LIGHT_GRID_BINDING = 7;
 /**
@@ -8,6 +9,8 @@ export const COMPOSITE_LIGHT_GRID_BINDING = 7;
  * between the camera and the box, back = the cloud beyond it, both premultiplied, so the merge is front over voxel over back.
  */
 export const COMPOSITE_SKY_BINDING = 9;
+/** Cloud shadow map (shadow-map.wgsl.ts): uniform at this binding, near cascade at +1, far at +2. */
+export const COMPOSITE_SHADOW_BINDING = 14;
 /** Linear sampler (colour) at this binding, a non-filtering one (depth gather) at +1. */
 export const COMPOSITE_SAMPLER_BINDING = 12;
 
@@ -18,9 +21,11 @@ export const COMPOSITE_SAMPLER_BINDING = 12;
  * (depth textures are rgba16float x DEPTH_PACK, see march.wgsl.ts: x = mean cloud distance or 0, y = the distance the ray was marched to, z = scene distance).
  * Output is what the caller blends: scene * a + rgb.
  *
- * Cloud shadows: for opaque-depth pixels the sun ray is intersected with the volume box and the light grid (summed sun
- * optical depth, already times densityScale) is read just inside the entry point. shadow = mix(1, 0.8 exp(-tau) + 0.2 exp(-tau/4),
- * shadowStrength) is folded into a, so scene * a + rgb darkens the surface. Sky pixels are never shadowed.
+ * Cloud shadows: for opaque-depth pixels the optical depth along the sun ray comes from the cloud shadow map (P10-A: the voxel box
+ * and the sky layer's clouds out to the horizon, shadow-map.wgsl.ts). Until the map holds a complete refresh, or with it off, the
+ * sun ray is intersected with the volume box and the light grid (summed sun optical depth, already times densityScale) is read just
+ * inside the entry point. shadow = mix(1, 0.8 exp(-tau) + 0.2 exp(-tau/4), shadowStrength) is folded into a, so scene * a + rgb
+ * darkens the surface. Sky pixels are never shadowed. The debug views (map.misc.z) draw the map's tau contour as an outline.
  *
  * A tap whose march ended before this pixel's own march would have (min of volume exit, scene, pass limit) was cut short by a
  * nearer surface and carries no information about this pixel: it is skipped. A tap whose cloud lies behind this pixel's
@@ -40,14 +45,23 @@ ${lightGridWgsl(1, COMPOSITE_LIGHT_GRID_BINDING)}
 @group(1) @binding(${COMPOSITE_SKY_BINDING + 1}) var skyDepth: texture_2d<f32>;
 @group(1) @binding(${COMPOSITE_SKY_BINDING + 2}) var skyBack: texture_2d<f32>;
 
+${cloudShadowMapWgsl(1, COMPOSITE_SHADOW_BINDING)}
+
+// The fallback: the light grid read where the sun ray enters the volume box (voxel region only).
+fn cloudShadowGridTau(p: vec3<f32>) -> f32 {
+  let sun = frame.sunDir;
+  let iv = volumeRayInterval(p, sun);
+  if (iv.x > iv.y || iv.y <= 0.0) { return 0.0; }
+  // Enter the box, then step one voxel in so the trilinear tap is not half clamped to the zero outside.
+  let t = min(max(iv.x, 0.0) + 1.5 * cloudVolume.voxelSize, 0.5 * (max(iv.x, 0.0) + iv.y));
+  return lightGridSample(p + sun * t).x * frame.lightDensityScale;
+}
+
 fn cloudShadow(p: vec3<f32>) -> f32 {
   let sun = frame.sunDir;
   if (frame.shadowStrength <= 0.0 || sun.y <= 0.0) { return 1.0; }
-  let iv = volumeRayInterval(p, sun);
-  if (iv.x > iv.y || iv.y <= 0.0) { return 1.0; }
-  // Enter the box, then step one voxel in so the trilinear tap is not half clamped to the zero outside.
-  let t = min(max(iv.x, 0.0) + 1.5 * cloudVolume.voxelSize, 0.5 * (max(iv.x, 0.0) + iv.y));
-  let tau = lightGridSample(p + sun * t).x * frame.lightDensityScale;
+  var tau = 0.0;
+  if (cloudShadowValid()) { tau = cloudShadowTau(p); } else { tau = cloudShadowGridTau(p); }
   let soft = 0.8 * exp(-tau) + 0.2 * exp(-tau * 0.25);
   return mix(1.0, soft, frame.shadowStrength);
 }
@@ -160,10 +174,29 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       result = vec4(near.rgb + near.a * far.rgb, near.a * far.a);
     }
   }
-  if (sceneT < FAR_T) { result.a *= cloudShadow(origin + dir * sceneT); }
   if (frame.skyEnabled > 0.5) {
     // Distant sky layer (sky-layer.wgsl.ts): the part in front of the voxel box over the voxel result over the part behind it.
     result = mergeSky(result, uv, sceneT);
+  }
+  // The shadow darkens only the surface term (scene * a). Applied after the sky merge so that the sky layer's cloud behind or in front of the
+  // surface keeps its own colour: folding it into the voxel alpha before the merge scaled the sky 'back' radiance too (grey ghosts over distant cloud).
+  if (sceneT < FAR_T) { result.a *= cloudShadow(origin + dir * sceneT); }
+  if (csMap.misc.z > 0.5 && cloudShadowValid()) {
+    // Debug: the tau contour of the map as a flat colour. 1: where the ground is. 2: where the view ray crosses the shell's base plane.
+    var q = vec2(0.0);
+    var on = false;
+    if (csMap.misc.z < 1.5) {
+      on = sceneT < FAR_T;
+      q = cloudShadowPlanePoint(origin + dir * sceneT);
+    } else if (abs(dir.y) > 1e-4) {
+      let th = (csMap.sun.w - origin.y) / dir.y;
+      on = th > 0.0 && th < min(sceneT, 80000.0);
+      q = (origin + dir * th).xz;
+    }
+    if (on && cloudShadowOutline(q) > 0.5) {
+      let c = select(vec3(1.0, 0.1, 0.9), vec3(0.1, 1.0, 0.9), csMap.misc.z > 1.5);
+      result = vec4(c * csMap.work2.w, 0.0);
+    }
   }
   textureStore(outputTex, vec2<i32>(gid.xy), result);
 }
