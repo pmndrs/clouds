@@ -284,3 +284,14 @@ Mapped to the plan (`docs/PLAN-2026-10-variety.md`). All small; none is a rewrit
 - **Sunset warmth** is not explained by either source. The Takram gap is an
   atmosphere-transmittance and multiple-scattering gap, so the fix belongs in the
   atmosphere work of task 12.
+
+## Other sources the owner shared (2026-10-09)
+
+- **The Witcher 3: Blood and Wine cirrus** (astralcode.blogspot.com, "reverse engineering the rendering of", 2019-05):
+  - A 2D skydome layer: the texture alpha gives the shape and its RGB holds a packed normal map; a noise texture adds perturbation. Both scroll with time at different speeds.
+  - Lighting is a normal-mapped N·L lerp between min and max, times a sun-proximity term (sun XY vs view XY). The result is raised to the power 2.2.
+  - Colour lerps between a back colour and a front colour by sun proximity, then blends with the vertex fog.
+  - A distance linstep (2000–7000) biases visibility toward the horizon.
+  - No ground shadows.
+  - **Use:** the cheap mobile/low-tier cirrus fallback for 9-E, and the front/back colour lerp by sun proximity as a cheap sunset cue (C1). The 9-E high tiers use the Nubis Evolved p.65 recipe.
+- **"Real-Time Cloud Shadows in Unity: Optimized Shader Graph Workflow for Mobile & VR"** (YouTube, kMiilElp3Js): not reviewable; the video has no transcript or slides we can read. From the title it is a projected mobile cookie. P10's cascaded sun-space map already covers this.
