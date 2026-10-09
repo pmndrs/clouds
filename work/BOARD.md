@@ -1355,7 +1355,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Results are written to `work/captures/P9-A/variety.json` and a readable summary.
   - `pnpm check` green.
 
-### [~] P9-B Weather v2: multi-scale, shared bases, shear · Fable
+### [~] P9-B Weather v2: multi-scale, shared bases, shear · Fable (in flight; future tasks default to Sonnet)
 - **Owns:** `packages/runtime/src/generate/{weather.ts,shaders.ts,presets.ts,volume-generator.ts,evolution.ts}` and tests.
 - **Pages, read-only until P10-A lands:** do not edit `examples/lab/cloudscape-gen/main.ts` or `open-water/main.ts`, since P10-A has uncommitted edits there. Use the existing `?preset=`, `?w_*` and `?p_*` overrides, or add a new preset name.
 - **Does:** the plan's 9-B row (`docs/PLAN-2026-10-variety.md`).
