@@ -65,7 +65,7 @@ Envelope 2.5D [N3 s20]:
   world grid [N3 s67–68]. Sparse formats were rejected only for schedule reasons
   and are called "a good area to explore" [N3 s73].
 - **Noise** [N3 s89–90]
-  - One 128³ RGBA16 texture, 4.2 MB, tiling every 100 m (`uvw = pos * 0.01`).
+  - One 128³ RGBA8 texture, 8.4 MB (corrected 2026-10-10: the deck's "2 B/texel, 4.194 MB" caption is reused; the pack ships RGBA8, see `sources/n3.md` §7), tiling every 100 m (`uvw = pos * 0.01`).
   - R = low-frequency *Curly-Alligator* (wispy)
   - G = high-frequency Curly-Alligator
   - B = low-frequency *Alligator* (billowy)

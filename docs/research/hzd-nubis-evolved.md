@@ -69,7 +69,7 @@ Source limits, so nobody over-trusts this note:
   indexing a 2D lookup of profile versus height (NE 22, 26, 28). **`vertical_profile` = top-profile x bottom-profile**
   (NE 28), then `dimensional_profile = vertical_profile * cloud_coverage` (NE 29).
 - NE 23 to 25 show the three tops in-engine: cumulus tall with domed tops and flat base, stratocumulus lower and
-  elongated, stratus low and sheet-like. NE 27 "Bottom Type = 0.0" shows a ragged, fractus-like underside.
+  elongated, stratus low and sheet-like. NE 27 "Bottom Type = 0.0" was read here as a ragged underside; **corrected 2026-10-10:** the N3 s18 table data show bottom type 0 is the sharp-onset (flat, crisp) base and type 1 the slow, ragged ramp. See `sources/n3.md` §7.
 - This is the practical answer to "one blob": independent top and bottom axes, plus per-cloud min and max height
   (so base height and depth vary per cloud).
 - NE 15 to 16: the troposphere split: stratus, stratocumulus, cumulus 0 to 1500 m class bases; altostratus and

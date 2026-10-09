@@ -39,9 +39,9 @@ neighbours, 0.5 for stratocumulus?) is **not stated**; the slide only orders the
 | cumulus | 0.01 / 0.09 / 0.65 / 0.80 | right panel (cumulonimbus-captioned): rise 0-0.07, fall 0.75-1.0 | `(0, .1, .8, 1)` or `(.01, .3, .6, .95)` recalled |
 Reading: the Nutshell is the cleanest, most precise statement, and it is **lower and thinner than GPU Pro 7 and N17 for the two lower types**. Stratus
 sits between GP7 (thinner) and N17 (thicker), nearer GP7. The N17 stratus `(0,.1,.2,.3)` ends at 0.30; here it ends at 0.18. Cumulus matches GP7's
-right panel in shape (near-flat base, long plateau) but the soft top is at 0.65-0.80, whereas GP7 and our recalled `(0,.1,.8,1)` go to 1.0. So three
-different "official" sets exist (GP7 book figure, N17, Nutshell) and none is a spec: treat the Nutshell numbers as the best-documented starting point
-and the others as tuning range. The recalled `(.01, .3, .6, .95)` cumulus matches nothing here. The **`(0.01, 0.09, 0.65, 0.80)` cumulus base ramp
+right panel in shape (near-flat base, long plateau) but the soft top is at 0.65-0.80, whereas GP7 and our recalled `(0,.1,.8,1)` go to 1.0. Review update: `n17.md`'s **measured in-game strips** (stratus ~0.01/0.07/0.10/0.18, stratocumulus 0.03/0.16/0.32/0.47, cumulus 0/0.09/0.65/0.79)
+agree with these stops to 0.01, so the N17 printed stratus `(0,.1,.2,.3)` is an illustrative example, not the shipped curve, and the GP7/HZD 2015
+figure is an earlier illustration. Treat the Nutshell stops as the shipped HZD curves and the others as history. The recalled `(.01, .3, .6, .95)` cumulus matches nothing here. The **`(0.01, 0.09, 0.65, 0.80)` cumulus base ramp
 (0.01 to 0.09) looks like the same ramp as GP7's 0 to 0.07**, which is some evidence that the rise values are stable and the top is what differs.
 Layer heights differ per type in the game (cumulus layers are taller), so the normalised heights above are fractions of **that type's own layer**, not
 of a shared slab; this is not stated and is an assumption.
@@ -152,10 +152,10 @@ No code in images (checked every page of the PDF). All are one-line text formula
 
 ## Comparison with `packages/runtime/src/procedural/`
 - Base remap (`remap(low, high, 1, 0, 1)`): Takram path `density = procRemap4(density, vec4(1 - shape) * P.tkShape, vec4(1))`
-  at `density.wgsl.ts:216`. Same form, but with a tunable amount `P.tkShape` (0 to 1) that the talk does not have. Sky Pro path: no remap;
-  the noise acts as dilation (`dot(baseSample, vec3(0.7, 0.41, 0.23)) * spShape.z`, `:111-112`), i.e. a different construction from this talk's
+  at `density.wgsl.ts:215`. Same form, but with a tunable amount `P.tkShape` (0 to 1) that the talk does not have. Sky Pro path: no remap;
+  the noise acts as dilation (`dot(baseSample, vec3(0.7, 0.41, 0.23)) * spShape.z`, `:108-109`), i.e. a different construction from this talk's
   erosion remap.
-- Coverage remap: `factor = 1 - P.shell.w * heightScale; procRemap4(local, factor, factor+filter)` (`:193-195`). This is `remap(x, cov', 1, 0, 1)`
+- Coverage remap: `factor = 1 - P.shell.w * heightScale; procRemap4(local, factor, factor+filter)` (`:195-196`). This is `remap(x, cov', 1, 0, 1)`
   of [s13] with the coverage *scaled by the gradient* (inflation, N17 s40), **not** the nutshell form where coverage is the lower bound itself. The
   two behave differently: at coverage 0.5, the nutshell removes noise below 0.5 everywhere and so a base/top gradient only scales the product,
   whereas ours shifts the threshold lower where the gradient is high. Ours is the N17/Takram variant; both give "inflation with coverage".
@@ -185,3 +185,14 @@ None material. Two small clarifications:
    weather transitions that morph by coverage rather than crossfade density.
 5. **Two-coverage (R/G) maps** [s16]: R connected formations, G isolated islands (N17 s54-59); weights per scene. This deck confirms the two-coverage
    channel layout but not the generation; see N17 note for the procedure.
+
+## Review (Opus spot-check, 2026-10-10)
+- gradient stops from `slide7.xml` / `slide8.xml` `gradFill` (90° linear, pos 0 = top, tx1 = black, bg1 = white) [s7-8] → ✔ all three rectangles re-parsed: stratus 0.02/0.07/0.11/0.18 (slide 7 has no 98% stop: 0.00), stratocumulus 0.04/0.16/0.32/0.48, cumulus 0.01/0.09/0.65/0.80
+- cross-source gradients: N17 printed stratus `(0,.1,.2,.3)` treated as one of three "official" sets → ✘ fixed: `n17` measured strips match these stops, so the printed pair is an example; GP7 Fig 4.10 = HZD 2015 s34 swatches (same image), an earlier illustration
+- `remap(low_freq_noise, high_freq_noise, 1, 0, 1)` [s11] and `remap(base * height_gradient, cloud_coverage, 1, 0, 1)` [s13] → ✔
+- "Red and green represent coverage and blue represents type" [s16 note] → ✔ (HZD 2015 s40 and GP7 p.103 say G = precipitation; N17 says G = second coverage; this talk agrees with N17)
+- map-to-map blend over about 10-30 s [s20 note] → ✔
+- perf ladder 60+ / 22 / 3.34 / 1.2 ms [s34] and max 128 primary + 6 light samples [s32 note] → ✔ (the s32 note also says "closer to 16 ms" after march optimisations before parallelisation, which disagrees with the s34 ladder; s34 is the one with the table)
+- "Step * 2, Sample Cheap", "zero for several samples" [s35] → ✔
+- runtime `density.wgsl.ts:238` Takram `procCellIsEmpty` returns false → ✔; `:102` `maximumTop` → ✔; `:216`, `:111-112`, `:193-195` → ✘ fixed to `:215`, `:108-109`, `:195-196`
+

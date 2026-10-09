@@ -49,7 +49,7 @@ final_cloud    = Remap(base_cov, modifier * 0.2, 1.0, 0.0, 1.0)        // p.109
 Reading the base remap: with a high Worley fBM the lower bound is near 0 and the Perlin-Worley passes unchanged; with a low fBM the bound drops towards -1, so the same R is lifted to (R+1)/2, i.e. the Worley fBM **dilates** the base wherever it is dark. Erosion by 0.2 * modifier caps removal at 20% of the density scale; because `final = remap(base, e, 1)`, small clouds lose proportionally more.
 
 **Wind/animation** [p.109-110]: `wind_direction = (1,0,0)`, `cloud_speed = 10.0`, `cloud_top_offset = 500.0`;
-`p += height_fraction * wind_direction * cloud_top_offset;` then `p += (wind_direction + float3(0,0.1,0)) * time * cloud_speed;` Both **before any texture read**. Time unit and p unit are not stated, so 10 and 500 are in the engine's units (500 m in N17 s45, same constant).
+`p += height_fraction * wind_direction * cloud_top_offset;` then `p += (wind_direction + float3(0,0.1,0)) * time * cloud_speed;` Both **before any texture read**. Note the "upward" bias is added to **`.y`**, while this chapter's own height is `.z` (`GetHeightFractionForPoint`, p.104): as printed it is a sideways drift, not upward; read it as `float3(0, 0, 0.1)` in this chapter's convention (or the listing comes from a y-up engine). Time unit and p unit are not stated, so 10 and 500 are in the engine's units (500 m in N17 s45, same constant).
 
 **Ray march** [p.119-124]: shell 1.5 km start, 3.5 km thick; 64-128 steps; cheap-to-full switch, **6** zero samples to return; light march **6 taps max** in a cone, kernel of six noise vectors in (-1,-1,-1)..(1,1,1) with magnitude growing with step index; density sampled at `mip_level + 1`; cheap density in the light march once view-ray accumulated density exceeds **0.3**; one extra long tap at **3x the cone length** for distant-cloud shadow.
 
@@ -112,7 +112,7 @@ Our procedural code: `packages/runtime/src/procedural/density.wgsl.ts` (Takram s
 **Top "try next" for shape/layering/detail** (all refer to this source):
 1. **Read all four channels of the shape texture** and apply the dilation `Remap(R, -(1 - (0.625G + 0.25B + 0.125A)), 1, 0, 1)` before coverage [p.106]; needs the RGBA shape texture, not the R8 Takram one.
 2. **Three-weight detail fBM** `0.625/0.25/0.125` and the `saturate(h*10)` switch (try it as a second mode next to our hf 0.2-0.4) [p.108].
-3. **Three type gradients mixed by a weather-B "type"**; start from the Fig 4.10 table above (stratus 0-0.1, mid band rising 0.03-0.2 falling 0.42-0.6, tall 0-0.07/0.75-1.0), then tune against photos [p.103].
+3. **Three type gradients mixed by a weather-B "type"** [p.103]; the chapter gives only the Fig 4.10 picture (stratus 0-0.1, mid band rising 0.03-0.2 falling 0.42-0.6, tall 0-0.07/0.75-1.0). For the shipped HZD curves use the exact Nutshell stops (`nut.md`, slide 7-8 XML: stratus 0.02/0.07/0.11/0.18, stratocumulus 0.04/0.16/0.32/0.48, cumulus 0.01/0.09/0.65/0.80), which N17's measured in-game strips confirm; then tune against the owner's photos.
 4. **Curl on detail only, strength `(1 - h)`**; drop the turbulence from the shape lookup [p.108].
 5. **Coverage multiply `* cov`** after the remap, and a precipitation channel biasing type and coverage >= 0.7 [p.104, 107].
 
@@ -134,7 +134,7 @@ Our procedural code: `packages/runtime/src/procedural/density.wgsl.ts` (Takram s
 | detail sampled at `p * 0.1` | `p * 0.1` [p.108] (not previously noted) | New fact |
 | stratocumulus gradient `(0, 0.2, 0.48, 0.625)` (M2) | **Not in the chapter.** Fig 4.10 centre panel measures rise 0.03-0.20, plateau to 0.42, fall 0.42-0.60 [p.103] | **Not verifiable**; the figure is consistent with it (rise end 0.2, fall 0.48-0.625 centres near 0.55) |
 | cumulus `(0, 0.1, 0.8, 1)` or `(0.01, 0.3, 0.6, 0.95)` (M2) | **Not in the chapter.** Fig 4.10 right panel (captioned cumulonimbus) measures rise 0-0.07, fall 0.75-1.00 [p.103] | **Not verifiable**; `(0, 0.1, 0.8, 1)` matches the figure's right panel (which is full-height, so it is the *cumulonimbus* gradient, not a small cumulus); `(0.01, 0.3, 0.6, 0.95)` matches nothing drawn |
-| stratus `(0, 0.1, 0.2, 0.3)` (from N17 s28-29) | **Not in the chapter.** Fig 4.10 left panel: thin band peaking about 0.08, gone by 0.105 | Not verifiable; N17's value (peak at 0.1-0.2, gone by 0.3) is **higher and thicker** than this figure; GPU Pro 2016 stratus is thinner |
+| stratus `(0, 0.1, 0.2, 0.3)` (from N17 s28-29) | **Not in the chapter.** Fig 4.10 left panel: thin band peaking about 0.08, gone by 0.105 | Not verifiable; N17's printed pair (peak at 0.1-0.2, gone by 0.3) is **higher and thicker** than this figure, but it is only an example: N17's in-game strip and the Nutshell XML give stratus 0.02/0.07/0.11/0.18, close to this figure's thin band |
 | blend `type<0.5 ? mix(stratus,strato,2t) : mix(strato,cumulus,2t-1)` (M2) | **Not in the chapter**: "weighted sum of the three functions" with weights from the weather map [p.103] | **Not verifiable**; the text suggests weights, not a two-segment lerp |
 | anvil bias, coverage exponent (hzd-nubis-evolved.md:60-62, "GPU Pro 7 / 2017 item") | **No anvil term anywhere in the chapter.** The exact anvil form is N17's (`legacy-and-survey.md:86`, `pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias)))`) | **Wrong attribution**: it is not GPU Pro 7; fix those notes |
 | "Frequencies roughly octave doubling" (hzd-nubis-evolved.md:117) | frequencies not given [p.102] | **Unverified, stays unverified** |
@@ -145,3 +145,21 @@ Our procedural code: `packages/runtime/src/procedural/density.wgsl.ts` (Takram s
 - `hzd-nubis-evolved.md:60-62` says the anvil bias is "a GPU Pro 7 / 2017 item": it is **not in GPU Pro 7**.
 - `procedural-shape.md` M5 "strength by height is recalled": confirmed as `(1 - h)` only; "second octave of curl" there is our own suggestion, not in the source.
 - `procedural-shape.md` Section 1 table says our semicircle matches "HZD s34"; GPU Pro Fig 4.10 shows **trapezoids with different tops and bases**, not one semicircle, so type-dependent profile is the thing we lack.
+
+## Review (Opus spot-check, 2026-10-10)
+- shape fBM `0.625/0.25/0.125` and `Remap(r, -(1 - fbm), 1, 0, 1)` [p.106] → ✔ (page text)
+- coverage `Remap(base, cov, 1, 0, 1) * cov` [p.107] → ✔
+- `p.xy += curl.xy * (1 - h)`, detail read at `p * 0.1`, `mix(fbm, 1 - fbm, saturate(h * 10))`, `Remap(base_cov, mod * 0.2, 1, 0, 1)` [p.108-109] → ✔
+- wind `(1,0,0)`, speed 10, top offset 500, `(wind + (0, 0.1, 0)) * time * speed` [p.109-110] → ✔, with a new caveat: the bias is on `.y` while height is `.z` (added above)
+- rain: type to cumulonimbus, coverage at least 70% where rain is 100% [p.104] → ✔
+- HG g = 0.2 [p.112]; equation `1/(4 pi)`, code `/ 4.0 * 3.1415` [p.113]; Beer-powder `2 e^-d (1 - e^-2d)` [p.116, 119] → ✔
+- shell 1.5 km + 3.5 km, 64-128 steps [p.119]; six zero samples [p.120]; six cone taps, kernel in -(1,1,1)..(1,1,1), 0.3 switch, long tap at 3x cone [p.123-124]; 20 MB / 2 ms, 20 ms raw [p.98, 125] → ✔
+- Fig 4.10 table [p.103] → ✔ re-measured on the 110 dpi render: stratus full 0.077, half 0.09, zero 0.097; middle 5% at 0.03, full 0.20, full to 0.41, half 0.50, zero 0.59; right full 0.08, full to 0.74, half 0.85, zero 0.96
+- runtime `procedural/density.wgsl.ts:214` (shape `.r` only), `:221` (`mix(pow(detail,6), 1 - detail, remap(hf, 0.2, 0.4))`), `:108`/`:124` Sky Pro weights → ✔; `trace.wgsl.ts:24-26` back to coarse after four empty steps → ✔
+
+**Cross-note consistency** (sources that genuinely differ, kept separate):
+- **Detail switch and strength**: GPU Pro 7 `saturate(h * 10)` with `* 0.2` [p.108-109]; Häggström `saturate(ph * 5)` with `0.35 * exp(-0.75 gc)` (`hag.md`, B.5 p.79); NE22 envelope model switches at the cloud type ±0.1 (`ne22.md` p.99); Synthesizing picks by type, not height (`syn.md` s12). Four different rules; cite the one you port.
+- **HG scale**: `/ 4.0 * 3.1415` (= x π/4, not ÷4π) is printed in GPU Pro 7 p.113, N17 p.77 and Häggström B.6 p.80 (whose `csi`/`cse` were tuned against that scale); the equations in GP7 and the rsqrt listings in HFW p.31, NE22 p.48 and Synthesizing s51 use the correct `1/(4π)`.
+- **Height gradients**: this Fig 4.10 is the same image as HZD 2015 s34 (`hzd15.md`, same stops). The Nutshell XML (`nut.md`) and N17's measured in-game strips (`n17.md`) agree with each other and differ from this figure (lower and thinner middle type; cumulus to 0.80 rather than a full-height column). N17's printed stratus `(0, .1, .2, .3)` is an example. NE22 replaces all of them with 2D tables (images only).
+- **Weather G channel**: GPU Pro 7 [p.103] and HZD 2015 s40 say G = precipitation; N17 p.53-56 and the Nutshell s16 say R and G are two coverage footprints and there is no precipitation channel; Häggström uses G as high-coverage fill. Record which talk you follow.
+

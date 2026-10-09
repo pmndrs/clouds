@@ -15,13 +15,13 @@ The author sorts by representation: Texture, Noise, Geometric, Shapes, Image-bas
 | Paper [ref], year | One-line idea | Page |
 | --- | --- | --- |
 | Gardner [31], 1985 | Ellipsoids carrying a Fourier-series texture for detail, shading and translucency; flat textured planes for layers; animate by varying texture parameters in time | p.2, p.9 |
-| Ebert and Parent [26], 1990; Ebert [25], 1997 | Solid texturing of surfaces/planes for gas; "A cloud is born": a procedural **implicit function** (sphere union plus turbulence) as cumulus density; evolve by varying the function with time | p.2, p.3, p.10 |
-| Sakas [82], 1993 | Spectral synthesis in the frequency domain, turbulence theory; mean flow plus fluctuating part `u = U + u'`, both animated spectrally | p.3, p.9-10 |
-| Neyret [69], 2000 (RR-3947) | "Phenomenological shader": **Perlin noise added on the surface representation** of a cumulus; cloud corona lit as Lambertian, core as scattered, concave faces as light traps | p.3, p.5 |
-| Schpok et al. [87], 2003 | **Two-level**: user outlines ellipsoids, picks preset noise filters; noise split into octaves stored as GPU textures, one matrix per octave; macro animation by keyframes, micro by pre-computed volumetric noise (wisps straying, parts appearing and vanishing at edges) | p.3, p.8, p.10 |
-| Hasan et al. [40], 2005; Xu et al. [102], 2009 | Static procedural GPU clouds; modified cellular automata with Brownian-motion probability fields | p.3 |
-| Webanck et al. [99], 2018 | **Cloud-type** density and shape functions, a control function for large-scale cover, altitude parameters per type; **morphing** between two cloudscapes by optimal-transport pairing of primitives (we have this as `web18`) | p.3, p.10, Fig 12 |
-| Goswami and Neyret [34], 2017; Goswami [32], 2019 | **Hypertexture inside large spherical parcels** driven by parcel physics; later a precomputed **cloud map** noise texture governs cloud shape and cover, so physics only runs on a few parcels (200 fps landscape scale, Fig 16) | p.3, p.13 |
+| Ebert and Parent [26], 1990; Ebert [25], 1997 | Solid texturing of surfaces/planes for gas; "A cloud is born": a procedural **implicit function** as cumulus density (the survey names no recipe; sphere union plus turbulence is from Ebert's book); evolve by varying the function with time | p.2, p.10 |
+| Sakas [82], 1993 | Spectral synthesis in the frequency domain, turbulence theory; mean flow plus fluctuating part `u = Ū + u'` (Ū general translative velocity, u' random fluctuation), both animated spectrally | p.2, p.9-10 |
+| Neyret [69], 2000 (RR-3947) | "Phenomenological shader": **Perlin noise added on the surface representation** of a cumulus; cloud corona lit as Lambertian, core as scattered, concave faces as light traps | p.2, p.5 |
+| Schpok et al. [87], 2003 | **Two-level**: user outlines ellipsoids, picks preset noise filters; noise split into octaves stored as GPU textures, one matrix per octave; macro animation by keyframes, micro by pre-computed volumetric noise (wisps straying, parts appearing and vanishing at edges) | p.2, p.8, p.10 |
+| Hasan et al. [40], 2005; Xu et al. [102], 2009 | Static procedural GPU clouds; modified cellular automata with Brownian-motion probability fields | p.2 |
+| Webanck et al. [99], 2018 | **Cloud-type** density and shape functions, a control function for large-scale cover, altitude parameters per type; **morphing** between two cloudscapes by optimal-transport pairing of primitives (we have this as `web18`) | p.2, p.10, Fig 12 |
+| Goswami and Neyret [34], 2017; Goswami [32], 2019 | **Hypertexture inside large spherical parcels** driven by parcel physics; later a precomputed **cloud map** noise texture governs cloud shape and cover, so physics only runs on a few parcels (200 fps landscape scale, Fig 16; the 200 fps figure is p.15) | p.2, p.13, p.15 |
 
 ### B. Physically based simulation (shape from dynamics; animation too)
 | Paper [ref], year | One-line idea | Page |
@@ -30,24 +30,24 @@ The author sorts by representation: Texture, Noise, Geometric, Shapes, Image-bas
 | Dobashi, Kaneda et al. [15], 2000 | **Cellular automaton**: boolean humidity, cloud and phase-transition cells; ellipsoids steer shape and size; rendered as metaball billboards | p.10-11 |
 | Harris et al. [38], 2003 | Full physical cloud sim (vorticity confinement) on GPU slices of 2D textures | p.12 |
 | Miyazaki et al. [67], 2001; [64], 2002 | **Coupled map lattice** (CA plus Navier-Stokes), cloud type by initial conditions, Benard convection for some types; heat advection and phase transition added in 2002 | p.12 |
-| Dobashi et al. [14], 2008 | **Feedback control**: user draws a target cumuliform contour; the difference plus a geometric potential force feeds back into the sim's growth | p.13, Fig 15 |
-| Neyret [68], 1997 | **Bubbles** as buoyant parcels: attracted to neighbours, mix with the air, created and destroyed; vortices attached to each bubble add small-scale shape and motion | p.13 |
+| Dobashi et al. [14], 2008 | **Feedback control**: user draws a target cumuliform contour; the difference plus a geometric potential force feeds back into the sim's growth | p.12, Fig 15 |
+| Neyret [68], 1997 | **Bubbles** as buoyant parcels: attracted to neighbours, mix with the air, created and destroyed; vortices attached to each bubble add small-scale shape and motion | p.12-13 |
 | Barbosa et al. [2], 2015 | Position-based fluids with **adaptive particles** that merge or split where cloud disappears or detail appears | p.13 |
 | Elhaddad et al. [28], 2016 | Particles with Lennard-Jones forces | p.13 |
-| Duarte and Gomes [24], 2017 | Parcels from **SkewT/LogP sounding data** (no PDEs); mesh from particles, rasterised to a **distance field plus noise parameters**, then raymarched | p.9, p.13 |
+| Duarte and Gomes [24], 2017 | Parcels from **SkewT/LogP sounding data** (no PDEs); mesh from particles, rasterised to a **distance field plus noise parameters**, then raymarched | p.8, p.13 |
 | Kusumoto et al. [54], 2012 | Keyframe target fields; controlled ground heat sources for buoyancy | p.10 |
-| Stam and Fiume [91], 1995 | Diffusion of warped **blobs** each with temperature, density, velocity | p.8, p.13 |
+| Stam and Fiume [91], 1995 | Diffusion of warped **blobs** each with temperature, density, velocity | p.6, p.12 |
 
 ### C. Particle, metaball and blob (shape from primitives; this is the multi-body family)
 | Paper [ref], year | One-line idea | Page |
 | --- | --- | --- |
-| Gardner/Elinas [29], 2000 | Ellipsoid primitives with controlled transparency | p.2 |
+| Elinas and Stuerzlinger [29], 2000 (after Gardner) | Ellipsoid primitives with controlled transparency | p.2 |
 | Dobashi [17,18], 1998-99 | **Metaballs** fit to a single satellite image until the synthetic image matches within an error | p.3 |
 | Bouthors and Neyret [6], 2004 | **Blob hierarchy**: child blobs placed on a parent; **field functions control size, overlap and bottom flatness** (Fig 2a) | p.3 |
 | Hufnagel et al. [44], 2007 | Place flattened and textured metaballs per classified cloud type from weather forecast volumes | p.3 |
 | Grudzinski and Debowski [36], 2009 | Particles with velocity, lifespan and max height give type-specific trajectories (stratus vs cumulus) | p.10 |
 | Wang [98], 2003 | Particles textured per cloud type for about a dozen types | p.8 |
-| Trembilski and Brossler [95], 2002 | Marching-cubes isosurface, refine, smooth sharp edges, displace vertices | p.3 |
+| Trembilski and Brossler [95], 2002 | Marching-cubes isosurface, refine, smooth sharp edges, displace vertices | p.2 |
 | Miller, Museth et al. [62], 2012 | "Puss in Boots": **meshes plus procedural noise converted to sparse VDB** volumes | p.3, p.9 |
 
 ### D. Image-based, sketch-based
@@ -65,7 +65,7 @@ The author sorts by representation: Texture, Noise, Geometric, Shapes, Image-bas
 ### E. Data-driven and data-assimilation
 | Paper [ref], year | One-line idea | Page |
 | --- | --- | --- |
-| Iwasaki et al. [46], 2011 | **Endless cloud animation from limited volume data**: stochastically pick two similar volumes and cross-dissolve (video-texture idea in 3D) | p.13 |
+| Iwasaki et al. [46], 2011 | **Endless cloud animation from limited volume data**: stochastically pick two similar volumes and cross-dissolve (video-texture idea in 3D) | p.12 |
 | Kallweit et al. [49], 2017 | **Radiance-predicting neural networks** trained on exemplars for light transport only | p.9 |
 | Hufnagel [44], 2007; Wenke [100], 2012; Griffith [35], 2010 | Real weather-forecast or LES data to cloud geometry | p.3, p.4 |
 | Duarte and Gomes [24], 2017 | Sounding data in place of hand-set initial conditions | p.13 |
@@ -89,7 +89,7 @@ Findings, from the above:
 
 ## Our runtime against these families (cite file:line)
 - **A. Procedural noise:** the whole `packages/runtime/src/procedural/` path is family A (weather map plus noise erosion; erosion pass `density.wgsl.ts:117-127`, detail near camera `:216-225`). The voxel path is family A baked offline (`shaders/density.wgsl.ts:47-65`).
-- **B/E evolving:** `generate/evolution.ts:1-3, 8-12` is a **cellular, weather-map-driven life cycle** (cells grow, mature, dissipate, restart elsewhere; wind advects the map; double-buffered NVDF regeneration every `cadence`). That is closest to Dobashi 2000 (CA) and Webanck-style morphing, **not** a buoyancy/bubble model. No interaction between cells (no merging forces); "merges" in the header is the overlap of Worley cells on the map.
+- **B/E evolving:** `generate/evolution.ts:1-12` is a **cellular, weather-map-driven life cycle** (cells grow, mature, dissipate, restart elsewhere; wind advects the map; double-buffered NVDF regeneration every `cadence`). That is closest to Dobashi 2000 (CA) and Webanck-style morphing, **not** a buoyancy/bubble model. No interaction between cells (no merging forces); "merges" in the header is the overlap of Worley cells on the map.
 - **C. Blobs:** `generate/passes.ts:195` builds a tower as "a cluster of eight turrets (updraft pulses) around a core, each a column that widens toward its own rounded top". That is a small blob hierarchy (parent core, child turrets). There is **no field-function control for size/overlap/bottom flatness** as in Bouthors and Neyret 2004, and no second level of children on the turrets (billows are noise, not blobs).
 - **Clusters:** `generate/shaders.ts:234-238` has a cluster fbm saying where clouds gather and scaling cell size by it ("big cells only in cluster cores, small ones out to the rims"). That is a multi-body *placement* rule (useful, and what Webanck's control function is for) but gives no interaction between bodies.
 - **D/E:** nothing (no sketch, no photo-to-shape; the cloud-photo library is used as a reference set only).
@@ -133,3 +133,19 @@ Not in the survey but obvious gaps for the same list: Hillaire's TileableVolumeN
 
 ## Superseded by / supersedes
 Adds to `legacy-and-survey.md` (GS section, which answers five narrow questions) and the fetch table in `procedural-shape.md` section 5 (items 3-6, 9-11 of that table are re-ranked here; new entries: Neyret 2000, Neyret 1997, Duarte and Gomes 2017, Barbosa 2015, Miller/Museth 2012, Wither 2008, Iwasaki 2011, Dobashi 2008). Corrects one detail there: Goswami's cloud-map paper is [32], 2019, titled "Interactive animation of single-layer cumulus clouds using cloud map".
+
+## Review (Opus spot-check, 2026-10-10)
+- Sakas turbulence split `u = U + u'` [p.9] → ✘ fixed (render shows `u = Ū + u'`, Ū the general translative velocity; formula and symbol meanings now given; modelling mention is p.2, not p.3)
+- Neyret [69] RR-3947 2000: Perlin noise on the surface, Lambertian corona, light-trap concavities [p.2, p.5] → ✔ content; ✘ fixed page (p.3 → p.2)
+- Bouthors and Neyret [6] 2004 blob hierarchy, field functions for size, overlap, bottom flatness [p.3, Fig 2a] → ✔
+- Goswami [32] 2019 "Interactive animation of single-layer cumulus clouds using cloud map" and [34] VRIPHYS 2017; 200 fps [p.13 Fig 16, p.15, ref list p.16-17] → ✔ titles/years; ✘ fixed page (p.3 → p.2; 200 fps also stated on p.15)
+- Family A/B/C/E page refs → ✘ fixed: Hasan/Xu, Webanck, Schpok, Ebert, Trembilski p.3 → p.2; Dobashi 2008 and Iwasaki 2011 p.13 → p.12; Neyret 1997 p.13 → p.12-13; Stam and Fiume p.8, p.13 → p.6, p.12; Duarte and Gomes p.9 → p.8
+- Ebert [25] "sphere union plus turbulence" [p.2] → ✘ fixed (survey only says procedural volumetric implicit function; recipe now attributed to Ebert's book)
+- [29] attribution [p.2] → ✘ fixed ("Gardner/Elinas" → Elinas and Stuerzlinger, after Gardner)
+- Fetch-list refs [6], [24], [32], [34], [46], [62], [68], [69], [70], [87], [99], [101] titles, venues, years [ref list] → ✔
+- Journal page = PDF page + 1930 [p.2 header 1932, p.18 header 1948] → ✔
+- Runtime `generate/passes.ts:195` tower of eight turrets around a core → ✔ (line 195 is that comment)
+- Runtime `procedural/trace.wgsl.ts:18` voxel and procedural densities add as a union → ✔
+- Runtime `generate/evolution.ts:1-3, 8-12` life cycle and voxel-snapped wind anchor → ✘ fixed (grow/mature/dissipate is lines 4-6; cited as `:1-12`; `:8-12` for the wind anchor in try-next 3 is ✔)
+- Runtime `generate/shaders.ts:234-238` cluster fbm gating cell sizes, and `procedural/density.wgsl.ts:117-127` erosion → ✔
+- Try-next items framed against Takram/Sky Pro → ✔ none; all cite the papers

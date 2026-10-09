@@ -8,8 +8,8 @@ An offline (10 s/frame at 720p on a GTX 970, ray-marched single scattering [p.9]
 - **Type table with altitude bands** (Table 2, [p.5]): ten tropospheric types, each with base elevation `e_i` and range (thickness) `r_i` in km. The pair bounds the support of the type's density `a_i`. Fig. 3 [p.4] draws the same layers: low < 2 km, medium 2-7 km, high 7-12 km, with Cumulonimbus spanning 1-12 km. Layers may overlap; overlap blends smoothly because densities are summed.
 - **Shape = phi - delta, clamped** `s_i = max(phi_i - delta_i, 0)` [p.5]. phi is the overall density distribution (low frequency). delta is high-frequency detail that is *subtracted*, so the cloud's compact support gets a complex, eroded border (Fig. 5 [p.5] shows phi alone vs phi - delta for Altocumulus and Cumulus: phi alone is smooth wispy blobs, subtracting delta gives crisp cauliflower / popcorn). This is the same "erode the base shape with a finer noise" idea as HZD, but expressed as a plain subtraction on a continuous field, not a remap.
 - **Control field and two lifecycle behaviours** [p.5-6]: `a_i = (1 - cbar_i*alpha_i) s_i - (1 - alpha_i) cbar_i`, `cbar_i = 1 - c_i`. alpha = 1: `a = c*s`, a pure fade (support unchanged as c falls), used for stratiform / high clouds. alpha = 0: `a = s - cbar`, a **shrink**: a constant is subtracted, so the support contracts toward the densest cores as cover falls, which is how cumuliform clouds die. They used alpha = 0.1 for Cumulus and 1 for vanishing Cirrostratus; alpha is a per-type constant, not interpolated [p.6]. Fig. 6 [p.6] shows the four combinations.
-- **Layer combination**: `a(p,t) = sum_i a_i`, then `sigma(x) = x/sqrt(1+x^2)` so the sum stays in [0,1) [p.5]. No explicit vertical blending between layers; they just add where bands overlap.
-- **Control primitives** [p.6]: the user paints a greyscale cover image per layer; it is sampled on a coarse regular grid into overlapping spheres `C_j` (centre `b_j`, radius `R_j`, max density `x_j` from the grey value; radius and altitude set by cloud type). Falloff `g_j(r) = x_j (1 - r^2)^3` on r = distance/R in [0,1] (the paper's typeset formula reads as the cubed one-minus-r-squared; confirm on p.6), `c = sum_j c_j`, normalised by sigma. Examples (Fig. 7 [p.6]): heart-shaped cover carved in Stratocumulus, aircraft contrails in Cirrus, letters carved in Stratus, a hole in Cumulus cover over a mountain peak.
+- **Layer combination**: `a(p,t) = sum_i a_i`, then `sigma(x) = x/sqrt(1+x^2)` so the sum stays in [0,1) [p.5]; the paper also applies sigma to each `a_i` to keep it in the unit interval (end of p.5). No explicit vertical blending between layers; they just add where bands overlap.
+- **Control primitives** [p.6]: the user paints a greyscale cover image per layer; it is sampled on a coarse regular grid into overlapping spheres `C_j` (centre `b_j`, radius `R_j`, max density `x_j` from the grey value; radius and altitude set by cloud type). Falloff `g_j(r) = x_j (1 - r^2)^3` on r = distance/R in [0,1] (called the "cubic falloff" on p.6, where the text layer drops the exponent; App. A [p.13] prints `(1 - r^2/R^2)^3` explicitly, confirmed on a 200 dpi render), `c = sum_j c_j`, normalised by sigma. Examples (Fig. 7 [p.6]): heart-shaped cover carved in Stratocumulus, aircraft contrails in Cirrus, letters carved in Stratus, a hole in Cumulus cover over a mountain peak.
 - **Animation without simulation** [p.6]: 4D simplex noise and cellular (Worley 96) noise; c drives cover evolution, phi drives global shape change, delta drives small-scale animation. Each layer has its own wind (Fig. 14: Stratus W to E at low altitude, Cirrus NE to SW up high).
 - **Terrain interaction** [p.7-8, Fig. 10]: the layer's elevation range is warped by a smoothed terrain height (`kappa_e = clamp((z~ - a)/(b - a), 0, 1)` is the terrain-intersects-layer cost term), so low layers (fog, Stratus) hug valleys.
 - **Fog in valleys** (Fig. 17 [p.10]): 460 primitives; a low "fog-rise" layer and a high Cumulus layer; fog winds are a small updraft, Cumulus winds strong horizontal.
@@ -48,7 +48,7 @@ n and w are "a sum of scaled cellular noise and simplex noise"; the mix weights,
 
 What this means shape-wise (inference from the formulas):
 - **Altostratus (k=1)**: phi = 1 everywhere, delta = 0, so s = 1: a *featureless slab* inside its 1 km altitude band, all the visible structure coming from the control field c and the band edges. That is the whole recipe for a stratiform sheet.
-- **Altocumulus (k=0)**: phi = a Hermite threshold of an 8-octave noise at 0.43..1 (so about 43 percent of noise values give no cloud: the *coverage cut-off is baked into h*); the x coordinate is multiplied by 0.35 before the noise, which **stretches features along x by 1/0.35 = 2.86x**: the elongated banded patches visible in Fig. 5 top-left. delta mixes 75 percent of a mid-frequency fbm (96) with 25 percent of an inverted 4-octave, lacunarity-3 cellular-flavoured term at frequency 400, which is a "cell wall"/pebble signature; subtracting it gives the puffy, separated cloudlets of Fig. 5 top-right.
+- **Altocumulus (k=0)**: phi = a Hermite threshold of an 8-octave noise at 0.43..1 (so noise values below 0.43 give no cloud: the *coverage cut-off is baked into h*; how much of space that clears depends on the noise's value distribution, which is not given); the x coordinate is multiplied by 0.35 before the noise, which **stretches features along x by 1/0.35 = 2.86x**: the elongated banded patches visible in Fig. 5 top-left. delta mixes 75 percent of a mid-frequency fbm (96) with 25 percent of an inverted 4-octave, lacunarity-3 cellular-flavoured term at frequency 400, which is a "cell wall"/pebble signature; subtracting it gives the puffy, separated cloudlets of Fig. 5 top-right.
 - Only a morph parameter between two very similar types is shown; no formula for Cumulus, Cirrus, Cumulonimbus, Nimbostratus etc. (Fig. 4/5 renders exist for Cumulus, Stratocumulus, Cirrocumulus, Nimbostratus).
 - **No vertical density profile is given.** The paper never defines a height gradient inside a layer. The vertical structure is the 3D noise (p.y enters both n functions) cut by the band `e_i .. e_i + r_i`; hard-vs-soft cut is not stated. Compare HZD/Nubis, which define explicit per-type height gradients.
 
@@ -67,7 +67,7 @@ None in the paper. `extracted/web18/code/web18-p13.hlsl`: pseudocode transcripti
 - p.10-11 Fig. 14 (two crossing layers), Fig. 15 (8-layer cold front: Cirrus, Cirrostratus, Altostratus, Altocumulus, Cumulus humilis, Stratocumulus, Cumulus congestus, Cumulonimbus capillatus), Fig. 17 (valley fog + Cumulus).
 
 ## What we already do / don't / what to try
-Our procedural model: `packages/runtime/src/procedural/density.wgsl.ts` (two shapers, `PROC_SKYPRO_WGSL` lines 85-172, `PROC_TAKRAM_WGSL` 175-241), settings in `settings.ts` (Takram layer list lines 52-64), noise in `textures.ts`.
+Our procedural model: `packages/runtime/src/procedural/density.wgsl.ts` (two shapers, `PROC_SKYPRO_WGSL` lines 85-172, `PROC_TAKRAM_WGSL` 175-241), settings in `settings.ts` (Takram layer fields, `TakramLayer` interface lines 52-64), noise in `textures.ts`.
 
 | Webanck type | Our closest | Verdict |
 | --- | --- | --- |
@@ -84,7 +84,7 @@ Our procedural model: `packages/runtime/src/procedural/density.wgsl.ts` (two sha
 The paper does **not** model individual cumulus; it places *cover* with spheres and lets 3D noise (phi) decide the actual cloudlets. Useful for us:
 - A **cover sphere** of radius R and peak x makes one cumulus field patch; sphere radius is "defined according to the cloud type" [p.6] but no size distribution is given. The 8 primitives per layer in Fig. 15 span a 588 km front, so these are cloud-field scale (tens of km), not single clouds.
 - **Lines of cumulus (streets)**: not covered; the closest tool is the anisotropic `px*0.35` stretch (one axis longer) in phi, which gives rows when aligned to wind. That is a one-line change for us.
-- **Cluster/gap statistics** come from the noise threshold: `h(0.43, 1, n)` means about 43 percent of space is clear before the control field acts, so coverage = shifting that threshold. Our `coverage` plays the same role.
+- **Cluster/gap statistics** come from the noise threshold: `h(0.43, 1, n)` clears every point whose noise is below 0.43 before the control field acts (the cleared fraction depends on the noise distribution), so coverage = shifting that threshold. Our `coverage` plays the same role.
 - **Size distribution**: not specified; it falls out of the octave chain (frequency 36, lacunarity 2.02, 8 octaves, persistence 0.52): features spanning roughly 2.8 km down to 20 m, with amplitude falling by 0.52 per octave. A rough approach to try: use these persistence/lacunarity numbers as the target spectrum when authoring our shape noise.
 - Shrinking (alpha=0) means small clouds vanish first and big cores last, which is the realistic dissipation order; our coverage ramp already does this in Sky Pro.
 
@@ -103,3 +103,15 @@ The paper does **not** model individual cumulus; it places *cover* with spheres 
 
 ## Superseded by / supersedes
 Complements HZD/Nubis (explicit height gradients per type, which this paper lacks). Cited by the Comprehensive Survey as [99]. The morphing half (Sections 5, OT, ghosting) has no counterpart in our runtime and no near-term use; note if we ever key-frame weather states, interpolating primitive sets with OT and ghost primitives for births/deaths is the method.
+
+## Review (Opus spot-check, 2026-10-10)
+- Table 2 elevations/ranges and the High/Medium/Low grouping (Stratus, Stratocumulus under Medium; Nimbostratus under Low) [p.5] → ✔ (render)
+- `s_i = max(phi - delta, 0)`; `a_i = (1 - cbar*alpha) s - (1 - alpha) cbar` [p.5] → ✔
+- alpha 0.1 Cumulus, 1 vanishing Cirrostratus, per-type constant [p.6] → ✔
+- falloff `(1 - r^2)^3` "confirm on p.6" [p.6, 13] → ✔ confirmed via App. A on a 200 dpi render; caveat removed
+- App. B phi/delta, `px*0.35`, `/1000`, 100 m unit, Table 4 octaves/persistence/lacunarity/frequency [p.13] → ✔ (200 dpi render)
+- primitive masses `4/(3*5) pi R^3` and `4*16/(105*5) pi R^3` [p.13] → ✔
+- sigma applied only to the sum [p.5] → ✘ fixed: the paper also clamps each `a_i` with sigma
+- "about 43 percent of noise values / space clear" (inference) → ✘ fixed: the cut is at noise value 0.43; the cleared fraction depends on the unstated noise distribution
+- runtime `settings.ts:12-16` `SkyProShape.thickness` → ✔; `settings.ts:52-64` "layer list" → ✘ fixed: it is the `TakramLayer` interface (fields), not a preset list
+

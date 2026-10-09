@@ -28,7 +28,7 @@ A 30 hp master's thesis (Arrowhead Game Studios, Stingray engine, GTX 980 Ti) th
 ```
 
 ### Scalars and layer [p.10]
-- Layer base `ch_start = 400 m`, top `ch_stop = 1000 m` (called an artistic choice: smaller and lower than Horizon's 1.5 to 5 km, for variety while moving). `ph = (altitude - 400) / 600`.
+- Layer base `ch_start = 400 m`, top `ch_stop = 1000 m` (called an artistic choice: smaller and lower, for variety while moving; the comparison with Horizon's 1.5 to 5 km shell is ours, from GPU Pro 7 p.119, not the thesis's). `ph = (altitude - 400) / 600`.
 - `gc in [0,1]` global coverage, `gd in [0, inf)` global density (typical 0.2 to 1).
 
 ### Weather map [p.10-11, eq 4 = eq 40]
@@ -221,3 +221,15 @@ GPU Pro 7 numbers below are from the local text dump (`extracted/gp7/full.txt`, 
 - Supersedes the "recalled" detail in `procedural-shape.md` M1 only partly: the **0.625/0.25/0.125 weights and the base remap** are now confirmed by GP7 text and by this thesis; the **detail modifier constants differ** (GP7 `h*10`, `*0.2`; here `h*5`, `0.35 e^(-0.75 gc)`), so cite which one you use. Fetch-list item #8 ("check Häggström before fetching") is done: it is a full re-derivation, with the code, not a restatement.
 - `hzd-nubis-evolved.md` / Nubis 2022 supersede it for profile modelling, type tables and cirrus; GPU Pro 7 (`gp7`) supersedes it for the HZD original, rain absorption, powder and the cone sun march.
 - Not the same as `hogfelt.pdf` (Högfeldt 2016, Frostbite).
+
+## Review (Opus spot-check, 2026-10-10)
+- eq 4 `WMc = max(wc0, SAT(gc - 0.5) * wc1 * 2)` [p.11] → ✔
+- eq 11 `R(snr, (g*0.625 + b*0.25 + a*0.125) - 1, 1, 0, 1)` and eq 12 `SAT(R(SN * SA, 1 - gc*WMc, 1, 0, 1)) * DA` [p.14] → ✔
+- B.2 `stop_height = saturate(b + 0.12)`, bottom 0..0.07, top `0.2*stop..stop`, anvil exponent `R(ph, 0.65, 0.95, 1, 1 - aa*gc)` [p.78] → ✔; SA profile values (0.29 at 0.02, 0.75 at 0.4, 0.06 at 0.95) recomputed → ✔
+- B.3 base fade to 0.2 (eq 8 says 0.15), `wd * 2`, anvil `lerp(1, SAT(R(ph^0.5, 0.4, 0.95, 1, 0.2)), aa)`, top fade 0.9..1; DA values 0.05 at 0.1, 0.475 at 0.95 → ✔
+- B.5 `lerp(fbm, 1 - fbm, sat(ph * 5)) * 0.35 * exp(-gc * 0.75)` [p.79] → ✔ (0.165 at gc = 1)
+- B.6 HG `/ 4 * 3.1415`; HG(1, 0.2) = 1.47 coded vs 0.149 normalised; Attenuation floor `exp(-6*0.2)*0.7` = 0.211 [p.80] → ✔
+- layer 400-1000 m "smaller and lower than Horizon's 1.5 to 5 km" [p.10] → ✘ fixed: the thesis gives only the artistic reason; the Horizon comparison is ours (GP7 p.119), now marked as such
+- step constants `inc_rate 0.04` [p.44], `mult_min 0.4` [p.47], `div_min 0.4` [p.51] → ✔
+- runtime `procedural/settings.ts:161` (`stepMeters 25, maxSteps 256, lightTaps 6`) → ✔; `trace.wgsl.ts:212` coarse stage calls `procSample(..., true, ...)` (full sample) → ✔
+- cross-note: the detail switch `ph*5`/`0.35 e^(-0.75 gc)` here vs GP7 `h*10`/`0.2` are both as printed in their sources (not a transcription error in either); the `/4*3.1415` HG line is shared with GP7 p.113 and N17 p.77, while HFW/NE22/Synthesizing print the correct `1/(4π)` (see `gp7.md` review)

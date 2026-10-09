@@ -3,7 +3,7 @@ Local: `artifacts/research/papers/The Real-time Volumetric Cloudscapes of Horizo
 
 Citations: **[sNN]** = printed slide number (what `hzd-nubis-evolved.md` and `procedural-shape.md` use); **(pNNN)** = PDF page of the ARTR file. Mapping: page = slide + 1 for slides 3 to 20; slides 2 and 21 each take two pages (p002/p003, p022/p023); page = slide + 2 for slides 22 to 97. Slide image for page N is the jpeg in the PDF (1199 x 674); the notes text is under it.
 
-This is the **talk**, not the chapter. GPU Pro 7 (`gp7`, the written version with the code) has no note yet (`docs/research/sources/gp7.md` does not exist at the time of writing), so nothing here is duplicated from it. The PDF has **no code and no numeric constants for the gradients or noise frequencies**; every number below is either printed on a slide, in the notes, or measured from a slide image (and marked as measured). Lighting and the 1/16 reprojection are already well covered in `hzd-nubis-evolved.md` (sections 3 and 4), so they get a short pointer here only.
+This is the **talk**, not the chapter. GPU Pro 7 (`gp7`, the written version with the code) now has its own note (`gp7.md`); this note was written before it and does not repeat it. The PDF has **no code and no numeric constants for the gradients or noise frequencies**; every number below is either printed on a slide, in the notes, or measured from a slide image (and marked as measured). Lighting and the 1/16 reprojection are already well covered in `hzd-nubis-evolved.md` (sections 3 and 4), so they get a short pointer here only.
 
 ## In one paragraph
 A 30-minute talk by Andrew Schneider (FX) with Nathan Vos (tech): the first public look at Guerrilla's ray-marched sky for Horizon Zero Dawn. The claim: **2 ms on PS4, 20 MB of RAM [s1]**, replacing all asset-based skies (billboards, domes) from Killzone. What the deck adds that the later decks and the chapter do not: the **R&D history of rejected approaches** [s8 to s18], the **cloud-type taxonomy figure and the 1961 meteorology rules** the shape model is derived from [s20, s21], the **explicit critique of fBm-over-a-gradient** with photo comparisons [s24 to s27], the **noise slices** for the three textures [s29 to s33], the **three drawn height gradients** [s34], the **in-game weather minimaps and the artist override panel** [s38 to s46], the **painted weather for cutscenes** [s47], and the **spherical-shell diagrams** [s71 to s74].
@@ -38,11 +38,11 @@ A 30-minute talk by Andrew Schneider (FX) with Nathan Vos (tech): the first publ
 ### Height gradients: the three drawn presets [s34, p036]
 - Slide text: "3x Mathematical", "Blends based on cloud type", and a separate **"Coverage Signal"** drawn as a 0-to-1 linear ramp. The three swatches are labelled stratus, cumulus, cumulonimbus, drawn as vertical strips (top of strip = top of the layer).
 - **Measured from the slide image** (300 dpi crop, sampled down the centre of each strip, height fraction h from the base; accurate to about +-0.05, not source numbers):
-  - **Stratus**: a thin band only, roughly h 0.05 to 0.15 (a few percent of the layer), empty above.
+  - **Stratus**: a thin band only, rising from h 0 to a peak at about 0.07 and gone by about 0.09 (review re-measure on the embedded 1199x674 jpeg; the first draft said 0.05 to 0.15), empty above.
   - **Cumulus**: ramps 0 to 1 over h ~0.05 to 0.20, plateau to ~0.40, falls to 0 by ~0.60. So the top 40% is empty and the fall is soft.
   - **Cumulonimbus**: ramps 0 to 1 over h 0 to ~0.10, plateau to ~0.75, falls to 0 at ~0.98. Dense nearly the whole height with a soft top.
   - All three have **soft, smooth ends at both sides (smoothstep-like), not hard cuts**.
-- They are blended at the sample point by the cloud-type value [s34 note]; no constants in the talk. (These are consistent with the "recalled" GPU Pro trapezoid constants in `procedural-shape.md` M2, which should still be checked against the chapter.)
+- They are blended at the sample point by the cloud-type value [s34 note]; no constants in the talk. The three swatches are **the same images as GPU Pro 7 Fig 4.10** (`gp7.md`, measured independently to the same stops within 0.01-0.02), and the chapter has no constants either. The shipped HZD curves differ: see the cross-note comparison in the review section.
 
 ### The density build, with the exact slide formulas [s35 to s37, p037 to p039]
 - [s35, p037] the slide draws: `SetRange( noiseTexture1 x heightGradient ) x coverage x baseFadeGradient`, where the last gradient is a vertical ramp from dark at the bottom to bright at the top (so it **suppresses density at the bottom**, the "reduce density at the base" in the bullet). The notes: this "ensures that the bottoms will be whispy and increases the presence of clouds in a more natural way", and "density increases over altitude" [s36 note].
@@ -142,7 +142,7 @@ Citations are to `packages/runtime/src/procedural/` (the Takram and Sky Pro port
 - **Layering [s73]**: HZD has exactly two layers (volumetric low, 2D high) and expresses cumulonimbus as a precipitation override of type and coverage. We have four independent layers, one weather channel each, no continuous type. The HZD structure is the simpler one to match first.
 
 **Top 5 "try next" (shape, layering, detail):**
-1. **Type-blended profile replacing the semicircle** [s34]: three trapezoids (stratus thin base band, cumulus plateau 0.2 to 0.4 with soft fall to 0.6, cumulonimbus 0.1 to 0.75 with soft top to ~0.98, all with smooth ends), blended by a type value from the weather map's blue channel.
+1. **Type-blended profile replacing the semicircle** [s34]: three trapezoids (stratus thin base band 0 to ~0.09, cumulus plateau 0.2 to 0.4 with soft fall to 0.6, cumulonimbus 0.1 to 0.75 with soft top to ~0.98, all with smooth ends), blended by a type value from the weather map's blue channel.
 2. **Use all shape and detail channels** [s31, s32]: Perlin-Worley dilated by weighted Worley octaves, and the 3-channel detail sum, in place of `.r` only (`density.wgsl.ts:214, 219`).
 3. **Apply the base-fade gradient before erosion** [s35 to s37], and **curl only on the detail lookup** [s37], so the base gets ragged and the silhouette stays intact.
 4. **Add a type channel and the precipitation-to-cumulonimbus override** [s40 to s42, s39]: R coverage, G precipitation, B type; precipitation above a threshold pushes type to cumulonimbus and coverage to ~0.7. One more weather lane, no new layer.
@@ -152,9 +152,29 @@ Citations are to `packages/runtime/src/procedural/` (the Takram and Sky Pro port
 - `hzd-nubis-evolved.md` section 1.1 says "The slide-38 controls show the ranges: Coverage +-0.5, Type +-1, Precipitation +-1". Those overlays are on [s40 to s42] (p042 to p044). Slide 38 (p040) is the **override panel** listing the weather inputs (above). Minor.
 - The same note says the three height gradients are "images only" and describes stratus, cumulus and cumulonimbus loosely. The measured values above are consistent with its description (cumulus about 15 to 60%) but sharpen it: **cumulus has a soft ramp-in at 5 to 20% and a plateau to 40%, empty above 60%**, and **cumulonimbus is nearly full to 75% and fades only in the top quarter**.
 - `procedural-shape.md` M1 describes the weather map blue as type and green as precipitation: confirmed by [s40 note].
-- Nothing in the deck contradicts the "recalled" GPU Pro constants; the deck simply does not contain them. Treat `procedural-shape.md` M1 and M2 recalled numbers as unverified until `gp7.md` exists.
+- Nothing in the deck contradicts the "recalled" GPU Pro constants; the deck simply does not contain them. `gp7.md` now confirms M1 (shape/detail chain) from the chapter's code and finds M2's gradient constants absent from the chapter.
 
 ## Superseded by / supersedes
-- **Superseded in detail by `gp7`** (the chapter: remaps, constants, FBM weights, curl strength, the HG constant, the view-dependent powder, the cloud-type lerp), by `n17` (Nubis 2017: remap form, cloud map R and G Perlin/Perlin-Worley, anvil bias) and by `n3`/`ne22` (the shape model with min/max height, top and bottom type, authoring NDFs).
+- **Superseded in detail by `gp7`** (the chapter: remaps, FBM weights, the `(1 - h)` curl factor, HG with g = 0.2, Beer-powder `2 e^-d (1 - e^-2d)`; it has **no** curl strength, no view-dependent powder and no gradient constants or type-lerp formula), by `n17` (Nubis 2017: remap form, cloud map R and G Perlin/Perlin-Worley, anvil bias) and by `n3`/`ne22` (the shape model with min/max height, top and bottom type, authoring NDFs).
 - **Supersedes nothing**; it is the earliest public statement of the model. Its unique, still-useful content is the **R&D history, the taxonomy and rules figure, the explicit target images for billows and tops, the noise slice figures, the measured gradient shapes, the weather inputs panel, the in-game weather minimaps and the painted-weather cutscene mode**.
 - Lighting/optimisation details (Beer, HG, powder, 1/16 reprojection, six-tap cone) are already analysed in `hzd-nubis-evolved.md` sections 3 and 4; Nubis Cubed replaced powder with its multiple-scattering term (`nubis-sources.md`).
+
+## Review (Opus spot-check, 2026-10-10)
+- [s34] swatch measurements → stratus ✘ fixed (0 to ~0.09, peak 0.07, not 0.05-0.15); cumulus (5% at 0.01, half 0.09, full 0.19, plateau to 0.41, half 0.51, zero 0.59) and cumulonimbus (full 0.07, plateau to 0.75, half 0.86, zero 0.97) ✔ within the stated +-0.05
+- [s40-s42] overlays "Coverage +- .5, Type +- 1, Precipitation +- 1" (p042 jpeg) → ✔
+- [s42 note] precipitation transitions to cumulonimbus at 70% coverage → ✔
+- [s45 notes] 35,000 m radius, from 15,000 m toward cumulus at ~50% coverage → ✔
+- [s73 notes] volumetric strato class 1500-4000 m, 2D alto/cirro above 4000 m → ✔
+- [s81, s83, s84 notes] 64 to 128 samples; 6 cone taps, last far; cheap shader once alpha 0.3, "2x faster" → ✔
+- "gp7.md does not exist" and "superseded by gp7 (curl strength, view-dependent powder, type lerp)" → ✘ fixed: gp7 exists and has none of those three
+- runtime `procedural/density.wgsl.ts:52` `spHorizon` (start, ramp, amount) → ✔; `trace.wgsl.ts:253-262` far taps after the cone → ✔ (block runs to :268)
+
+**Height-gradient numbers across sources** (h = fraction of layer, 0 = base; "full" = density 1):
+| Source | Stratus | Stratocumulus / middle | Cumulus / tall | Status |
+| --- | --- | --- | --- | --- |
+| hzd15 s34 / gp7 Fig 4.10 (same image; captions stratus, cumulus, cumulonimbus) | 0 -> peak 0.07 -> 0 by 0.09 | 0.0 -> full 0.19, plateau to 0.41, 0 by 0.59 | full by 0.07, plateau to 0.75, 0 by 0.97 | measured, 2015/2016 illustration |
+| `nut` slides 7-8 gradient fills (exact XML stops) | see `nut.md` | see `nut.md` | see `nut.md` | exact, 2018 |
+| `n17` measured in-game strips | ~0.01 / 0.07 / 0.10 / 0.18 | 0.03 / 0.16 / 0.32 / 0.47 | 0 / 0.09 / 0.65 / 0.79 | measured; agree with `nut` |
+| `n17` printed stratus pair `(0, 0.1, 0.2, 0.3)` | example only | | | not the shipped curve |
+The 2015/2016 swatches are **not** the shipped curves: the middle swatch here is labelled cumulus but matches no shipped cumulus, and the tall swatch is cumulonimbus. Port the `nut`/`n17` stops for the HZD target; keep this figure only as the talk's illustration.
+
