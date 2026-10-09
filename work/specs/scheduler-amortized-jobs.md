@@ -83,7 +83,6 @@ interface SliceContext {
   restarted: boolean;
   /** Pressure level this frame: 0 none, 1 deferred others, 2 degraded. Jobs may lower quality at >=2. */
   pressure: 0 | 1 | 2;
-  /** Report real work done and finish state. Alternative to returning a SliceResult. */
   /** Ticket identifying this slice for GPU-time feedback (section 5). */
   ticket: SliceTicket;
 }
@@ -216,7 +215,7 @@ A *unit* is whatever the job slices by: a row, a tile, a z-slice, 1/16 of the pi
 - Different jobs have different unit costs; the estimator is per job.
 - `totalUnits` + `done` give progress (`stats`, devtools), without the job exposing internals.
 
-Non-uniform units are fine: the estimator learns an average. When cost varies strongly between slices (shadow-map first fill vs. refresh, light-grid outside march), a job may return `{ done, costScale }` hint... **open question 7.3**: whether to allow per-slice cost multipliers or keep the estimator simple and let jobs split into several job ids (`light-grid:slice`, `light-grid:outside`).
+Non-uniform units are fine: the estimator learns an average. When cost varies strongly between slices (shadow-map first fill vs. refresh, light-grid outside march), a job may return `{ done, costScale }` hint... **open question 9.5**: whether to allow per-slice cost multipliers or keep the estimator simple and let jobs split into several job ids (`light-grid:slice`, `light-grid:outside`).
 
 ## 5. GPU-time feedback
 
@@ -348,7 +347,7 @@ export function scheduleClouds(runtime: CloudRuntime, scheduler = Scheduler.get(
   const offs: Array<() => void> = [];
 
   for (const job of runtime.jobs) {
-    const controls = scheduler.register((_s, _d, slice) => {
+    const ctl = scheduler.register((_s, _d, slice) => {
       grants.set(job.id, slice.units);                  // record the grant; the render node consumes it
       lastTickets.set(job.id, [...(lastTickets.get(job.id) ?? []), slice.ticket].slice(-4));
       job.setPressure?.(slice.pressure);
@@ -365,7 +364,7 @@ export function scheduleClouds(runtime: CloudRuntime, scheduler = Scheduler.get(
     offs.push(() => scheduler.unregister(`clouds:${job.id}`));
     // measurement fan-in: each timer result -> the job that owns that pass
     runtime.timer.listen((pass, ms, frameTag) => {
-      if (job.passNames.includes(pass)) controls.report(takeTicket(lastTickets, job.id, frameTag), ms);
+      if (job.passNames.includes(pass)) ctl.report(takeTicket(lastTickets, job.id, frameTag), ms);
     });
   }
 
@@ -375,7 +374,7 @@ export function scheduleClouds(runtime: CloudRuntime, scheduler = Scheduler.get(
       for (const job of runtime.jobs) {
         const n = grants.get(job.id); if (!n) continue;
         const r = job.encode(encoder, n, timer);
-        if (r.complete) scheduler.getJob?.(`clouds:${job.id}`)?.markComplete();
+        if (r.complete) completeCycle(job.id); // host tells the scheduler the cycle is recorded (WorkJobControls.complete(), proposed)
       }
       grants.clear();
     },
@@ -416,7 +415,7 @@ The sky layer's 1/16 *trace* is the dominant steady cost, and it is the same pas
 ## 8. Edge cases
 
 1. **Zero budget frames.** A render spike leaves `remaining <= 0`. Allocation skips everything not starved; starvation floor still applies. Document that the spike bound can be exceeded by at most `minUnits` x estimate of one starved job.
-2. **First-ever build.** `light-grid` builds all slices in one step at startup (existing behaviour). Express as `work.firstCycle: 'all'`, or let the job return `units = totalUnits` once with `pressure: 'ignore'`. Open question 9.4.
+2. **First-ever build.** `light-grid` builds all slices in one step at startup (existing behaviour). Express as `work.firstCycle: 'all'`, or let the job return `units = totalUnits` once with `pressure: 'ignore'`. Open question: should a first cycle be allowed to run all units in one grant?
 3. **Timer missing or disabled.** Estimator stays on the hint. Provide `work.fixedUnits` (a host may force constant grants), and flag `stats.openLoop = true`.
 4. **Timer results out of order or for dead jobs.** Tickets carry `seq`; stale or unknown tickets are dropped.
 5. **Estimate poisoning** by a GC stall, tab switch or shader compile frame. The p90 cap and the x2 bounded step stop a single 50 ms sample from freezing a job. Samples above `20 x estimate` are discarded outright (counted in `stats.rejected`).
@@ -434,7 +433,7 @@ The sky layer's 1/16 *trace* is the dominant steady cost, and it is the same pas
 2. **One concept or two?** Fold `work` into `JobOptions` (as written), or a sibling `scheduler.registerWork()`? The first keeps `useFrame`'s options object the single source of truth, at the cost of growing a type that most callers use only for `fps` and `priority`. The hook form would be `useFrame(cb, { work: {...} })`; is a generator-accepting `useWork(function*(){...})` wanted?
 3. **Budget ownership.** Per root, as proposed, or a single global budget? With two Canvases the answer changes who pays. What should the *default* `spikeFraction` be when the user did not set it, 0.10 or off (no limiting) so existing apps are unaffected?
 4. **Cost model.** Is `cost: 'external'` plus `report(ticket, ms)` the right amount of surface, or should the scheduler accept a pluggable `CostSource` (`{ measure(job): ms | undefined }`)? The latter generalises to CPU profilers and WebGL disjoint timers, and keeps GPU concepts entirely out of the package.
-5. **Unit cost variance.** Per-slice `costScale` hints versus splitting jobs (7.3 of section 4).
+5. **Unit cost variance.** Per-slice `costScale` hints versus splitting jobs (see section 4).
 6. **Gate default.** Should `observe.visible` default to an `IntersectionObserver` on the root's canvas when the host provides one, or stay explicit? There is also a general demand-mode question: should a fully idle root stop requesting frames, and who owns wake-up from `wake()`?
 7. **Generators in the core.** Generators allocate, and a hot frame loop should not. The function form with explicit state avoids that; is the generator sugar acceptable for hot jobs, or should it be a separate entry point that is tree-shakeable?
 8. **Fairness inside equal priority.** Round robin by age (as proposed) or weighted by `budgetMs`? Does the owner want an explicit `weight`?
