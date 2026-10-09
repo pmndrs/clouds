@@ -243,8 +243,13 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   var smf = sm.f;
   // Faded out over 6-12 km (times the LOD scale, as the billow octaves): further out a bulge is a few pixels and the noise is most of the cost.
   let towerLod = 1.0 - smoothstep(6000.0 * SKY.extra.z, 12000.0 * SKY.extra.z, lodDistance);
-  if (prof && !alto && lodDistance >= 0.0 && sm.s > 0.0 && towerLod > 0.0) {
-    smf = sm.f + towerLod * towerShift(pm, u32(SKY.billow.z * 131.0) + 9u, (L.top - L.base) * shellH, length(grad.xz), gp / hUnit, sm.f, sm.h, sm.s);
+  // Q2: the skips below are measured on the smooth field, but the shift moves the surface outward by up to 1.5 TOWER_AMP metres (the bulge is
+  // within +-1.5) and switches on over 48 m at its gate, which the smooth gradient does not see. Without this slack a skip from just outside
+  // the gate jumped over the shifted flank: P9-C3's reach-bound skip cut a congestus tower's near flank away along a diagonal (Q2 item 0).
+  var towerSlack = 0.0;
+  if (prof && !alto && lodDistance >= 0.0 && towerLod > 0.0) {
+    towerSlack = 1.5 * TOWER_AMP * towerLod * towerWeight((L.top - L.base) * shellH);
+    if (sm.s > 0.0) { smf = sm.f + towerLod * towerShift(pm, u32(SKY.billow.z * 131.0) + 9u, (L.top - L.base) * shellH, length(grad.xz), gp / hUnit, sm.f, sm.h, sm.s); }
   }
   var f0 = smf;
   // Signed distance to the surface in smooth-field units (positive inside) and the gradient of that quantity.
@@ -269,7 +274,7 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
     let reach = surfaceF00(kMax);
     if (smf < reach - 0.005) {
       r.f = smf + kMax * nearRamp(smf);   // an upper bound of f0 (< 0): the layer union still prefers the other layer's cloud
-      r.skip = max((reach - smf) / max(1.5 * length(grad), 1e-3), 2.0);
+      r.skip = max((reach - smf) / max(1.5 * length(grad), 1e-3) - towerSlack, 2.0);
       return r;
     }
     // P9-C3: a branch, not select(): select() evaluates both operands, so every in-line sun sample also ran the Worley octaves it meant to reuse.
@@ -290,14 +295,14 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   } else if (withBillow && smf < SKY_BILLOW_REACH) {
     // Far outside the billow's reach: skip by the smooth field's distance to where the billow could first surface.
     r.f = f0;
-    r.skip = max((SKY_BILLOW_REACH - smf) / max(1.5 * length(grad), 1e-3), 4.0);
+    r.skip = max((SKY_BILLOW_REACH - smf) / max(1.5 * length(grad), 1e-3) - towerSlack, 4.0);
     return r;
   }
   r.f = f0;
   let gl = max(length(grad), 1e-4);
   if (fs <= 0.0 || sm.h >= 1.5) {
     // Empty: first-order distance to the surface, with slack for the gradient growing along the way.
-    r.skip = max(-fs / max(1.5 * gl, 0.012), 2.0);
+    r.skip = max(-fs / max(1.5 * gl, 0.012) - towerSlack, 2.0);
     return r;
   }
   // Metres below the surface: the dome (top and sides) from the field, capped by the column's vertical distances to its base
