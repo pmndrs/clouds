@@ -1619,7 +1619,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Background spikes stay within 10% of the frame (GPU timestamps, per-frame series).
   - `pnpm check`, the bundle check and the packed consumer are green.
 
-### [~] Q2 Look parity with Takram and the photos (midday) · Opus
+### [r] Q2 Look parity with Takram and the photos (midday) · Opus (report: work/reports/Q2.md)
 - **Owns:** the cloud shading, density detail and sky layer (march, density, lighting, sky layer, composite), coordinated with 9-D and 9-E, which may be folded in.
 - **Does:**
   1. **Gap list first.** On the compare page (`ours,takram`, `ours,skypro`, `ours,photo` with the owner's midday photos: humilis, mediocris, congestus, stratocumulus), list every visible difference that makes ours look worse:
