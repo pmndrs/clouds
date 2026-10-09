@@ -1,0 +1,138 @@
+P9-C3 timing, 2560x1440 high, M-series (metal-3), Chrome with --disable-gpu-vsync --disable-frame-rate-limit (P5-C method), GPU timestamp averages
+over 64 fresh timer samples per reading; 'steady' = every pass that runs each frame (light grid and sky weather bake excluded: idle with a still sun).
+HEAD = 6ea1c6e in a scratch worktree, interleaved with the new build: head, new, head, new. Machine shared with other GPU work: single readings swing 10-30%.
+
+## Baseline before any change (min of 3, worktree at 6ea1c6e)
+view	steady	marchNear	marchFar	skyLayer	skyResolve	dome	composite	shadowMap	lightGrid	lightGridReduce	resolveNear	resolveFar
+cumulus/ground	3.16	0.08	0.70	1.22	0.14	0.43	0.33	0.19	0.66	0.09	0.03	0.05    runs: 3.22 3.36 3.16
+   other: skyWeather=0.25
+cumulus/horizon	3.25	0.08	0.66	1.30	0.14	0.46	0.35	0.19	0.66	0.09	0.03	0.05    runs: 3.34 3.37 3.25
+   other: skyWeather=0.25
+cumulus/above	3.35	0.08	0.60	1.39	0.14	0.51	0.37	0.19	0.66	0.09	0.03	0.05    runs: 3.54 3.48 3.35
+   other: skyWeather=0.25
+mixed/ground	4.66	0.08	0.54	2.59	0.14	0.57	0.34	0.30	0.55	0.09	0.03	0.06    runs: 4.72 4.66 4.81
+   other: skyWeather=0.28
+mixed/horizon	4.38	0.08	0.52	2.21	0.14	0.69	0.36	0.30	0.55	0.09	0.03	0.05    runs: 4.46 4.38 4.42
+   other: skyWeather=0.28
+mixed/above	4.31	0.08	0.51	2.04	0.16	0.77	0.39	0.28	0.50	0.09	0.03	0.05    runs: 4.31 4.39 4.48
+   other: skyWeather=0.31
+
+## final-head-1
+view	steady	marchNear	marchFar	skyLayer	skyResolve	dome	composite	shadowMap	lightGrid	lightGridReduce	resolveNear	resolveFar
+cumulus/ground	3.26	0.07	0.64	1.22	0.14	0.44	0.39	0.28	0.67	0.09	0.03	0.05    runs: 3.26
+   other: skyWeather=0.26
+cumulus/horizon	3.56	0.07	0.54	1.57	0.14	0.51	0.37	0.28	0.67	0.09	0.03	0.05    runs: 3.56
+   other: skyWeather=0.26
+cumulus/above	4.39	0.11	0.62	1.67	0.20	0.71	0.70	0.28	0.67	0.09	0.04	0.06    runs: 4.39
+   other: skyWeather=0.26
+mixed/ground	4.28	0.07	0.52	1.89	0.14	0.77	0.40	0.41	0.53	0.07	0.03	0.05    runs: 4.28
+   other: skyWeather=0.28
+mixed/horizon	4.44	0.07	0.51	2.00	0.14	0.83	0.40	0.41	0.53	0.07	0.03	0.05    runs: 4.44
+   other: skyWeather=0.28
+mixed/above	3.99	0.08	0.38	1.53	0.16	0.84	0.50	0.41	0.53	0.07	0.03	0.05    runs: 3.99
+   other: skyWeather=0.28
+
+## final-new-1
+view	steady	marchNear	marchFar	skyLayer	skyResolve	dome	composite	shadowMap	lightGrid	lightGridReduce	resolveNear	resolveFar
+cumulus/ground	3.23	0.08	0.68	1.30	0.15	0.32	0.43	0.20	0.24	0.08	0.03	0.05    runs: 3.23
+   other: skyWeather=0.26
+cumulus/horizon	3.32	0.08	0.57	1.52	0.15	0.32	0.40	0.20	0.24	0.08	0.03	0.05    runs: 3.32
+   other: skyWeather=0.26
+cumulus/above	3.07	0.09	0.47	1.19	0.16	0.32	0.56	0.20	0.24	0.08	0.03	0.05    runs: 3.07
+   other: skyWeather=0.26
+mixed/ground	3.47	0.07	0.51	1.53	0.15	0.45	0.41	0.27	0.42	0.07	0.03	0.05    runs: 3.47
+   other: skyWeather=0.30
+mixed/horizon	3.71	0.07	0.51	1.71	0.15	0.51	0.42	0.27	0.42	0.07	0.03	0.05    runs: 3.71
+   other: skyWeather=0.30
+mixed/above	3.27	0.08	0.39	1.26	0.16	0.50	0.52	0.27	0.42	0.07	0.03	0.05    runs: 3.27
+   other: skyWeather=0.30
+
+## final-head-2
+view	steady	marchNear	marchFar	skyLayer	skyResolve	dome	composite	shadowMap	lightGrid	lightGridReduce	resolveNear	resolveFar
+cumulus/ground	3.38	0.07	0.68	1.32	0.15	0.47	0.41	0.19	0.66	0.08	0.03	0.05    runs: 3.38
+   other: skyWeather=0.28
+cumulus/horizon	3.56	0.07	0.56	1.63	0.14	0.50	0.39	0.19	0.66	0.08	0.03	0.05    runs: 3.56
+   other: skyWeather=0.28
+cumulus/above	3.34	0.09	0.47	1.30	0.16	0.51	0.55	0.19	0.66	0.08	0.03	0.05    runs: 3.34
+   other: skyWeather=0.28
+mixed/ground	3.98	0.07	0.50	1.86	0.14	0.72	0.40	0.22	1.09	0.07	0.03	0.05    runs: 3.98
+   other: skyWeather=0.33
+mixed/horizon	4.25	0.07	0.51	2.02	0.14	0.81	0.40	0.22	1.09	0.07	0.03	0.05    runs: 4.25
+   other: skyWeather=0.33
+mixed/above	3.77	0.08	0.38	1.50	0.16	0.81	0.49	0.26	0.61	0.07	0.03	0.05    runs: 3.77
+   other: skyWeather=0.33
+
+## final-new-2
+view	steady	marchNear	marchFar	skyLayer	skyResolve	dome	composite	shadowMap	lightGrid	lightGridReduce	resolveNear	resolveFar
+cumulus/ground	3.21	0.07	0.69	1.28	0.15	0.30	0.42	0.23	0.38	0.08	0.03	0.05    runs: 3.21
+   other: skyWeather=0.27
+cumulus/horizon	3.33	0.08	0.57	1.53	0.15	0.31	0.40	0.23	0.38	0.08	0.03	0.05    runs: 3.33
+   other: skyWeather=0.27
+cumulus/above	3.12	0.09	0.49	1.17	0.16	0.34	0.56	0.23	0.38	0.08	0.03	0.05    runs: 3.12
+   other: skyWeather=0.27
+mixed/ground	3.50	0.07	0.51	1.53	0.15	0.46	0.41	0.30	0.37	0.07	0.03	0.05    runs: 3.50
+   other: skyWeather=0.29
+mixed/horizon	3.71	0.07	0.51	1.69	0.14	0.50	0.41	0.31	0.34	0.07	0.03	0.05    runs: 3.71
+   other: skyWeather=0.29
+mixed/above	3.29	0.08	0.39	1.27	0.16	0.50	0.50	0.31	0.34	0.07	0.03	0.05    runs: 3.29
+   other: skyWeather=0.29
+
+## Paired in-page A/B (one page, variants alternated, ratio to v0 per round, median): mixed species page, sky layer pass
+-- ground
+  v0 steady=3.832 skyLayer=1.864    [globalThis.__skyExp=0]
+  v1 steady=3.785 skyLayer=1.804 paired skyLayer:0.968   [globalThis.__skyExp=27]
+  v2 steady=3.808 skyLayer=1.766 paired skyLayer:0.935   [globalThis.__skyExp=28]
+  v3 steady=3.783 skyLayer=1.750 paired skyLayer:0.933   [globalThis.__skyExp=26]
+  v4 steady=3.874 skyLayer=1.842 paired skyLayer:0.980   [globalThis.__skyExp=20]
+  v5 steady=3.611 skyLayer=1.533 paired skyLayer:0.822   [globalThis.__skyExp=23]
+  v6 steady=3.366 skyLayer=1.314 paired skyLayer:0.721   [globalThis.__skyExp=25]
+-- horizon
+  v0 steady=4.525 skyLayer=2.188    [globalThis.__skyExp=0]
+  v1 steady=4.474 skyLayer=2.149 paired skyLayer:0.991   [globalThis.__skyExp=27]
+  v2 steady=4.337 skyLayer=2.041 paired skyLayer:0.957   [globalThis.__skyExp=28]
+  v3 steady=4.302 skyLayer=1.979 paired skyLayer:0.918   [globalThis.__skyExp=26]
+  v4 steady=4.361 skyLayer=2.063 paired skyLayer:0.957   [globalThis.__skyExp=20]
+  v5 steady=4.215 skyLayer=1.835 paired skyLayer:0.819   [globalThis.__skyExp=23]
+  v6 steady=4.136 skyLayer=1.719 paired skyLayer:0.792   [globalThis.__skyExp=25]
+legend: 27 exact Worley pruning, 28 billow reach bound, 26 no profile noise beyond 6 km, 20 light samples skip noise and tower, 23 one billow octave, 25 no billow/noise beyond 6 km (diagnostic)
+
+## Round 2 (heavy contention in this session; ratios only): 33 = 27+28+20, 34 = 33 + no noise beyond 6 km, 35 = 33 + billow LOD x0.7, 29/30 far step growth from 12/8 km, 21 light refresh x4, 22 no cheap sun/up samples, 32 billow LOD x0.5
+-- ground
+  v0 steady=7.054 skyLayer=3.246    [globalThis.__skyExp=0]
+  v1 steady=5.767 skyLayer=2.275 paired skyLayer:0.871   [globalThis.__skyExp=33]
+  v2 steady=5.145 skyLayer=1.918 paired skyLayer:0.731   [globalThis.__skyExp=34]
+  v3 steady=5.926 skyLayer=2.331 paired skyLayer:0.813   [globalThis.__skyExp=35]
+  v4 steady=6.073 skyLayer=2.698 paired skyLayer:1.033   [globalThis.__skyExp=29]
+  v5 steady=6.892 skyLayer=2.953 paired skyLayer:0.910   [globalThis.__skyExp=30]
+  v6 steady=6.733 skyLayer=2.989 paired skyLayer:1.059   [globalThis.__skyExp=21]
+  v7 steady=7.353 skyLayer=3.255 paired skyLayer:1.007   [globalThis.__skyExp=22]
+  v8 steady=6.146 skyLayer=2.489 paired skyLayer:0.940   [globalThis.__skyExp=32]
+-- horizon
+  v0 steady=6.458 skyLayer=3.165    [globalThis.__skyExp=0]
+  v1 steady=6.983 skyLayer=3.081 paired skyLayer:0.973   [globalThis.__skyExp=33]
+  v2 steady=6.164 skyLayer=2.638 paired skyLayer:0.888   [globalThis.__skyExp=34]
+  v3 steady=6.276 skyLayer=2.461 paired skyLayer:0.778   [globalThis.__skyExp=35]
+  v4 steady=6.435 skyLayer=3.149 paired skyLayer:0.995   [globalThis.__skyExp=29]
+  v5 steady=6.588 skyLayer=3.004 paired skyLayer:0.949   [globalThis.__skyExp=30]
+  v6 steady=6.444 skyLayer=3.178 paired skyLayer:1.004   [globalThis.__skyExp=21]
+  v7 steady=7.528 skyLayer=3.502 paired skyLayer:1.107   [globalThis.__skyExp=22]
+  v8 steady=5.876 skyLayer=2.713 paired skyLayer:0.857   [globalThis.__skyExp=32]
+
+## Dome (mixed horizon): 1 light refresh every 24 m + 3%, 2 merged samples (3 sun + 2 up), 3 both (kept)
+-- horizon
+  v0 steady=4.559 dome=0.885 skyLayer=2.181    [globalThis.__domeExp=0]
+  v1 steady=4.514 dome=0.763 skyLayer=2.217 paired dome:0.882 skyLayer:1.032   [globalThis.__domeExp=1]
+  v2 steady=4.381 dome=0.667 skyLayer=2.208 paired dome:0.754 skyLayer:1.013   [globalThis.__domeExp=2]
+  v3 steady=4.283 dome=0.586 skyLayer=2.194 paired dome:0.679 skyLayer:1.022   [globalThis.__domeExp=3]
+
+## Sky trace workgroup 8x8 (v0) vs 32x2 rows (v1), final candidate code
+-- ground
+   rounds: 4
+  v0 steady=3.728 skyLayer=1.615 dome=0.480    [globalThis.__skyRows=0]
+  v1 steady=3.885 skyLayer=1.712 dome=0.491 paired skyLayer:1.012 dome:1.016   [globalThis.__skyRows=1]
+-- horizon
+   rounds: 4
+  v0 steady=3.958 skyLayer=1.789 dome=0.530    [globalThis.__skyRows=0]
+  v1 steady=3.909 skyLayer=1.724 dome=0.540 paired skyLayer:0.971 dome:1.015   [globalThis.__skyRows=1]
+
+## Resolution scaling (latency-bound check): mixed ground sky layer 1.86 ms at 1280x720 vs 2.3-2.6 at 2560x1440 (a quarter of the rays); full-rate trace (sky_temporal=0, 16x the rays) 8.9 ms.
