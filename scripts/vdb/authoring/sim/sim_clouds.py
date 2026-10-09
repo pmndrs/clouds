@@ -59,14 +59,15 @@ float t = frame * 0.02;
 vector so = %(seedvec)s;                                               // seed: shifts every noise lookup
 float n1 = noise(p * %(noisefreq)g * 1.7 + {3.1, 1.7, 9.2} + so);          // breaks the disc outline into lobes
 float n2 = noise(p * %(cellfreq)g + {7.3, 2.1, 0.4} + so + t * {0.5, 0.2, 0.3});  // thermal cells
-// emitters: (x, z, rx, rz, weight, start frame, heat) in sim units; each is a noisy elliptical disc, the source is their max.
-// weight scales density and temperature; heat scales temperature only (L1: a hot core tower on a warm, lazier pedestal)
+// emitters: (x, z, rx, rz, weight, start frame, heat, end frame) in sim units; each is a noisy elliptical disc, the source is their max.
+// weight scales density and temperature; heat scales temperature only (L1: a hot core tower on a warm, lazier pedestal);
+// end frame (L2) stops one emitter: a short pulse leaves a detached rising bubble (a thermal) instead of a continuous chimney plume
 float E[] = array(%(emitters)s);
 float mask = 0, tmask = 0;
-for (int i = 0; i < len(E); i += 7) {
+for (int i = 0; i < len(E); i += 8) {
     float dx = (p.x - E[i]) / E[i + 2], dz = (p.z - E[i + 1]) / E[i + 3];
     float rr = sqrt(dx * dx + dz * dz) + (n1 - 0.5) * 0.9 * %(noiseamp)g;
-    float on = smooth(E[i + 5], E[i + 5] + 10.0, frame);
+    float on = smooth(E[i + 5], E[i + 5] + 10.0, frame) * (1 - smooth(E[i + 7] - 10.0, E[i + 7], frame));
     float m = (1 - smooth(1 - %(edge)g, 1.0, rr)) * E[i + 4] * on;
     mask = max(mask, m);
     tmask = max(tmask, m * E[i + 6]);
@@ -127,7 +128,7 @@ def source_params(rcp):
     """The SOURCE_VEX substitutions: the recipe's source block plus the emitter list and the seed offset."""
     src = dict(rcp['source'])
     ems = src.get('emitters') or [[0.0, 0.0, src['radius'], src['radius'], 1.0, 0.0]]
-    ems = [list(e) + [1.0, 0.0, 1.0][len(e) - 4:] for e in ems]   # weight, start frame, heat default to 1, 0, 1
+    ems = [list(e) + [1.0, 0.0, 1.0, 100000.0][len(e) - 4:] for e in ems]   # weight, start frame, heat, end frame default to 1, 0, 1, never
     src['emitters'] = ', '.join('%g' % v for e in ems for v in e)
     seed = int(rcp.get('seed', 0))
     src['seedvec'] = '{%g, %g, %g}' % ((seed * 17.31) % 97.0, (seed * 7.77) % 89.0, (seed * 3.13) % 83.0) if seed else '{0, 0, 0}'

@@ -126,3 +126,14 @@ New levers in `sim_clouds.py`:
 | `remap.stretch_from` | no vertical stretch below this output height, so a pedestal keeps its aspect while the tower above is stretched |
 | `remap.taper`, `taper_y0/y1`, `taper_x/z` | horizontal scale `1 - taper * smooth(y0, y1, y)` about the axis: a tower narrowing toward its crown |
 | `--set emit.I.FIELD=V` (targets.py) | edit one emitter (x z rx rz weight start heat) from the command line |
+
+## Regrowing the library with buoyancy (L2, in progress)
+
+`library.py` TEMPLATES now use the buoyant solver (T0 = 1, T1 = 2, `buoyancylift` 0.35-0.7, turbulence 0.2-0.3, disturbance
+0.1-0.2, no stretch). Entries not yet retuned are listed outside `L2_RETUNED`, and `main()` refuses to write them into the
+library. Experiments go elsewhere: `--tag _x --frames-out 160,220 --assets-dir assets/clouds/local/l2` converts several frames as
+`<name><tag>_fNNN`. Emitters take an 8th field, the `end` frame, so a short pulse leaves a detached rising bubble.
+`python3 quicklook.py OUT.jpg DIR...` (or `--lib DIR`) makes a numpy lit preview of converted clouds (two views, one metre scale).
+First finding: with real lift, a continuous hot-spot emitter (floor 0) grows a thin smoke chimney about 0.3-0.5 km wide and over
+1 km tall, not a dome. The stem cut (`remap.base` 1.0) and staggered pulses alone don't fix that. The next things to try are a
+filled source (`floor` > 0, as L1 used 0.15), a thicker slab, multiple wide emitters, and a weak lid for the mediocris tops.

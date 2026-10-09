@@ -25,20 +25,31 @@ import sim_clouds as sc  # noqa: E402
 ASSETS = os.path.join(sc.REPO, 'assets', 'clouds', 'library')
 WORK = os.path.join(sc.REPO, 'work', 'captures', 'scratch', 'p9f')
 
-_SOLVER = dict(temperature0=0.0, temperature1=1.0, buoyancylift=6.0, tempcooling=0.05, dissipation=0.01,
-               enable_turbulence=1, turbulence=0.6, turbulence_swirlsize=0.6,
-               enable_disturbance=1, disturbance=0.5, disturbance_blocksize=0.5)
+# L2: buoyancy ON.  Pyro's lift is -buoyancylift * (T1 - T0) / T0 * g; the P9-F templates had T0 = 0 (a division by zero, buoyancy
+# silently off), so their plumes spread by turbulence alone and their height came from `remap.stretch`.  With T0 = 1, T1 = 2 the
+# lift is real (L1): buoyancylift 0.3-0.9 grows rising thermals with round domes, and the post stretch is no longer needed.
+_SOLVER = dict(temperature0=1.0, temperature1=2.0, buoyancylift=0.5, tempcooling=0.03, dissipation=0.006,
+               enable_turbulence=1, turbulence=0.3, turbulence_swirlsize=0.4,
+               enable_disturbance=1, disturbance=0.15, disturbance_blocksize=0.4)
+_CUMULUS_SRC = dict(radius=2.0, height=0.35, rate=1.5, temp=0.85, noisefreq=1.1, noiseamp=0.9, edge=0.5, cellfreq=1.6, cell0=0.45, cell1=0.65, floor=0.0, emit_frames=300)
+_CONGESTUS_SRC = dict(radius=1.0, height=0.4, rate=2.0, temp=1.0, noisefreq=1.0, noiseamp=0.9, edge=0.5, cellfreq=1.4, cell0=0.45, cell1=0.65, floor=0.0, emit_frames=300)
+_REMAP = dict(lo=0.05, hi=1.0, base=0.05, basefade=0.2, stretch=1.0)   # a sharp flat base (20 m fade); no stretch: buoyancy gives the height
 TEMPLATES = {
-    # the P4-F recipes with a sharp flat base (a 20 m fade, not 100 m: the soft fade read as a rounded bottom once rendered)
-    'cumulus': dict(sc.RECIPES['cumulus'], remap=dict(sc.RECIPES['cumulus']['remap'], basefade=0.2)),
-    'congestus': dict(sc.RECIPES['congestus'], remap=dict(sc.RECIPES['congestus']['remap'], basefade=0.2)),
+    'cumulus': dict(world_scale=100.0, divsize=0.08, frames=180, out_frames=[], source=_CUMULUS_SRC, solver=dict(_SOLVER),
+                    remap=dict(_REMAP), smooth=1, convert=['--iso', '0.3', '--margin', '1']),
+    'congestus': dict(world_scale=100.0, divsize=0.08, frames=240, out_frames=[], source=_CONGESTUS_SRC, solver=dict(_SOLVER, buoyancylift=0.7),
+                      remap=dict(_REMAP), smooth=1, convert=['--iso', '0.3', '--margin', '1']),
     # wide, low, capped: the starting point of the slabs
     'strato': dict(world_scale=100.0, divsize=0.08, frames=150, out_frames=[],
                    source=dict(radius=3.0, height=0.3, rate=1.2, temp=0.7, noisefreq=0.9, noiseamp=0.6, edge=0.35, cellfreq=3.0, cell0=0.42, cell1=0.6, floor=0.05, emit_frames=200),
-                   solver=dict(_SOLVER, buoyancylift=4.0, turbulence=0.5, turbulence_swirlsize=0.4, disturbance=0.4, disturbance_blocksize=0.3),
-                   remap=dict(lo=0.05, hi=1.0, base=0.05, basefade=0.2, stretch=1.0), smooth=1,
-                   convert=['--iso', '0.3', '--margin', '1']),
+                   solver=dict(_SOLVER, buoyancylift=0.35, turbulence=0.3, turbulence_swirlsize=0.3, disturbance=0.2, disturbance_blocksize=0.3),
+                   remap=dict(_REMAP), smooth=1, convert=['--iso', '0.3', '--margin', '1']),
 }
+
+# L2 (in progress): entries regrown and checked with the buoyant templates above.  The rest still carry their P9-F overrides
+# (buoyancylift 4-14 and stretch 0.6-3, tuned for the buoyancy-less solver), which are wrong with T0 = 1, so main() refuses to
+# write them into assets/clouds/library/; experiments (--tag / --frames-out / another --assets-dir) are always allowed.
+L2_RETUNED = set()
 
 # x, z, rx, rz, weight, start frame (sim units: 1 = 100 m)
 LIBRARY = {
@@ -161,6 +172,7 @@ def main():
     ap.add_argument('--tag', default='')
     ap.add_argument('--no-convert', action='store_true')
     ap.add_argument('--no-previews', action='store_true')
+    ap.add_argument('--frames-out', help='experiments: also convert these frames (comma list), as <name><tag>_fNNN')
     ap.add_argument('--assets-dir', default=ASSETS)
     ap.add_argument('--work-dir', default=WORK)
     ap.add_argument('--log', default=None, help='log file (default <work-dir>/library.log)')
@@ -183,6 +195,9 @@ def main():
     for n in names:
         if n not in LIBRARY:
             raise SystemExit(f'unknown library entry {n!r} (see --list)')
+    stale = [n for n in names if n not in L2_RETUNED]
+    if stale and not (a.tag or a.frames_out or a.no_convert) and os.path.abspath(a.assets_dir) == os.path.abspath(ASSETS):
+        raise SystemExit(f'L2: not retuned for buoyancy yet, refusing to overwrite the library: {stale} (use --tag/--frames-out/--assets-dir)')
     os.makedirs(a.work_dir, exist_ok=True)
     logf = open(a.log or os.path.join(a.work_dir, 'library.log'), 'a')
 
@@ -198,28 +213,33 @@ def main():
         rcp = recipe(n)
         sc.apply_overrides(rcp, a.set)
         try:
-            paths, secs = sc.simulate(n, rcp, a.work_dir, tag=a.tag, previews=not a.no_previews, log=log)
+            extra = [int(f) for f in a.frames_out.split(',')] if a.frames_out else []
+            if extra:
+                rcp['frames'] = max([rcp['frames']] + extra)
+            paths, secs = sc.simulate(n, rcp, a.work_dir, outs=extra or None, tag=a.tag, previews=not a.no_previews, log=log)
             if a.no_convert:
                 continue
-            vdb = paths[max(paths)]
-            out, size = sc.convert(n, vdb, rcp, a.assets_dir)
-            m = measure(out)
-            entry = LIBRARY[n]
-            manifest = dict(name=n, species=entry['species'], note=entry.get('note', ''), seed=rcp.get('seed', 0),
-                            frame=max(paths), simSeconds=round(secs, 1), bytes=size, **m,
-                            stamp=entry.get('stamp', {}), recipe=rcp,
-                            generator='scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog')
-            with open(os.path.join(out, 'manifest.json'), 'w') as f:
-                json.dump(manifest, f, indent=2)
-            log(f'[{n}] {m["sizeMeters"]} m, base {m["baseMeters"]} top {m["topMeters"]} m, {size / 1048576:.2f} MiB, sim {secs:.0f}s')
-            if size >= 4 * 1024 * 1024:
-                log(f'[{n}] WARNING: {size / 1048576:.2f} MiB is over the 4 MB budget (raise `voxel`)')
+            frames = sorted(extra) if extra else [max(paths)]
+            for fr in frames:
+                name = n + a.tag + (f'_f{fr:03d}' if extra else '')
+                out, size = sc.convert(name, paths[fr], rcp, a.assets_dir)
+                m = measure(out)
+                entry = LIBRARY[n]
+                manifest = dict(name=name, species=entry['species'], note=entry.get('note', ''), seed=rcp.get('seed', 0),
+                                frame=fr, simSeconds=round(secs, 1), bytes=size, **m,
+                                stamp=entry.get('stamp', {}), recipe=rcp,
+                                generator='scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog')
+                with open(os.path.join(out, 'manifest.json'), 'w') as f:
+                    json.dump(manifest, f, indent=2)
+                log(f'[{name}] {m["sizeMeters"]} m, base {m["baseMeters"]} top {m["topMeters"]} m, {size / 1048576:.2f} MiB, sim {secs:.0f}s')
+                if size >= 4 * 1024 * 1024:
+                    log(f'[{name}] WARNING: {size / 1048576:.2f} MiB is over the 4 MB budget (raise `voxel`)')
         except BaseException as e:  # keep going: an unattended batch reports every failure at the end
             if isinstance(e, KeyboardInterrupt):
                 raise
             failures.append(n)
             log(f'[{n}] FAILED: {e}')
-    if not a.no_convert:
+    if not a.no_convert and not a.tag and not a.frames_out:
         write_index(a.assets_dir, log)
     log(f'=== done in {time.time() - t_all:.0f}s, {len(names) - len(failures)}/{len(names)} ok' + (f', failed: {failures}' if failures else ''))
     if failures:
@@ -235,7 +255,7 @@ def write_index(assets_dir, log=print):
         m = json.load(open(mp))
         clouds.append({k: m[k] for k in ('name', 'species', 'sizeMeters', 'baseMeters', 'topMeters', 'voxelSizeMeters', 'bytes', 'stamp')})
     with open(os.path.join(assets_dir, 'index.json'), 'w') as f:
-        json.dump(dict(note='P9-F authored cloud library; regenerate with scripts/vdb/authoring/sim/library.py', clouds=clouds), f, indent=2)
+        json.dump(dict(note='P9-F authored cloud library, regrown with working buoyancy in L2; regenerate with scripts/vdb/authoring/sim/library.py', clouds=clouds), f, indent=2)
     log(f'[index] {len(clouds)} clouds, {sum(c["bytes"] for c in clouds) / 1048576:.1f} MiB total')
 
 
