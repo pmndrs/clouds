@@ -1736,6 +1736,71 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Document any remaining differences.
 - **Acceptance:** side-by-side captures, real Tidewater vs the Sky Pro pane, at 2–3 sun angles, read by the orchestrator as matching. `pnpm check` green.
 
+## Hybrid phase (owner, 2026-10-09 late)
+
+Owner direction:
+- Procedural generally looks better. Improve our shaping and the **hybrid** (procedural and NVDF mixed in one frame); never go procedural-only. Releasing on procedural is allowed if needed, but not planned.
+- Keep **both shapers and both lighting models switchable**. Our lighting stays, because it is designed for our complex clouds. Procedural gets procedural-style lighting as its default.
+- Ground shadows for procedural clouds.
+- Split the generator out of core.
+- Testbench: the owner's sunset photos, and fine sun-elevation control.
+
+### [~] X3 Hybrid procedural + NVDF in one frame; procedural lighting default; shadows and dome · Opus
+- **Owns:**
+  - `packages/runtime/src/procedural/**`
+  - `packages/runtime/src/shaders/{march,density,lighting,composite,dome,shadow-map}.wgsl.ts`
+  - `packages/runtime/src/{runtime.ts,shadow-map.ts,dome.ts,sky-layer.ts}` and the sky-layer shader
+- **Not:**
+  - `examples/lab/compare/**` (T2 owns it; use existing query keys, and add new ones only through `examples/lab/compare/panes/ours.ts`, coordinating via the board)
+  - `packages/runtime/src/generate/**` (B2)
+- **Does:**
+  1. **Lighting models, all switchable** (`lightingModel: 'nubis' | 'octave'`):
+     - Port Takram's per-sample lighting from X1's `proc_lighting=1` into a proper `octave` model: multiple-scattering octaves (Frostbite/Wrenninge), cite them.
+     - Default `octave` for procedural and `nubis` for NVDF.
+     - Retune procedural ambient (X1 found ours 4–6× Takram's, and blue).
+     - Keep C1's low-sun handoff, per-altitude sun and Earth shadow working in both models.
+  2. **Hybrid:** NVDF voxel clouds (heroes, stamped, library) render inside the procedural sky in the same frame. Correct mutual occlusion and depth compositing, and density union where they overlap. Example: the onsen hero tower inside a procedural cumulus sky.
+  3. **Ground shadows and water reflections from procedural clouds:** the shadow map and the dome must see the procedural density.
+  4. Fix X1's open "drip" artefact where two layers overlap.
+- **Acceptance:**
+  - Compare page: NVDF / procedural-nubis / procedural-octave / hybrid vs Takram at ground, horizon, sunset, dusk and above.
+  - Onsen and open-water opt in to hybrid via a query.
+  - Shadows visible from procedural clouds.
+  - Default NVDF path unchanged.
+  - `pnpm check`, bundle and packed consumer green.
+  - Checkpoint-commit often.
+
+### [~] B2 Split the generator out of the core bundle · Sonnet
+- **Owns:** `packages/runtime/src/generate/**` and the build and bundle scripts.
+- **Does:**
+  - Split `generate/shaders.ts` (B1 proposal 1): the shared field WGSL (BILLOW, profile, species tables) that the sky layer and shadow map need stays at its current export path, so their imports don't change. Generator-only kernels move to a module imported only from `generate/index.ts`.
+  - Measure with `check-bundle --strict`. The target is meaningful headroom on `@clouds/three` +deps (it was 59.9 of 60 KB).
+  - Don't touch the sky-layer, shadow-map or procedural files (X3).
+- **Acceptance:** bundle headroom of 3 KB or more, behaviour identical (generate test pages pass), `pnpm check` green.
+
+### [~] T2 Testbench: fine sun control and the owner's photo browser · Sonnet
+- **Owns:** `examples/lab/compare/**`, except `panes/ours.ts` (shared with X3; touch only to add photo or sun plumbing).
+- **Does:**
+  1. **Sun elevation control:** fine near the horizon. Use 0.1° steps across −6…+15° (e.g. a non-linear slider or a numeric field), plus keyboard nudges (`[`/`]` 0.1°, `{`/`}` 1°). It currently jumps from sunset to daylight in about 3 ticks.
+  2. **Photo browser:**
+     - The photo pane gets a picker: thumbnails from `artifacts/research/cloud-photos/` (via the vite research-dir allow from C3), filterable by folder: sunset-layers, species folders, `_targets`.
+     - It remembers the last photo.
+     - Optionally it pre-sets a matching sun elevation per photo, recorded in a small local JSON in the photos dir, not committed.
+  3. A "vibe" layout: ours, Takram and photo in three columns.
+- **Acceptance:**
+  - Captures prove it works, but photo captures stay in `work/captures/scratch/`.
+  - Usable live at `localhost:5173/compare/`.
+  - `pnpm check` green.
+
+### [~] R2 Research: multi-view generation models for clouds · Sonnet
+- **Owns:** `docs/research/multiview-models.md` and an index row.
+- **Does:**
+  - Find current (2026) multi-view and novel-view image models: the multi-view stages of image-to-3D systems (MV-Adapter, Zero123++, SV3D, Era3D, Hunyuan3D multiview and their successors), plus anything newer.
+  - Search fal (use the fal MCP `search_models`), Replicate and Modal. Also check whether video models with orbit and camera control can make orbit views.
+  - Run a small pilot on the hero tower crop with the 2–3 most promising available models: about $3 total cap, logged. The crop is at the scratchpad path `fal/tower.jpg` (session scratchpad; see `docs/research/image-gen-pilot.md`). Compare with the Qwen and nano-banana-2 pilot.
+  - Outputs go to `work/captures/scratch/`, never committed.
+- **Acceptance:** a ranked recommendation with links, prices, the pilot sheet (local) and an honest note on 3D consistency for soft, translucent subjects.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
