@@ -1687,7 +1687,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   Keep the MDX frontmatter and `check-docs` rules.
 - **Acceptance:** `node scripts/check-docs.mjs` green, samples type-check, `pnpm check` green.
 
-### [r] G1 Gallery refresh · Haiku (worker G1; report: work/reports/G1.md)
+### [x] G1 Gallery refresh · Haiku (worker G1; report: work/reports/G1.md)
 - **Owns:** `examples/lab/gallery/**`.
 - **Does:**
   - Add cards for library, species, storm, sunset and compare (with real thumbnails), checking each card's text against the page.
