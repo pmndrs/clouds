@@ -42,21 +42,30 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 
 ## Source library (local, `artifacts/research/` in the main checkout)
 
+Papers are in `papers/`, Guerrilla's Nubis material in `nubis/` (owner reorganised 2026-10-09). The extraction plan and per-source status live in [TRACKING.md](TRACKING.md).
+
 | Source | Tags | Scanned? | Notes |
 | --- | --- | --- | --- |
-| `~/Downloads/Nubis Cubed - 1080.pptx` (N3, SIGGRAPH 2023) | all | ✅ nubis-sources, deck-scenes | The method we implement |
-| `~/Downloads/Schneider - Synthesizing Realistic Clouds for Video Games.pptx` (SY, 2024) | light shape | ✅ same | Physical rules behind the noise, lighting |
-| `The Real-time Volumetric Cloudscapes of Horizon - Zero Dawn - ARTR.pdf` (2015) | weather shape perf | ✅ hzd-nubis-evolved | Height gradients, weather map, reprojection |
+| `nubis/Nubis Cubed - 4k.pptx` (N3, SIGGRAPH 2023; also `nubis/Nubis Cubed.pdf` with speaker notes) | all | ⚠️ partial (from the 1080 deck): nubis-sources, deck-scenes | **The primary source.** The method we implement, with Schneider's full reasoning and code in the slides. Full re-extraction is task RS-1 in [TRACKING.md](TRACKING.md) |
+| `nubis/Schneider - Synthesizing Realistic Clouds for Video Games.pptx` (SY, 2024) | light shape | ✅ same | Physical rules behind the noise, lighting |
+| `papers/The Real-time Volumetric Cloudscapes of Horizon - Zero Dawn - ARTR.pdf` (2015) | weather shape perf | ✅ hzd-nubis-evolved | Height gradients, weather map, reprojection |
 | `nubis/nubis-evolved-2022.pdf` | shape weather cirrus | ✅ hzd-nubis-evolved | Profile tables, cirrus p.65, envelope, superstorm |
 | `nubis/nubis-cubed-2023.pdf` | all | ✅ (same as the pptx) | |
-| `Nubis - Authoring Realtime Volumetric Cloudscapes ... Final .pdf` (2017) | authoring horizon | ✅ legacy-and-survey | Weather scheduler, the half-opaque haze depth, silver lobe |
-| `COMPREHENSIVE SURVEY OF CLOUDS 2021.pdf` | survey | ✅ legacy-and-survey | Nothing new on our five questions |
-| `s2016-pbs-frostbite-sky-clouds-new.pdf` (Hillaire 2016, Frostbite course notes) | sunset horizon light shadow perf | ✅ frostbite-yusov-hogfeldt | Octave MS with no numeric a/b/c, sun and atmosphere constants, eq. 21-22 aerial perspective, ambient controls |
-| `Yusov-Clouds.pdf` (HPG 2014, **slides only**) | perf light | ✅ same | Precomputed particle lighting; its sunset frames are uniformly orange (a counter-example). Nothing on ambient, cirrus, shadow |
-| `hogfelt.pdf` (Högfeldt 2016 thesis) | perf light | ✅ same | Compact Frostbite shader, early exits, temporal alpha 5%, dusk render p.39. AP and ground shadows are future work |
-| `bouthors08.pdf` (Bouthors et al. 2008) | sunset light | ✅ same | Scattering-order regimes and the `mu_L` dependence of the diffuse body; "blue above, brown below" environment pair. Full model not portable |
+| `papers/Nubis - Authoring Realtime Volumetric Cloudscapes ... Final .pdf` (2017; copy also in `nubis/`) | authoring horizon | ✅ legacy-and-survey | Weather scheduler, the half-opaque haze depth, silver lobe |
+| `papers/COMPREHENSIVE SURVEY OF CLOUDS 2021.pdf` | survey | ✅ legacy-and-survey | Nothing new on our five questions |
+| `papers/s2016-pbs-frostbite-sky-clouds-new.pdf` (Hillaire 2016, Frostbite course notes) | sunset horizon light shadow perf | ✅ frostbite-yusov-hogfeldt | Octave MS with no numeric a/b/c, sun and atmosphere constants, eq. 21-22 aerial perspective, ambient controls |
+| `papers/Yusov-Clouds.pdf` (HPG 2014, **slides only**) | perf light | ✅ same | Precomputed particle lighting; its sunset frames are uniformly orange (a counter-example). Nothing on ambient, cirrus, shadow |
+| `papers/hogfelt.pdf` (Högfeldt 2016 thesis) | perf light | ✅ same | Compact Frostbite shader, early exits, temporal alpha 5%, dusk render p.39. AP and ground shadows are future work |
+| `papers/bouthors08.pdf` (Bouthors et al. 2008) | sunset light | ✅ same | Scattering-order regimes and the `mu_L` dependence of the diffuse body; "blue above, brown below" environment pair. Full model not portable |
+| `papers/GPU_PRO_7-clouds.pdf` (Schneider, "Real-Time Volumetric Cloudscapes", GPU Pro 7, 2016) | shape weather perf | ❌ not yet (RS-2) | The written HZD chapter with HLSL for the density chain. Settles the "recalled" constants in procedural-shape.md |
+| `papers/Haggstrom.pdf` (Häggström 2018 thesis) | shape light perf | ❌ not yet (RS-3) | Full maths of an HZD-style implementation, per the owner |
+| `papers/Procedural-Cloudscapes-EG2018-article.pdf` (Webanck et al. 2018) | shape layering | ❌ not yet (RS-3) | Per-type procedural shape functions with altitude ranges |
+| `papers/TheReal-timeVolumetricSuperstormsOfHorizonForbiddenWest_Schneider_Andrew.pdf` (HFW superstorms, 2022) | shape storm light | ⚠️ partial via hzd-nubis-evolved | Updated versions of earlier methods, **with code inside the slide images** (RS-2) |
+| `papers/s2020_pbs_hillaire_slides.pdf` (Hillaire 2020, atmosphere) | light horizon | ❌ not yet (RS-4) | The sky model behind @pmndrs/sky; lighting is parked, so low priority |
+| `nubis/Nubis+-+Realtime+Volumetric+Cloudscapes+In+A+Nutshell+(1).pptx` | shape weather | ❌ not yet (RS-2) | Older Nubis talk; the pptx carries slide text and code |
+| `nubis/nubis_noise_generator/` (`.hda` plus README) | noise authoring | ❌ not yet (RS-2) | Guerrilla's Houdini noise generator for the Perlin-Worley sets |
 | `jendersie/` (approximate Mie paper, supplemental, `draine.hlsl`) | light sunset | ✅ approximate-mie | Phase function for droplets |
-| `slides_public_release.pptx` (238 MB): RDR2, Bauer, SIGGRAPH 2019 | horizon sunset shadow perf | ✅ rdr2-atmosphere | 78 slides |
+| `papers/slides_public_release.pptx` (238 MB): RDR2, Bauer, SIGGRAPH 2019 | horizon sunset shadow perf | ✅ rdr2-atmosphere | 78 slides |
 | `cloud-photos/` (about 500 photos, 15 types, `manifest.json`) | shape sunset scene | ✅ photo-species-specs | Many misfiles (see that doc). Empty: stratus/fog valley, lenticular, mammatus, shelf, nimbostratus, cirrocumulus |
 | `nubis-pack/`, `nubis-src/` | authoring | ✅ (P0) | Guerrilla's voxel cloud pack, MIT per the owner; assets in `assets/nubis-voxel-clouds/` |
 | `disney-cloud/` | authoring | ✅ (P4-G) | WDAS cloud, CC BY-SA 3.0 |
