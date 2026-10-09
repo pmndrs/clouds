@@ -1389,6 +1389,22 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Flagship A/B shows no regression except the intended shadow change.
   - `pnpm check` green; the packed consumer passes.
 
+### [~] P10-B Cloud shadows in three materials · Sonnet
+- **Owns:**
+  - `packages/three/src/**` and `packages/react/src/**`: shadow node and prop pass-through
+  - `examples/lab/scenes/{terrain,ocean}/**`
+  - `examples/lab/{onsen,plains-flight,three-adapter}/main.ts`
+  - `docs/guide/api.mdx` (the shadow API, and the CloudMemory `shadow` field P10-A added)
+- **Does:** `clouds.shadowNode` or `cloudShadow(positionWorld)` as a TSL node built on `runtime.shadowMap` via `cloudShadowMapWgsl`. Scene materials use it to dim **direct sun only**, keeping sky and ambient light. Wire it into a three DirectionalLight's shadow or color node, or document the material hook. Provide a simple opt-in for users, e.g. `clouds.applyShadow(light)` or a node to multiply into `material.colorNode`/lighting.
+  - When a scene uses the node, the composite-alpha shadow is turned off for it (no double shadow). The composite path stays the default for scenes that don't opt in.
+  - Wire it into the terrain scene (onsen, plains-flight), the ocean (open-water) and the three-adapter ground.
+- **Acceptance:**
+  - Captures of onsen, plains-flight and open-water with moving cloud shadows that darken sunlit areas but leave shadowed and ambient areas at sky light. Compare with the composite path.
+  - The plains-flight `t0` and `t25` frames show shadows racing over the fields.
+  - Cost ≤ 0.1 ms.
+  - The renderer-agnostic test still passes.
+  - `pnpm check` green; the packed consumer passes; `node scripts/check-docs.mjs` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
