@@ -1651,7 +1651,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   It writes a dated contact sheet next to the previous one, so progress is visible pass by pass. A `--photos` flag also builds side-by-sides with the owner's reference picks into `work/captures/scratch/review/`, which is never committed.
 - **Acceptance:** one command, about 5 minutes, and a before/after sheet against the last run.
 
-### [r] P13-H3 Hero loader and static stamp (+H4 importer) · Opus (report: work/reports/P13-H3.md)
+### [x] P13-H3 Hero loader and static stamp (+H4 importer) · Opus (report: work/reports/P13-H3.md)
 - **Owns:**
   - `packages/runtime/src/{assets.ts,resources.ts}` and `packages/runtime/src/hero/**`
   - `packages/runtime/src/import/**`, `packages/runtime/vendor/**`
