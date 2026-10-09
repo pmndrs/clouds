@@ -1599,7 +1599,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Pane labels show the sun elevation and the bookmark.
 - **Acceptance:** usable with `?impls=ours,photo&photo=...`, and captured with the harness (`capture.mjs` can pass the photo path). `pnpm check` green.
 
-### [ ] S1 Scheduler: background jobs at their own rates · Opus (after P9-C3)
+### [ ] S1 Scheduler: background jobs at their own rates · Opus (deferred: performance phase, after look parity)
 - **Owns:**
   - `packages/runtime/src/runtime.ts`, to split amortized subsystems into separately encodable jobs
   - `packages/three/src/**` (the adapter drives jobs through `@pmndrs/scheduler`) and `packages/react/src/**`
@@ -1618,6 +1618,28 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - A 30 fps app profile and a 60 fps profile both meet the budget model in `docs/PLAN-2026-10-next.md`.
   - Background spikes stay within 10% of the frame (GPU timestamps, per-frame series).
   - `pnpm check`, the bundle check and the packed consumer are green.
+
+### [ ] Q2 Look parity with Takram and the photos (midday) · Opus (after P9-C3 hands back)
+- **Owns:** the cloud shading, density detail and sky layer (march, density, lighting, sky layer, composite), coordinated with 9-D and 9-E, which may be folded in.
+- **Does:**
+  1. **Gap list first.** On the compare page (`ours,takram`, `ours,skypro`, `ours,photo` with the owner's midday photos: humilis, mediocris, congestus, stratocumulus), list every visible difference that makes ours look worse:
+     - shape and silhouette;
+     - edge softness or crispness;
+     - internal shading and contrast;
+     - silver lining and backlight;
+     - dark bases;
+     - ambient colour;
+     - distant clouds;
+     - noise or texture scale ("cotton" or "cauliflower" vs real);
+     - temporal artefacts.
+
+     Rank them by how much each hurts.
+  2. **Fix from the top**, one change per item, each with an A/B side-by-side.
+     - **Shape-detail items (from 9-D):** directional detail (leading face sharp, trailing soft, tops crisp, bases smooth) and lobe scale.
+     - **Cost:** may rise. Report it, but don't block on it.
+- **Acceptance:**
+  - Every top-5 gap is fixed, or explained with a concrete next step.
+  - The owner looks at the before/after and agrees ours no longer looks worse than Takram at midday.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 

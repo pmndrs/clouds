@@ -21,6 +21,13 @@ Supersedes the ordering in `docs/PLAN-2026-10-variety.md`. That plan's task defi
 | Sparse hero storage spec (WebVDB) | ✅ P8-E spec; implementation not started |
 | Cloud cost on high | ❌ 4.5–5.3 ms at 2560×1440 after P9-C (budget 3.5) |
 
+## Priority (owner, 2026-10-09): quality first, performance later
+
+Our clouds still don't match the WebGL work we are building on (Takram, Sky Pro) or the photos. Until they do, **visual quality comes first.**
+- Performance budgets are guards against regressions, not goals. Keep demos at interactive rates on the owner's laptop, and don't let any change more than double a pass without a reason.
+- The budget model below and the scheduler work (S1) still stand. They come after look parity.
+- Order: look parity and the species, then scenes, then hero detail, then performance (9-C3 follow-ups, S1, ray reconstruction).
+
 ## Never acceptable (all phases)
 
 - A pattern a person can see: clones, lattices, cylinders or box outlines.
