@@ -1524,6 +1524,40 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The all-fine march is ≤ 1.2× the dense one (GPU timer).
   - `pnpm check` green; the packed consumer passes.
 
+### [ ] C1 Sunset and low-sun colour · Opus (after P13-H1)
+- **Owns:**
+  - `packages/runtime/src/shaders/{march,lighting,atmosphere}.wgsl.ts`
+  - the lighting uniforms in `runtime.ts`
+  - the sky layer's lighting functions
+  - the compare page, for a sunset A/B
+- **Research:**
+  - `docs/research/frostbite-yusov-hogfeldt.md` §1b: the code for the low-sun ms handoff
+  - `approximate-mie.md`: optional phase model
+  - `rdr2-atmosphere.md`: sun-weighted reduced-sky ambient (S36) and a back-scatter floor (S30)
+  - `photo-species-specs.md`: the sunset targets
+- **Does:**
+  1. The `ms` and deep-scatter sun share falls at low sun, `mix(MU_FLOOR, 1, saturate(sinElev/MU_KNEE))`, and hands over to sky/ground ambient. The direct term is untouched.
+  2. Ambient: a sun-weighted reduced-sky top colour and a ground-bounce bottom colour (Hillaire p.35–36 gradient).
+  3. Sun radiance sampled at cloud base and top and mixed by height, so high cloud stays pink.
+  4. Optional `phaseModel: 'hg' | 'mie'` with `dropletDiameter` (approximate-mie WGSL port). Off by default unless the A/B wins.
+- **Acceptance:**
+  - On sunset bookmarks (compare page, open-water sunset, T4-like views) the cloud bodies fall in the photo ranges: mauve/slate for 60–75% of the area, warm only on sun-facing fringes. Lit:shadow ratio 4–6:1 at a few degrees of elevation.
+  - Midday look unchanged (A/B).
+  - The orchestrator compares against the owner's sunset photos (local).
+  - Cost neutral. `pnpm check` green.
+
+### [ ] C2 Horizon haze and aerial perspective · Opus (after P13-H1; parallel with C1 only if the files are split)
+- **Research:**
+  - `rdr2-atmosphere.md` S62: aerial perspective once, at the transmittance-weighted depth, with a shared frustum LUT
+  - `frostbite-yusov-hogfeldt.md`: Hillaire eq. 21/22, `L_AP*Tr_cloud + L_cloud`
+  - `legacy-and-survey.md`: the half-opaque depth
+- **Does:**
+  - Fix far-cloud fading and the speckle/band at the horizon (P8-A comparison: Takram is cleaner).
+  - Sky-layer depth: also store depth² for an opacity distribution (Ghost of Yōtei).
+- **Acceptance:**
+  - Compare page `horizon` and `sunset` views: no band or speckle, and far clouds fade like the photos and Takram.
+  - Cost neutral. `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
