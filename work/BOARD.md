@@ -1986,6 +1986,21 @@ Owner direction:
     `work/captures/P4-A/`.
   - Conversion time for each file is reported.
 
+## Research organisation (RS, owner 2026-10-09/10; no engine work until RS-5)
+
+Plan and tracker: [docs/research/TRACKING.md](../docs/research/TRACKING.md). Agent brief: [specs/RS-brief.md](specs/RS-brief.md).
+
+- [x] RS-0 Extraction scripts `scripts/research/extract-pptx.py`, `extract-pdf.sh`; raw dumps for every tracked source in `artifacts/research/extracted/` (local) · orchestrator
+- [~] RS-1 `n3` Nubis Cubed, split by section: s1–46 history/HZD procedural, s47–74 prototype + voxel modelling, s75–109 sampling density, s110–155 lighting + march, s156–194 rendering/production/Stormbird → `docs/research/sources/n3/`; then an Opus synthesis into `sources/n3.md` with the deck-vs-runtime diff · Opus ×5 + Opus lead
+- [~] RS-2 Nubis family, one agent per source: gp7 [~], hfw [~], ne22, nut, n17, hzd15, syn, noise (Houdini HDA) · Sonnet, Opus spot-check
+- [ ] RS-3 Academic shape: hag, web18, bou08 (detail), survey · Sonnet
+- [ ] RS-4 Lighting/atmosphere top-ups (lowest priority) · Sonnet
+- [~] RS-T Owner target studies: `docs/research/targets/santa-sleigh.md` (multi-body merging line, not one tower) and `frog.md` (surface-detail catalogue from zoomed shots) · Opus
+- [ ] RS-V EmberGen CloudPack VDB inventory (`artifacts/research/vdbs/CloudPack/`, 10 clouds + `.ember` setup): grids, sizes, thumbnails, shape notes; doubles as a VDB-loader test list · Sonnet
+- [ ] RS-5 Topic guides (shape, layering, surface-detail, weather, authoring) with a ranked try-next list · Opus
+- [ ] RS-6 Index refresh; older overlapping notes get "superseded by" lines · Sonnet
+- [ ] RS-H (later, owner ask) Save the L1/L2 Houdini rigs as `.hip` files the owner can open and fix; survey Houdini's cloud tools beyond Pyro (Cloud FX, cloud shape/noise SOPs, VDB tools) for the authoring topic guide
+
 ## Decisions and escalations
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
