@@ -1355,6 +1355,22 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Results are written to `work/captures/P9-A/variety.json` and a readable summary.
   - `pnpm check` green.
 
+### [~] P9-B Weather v2: multi-scale, shared bases, shear · Fable
+- **Owns:** `packages/runtime/src/generate/{weather.ts,shaders.ts,presets.ts,volume-generator.ts,evolution.ts}` and tests.
+- **Pages, read-only until P10-A lands:** do not edit `examples/lab/cloudscape-gen/main.ts` or `open-water/main.ts`, since P10-A has uncommitted edits there. Use the existing `?preset=`, `?w_*` and `?p_*` overrides, or add a new preset name.
+- **Does:** the plan's 9-B row (`docs/PLAN-2026-10-variety.md`).
+  - **Weather scales:** cluster scale (2–8 km) for where clouds gather and where the gaps are; cell scale for individual clouds with a wide size distribution; a sub-cell lobe split.
+  - **Bases:** one condensation base per layer (±15 m).
+  - **Shear:** a wind-shear lean.
+  - **Fractus** near large cells.
+  - **Species channel:** a regional field. 9-C will consume it; for now it only varies size and height.
+- **Acceptance:**
+  - `node scripts/variety.mjs --serve` passes the cumulus thresholds: lobe-footprint CV ≥ 0.7, base spread ≤ 30 m, clone score ≤ 0.6, no cell-spacing peak.
+  - Congestus and stratocumulus don't regress.
+  - Ground, horizon and above captures read as a varied sky, not a cloned wall. Side-by-side vs `work/captures/P9-A/*`, plus the compare page against Takram.
+  - Generation cost per job ≤ +20%. Plains-flight swaps still invisible.
+  - `pnpm check` green; packed consumer OK.
+
 ### [~] P10-A Cloud shadow map · Sonnet (Fable on failure)
 - **Owns:**
   - a new `packages/runtime/src/shadow-map.ts` and `packages/runtime/src/shaders/shadow-map.wgsl.ts`
