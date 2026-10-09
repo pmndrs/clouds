@@ -1797,7 +1797,7 @@ Owner direction:
   - `pnpm check` and the packed consumer green.
   - Checkpoint-commit often.
 
-### [ ] X4 Hybrid follow-ups: heroes shadowed by procedural clouds · Opus
+### [~] X4 Hybrid follow-ups: heroes shadowed by procedural clouds · Opus (claimed: X4 implementer)
 - **Owns:**
   - `packages/runtime/src/light-grid*` and `shaders/light-grid.wgsl.ts`
   - `packages/runtime/src/procedural/**` (only where the light grid needs its density)
