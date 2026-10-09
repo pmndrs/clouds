@@ -58,37 +58,47 @@ fn planetCentre() -> vec3<f32> {
   ${atm ? 'if (atmosphere.flatWorld < 0.5) { return atmosphere.planetCenter; }' : ''}
   return vec3(frame.cameraPos.x, -cp.layer.z, frame.cameraPos.z);
 }
-// Ray / sphere: (t near, t far), or (1, -1) for a miss.
-fn sphereHit(oc: vec3<f32>, dir: vec3<f32>, r: f32) -> vec2<f32> {
+// Height of p above the planet's surface sphere (oc = p - centre). Flat world: the sphere sits under the camera, so the height is y plus
+// the drop of the surface at p's horizontal distance (no |oc| - R of two 6e6 m numbers, which loses metres in f32).
+fn altitudeOf(p: vec3<f32>, oc: vec3<f32>) -> f32 {
+  ${atm ? 'if (atmosphere.flatWorld < 0.5) { return length(oc) - cp.layer.z; }' : ''}
+  let d = p.xz - frame.cameraPos.xz;
+  let y = p.y;
+  return y + dot(d, d) / (sqrt(dot(d, d) + (y + cp.layer.z) * (y + cp.layer.z)) + y + cp.layer.z);
+}
+// Ray / sphere at height altS above the surface, from a point at height altO: (t near, t far), or (1, -1) for a miss. Written for f32 with
+// radii of 6e6 m: c = |oc|^2 - r^2 from the heights, and the stable root pair (q, c / q).
+fn sphereHit(oc: vec3<f32>, dir: vec3<f32>, altO: f32, altS: f32) -> vec2<f32> {
   let b = dot(oc, dir);
-  let c = dot(oc, oc) - r * r;
+  let c = (altO - altS) * (2.0 * cp.layer.z + altO + altS);
   let disc = b * b - c;
   if (disc < 0.0) { return vec2(1.0, -1.0); }
-  let s = sqrt(disc);
-  return vec2(-b - s, -b + s);
+  let q = -b - select(-1.0, 1.0, b >= 0.0) * sqrt(disc);
+  if (abs(q) < 1e-6) { return vec2(0.0); }
+  let t1 = q; let t2 = c / q;
+  return vec2(min(t1, t2), max(t1, t2));
 }
-// Length of the ray (t > 0, up to tMax) inside the sphere of radius r.
-fn inside(oc: vec3<f32>, dir: vec3<f32>, r: f32, tMax: f32) -> f32 {
-  let h = sphereHit(oc, dir, r);
+// Length of the ray (t > 0, up to tMax) inside the sphere at height altS.
+fn inside(oc: vec3<f32>, dir: vec3<f32>, altO: f32, altS: f32, tMax: f32) -> f32 {
+  let h = sphereHit(oc, dir, altO, altS);
   return max(0.0, min(h.y, tMax) - max(h.x, 0.0));
 }
 // Distance to the layer's mid surface (0 = none in front), and the chord through the shell [r - th/2, r + th/2].
 fn layerHit(origin: vec3<f32>, dir: vec3<f32>) -> vec2<f32> {
   let c = planetCentre();
   let oc = origin - c;
-  let R = cp.layer.z;
-  let r = R + cp.layer.x;
+  let a = altitudeOf(origin, oc);
   // The planet blocks the ray.
-  let ground = sphereHit(oc, dir, R);
+  let ground = sphereHit(oc, dir, a, 0.0);
   var tMax = 1.0e9;
-  if (ground.x <= ground.y && ground.y > 0.0) { tMax = max(ground.x, 0.0); }
-  let h = sphereHit(oc, dir, r);
+  if (ground.x <= ground.y && ground.x > 1.0) { tMax = ground.x; }   // ahead of the ray (a point on the ground itself is not blocked)
+  let h = sphereHit(oc, dir, a, cp.layer.x);
   if (h.x > h.y) { return vec2(0.0); }
   var t = h.x;
   if (t <= 0.0) { t = h.y; }   // inside the sphere (below the layer): the exit point
   if (t <= 0.0 || t > tMax) { return vec2(0.0); }
   let hh = 0.5 * cp.layer.y;
-  let chord = inside(oc, dir, r + hh, tMax) - inside(oc, dir, max(r - hh, R), tMax);
+  let chord = inside(oc, dir, a, cp.layer.x + hh, tMax) - inside(oc, dir, a, max(cp.layer.x - hh, 0.0), tMax);
   return vec2(t, max(chord, 0.0));
 }
 // World point -> tile uv: x along the streak direction, y across, scrolled by the layer's own wind.
@@ -158,7 +168,8 @@ fn fetch(p: vec3<f32>, gx: vec2<f32>, gy: vec2<f32>) -> Sample {
 }
 // Distance to the layer's mid surface only (the neighbour rays for the texture gradients): 0 = none.
 fn layerT(origin: vec3<f32>, dir: vec3<f32>) -> f32 {
-  let h = sphereHit(origin - planetCentre(), dir, cp.layer.z + cp.layer.x);
+  let oc = origin - planetCentre();
+  let h = sphereHit(oc, dir, altitudeOf(origin, oc), cp.layer.x);
   if (h.x > h.y) { return 0.0; }
   return select(h.x, h.y, h.x <= 0.0);
 }
