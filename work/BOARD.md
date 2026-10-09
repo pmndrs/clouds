@@ -1745,7 +1745,7 @@ Owner direction:
 - Split the generator out of core.
 - Testbench: the owner's sunset photos, and fine sun-elevation control.
 
-### [~] X3 Hybrid procedural + NVDF in one frame; procedural lighting default; shadows and dome · Opus
+### [r] X3 Hybrid procedural + NVDF in one frame; procedural lighting default; shadows and dome · Opus (report: work/reports/X3.md)
 - **Owns:**
   - `packages/runtime/src/procedural/**`
   - `packages/runtime/src/shaders/{march,density,lighting,composite,dome,shadow-map}.wgsl.ts`

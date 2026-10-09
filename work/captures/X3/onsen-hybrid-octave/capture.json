@@ -1,0 +1,106 @@
+{
+  "url": "http://127.0.0.1:50269/onsen/?model=hybrid&hud=0&vlight=octave",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:14:17.657Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/X3/onsen-hybrid-octave/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 52.57405275000001,
+          "lightGridReduce": 0.199452,
+          "lightGrid": 16.20613,
+          "marchNear": 0.9404559824561401,
+          "marchFar": 2.5592134736842107,
+          "shadowMap": 0.6113877272727272,
+          "composite": 2.9523277192982462,
+          "dome": 0.9873836666666664,
+          "resolveNear": 0.5828499259259257,
+          "resolveFar": 1.457367574074074,
+          "skyLayer": 5.401102716981132,
+          "skyResolve": 1.64920279245283,
+          "cloudsTotal": 33.546873578811955,
+          "total": 86.12092632881196
+        },
+        "frameMs": {
+          "p50": 33.30000000000018,
+          "p95": 50
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "vantage",
+        "frames": 105,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 520.4000000059605,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/X3/onsen-hybrid-octave/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 48.46171702499999,
+          "lightGridReduce": 0.199452,
+          "lightGrid": 1.744521684210527,
+          "marchNear": 0.8989597833333334,
+          "marchFar": 1.7865128999999997,
+          "shadowMap": 0.5882542000000001,
+          "composite": 1.6950172333333329,
+          "dome": 1.096457533333333,
+          "resolveNear": 0.5791127666666666,
+          "resolveFar": 1.5956347166666667,
+          "skyLayer": 5.267835483333334,
+          "skyResolve": 1.6499742000000002,
+          "cloudsTotal": 17.10173250087719,
+          "total": 65.56344952587719
+        },
+        "frameMs": {
+          "p50": 33.29999999999973,
+          "p95": 50
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 205,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 1.0022379786087328,
+          "azimuth": 295.1077878552597
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 520.4000000059605,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

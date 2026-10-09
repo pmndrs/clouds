@@ -1,0 +1,151 @@
+{
+  "url": "http://127.0.0.1:50114/onsen/?model=hybrid&hud=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:14:03.353Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/X3/onsen-hybrid/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 25.92177671428572,
+          "lightGridReduce": 0.475743,
+          "lightGrid": 4.872718,
+          "marchNear": 1.1811076440677966,
+          "marchFar": 2.14396306779661,
+          "shadowMap": 0.7409024736842105,
+          "composite": 1.8789605593220338,
+          "dome": 0.8292162711864407,
+          "resolveNear": 0.6224322586206896,
+          "resolveFar": 1.9734324655172413,
+          "skyLayer": 4.5155127735849065,
+          "skyResolve": 1.1934189622641511,
+          "cloudsTotal": 20.427407476044078,
+          "total": 46.349184190329794
+        },
+        "frameMs": {
+          "p50": 33.30000000000018,
+          "p95": 50.099999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "vantage",
+        "frames": 108,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 780.3000000119209,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "valley",
+      "file": "work/captures/X3/onsen-hybrid/valley.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 40.273556,
+          "lightGridReduce": 0.475743,
+          "lightGrid": 4.872718,
+          "marchNear": 1.0125845833333333,
+          "marchFar": 2.1311336000000005,
+          "shadowMap": 0.7254020666666665,
+          "composite": 1.793296216666667,
+          "dome": 0.6995094666666666,
+          "resolveNear": 0.6417471666666666,
+          "resolveFar": 1.4101090833333336,
+          "skyLayer": 4.266912600000001,
+          "skyResolve": 1.2207355500000003,
+          "cloudsTotal": 19.249891333333338,
+          "total": 59.52344733333334
+        },
+        "frameMs": {
+          "p50": 33.29999999999927,
+          "p95": 50
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "valley",
+        "frames": 207,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 780.3000000119209,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/X3/onsen-hybrid/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 35.64913020000001,
+          "lightGridReduce": 0.475743,
+          "lightGrid": 1.1042123,
+          "marchNear": 1.3359095000000003,
+          "marchFar": 2.0389730666666677,
+          "shadowMap": 0.7468600666666667,
+          "composite": 1.6615218499999997,
+          "dome": 1.519053283333333,
+          "resolveNear": 0.7460323666666666,
+          "resolveFar": 1.70578015,
+          "skyLayer": 6.047673149999999,
+          "skyResolve": 1.7487282,
+          "cloudsTotal": 19.130486933333334,
+          "total": 54.779617133333346
+        },
+        "frameMs": {
+          "p50": 33.29999999999927,
+          "p95": 50.099999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 308,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 1.0022379786087328,
+          "azimuth": 295.1077878552597
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 780.3000000119209,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
