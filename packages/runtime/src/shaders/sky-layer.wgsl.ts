@@ -482,6 +482,7 @@ const SKY_UP_L = array<f32, 3>(48.0, 64.0, 160.0);
 const SKY_LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3;
 const SKY_LIGHT_REFRESH_M = 24.0;      // lighting varies slowly along the ray: re-evaluate every (24 m + 3% of the distance)
 const SKY_LIGHT_REFRESH_REL = 0.03;
+const SKY_MICRO_NEAR = 1500.0;   // Q2: metres; the near micro shadow fades out over 1.5-3 km
 ${SKY_FIELD_WGSL}
 // Full up-rez density at a light-sample point (the in-line sun samples: the surface detail matters there).
 fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, view: SkyModel) -> f32 {
@@ -556,8 +557,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     // (48..470 m at and above 45 degrees) stretch with 1 / sin(elevation), up to 4x at 10 degrees and below. Without it, sunset cumulus out here saw only
     // the first 470 m of a 1-2 km path, so the whole far field lit up like a rim: a bright speckled band along the horizon.
     let sunReach = clamp(0.7071 / max(dot(frame.sunDir, vec3(0.0, 1.0, 0.0)), 0.01), 1.0, 4.0);
-    // Same up-rez inputs as the voxel march; the high-frequency fold is a near-camera detail (rayDistance < 150 m only).
-    let inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, 0.0);
+    // Same up-rez inputs as the voxel march (Q2: with its erosion bias, which the layer had left at 0: softer, rounder clouds than the voxel field
+    // next to them); the high-frequency fold is a near-camera detail (rayDistance < 150 m only).
+    let inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
     let maxSteps = u32(SKY.steps.z);
     var capped = true;
     var t = t0;
@@ -582,7 +584,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
             let sigma = d.x * ext * fade;
             let stepT = exp(-sigma * ds);
             if (sigma * ds > SKY_LIGHT_MIN_OPTICAL_DEPTH) {
-              if (ts - litT > SKY_LIGHT_REFRESH_M + SKY_LIGHT_REFRESH_REL * ts) {
+              // Q2: near the camera (the puffs overhead) the light is evaluated at every step with the march's billow-scale micro shadow (below).
+              let nearW = select(0.0, 1.0 - smoothstep(SKY_MICRO_NEAR, 2.0 * SKY_MICRO_NEAR, ts), frame.microDist > 0.0);
+              if (nearW > 0.0 || ts - litT > SKY_LIGHT_REFRESH_M + SKY_LIGHT_REFRESH_REL * ts) {
                 litT = ts;
                 let d0 = skyDensityLight(ps + sunInline0, ts, inputs, sp);
                 let d1 = skyDensityLight(ps + sunInline1, ts, inputs, sp);
@@ -597,7 +601,14 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
                 // the sun, over INLINE_NEAR): the up-rezzed density there aliased into a herringbone at the layer's quarter resolution. Without it (1.0)
                 // the far field's glow was never occluded, so every distant cloud glowed like a thin rim: brighter than the voxel clouds next to it and a
                 // bright speckled band along the horizon toward a low sun.
-                let microOcc = exp(-frame.microShadow * skyModelCheap(ps + sunInline0) * INLINE_NEAR * ext);
+                var microTau = skyModelCheap(ps + sunInline0) * INLINE_NEAR * ext;
+                // Q2: near the camera, the voxel march's Q-1 term: the full up-rezzed density microDist toward the sun plus the first in-line sample.
+                // It resolves the lobes' own shadow sides (the near puffs read as smooth potatoes without it); further out it aliased (C2), so it fades.
+                if (nearW > 0.0) {
+                  let dm = skyDensityLight(ps + frame.sunDir * (0.5 * frame.microDist), ts, inputs, sp);
+                  microTau = mix(microTau, (dm * frame.microDist + d0 * (INLINE_NEAR - frame.microDist)) * ext, nearW);
+                }
+                let microOcc = exp(-frame.microShadow * microTau);
                 // Same arguments as the voxel march: the cheap term (profile * scale) as the in-scatter probability, -depth as the sdf.
                 lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc);
               }
