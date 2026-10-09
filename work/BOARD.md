@@ -1651,6 +1651,58 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   It writes a dated contact sheet next to the previous one, so progress is visible pass by pass. A `--photos` flag also builds side-by-sides with the owner's reference picks into `work/captures/scratch/review/`, which is never committed.
 - **Acceptance:** one command, about 5 minutes, and a before/after sheet against the last run.
 
+### [~] P13-H3 Hero loader and static stamp (+H4 importer) · Opus
+- **Owns:**
+  - `packages/runtime/src/{assets.ts,resources.ts}` and `packages/runtime/src/hero/**`
+  - `packages/runtime/src/import/**`, `packages/runtime/vendor/**`
+  - `packages/runtime/src/generate/stamp.ts`, the fine path only
+  - `examples/lab/vdb-drop/**`, plus the flagship `?cloud=` whitelist only
+- **Not:** the march, density, lighting, sky layer, composite or light grid (Q2).
+- **Does:** spec `work/specs/P8-hero-vdb.md` rows H3 and H4.
+  - Load `fine.nvdb` (`disney-fine`, `heroes/*-fine`).
+  - Brick packing with a margin of about 1.5× the ratio (P13-H1 note).
+  - The `stampCloud` fine path.
+  - The importer's `fineVoxelSize`, `corrMeters` (P13-H2 carry) and `exportFineNvdb`.
+- **Acceptance:** spec §7, rows H3 and H4.
+  - Disney 4 m renders in the flagship (`?cloud=disney-fine`) and stamped.
+  - SDF still conservative.
+  - Hero-view cost ≤ +10% (report it, but quality first).
+  - Loader ≤ 30 ms per hero.
+  - The importer round-trips byte-equal.
+  - `pnpm check`, bundle and packed consumer green.
+
+### [~] D1 Docs refresh for new features · Sonnet
+- **Owns:** `docs/guide/*.mdx` and the package READMEs.
+- **Does:** document what has landed since P8-B, with values read from the code:
+  - shadows: `applyShadow(light)`, `clouds.shadow()`, `compositeShadow`, the shadow map;
+  - species presets and the mixed/layered presets;
+  - weather v2 and the shear settings;
+  - storm and lightning (`flash`, `lightning`);
+  - sunset lighting: the body handoff, `bodySunFloor`, the per-altitude sun, `phaseModel` and `dropletDiameter`;
+  - haze settings;
+  - fine heroes: the asset format and converter, with the runtime API only as far as H1 has it;
+  - the authored library and its batch command;
+  - the WGSL `/* wgsl */` tag rule for contributors.
+
+  Keep the MDX frontmatter and `check-docs` rules.
+- **Acceptance:** `node scripts/check-docs.mjs` green, samples type-check, `pnpm check` green.
+
+### [~] G1 Gallery refresh · Haiku
+- **Owns:** `examples/lab/gallery/**`.
+- **Does:**
+  - Add cards for library, species, storm, sunset and compare (with real thumbnails), checking each card's text against the page.
+  - Regenerate all thumbnails with `node scripts/gallery-thumbs.mjs`.
+  - Fix the flagship thumbnail's HUD sliver.
+- **Acceptance:** a gallery capture at desktop and phone width, with every card linking.
+
+### [~] S1-spec Scheduler amortized-jobs API proposal · Sonnet
+- **Owns:** `work/specs/scheduler-amortized-jobs.md` (new). No code changes.
+- **Does:** design the time-sliced job API for `@pmndrs/scheduler`, which the owner maintains.
+  - **Inputs:** read the package (`node_modules/@pmndrs/scheduler`, its types and README), r3f v10 `useFrame` usage (`~/Developer/react-three-fiber`, if present), and our amortized work: P9-C3's report lists candidates and rates; the sky layer is 1/16 per frame, the light grid in 8 slices, the shadow map 1/24 rows, the weather bake 32 rows per frame, evolution every 1.5 s.
+  - **API:** per-job `fps` and `budgetMs`, step or generator slices, resumable state, priority under pressure, GPU-time feedback via timestamp results (async, one or more frames late), and an observed/visible gate (pause when off-screen; the owner's "freeze until observed").
+  - **Examples:** how our runtime would expose jobs without depending on the scheduler.
+- **Acceptance:** a spec the owner can review and implement upstream, with an API sketch, semantics, edge cases and our usage examples.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
