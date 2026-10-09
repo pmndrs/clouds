@@ -27,6 +27,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 | [cloud-motion-ideas.md](cloud-motion-ideas.md) | shape motion | **Parked idea doc.** The owner's observations from real cloud recordings: engines boil their detail; real detail travels with the cloud; the leading face is sharp, the trailing edge soft, tops crisp, bases smooth; skin rolls back and is reabsorbed; the life cycle of ejecting and absorbing. Includes their grid/tube and billow-sphere brainstorm, candidate techniques (advected textures, flow noise, Lagrangian advection, curl noise) and a first step (optical flow on their clips). Pick up in a session with the owner |
 
 | [image-gen-pilot.md](image-gen-pilot.md) | shape authoring | fal.ai pilot on the hero tower: Qwen multi-angle and nano-banana-2 give plausible but non-consistent side views; FLUX 3 edit doesn't re-pose; back views mirror. Better use: new targets, gap types, isolation |
+| [multiview-models.md](multiview-models.md) | shape authoring | Survey and pilot of multi-view and orbit generation for target clouds: object-centric multi-view models (Zero123++, Era3D, MV-Adapter) aren't on fal; the working options are camera-LoRA editors (Qwen 2511, FLUX.2 multi-angle) and an orbit-video model (MiniMax H3 Max, dollies in rather than orbits). No true consistency for translucent subjects; use as vocabulary only |
 
 ### Pre-reset (2026-09 and earlier; may be stale; read critically)
 
