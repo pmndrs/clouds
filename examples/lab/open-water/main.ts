@@ -32,6 +32,11 @@ const FIELD = { dims: [512, 512, 64] as [number, number, number], voxel: 8, base
 const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
 const SKY_LAYER = query.get('sky') !== '0';
 const JOBS_PER_FRAME = Number(query.get('jobs') ?? 2);
+// X4: in ?model=hybrid the procedural sky replaces the sky layer, so nothing continues the generated field past its box. With the layer's seamless
+// border 0 the clouds at the walls were cut flat (the cut face shows their interior: X3's blocky "spike" at the south-east corner in `cruise`). Hybrid
+// fades the field's coverage out over the outer HYBRID_FADE metres instead, and the procedural field fades in over the same band (boxCarve): a cross-fade.
+const HYBRID = query.get('model') === 'hybrid';
+const HYBRID_FADE = Number(query.get('fade') ?? 400);
 
 try {
   const renderer = new WebGPURenderer({ antialias: false, trackTimestamp: true });
@@ -74,7 +79,7 @@ try {
     const seed = Number(query.get('seed') ?? 7);
     const weatherOpts = { ...preset.weather, coverageLo: Number(query.get('lo') ?? 0.56), coverageHi: Number(query.get('hi') ?? 0.9), ...(query.has('cellular') ? { cellular: Number(query.get('cellular')) } : {}), // preset value unless ?cellular= overrides (P7-F fixed the slab look in the generator)
         ...(query.has('cells') ? { cellScale: Number(query.get('cells')) } : {}), // sparser than the preset: fair-weather cumulus with blue sky between, all the way out
-       size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}) }; // border 0: one continuous field the sky layer carries to the horizon
+       size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(HYBRID ? { border: HYBRID_FADE / (FIELD.dims[0] * FIELD.voxel) } : SKY_LAYER ? { border: 0 } : {}) }; // border 0: one continuous field the sky layer carries to the horizon
     gen.weatherOpts = weatherOpts; gen.params = { ...preset.params, seed };
     const weather = encodeProceduralWeatherMap(device, encoder, weatherOpts);
     device.queue.submit([encoder.finish()]);
@@ -93,8 +98,8 @@ try {
     if (g.done) {
       gen.doneMs = performance.now() - gen.startMs; genVolume = g.volume;
       void clouds.setVolume(g.volume, { position: cloudPos }).then(async () => {
-        // X3: ?model=hybrid puts the generated field inside a procedural sky (the field replaces it in its box over a 400 m fade; ?proc_boxCarve=0 for the union).
-        if (await attachProceduralSky(clouds.core, device, query, { boxCarve: 400 })) { ready(); return; }
+        // X3: ?model=hybrid puts the generated field inside a procedural sky (the field replaces it in its box over a 400 m cross-fade, X4; ?proc_boxCarve=0 for the union).
+        if (await attachProceduralSky(clouds.core, device, query, { boxCarve: HYBRID_FADE })) { ready(); return; }
         if (SKY_LAYER && gen.weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: gen.weatherOpts, shape: gen.params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; for (const k of Object.keys(l.settings)) { const v = query.get('sky_' + k); if (v !== null) (l.settings as unknown as Record<string, number | boolean>)[k] = typeof (l.settings as unknown as Record<string, unknown>)[k] === 'boolean' ? v === '1' : Number(v); } } // INTEGRATION (cloud cover to the horizon)
         skyWait = SKY_LAYER && clouds.core.skyLayer.settings.enabled; if (!skyWait) ready();
       }); // INTEGRATION (the volume stays caller-owned: `g` stays alive; the harness waits for the clouds)
