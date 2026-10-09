@@ -8,7 +8,7 @@
 import type { NvdfParams } from './volume-generator';
 import type { ProceduralWeatherOptions } from './weather';
 
-export type CloudPresetName = 'cumulus' | 'humilis' | 'mediocris' | 'congestus' | 'stratocumulus' | 'altocumulus' | 'stratus' | 'mixed' | 'storm';
+export type CloudPresetName = 'cumulus' | 'humilis' | 'mediocris' | 'congestus' | 'stratocumulus' | 'altocumulus' | 'stratus' | 'mixed' | 'storm' | 'layered';
 export interface CloudPreset {
   weather: Partial<ProceduralWeatherOptions>;
   params: Partial<NvdfParams>;
@@ -75,6 +75,13 @@ export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
   mixed: {
     weather: { scale: 1.6, cellular: 1, cellScale: 8, coverageLo: 0.52, coverageHi: 0.88, fractus: 0.5, lobeSplit: 0.8, speciesRange: [0.2, 1], wind: [2, 1], alto: { cover: 0.7, cells: 18, patches: 1.4, jitter: 1 } },
     params: { profiles: true, baseDefault: 0.08, billowAmp: 0.4, billowCellMeters: 450, coverageThreshold: 0.15, baseLift: 0.008, shearX: 0.045, shearY: 0.022, altoBase: 1400, altoDepth: 180 },
+    volume: TALL,
+  },
+  // T4 layered sunset sky: long stratocumulus bands and lumps with gaps (the species rows just above Sc) in the low layer, under a broken altocumulus layer at
+  // about 1.65 km (in rows and patches along the wind). The bands run along `wind`; a camera looking across the wind sees them lie across the sky.
+  layered: {
+    weather: { scale: 2.2, cellular: 1, cellScale: 9, coverageLo: 0.46, coverageHi: 0.66, fractus: 0.4, lobeSplit: 0.5, speciesRange: [0.22, 0.3], wind: [0.35, 1], alto: { cover: 1, cells: 18, patches: 2.5, jitter: 1 } },
+    params: { profiles: true, baseDefault: 0.1, billowAmp: 0.4, billowCellMeters: 420, coverageThreshold: 0.12, baseLift: 0.008, shearX: 0.03, shearY: 0.1, altoBase: 1650, altoDepth: 200 },
     volume: TALL,
   },
 };
