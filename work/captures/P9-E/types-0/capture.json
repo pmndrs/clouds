@@ -1,0 +1,110 @@
+{
+  "url": "http://127.0.0.1:5173/compare/?impls=ours&clean=1&cirrus=1&pitch=55&cirrus_type=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T12:01:36.568Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P9-E/types-0/view.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.47509150000000006,
+          "ours.lightGridReduce": 0.08833,
+          "ours.lightGrid": 0.2826197647058823,
+          "ours.marchNear": 0.19315463333333327,
+          "ours.marchFar": 0.34509390000000006,
+          "ours.shadowMap": 0.5603584000000001,
+          "ours.composite": 0.43162331666666665,
+          "ours.dome": 0.3927132999999999,
+          "ours.skyWeather": 0.4151235833333334,
+          "ours.resolveNear": 0.03066138333333333,
+          "ours.resolveFar": 0.05463528333333333,
+          "ours.cirrusBake": 0.7626823000000001,
+          "ours.cirrus": 0.6225565166666666,
+          "ours.skyWeatherMips": 0.073249,
+          "ours.skyLayer": 0.0858084666666667,
+          "ours.skyResolve": 0.1107081,
+          "ours.cloudsTotal": 4.449317948039216,
+          "ours.total": 4.924409448039216
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 55,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three (WebGPU, TSL)",
+            "gpuMs": {
+              "scene": 0.47509150000000006,
+              "lightGridReduce": 0.08833,
+              "lightGrid": 0.2826197647058823,
+              "marchNear": 0.19315463333333327,
+              "marchFar": 0.34509390000000006,
+              "shadowMap": 0.5603584000000001,
+              "composite": 0.43162331666666665,
+              "dome": 0.3927132999999999,
+              "skyWeather": 0.4151235833333334,
+              "resolveNear": 0.03066138333333333,
+              "resolveFar": 0.05463528333333333,
+              "cirrusBake": 0.7626823000000001,
+              "cirrus": 0.6225565166666666,
+              "skyWeatherMips": 0.073249,
+              "skyLayer": 0.0858084666666667,
+              "skyResolve": 0.1107081,
+              "cloudsTotal": 4.449317948039216,
+              "total": 4.924409448039216
+            },
+            "cpuMs": 0.4066666672627131,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "0.560",
+              "model": "nvdf",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 338
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

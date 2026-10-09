@@ -1,0 +1,376 @@
+{
+  "url": "http://127.0.0.1:5173/compare/?impls=ours&clean=1&cirrus=1&model=procedural",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T12:02:22.087Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P9-E/procedural/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.40321406666666654,
+          "ours.lightGridReduce": 0.032205,
+          "ours.lightGrid": 0.045037,
+          "ours.marchNear": 0.059177583333333325,
+          "ours.marchFar": 0.06249625000000001,
+          "ours.shadowMap": 0.25802755000000005,
+          "ours.composite": 0.31710974999999997,
+          "ours.dome": 0.30688005000000007,
+          "ours.resolveNear": 0.0364765,
+          "ours.resolveFar": 0.03972933333333332,
+          "ours.skyLayer": 1.4472551,
+          "ours.skyResolve": 0.12409176666666663,
+          "ours.cirrusBake": 0.7327632333333332,
+          "ours.cirrus": 0.3986668166666665,
+          "ours.cloudsTotal": 3.8599159333333324,
+          "ours.total": 4.2631299999999985
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 7,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural (takram shaper, octave lighting)",
+            "gpuMs": {
+              "scene": 0.40321406666666654,
+              "lightGridReduce": 0.032205,
+              "lightGrid": 0.045037,
+              "marchNear": 0.059177583333333325,
+              "marchFar": 0.06249625000000001,
+              "shadowMap": 0.25802755000000005,
+              "composite": 0.31710974999999997,
+              "dome": 0.30688005000000007,
+              "resolveNear": 0.0364765,
+              "resolveFar": 0.03972933333333332,
+              "skyLayer": 1.4472551,
+              "skyResolve": 0.12409176666666663,
+              "cirrusBake": 0.7327632333333332,
+              "cirrus": 0.3986668166666665,
+              "cloudsTotal": 3.8599159333333324,
+              "total": 4.2631299999999985
+            },
+            "cpuMs": 0.526666667064031,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/takram/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 243
+      }
+    },
+    {
+      "name": "dusk",
+      "file": "work/captures/P9-E/procedural/dusk.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.32724089999999995,
+          "ours.lightGridReduce": 0.032205,
+          "ours.lightGrid": 0.026277000000000002,
+          "ours.marchNear": 0.05641793333333332,
+          "ours.marchFar": 0.07858271666666669,
+          "ours.shadowMap": 0.24243241666666665,
+          "ours.composite": 0.27665773333333343,
+          "ours.dome": 0.24869541666666667,
+          "ours.resolveNear": 0.06316641666666664,
+          "ours.resolveFar": 0.06336641666666665,
+          "ours.skyLayer": 1.6291279499999998,
+          "ours.skyResolve": 0.10648726666666669,
+          "ours.cirrusBake": 0.7327632333333332,
+          "ours.cirrus": 0.43542261666666654,
+          "ours.cloudsTotal": 3.9916021166666655,
+          "ours.total": 4.318843016666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "dusk",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 6,
+          "fov": 50,
+          "sunAz": 290,
+          "sunEl": 3,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural (takram shaper, octave lighting)",
+            "gpuMs": {
+              "scene": 0.32724089999999995,
+              "lightGridReduce": 0.032205,
+              "lightGrid": 0.026277000000000002,
+              "marchNear": 0.05641793333333332,
+              "marchFar": 0.07858271666666669,
+              "shadowMap": 0.24243241666666665,
+              "composite": 0.27665773333333343,
+              "dome": 0.24869541666666667,
+              "resolveNear": 0.06316641666666664,
+              "resolveFar": 0.06336641666666665,
+              "skyLayer": 1.6291279499999998,
+              "skyResolve": 0.10648726666666669,
+              "cirrusBake": 0.7327632333333332,
+              "cirrus": 0.43542261666666654,
+              "cloudsTotal": 3.9916021166666655,
+              "total": 4.318843016666666
+            },
+            "cpuMs": 0.481666665772597,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/takram/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 448
+      }
+    },
+    {
+      "name": "afterglow",
+      "file": "work/captures/P9-E/procedural/afterglow.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.42882743333333334,
+          "ours.lightGridReduce": 0.032205,
+          "ours.lightGrid": 0.021805823529411766,
+          "ours.marchNear": 0.05420271666666668,
+          "ours.marchFar": 0.06756760000000003,
+          "ours.shadowMap": 0.24243241666666665,
+          "ours.composite": 0.26291746666666665,
+          "ours.dome": 0.31153340000000007,
+          "ours.resolveNear": 0.027776616666666667,
+          "ours.resolveFar": 0.05246998333333333,
+          "ours.skyLayer": 1.6985303666666667,
+          "ours.skyResolve": 0.1065323833333333,
+          "ours.cirrusBake": 0.7327632333333332,
+          "ours.cirrus": 0.42392966666666676,
+          "ours.cloudsTotal": 4.034666673529411,
+          "ours.total": 4.463494106862745
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "afterglow",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 320,
+          "pitch": 6,
+          "fov": 50,
+          "sunAz": 290,
+          "sunEl": -1,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural (takram shaper, octave lighting)",
+            "gpuMs": {
+              "scene": 0.42882743333333334,
+              "lightGridReduce": 0.032205,
+              "lightGrid": 0.021805823529411766,
+              "marchNear": 0.05420271666666668,
+              "marchFar": 0.06756760000000003,
+              "shadowMap": 0.24243241666666665,
+              "composite": 0.26291746666666665,
+              "dome": 0.31153340000000007,
+              "resolveNear": 0.027776616666666667,
+              "resolveFar": 0.05246998333333333,
+              "skyLayer": 1.6985303666666667,
+              "skyResolve": 0.1065323833333333,
+              "cirrusBake": 0.7327632333333332,
+              "cirrus": 0.42392966666666676,
+              "cloudsTotal": 4.034666673529411,
+              "total": 4.463494106862745
+            },
+            "cpuMs": 0.3849999999006589,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/takram/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 653
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P9-E/procedural/above.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.7576966999999998,
+          "ours.lightGridReduce": 0.032205,
+          "ours.lightGrid": 0.032097719999999996,
+          "ours.marchNear": 0.06358435000000001,
+          "ours.marchFar": 0.056551083333333335,
+          "ours.shadowMap": 0.31529315000000013,
+          "ours.composite": 0.33582676666666683,
+          "ours.dome": 0.34446075,
+          "ours.resolveNear": 0.03448486666666666,
+          "ours.resolveFar": 0.05530605,
+          "ours.skyLayer": 1.0224107833333334,
+          "ours.skyResolve": 0.11602806666666667,
+          "ours.cirrusBake": 0.7327632333333332,
+          "ours.cirrus": 0.3411614666666665,
+          "ours.cloudsTotal": 3.482173286666667,
+          "ours.total": 4.239869986666666
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "above",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            3000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -9,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 50,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural (takram shaper, octave lighting)",
+            "gpuMs": {
+              "scene": 0.7576966999999998,
+              "lightGridReduce": 0.032205,
+              "lightGrid": 0.032097719999999996,
+              "marchNear": 0.06358435000000001,
+              "marchFar": 0.056551083333333335,
+              "shadowMap": 0.31529315000000013,
+              "composite": 0.33582676666666683,
+              "dome": 0.34446075,
+              "resolveNear": 0.03448486666666666,
+              "resolveFar": 0.05530605,
+              "skyLayer": 1.0224107833333334,
+              "skyResolve": 0.11602806666666667,
+              "cirrusBake": 0.7327632333333332,
+              "cirrus": 0.3411614666666665,
+              "cloudsTotal": 3.482173286666667,
+              "total": 4.239869986666666
+            },
+            "cpuMs": 0.3966666673620542,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/takram/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 858
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

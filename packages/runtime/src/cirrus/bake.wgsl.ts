@@ -101,8 +101,8 @@ fn worley(uv: vec2<f32>, n: i32, s: u32) -> vec2<f32> {
       let c = i + vec2(x, y);
       let w = vec2(wrapI(c.x, n), wrapI(c.y, n));
       let o = vec2(h01(w.x, w.y, s), h01(w.x, w.y, s + 1u));
-      let d = length(vec2<f32>(c) + 0.15 + 0.7 * o - p);
-      if (d < best) { best = d; size = 0.6 + 0.6 * h01(w.x, w.y, s + 2u); }
+      let d = length(vec2<f32>(c) + o - p);
+      if (d < best) { best = d; size = 0.4 + 0.7 * h01(w.x, w.y, s + 2u); }
     }
   }
   return vec2(best, size);
@@ -142,8 +142,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   // ---- round (small cells in patches) ----
   // Cells of varied size and brightness, some missing, grouped into patches.
-  let wr = worley(uv + 0.006 * ww, 150, s + 1800u);
-  let puff = pow(saturate(1.0 - wr.x / (0.62 * wr.y)), 1.2);
+  // Two fully jittered cell sets of different sizes, so no lattice shows.
+  let wr = worley(uv + 0.006 * ww, 230, s + 1800u);
+  let wr2 = worley(uv + 0.004 * ww2, 340, s + 1820u);
+  let puff = max(pow(saturate(1.0 - wr.x / (0.55 * wr.y)), 1.2), 0.8 * pow(saturate(1.0 - wr2.x / (0.5 * wr2.y)), 1.2));
   let grain = smoothstep(0.3, 0.75, fbm(uv, vec2(48.0, 48.0), 3, s + 1850u));
   let patchR = smoothstep(0.42, 0.75, fbm(uv, vec2(5.0, 7.0), 4, s + 1900u));
   let roundT = saturate((puff * grain * 1.3 + 0.15 * grain) * patchR);
