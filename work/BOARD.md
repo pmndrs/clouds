@@ -1444,6 +1444,33 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - `node scripts/variety.mjs` on the library page reports clone score ≤ 0.5 (extend the page with the `fields` hook).
   - 60 fps at 2560×1440 high. `pnpm check` green.
 
+### [~] P9-C Species profiles (vertical-profile tables) · Opus
+- **Owns:**
+  - `packages/runtime/src/generate/**` (shaders, weather, presets, volume-generator, evolution, index) and tests
+  - `packages/runtime/src/sky-layer.ts` and `shaders/sky-layer.wgsl.ts`, for parity
+  - a new `examples/lab/species/` page and its `vite.config.ts` input line (coordinate: P9-F also adds a line; edit only your own line)
+- **Do not touch:** the library files (P9-F).
+- **Does:** the plan's 9-C row, using the Nubis Evolved mechanism (`docs/research/hzd-nubis-evolved.md` §1 and §6; NE pp. 20–29).
+  - **Profiles:** `vertical_profile = top_type(h) × bottom_type(h)`, then × coverage, with a per-cloud min and max height from the weather map. The species channel (P9-B's G) selects the table rows.
+  - **Species:**
+    - cumulus humilis, mediocris and congestus;
+    - stratocumulus: sheared, elongated bands with gaps (anisotropic cells along the wind);
+    - altocumulus: a higher layer of small cells;
+    - stratus and valley sea: terrain-aware flat top. Terrain awareness can be a height-field input stub, used for T3 later.
+  - **Cheap items from the scan:**
+    - wispy/billowy flip height from type ±0.1 (NE p.99);
+    - thin-cloud noise offset (NE p.102);
+    - the HZD horizon rule: blend toward mid-coverage cumulus from 15 to 35 km (HZD slide 45). This lives in the sky layer.
+  - **Multi-layer weather:** two or three altitude layers in one sky, e.g. a cumulus field under an altocumulus layer, so T1/T4 are possible.
+  - **Cover:** raise the default cumulus cover (P9-B dropped it to 22%) to a fair-weather 30–40%.
+  - **Follow-ups from P9-B2:** export `createWeatherBake` from `generate/index.ts`. Passing the timer to `skyLayer.prepare` in `runtime.ts` is a one-line edit, allowed.
+- **Acceptance:**
+  - A `species/` page with one isolated example per species (bookmarks per species) and a mixed sky. Each species is recognisable on a contact sheet; the orchestrator reviews it.
+  - Three or more species coexist in one sky. `variety.mjs` clone score ≤ 0.6 on the mixed sky and on cumulus/stratocumulus/congestus. P9-B's cumulus pass holds.
+  - The sky layer matches at the box wall.
+  - Cost: high tier ≤ 3.5 ms at 2560×1440. Generation per job ≤ +20%. No frame over 1 ms of bake.
+  - `pnpm check` green; the packed consumer passes.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
