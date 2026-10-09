@@ -7,7 +7,15 @@
 //
 // Stamp any number of assets, then rebuild the SDF once. The target must be a generator output (createVolumeGenerator(...).volume)
 // or createEmptyCloudVolume(...): its NVDF needs STORAGE_BINDING | COPY_SRC and its SDF COPY_DST.
+//
+// Fine heroes (P13-H3, work/specs/P8-hero-vdb.md section 4.3): an asset with `.fine` stamped with mode 'replace' at scale 1 is snapped
+// (box min corner on the target's voxel lattice, yaw to a quarter turn) so the coarse stamp is an exact copy, and its fine bricks are
+// re-bricked on the GPU into `target.fine` (created or grown here; the target owns it). Texels the stamp did not write keep the previous
+// brick or take the target's coarse profile; G and B always come from the stamped coarse field. Call `setVolume` after fine stamps so the
+// runtime binds the new overlay.
 import type { GpuCloudVolume } from '../resources';
+import { BRICK_TEXELS, HERO_EMPTY, POOL_SLAB_BRICKS, POOL_SLAB_BYTES, POOL_XY } from '../hero/bricks';
+import type { GpuFineOverlay } from '../hero/overlay';
 import { EDT_X_WGSL, SDF_WGSL, edtLineWGSL } from './shaders';
 import { createGeneratorScratch, PARAM_BYTES, rangeChunks, type GeneratorScratch } from './volume-generator';
 
@@ -42,6 +50,11 @@ export interface StampResult {
   boundsMin: [number, number, number];
   boundsMax: [number, number, number];
   voxels: number;
+  /**
+   * P13-H3, an asset with a fine layer: the snapped placement actually stamped and the target's bricks after it, or why the fine layer was
+   * dropped (coarse only: mode not 'replace', scale != 1, voxel sizes differ).
+   */
+  fine?: { position: [number, number, number]; yaw: number; bricks: number; added: number; rebuilt: number } | { dropped: string };
 }
 
 const STAMP_WGSL = /* wgsl */ `
@@ -163,9 +176,22 @@ export function stampCloud(device: GPUDevice, encoder: GPUCommandEncoder, target
   }
   const [tw, th, td] = target.dims;
   const [aw, ah, ad] = asset.dims;
-  const scale = options.scale ?? 1, yaw = options.yaw ?? 0;
-  const co = Math.cos(yaw), si = Math.sin(yaw);
+  const scale = options.scale ?? 1;
+  let yaw = options.yaw ?? 0, co = Math.cos(yaw), si = Math.sin(yaw);
   const mode = options.mode ?? 'max';
+  let position = options.position;
+  const fineWhy = !asset.fine ? '' : mode !== 'replace' ? `mode '${mode}' (fine heroes need 'replace')` : Math.abs(scale - 1) > 1e-6 ? 'scale != 1'
+    : asset.voxelSize !== target.voxelSize ? 'asset and target voxel sizes differ' : !asset.fine.indirData ? 'the overlay has no CPU indirection' : '';
+  const fine = asset.fine && !fineWhy ? asset.fine : undefined;
+  if (asset.fine && fineWhy && !warned.has(fineWhy)) { warned.add(fineWhy); console.warn(`stampCloud: fine hero layer dropped, coarse only: ${fineWhy}`); }
+  if (fine) {
+    // Quarter-turn yaw, box min corner on the target lattice: every target voxel centre lands on an asset texel centre (exact copy).
+    const q = ((Math.round(yaw / (Math.PI / 2)) % 4) + 4) % 4;
+    yaw = q * Math.PI / 2; co = [1, 0, -1, 0][q]; si = [0, 1, 0, -1][q];
+    const h = [aw, ad, ah].map(n => n * asset.voxelSize * 0.5);   // world x, y-up, z
+    if (q & 1) [h[0], h[2]] = [h[2], h[0]];
+    position = position.map((p, i) => Math.round((p - h[i]) / target.voxelSize) * target.voxelSize + h[i]) as [number, number, number];
+  }
 
   // Bounds: the asset box (centred on `position`, scaled, yawed) as a target-voxel AABB.
   const half = [aw * asset.voxelSize * 0.5 * scale, ad * asset.voxelSize * 0.5 * scale, ah * asset.voxelSize * 0.5 * scale]; // world x, y-up, z
@@ -173,7 +199,7 @@ export function stampCloud(device: GPUDevice, encoder: GPUCommandEncoder, target
   for (let k = 0; k < 8; k++) {
     const x = k & 1 ? half[0] : -half[0], y = k & 2 ? half[1] : -half[1], z = k & 4 ? half[2] : -half[2];
     // forward yaw: x' = x cos + z sin, z' = -x sin + z cos
-    const w = [options.position[0] + x * co + z * si, options.position[1] + y, options.position[2] - x * si + z * co];
+    const w = [position[0] + x * co + z * si, position[1] + y, position[2] - x * si + z * co];
     for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], w[i]); hi[i] = Math.max(hi[i], w[i]); }
   }
   const vs = target.voxelSize;
@@ -198,7 +224,7 @@ export function stampCloud(device: GPUDevice, encoder: GPUCommandEncoder, target
   i32.set([tmin[0], tmin[1], tmin[2], mode === 'max' ? 0 : mode === 'replace' ? 1 : 2], 0);
   u32.set(size, 4);
   f32.set([aw, ah, ad, options.densityScale ?? 1], 8);
-  f32.set([options.position[0], options.position[1], options.position[2], options.detailType ?? -1], 12);
+  f32.set([position[0], position[1], position[2], options.detailType ?? -1], 12);
   f32.set([co, si, 1 / scale, asset.voxelSize], 16);
   f32.set([vs, Math.min(options.clearMargin ?? 48, 1e9), scale, 0], 20);
   device.queue.writeBuffer(tk.params, slot * STAMP_SLOT, data);
@@ -216,7 +242,186 @@ export function stampCloud(device: GPUDevice, encoder: GPUCommandEncoder, target
   pass.setBindGroup(0, bind, [slot * STAMP_SLOT]);
   pass.dispatchWorkgroups(Math.ceil(size[0] / 8), Math.ceil(size[1] / 8), Math.ceil(size[2] / 4));
   pass.end();
+  if (fine) result.fine = stampFine(device, encoder, target, asset, fine, position, yaw, co, si, Math.min(options.clearMargin ?? 48, 1e9), assetView, sdfView);
+  else if (fineWhy) result.fine = { dropped: fineWhy };
   return result;
+}
+
+const warned = new Set<string>();
+
+// One thread per texel of a target brick that the hero touches (P13-H3). `owned` replays the coarse stamp's decision for the target voxel
+// that holds the texel (the hero wrote it, or cleared it within clearMargin): owned texels read the hero's fine profile through its
+// indirection and pool (exact, the placement is snapped), the others keep the previous brick or take the target's coarse profile.
+// G and B come from the stamped target NVDF.
+const REBRICK_WGSL = /* wgsl */ `
+struct P {
+  tcells: vec4<u32>,   // target cells xyz, job count
+  tdims: vec4<u32>,    // target fine dims xyz, dispatch groups x
+  hdims: vec4<u32>,    // hero fine dims xyz, ratio
+  adims: vec4<f32>,    // hero coarse dims xyz, hero fine voxel
+  pos: vec4<f32>,      // stamp centre (x, y-up, z) metres, target voxel
+  rot: vec4<f32>,      // cos, sin, asset voxel, clear margin
+}
+@group(0) @binding(0) var<uniform> P0: P;
+@group(0) @binding(1) var<storage, read> jobs: array<vec4<u32>>;   // target slot, target cell, previous slot (or empty)
+@group(0) @binding(2) var heroIndir: texture_3d<u32>;
+@group(0) @binding(3) var heroPool: texture_3d<f32>;
+@group(0) @binding(4) var heroNvdf: texture_3d<f32>;
+@group(0) @binding(5) var heroSdf: texture_3d<f32>;
+@group(0) @binding(6) var targetNvdf: texture_3d<f32>;
+@group(0) @binding(7) var oldPool: texture_3d<f32>;
+@group(0) @binding(8) var smp: sampler;
+@group(0) @binding(9) var outPool: texture_storage_3d<rgba8unorm, write>;
+fn slotOrigin(s: u32) -> vec3<u32> { return vec3<u32>(s % 32u, (s / 32u) % 32u, s / 1024u) * 10u; }
+// Target metres (texture axes) -> asset-local metres (world axes, inverse yaw).
+fn toAsset(c: vec3<f32>) -> vec3<f32> {
+  let rel = vec3<f32>(c.x, c.z, c.y) - P0.pos.xyz;
+  return vec3<f32>(P0.rot.x * rel.x - P0.rot.y * rel.z, rel.y, P0.rot.y * rel.x + P0.rot.x * rel.z);
+}
+@compute @workgroup_size(64)
+fn rebrickMain(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) li: u32) {
+  let i = (wg.y * P0.tdims.w + wg.x) * 64u + li;
+  if (i >= P0.tcells.w * 1000u) { return; }
+  let job = jobs[i / 1000u];
+  let t = i % 1000u;
+  let tt = vec3<u32>(t % 10u, (t / 10u) % 10u, t / 100u);
+  let cell = vec3<u32>(job.y % P0.tcells.x, (job.y / P0.tcells.x) % P0.tcells.y, job.y / (P0.tcells.x * P0.tcells.y));
+  let f = clamp(vec3<i32>(cell * 8u + tt) - 1, vec3<i32>(0), vec3<i32>(P0.tdims.xyz) - 1);
+  let ratio = i32(P0.hdims.w);
+  // The coarse stamp's decision for the target voxel holding this texel (same arithmetic as stampMain).
+  let u = toAsset((vec3<f32>(f / ratio) + 0.5) * P0.pos.w);
+  let a = vec3<f32>(u.x, u.z, u.y) / P0.rot.z + P0.adims.xyz * 0.5;
+  var owned = false;
+  if (all(a >= vec3<f32>(0.0)) && all(a <= P0.adims.xyz)) {
+    let sp = round(textureSampleLevel(heroNvdf, smp, a / P0.adims.xyz, 0.0).r * 255.0);
+    owned = sp > 0.0 || textureSampleLevel(heroSdf, smp, a / P0.adims.xyz, 0.0).r < P0.rot.w;
+  }
+  var out: vec4<f32>;
+  if (!owned && job.z != 0xffffffffu) {
+    out = textureLoad(oldPool, slotOrigin(job.z) + tt, 0);
+  } else {
+    let fc = vec3<f32>(f) + 0.5;
+    let coarse = textureSampleLevel(targetNvdf, smp, fc / (vec3<f32>(P0.tdims.xyz)), 0.0);
+    // Not owned: the coarse profile, zero where the coarse voxel holding the texel is empty, so fine occupancy stays inside coarse
+    // occupancy (the SDF bound) although the pool filters the coarse field a second time.
+    var r = select(0.0, coarse.r, textureLoad(targetNvdf, f / ratio, 0).r > 0.0);
+    if (owned) {
+      let uf = toAsset(fc * P0.adims.w);
+      let h = vec3<i32>(floor(vec3<f32>(uf.x, uf.z, uf.y) / P0.adims.w + vec3<f32>(P0.hdims.xyz) * 0.5));
+      r = 0.0;
+      if (all(h >= vec3<i32>(0)) && all(h < vec3<i32>(P0.hdims.xyz))) {
+        let s = textureLoad(heroIndir, vec3<u32>(h) / 8u, 0).r;
+        if (s != 0xffffffffu) { r = textureLoad(heroPool, slotOrigin(s) + 1u + vec3<u32>(h) % 8u, 0).r; }
+      }
+    }
+    out = vec4<f32>(r, coarse.g, coarse.b, 1.0);
+  }
+  textureStore(outPool, slotOrigin(job.x) + tt, out);
+}
+`;
+
+const rebrickKits = new WeakMap<GPUDevice, { pipeline: GPUComputePipeline; sampler: GPUSampler; empty: GPUTexture }>();
+const ownedFine = new WeakSet<GpuCloudVolume>();
+
+/** The fine half of a snapped 'replace' stamp: grow `target.fine` and encode the re-brick pass after the coarse stamp. */
+function stampFine(device: GPUDevice, encoder: GPUCommandEncoder, target: GpuCloudVolume, asset: GpuCloudVolume, hero: GpuFineOverlay,
+  position: [number, number, number], yaw: number, co: number, si: number, clearMargin: number, assetView: GPUTextureView, sdfView: GPUTextureView) {
+  const fv = hero.fineVoxel, ratio = Math.round(asset.voxelSize / fv);
+  const tf = target.dims.map(d => d * ratio) as [number, number, number];
+  const tc = tf.map(d => Math.ceil(d / 8)) as [number, number, number];
+  const hf = asset.dims.map(d => d * ratio) as [number, number, number];
+  const prev = target.fine;
+  if (prev && (prev.fineVoxel !== fv || prev.cells.some((c, i) => c !== tc[i]) || !prev.indirData)) throw new Error('stampCloud: the target already has a fine overlay with another fine voxel size or layout');
+  const indir = prev ? Uint32Array.from(prev.indirData!) : new Uint32Array(tc[0] * tc[1] * tc[2]).fill(HERO_EMPTY);
+  // Hero fine box (texture axes, voxel units) -> target fine box, through the snapped transform (exact up to float noise).
+  const toTarget = (lo: number[], hi: number[]) => {
+    const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+    for (let k = 0; k < 8; k++) {
+      const g = [k & 1 ? hi[0] : lo[0], k & 2 ? hi[1] : lo[1], k & 4 ? hi[2] : lo[2]];
+      const x = (g[0] - hf[0] / 2) * fv, y = (g[2] - hf[2] / 2) * fv, z = (g[1] - hf[1] / 2) * fv;   // world axes
+      const P = [position[0] + x * co + z * si, position[1] + y, position[2] - x * si + z * co];
+      const t = [P[0] / fv, P[2] / fv, P[1] / fv];
+      for (let i = 0; i < 3; i++) { mn[i] = Math.min(mn[i], Math.round(t[i])); mx[i] = Math.max(mx[i], Math.round(t[i])); }
+    }
+    return [mn, mx];
+  };
+  const cellIndex = (c: number[]) => (c[2] * tc[1] + c[1]) * tc[0] + c[0];
+  const job = new Map<number, number>();   // target cell -> previous slot (HERO_EMPTY for a new brick)
+  const visit = (lo: number[], hi: number[], fn: (cell: number) => void) => {
+    const c0 = lo.map(v => Math.max(0, Math.floor(v / 8))), c1 = hi.map((v, i) => Math.min(tc[i] - 1, Math.floor((v - 1) / 8)));
+    for (let z = c0[2]; z <= c1[2]; z++) for (let y = c0[1]; y <= c1[1]; y++) for (let x = c0[0]; x <= c1[0]; x++) fn(cellIndex([x, y, z]));
+  };
+  // Cells under a hero brick's payload get a brick.
+  const [hcx, hcy, hcz] = hero.cells;
+  for (let z = 0; z < hcz; z++) for (let y = 0; y < hcy; y++) for (let x = 0; x < hcx; x++) {
+    if (hero.indirData![(z * hcy + y) * hcx + x] === HERO_EMPTY) continue;
+    const [lo, hi] = toTarget([x * 8, y * 8, z * 8], [Math.min(hf[0], x * 8 + 8), Math.min(hf[1], y * 8 + 8), Math.min(hf[2], z * 8 + 8)]);
+    visit(lo, hi, cell => job.set(cell, indir[cell]));
+  }
+  // Existing bricks whose texels (apron included) overlap the hero box are rebuilt: the coarse field changed under them.
+  const [blo, bhi] = toTarget([0, 0, 0], hf);
+  visit(blo.map(v => v - 1), bhi.map(v => v + 1), cell => { if (indir[cell] !== HERO_EMPTY) job.set(cell, indir[cell]); });
+  const prevCount = prev?.bricks ?? 0;
+  let count = prevCount, added = 0;
+  const jobs = new Uint32Array(Math.max(1, job.size) * 4);
+  let j = 0;
+  for (const [cell, old] of job) {
+    if (old === HERO_EMPTY) { indir[cell] = count++; added++; }
+    jobs.set([indir[cell], cell, old, 0], j++ * 4);
+  }
+  if (count > POOL_SLAB_BRICKS * 204) throw new Error(`stampCloud: ${count} fine bricks, over the pool limit (204 slabs)`);
+
+  // The grown overlay: a new indirection and pool, the old pool's slabs copied in, the touched bricks re-built.
+  const slabs = Math.max(1, Math.ceil(count / POOL_SLAB_BRICKS));
+  const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC;
+  const indirTex = device.createTexture({ label: 'stamp fine indirection', dimension: '3d', format: 'r32uint', size: tc, usage });
+  device.queue.writeTexture({ texture: indirTex }, indir, { bytesPerRow: tc[0] * 4, rowsPerImage: tc[1] }, tc);
+  const poolSize: [number, number, number] = [POOL_XY, POOL_XY, BRICK_TEXELS * slabs];
+  const pool = device.createTexture({ label: 'stamp fine pool', dimension: '3d', format: 'rgba8unorm', size: poolSize, usage: usage | GPUTextureUsage.STORAGE_BINDING });
+  if (prev) encoder.copyTextureToTexture({ texture: prev.pool }, { texture: pool }, prev.poolSize);
+  let kit = rebrickKits.get(device);
+  if (!kit) {
+    kit = {
+      pipeline: device.createComputePipeline({ label: 'stamp fine rebrick', layout: 'auto', compute: { module: device.createShaderModule({ label: 'stamp fine rebrick', code: REBRICK_WGSL }), entryPoint: 'rebrickMain' } }),
+      sampler: device.createSampler({ magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge', addressModeW: 'clamp-to-edge' }),
+      empty: device.createTexture({ label: 'stamp fine empty pool', dimension: '3d', format: 'rgba8unorm', size: [1, 1, 1], usage: GPUTextureUsage.TEXTURE_BINDING }),
+    };
+    rebrickKits.set(device, kit);
+  }
+  if (job.size) {
+    const total = job.size * 1000, groups = Math.ceil(total / 64), gx = Math.min(groups, 65535), gy = Math.ceil(groups / gx);
+    const params = new ArrayBuffer(96);
+    new Uint32Array(params, 0, 12).set([...tc, job.size, ...tf, gx, ...hf, ratio]);
+    new Float32Array(params, 48, 12).set([...asset.dims, fv, ...position, target.voxelSize, co, si, asset.voxelSize, clearMargin]);
+    const uni = device.createBuffer({ label: 'stamp fine params', size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(uni, 0, params);
+    const jobBuf = device.createBuffer({ label: 'stamp fine jobs', size: jobs.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(jobBuf, 0, jobs);
+    const pass = encoder.beginComputePass({ label: 'stamp fine rebrick' });
+    pass.setPipeline(kit.pipeline);
+    pass.setBindGroup(0, device.createBindGroup({
+      layout: kit.pipeline.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: uni } }, { binding: 1, resource: { buffer: jobBuf } },
+        { binding: 2, resource: hero.indir.createView() }, { binding: 3, resource: hero.pool.createView() },
+        { binding: 4, resource: assetView }, { binding: 5, resource: sdfView }, { binding: 6, resource: target.nvdf.createView({ dimension: '3d' }) },
+        { binding: 7, resource: (prev?.pool ?? kit.empty).createView() }, { binding: 8, resource: kit.sampler }, { binding: 9, resource: pool.createView() },
+      ],
+    }));
+    pass.dispatchWorkgroups(gx, gy);
+    pass.end();
+  }
+  // The previous overlay's textures are still read by the commands above; they are released with the garbage collector.
+  target.fine = {
+    indir: indirTex, pool, fineVoxel: fv, cells: tc, poolSize, bricks: count, indirData: indir,
+    bytes: tc[0] * tc[1] * tc[2] * 4 + slabs * POOL_SLAB_BYTES,
+    destroy() { indirTex.destroy(); pool.destroy(); },
+  };
+  if (!ownedFine.has(target)) {
+    ownedFine.add(target);
+    const destroy = target.destroy;
+    target.destroy = () => { target.fine?.destroy(); destroy.call(target); };
+  }
+  return { position, yaw, bricks: count, added, rebuilt: job.size - added };
 }
 
 /** An empty region: no cloud, SDF = +maxDistance everywhere. A valid stamp target. Axes (x, map row, up). */

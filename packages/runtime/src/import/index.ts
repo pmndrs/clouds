@@ -8,15 +8,23 @@
 // GPU: the SDF by the jump flood of createSdfRebuilder (2 rounds), as for stamped clouds.
 import type { GpuCloudVolume } from '../resources';
 import { createEmptyCloudVolume, createSdfRebuilder } from '../generate/stamp';
-import { convertVdb, type ConvertedVdb, type VdbImportInfo, type VdbImportOptions } from './convert';
+import { packFineProfile } from '../hero/bricks';
+import { uploadFineProfile } from '../hero/overlay';
+import { convertVdb, VdbImportError, type ConvertedVdb, type VdbImportInfo, type VdbImportOptions } from './convert';
+import { splitFineLattice, type FineProfile } from './fine';
 
 export { convertVdb, inspectVdb, VdbImportError, BLOSC_HELP } from './convert';
 export type { ConvertedVdb, VdbGridSummary, VdbImportErrorCode, VdbImportInfo, VdbImportMode, VdbImportOptions, VdbImportTimings } from './convert';
 export { PACK_FIT } from './pack-fit';
+export { exportFineNvdb, splitFineLattice, type ExportFineNvdbOptions, type FineProfile } from './fine';
+// The fine hero tools (P13-H3): the fine.nvdb reader and the brick packers, for loaders and tools that build their own volumes.
+export { decodeFineNvdb, packFineProfile, packFineBricks, reduceFineLattice, uploadFineProfile, type FineProfileBricks, type PackFineOptions } from '../hero';
 
 export interface ImportedVdb {
   volume: GpuCloudVolume;
   info: VdbImportInfo;
+  /** With `fineVoxelSize`: the fine profile lattice (for `exportFineNvdb`); the volume's `fine` overlay holds its bricks. */
+  fine?: FineProfile;
 }
 
 /** Write an already converted VDB into a GPU volume (NVDF upload, then the SDF jump flood). Resolves when the GPU has finished. */
@@ -42,11 +50,42 @@ export async function uploadConvertedVdb(device: GPUDevice, converted: Converted
  */
 export async function importVdb(device: GPUDevice, arrayBuffer: ArrayBuffer, options: VdbImportOptions = {}): Promise<ImportedVdb> {
   const t0 = performance.now();
-  const converted = convertVdb(arrayBuffer, options);
-  const { volume, uploadMs, sdfGpuMs } = await uploadConvertedVdb(device, converted);
-  const info = converted.info;
+  const fv = options.fineVoxelSize;
+  if (!fv) {
+    const converted = convertVdb(arrayBuffer, options);
+    const { volume, uploadMs, sdfGpuMs } = await uploadConvertedVdb(device, converted);
+    const info = converted.info;
+    info.timings.uploadMs = uploadMs;
+    info.timings.sdfGpuMs = sdfGpuMs; // pipeline creation, 2 jump-flood rounds and the copy, to GPU completion
+    info.timings.totalMs = performance.now() - t0;
+    return { volume, info };
+  }
+  // Fine hero: convert once at the fine voxel size, the coarse volume is the P8 reduction of that lattice.
+  const v = options.voxelSize ?? 8, ratio = v / fv;
+  if (!(Number.isInteger(ratio) && ratio >= 2)) throw new VdbImportError('format', `fineVoxelSize must divide voxelSize by an integer >= 2 (got ${fv} under ${v} m)`);
+  const converted = convertVdb(arrayBuffer, { ...options, voxelSize: fv, margin: (options.margin ?? 8) * ratio });
+  const tf = performance.now();
+  const split = splitFineLattice(converted.nvdf, converted.dims, fv, ratio);
+  const fi = converted.info, cd = split.coarse.dims;
+  let occ = 0, fineOcc = 0;
+  for (let i = 0; i < cd[0] * cd[1] * cd[2]; i++) if (split.coarse.nvdf[i * 4]) occ++;
+  for (let i = 0; i < split.fine.profile.length; i++) if (split.fine.profile[i]) fineOcc++;
+  const info: VdbImportInfo = {
+    ...fi, voxelSizeMeters: v, dims: cd, cropOffset: fi.cropOffset.map(c => c / ratio) as [number, number, number],
+    occupiedMin: fi.occupiedMin.map(c => Math.floor(c / ratio)) as [number, number, number], occupiedMax: fi.occupiedMax.map(c => Math.floor(c / ratio)) as [number, number, number],
+    occupiedFraction: occ / (cd[0] * cd[1] * cd[2]), sizeMeters: [cd[0] * v, cd[2] * v, cd[1] * v],
+  };
+  const { volume, uploadMs, sdfGpuMs } = await uploadConvertedVdb(device, { nvdf: split.coarse.nvdf, dims: cd, voxelSize: v, info });
+  const bricks = packFineProfile(split.fine.profile, split.fine.dims, fv, Math.ceil(1.5 * ratio));
+  const fine = uploadFineProfile(device, bricks, volume.nvdf, cd, 'vdb import fine');
+  await device.queue.onSubmittedWorkDone();
+  volume.fine = fine;
+  const destroy = volume.destroy;
+  volume.destroy = () => { fine.destroy(); destroy.call(volume); };
+  info.fine = { voxelSizeMeters: fv, dims: split.fine.dims, occupiedFraction: fineOcc / split.fine.profile.length, bricks: fine.bricks, gpuBytes: fine.bytes };
   info.timings.uploadMs = uploadMs;
-  info.timings.sdfGpuMs = sdfGpuMs; // pipeline creation, 2 jump-flood rounds and the copy, to GPU completion
+  info.timings.sdfGpuMs = sdfGpuMs;
+  info.timings.fineMs = performance.now() - tf - uploadMs - sdfGpuMs;
   info.timings.totalMs = performance.now() - t0;
-  return { volume, info };
+  return { volume, info, fine: split.fine };
 }

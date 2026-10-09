@@ -3,7 +3,9 @@
 // Constants are the same as the Python PACK_FIT; keep them in sync. Pure math, no GPU, no three.
 
 export const PACK_FIT = {
-  profile: { d0: 1.4, D: 66.0, g: 1.05, base: 0.1, baseH: 0.22, sigma: 0.64, corrVox: 3.0 },
+  // corrVox is the noise correlation length at the 8 m fit resolution (kept for readers of the old key); corrMeters (= corrVox x 8 m) is what
+  // the importer uses, so the patchwork statistics fitted at 8 m hold at 4 and 2 m voxels (P13-H2 / H3, as nvdf_math.corr_voxels).
+  profile: { d0: 1.4, D: 66.0, g: 1.05, base: 0.1, baseH: 0.22, sigma: 0.64, corrVox: 3.0, corrMeters: 24.0 },
   detail: { lo: 0.1, hi: 0.75, depthShift: 0.25, depthRef: 32.0 },
   scale: { s0: 0.04, s1: 0.75, h1: 0.6 },
 } as const;

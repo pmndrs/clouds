@@ -38,6 +38,7 @@ export default defineConfig({
     testStamp: fileURLToPath(new URL('./examples/lab/runtime-tests/stamp/index.html', import.meta.url)),
     testHeroFine: fileURLToPath(new URL('./examples/lab/runtime-tests/hero-fine/index.html', import.meta.url)),
     testHeroFineStill: fileURLToPath(new URL('./examples/lab/runtime-tests/hero-fine/still.html', import.meta.url)),
+    testHeroStamp: fileURLToPath(new URL('./examples/lab/runtime-tests/hero-stamp/index.html', import.meta.url)),
     onsen: fileURLToPath(new URL('./examples/lab/onsen/index.html', import.meta.url)),
     library: fileURLToPath(new URL('./examples/lab/library/index.html', import.meta.url)),
     species: fileURLToPath(new URL('./examples/lab/species/index.html', import.meta.url)),

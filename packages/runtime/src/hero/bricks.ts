@@ -153,7 +153,8 @@ export function packFineProfile(profile: Uint8Array, dims: readonly [number, num
 
 /**
  * The coarse lattice of a fine one by the P8 reduction rule (spec section 4.3): R = mean of the `ratio`^3 fine profiles, at least 1/255 when
- * any of them is > 0 (so coarse occupancy covers the fine one and the coarse SDF stays a lower bound); G and B are the plain means.
+ * any of them is > 0 (so coarse occupancy covers the fine one and the coarse SDF stays a lower bound); G and B are the means over the set fine
+ * voxels (all of them when none is set), so a surface voxel keeps the cloud's detail type and density scale instead of a mix with the outside.
  * Fine dims are padded up to a multiple of `ratio` with zeros.
  */
 export function reduceFineLattice(rgba: Uint8Array, dims: readonly [number, number, number], ratio: number): { rgba: Uint8Array<ArrayBuffer>; dims: [number, number, number] } {
@@ -162,15 +163,17 @@ export function reduceFineLattice(rgba: Uint8Array, dims: readonly [number, numb
   const res = new Uint8Array(out[0] * out[1] * out[2] * 4);
   const n = ratio ** 3;
   for (let z = 0; z < out[2]; z++) for (let y = 0; y < out[1]; y++) for (let x = 0; x < out[0]; x++) {
-    let r = 0, g = 0, b = 0, any = false;
+    let r = 0, g = 0, b = 0, gs = 0, bs = 0, k = 0;
     for (let dz = 0; dz < ratio; dz++) for (let dy = 0; dy < ratio; dy++) for (let dx = 0; dx < ratio; dx++) {
       const fx = x * ratio + dx, fy = y * ratio + dy, fz = z * ratio + dz;
       if (fx >= nx || fy >= ny || fz >= nz) continue;
       const i = ((fz * ny + fy) * nx + fx) * 4;
-      r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2]; if (rgba[i]) any = true;
+      r += rgba[i]; g += rgba[i + 1]; b += rgba[i + 2];
+      if (rgba[i]) { gs += rgba[i + 1]; bs += rgba[i + 2]; k++; }
     }
     const o = ((z * out[1] + y) * out[0] + x) * 4;
-    res[o] = any ? Math.max(1, Math.round(r / n)) : 0; res[o + 1] = Math.round(g / n); res[o + 2] = Math.round(b / n); res[o + 3] = 255;
+    res[o] = k ? Math.max(1, Math.round(r / n)) : 0;
+    res[o + 1] = Math.round(k ? gs / k : g / n); res[o + 2] = Math.round(k ? bs / k : b / n); res[o + 3] = 255;
   }
   return { rgba: res, dims: out };
 }

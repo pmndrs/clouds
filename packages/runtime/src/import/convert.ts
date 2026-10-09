@@ -37,6 +37,12 @@ export interface VdbImportOptions {
   scaleFloor?: number;
   /** Also return the exact CPU signed distance field (metres, x-fastest) of the cropped cloud. fog mode computes it anyway. */
   cpuSdf?: boolean;
+  /**
+   * importVdb only (P13-H4): also build a fine hero layer at this voxel size (4 or 2 m under 8 m). The VDB is converted once at the fine size
+   * (margin and noise correlation kept in metres), the coarse volume is its P8 reduction (so fine occupancy lies inside coarse occupancy and
+   * the coarse SDF bounds both), and the fine profile is uploaded as bricks (`volume.fine`). Default: none.
+   */
+  fineVoxelSize?: number;
 }
 
 export type VdbImportErrorCode = 'blosc' | 'unsupported-codec' | 'unsupported-grid' | 'no-grid' | 'grid-not-found' | 'wrong-class' | 'empty' | 'too-large' | 'format';
@@ -70,6 +76,8 @@ export interface VdbImportTimings {
   /** Filled by importVdb. */
   uploadMs?: number;
   sdfGpuMs?: number;
+  /** Filled by importVdb with fineVoxelSize: the reduction, brick packing and pool upload. */
+  fineMs?: number;
   totalMs: number;
 }
 
@@ -98,6 +106,8 @@ export interface VdbImportInfo {
   houdiniMinMeters: [number, number, number];
   /** fog mode: density that mapped to density scale 1. */
   densityRef?: number;
+  /** importVdb with fineVoxelSize: the fine layer (dims in texture axes, nested in `dims`, same min corner). */
+  fine?: { voxelSizeMeters: number; dims: [number, number, number]; occupiedFraction: number; bricks: number; gpuBytes: number };
   notes: string[];
   timings: VdbImportTimings;
 }
@@ -331,7 +341,7 @@ export function convertVdb(buffer: ArrayBuffer, options: VdbImportOptions = {}):
       for (let i = 0; i < count; i++) if (sdfMeters[i] < driver[i]) driver[i] = sdfMeters[i];
     }
     const hz = heightFractions(maskC, cd);
-    const noise = smoothNoise(cd, PACK_FIT.profile.corrVox, options.seed ?? 1);
+    const noise = smoothNoise(cd, PACK_FIT.profile.corrMeters / tv, options.seed ?? 1);
     const pn = options.profileNoise ?? 1, pg = options.profileGain ?? 1, sg = options.scaleGain ?? 1, floor = options.scaleFloor ?? 0;
     const densC = density ? cropF(density) : null;
     if (densC) {
