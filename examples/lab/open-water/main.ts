@@ -53,6 +53,7 @@ try {
   clouds.core.shadowMap.settings.enabled = query.get('shadowmap') !== '0'; clouds.core.shadowMap.settings.debug = (Number(query.get('shadowdebug') ?? 0) | 0) as 0 | 1 | 2;
   for (const k of Object.keys(clouds.core.shadowMap.settings)) { const v = query.get('sm_' + k); if (v !== null && k !== 'enabled') (clouds.core.shadowMap.settings as unknown as Record<string, number>)[k] = Number(v); } // ?sm_steps=32 ?sm_refreshFrames=16 ...
   ocean.mesh.visible = query.get('ocean') !== '0';
+  if (query.get('cloudshadow') !== '0') clouds.applyShadow(sun.light); // INTEGRATION (P10-B: cloud shadow dims the sun glint and direct light; ?cloudshadow=0 keeps the composite-alpha shadow)
   if (query.has('wave')) { ocean.settings.waveScale = Number(query.get('wave')); ocean.settings.choppiness = 0.2; } // ?wave=0.05: near-flat water for judging reflections
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera); // INTEGRATION

@@ -57,12 +57,14 @@ const clouds = new Clouds(renderer, options);
 | `setVolume(volume, { position })` | Show a `GpuCloudVolume` or a `CloudVolumeAsset`. `position` is the base centre in world metres. Always a history cut; a pack is re-uploaded. |
 | `node(colorNode, scenePass)` | The TSL node `color * cloud.a + cloud.rgb`. Sets `scenePass.options.samples ??= 0`. Assign it to `RenderPipeline.outputNode`. |
 | `reflection(dirNode)` | TSL `vec4(rgb, T)`: premultiplied cloud radiance and transmittance toward a world-space direction. Blend as `env * T + rgb`. Below the horizon it gives `(0, 0, 0, 1)`. Turns the reflection dome on (it is off on the `'mobile'` tier). One reference point, the camera's x/z at ground level, so it suits large flat reflectors like water. About one frame of lag. |
+| `applyShadow(light)`, `removeShadow(light)` | Cloud shadows through three's lighting: `applyShadow(sun.light)` sets `light.shadow.shadowNode` to `shadow()` (multiplied with a node already there, such as a heightfield shadow), `light.castShadow` and `renderer.shadowMap.enabled`, and sets `settings.compositeShadow = 0` so nothing is shadowed twice. Materials with `receiveShadow = true` then lose only the direct sun; sky, IBL and ambient stay. Call it after any code that installs its own `shadowNode`. See [Cloud shadows](#cloud-shadows). |
+| `shadow(positionNode?)` | TSL float, 1 = sunlit, 0 = shadowed, for a world position (default `positionWorld`). The cloud shadow map's optical depth turned into light, for materials that mix their own lighting. 1 until the map has landed. |
 | `settings` | Live [`CloudSettings`](#cloudsettings), safe to change every frame. |
 | `lighting` | Live `UniformLightingValues` (`sunDirection`, `sunRadiance`, `ambientTop`, `ambientBottom`) when there is no sky; `undefined` with a sky. |
 | `setQuality(tier)`, `quality` | Switch tier; the tier in effect. Under `'auto'` the dynamic scale keeps running on top. |
 | `auto` | `AutoQualityInfo \| null`: `{ tier, reasons, scale, costMs, budgetMs, measured, changes }`. `null` for a fixed tier. |
 | `setBudget(ms)` | `'auto'`: change the GPU budget at run time. `setBudget(Infinity)` pins scale 1. |
-| `memory` | `CloudMemory` in bytes: `history`, `trace`, `sky`, `output`, `dome`, `lightGrid`, `total`. |
+| `memory` | `CloudMemory` in bytes: `history`, `trace`, `sky`, `output`, `dome`, `lightGrid`, `shadow`, `total`. |
 | `timings`, `lastTimings` | Rolling-average and most-recent GPU ms per pass (`lightGrid`, `marchNear`, `resolveNear`, `marchFar`, `resolveFar`, `composite`, `dome`, `skyLayer`, `skyResolve`). Empty without `timestamp-query`. The last lags the frame by 2 or 3. |
 | `isReady` | True once volume and noise are loaded and the first frame sized the output. Until then the node shows the plain scene. |
 | `core` | The `CloudRuntime` underneath (settings, `dome`, `skyLayer`, `resetTemporal()`, ...). |
@@ -91,6 +93,28 @@ const reflectedClouds = Fn(([env]: [ReturnType<typeof vec3>]) => {
   return vec4(env.mul(r.a).add(r.rgb), 1);
 });
 void reflectedClouds;
+```
+
+##### Cloud shadows
+
+The runtime keeps a world-anchored shadow map of the sun-ray optical depth through the voxel volume and the sky layer
+(`core.shadowMap`; two 1024 cascades, 8 km at 8 m texels and 64 km, refreshed a slice per frame). By default the
+composite darkens every opaque pixel with it (the alpha path, `compositeShadow` 1). That path also darkens ambient
+light. For three materials the better route is the light: `clouds.applyShadow(sun.light)` once, set
+`receiveShadow = true` on the ground, water and props, and three multiplies the cloud shadow into that light's colour
+only. A terrain that installs its own `light.shadow.shadowNode` (a heightfield sun shadow) is multiplied, not replaced,
+provided `applyShadow` runs after it.
+
+```ts
+import type { Clouds } from '@clouds/three';
+import type { DirectionalLight, Mesh } from 'three';
+
+declare const clouds: Clouds;
+declare const sunLight: DirectionalLight;
+declare const ground: Mesh;
+
+ground.receiveShadow = true;
+clouds.applyShadow(sunLight); // direct sun only; the composite shadow turns itself off
 ```
 
 `examples/lab/scenes/ocean` hooks the same value into three's own environment node for the water; see the
@@ -124,6 +148,7 @@ Own props (every other prop is a [`CloudSettings`](#cloudsettings) key and wins 
 | `haze` | `boolean` | `false` | Apply the sky's aerial-perspective haze under the clouds. Leave it off when you use `<AutoHaze />`. Read at mount. |
 | `lighting` | `Partial<UniformLightingValues>` | none | Sky-less lighting values. |
 | `planetCenter` | `Vector3 \| null` | none | Changing it recreates the instance. |
+| `shadowLight` | `DirectionalLight \| null` | none | Calls `clouds.applyShadow(light)` while set: cloud shadows on the direct sun of `receiveShadow` meshes, composite shadow off. |
 | `onLoad` | `(volume) => void` | none | Called after the volume is placed (for framing a camera). |
 | `children` | `ReactNode` | none | Mounted once the instance exists, so `useClouds()` is never null inside. |
 
@@ -224,6 +249,7 @@ A `CloudRuntime` has:
 | `resetTemporal()`, `temporalInfo` | Drop the history (call on a cut the runtime cannot see, such as a sky jump); rates in effect, resets, frames, bytes. |
 | `extent` | World size of the volume `[x, y, z]` once set. |
 | `dome` | The octahedral reflection dome (`texture`, `view`, `size`, `settings`: `enabled`, `referencePoint`, `groundHeight`, ...). |
+| `shadowMap` | The cloud shadow map (P10-A): `settings` (`enabled`, `nearExtent`, `farExtent`, `refreshFrames`, `steps`), `textures` (two `r32float` cascades of optical depth), `paramsBuffer`, `params` (CPU mirror), `info.valid`. WGSL consumers call `cloudShadowMapWgsl(group, binding)` for `cloudShadowTau(p)`. |
 | `skyLayer` | The distant 2.5D layer; off by default. See [Distant sky layer](#distant-sky-layer). |
 | `swapVolume(volume, { position })`, `setVolumePosition(position)` | In-flight with the realtime-evolution work (P6-A): swap in a caller-owned volume of the same shape without cutting history, and move the box with a uniform write. |
 | `dispose()` | |
@@ -316,7 +342,8 @@ the default; the others are art defaults.
 | `renderScale` | 1 | Dynamic resolution, 0.25..1, multiplies both march passes' resolution without reallocating. `'auto'` drives it. |
 | `detailDistance` | tier (150; 100 low; 60 mobile) | Distance (m) within which the high-frequency detail octave is evaluated. |
 | `farLimit` | tier (unlimited; 6000 on mobile) | The far pass stops here (m). |
-| `shadowStrength` | 0.6 | 0..1 darkening of opaque scene pixels by cloud shadow. 0 disables. |
+| `shadowStrength` | 0.6 | 0..1 darkening of opaque scene pixels by cloud shadow. 0 disables the shadow map too. Also the strength of `Clouds.shadow()`. |
+| `compositeShadow` | 1 | 1: the composite folds the shadow into its alpha (darkens everything, ambient included). 0: not; `Clouds.applyShadow` sets this so the light does the shadowing. |
 
 The Nubis-neutral values (`msStrength` 1, `deepScatter` 0, ...) are noted in
 [`CloudSettings`' doc comments](https://github.com/pmndrs/clouds/blob/main/packages/runtime/src/runtime.ts) and the formulas in

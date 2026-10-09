@@ -135,6 +135,8 @@ export interface CloudSettings {
   farLimit: number;
   /** 0..1: how dark the full cloud shadow makes opaque scene pixels (folded into the composite alpha). 0 disables. */
   shadowStrength: number;
+  /** 1 (default): the composite darkens opaque scene pixels with the cloud shadow. 0: it does not (the shadow map still runs); set by `Clouds.applyShadow` when materials take the shadow through their sun light instead. */
+  compositeShadow: number;
   /** P6-B: automatic lightning (`rate` flashes per second inside `region`, see LightningSettings). Off by default (rate 0). Flashes from `flash()` work regardless. */
   lightning: LightningSettings;
 }
@@ -350,7 +352,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     transmittanceCutoff: startPreset.transmittanceCutoff, splitDistance: startPreset.splitDistance,
     temporalNear: startPreset.temporalNear, temporalFar: startPreset.temporalFar, temporalBlend: 0.3,
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,
-    shadowStrength: 0.6, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
+    shadowStrength: 0.6, compositeShadow: 1, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
     microDist: startPreset.microDist, microShadow: 1, detailBias: 0.5, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
   };
 
@@ -702,7 +704,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[30] = outW; f[31] = outH;
       f[32] = settings.baseMip; frameU32[33] = settings.maxSteps >>> 0; frameU32[34] = frame.frameIndex >>> 0; f[35] = settings.lightDensityScale;
       f[36] = settings.msStrength; f[37] = settings.ambientStrength; f[38] = settings.silverStrength; f[39] = settings.ambientExtinction;
-      f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = settings.shadowStrength; f[43] = settings.deepScatter;
+      f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = settings.shadowStrength * (settings.compositeShadow > 0.5 ? 1 : 0); f[43] = settings.deepScatter;
       // A tier without a near pass (nearScale 0) marches the whole ray in the far pass: split 0 turns the near march, its resolve, the far pass's occlusion test and the composite's near upsample off.
       const nearActive = CLOUD_QUALITY_PRESETS[quality].nearScale > 0 && settings.splitDistance > 0;
       f[44] = nearActive ? settings.splitDistance : 0; f[45] = settings.transmittanceCutoff;

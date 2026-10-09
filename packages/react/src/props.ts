@@ -2,7 +2,7 @@
 import type { CloudSettings } from '@clouds/three';
 
 /** Props that belong to the component; every other prop is a `CloudSettings` key (`<Clouds densityScale={0.02} />`). */
-export const OWN_PROPS = ['volume', 'noise', 'position', 'quality', 'settings', 'sky', 'haze', 'lighting', 'planetCenter', 'onLoad', 'children'] as const;
+export const OWN_PROPS = ['volume', 'noise', 'position', 'quality', 'settings', 'sky', 'haze', 'lighting', 'planetCenter', 'shadowLight', 'onLoad', 'children'] as const;
 const OWN = new Set<string>(OWN_PROPS);
 
 /** Merges the `settings` object and the loose settings props (loose props win); drops undefined values. */

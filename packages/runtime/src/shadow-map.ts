@@ -68,6 +68,8 @@ export interface CloudShadowMap {
   readonly resolution: number;
   readonly textures: readonly [GPUTexture, GPUTexture];
   readonly paramsBuffer: GPUBuffer;
+  /** CPU mirror of the uniform written by the last `encode` (6 vec4, see CloudShadowMap in shadow-map.wgsl.ts). For adapters that sample the map outside WGSL bindings. */
+  readonly params: Readonly<Float32Array>;
   /** Layout entries / bind group entries for cloudShadowMapWgsl(group, binding): uniform at `binding`, near cascade at +1, far at +2. */
   bindGroupLayoutEntries(binding: number, visibility: number): GPUBindGroupLayoutEntry[];
   bindGroupEntries(binding: number): GPUBindGroupEntry[];
@@ -90,7 +92,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
   const N = Math.max(64, 1 << Math.round(Math.log2(options.resolution ?? 1024)));
   const settings: CloudShadowMapSettings = { ...SHADOW_MAP_DEFAULTS };
   const C = GPUShaderStage.COMPUTE;
-  const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING;
+  const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC;
   const textures: [GPUTexture, GPUTexture] = [
     device.createTexture({ label: 'cloud shadow map near', size: [N, N], format: 'r32float', usage }),
     device.createTexture({ label: 'cloud shadow map far', size: [N, N], format: 'r32float', usage }),
@@ -137,7 +139,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
   const projected = (s: ArrayLike<number>) => [s[0] / s[1], s[2] / s[1]];
 
   return {
-    settings, resolution: N, textures, paramsBuffer,
+    settings, resolution: N, textures, paramsBuffer, params: p,
     bindGroupLayoutEntries(binding, visibility) {
       return [
         { binding, visibility, buffer: { type: 'uniform' } },

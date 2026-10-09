@@ -62,6 +62,7 @@ try {
 
   const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as CloudQuality) ?? 'high' }); // INTEGRATION
   const terrain = createTerrain(renderer, scene, { sun, shadowSteps: num('shadow', 22) });
+  if (query.get('cloudshadow') !== '0') clouds.applyShadow(sun.light); // INTEGRATION (P10-B: cloud shadow on the direct sun only, after the terrain installed its heightfield shadow so the two multiply; ?cloudshadow=0 keeps the composite-alpha shadow)
   terrain.mesh.visible = query.get('terrain') !== '0';
   const field = terrain.field;
   const T = field.terraceHeight, pool = field.shape.pool;

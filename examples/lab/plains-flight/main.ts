@@ -109,6 +109,8 @@ try {
 
   const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality }); // INTEGRATION
   if (query.has('k')) { const [kn, kf] = query.get('k')!.split(',').map(Number); clouds.settings.temporalNear = kn; clouds.settings.temporalFar = kf ?? kn; } // ?k=<near>,<far>: temporal amortization override (1, 2 or 4)
+  ground.receiveShadow = true;
+  if (query.get('cloudshadow') !== '0') clouds.applyShadow(sun.light); // INTEGRATION (P10-B: cloud shadow on the direct sun only; ?cloudshadow=0 keeps the composite-alpha shadow)
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera); // INTEGRATION
   post.outputNode = clouds.node(scenePass.getTextureNode(), scenePass); // INTEGRATION

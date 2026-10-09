@@ -1,0 +1,48 @@
+{
+  "url": "http://127.0.0.1:57285/three-adapter/?hud=0&clean=1&objects=1&cloudshadow=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:04:10.259Z",
+  "shots": [
+    {
+      "name": "shadow",
+      "file": "work/captures/P10-B/adapter-cs0/shadow.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.407523783333333,
+          "lightGridReduce": 0.063327,
+          "lightGrid": 0.08949,
+          "marchNear": 0.23642601666666654,
+          "marchFar": 0.18702880000000008,
+          "composite": 0.322396,
+          "dome": 0.3362754666666667,
+          "resolveNear": 0.16083903333333327,
+          "resolveFar": 0.16840580000000002,
+          "shadowMap": 0.234962347826087
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "shadow",
+        "timeOfDay": 14,
+        "haze": false,
+        "frames": 94,
+        "cloudsReady": true,
+        "cloudShadow": false
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

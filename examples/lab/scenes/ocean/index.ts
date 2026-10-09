@@ -244,6 +244,7 @@ export function createOcean(renderer: WebGPURenderer, scene: Scene, sky: OceanSk
   const mesh = new Mesh(buildGrid(options.rings ?? 220, options.segments ?? 512, 0.5, radius), material);
   mesh.frustumCulled = false;
   mesh.name = 'ocean';
+  mesh.receiveShadow = true; // lets a sun light with a shadow node (Clouds.applyShadow) dim the glint and direct light
   mesh.position.y = level;
   scene.add(mesh);
 

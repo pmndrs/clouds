@@ -1,0 +1,106 @@
+{
+  "url": "http://127.0.0.1:57483/onsen/?hud=0&clean=1&skylayer=1&cloudshadow=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:04:22.820Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/P10-B/onsen-cs0/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 16.07577256521739,
+          "lightGridReduce": 0.700676,
+          "lightGrid": 2.292478,
+          "marchNear": 0.04611703333333334,
+          "marchFar": 0.4447683166666666,
+          "shadowMap": 0.24523105000000003,
+          "composite": 0.22060591666666665,
+          "dome": 0.2755044833333333,
+          "resolveNear": 0.01938306779661017,
+          "resolveFar": 0.036567796610169484,
+          "skyLayer": 1.076036793103448,
+          "skyResolve": 0.07716646551724139,
+          "cloudsTotal": 5.43453492302747,
+          "total": 21.510307488244862
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 33.30000000000018
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "vantage",
+        "frames": 103,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 211,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "valley",
+      "file": "work/captures/P10-B/onsen-cs0/valley.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 14.28206136363636,
+          "lightGridReduce": 0.700676,
+          "lightGrid": 2.292478,
+          "marchNear": 0.043688116666666686,
+          "marchFar": 0.45886660000000007,
+          "shadowMap": 0.2488766666666666,
+          "composite": 0.21244531666666672,
+          "dome": 0.2684551166666667,
+          "resolveNear": 0.01954689999999999,
+          "resolveFar": 0.0374223,
+          "skyLayer": 0.9763940666666664,
+          "skyResolve": 0.07382389999999998,
+          "cloudsTotal": 5.332672983333333,
+          "total": 19.614734346969694
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 33.30000000000018
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "valley",
+        "frames": 202,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 211,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

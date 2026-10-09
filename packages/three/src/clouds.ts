@@ -14,6 +14,8 @@ import {
   type AutoQualityInfo, type AutoQualityOptions, type CloudFrame, type CloudMemory, type CloudNoiseAsset, type CloudQuality, type CloudQualityOption, type CloudRuntime, type CloudSettings, type CloudVolumeAsset, type GpuCloudVolume,
 } from '@clouds/runtime';
 import type { Sky } from '@pmndrs/sky';
+import type { DirectionalLight } from 'three';
+import { createCloudShadow, type CloudShadowState } from './cloud-shadow';
 import { sharedBackend, type SharedBackend } from './interop';
 import { createSkyBridge, type SkyBridge } from './sky-bridge';
 import { createUniformLighting, type UniformLighting, type UniformLightingValues } from './uniform-lighting';
@@ -90,6 +92,10 @@ export class Clouds {
   private readonly cameraPositionArray = [0, 0, 0];
   private readonly depthViews = new WeakMap<GPUTexture, GPUTextureView>();
   private readonly nodes = new Set<CloudsNode>();
+  private shadowState: CloudShadowState | undefined;
+  private shadowGpu: [GPUTexture | undefined, GPUTexture | undefined] = [undefined, undefined];
+  private shadowCopied = -1;
+  private readonly shadowLights = new Map<DirectionalLight, { castShadow: boolean; shadowNode: unknown }>();
 
   /** The renderer must be initialised (`await renderer.init()`); with a sky, compile it (`await sky.compileAsync()`) before `load()`. */
   constructor(renderer: WebGPURenderer, options: CloudsOptions = {}) {
@@ -176,6 +182,45 @@ export class Clouds {
   }
 
   /**
+   * Cloud shadow as a TSL node: sun visibility 0..1 (1 lit) at a world position (default `positionWorld`), from the runtime's cloud shadow map
+   * (optical depth along the sun ray, voxel box and sky layer). It is for DIRECT sun only: multiply it into the sun term of a material, never into
+   * ambient or sky light. Prefer `applyShadow(light)`, which does that through three's own lighting. The map holds a surface below the cloud base
+   * (the volume box's bottom) correctly; it returns 1 until the first complete refresh (about a second) and when the map is disabled.
+   */
+  shadow(positionNode?: AnyNode): AnyNode {
+    this.shadowState ??= createCloudShadow(this.runtime);
+    return this.shadowState.node(positionNode);
+  }
+
+  /**
+   * Opt a three DirectionalLight (for instance the sun from `sky.createSun()`) into cloud shadows. three then multiplies `shadow()` into that
+   * light's colour for every material with `receiveShadow = true`, so only the direct sun is dimmed and sky, IBL and ambient light stay. It sets
+   * `renderer.shadowMap.enabled`, `light.castShadow` and `light.shadow.shadowNode` (the light renders no shadow map of its own with a custom
+   * node), and turns the composite-alpha shadow off (`settings.compositeShadow = 0`), so a surface is never shadowed twice. A custom
+   * `shadowNode` already on the light (the terrain's heightfield sun shadow) is kept and multiplied with the cloud shadow.
+   * `removeShadow(light)` undoes it. Materials that do not receive shadows keep the composite shadow only if `compositeShadow` is set back to 1.
+   */
+  applyShadow(light: DirectionalLight): DirectionalLight {
+    if (this.shadowLights.has(light)) return light;
+    const shadow = light.shadow as unknown as { shadowNode?: unknown };
+    this.shadowLights.set(light, { castShadow: light.castShadow, shadowNode: shadow.shadowNode });
+    const cloud = this.shadow();
+    shadow.shadowNode = shadow.shadowNode ? (shadow.shadowNode as AnyNode).mul(cloud) : cloud;
+    light.castShadow = true;
+    this.renderer.shadowMap.enabled = true;
+    this.runtime.settings.compositeShadow = 0;
+    return light;
+  }
+  removeShadow(light: DirectionalLight): void {
+    const saved = this.shadowLights.get(light);
+    if (!saved) return;
+    this.shadowLights.delete(light);
+    light.castShadow = saved.castShadow;
+    (light.shadow as unknown as { shadowNode?: unknown }).shadowNode = saved.shadowNode;
+    if (this.shadowLights.size === 0) this.runtime.settings.compositeShadow = 1;
+  }
+
+  /**
    * TSL node: `color * cloud.a + cloud.rgb`. `colorNode` is the scene colour (hazed or not); `scenePass` supplies depth and camera.
    * Do not give `scenePass` MSAA: its depth is read as a plain texture, so its render target samples are forced to 0.
    */
@@ -190,7 +235,7 @@ export class Clouds {
     if (this.disposed) return;
     this.disposed = true;
     this.ready.value = 0;
-    this.runtime.dispose(); this.timer.dispose(); this.skyBridge?.dispose(); this.uniformLighting?.dispose(); this.cloudTexture.dispose(); this.domeTexture.dispose();
+    this.runtime.dispose(); this.timer.dispose(); this.skyBridge?.dispose(); this.uniformLighting?.dispose(); this.cloudTexture.dispose(); this.domeTexture.dispose(); this.shadowState?.dispose();
     for (const n of this.nodes) n.dispose();
     this.nodes.clear();
   }
@@ -205,6 +250,23 @@ export class Clouds {
     }
     const bridge = this.skyBridge;
     return { bindGroup: bridge.bindGroup, sunDirection: bridge.values.sunDirection, update: camera => bridge.update(camera), dispose() {} };
+  }
+
+  /** Mirrors the shadow map's cascades into the three textures (only when a refresh slice ran since the last copy) and refreshes the node's uniforms. */
+  private copyShadow(encoder: GPUCommandEncoder): void {
+    const state = this.shadowState!, sm = this.runtime.shadowMap;
+    state.update(this.runtime);
+    const tex = [state.textures.near, state.textures.far] as const;
+    let changed = false;
+    for (let i = 0; i < 2; i++) {
+      if (!this.shadowGpu[i]) this.renderer.initTexture(tex[i]);
+      const gpu = this.backend.tryTexture(tex[i]) ?? undefined;   // three may re-create the texture when a material first binds it: look it up every frame
+      if (gpu !== this.shadowGpu[i]) { this.shadowGpu[i] = gpu; changed = true; }
+    }
+    const refreshes = sm.info.refreshes;
+    if ((refreshes === this.shadowCopied && !changed) || !this.shadowGpu[0] || !this.shadowGpu[1]) return;
+    this.shadowCopied = refreshes;
+    for (let i = 0; i < 2; i++) encoder.copyTextureToTexture({ texture: sm.textures[i] }, { texture: this.shadowGpu[i]! }, [sm.resolution, sm.resolution]);
   }
 
   /** @internal Runs in the node's updateBefore, after the scene pass rendered. */
@@ -250,6 +312,7 @@ export class Clouds {
     this.runtime.encode(encoder, f, this.timer);
     if (!this.domeGpu) { this.renderer.initTexture(this.domeTexture); this.domeGpu = this.backend.tryTexture(this.domeTexture) ?? undefined; }
     if (this.domeGpu) { const n = this.runtime.dome.size; encoder.copyTextureToTexture({ texture: this.runtime.dome.texture }, { texture: this.domeGpu }, [n, n]); }
+    if (this.shadowState) this.copyShadow(encoder);
     this.timer.endFrame(encoder);
     this.device.queue.submit([encoder.finish()]);
     this.ready.value = 1;

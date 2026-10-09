@@ -1389,7 +1389,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Flagship A/B shows no regression except the intended shadow change.
   - `pnpm check` green; the packed consumer passes.
 
-### [~] P10-B Cloud shadows in three materials · Sonnet
+### [x] P10-B Cloud shadows in three materials · Sonnet
 - **Owns:**
   - `packages/three/src/**` and `packages/react/src/**`: shadow node and prop pass-through
   - `examples/lab/scenes/{terrain,ocean}/**`

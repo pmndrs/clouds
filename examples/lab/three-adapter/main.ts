@@ -23,10 +23,13 @@ try {
   const rig = new CameraRig(camera, renderer.domElement);
   const sky = new Sky(renderer, { preset: 'earth', timeOfDay: bookmarkTime('ground'), latitude: 40, north: '-Z' });
   sky.attach(scene);
-  sky.createGround({ mode: 'plane', size: 8000000, color: 0x34461f, roughness: 1 }).attach(scene);
-  sky.createSun({ physical: true }).attach(scene);
+  const ground = sky.createGround({ mode: 'plane', size: 8000000, color: 0x34461f, roughness: 1, receiveShadow: true });
+  ground.attach(scene);
+  const sun = sky.createSun({ physical: true });
+  sun.attach(scene);
   await sky.compileAsync();
   const clouds = new Clouds(renderer, { sky: query.get('uniform') === '1' ? undefined : sky, quality: (query.get('quality') as 'high') ?? 'high' }); // INTEGRATION (?uniform=1 drops the sky: uniform lighting mode)
+  if (query.get('cloudshadow') !== '0') clouds.applyShadow(sun.light); // INTEGRATION (P10-B: cloud shadow on the direct sun only; ?cloudshadow=0 keeps the composite-alpha shadow)
   const asset = await clouds.load({ volume: '/clouds/parkouring/', position: [0, 500, 0] }); // INTEGRATION
   placeCloud(asset); // bookmark framing only (CLOUD_BOX / INSIDE_POINT); not part of the integration
   const post = new RenderPipeline(renderer);
@@ -56,7 +59,7 @@ try {
     const dx = c[0] - g.position[0], dz = c[2] - g.position[2], d = Math.hypot(dx, dz), ux = dx / d, uz = dz / d;
     const add = (geo: SphereGeometry | CylinderGeometry, color: number, x: number, y: number, z: number) => {
       const m = new Mesh(geo, new MeshStandardMaterial({ color, roughness: 0.6 }));
-      m.position.set(x, y, z); scene.add(m);
+      m.receiveShadow = true; m.position.set(x, y, z); scene.add(m);
     };
     add(new CylinderGeometry(22, 30, 1300, 24), 0x8a8f98, c[0], 650, c[2]); // tower: ground to 1300 m, through the cloud (500..908 m)
     add(new SphereGeometry(45, 48, 24), 0xff7a1a, g.position[0] + ux * d * 0.45, 330, g.position[2] + uz * d * 0.45); // in front of the cloud
@@ -110,7 +113,7 @@ try {
   applyBookmark('ground');
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95) }, renderSize: [renderer.domElement.width, renderer.domElement.height], bookmark, timeOfDay: time, haze: query.get('haze') === '1', frames: frame, cloudsReady: clouds.isReady }),
+    report: () => ({ gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95) }, renderSize: [renderer.domElement.width, renderer.domElement.height], bookmark, timeOfDay: time, haze: query.get('haze') === '1', frames: frame, cloudsReady: clouds.isReady, cloudShadow: query.get('cloudshadow') !== '0' }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

@@ -12,7 +12,7 @@ import { Suspense, createContext, use, useContext, useEffect, useLayoutEffect, u
 import { useFrame, useRenderPipeline, useStore, useThree } from '@react-three/fiber/webgpu';
 import { useSky } from '@pmndrs/sky/react';
 import type { Sky } from '@pmndrs/sky';
-import type { Vector3 } from 'three';
+import type { DirectionalLight, Vector3 } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
 import { loadCloudNoise, loadCloudVolume, type CloudNoiseAsset, type CloudVolumeAsset } from '@clouds/runtime';
 import { createEmptyCloudVolume, createStreamingCloudscape, type CloudPreset, type CloudPresetName, type StreamingCloudscape, type StreamingUpdate } from '@clouds/runtime/generate';
@@ -81,6 +81,8 @@ export interface CloudsOwnProps {
   lighting?: Partial<UniformLightingValues>;
   /** World-space planet centre for sky planet mode. */
   planetCenter?: Vector3 | null;
+  /** A sun DirectionalLight to take cloud shadows through (`clouds.applyShadow`): only its direct light is dimmed, on meshes with `receiveShadow`. Turns the composite-alpha shadow off while set. */
+  shadowLight?: DirectionalLight | null;
   /** Called after the volume is placed (for framing a camera). */
   onLoad?: (volume: GpuCloudVolume | CloudVolumeAsset) => void;
   children?: ReactNode;
@@ -90,7 +92,7 @@ export type CloudsProps = CloudsOwnProps & Partial<CloudSettings>;
 const DEFAULT_POSITION: [number, number, number] = [0, 500, 0];
 
 export function Clouds(props: CloudsProps) {
-  const { volume, noise = '/clouds/noise/', position = DEFAULT_POSITION, quality = 'high', sky: skyProp, haze = false, lighting, planetCenter, onLoad, children } = props;
+  const { volume, noise = '/clouds/noise/', position = DEFAULT_POSITION, quality = 'high', sky: skyProp, haze = false, lighting, planetCenter, shadowLight, onLoad, children } = props;
   const renderer = useThree(s => s.gl) as unknown as WebGPURenderer;
   const contextSky = useSky() as Sky | null;
   const sky = skyProp === false ? undefined : (skyProp ?? contextSky ?? undefined);
@@ -136,6 +138,13 @@ export function Clouds(props: CloudsProps) {
   // Work on the instance runs one after another, so a fast prop change cannot interleave two setVolume calls.
   const queue = useRef<Promise<void>>(Promise.resolve());
   const enqueue = (job: () => Promise<void> | void) => { queue.current = queue.current.then(job).catch(e => console.error('@clouds/react', e)); };
+
+  // Cloud shadows through the sun light (direct sun only).
+  useEffect(() => {
+    if (!instance || !shadowLight) return;
+    instance.applyShadow(shadowLight);
+    return () => instance.removeShadow(shadowLight);
+  }, [instance, shadowLight]);
 
   // 2. Noise, then volume.
   useEffect(() => {
