@@ -1420,6 +1420,30 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The `runtime-tests/generate` page passes.
   - `pnpm check` green; the packed consumer passes.
 
+### [~] P9-F Authored cloud library (Houdini Pyro batch) · Opus
+- **Owns:**
+  - `scripts/vdb/authoring/sim/**`
+  - `assets/clouds/library/**` (new; each cloud < 4 MB, committed)
+  - `examples/lab/library/**` (new page)
+  - its `vite.config.ts` input line and an entry in `examples/lab/gallery/cards.json`
+- **Read-only:** `packages/runtime/src/generate/stamp.ts` and the importer. Don't edit runtime or generate files; P9-B2 owns those right now.
+- **Does:** extend the P4-F Pyro-sim recipe into an unattended batch with seeds and parameters.
+  - **Library size:** 12–20 hero clouds with real variety, matching the species in `docs/research/deck-scenes.md` §2 and `docs/research/hzd-nubis-evolved.md`:
+    - small humilis, mediocris, tall congestus with turrets;
+    - leaning, sheared ones;
+    - a flat-topped stratocumulus slab;
+    - a decaying wispy one;
+    - a cap/pileus tower for T6, if feasible.
+  - **Per cloud:** a JSON manifest (species, size, base and top, seed, sim params).
+  - **Conversion:** to NVDF and SDF with the existing converter.
+  - **Library page:** stamps 30+ instances with random yaw, scale and position into a generated field (P4-C stamping, Atlas-style frankenclouds), with bookmarks `ground`, `horizon` and `above`.
+- **Acceptance:**
+  - The batch runs unattended (one command, logged).
+  - A contact sheet of all library clouds, isolated and side-lit, shows distinct silhouettes.
+  - The library page shows no visible repeats from three bookmarks.
+  - `node scripts/variety.mjs` on the library page reports clone score ≤ 0.5 (extend the page with the `fields` hook).
+  - 60 fps at 2560×1440 high. `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
