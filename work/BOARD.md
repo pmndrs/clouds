@@ -1574,6 +1574,31 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The minified build passes the packed consumer, and a dist-built page renders identically (capture A/B).
   - `pnpm check` green.
 
+### [~] T4 Layered sunset scene · Opus
+- **Owns:**
+  - a new `examples/lab/sunset/` page and its vite input line
+  - a gallery card in `examples/lab/gallery/cards.json`
+  - presets: add only new preset entries in `packages/runtime/src/generate/presets.ts`; don't change existing ones
+- **Not:** the march, sky-layer, composite, light-grid, dome or `runtime.ts` files (P9-C3 owns them). Engine gaps get written down and become tasks.
+- **Does:** plan Phase B target T4 (`docs/research/deck-scenes.md` §4 T4; slides SY s67, N3 s37 and s110).
+  - Long stratocumulus or altocumulus bands with gaps across the sky, scattered cumulus below, haze near the horizon and warm underlight. Two or more layers.
+  - Bookmarks at sun elevations of about +4°, +1° and −1° (afterglow).
+  - Build it from the multi-layer weather and species (P9-C) and the C1/C2 lighting.
+- **Acceptance:**
+  - Side by side against the owner's photos, kept local: `docs/research/photo-species-specs.md` T4 picks and the sunset-layers set.
+  - The report names three or more features that match and the remaining gaps, with engine gaps listed as proposed tasks.
+  - 60 fps at 2560×1440 on high.
+  - The owner signs off on T4 to set the bar for later targets.
+
+### [~] C3 Photo comparison pane · Sonnet
+- **Owns:** `examples/lab/compare/**`.
+- **Does:** a `photo` pane type for the compare page.
+  - It loads a local reference image by URL or file picker, e.g. `?photo=/@fs/...`, or drag-and-drop. It fits the image to the pane with crop or letterbox and shows the filename.
+  - An opacity slider, or a toggle to flip between photo and render.
+  - It never commits photos; it only references local paths.
+  - Pane labels show the sun elevation and the bookmark.
+- **Acceptance:** usable with `?impls=ours,photo&photo=...`, and captured with the harness (`capture.mjs` can pass the photo path). `pnpm check` green.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
