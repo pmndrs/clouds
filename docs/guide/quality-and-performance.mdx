@@ -239,7 +239,7 @@ shrinks 8x. If memory matters, choose a smaller `dims` or a larger `voxelSize` f
 ## Bundle size
 
 `node scripts/check-bundle.mjs` builds `dist/` (when missing) and bundles each entry the way a consumer's bundler sees it (three, react and `@pmndrs/*`
-external, minified, es2022), printing raw, gzip and brotli sizes. `--strict` exits non-zero over the 60 KB budget. The numbers below are from a recent run and move with the code.
+external, minified, es2022), printing raw, gzip and brotli sizes. It is a report, not a gate: there is no size cap. The numbers below are from a recent run and move with the code.
 
 | Entry | build | raw | gzip | brotli |
 | --- | --- | --- | --- | --- |
@@ -252,7 +252,7 @@ external, minified, es2022), printing raw, gzip and brotli sizes. `--strict` exi
 | `@clouds/react` | alone | 5.4 KB | 2.4 KB | 2.2 KB |
 | `@clouds/react` | with `@clouds/three` and `@clouds/runtime` (+ `/generate`) | 200.8 KB | 64.0 KB | 55.1 KB |
 
-The target is under 60 KB gzip for the core entry and for a `Clouds` user. The generator and the `.vdb`
+Size is not capped; quality comes first. The generator and the `.vdb`
 importer (with its vendored parser) are the `@clouds/runtime/generate` and `@clouds/runtime/import` subpaths, so you pay for
 them only when you import them (the generate and import rows count shared code in each; the core + generate + import row is the whole set).
 The packages are marked `sideEffects: false`, so a bundler also drops unused core exports.
@@ -273,8 +273,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 Rules for contributors:
 
-- Every WGSL template string carries the `/* wgsl */` tag, including ones assembled from pieces (`${PART}` nested templates inside a tagged template inherit it). An untagged template ships unminified and counts against the budget.
+- Every WGSL template string carries the `/* wgsl */` tag, including ones assembled from pieces (`${PART}` nested templates inside a tagged template inherit it). An untagged template ships unminified.
 - Do not put a backslash in a WGSL part, leave a comment unterminated, or let a `//` comment run into a `${}`: the minifier throws on these.
 - `node scripts/build-release.mjs --no-wgsl-min` builds without it, to A/B a problem. Sources stay readable; only the built files change.
-- After shader changes run `node scripts/check-bundle.mjs --strict` and `node scripts/check-packed-consumer.mjs`.
-- Shared field functions are in `generate/shaders.ts`, which is pulled into the core by the sky layer and the shadow map (28.7 KB raw after minification, the largest module). Splitting the shared functions from the generation passes is the next saving (about 3 KB gzip).
+- After shader changes run `node scripts/check-packed-consumer.mjs`; `node scripts/check-bundle.mjs` shows the sizes if you want them.
+- Shared field functions are in `generate/shaders.ts`, which is pulled into the core by the sky layer and the shadow map (28.7 KB raw after minification, the largest module).

@@ -86,7 +86,7 @@ These come from the plan. They are not up for negotiation in a task.
 - Don't judge quality against offline or brute-force renders.
 - No evidence JSON beyond `capture.json`. No new docs outside `work/`, except
   where a task says so.
-- Every WGSL template string carries the `/* wgsl */` tag. The release build minifies only tagged templates (`scripts/wgsl-minify.mjs`), and the core must stay under 60 KB gzip (`node scripts/check-bundle.mjs --strict`).
+- Every WGSL template string carries the `/* wgsl */` tag. The release build minifies only tagged templates (`scripts/wgsl-minify.mjs`). There is **no package size cap** (owner, 2026-10-09): never trade features or quality for bundle size, and don't spend task time on size work.
 - Research sources and notes are indexed in `docs/research/README.md`. When you scan a new source, add it there.
 - If you are stuck after one serious attempt, stop and write a `blocked`
   report that names exactly what is wrong. Don't thrash.

@@ -99,6 +99,8 @@ Our clouds still don't match the WebGL work we are building on (Takram, Sky Pro)
 - A pattern a person can see: clones, lattices, cylinders or box outlines.
 - A frame stall: background work (bake, regeneration, light grid, shadow map) over **10% of the frame budget** at the app's target rate in any single frame. That is 1.7 ms at 60 fps and 3.3 ms at 30 fps. (Before 2026-10-09 this was a flat 1 ms; the owner asked for it to be relative.)
 
+**No package size cap (owner, 2026-10-09):** "do whatever you need for the packages, it's ok to be big." `check-bundle` is a report only; never cut features or quality for bundle size.
+
 **Budget model (owner, 2026-10-09):** steady cloud cost on high is about **20% of the frame at the app's target rate**: about 3.3–3.5 ms at 60 fps on 1440p, about 6.7 ms at 30 fps. A showcase tier may use more, as an opt-in. Never trade visible quality to hit the number; report the honest cost instead.
 - Judging by numbers alone. Every task ends with captures the orchestrator looks at, and species work is also compared with photos.
 - Committing slide images or the owner's photos. They stay local; only our renders are committed.
