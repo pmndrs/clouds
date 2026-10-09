@@ -1405,7 +1405,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The renderer-agnostic test still passes.
   - `pnpm check` green; the packed consumer passes; `node scripts/check-docs.mjs` green.
 
-### [~] P9-B2 Weather v2 follow-ups: no-stall bake, sky-layer parity, test relax · Opus
+### [x] P9-B2 Weather v2 follow-ups: no-stall bake, sky-layer parity, test relax · Opus
 - **Owns:**
   - `packages/runtime/src/sky-layer.ts` and `shaders/sky-layer.wgsl.ts`
   - `packages/runtime/src/generate/weather.ts` (encode API for tiled bakes)

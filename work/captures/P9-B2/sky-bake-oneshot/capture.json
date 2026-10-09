@@ -1,0 +1,192 @@
+{
+  "url": "http://127.0.0.1:61328/runtime-tests/generate/sky-bake/?rows=2048",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:44:36.546Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P9-B2/sky-bake-oneshot/view.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.075872,
+          "lightGrid": 0.629096,
+          "marchNear": 0.06857951666666666,
+          "marchFar": 0.6770966166666665,
+          "shadowMap": 0.23416378333333335,
+          "composite": 0.34434118333333313,
+          "dome": 0.33659488333333343,
+          "resolveNear": 0.037456400000000015,
+          "resolveFar": 0.05839489999999999,
+          "skyLayer": 1.7822291166666666,
+          "skyResolve": 0.13568958333333328,
+          "skyWeather": 14.293004666666667,
+          "skyWeatherMips": 0.08816533333333333
+        },
+        "frameMs": 0,
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bakeRows": 2048,
+        "results": [
+          {
+            "change": "seed 7 -> 8",
+            "framesToSwap": 2,
+            "bakingFrames": 1,
+            "tiles": 1,
+            "timedBakeFrames": 2,
+            "bakeMsSeries": [
+              13.209,
+              0.09
+            ],
+            "worstBakeMs": 13.209,
+            "cloudsGpuMsSeries": [
+              15.17,
+              2.77
+            ],
+            "cloudsGpuMsSteady": 3.08,
+            "skyWeatherTiles": 1,
+            "mipFrames": 1,
+            "layerRenderedEveryFrame": true,
+            "shadowFirstStaleFrame": 1,
+            "swapFrame": 1,
+            "historyResetsAtSwap": 0,
+            "cloudsGpuMsAfterSwap": [
+              2.42,
+              2.31,
+              2.37,
+              2.47,
+              2.27,
+              2.29,
+              2.29,
+              2.25,
+              2.32,
+              2.13,
+              2.33,
+              2.27,
+              2.5,
+              2.35,
+              2.33,
+              2.3,
+              2.47,
+              2.35
+            ]
+          },
+          {
+            "change": "coverageLo 0.56 -> 0.5",
+            "framesToSwap": 2,
+            "bakingFrames": 1,
+            "tiles": 1,
+            "timedBakeFrames": 2,
+            "bakeMsSeries": [
+              13.251,
+              0.099
+            ],
+            "worstBakeMs": 13.251,
+            "cloudsGpuMsSeries": [
+              15.27,
+              2.39
+            ],
+            "cloudsGpuMsSteady": 2.48,
+            "skyWeatherTiles": 1,
+            "mipFrames": 1,
+            "layerRenderedEveryFrame": true,
+            "shadowFirstStaleFrame": 1,
+            "swapFrame": 1,
+            "historyResetsAtSwap": 0,
+            "cloudsGpuMsAfterSwap": [
+              2.37,
+              2.28,
+              2.34,
+              2.34,
+              2.47,
+              2.41,
+              2.33,
+              2.4,
+              2.2,
+              2.18,
+              2.35,
+              2.12,
+              3.1,
+              2.53,
+              2.41,
+              2.29,
+              2.35,
+              2.43
+            ]
+          },
+          {
+            "change": "species +0.5",
+            "framesToSwap": 2,
+            "bakingFrames": 1,
+            "tiles": 1,
+            "timedBakeFrames": 2,
+            "bakeMsSeries": [
+              16.419,
+              0.075
+            ],
+            "worstBakeMs": 16.419,
+            "cloudsGpuMsSeries": [
+              18.61,
+              2.27
+            ],
+            "cloudsGpuMsSteady": 3.08,
+            "skyWeatherTiles": 1,
+            "mipFrames": 1,
+            "layerRenderedEveryFrame": true,
+            "shadowFirstStaleFrame": 1,
+            "swapFrame": 1,
+            "historyResetsAtSwap": 0,
+            "cloudsGpuMsAfterSwap": [
+              2.83,
+              2.51,
+              2.44,
+              2.25,
+              2.4,
+              2.45,
+              2.33,
+              2.26,
+              2.12,
+              2.12,
+              2.27,
+              2.21,
+              2.25,
+              2.28,
+              2.29,
+              2.24,
+              2.28,
+              2.23
+            ]
+          }
+        ],
+        "layer": {
+          "rimWidth": 0,
+          "windowSize": 51200,
+          "windowResolution": 2048,
+          "shell": [
+            150,
+            662
+          ],
+          "weatherOrigin": [
+            -2048,
+            -4348
+          ],
+          "resets": 1,
+          "frames": 333,
+          "bakes": 4,
+          "bakesAbandoned": 0,
+          "baking": null
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

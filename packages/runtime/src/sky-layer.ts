@@ -1,7 +1,10 @@
 // Distant sky layer (P3-C1, P3-C2): Nubis vertical-profile (2.5D) clouds from the voxel region out to the horizon. No three imports.
 // See shaders/sky-layer.wgsl.ts for the method. This file owns the weather bake, the pipelines, the temporal history and the
 // per-frame uniforms (including the reset logic of the 16-frame amortization).
-import { encodeProceduralWeatherMap, type ProceduralWeatherOptions } from './generate/weather';
+// P9-B2: the weather window is baked in row tiles over frames (`bakeRows` per frame, then one frame for the max mips) while the previous
+// window keeps rendering; the new window, with the shaping it was configured with, replaces it in one frame once it is complete, and the
+// temporal history dissolves to it over one 16-frame cycle (no full-resolution reset trace).
+import { createWeatherBake, type ProceduralWeatherOptions, type WeatherBake } from './generate/weather';
 import { NVDF_DEFAULTS, type NvdfParams } from './generate/volume-generator';
 import type { GpuTimer } from './gpu-timer';
 import { COMMON_WGSL } from './shaders/common.wgsl';
@@ -39,6 +42,12 @@ export interface SkyLayerSettings {
   temporalBlend: number;
   /** Debug view (0 = off): 1 first-hit distance, 2 step count, 3 depthMax, 4 no billow, 5 profile at first hit, 6 no jitter, 7 depth at first hit. */
   debug: number;
+  /**
+   * Rows of the weather window baked per frame after a weather change or box move (P9-B2). The previous window renders until the new one is
+   * complete. Default 32: 64 frames for the default 2048^2 window, then one frame of max mips (about 0.07 ms). A 32-row tile is about 0.18 ms
+   * alone and 0.3-0.65 ms timed inside a full frame on an M-series GPU (64 rows: 0.35 / up to 1.1 ms). Read when a bake starts.
+   */
+  bakeRows: number;
 }
 
 export interface SkyLayerOptions {
@@ -70,15 +79,29 @@ export interface SkyLayerOptions {
 
 export interface SkyLayer {
   readonly settings: SkyLayerSettings;
-  /** Provide the weather and shaping the voxel field was generated from. Triggers a (one-off) bake of the weather window. */
+  /**
+   * Provide the weather and shaping the voxel field was generated from. Starts a tiled bake of the weather window (`settings.bakeRows` per frame);
+   * the previous configuration keeps rendering until it completes, then the new weather and shaping switch together.
+   */
   configure(options: SkyLayerOptions): void;
   readonly configured: boolean;
   /** Resolved parameters actually in use (after defaults): for reports and tests. */
-  readonly info: { rimWidth: number; windowSize: number; windowResolution: number; shell: [number, number]; weatherOrigin: [number, number]; resets: number; frames: number } | null;
-  /** Bake / compile what is missing. True when the layer can render this frame. Call before `encode`. */
-  prepare(encoder: GPUCommandEncoder, box: SkyBox, uniformLighting: boolean): boolean;
+  readonly info: {
+    rimWidth: number; windowSize: number; windowResolution: number; shell: [number, number]; weatherOrigin: [number, number]; resets: number; frames: number;
+    /** Weather bakes: completed (swapped in), abandoned (superseded before completion), and the one in progress (tiles done / total), if any. */
+    bakes: number; bakesAbandoned: number; baking: { tilesDone: number; tiles: number; tileRows: number } | null;
+  } | null;
+  /**
+   * Bake / compile what is missing: encodes at most one tile of a pending weather bake (or its max mips). True when the layer can render this
+   * frame (a window is live). Call before `encode`. `timer` times the bake passes ('skyWeather', 'skyWeatherMips'); without it the timer
+   * last given to `encode` is used.
+   */
+  prepare(encoder: GPUCommandEncoder, box: SkyBox, uniformLighting: boolean, timer?: GpuTimer): boolean;
   encode(encoder: GPUCommandEncoder, args: SkyEncodeArgs): void;
-  /** The baked weather window, its sampler and the params buffer while the layer is enabled and baked (the reflection dome samples the same field outside the box), else null. */
+  /**
+   * The live weather window, its sampler and the params buffer while the layer is enabled and baked (the reflection dome and the cloud shadow map
+   * sample the same field outside the box), else null. `weather` changes identity only when a bake completes.
+   */
   readonly domeResources: { weather: GPUTexture; sampler: GPUSampler; params: GPUBuffer } | null;
   /** Drop the temporal history: the next frame traces every pixel. Call on a cut the layer cannot detect itself. */
   reset(): void;
@@ -105,11 +128,12 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, debug: 0,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, debug: 0, bakeRows: 32,
 };
 
 /** Weather window mip levels: level 0 the bake, levels 1.. the 2x2 maxima (the trace's empty-space skip reads up to level 6). */
 const WEATHER_MIPS = 7;
+// All levels in one pass: each dispatch is its own usage scope, so level k sees level k - 1 written by the dispatch before it.
 const MAX_MIP_WGSL = /* wgsl */ `
 @group(0) @binding(0) var src: texture_2d<f32>;
 @group(0) @binding(1) var dst: texture_storage_2d<rgba8unorm, write>;
@@ -128,7 +152,8 @@ fn maxMip(@builtin(global_invocation_id) gid: vec3<u32>) {
 const CUT_POSITION_M = 25;            // camera jump per frame that resets the history
 const CUT_TURN_COS = Math.cos((15 * Math.PI) / 180);
 const SUN_JUMP_COS = Math.cos((0.5 * Math.PI) / 180);
-const MODEL_PARAM_FLOATS = 36;        // params[0..36) describe the cloud model; a change resets the history
+const MODEL_PARAM_FLOATS = 36;        // params[0..36) describe the cloud model; a change resets the history (except 35, the temporal blend)
+const BLEND_PARAM = 35;
 
 /** Invert a column-major 4x4 (gl-matrix style). Returns false when singular. */
 function invert4(m: ArrayLike<number>, out: Float32Array): boolean {
@@ -195,33 +220,40 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   ] });
   const sampler = device.createSampler({ label: 'sky weather', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
   const maxMipPipeline = device.createComputePipeline({ label: 'cloud sky weather max mip', layout: 'auto', compute: { module: device.createShaderModule({ label: 'cloud sky weather max mip', code: MAX_MIP_WGSL }), entryPoint: 'maxMip' } });
-  const encodeMaxMips = (encoder: GPUCommandEncoder, tex: GPUTexture) => {
+  const encodeMaxMips = (encoder: GPUCommandEncoder, tex: GPUTexture, timestampWrites?: GPUComputePassTimestampWrites) => {
+    const pass = encoder.beginComputePass({ label: 'cloud sky weather max mips', timestampWrites });
+    pass.setPipeline(maxMipPipeline);
     for (let k = 1; k < tex.mipLevelCount; k++) {
       const bg = device.createBindGroup({ layout: maxMipPipeline.getBindGroupLayout(0), entries: [
         { binding: 0, resource: tex.createView({ baseMipLevel: k - 1, mipLevelCount: 1 }) },
         { binding: 1, resource: tex.createView({ baseMipLevel: k, mipLevelCount: 1 }) },
       ] });
-      const pass = encoder.beginComputePass({ label: `cloud sky weather max mip ${k}` });
-      pass.setPipeline(maxMipPipeline);
       pass.setBindGroup(0, bg);
-      pass.dispatchWorkgroups(Math.ceil((tex.width >> k) / 8), Math.ceil((tex.height >> k) / 8));
-      pass.end();
+      pass.dispatchWorkgroups(Math.ceil(Math.max(1, tex.width >> k) / 8), Math.ceil(Math.max(1, tex.height >> k) / 8));
     }
+    pass.end();
   };
   const paramBuffer = device.createBuffer({ label: 'cloud sky params', size: SKY_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const params = new Float32Array(SKY_PARAM_FLOATS);
   const prevModel = new Float32Array(MODEL_PARAM_FLOATS);
 
   let options: SkyLayerOptions | null = null;
-  let weather: GPUTexture | null = null;
   let dirty = false;
-  const bakedBox = new Float64Array(6);
-  let baked = false;
-  let resolved: NvdfParams = { ...NVDF_DEFAULTS };
-  let rimWidth = 0, windowSize = 0, windowRes = 0, voxelSize = 8;
-  let shell: [number, number] = [0, 0];
-  const wOrigin: [number, number] = [0, 0];   // resolved weather origin (world x, z) and extent
-  const wExtent: [number, number] = [1, 1];
+  /** A baked weather window and everything that was configured with it (they switch together). */
+  interface SkyWindow {
+    texture: GPUTexture;
+    resolved: NvdfParams; voxelSize: number; rimWidth: number; storm: boolean;
+    /** World min corner (x, z) and size (m) of the window; its resolution (texels). */
+    min: [number, number]; size: number; res: number;
+    /** World position of the weather map's uv origin (x, z), and the box the window was baked for (min xyz, extent xyz). */
+    wOrigin: [number, number]; box: Float64Array;
+  }
+  let live: SkyWindow | null = null;
+  let pending: (SkyWindow & { bake: WeatherBake }) | null = null;
+  /** Resources to destroy at the next `prepare`, after the encoder that last used them was submitted. */
+  let retired: (() => void)[] = [];
+  let bakes = 0, bakesAbandoned = 0, dissolve = 0;
+  let lastTimer: GpuTimer | undefined;
   const pipelines: Record<'atmosphere' | 'uniform', GPUComputePipeline | null | 'pending'> = { atmosphere: null, uniform: null };
   let resolvePipeline: GPUComputePipeline | null | 'pending' = null;
   let group: GPUBindGroup | null = null;
@@ -278,69 +310,98 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     needReset = true;
   };
 
-  const sameBox = (box: SkyBox) => {
-    if (!baked) return false;
-    for (let i = 0; i < 3; i++) if (bakedBox[i] !== box.minCorner[i] || bakedBox[3 + i] !== box.extent[i]) return false;
+  const sameBox = (a: Float64Array, box: SkyBox) => {
+    for (let i = 0; i < 3; i++) if (a[i] !== box.minCorner[i] || a[3 + i] !== box.extent[i]) return false;
     return true;
+  };
+  /** Start baking the window for `box` with the current options; a bake still in progress is abandoned (its window is out of date). */
+  const startBake = (o: SkyLayerOptions, box: SkyBox) => {
+    if (pending) { const old = pending.bake; retired.push(() => old.destroy()); pending = null; bakesAbandoned++; }
+    // The window is world-anchored and static: uv = (xz - weatherOrigin) / weatherExtent continues the generator's map outward.
+    const minX = box.minCorner[0], minZ = box.minCorner[2], sx = box.extent[0], sz = box.extent[2];
+    const size = o.window?.size ?? 51200, res = o.window?.resolution ?? 2048;
+    const cx = minX + sx / 2, cz = minZ + sz / 2;
+    const wOrigin: [number, number] = [o.weatherOrigin?.[0] ?? minX, o.weatherOrigin?.[1] ?? minZ];
+    const wExtent: [number, number] = [o.weatherExtent?.[0] ?? sx, o.weatherExtent?.[1] ?? sz];
+    const min: [number, number] = [cx - size / 2, cz - size / 2];
+    const origin: [number, number] = [(min[0] - wOrigin[0]) / wExtent[0], (min[1] - wOrigin[1]) / wExtent[1]];
+    const bake = createWeatherBake(device, { ...o.weather, size: [res, res], border: 0, window: { origin, size: [size / wExtent[0], size / wExtent[1]] }, mipLevels: WEATHER_MIPS }, { tileRows: settings.bakeRows });
+    const border = o.weather.border ?? 0.08;
+    const boxCopy = new Float64Array(6);
+    for (let i = 0; i < 3; i++) { boxCopy[i] = box.minCorner[i]; boxCopy[3 + i] = box.extent[i]; }
+    pending = {
+      texture: bake.texture, bake, resolved: { ...NVDF_DEFAULTS, ...o.shape }, voxelSize: o.voxelSize ?? 8,
+      rimWidth: o.rimWidth ?? border * Math.min(sx, sz),   // the generator fades coverage over `border` of the map (uv) at every edge
+      storm: !!o.weather.storm, min, size, res, wOrigin, box: boxCopy,
+    };
+  };
+  /** One frame of the pending bake: the next tile, or (all tiles written) the max mips and the switch to the new window. */
+  const stepBake = (encoder: GPUCommandEncoder, timer: GpuTimer | undefined) => {
+    const p = pending!;
+    if (!p.bake.done) { p.bake.step(encoder, timer?.passTimestampWrites('skyWeather')); return; }
+    encodeMaxMips(encoder, p.texture, timer?.passTimestampWrites('skyWeatherMips'));
+    const old = live, bake = p.bake;
+    retired.push(() => { bake.destroy(true); old?.texture.destroy(); });
+    live = { texture: p.texture, resolved: p.resolved, voxelSize: p.voxelSize, rimWidth: p.rimWidth, storm: p.storm, min: p.min, size: p.size, res: p.res, wOrigin: p.wOrigin, box: p.box };
+    pending = null; bakes++;
+    // No history reset (a full-resolution trace in one frame, about +2 ms): the new weather replaces the history one Bayer phase per frame instead,
+    // a 16-frame dissolve at the normal trace cost. A swap that also changes the model (shaping, a moved window) still cuts (encode's model check).
+    group = null; dissolve = SKY_TEMPORAL_PERIOD;
   };
 
   return {
     settings,
     get configured() { return !!options; },
-    get info() { return options ? { rimWidth, windowSize, windowResolution: windowRes, shell, weatherOrigin: [wOrigin[0], wOrigin[1]] as [number, number], resets, frames } : null; },
+    get info() {
+      if (!options) return null;
+      const w = live ?? pending;
+      return {
+        rimWidth: w?.rimWidth ?? 0, windowSize: w?.size ?? 0, windowResolution: w?.res ?? 0,
+        shell: w ? [w.box[1], w.box[1] + w.box[4]] as [number, number] : [0, 0] as [number, number], weatherOrigin: w ? [w.wOrigin[0], w.wOrigin[1]] as [number, number] : [0, 0] as [number, number],
+        resets, frames, bakes, bakesAbandoned, baking: pending ? { tilesDone: pending.bake.tilesDone, tiles: pending.bake.tiles, tileRows: pending.bake.tileRows } : null,
+      };
+    },
     configure(o) {
       options = o;
-      resolved = { ...NVDF_DEFAULTS, ...o.shape };
-      voxelSize = o.voxelSize ?? 8;
       dirty = true;
     },
-    get domeResources() { return weather && baked && settings.enabled && options && !disposed ? { weather, sampler, params: paramBuffer } : null; },
+    get domeResources() { return live && settings.enabled && options && !disposed ? { weather: live.texture, sampler, params: paramBuffer } : null; },
     reset() { needReset = true; },
-    prepare(encoder, box, uniformLighting) {
+    prepare(encoder, box, uniformLighting, timer) {
       if (disposed || !options) return false;
+      // The previous frame's encoder has been submitted: what it last used can go now.
+      if (retired.length) { for (const r of retired) r(); retired = []; }
       const mode = uniformLighting ? 'uniform' : 'atmosphere';
       if (pipelines[mode] === null) compile(mode);
-      if (dirty || !weather || !sameBox(box)) {
-        // Bake the weather window once (static, world-anchored): uv = (xz - boxMin) / boxExtent continues the generator's map outward.
-        const minX = box.minCorner[0], minZ = box.minCorner[2], sx = box.extent[0], sz = box.extent[2];
-        windowSize = options.window?.size ?? 51200;
-        windowRes = options.window?.resolution ?? 2048;
-        const cx = minX + sx / 2, cz = minZ + sz / 2;
-        wOrigin[0] = options.weatherOrigin?.[0] ?? minX; wOrigin[1] = options.weatherOrigin?.[1] ?? minZ;
-        wExtent[0] = options.weatherExtent?.[0] ?? sx; wExtent[1] = options.weatherExtent?.[1] ?? sz;
-        const origin: [number, number] = [(cx - windowSize / 2 - wOrigin[0]) / wExtent[0], (cz - windowSize / 2 - wOrigin[1]) / wExtent[1]];
-        const size: [number, number] = [windowSize / wExtent[0], windowSize / wExtent[1]];
-        weather?.destroy();
-        weather = encodeProceduralWeatherMap(device, encoder, { ...options.weather, size: [windowRes, windowRes], border: 0, window: { origin, size }, mipLevels: WEATHER_MIPS });
-        encodeMaxMips(encoder, weather);
-        const border = options.weather.border ?? 0.08;
-        rimWidth = options.rimWidth ?? border * Math.min(sx, sz);   // the generator fades coverage over `border` of the map (uv) at every edge
-        shell = [box.minCorner[1], box.minCorner[1] + box.extent[1]];
-        for (let i = 0; i < 3; i++) { bakedBox[i] = box.minCorner[i]; bakedBox[3 + i] = box.extent[i]; }
-        baked = true; dirty = false; group = null; needReset = true;
-      }
-      return typeof pipelines[mode] === 'object' && pipelines[mode] !== null && typeof resolvePipeline === 'object' && resolvePipeline !== null;
+      const target = pending ?? live;
+      if (dirty || !target || !sameBox(target.box, box)) { startBake(options, box); dirty = false; }
+      if (pending) stepBake(encoder, timer ?? lastTimer);
+      return !!live && typeof pipelines[mode] === 'object' && pipelines[mode] !== null && typeof resolvePipeline === 'object' && resolvePipeline !== null;
     },
     encode(encoder, a) {
       const s = settings;
       const mode = a.atmosphere ? 'atmosphere' : 'uniform';
       const pipeline = pipelines[mode];
-      if (!weather || !pipeline || pipeline === 'pending' || !resolvePipeline || resolvePipeline === 'pending') return;
+      lastTimer = a.timer;
+      const win = live;
+      if (!win || !pipeline || pipeline === 'pending' || !resolvePipeline || resolvePipeline === 'pending') return;
+      const weather = win.texture, resolved = win.resolved;
       const w = a.color.width, h = a.color.height;
       ensureTemporal(w, h);
       const tmp = temporal!;
-      const minX = a.box.minCorner[0], minZ = a.box.minCorner[2], sx = a.box.extent[0], sz = a.box.extent[2];
-      const cx = minX + sx / 2, cz = minZ + sz / 2;
+      // The window and the shaping are the live window's (a bake in progress does not change them); the box partition is the current box.
       const p = params;
-      p[0] = cx - windowSize / 2; p[1] = cz - windowSize / 2; p[2] = windowSize; p[3] = windowSize;
-      p[4] = minX; p[5] = minZ; p[6] = sx; p[7] = sz;
-      p[8] = shell[0]; p[9] = shell[1]; p[10] = s.maxDistance; p[11] = s.curvature;
+      p[0] = win.min[0]; p[1] = win.min[1]; p[2] = win.size; p[3] = win.size;
+      p[4] = a.box.minCorner[0]; p[5] = a.box.minCorner[2]; p[6] = a.box.extent[0]; p[7] = a.box.extent[2];
+      p[8] = win.box[1]; p[9] = win.box[1] + win.box[4]; p[10] = s.maxDistance; p[11] = s.curvature;
       p[12] = resolved.topFraction; p[13] = resolved.domeExponent; p[14] = resolved.baseDefault; p[15] = resolved.baseLift;
-      p[16] = resolved.coverageThreshold; p[17] = 0; p[18] = resolved.scaleBase; p[19] = resolved.scaleTop;
-      p[20] = resolved.detailBias; p[21] = rimWidth; p[22] = s.densityScale; p[23] = 0.04;
+      // shapeB.y: B is the owning cloud's billow weight (P9-B; with `storm` it is the base height, so the weight is 1).
+      p[16] = resolved.coverageThreshold; p[17] = win.storm ? 0 : 1; p[18] = resolved.scaleBase; p[19] = resolved.scaleTop;
+      p[20] = resolved.detailBias; p[21] = win.rimWidth; p[22] = s.densityScale; p[23] = 0.04;
       p[24] = s.stepMin; p[25] = s.stepRel; p[26] = s.maxSteps; p[27] = s.transmittanceCutoff;
       p[28] = resolved.billowAmp; p[29] = resolved.billowCellMeters; p[30] = resolved.seed; p[31] = s.debug;
-      p[32] = voxelSize; p[33] = resolved.profileSigma; p[34] = s.lodScale; p[35] = s.temporalBlend;
+      // During a weather dissolve a fresh sample replaces the history outright, so every pixel shows the new window after one 16-frame cycle.
+      p[32] = win.voxelSize; p[33] = resolved.profileSigma; p[34] = s.lodScale; p[35] = dissolve > 0 ? 1 : s.temporalBlend;
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
       const cam = a.cameraPosition, sun = a.sunDirection;
       forwardOf(a.inverseViewProjection, fwd);
@@ -350,14 +411,15 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         const turn = fwd[0] * prevFwd[0] + fwd[1] * prevFwd[1] + fwd[2] * prevFwd[2];
         const sunDot = sun[0] * prevSun[0] + sun[1] * prevSun[1] + sun[2] * prevSun[2];
         if (d > CUT_POSITION_M || turn < CUT_TURN_COS || sunDot < SUN_JUMP_COS) cut = true;
-        for (let i = 0; i < MODEL_PARAM_FLOATS && !cut; i++) if (p[i] !== prevModel[i]) cut = true;
+        for (let i = 0; i < MODEL_PARAM_FLOATS && !cut; i++) if (i !== BLEND_PARAM && p[i] !== prevModel[i]) cut = true;
       }
       if (cut && s.temporal) resets++;
       const period = SKY_TEMPORAL_PERIOD;
       p[36] = frames % period; p[37] = Math.floor(frames / period); p[38] = cut ? 1 : 0; p[39] = 0;
       p.set(prevViewProj, 40);
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
-      p[60] = wOrigin[0]; p[61] = wOrigin[1]; p[62] = 0; p[63] = 0;
+      // wOrigin.zw: the generator's wind-shear lean (metres per metre of height, x and z), P9-B NvdfParams.shearX/Y.
+      p[60] = win.wOrigin[0]; p[61] = win.wOrigin[1]; p[62] = resolved.shearX; p[63] = resolved.shearY;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
       // Remember this frame's view for the next frame's reprojection.
@@ -366,6 +428,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       prevFwd.set(fwd); prevSun[0] = sun[0]; prevSun[1] = sun[1]; prevSun[2] = sun[2];
       needReset = false;
       frames++;
+      if (dissolve > 0) dissolve = cut ? 0 : dissolve - 1;
 
       const gk = groupKey;
       if (!group || gk[0] !== weather || gk[1] !== a.frameBuffer || gk[2] !== a.depth || gk[3] !== tmp.trace || gk[4] !== a.skyLightBuffer) {
@@ -426,7 +489,10 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     },
     dispose() {
       disposed = true;
-      weather?.destroy(); weather = null; paramBuffer.destroy(); group = null; releaseTemporal();
+      for (const r of retired) r();
+      retired = [];
+      pending?.bake.destroy(); pending = null;
+      live?.texture.destroy(); live = null; paramBuffer.destroy(); group = null; releaseTemporal();
     },
   };
 }

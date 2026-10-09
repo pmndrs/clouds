@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:59987/runtime-tests/generate/sky-bake/?changes=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:42:33.119Z",
+  "shots": [
+    {
+      "name": "wallEast",
+      "file": "work/captures/P9-B2/walls/wallEast.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.069247,
+          "lightGrid": 0.644428,
+          "marchNear": 0.07767933333333335,
+          "marchFar": 0.62551415,
+          "shadowMap": 0.36874746666666663,
+          "composite": 0.3710873333333335,
+          "dome": 0.5756779333333333,
+          "resolveNear": 0.03160368333333332,
+          "resolveFar": 0.05266584999999999,
+          "skyLayer": 2.3413593166666673,
+          "skyResolve": 0.15234423333333338
+        },
+        "frameMs": 0,
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bakeRows": 32,
+        "results": [],
+        "layer": {
+          "rimWidth": 0,
+          "windowSize": 51200,
+          "windowResolution": 2048,
+          "shell": [
+            150,
+            662
+          ],
+          "weatherOrigin": [
+            -2048,
+            -4348
+          ],
+          "resets": 2,
+          "frames": 160,
+          "bakes": 1,
+          "bakesAbandoned": 0,
+          "baking": null
+        }
+      }
+    },
+    {
+      "name": "wallSouth",
+      "file": "work/captures/P9-B2/walls/wallSouth.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.069247,
+          "lightGrid": 0.644428,
+          "marchNear": 0.0828675,
+          "marchFar": 0.6082983499999998,
+          "shadowMap": 0.43234959999999995,
+          "composite": 0.4033543,
+          "dome": 0.6433359333333333,
+          "resolveNear": 0.03415775000000001,
+          "resolveFar": 0.06283173333333332,
+          "skyLayer": 2.5400126333333337,
+          "skyResolve": 0.16407946666666667
+        },
+        "frameMs": 0,
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bakeRows": 32,
+        "results": [],
+        "layer": {
+          "rimWidth": 0,
+          "windowSize": 51200,
+          "windowResolution": 2048,
+          "shell": [
+            150,
+            662
+          ],
+          "weatherOrigin": [
+            -2048,
+            -4348
+          ],
+          "resets": 3,
+          "frames": 256,
+          "bakes": 1,
+          "bakesAbandoned": 0,
+          "baking": null
+        }
+      }
+    },
+    {
+      "name": "wallEastTop",
+      "file": "work/captures/P9-B2/walls/wallEastTop.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.069247,
+          "lightGrid": 0.644428,
+          "marchNear": 0.11939675,
+          "marchFar": 0.47391354999999996,
+          "shadowMap": 0.4890917833333333,
+          "composite": 0.7203042833333331,
+          "dome": 1.010605283333333,
+          "resolveNear": 0.047219416666666666,
+          "resolveFar": 0.08062729999999999,
+          "skyLayer": 1.0688462500000002,
+          "skyResolve": 0.23748675000000008
+        },
+        "frameMs": 0,
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bakeRows": 32,
+        "results": [],
+        "layer": {
+          "rimWidth": 0,
+          "windowSize": 51200,
+          "windowResolution": 2048,
+          "shell": [
+            150,
+            662
+          ],
+          "weatherOrigin": [
+            -2048,
+            -4348
+          ],
+          "resets": 4,
+          "frames": 352,
+          "bakes": 1,
+          "bakesAbandoned": 0,
+          "baking": null
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -60,7 +60,7 @@ struct SkyParams {
   box: vec4<f32>,      // volume box: min x, min z, size x, size z
   shell: vec4<f32>,    // minY, maxY, maxDistance, curvature (1/(2R), 0 = flat)
   shapeA: vec4<f32>,   // topFrac, domeExp, baseDefault, baseLift
-  shapeB: vec4<f32>,   // coverageThreshold, (unused), scaleBase, scaleTop
+  shapeB: vec4<f32>,   // coverageThreshold, billow weight from B (1: the weather's B is the owning cloud's billow weight, P9-B; 0: weight 1), scaleBase, scaleTop
   shapeC: vec4<f32>,   // detailBias, rimWidth (m; 0 = hard partition at the box wall, < 0 = no mask), extinction multiplier, window edge fade (fraction)
   steps: vec4<f32>,    // stepMin (m), stepRel (per m of distance), maxSteps, transmittance cutoff
   billow: vec4<f32>,   // generator billow: amplitude, first cell (m), seed (as given to the generator), debug view
@@ -68,7 +68,7 @@ struct SkyParams {
   temporal: vec4<f32>, // phase (0..15), cycle (jitter seed), full trace (1 = every pixel), 0
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,  // previous camera position, w = 1 when the history is valid
-  wOrigin: vec4<f32>,  // P7-E: world position (x, z) of the weather map's uv origin: the billow and shape noise are anchored there (default: the box min corner)
+  wOrigin: vec4<f32>,  // P7-E: world position (x, z) of the weather map's uv origin: the billow and shape noise are anchored there (default: the box min corner); zw: wind-shear lean (P9-B2)
 }
 const BAYER4 = array<u32, 16>(0u, 8u, 2u, 10u, 12u, 4u, 14u, 6u, 3u, 11u, 1u, 9u, 15u, 7u, 13u, 5u);
 fn bayerIndex(px: vec2<i32>) -> u32 { return BAYER4[u32(px.y & 3) * 4u + u32(px.x & 3)]; }
@@ -185,6 +185,10 @@ fn billowGrad(pm: vec3<f32>, cell0: f32, s0: u32, dist: f32) -> vec4<f32> {
 // samples sit 8-32 m from the view sample, well under the finest octave's cell, so its billow stands in for theirs.
 struct SkyModel { m: vec3<f32>, depth: f32, hz: f32, skip: f32, f: f32, b: vec4<f32>, empty2d: bool }
 
+// The generator's wind-shear lean (P9-B, shaders.ts weatherAt): a column reads the weather lean metres upwind per metre above the shell
+// base, so every cloud's top is displaced downwind by lean * height and clouds straddling the box wall continue across it.
+fn skyLean() -> vec2<f32> { return SKY.wOrigin.zw; }
+
 fn skyModel(p0: vec3<f32>, lodDistance: f32, light: bool) -> SkyModel {
   return skyModelB(p0, lodDistance, light, vec4(0.0), false);
 }
@@ -197,9 +201,9 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   let p = vec3(p0.x, p0.y + SKY.shell.w * dot(c, c), p0.z);
   r.hz = (p.y - SKY.shell.x) / shellH;
   if (r.hz < -0.02 || r.hz > 1.02) { r.skip = 4.0; return r; }
-  let wuv = (p.xz - SKY.window.xy) / SKY.window.zw;
+  let wuv = (p.xz - skyLean() * (p.y - SKY.shell.x) - SKY.window.xy) / SKY.window.zw;
   if (any(wuv <= vec2(0.0)) || any(wuv >= vec2(1.0))) { r.skip = 2000.0; return r; }
-  // Box handoff (view rays only).
+  // Box handoff (view rays only): the wall is at the sample's own position, not at the leaned weather read.
   let bmax = SKY.box.xy + SKY.box.zw;
   let e = min(min(p.x - SKY.box.x, bmax.x - p.x), min(p.z - SKY.box.y, bmax.y - p.z));
   let rim = SKY.shapeC.y;
@@ -227,11 +231,11 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   if (cov <= thr) { r.skip = max((thr - cov) * 80.0, 2.0); r.empty2d = true; return r; }   // the caller skips further through the coverage mips
   let dcov = vec2(mix(g4.z - g4.w, g4.y - g4.x, st.y), mix(g4.x - g4.w, g4.y - g4.z, st.x)) * fade / texel;   // per metre (x, z)
   let sm = skySmooth(cov, r.hz);
-  // Gradient of the smooth field: xz through the coverage gradient, y analytic.
+  // Gradient of the smooth field: xz through the coverage gradient, y analytic (plus the coverage change along the lean).
   let dfdc = (skySmooth(cov + 0.01, r.hz).f - sm.f) * 100.0;
   let hUnit = max(SKY.shapeA.x - sm.base, 1e-3) * shellH;
   let gp = select(24.0, SKY.shapeA.y * pow(max(sm.h, 1e-4), SKY.shapeA.y - 1.0), sm.h >= 0.0);
-  var grad = vec3(dfdc * dcov.x, -gp / hUnit, dfdc * dcov.y);
+  var grad = vec3(dfdc * dcov.x, -gp / hUnit - dfdc * dot(skyLean(), dcov), dfdc * dcov.y);
   var f0 = sm.f;
   // Signed distance to the surface in smooth-field units (positive inside) and the gradient of that quantity.
   var fs = sm.f;
@@ -241,7 +245,8 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
     let b = select(billowGrad(pm, SKY.billow.y, u32(SKY.billow.z * 131.0), lodDistance), bGiven, useGiven);
     r.b = b;
     let A = SKY.billow.x * 3.0;
-    let topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, sm.hcol)) * (1.0 - smoothstep(0.82, 1.0, sm.h));
+    // P9-B: times the owning cloud's billow weight (B), as the generator does: a small puff keeps a billow sized for it, not for a 1 km cloud.
+    let topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, sm.hcol)) * (1.0 - smoothstep(0.82, 1.0, sm.h)) * select(1.0, w.b, SKY.shapeB.y > 0.5);
     let K = A * b.w * topW;
     f0 = sm.f + K * nearRamp(sm.f);
     // The billow moves the surface to x_s(K) in smooth-field units; the distance is measured as f00 - x_s, whose gradient
@@ -298,8 +303,12 @@ fn skyModelCheap(p: vec3<f32>) -> f32 {
 // (in xz; the shell is thin). Returns 0 when no such texel exists. Bilinear sampling at level 0 reads half a fine texel beyond
 // the border, hence the margin.
 const SKY_MIP_TOP = 6;
-fn skyEmptySkip(p: vec3<f32>, dir: vec3<f32>) -> f32 {
-  let wuv = (p.xz - SKY.window.xy) / SKY.window.zw;
+fn skyEmptySkip(p: vec3<f32>, dir0: vec3<f32>) -> f32 {
+  // In the leaned frame the weather read point moves along dir.xz - lean * dir.y (the lean is linear in height), so the texel exit is exact there.
+  let q = p.xz - skyLean() * (p.y - SKY.shell.x);
+  let dq = dir0.xz - skyLean() * dir0.y;
+  let dir = vec3(dq.x, 0.0, dq.y);
+  let wuv = (q - SKY.window.xy) / SKY.window.zw;
   if (any(wuv <= vec2(0.0)) || any(wuv >= vec2(1.0))) { return 0.0; }
   let dims0 = vec2<i32>(textureDimensions(skyWeather, 0));
   let thr = SKY.shapeB.x;
@@ -312,8 +321,8 @@ fn skyEmptySkip(p: vec3<f32>, dir: vec3<f32>) -> f32 {
       let lo = SKY.window.xy + vec2<f32>(tc) * texel;
       let hi = lo + texel;
       var t = 1.0e9;
-      if (dir.x > 1e-6) { t = min(t, (hi.x - p.x) / dir.x); } else if (dir.x < -1e-6) { t = min(t, (lo.x - p.x) / dir.x); }
-      if (dir.z > 1e-6) { t = min(t, (hi.y - p.z) / dir.z); } else if (dir.z < -1e-6) { t = min(t, (lo.y - p.z) / dir.z); }
+      if (dir.x > 1e-6) { t = min(t, (hi.x - q.x) / dir.x); } else if (dir.x < -1e-6) { t = min(t, (lo.x - q.x) / dir.x); }
+      if (dir.z > 1e-6) { t = min(t, (hi.y - q.y) / dir.z); } else if (dir.z < -1e-6) { t = min(t, (lo.y - q.y) / dir.z); }
       return max(t - 0.75 * max(texel0.x, texel0.y), 0.0);
     }
   }

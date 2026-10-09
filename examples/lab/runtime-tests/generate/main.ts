@@ -1,8 +1,12 @@
 // P3-A: GPU Nubis voxel-field generator test. Generates 256x256x32 from a procedural weather map, compares the SDF with a
 // CPU exact EDT, times full generation (256^2 x 32 and 512^2 x 64, plus per-job cost), and draws profile / SDF slices.
+// P9-B2: the SDF checks test the invariants (never overshoots; undershoot within the 1/64-voxel quantization plus the f16 shrink, which scales
+// with the distance; two windows agree wherever the nearest surface is inside both), and the tiled weather bake (createWeatherBake) is checked
+// against the one-shot map and timed per tile.
 import { installCloudsHarness } from '../../harness/clouds-contract';
 import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap, signedDistanceCpu, type CloudPresetName, type VolumeGenerator } from '../../../../packages/runtime/src/generate';
 import { fromHalfBits } from '../../../../packages/runtime/src/half';
+import { createWeatherBake, type ProceduralWeatherOptions } from '../../../../packages/runtime/src/generate/weather';
 
 const harness = installCloudsHarness();
 // Surface the stack, not just the message (the harness keeps only e.message, which is empty for non-Error throws).
@@ -98,20 +102,28 @@ async function build(dims: Dims, opts: { margin?: number; sliceDepth?: number; s
 const median = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : 0; };
 const pct = (a: number[], q: number) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : 0; };
 
-interface Stats { n: number; maxOvershoot: number; maxUndershoot: number; medianAbs: number; p99Abs: number; signFlips: number }
+/**
+ * Undershoot the stored SDF may have at true distance |d| (metres): each of the three separable EDT passes floors its distance to 1/64 voxel
+ * (shaders.ts edtLine; the next pass builds on the floored value, which lowers its result by at most the same amount), and the f16 store shrinks |d|
+ * by one ulp (2^-10 relative, shaders.ts SDF) before rounding to nearest (another 2^-11). The f16 part grows with the distance, so a clustered
+ * field with large empty spaces needs more than a fixed bound (P9-B: 0.81 m at about 800 m failed the old fixed 0.64 m).
+ */
+const undershootAllowance = (d: number) => (3 * VOXEL) / 64 + Math.abs(d) * (1 / 1024 + 1 / 2048) + 1e-3;
+interface Stats { n: number; maxOvershoot: number; maxUndershoot: number; medianAbs: number; p99Abs: number; signFlips: number; worstUnderRatio: number; worstUnderAt: number; underViolations: number }
 function stats(idx: ArrayLike<number>, gpu: Float32Array, cpu: Float32Array): Stats {
   const err: number[] = [];
-  let over = -Infinity, under = 0, flips = 0;
+  let over = -Infinity, under = 0, flips = 0, ratio = 0, ratioAt = 0, viol = 0;
   for (let k = 0; k < idx.length; k++) {
     const i = idx[k];
     const e = Math.abs(gpu[i]) - Math.abs(cpu[i]); // > 0 means the GPU claims a larger distance than the truth
     err.push(Math.abs(e));
     over = Math.max(over, e); under = Math.min(under, e);
     if (gpu[i] * cpu[i] < 0) flips++;
+    if (e < 0) { const r = -e / undershootAllowance(cpu[i]); if (r > ratio) { ratio = r; ratioAt = Math.abs(cpu[i]); } if (r > 1) viol++; }
   }
-  return { n: idx.length, maxOvershoot: over, maxUndershoot: under, medianAbs: median(err), p99Abs: pct(err, 0.99), signFlips: flips };
+  return { n: idx.length, maxOvershoot: over, maxUndershoot: under, medianAbs: median(err), p99Abs: pct(err, 0.99), signFlips: flips, worstUnderRatio: ratio, worstUnderAt: ratioAt, underViolations: viol };
 }
-const fmt = (s: Stats) => `n=${s.n} maxOver=${s.maxOvershoot.toFixed(3)}m maxUnder=${s.maxUndershoot.toFixed(2)}m medianAbs=${s.medianAbs.toFixed(3)}m p99Abs=${s.p99Abs.toFixed(2)}m signFlips=${s.signFlips}`;
+const fmt = (s: Stats) => `n=${s.n} maxOver=${s.maxOvershoot.toFixed(3)}m maxUnder=${s.maxUndershoot.toFixed(2)}m medianAbs=${s.medianAbs.toFixed(3)}m p99Abs=${s.p99Abs.toFixed(2)}m signFlips=${s.signFlips} worst undershoot/allowance ${s.worstUnderRatio.toFixed(2)} at |d|=${s.worstUnderAt.toFixed(0)}m`;
 
 function rng(seed: number) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
@@ -155,7 +167,7 @@ log(`conservative (margin 1), all voxels:   ${fmt(fCons)}`);
 check(samples.length >= 1000, `>= 1000 samples compared (${samples.length})`);
 check(sRaw.maxOvershoot <= 1e-3, `raw exact EDT (margin 0) never overshoots the CPU EDT on samples (${sRaw.maxOvershoot.toExponential(2)} m, voxel ${VOXEL} m)`);
 check(fRaw.maxOvershoot <= 1e-3, `raw exact EDT (margin 0) never overshoots the CPU EDT over all voxels (${fRaw.maxOvershoot.toExponential(2)} m)`);
-check(Math.abs(fRaw.maxUndershoot) <= 0.02 * VOXEL * 4, `raw exact EDT (margin 0) undershoot stays within the 1/64-voxel floors and f16 (${fRaw.maxUndershoot.toFixed(3)} m)`);
+check(fRaw.underViolations === 0, `raw exact EDT (margin 0) undershoot stays within the three 1/64-voxel floors plus the f16 shrink at each voxel's distance (worst ${fRaw.worstUnderRatio.toFixed(2)} of the allowance at ${fRaw.worstUnderAt.toFixed(0)} m; max ${fRaw.maxUndershoot.toFixed(3)} m)`);
 check(sCons.maxOvershoot <= 1e-3 && fCons.maxOvershoot <= 1e-3, `conservative field never overshoots exact EDT (max ${fCons.maxOvershoot.toExponential(2)} m)`);
 check(sCons.signFlips === 0 && fCons.signFlips === 0, 'conservative field has no sign flips');
 check(Math.abs(fCons.maxUndershoot) <= 4 * VOXEL, `conservative undershoot bounded (${fCons.maxUndershoot.toFixed(2)} m)`);
@@ -223,27 +235,100 @@ const worldAnchor: Record<string, unknown> = {};
   for (const [name, shift] of [['x quarter', [64, 0]], ['diagonal quarter', [64, 64]]] as [string, [number, number]][]) {
     const a = await make([0, 0]);
     const b = await make([shift[0] * VOXEL, shift[1] * VOXEL]);
-    const margin = 12; // voxels from a window edge: the distance transform sees only its own box, so depths differ near the edge
+    const margin = 12; // voxels from a window edge: the generator's NVDF near the edge may differ (its own border handling)
+    // SDF: each window's transform sees only its own box, so an empty voxel's distance differs when its nearest cloud lies outside one window.
+    // Invariant: if the nearer of the two distances is less than the voxel's distance to the overlap's interior edge, that nearest surface lies
+    // inside both windows (where their NVDFs agree), so both must report it, to within the quantization and the f16 shrink at that distance.
+    const ow = DIMS[0] - shift[0], oh = DIMS[1] - shift[1];
     let n = 0, nInterior = 0, over1 = 0, over1Interior = 0, maxD = 0, maxDInterior = 0, sdfBad = 0, sdfBadInterior = 0, occA = 0, occMismatch = 0;
+    let sdfCompared = 0, sdfMaxDiff = 0, sdfWorstRatio = 0;
     for (let z = 0; z < D3(); z++) for (let y = 0; y + shift[1] < DIMS[1]; y++) for (let x = 0; x + shift[0] < DIMS[0]; x++) {
       const ia = (z * DIMS[1] + y + shift[1]) * DIMS[0] + x + shift[0], ib = (z * DIMS[1] + y) * DIMS[0] + x; // A voxel (x + shift) is B voxel x
       const interior = x >= margin && y >= margin && x + shift[0] < DIMS[0] - margin && y + shift[1] < DIMS[1] - margin;
       let d = 0; for (let c = 0; c < 4; c++) d = Math.max(d, Math.abs(a.nvdf[ia * 4 + c] - b.nvdf[ib * 4 + c]));
       const sa = fromHalfBits(a.sdf[ia]), sb = fromHalfBits(b.sdf[ib]);
-      const sdfDiff = Math.abs(sa - sb) > 2 * VOXEL; // SDF is distance-limited by the box; allow 2 voxels
+      const edgeM = Math.min(x + 0.5, ow - x - 0.5, y + 0.5, oh - y - 0.5) * VOXEL;
+      const near = Math.min(Math.abs(sa), Math.abs(sb));
+      // The nearest occupied voxel centre is within near + (0.5 + margin 1) voxels; it must also lie where the two NVDFs agree (the interior).
+      const inBoth = near + 2 * VOXEL < edgeM - margin * VOXEL;
+      const tol = 2 * undershootAllowance(Math.max(Math.abs(sa), Math.abs(sb)));
+      const sdfDiff = inBoth && Math.abs(sa - sb) > tol;
+      if (inBoth) { sdfCompared++; sdfMaxDiff = Math.max(sdfMaxDiff, Math.abs(sa - sb)); sdfWorstRatio = Math.max(sdfWorstRatio, Math.abs(sa - sb) / tol); }
       n++; maxD = Math.max(maxD, d); if (d > 1) over1++; if (sdfDiff) sdfBad++;
       if (a.nvdf[ia * 4] > 0) occA++;
       if ((a.nvdf[ia * 4] > 0) !== (b.nvdf[ib * 4] > 0)) occMismatch++;
       if (interior) { nInterior++; maxDInterior = Math.max(maxDInterior, d); if (d > 1) over1Interior++; if (sdfDiff) sdfBadInterior++; }
     }
-    worldAnchor[name] = { overlapVoxels: n, occupied: occA, occupancyMismatch: occMismatch, maxDelta: maxD, over1: over1, interiorVoxels: nInterior, interiorMaxDelta: maxDInterior, interiorOver1: over1Interior, sdfOver2Voxels: sdfBad, sdfOver2VoxelsInterior: sdfBadInterior };
-    log(`world anchor, window B offset ${name} (${shift.map(v => v * VOXEL).join(', ')} m): overlap ${n} voxels (${occA} occupied), occupancy mismatches ${occMismatch}; NVDF max |delta| ${maxD}/255 (${over1} voxels > 1); interior (>${margin} voxels from edges, ${nInterior} voxels) max ${maxDInterior}, ${over1Interior} > 1; SDF > 2 voxels apart: ${sdfBad} (interior ${sdfBadInterior})`);
+    worldAnchor[name] = { overlapVoxels: n, occupied: occA, occupancyMismatch: occMismatch, maxDelta: maxD, over1: over1, interiorVoxels: nInterior, interiorMaxDelta: maxDInterior, interiorOver1: over1Interior, sdfCompared, sdfMaxDiff, sdfWorstRatio, sdfMismatches: sdfBad, sdfMismatchesInterior: sdfBadInterior };
+    log(`world anchor, window B offset ${name} (${shift.map(v => v * VOXEL).join(', ')} m): overlap ${n} voxels (${occA} occupied), occupancy mismatches ${occMismatch}; NVDF max |delta| ${maxD}/255 (${over1} voxels > 1); interior (>${margin} voxels from edges, ${nInterior} voxels) max ${maxDInterior}, ${over1Interior} > 1; SDF where the nearest surface is inside both windows: ${sdfCompared} voxels, max |dA - dB| ${sdfMaxDiff.toFixed(3)} m (worst ${sdfWorstRatio.toFixed(2)} of the tolerance), ${sdfBad} over`);
     check(occA > 1000, `world anchor (${name}): the overlap contains clouds`);
-    check(maxDInterior <= 1 && sdfBadInterior === 0, `world anchor (${name}): NVDF within 1/255 and SDF within 2 voxels across the overlap interior (max ${maxDInterior})`);
+    check(maxDInterior <= 1, `world anchor (${name}): NVDF within 1/255 across the overlap interior (max ${maxDInterior})`);
+    check(sdfCompared > 0.5 * n && sdfBad === 0, `world anchor (${name}): SDF agrees wherever the nearest surface lies inside both windows (${sdfCompared} of ${n} voxels, max ${sdfMaxDiff.toFixed(3)} m)`);
     a.gen.destroy(); a.weather.destroy(); b.gen.destroy(); b.weather.destroy();
   }
 }
 function D3() { return DIMS[2]; }
+
+// ---------- 2c. tiled weather bake (P9-B2): same pixels as the one-shot map, every tile under the 1 ms frame budget ----------
+const tiledBake: Record<string, unknown> = {};
+{
+  // The sky layer's window as cloudscape-gen bakes it (4096 m box at the uv origin, 51200 m window at 2048^2), and the generator's 512^2 map.
+  const skyWindow: ProceduralWeatherOptions = { ...CLOUD_PRESETS.cumulus.weather, size: [2048, 2048], seed: 7, border: 0, window: { origin: [(2048 - 25600) / 4096, (2048 - 25600) / 4096], size: [12.5, 12.5] } };
+  const cases: { name: string; opts: ProceduralWeatherOptions; tileRows: number }[] = [
+    { name: 'sky window 2048^2', tileRows: 32, opts: skyWindow },   // SkyLayerSettings.bakeRows default
+    { name: 'sky window 2048^2, 64-row tiles', tileRows: 64, opts: skyWindow },
+    { name: 'generator 512^2', tileRows: 128, opts: { ...CLOUD_PRESETS.cumulus.weather, size: [512, 512], seed: 7 } },
+  ];
+  for (const c of cases) {
+    // One-shot reference: encodeProceduralWeatherMap (its pixels), and its cost timed as a single tile covering the whole map (best of 3 after a warm-up).
+    let oneShot = Infinity;
+    for (let rep = 0; rep < 4; rep++) {
+      const t = new PassTimes(4);
+      const whole = createWeatherBake(device, c.opts, { tileRows: c.opts.size[1] });
+      const enc = device.createCommandEncoder();
+      whole.step(enc, t.writes('oneShot'));
+      t.finish(enc); device.queue.submit([enc.finish()]);
+      const r = await t.collect();
+      whole.destroy();
+      if (rep > 0) oneShot = Math.min(oneShot, r.byLabel.oneShot?.sum ?? NaN);
+    }
+    const refEnc = device.createCommandEncoder();
+    const ref = encodeProceduralWeatherMap(device, refEnc, c.opts);
+    device.queue.submit([refEnc.finish()]);
+    // Tiled: one tile per submit (a frame each), timed per tile. Twice; the second run is reported (the first warms the pipeline).
+    let tileMs: number[] = [], tiled: GPUTexture | null = null;
+    for (let rep = 0; rep < 2; rep++) {
+      const bake = createWeatherBake(device, c.opts, { tileRows: c.tileRows });
+      const t = new PassTimes(bake.tiles + 1);
+      for (let i = 0; !bake.done; i++) {
+        const enc = device.createCommandEncoder();
+        bake.step(enc, t.writes(`tile${i}`));
+        device.queue.submit([enc.finish()]);
+        await device.queue.onSubmittedWorkDone();
+      }
+      const enc = device.createCommandEncoder(); t.finish(enc); device.queue.submit([enc.finish()]);
+      const r = await t.collect();
+      tileMs = Array.from({ length: bake.tiles }, (_, i) => r.byLabel[`tile${i}`]?.sum ?? NaN);
+      bake.destroy(true);
+      if (tiled) tiled.destroy();
+      tiled = bake.texture;
+    }
+    const a = new Uint8Array(await readTexture(ref, 4)), b = new Uint8Array(await readTexture(tiled!, 4));
+    let maxDiff = 0, texelsDiff = 0;
+    for (let i = 0; i < a.length; i += 4) {
+      let d = 0; for (let k = 0; k < 4; k++) d = Math.max(d, Math.abs(a[i + k] - b[i + k]));
+      maxDiff = Math.max(maxDiff, d); if (d) texelsDiff++;
+    }
+    const texels = a.length / 4;
+    const worst = Math.max(...tileMs), sum = tileMs.reduce((x, y) => x + y, 0);
+    tiledBake[c.name] = { tileRows: c.tileRows, tiles: tileMs.length, oneShotMs: oneShot, tileMs, worstTileMs: worst, sumTileMs: sum, maxDiff, texelsDiff, texels };
+    log(`tiled weather bake, ${c.name}: one-shot ${oneShot.toFixed(3)} ms; ${tileMs.length} tiles of ${c.tileRows} rows: worst ${worst.toFixed(3)} ms, sum ${sum.toFixed(2)} ms; per tile ${tileMs.map(v => v.toFixed(2)).join(' ')}`);
+    log(`  tiled vs one-shot: ${texelsDiff} of ${texels} texels differ, max ${maxDiff}/255`);
+    check(maxDiff <= 1 && texelsDiff <= texels * 1e-4, `tiled bake (${c.name}) reproduces the one-shot map (${texelsDiff} texels differ, max ${maxDiff}/255)`);
+    if (hasTs) check(worst <= 1, `tiled bake (${c.name}): every tile within 1 ms (worst ${worst.toFixed(3)} ms of ${tileMs.length})`);
+    ref.destroy(); tiled!.destroy();
+  }
+}
 
 // ---------- 3. timing ----------
 interface Timing { dims: Dims; unslicedMs: number | null; slicedMs: number | null; wallMs: number; jobs: number; perJobMs: number | null; byLabel: Record<string, { sum: number; max: number; count: number }> }
@@ -327,6 +412,6 @@ harness.ready({
     frameMs, renderSize: [canvas.width, canvas.height],
     sdf256: { rawSamples: sRaw, rawAll: fRaw, conservativeSamples: sCons, conservativeAll: fCons, voxelMeters: VOXEL },
     timings: timings.map(t => ({ dims: t.dims, oneShotGpuMs: t.unslicedMs, slicedGpuMs: t.slicedMs, wallMs: t.wallMs, jobs: t.jobs, perJobMs: t.perJobMs, byStage: t.byLabel })),
-    presetStats, worldAnchor, checks: lines.filter(l => l.startsWith('PASS') || l.startsWith('FAIL')).length, failures,
+    presetStats, worldAnchor, tiledBake, checks: lines.filter(l => l.startsWith('PASS') || l.startsWith('FAIL')).length, failures,
   }),
 });

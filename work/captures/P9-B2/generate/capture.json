@@ -1,0 +1,370 @@
+{
+  "url": "http://127.0.0.1:61658/runtime-tests/generate/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:45:08.750Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P9-B2/generate/view.jpg",
+      "report": {
+        "gpuMs": {
+          "generate256x256x32": 2.124342,
+          "generate256x256x32Sliced": 3.169157999999999,
+          "perJob256x256x32": 0.13204824999999995,
+          "generate512x512x64": 14.649486,
+          "generate512x512x64Sliced": 18.98437299999999,
+          "perJob512x512x64": 0.39550777083333316
+        },
+        "frameMs": 16.400000005960464,
+        "renderSize": [
+          1536,
+          1044
+        ],
+        "sdf256": {
+          "rawSamples": {
+            "n": 2000,
+            "maxOvershoot": -0.00390625,
+            "maxUndershoot": -0.4293670654296875,
+            "medianAbs": 0.08950996398925781,
+            "p99Abs": 0.3038330078125,
+            "signFlips": 0,
+            "worstUnderRatio": 0.655011402314902,
+            "worstUnderAt": 60.992305755615234,
+            "underViolations": 0
+          },
+          "rawAll": {
+            "n": 2097152,
+            "maxOvershoot": -0.00390625,
+            "maxUndershoot": -0.59271240234375,
+            "medianAbs": 0.1367034912109375,
+            "p99Abs": 0.35906982421875,
+            "signFlips": 0,
+            "worstUnderRatio": 0.7761228769629213,
+            "worstUnderAt": 261.0886535644531,
+            "underViolations": 0
+          },
+          "conservativeSamples": {
+            "n": 2000,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.429367065429688,
+            "medianAbs": 8.073884963989258,
+            "p99Abs": 8.298568725585938,
+            "signFlips": 0,
+            "worstUnderRatio": 20.767336589137994,
+            "worstUnderAt": 9.856406211853027,
+            "underViolations": 2000
+          },
+          "conservativeAll": {
+            "n": 2097152,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.59271240234375,
+            "medianAbs": 8.130661010742188,
+            "p99Abs": 8.33984375,
+            "signFlips": 0,
+            "worstUnderRatio": 20.767336589137994,
+            "worstUnderAt": 9.856406211853027,
+            "underViolations": 2097152
+          },
+          "voxelMeters": 8
+        },
+        "timings": [
+          {
+            "dims": [
+              256,
+              256,
+              32
+            ],
+            "oneShotGpuMs": 2.124342,
+            "slicedGpuMs": 3.169157999999999,
+            "wallMs": 3.2000000178813934,
+            "jobs": 24,
+            "perJobMs": 0.13204824999999995,
+            "byStage": {
+              "nvdf": {
+                "sum": 0.905111,
+                "max": 0.49316,
+                "count": 4
+              },
+              "edt-x": {
+                "sum": 0.260871,
+                "max": 0.065499,
+                "count": 4
+              },
+              "edt-y": {
+                "sum": 1.38806,
+                "max": 0.417743,
+                "count": 4
+              },
+              "edt-z": {
+                "sum": 0.523075,
+                "max": 0.14079,
+                "count": 4
+              },
+              "profile": {
+                "sum": 0.066,
+                "max": 0.024292,
+                "count": 4
+              },
+              "sdf": {
+                "sum": 0.026041,
+                "max": 0.00675,
+                "count": 4
+              }
+            }
+          },
+          {
+            "dims": [
+              512,
+              512,
+              64
+            ],
+            "oneShotGpuMs": 14.649486,
+            "slicedGpuMs": 18.98437299999999,
+            "wallMs": 19.5,
+            "jobs": 48,
+            "perJobMs": 0.39550777083333316,
+            "byStage": {
+              "nvdf": {
+                "sum": 5.644954000000001,
+                "max": 1.648474,
+                "count": 8
+              },
+              "edt-x": {
+                "sum": 1.675306,
+                "max": 0.255954,
+                "count": 8
+              },
+              "edt-y": {
+                "sum": 8.120876,
+                "max": 1.283647,
+                "count": 8
+              },
+              "edt-z": {
+                "sum": 2.8813320000000004,
+                "max": 0.385786,
+                "count": 8
+              },
+              "profile": {
+                "sum": 0.435534,
+                "max": 0.113581,
+                "count": 8
+              },
+              "sdf": {
+                "sum": 0.226371,
+                "max": 0.035624,
+                "count": 8
+              }
+            }
+          }
+        ],
+        "presetStats": {
+          "cumulus": {
+            "occupiedPct": 4.555368423461914,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.990478515625,
+            "signFlips": 0
+          },
+          "congestus": {
+            "occupiedPct": 7.23729133605957,
+            "maxOvershoot": -4,
+            "maxUndershoot": -9.30828857421875,
+            "signFlips": 0
+          },
+          "storm": {
+            "occupiedPct": 3.846263885498047,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.98516845703125,
+            "signFlips": 0
+          },
+          "stratocumulus": {
+            "occupiedPct": 8.20913314819336,
+            "maxOvershoot": -4,
+            "maxUndershoot": -8.5501708984375,
+            "signFlips": 0
+          }
+        },
+        "worldAnchor": {
+          "x quarter": {
+            "overlapVoxels": 1572864,
+            "occupied": 130487,
+            "occupancyMismatch": 17,
+            "maxDelta": 255,
+            "over1": 259,
+            "interiorVoxels": 1247232,
+            "interiorMaxDelta": 0,
+            "interiorOver1": 0,
+            "sdfCompared": 928471,
+            "sdfMaxDiff": 0,
+            "sdfWorstRatio": 0,
+            "sdfMismatches": 0,
+            "sdfMismatchesInterior": 0
+          },
+          "diagonal quarter": {
+            "overlapVoxels": 1179648,
+            "occupied": 72668,
+            "occupancyMismatch": 15,
+            "maxDelta": 255,
+            "over1": 279,
+            "interiorVoxels": 903168,
+            "interiorMaxDelta": 0,
+            "interiorOver1": 0,
+            "sdfCompared": 639406,
+            "sdfMaxDiff": 0,
+            "sdfWorstRatio": 0,
+            "sdfMismatches": 0,
+            "sdfMismatchesInterior": 0
+          }
+        },
+        "tiledBake": {
+          "sky window 2048^2": {
+            "tileRows": 32,
+            "tiles": 64,
+            "oneShotMs": 10.572927,
+            "tileMs": [
+              0.180289,
+              0.175539,
+              0.179122,
+              0.182372,
+              0.185247,
+              0.186164,
+              0.191914,
+              0.18233,
+              0.182288,
+              0.179913,
+              0.193622,
+              0.18483,
+              0.221746,
+              0.192331,
+              0.182872,
+              0.195497,
+              0.18083,
+              0.184372,
+              0.198164,
+              0.190038,
+              0.183372,
+              0.178665,
+              0.184039,
+              0.196039,
+              0.186122,
+              0.180747,
+              0.169081,
+              0.183038,
+              0.186331,
+              0.176664,
+              0.191413,
+              0.194913,
+              0.190664,
+              0.182623,
+              0.17754,
+              0.183247,
+              0.183497,
+              0.184122,
+              0.185539,
+              0.184872,
+              0.188747,
+              0.191289,
+              0.195372,
+              0.192164,
+              0.174664,
+              0.168622,
+              0.177455,
+              0.175956,
+              0.185247,
+              0.180664,
+              0.175163,
+              0.17629,
+              0.189664,
+              0.182789,
+              0.17958,
+              0.190373,
+              0.190372,
+              0.183372,
+              0.181747,
+              0.177539,
+              0.178455,
+              0.178705,
+              0.177372,
+              0.189247
+            ],
+            "worstTileMs": 0.221746,
+            "sumTileMs": 11.812855999999998,
+            "maxDiff": 0,
+            "texelsDiff": 0,
+            "texels": 4194304
+          },
+          "sky window 2048^2, 64-row tiles": {
+            "tileRows": 64,
+            "tiles": 32,
+            "oneShotMs": 10.640338,
+            "tileMs": [
+              0.340703,
+              0.333453,
+              0.343995,
+              0.351995,
+              0.341328,
+              0.348827,
+              0.354329,
+              0.360036,
+              0.34962,
+              0.359495,
+              0.342078,
+              0.366994,
+              0.359662,
+              0.335661,
+              0.348495,
+              0.37137,
+              0.357287,
+              0.337995,
+              0.341787,
+              0.358203,
+              0.36687,
+              0.365077,
+              0.330953,
+              0.358494,
+              0.341703,
+              0.371202,
+              0.349536,
+              0.336536,
+              0.347536,
+              0.343702,
+              0.343537,
+              0.348036
+            ],
+            "worstTileMs": 0.37137,
+            "sumTileMs": 11.206495000000002,
+            "maxDiff": 0,
+            "texelsDiff": 0,
+            "texels": 4194304
+          },
+          "generator 512^2": {
+            "tileRows": 128,
+            "tiles": 4,
+            "oneShotMs": 0.512659,
+            "tileMs": [
+              0.129289,
+              0.13704,
+              0.151456,
+              0.131665
+            ],
+            "worstTileMs": 0.151456,
+            "sumTileMs": 0.54945,
+            "maxDiff": 0,
+            "texelsDiff": 0,
+            "texels": 262144
+          }
+        },
+        "checks": 32,
+        "failures": []
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

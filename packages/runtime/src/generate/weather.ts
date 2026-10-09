@@ -84,17 +84,11 @@ export function stormCellState(ph: number): { rise: number; towerEnvelope: numbe
 }
 
 const WEATHER_PARAM_BYTES = 128;
+/** Uniform slots of a tiled bake are 256-byte aligned (minUniformBufferOffsetAlignment). */
+const WEATHER_PARAM_STRIDE = 256;
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
 
-/**
- * Encode a procedural weather map: rgba8unorm, R coverage, G species / cloud type (0 humilis, wispy .. 1 congestus, billowy),
- * B the billow weight of the column's cloud (with `storm`: the base height), A top height (fractions of the volume height; read with
- * useMapHeights). P9-B: an fBm cluster field (where clouds gather, with clear gaps) gates four
- * sparse layers of cells of different sizes, each cell with its own radius, peak, profile and sub-lobe split (shaders.ts WEATHER_WGSL).
- * The caller submits the encoder. The result is usable as `weather` for createVolumeGenerator.
- */
-export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUCommandEncoder, options: ProceduralWeatherOptions): GPUTexture {
-  const [w, h] = options.size;
+function weatherPipeline(device: GPUDevice): GPUComputePipeline {
   let pipeline = pipelines.get(device);
   if (!pipeline) {
     pipeline = device.createComputePipeline({
@@ -103,17 +97,17 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     });
     pipelines.set(device, pipeline);
   }
-  const texture = device.createTexture({
-    label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm', mipLevelCount: Math.max(1, options.mipLevels ?? 1),
-    usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
-  });
+  return pipeline;
+}
+
+/** The WeatherParams uniform for a `w` x `h` texture showing `win` of the map's uv space. */
+function weatherParams(options: ProceduralWeatherOptions, w: number, h: number, win: { origin: [number, number]; size: [number, number] }): ArrayBuffer {
   const data = new ArrayBuffer(WEATHER_PARAM_BYTES);
   const u = new Uint32Array(data), f = new Float32Array(data);
   u[0] = w; u[1] = h;
   f[2] = options.seed ?? 1; f[3] = options.scale ?? 4;
   f[4] = options.coverageLo ?? 0.42; f[5] = options.coverageHi ?? 0.8; f[6] = options.border ?? 0.08; f[7] = options.cellular ?? 1; f[8] = options.cellScale ?? 6;
   f[10] = options.fractus ?? 0.6; f[11] = options.species ?? 0;
-  const win = options.window ?? { origin: [0, 0], size: [1, 1] };
   f[12] = win.origin[0]; f[13] = win.origin[1]; f[14] = win.size[0]; f[15] = win.size[1];
   if (options.evolve) {
     const e = options.evolve;
@@ -123,8 +117,27 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
   }
   f[24] = options.storm ? 1 : 0; f[25] = options.lobeSplit ?? 0.5; f[26] = options.sizeSpread ?? 1;
   f[28] = options.extentMeters ?? 4096; f[29] = options.heightMeters ?? 512;
+  return data;
+}
+
+/**
+ * Encode a procedural weather map: rgba8unorm, R coverage, G species / cloud type (0 humilis, wispy .. 1 congestus, billowy),
+ * B the billow weight of the column's cloud (with `storm`: the base height), A top height (fractions of the volume height; read with
+ * useMapHeights). P9-B: an fBm cluster field (where clouds gather, with clear gaps) gates four
+ * sparse layers of cells of different sizes, each cell with its own radius, peak, profile and sub-lobe split (shaders.ts WEATHER_WGSL).
+ * The caller submits the encoder. The result is usable as `weather` for createVolumeGenerator.
+ * One dispatch: about 1.4 ms at 512^2 and 13 ms at 2048^2 (M-series, P9-B). For a large map that must not stall a frame, use
+ * `createWeatherBake` and spread the rows over frames.
+ */
+export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUCommandEncoder, options: ProceduralWeatherOptions): GPUTexture {
+  const [w, h] = options.size;
+  const pipeline = weatherPipeline(device);
+  const texture = device.createTexture({
+    label: 'weather map', size: { width: w, height: h }, format: 'rgba8unorm', mipLevelCount: Math.max(1, options.mipLevels ?? 1),
+    usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
+  });
   const uniforms = device.createBuffer({ label: 'weather params', size: WEATHER_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(uniforms, 0, data);
+  device.queue.writeBuffer(uniforms, 0, weatherParams(options, w, h, options.window ?? { origin: [0, 0], size: [1, 1] }));
   const bindGroup = device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),
     entries: [{ binding: 0, resource: { buffer: uniforms } }, { binding: 1, resource: texture.createView({ baseMipLevel: 0, mipLevelCount: 1 }) }],
@@ -137,4 +150,86 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
   // The uniform buffer is only read by this pass; destroy after submission completes.
   device.queue.onSubmittedWorkDone().then(() => uniforms.destroy(), () => {});
   return texture;
+}
+
+export interface WeatherBakeOptions {
+  /** Rows of the map written per `step` (the last tile may be shorter). Default 64. A multiple of 8 keeps the workgroups full. */
+  tileRows?: number;
+}
+
+/**
+ * A weather map baked in horizontal tiles over several frames (P9-B2: the sky layer's 2048^2 window is 13 ms in one dispatch).
+ * Each `step` evaluates the next `tileRows` rows as their own window of the map's uv space (the fields are procedural in uv, so a
+ * tile is the same pixels as the one-shot map, up to the float rounding of the tile's window) into a scratch strip and copies the
+ * strip into level 0. Mip levels beyond 0 are allocated (COPY_DST too) but left to the caller, as with encodeProceduralWeatherMap.
+ * The texture is incomplete until `done`: keep sampling the previous map until then.
+ */
+export interface WeatherBake {
+  readonly texture: GPUTexture;
+  readonly tileRows: number;
+  /** Tiles in the map and tiles encoded so far. */
+  readonly tiles: number;
+  readonly tilesDone: number;
+  readonly done: boolean;
+  /** Encode the next tile (a no-op once done). `timestampWrites` times the tile's compute pass. Returns `done` after this tile. */
+  step(encoder: GPUCommandEncoder, timestampWrites?: GPUComputePassTimestampWrites): boolean;
+  /**
+   * Free the scratch strip and uniforms (the texture too unless `keepTexture`). Call once done, or to abandon the bake, but only after the
+   * encoder holding the last `step` was submitted (a destroyed resource in an unsubmitted encoder fails the submit).
+   */
+  destroy(keepTexture?: boolean): void;
+}
+
+export function createWeatherBake(device: GPUDevice, options: ProceduralWeatherOptions, bake: WeatherBakeOptions = {}): WeatherBake {
+  const [w, h] = options.size;
+  const tileRows = Math.max(1, Math.min(h, Math.floor(bake.tileRows ?? 64)));
+  const tiles = Math.ceil(h / tileRows);
+  const pipeline = weatherPipeline(device);
+  const texture = device.createTexture({
+    label: 'weather map (tiled)', size: { width: w, height: h }, format: 'rgba8unorm', mipLevelCount: Math.max(1, options.mipLevels ?? 1),
+    usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST,
+  });
+  const strip = device.createTexture({
+    label: 'weather map tile', size: { width: w, height: tileRows }, format: 'rgba8unorm', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.COPY_SRC,
+  });
+  // One uniform slot per tile, written once: two steps in one encoder must not share a slot.
+  const uniforms = device.createBuffer({ label: 'weather params (tiled)', size: tiles * WEATHER_PARAM_STRIDE, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const win = options.window ?? { origin: [0, 0], size: [1, 1] };
+  const all = new Uint8Array(tiles * WEATHER_PARAM_STRIDE);
+  for (let t = 0; t < tiles; t++) {
+    const y0 = t * tileRows, rows = Math.min(tileRows, h - y0);
+    const tileWin = { origin: [win.origin[0], win.origin[1] + (win.size[1] * y0) / h] as [number, number], size: [win.size[0], (win.size[1] * rows) / h] as [number, number] };
+    all.set(new Uint8Array(weatherParams(options, w, rows, tileWin)), t * WEATHER_PARAM_STRIDE);
+  }
+  device.queue.writeBuffer(uniforms, 0, all);
+  const stripView = strip.createView();
+  let done = 0, destroyed = false;
+  return {
+    texture, tileRows, tiles,
+    get tilesDone() { return done; },
+    get done() { return done >= tiles; },
+    step(encoder, timestampWrites) {
+      if (destroyed || done >= tiles) return done >= tiles;
+      const y0 = done * tileRows, rows = Math.min(tileRows, h - y0);
+      const bindGroup = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: uniforms, offset: done * WEATHER_PARAM_STRIDE, size: WEATHER_PARAM_BYTES } }, { binding: 1, resource: stripView }],
+      });
+      const pass = encoder.beginComputePass({ label: 'weather map tile', timestampWrites });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(Math.ceil(w / 8), Math.ceil(rows / 8));
+      pass.end();
+      encoder.copyTextureToTexture({ texture: strip }, { texture, origin: { x: 0, y: y0 } }, { width: w, height: rows });
+      done++;
+      return done >= tiles;
+    },
+    destroy(keepTexture = false) {
+      if (destroyed) return;
+      destroyed = true;
+      // WebGPU frees them once the submitted work that uses them completes.
+      strip.destroy(); uniforms.destroy();
+      if (!keepTexture) texture.destroy();
+    },
+  };
 }

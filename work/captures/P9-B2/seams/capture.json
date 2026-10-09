@@ -1,0 +1,265 @@
+{
+  "url": "http://127.0.0.1:58554/cloudscape-gen/?sky=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:39:54.630Z",
+  "shots": [
+    {
+      "name": "seamNorth",
+      "file": "work/captures/P9-B2/seams/seamNorth.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.081872,
+          "lightGrid": 0.19688564705882353,
+          "marchNear": 0.05660049999999999,
+          "marchFar": 0.4808190666666666,
+          "shadowMap": 0.4400148999999998,
+          "composite": 0.3005016833333332,
+          "dome": 0.3740691833333332,
+          "resolveNear": 0.026704516666666674,
+          "resolveFar": 0.04115556666666667,
+          "skyLayer": 1.2921483999999996,
+          "skyResolve": 0.11111841666666665,
+          "cloudsTotal": 3.4018898803921562
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.665822784810125
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "seamNorth",
+        "frames": 189,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 1,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.25,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "bakeRows": 32,
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 2,
+            "frames": 113,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 212.90000000596046
+        }
+      }
+    },
+    {
+      "name": "seamEast",
+      "file": "work/captures/P9-B2/seams/seamEast.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.081872,
+          "lightGrid": 0.19688564705882353,
+          "marchNear": 0.05550323333333334,
+          "marchFar": 0.5094603166666668,
+          "shadowMap": 0.3851019166666668,
+          "composite": 0.3192278666666667,
+          "dome": 0.4870474666666666,
+          "resolveNear": 0.023764999999999998,
+          "resolveFar": 0.03931546666666667,
+          "skyLayer": 1.4339808833333336,
+          "skyResolve": 0.10621491666666666,
+          "cloudsTotal": 3.638374713725491
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "seamEast",
+        "frames": 284,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 1,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.25,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "bakeRows": 32,
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 3,
+            "frames": 208,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 212.90000000596046
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P9-B2/seams/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.081872,
+          "lightGrid": 0.19688564705882353,
+          "marchNear": 0.061840716666666656,
+          "marchFar": 0.5196538666666666,
+          "shadowMap": 0.4024362666666666,
+          "composite": 0.32000558333333334,
+          "dome": 0.4971756166666667,
+          "resolveNear": 0.024467050000000004,
+          "resolveFar": 0.03995216666666668,
+          "skyLayer": 1.3179881666666662,
+          "skyResolve": 0.11753150000000002,
+          "cloudsTotal": 3.5798085803921564
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 379,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 1,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.25,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "bakeRows": 32,
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 4,
+            "frames": 303,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "topFraction": 0.65,
+            "domeExponent": 1.6,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 212.90000000596046
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
