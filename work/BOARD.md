@@ -1506,6 +1506,24 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Existing coarse assets unchanged unless the spec says the coarse-from-fine reduction replaces them; if they change, A/B the flagship and onsen.
   - `pnpm check` green.
 
+### [~] P13-H1 Fine hero overlay in the runtime · Opus
+- **Owns:**
+  - `packages/runtime/src/shaders/{volume,density,march}.wgsl.ts`, `runtime.ts`, `resources.ts`, `index.ts`
+  - a new `packages/runtime/src/hero/**`
+  - the new page `examples/lab/runtime-tests/hero-fine/` and its vite input line
+- **Not:** `generate/**` or the sky layer (P9-C2).
+- **Does:** spec `work/specs/P8-hero-vdb.md` §4 and §7, row H1.
+  - Indirection and brick-pool resources, `sampleModelingHero`, `DensityInputs.fine`, `fineDistance`/`fineErosion`, placeholders and the bind group.
+  - A test page with a procedural 4 m field (a sphere with 6–12 m bumps) in a 128³ volume, A/B against its 8 m reduction.
+- **Acceptance** (spec §7, H1):
+  - The parity page passes with `fine = 0`.
+  - Bumps are visible at 4 m and not at 8 m.
+  - Pool vs dense trilinear within 1/255, including brick borders and volume faces.
+  - Flagship captures bit-identical with no fine data bound.
+  - `check-bundle --strict` green.
+  - The all-fine march is ≤ 1.2× the dense one (GPU timer).
+  - `pnpm check` green; the packed consumer passes.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
