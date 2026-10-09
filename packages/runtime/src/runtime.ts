@@ -115,7 +115,7 @@ export interface CloudSettings {
   stepScale: number;
   /** P13-H1: distance (m) within which the march reads the volume's fine hero overlay (GpuCloudVolume.fine); the tiers set it, 0 = off. */
   fineDistance: number;
-  /** C1 debug: 0 = normal; 1, 2, 3, 4, 5 = render only the direct, multiple-scattering (ms), deep-octave, ambient or environment-body term, without aerial perspective. */
+  /** C1 debug: 0 = normal; 1, 2, 3, 4, 5 = render only the direct, multiple-scattering (ms), deep-octave, ambient or environment-body term, without aerial perspective; C2: 6 = all terms, without aerial perspective and haze. */
   lightDebug: number;
   /**
    * C1 low-sun handoff (Bouthors 2008): the sun's share of the multiple-scattering body terms (ms, deep octaves) is
@@ -140,6 +140,16 @@ export interface CloudSettings {
   phaseModel: 'hg' | 'mie';
   /** C1: mean droplet diameter (um, 5..50) of the 'mie' phase model. */
   dropletDiameter: number;
+  /**
+   * C2 horizon haze: extinction (per km) of a boundary-layer haze at `hazeBase`, falling off exponentially with height over `hazeHeight` metres. It is applied
+   * once per ray at the cloud's transmittance-weighted distance, with the analytic optical depth of the camera-to-cloud segment, and fades the cloud toward
+   * the sky's own radiance in that direction (sky-view LUT): a far cloud dissolves into the horizon sky behind it and clear sky is unchanged. On top of the
+   * sky's aerial perspective, whose default air is very clean (about 200 km visibility). 0 = off; needs the sky (no effect with uniform lighting).
+   */
+  hazeDensity: number;
+  hazeHeight: number;
+  /** C2: altitude (m) of the haze's densest level (flat world: world y). */
+  hazeBase: number;
   /** P13-H1: scales the erosion noise inside fine bricks (1 = Nubis; 0.6-1 if fine heroes read double-detailed). */
   fineErosion: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
@@ -335,7 +345,7 @@ const FLASH_BLEND = 0.85;
 const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
-const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91];
+const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94];
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
@@ -398,6 +408,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     microDist: startPreset.microDist, microShadow: 1, detailBias: 0.5, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
     fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
     bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
+    hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
   };
 
   const volumeLayout = createVolumeBindGroupLayout(device);
@@ -598,7 +609,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;   // COPY_DST: the sky layer resolves into its targets by copy
     const make = (name: string, scale: number) => {
       const w = Math.max(1, Math.round(outW * scale)), h = Math.max(1, Math.round(outH * scale));
-      return { w, h, color: device.createTexture({ label: `cloud ${name} colour`, size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: `cloud ${name} depth`, size: [w, h], format: 'rg32float', usage }) };
+      return { w, h, color: device.createTexture({ label: `cloud ${name} colour`, size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: `cloud ${name} depth`, size: [w, h], format: 'rgba32float', usage }) };
     };
     // The march passes keep a resolved history pair (colour rgba16f, packed distances r32uint: x mean cloud distance, y march end, z scene distance).
     const hUsage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING;
@@ -749,7 +760,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         skyTarget.color.destroy(); skyTarget.depth.destroy(); skyTarget.back.destroy();
         const w = Math.max(1, Math.round(outW * skyLayer.settings.resolutionScale)), h = Math.max(1, Math.round(outH * skyLayer.settings.resolutionScale));
         const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
-        skyTarget = { w, h, scale: skyLayer.settings.resolutionScale, color: device.createTexture({ label: 'cloud sky colour', size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: 'cloud sky depth', size: [w, h], format: 'rg32float', usage }), back: device.createTexture({ label: 'cloud sky back', size: [w, h], format: 'rgba16float', usage }) };
+        skyTarget = { w, h, scale: skyLayer.settings.resolutionScale, color: device.createTexture({ label: 'cloud sky colour', size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: 'cloud sky depth', size: [w, h], format: 'rgba32float', usage }), back: device.createTexture({ label: 'cloud sky back', size: [w, h], format: 'rgba16float', usage }) };
         compositeGroups.fill(undefined);
       }
       if (frame.depth !== boundDepth) { forgetGroups(); boundDepth = frame.depth; }
@@ -801,6 +812,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       lowSun = 1 - sunUp;
       f[84] = settings.bodySunFloor + (1 - settings.bodySunFloor) * sunUp; f[85] = settings.bodyEnv;
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
+      f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
       // the frame after it, the resolve takes mostly fresh samples (blend FLASH_BLEND); the neighbourhood clip already pulls the history toward the fresh ones.

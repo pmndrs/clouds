@@ -271,7 +271,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);
 ${atm ? `  if (meanDistance > 0.0 && frame.lightDebug < 0.5) {
     // Aerial perspective of the cloud as a whole, at its transmittance-weighted mean distance.
-    radiance = applyAerialPerspective(radiance, T, normalize(unprojectDepth(uv, 1.0) - origin), meanDistance);
+    let viewDir = normalize(unprojectDepth(uv, 1.0) - origin);
+    radiance = applyAerialPerspective(radiance, T, viewDir, meanDistance);
+    radiance = applyHorizonHaze(radiance, T, origin, viewDir, meanDistance, frame.haze);
   }` : ''}
   radiance = clamp(radiance, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
 ${direct ? `  textureStore(marchColor, px, vec4(radiance, T));

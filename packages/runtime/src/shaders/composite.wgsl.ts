@@ -119,10 +119,16 @@ fn mergeSky(voxel: vec4<f32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
     let o = vec2<f32>(f32(i & 1), f32(i >> 1));
     let w = mix(1.0 - f.x, f.x, o.x) * mix(1.0 - f.y, f.y, o.y);
     let tap = clamp(vec2<i32>(b + o), vec2<i32>(0), hi);
-    let d = textureLoad(skyDepth, tap, 0).xy;
+    let d = textureLoad(skyDepth, tap, 0);
     var front = textureLoad(skyColor, tap, 0);
     var back = textureLoad(skyBack, tap, 0);
-    if (d.x > 0.0 && d.x > sceneT * 1.02 + 1.0) { front = vec4(0.0, 0.0, 0.0, 1.0); back = front; }
+    // C2: the share of the layer's cloud in front of this pixel's surface, from the opacity distribution along the ray (mean d.z, spread d.w):
+    // a linear stand-in for the normal CDF over +-1.25 sigma. With no spread it is the old test at the mean (cloud behind the surface dropped).
+    if (d.z > 0.0 && sceneT < FAR_T) {
+      let inFront = saturate(0.5 + 0.4 * (sceneT * 1.02 + 1.0 - d.z) / max(d.w, 1.0));
+      front = vec4(front.rgb * inFront, 1.0 - (1.0 - front.a) * inFront);
+      back = vec4(back.rgb * inFront, 1.0 - (1.0 - back.a) * inFront);
+    }
     let c = vec4(front.rgb + front.a * (voxel.rgb + voxel.a * back.rgb), front.a * voxel.a * back.a);
     if (i == 0 || ((f.x >= 0.5) == (o.x > 0.5) && (f.y >= 0.5) == (o.y > 0.5))) { nearest = c; }
     if (d.y < sceneT * 0.97 - 1.0) { continue; }   // this tap's rays stopped at a nearer surface than this pixel's

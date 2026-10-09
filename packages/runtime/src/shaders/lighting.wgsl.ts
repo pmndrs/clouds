@@ -82,7 +82,7 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
   // The environment-fed body: isotropic (no forward glow boost, no sun-ward occlusion), irradiance = pi * mean radiance.
   let envLight = mix(envDown, envUp * above, skyWeight) * (PI * envShare * profile * (frame.msStrength * MS_NORMALISATION + frame.deepScatter * ISO_PHASE));
   let deepLight = sunRadiance * (frame.deepScatter * deep * microOcc * sunShare);
-  if (frame.lightDebug > 0.5) {
+  if (frame.lightDebug > 0.5 && frame.lightDebug < 5.5) {
     let k = u32(frame.lightDebug);
     return select(select(select(select(envLight, ambient, k == 4u), deepLight, k == 3u), msLight, k == 2u), direct, k == 1u);
   }

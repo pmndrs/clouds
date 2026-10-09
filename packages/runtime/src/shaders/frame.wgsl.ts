@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 368;
+export const FRAME_UNIFORM_BYTES = 384;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -36,6 +36,8 @@ struct Frame {
   // mie = the HG + Draine fit's (gHG, gD, alpha, wD) for the droplet diameter (used when body.z = 1).
   body: vec4<f32>,
   mie: vec4<f32>,
+  // C2 horizon haze: (extinction per metre at the base height, 1 / scale height (per metre), base altitude (m), 0). x = 0: off.
+  haze: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

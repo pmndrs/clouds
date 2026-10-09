@@ -209,7 +209,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     { binding: 0, visibility: C, buffer: { type: 'uniform' } },
     { binding: 1, visibility: C, texture: { sampleType: 'depth' } },
     { binding: SKY_COLOR_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
-    { binding: SKY_DEPTH_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rg32float' } },
+    { binding: SKY_DEPTH_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rgba32float' } },
     { binding: SKY_WEATHER_BINDING, visibility: C, texture: { sampleType: 'float' } },
     { binding: SKY_SAMPLER_BINDING, visibility: C, sampler: { type: 'filtering' } },
     { binding: SKY_LIGHT_STORAGE_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
@@ -225,7 +225,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     { binding: R.hist, visibility: C, texture: { sampleType: 'float' } },
     { binding: R.histDepth, visibility: C, texture: { sampleType: 'unfilterable-float' } },
     { binding: R.histOut, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
-    { binding: R.histDepthOut, visibility: C, storageTexture: { access: 'write-only', format: 'rg32float' } },
+    { binding: R.histDepthOut, visibility: C, storageTexture: { access: 'write-only', format: 'rgba32float' } },
     { binding: R.params, visibility: C, buffer: { type: 'uniform' } },
     { binding: R.sampler, visibility: C, sampler: { type: 'filtering' } },
     { binding: R.traceBack, visibility: C, texture: { sampleType: 'unfilterable-float' } },
@@ -316,7 +316,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     releaseTemporal();
     const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC;
     const color = (label: string) => device.createTexture({ label, size: [w, h], format: 'rgba16float', usage });
-    const depth = (label: string) => device.createTexture({ label, size: [w, h], format: 'rg32float', usage });
+    const depth = (label: string) => device.createTexture({ label, size: [w, h], format: 'rgba32float', usage });   // C2: mean distance, scene end, opacity-weighted mean and spread
     temporal = {
       w, h, trace: color('cloud sky trace colour'), traceBack: color('cloud sky trace back'), traceDepth: depth('cloud sky trace depth'),
       hist: [color('cloud sky history 0'), color('cloud sky history 1')], histBack: [color('cloud sky history back 0'), color('cloud sky history back 1')],

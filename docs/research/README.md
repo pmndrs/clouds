@@ -55,6 +55,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 | `nubis-pack/`, `nubis-src/` | authoring | ✅ (P0) | Guerrilla's voxel cloud pack, MIT per the owner; assets in `assets/nubis-voxel-clouds/` |
 | `disney-cloud/` | authoring | ✅ (P4-G) | WDAS cloud, CC BY-SA 3.0 |
 | `vdbs/` (bunny, cloud.0001, ...) | authoring | ✅ (P4-H) | Import test assets |
+| `node_modules/@takram/three-clouds` 0.7.6 and `@pmndrs/sky` 0.5.0 source (installed) | horizon sunset | ✅ (C2, `work/reports/C2.md`) | Takram: H16 eq. 21 front depth, per-pixel Bruneton AP, plus an extra exponential **haze** (3e-5/m, 1 km scale height) mixed over clouds and sky: the reason its horizon fades. pmndrs/sky: ozone (Chappuis) and multiple scattering are in the LUTs; its twilight ramp at -1 to -4 deg already goes orange, pink, lilac, purple, indigo (dark only at a fixed exposure). AP LUT 32^3 at 8 km/slice (256 km) |
 
 ## External links
 

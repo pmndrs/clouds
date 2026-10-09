@@ -207,6 +207,36 @@ fn applyAerialPerspectiveUv(color: vec3<f32>, transmittance: f32, uv: vec2<f32>,
   let ap = atmAerialPerspectiveAt(uv, distance);
   return color * (1.0 - ap.a) + ap.rgb * (1.0 - transmittance);
 }
+// C2 horizon haze (H16 p.22: fog coloured from the sky LUT so fog and sky match). haze = (extinction per metre at the base altitude, 1 / scale height,
+// base altitude in metres, unused). Optical depth of the segment [0, distance] from the camera along dir through an exponential layer, analytic
+// (iquilezles fog; the sky's own fog uses the same form): density * D * exp(-lowest) * (1 - exp(-|x|)) / |x|, x = D * rayUp / H.
+fn atmHazeOpticalDepth(cameraPos: vec3<f32>, dir: vec3<f32>, distance: f32, haze: vec4<f32>) -> f32 {
+  let up = atmLocalUp(cameraPos);
+  let a = ((atmRadiusKm(cameraPos) - atmosphere.bottomRadiusKm) * 1000.0 - haze.z) * haze.y;
+  let x = distance * dot(dir, up) * haze.y;
+  let ux = abs(x);
+  let fraction = select((1.0 - exp(-ux)) / max(ux, 1e-3), 1.0 - ux * (0.5 - ux / 6.0), ux < 1e-3);
+  return haze.x * distance * exp(-max(a + min(x, 0.0), -80.0)) * fraction;
+}
+// The sky's radiance in direction dir (sky-view LUT, exposure units). Below the horizon it is read at the horizon: a haze seen against the ground
+// takes the horizon's colour, as the sky's fog does.
+fn atmSkyRadianceToward(dir: vec3<f32>) -> vec3<f32> {
+  let up = atmosphere.cameraUp;
+  let mu = dot(dir, up);
+  let h = max(atmosphere.skyViewHeightKm, atmosphere.bottomRadiusKm + 0.01);
+  let horizon = atmHorizonCos(h) + 1e-3;
+  let dirH = dir - up * mu;
+  let sunH = atmosphere.sunDirection - up * dot(atmosphere.sunDirection, up);
+  let cosPhi = dot(dirH, sunH) / max(length(dirH) * length(sunH), 1e-6);
+  return atmSkyRadiance(max(mu, horizon), cosPhi) * atmosphere.luminanceScale * atmosphere.sunColor;
+}
+// Premultiplied cloud radiance in, premultiplied out: the cloud seen through the haze in front of it fades toward the sky behind it, so that at
+// full haze the composite (cloud + T * sky) is the sky. Clear-sky pixels are untouched (T = 1: nothing to fade).
+fn applyHorizonHaze(color: vec3<f32>, transmittance: f32, cameraPos: vec3<f32>, dir: vec3<f32>, distance: f32, haze: vec4<f32>) -> vec3<f32> {
+  if (haze.x <= 0.0 || atmosphere.apEnabled < 0.5) { return color; }
+  let h = 1.0 - exp(-atmHazeOpticalDepth(cameraPos, dir, distance, haze));
+  return mix(color, atmSkyRadianceToward(dir) * (1.0 - transmittance), h);
+}
 // Same, from a world-space view direction (needs the AP camera's matrices in the uniform).
 fn applyAerialPerspective(color: vec3<f32>, transmittance: f32, viewDir: vec3<f32>, distance: f32) -> vec3<f32> {
   let clip = atmosphere.viewRotProj * vec4<f32>(viewDir, 0.0);

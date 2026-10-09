@@ -421,7 +421,7 @@ export function skyLayerWgsl(mode: 'atmosphere' | 'uniform'): string {
 ${FRAME_WGSL}
 ${SKY_PARAMS_WGSL}
 @group(1) @binding(${SKY_COLOR_BINDING}) var skyColorOut: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(${SKY_DEPTH_BINDING}) var skyDepthOut: texture_storage_2d<rg32float, write>;
+@group(1) @binding(${SKY_DEPTH_BINDING}) var skyDepthOut: texture_storage_2d<rgba32float, write>;
 @group(1) @binding(${SKY_WEATHER_BINDING}) var skyWeather: texture_2d<f32>;
 @group(1) @binding(${SKY_SAMPLER_BINDING}) var skySampler: sampler;
 @group(1) @binding(${SKY_LIGHT_STORAGE_BINDING}) var<storage, read> skyLight: array<vec4<f32>, ${SKY_LIGHT_ENTRIES}>;
@@ -461,8 +461,9 @@ fn heat(x0: f32) -> vec3<f32> {
 }
 
 // One premultiplied layer being accumulated (front of the box, or behind it).
-struct Part { rad: vec3<f32>, T: f32, depthSum: f32, weightSum: f32, depthMax: f32 }
-fn partInit() -> Part { return Part(vec3(0.0), 1.0, 0.0, 0.0, 0.0); }
+// depthSum / depthSqSum: the opacity-weighted first and second moments of the sample distance (C2, Ghost of Yotei: mean and mean square).
+struct Part { rad: vec3<f32>, T: f32, depthSum: f32, depthSqSum: f32, weightSum: f32, depthMax: f32 }
+fn partInit() -> Part { return Part(vec3(0.0), 1.0, 0.0, 0.0, 0.0, 0.0); }
 
 @compute @workgroup_size(8, 8)
 fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -517,6 +518,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunInline0 = frame.sunDir * (0.5 * INLINE_NEAR);
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let ext = frame.extinction * SKY.shapeC.z;
+    // C2: a low sun crosses the shell nearly horizontally, so the path through a cloud toward it is about depth / sin(elevation): the cheap sun samples
+    // (48..470 m at and above 45 degrees) stretch with 1 / sin(elevation), up to 4x at 10 degrees and below. Without it, sunset cumulus out here saw only
+    // the first 470 m of a 1-2 km path, so the whole far field lit up like a rim: a bright speckled band along the horizon.
+    let sunReach = clamp(0.7071 / max(dot(frame.sunDir, vec3(0.0, 1.0, 0.0)), 0.01), 1.0, 4.0);
     // Same up-rez inputs as the voxel march; the high-frequency fold is a near-camera detail (rayDistance < 150 m only).
     let inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, 0.0);
     let maxSteps = u32(SKY.steps.z);
@@ -549,20 +554,25 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
                 let d1 = skyDensityLight(ps + sunInline1, ts, inputs, sp.b);
                 let tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * ext;
                 var sunFar = 0.0;
-                for (var k = 0; k < 6; k++) { sunFar += skyModelCheap(ps + frame.sunDir * SKY_SUN_T[k]) * SKY_SUN_L[k]; }
+                for (var k = 0; k < 6; k++) { sunFar += skyModelCheap(ps + frame.sunDir * (SKY_SUN_T[k] * sunReach)) * (SKY_SUN_L[k] * sunReach); }
                 var gridUp = 0.0;
                 for (var k = 0; k < 3; k++) { gridUp += skyModelCheap(ps + vec3(0.0, SKY_UP_T[k], 0.0)) * SKY_UP_L[k]; }
                 let tau = tauInline + sunFar * ext * frame.lightDensityScale;
                 if (firstTau < 0.0) { firstTau = tau; firstUp = gridUp * ext * frame.lightDensityScale * frame.ambientExtinction; }
+                // C2: the glow terms' sun-side occlusion, as the voxel march's Q-1 microOcc but from the smooth field (the cheap term INLINE_NEAR / 2 toward
+                // the sun, over INLINE_NEAR): the up-rezzed density there aliased into a herringbone at the layer's quarter resolution. Without it (1.0)
+                // the far field's glow was never occluded, so every distant cloud glowed like a thin rim: brighter than the voxel clouds next to it and a
+                // bright speckled band along the horizon toward a low sun.
+                let microOcc = exp(-frame.microShadow * skyModelCheap(ps + sunInline0) * INLINE_NEAR * ext);
                 // Same arguments as the voxel march: the cheap term (profile * scale) as the in-scatter probability, -depth as the sdf.
-                lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, 1.0);
+                lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc);
               }
               if (ts < tSplit) {
                 let w = front.T * (1.0 - stepT);
-                front.rad += lit * w; front.depthSum += ts * w; front.weightSum += w; front.depthMax = max(front.depthMax, sp.depth);
+                front.rad += lit * w; front.depthSum += ts * w; front.depthSqSum += ts * ts * w; front.weightSum += w; front.depthMax = max(front.depthMax, sp.depth);
               } else {
                 let w = back.T * (1.0 - stepT);
-                back.rad += lit * w; back.depthSum += ts * w; back.weightSum += w; back.depthMax = max(back.depthMax, sp.depth);
+                back.rad += lit * w; back.depthSum += ts * w; back.depthSqSum += ts * ts * w; back.weightSum += w; back.depthMax = max(back.depthMax, sp.depth);
               }
             }
             if (ts < tSplit) { front.T *= stepT; } else { back.T *= stepT; }
@@ -604,13 +614,26 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let meanFront = select(0.0, front.depthSum / max(front.weightSum, 1e-6), front.weightSum > 1e-3);
   let meanBack = select(0.0, back.depthSum / max(back.weightSum, 1e-6), back.weightSum > 1e-3);
-${atm ? `  if (meanFront > 0.0 && frame.lightDebug < 0.5) { front.rad = applyAerialPerspective(front.rad, front.T, dir, meanFront); }
-  if (meanBack > 0.0 && frame.lightDebug < 0.5) { back.rad = applyAerialPerspective(back.rad, back.T, dir, meanBack); }` : ''}
+${atm ? `  if (meanFront > 0.0 && frame.lightDebug < 0.5) {
+    front.rad = applyHorizonHaze(applyAerialPerspective(front.rad, front.T, dir, meanFront), front.T, origin, dir, meanFront, frame.haze);
+  }
+  if (meanBack > 0.0 && frame.lightDebug < 0.5) {
+    back.rad = applyHorizonHaze(applyAerialPerspective(back.rad, back.T, dir, meanBack), back.T, origin, dir, meanBack, frame.haze);
+  }` : ''}
   front.rad = clamp(front.rad, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   back.rad = clamp(back.rad, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   textureStore(skyColorOut, px, vec4(front.rad, front.T));
   textureStore(skyBackOut, px, vec4(back.rad, back.T));
-  textureStore(skyDepthOut, px, vec4(select(meanBack, meanFront, meanFront > 0.0), sceneEnd, 0.0, 0.0));
+  // C2: the whole ray's opacity distribution along the view ray (both parts): its mean and spread let the composite keep the share of the cloud
+  // in front of a surface instead of an all-or-nothing test at one distance (Ghost of Yotei stores mean and mean square for the same reason).
+  let wAll = front.weightSum + back.weightSum;
+  var meanAll = 0.0;
+  var spread = 0.0;
+  if (wAll > 1e-3) {
+    meanAll = (front.depthSum + back.depthSum) / wAll;
+    spread = sqrt(max((front.depthSqSum + back.depthSqSum) / wAll - meanAll * meanAll, 0.0));
+  }
+  textureStore(skyDepthOut, px, vec4(select(meanBack, meanFront, meanFront > 0.0), sceneEnd, meanAll, spread));
 }
 `;
 }
@@ -628,7 +651,7 @@ ${SKY_PARAMS_WGSL}
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.hist}) var histColor: texture_2d<f32>;
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.histDepth}) var histDepth: texture_2d<f32>;
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.histOut}) var histColorOut: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(${SKY_RESOLVE_BINDINGS.histDepthOut}) var histDepthOut: texture_storage_2d<rg32float, write>;
+@group(1) @binding(${SKY_RESOLVE_BINDINGS.histDepthOut}) var histDepthOut: texture_storage_2d<rgba32float, write>;
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.params}) var<uniform> SKY: SkyParams;
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.sampler}) var histSampler: sampler;
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.traceBack}) var traceBack: texture_2d<f32>;
@@ -652,7 +675,9 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
   let freshPx = select(b0 + bp, px, fresh);
   let tc = textureLoad(traceColor, freshPx, 0);
   let tb = textureLoad(traceBack, freshPx, 0);
-  let td = textureLoad(traceDepth, freshPx, 0).x;
+  let tdv = textureLoad(traceDepth, freshPx, 0);
+  let td = tdv.x;
+  var dist4 = tdv.zw;
   var out = tc;
   var outB = tb;
   var dist = td;
@@ -693,7 +718,8 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
       let h0 = textureSampleLevel(histColor, histSampler, puv, 0.0);
       let hist = mix(h0, clamp(h0, lo, hi4), moved);
       let histB = textureSampleLevel(histBack, histSampler, puv, 0.0);
-      let hdist = textureLoad(histDepth, clamp(vec2<i32>(puv * frame.renderSize), vec2<i32>(0), hi), 0).x;
+      let hdv = textureLoad(histDepth, clamp(vec2<i32>(puv * frame.renderSize), vec2<i32>(0), hi), 0);
+      let hdist = hdv.x;
       if (fresh) {
         out = mix(hist, tc, SKY.extra.w);
         outB = mix(histB, tb, SKY.extra.w);
@@ -701,11 +727,12 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
         out = hist;
         outB = histB;
         dist = hdist;
+        dist4 = hdv.zw;
       }
     }
   }
   textureStore(histColorOut, px, out);
   textureStore(histBackOut, px, outB);
-  textureStore(histDepthOut, px, vec4(dist, sceneEnd, 0.0, 0.0));
+  textureStore(histDepthOut, px, vec4(dist, sceneEnd, dist4));
 }
 `;

@@ -1,0 +1,97 @@
+{
+  "url": "http://127.0.0.1:49841/species/?clean=1&hud=0&sunel=-1&sunaz=290&exposure=2",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T05:46:49.763Z",
+  "shots": [
+    {
+      "name": "side",
+      "file": "work/captures/C2/species-neg1/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.7615876666666668,
+          "lightGridReduce": 0.111913,
+          "lightGrid": 1.964648,
+          "marchNear": 0.05843959999999999,
+          "marchFar": 0.5512818999999998,
+          "composite": 0.24349485000000007,
+          "dome": 1.0610323999999998,
+          "resolveNear": 0.02744609999999999,
+          "resolveFar": 0.045873583333333336,
+          "skyWeatherMips": 0.189122,
+          "skyLayer": 2.6384583999999998,
+          "skyResolve": 0.09985043333333335,
+          "cloudsTotal": 7.753147933333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.666494845360827
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "mixed",
+        "frames": 225,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 1,
+            "frames": 115,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "mixed",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "altoBase": 1400,
+            "altoDepth": 180,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 393.69999998807907
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
