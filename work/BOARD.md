@@ -1286,7 +1286,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - A short write-up in `work/reports/P8-A.md` of visible differences per bookmark, to guide what we adjust.
   - `pnpm check` green; the packed consumer still passes (the core packages must not depend on Takram).
 
-### [~] P8-B Docs site compatible with pmndrs/docs · Sonnet
+### [x] P8-B Docs site compatible with pmndrs/docs · Sonnet
 - **Owns:**
   - `docs/guide/**`, moving to `.mdx`
   - `.github/workflows/docs.yml` (new)

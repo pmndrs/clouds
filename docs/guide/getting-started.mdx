@@ -1,12 +1,16 @@
-# Getting started
+---
+title: Getting started
+description: "Realtime Nubis-style voxel clouds for WebGPU: install, the three packages, and a first cloud in three.js or react-three-fiber."
+nav: 0
+---
 
 Realtime Nubis³-style voxel clouds for WebGPU. Three packages, one idea each:
 
 | Package | Imports | Use it when |
 | --- | --- | --- |
-| [`@clouds/runtime`](../../packages/runtime/README.md) | WebGPU only | You own the renderer, or you are building an adapter. Volumes, generator, light grid, march, composite, reflection dome, `.vdb` import. |
-| [`@clouds/three`](../../packages/three/README.md) | `three/webgpu`, `three/tsl` | You have a three.js `WebGPURenderer`. Gives you `Clouds` and one TSL node. |
-| [`@clouds/react`](../../packages/react/README.md) | React Three Fiber v10 | You have an R3F v10 `<Canvas>` (WebGPU). Gives you `<Clouds>` and `<Cloudscape>`. |
+| [`@clouds/runtime`](https://github.com/pmndrs/clouds/blob/main/packages/runtime/README.md) | WebGPU only | You own the renderer, or you are building an adapter. Volumes, generator, light grid, march, composite, reflection dome, `.vdb` import. |
+| [`@clouds/three`](https://github.com/pmndrs/clouds/blob/main/packages/three/README.md) | `three/webgpu`, `three/tsl` | You have a three.js `WebGPURenderer`. Gives you `Clouds` and one TSL node. |
+| [`@clouds/react`](https://github.com/pmndrs/clouds/blob/main/packages/react/README.md) | React Three Fiber v10 | You have an R3F v10 `<Canvas>` (WebGPU). Gives you `<Clouds>` and `<Cloudscape>`. |
 
 These are the workspace names. The npm names are not decided yet (the packages are `private` in this
 repository), so for now you use them from a checkout of this repo.
@@ -30,12 +34,12 @@ into your static folder at the same paths (or pass other URLs).
 | --- | --- | --- |
 | `assets/clouds/noise/` | The 128³ Nubis noise with its mip chain. Always needed. | 9.1 MB |
 | `assets/clouds/parkouring/`, `stormbird/` | Guerrilla's two example clouds (from the Nubis pack). | 3.4 MB each |
-| `assets/clouds/disney/` | The Disney WDAS cloud, converted from VDB. CC BY-SA, see [credits](credits.md). | 3.6 MB |
+| `assets/clouds/disney/` | The Disney WDAS cloud, converted from VDB. CC BY-SA, see [credits](./credits.mdx). | 3.6 MB |
 | `assets/clouds/heroes/*` | Houdini-authored clouds: `tower`, `valley-fog`, `fairweather`, `sim-cumulus`, `sim-congestus`. | 1.4 to 3.6 MB each |
 | `assets/clouds/houdini-test/` | First converter proof (a noise-displaced sphere cluster). | 4.0 MB |
 
-You can also skip files entirely: [generate](api.md#generate-a-cloudscape) a field on the GPU, or
-[import a `.vdb`](authoring.md#in-browser-vdb-import) in the browser.
+You can also skip files entirely: [generate](./api.mdx#generate-a-cloudscape) a field on the GPU, or
+[import a `.vdb`](./authoring.mdx#in-browser-.vdb-import) in the browser.
 
 ## Clouds in a three.js scene
 
@@ -129,8 +133,8 @@ export function App() {
 }
 ```
 
-Any prop that is not one of `<Clouds>`'s own is a [`CloudSettings`](api.md#cloudsettings) value:
-`<Clouds densityScale={0.1} msStrength={1.2} />`. See the [API reference](api.md#cloudsreact) for the rest,
+Any prop that is not one of `<Clouds>`'s own is a [`CloudSettings`](./api.mdx#cloudsettings) value:
+`<Clouds densityScale={0.1} msStrength={1.2} />`. See the [API reference](./api.mdx#@clouds/react) for the rest,
 including `<Cloudscape>` (a generated field that follows the camera) and `useClouds()`.
 
 ## Generated clouds instead of files
@@ -171,12 +175,12 @@ step();
 
 The generated volume is **caller-owned**: keep the generator alive while it is shown and `destroy()` it
 yourself. For a field that follows the camera, use `createStreamingCloudscape` (or `<Cloudscape>` in React);
-see [Generate a cloudscape](api.md#generate-a-cloudscape).
+see [Generate a cloudscape](./api.mdx#generate-a-cloudscape).
 
 ## What to read next
 
-- [API reference](api.md): every export with signatures and defaults.
-- [Quality and performance](quality-and-performance.md): tiers, `'auto'`, budgets, memory.
-- [Authoring](authoring.md): Houdini, Blender and `.vdb` drop.
-- [Demos](demos.md): the lab pages and what each proves.
-- [Credits](credits.md): sources and licences.
+- [API reference](./api.mdx): every export with signatures and defaults.
+- [Quality and performance](./quality-and-performance.mdx): tiers, `'auto'`, budgets, memory.
+- [Authoring](./authoring.mdx): Houdini, Blender and `.vdb` drop.
+- [Demos](./demos.mdx): the lab pages and what each proves.
+- [Credits](./credits.mdx): sources and licences.

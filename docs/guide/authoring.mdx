@@ -1,4 +1,8 @@
-# Authoring clouds
+---
+title: Authoring clouds
+description: How a cloud is stored, how to generate or import one (including OpenVDB), and how to tune it.
+nav: 2
+---
 
 A cloud is three 8-bit channels per voxel plus a signed distance field:
 
@@ -14,11 +18,11 @@ mapping fitted to Guerrilla's two example clouds [P4-B]. Four ways in, from leas
 
 | Route | What you need | Time |
 | --- | --- | --- |
-| [Drop a `.vdb`](#in-browser-vdb-import) | A browser | tens of ms to a few seconds |
+| [Drop a `.vdb`](#in-browser-.vdb-import) | A browser | tens of ms to a few seconds |
 | [hython converter](#hython-converter) | Houdini (Indie is fine) | 4 to 16 s |
 | [Cloud SOP recipe](#houdini-cloud-sop-recipe) / [Pyro sim recipe](#houdini-pyro-recipe) | Houdini | 20 to 30 s per cloud |
 | [Blender via VDB export](#blender-via-vdb-export) | Blender, plus a small amount of checking | untested here |
-| [Generate](api.md#generate-a-cloudscape) | Nothing; presets | 17 ms |
+| [Generate](./api.mdx#generate-a-cloudscape) | Nothing; presets | 17 ms |
 
 Then [stamp](#stamping-and-cutouts) the result into a generated cloudscape.
 
@@ -31,7 +35,7 @@ Then [stamp](#stamping-and-cutouts) the result into a generated cloudscape.
 
 ## In-browser `.vdb` import
 
-Drop a `.vdb` file on the [vdb-drop demo](demos.md#vdb-drop) (`pnpm dev`, then `/vdb-drop/`). There is no Houdini or Python step; the
+Drop a `.vdb` file on the [vdb-drop demo](./demos.mdx#vdb-drop) (`pnpm dev`, then `/vdb-drop/`). There is no Houdini or Python step; the
 output is a normal `GpuCloudVolume` that you give to `clouds.setVolume`. As a check, Guerrilla's own Parkouring VDB
 imports **byte-exact** against the pack's TGA conversion (R, G and B 100.0000 percent exact, occupancy mismatch 0) in 64 ms [P4-H].
 
@@ -97,8 +101,8 @@ inflate is what makes big ZIP files slow [P4-H]. Axes follow Houdini: texture x 
 ## hython converter
 
 The offline equivalent runs under Houdini's `hython` (Indie works) and writes the same files `loadCloudVolume` reads
-(`cloud.json`, `nvdf.bin`, `sdf.bin`; see [`assets/clouds/README.md`](../../assets/clouds/README.md)).
-The full reference is [`scripts/vdb/README.md`](../../scripts/vdb/README.md).
+(`cloud.json`, `nvdf.bin`, `sdf.bin`; see [`assets/clouds/README.md`](https://github.com/pmndrs/clouds/blob/main/assets/clouds/README.md)).
+The full reference is [`scripts/vdb/README.md`](https://github.com/pmndrs/clouds/blob/main/scripts/vdb/README.md).
 
 ```sh
 HYTHON=/Applications/Houdini/Houdini21.0.671/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython
@@ -121,9 +125,9 @@ position, which the runtime ignores (clouds are placed by you, by centre).
 
 ## Houdini Cloud SOP recipe
 
-[`scripts/vdb/authoring/build_heroes.py`](../../scripts/vdb/authoring/build_heroes.py) builds `tower`, `valley-fog` and
+[`scripts/vdb/authoring/build_heroes.py`](https://github.com/pmndrs/clouds/blob/main/scripts/vdb/authoring/build_heroes.py) builds `tower`, `valley-fog` and
 `fairweather` the way an artist would and converts them into `assets/clouds/heroes/<name>/` in about 30 s. Full notes:
-[`scripts/vdb/authoring/README.md`](../../scripts/vdb/authoring/README.md).
+[`scripts/vdb/authoring/README.md`](https://github.com/pmndrs/clouds/blob/main/scripts/vdb/authoring/README.md).
 
 ```sh
 $HYTHON scripts/vdb/authoring/build_heroes.py                                          # all three
@@ -149,9 +153,9 @@ Results: `fairweather` (82x68x44, 1.41 MiB) reads as a convincing fair-weather c
 
 ## Houdini Pyro recipe
 
-[`scripts/vdb/authoring/sim/sim_clouds.py`](../../scripts/vdb/authoring/sim/sim_clouds.py) grows `sim-cumulus` and `sim-congestus` with the SOP-level
+[`scripts/vdb/authoring/sim/sim_clouds.py`](https://github.com/pmndrs/clouds/blob/main/scripts/vdb/authoring/sim/sim_clouds.py) grows `sim-cumulus` and `sim-congestus` with the SOP-level
 **Pyro Solver** and converts a cached frame, the "grown" route of Schneider's Nubis slides 63 to 64. About 12 s of simulation for 180
-frames, 20 s for the whole run, on an 18-core Mac [P4-F]. README: [`scripts/vdb/authoring/sim/README.md`](../../scripts/vdb/authoring/sim/README.md).
+frames, 20 s for the whole run, on an 18-core Mac [P4-F]. README: [`scripts/vdb/authoring/sim/README.md`](https://github.com/pmndrs/clouds/blob/main/scripts/vdb/authoring/sim/README.md).
 
 ```sh
 $HYTHON scripts/vdb/authoring/sim/sim_clouds.py cumulus                  # sim + cache checkpoints + convert
@@ -187,17 +191,17 @@ Blender, write it as `.vdb`, drop it. **This route has not been run in this repo
 3. **Up axis.** Houdini's VDBs are y-up and the importer maps VDB Y to "up". Blender is z-up. If a Blender VDB comes in lying on its side in the demo, rotate it before export (or re-orient the simulation domain) so up is +Y of the grid. `--rotate-y` only turns about the up axis and does not fix this.
 4. **Units.** Pass `worldScale` or `targetWidthMeters`. A default Blender smoke domain is a few metres across.
 5. **Grid name.** If there are several grids, pass `grid: 'density'`.
-6. **Check.** Drop the file on [`/vdb-drop/`](demos.md#vdb-drop) and read the overlay: grid table, mode, dims, timings. The `info.notes` array lists anything the importer assumed.
+6. **Check.** Drop the file on [`/vdb-drop/`](./demos.mdx#vdb-drop) and read the overlay: grid table, mode, dims, timings. The `info.notes` array lists anything the importer assumed.
 
 For a mesh instead of a simulation, convert it to a level-set VDB (in Houdini, VDB From Polygons) and use `mode: 'sdf'`; the same applies if Blender produces
 a level set. The older `fixtures/authored/blender-authoring.py` recipe belongs to the legacy dense-asset path and is not used by the Nubis runtime.
 
 ## Stamping and cutouts
 
-Hand-authored clouds go into a generated cloudscape with `stampCloud` ([API](api.md#stamp-authored-clouds)). The onsen valley demo is the worked example:
+Hand-authored clouds go into a generated cloudscape with `stampCloud` ([API](./api.mdx#stamp-authored-clouds)). The onsen valley demo is the worked example:
 one 512x512x96 generated cumulus region at 12 m, then 10 `valley-fog` banks laid along the valley floor (found by scanning the heightfield, each yawed to
 follow its axis), 5 `fairweather` clouds floating over the valley and one `tower` behind the far ridges, then a single SDF rebuild (about 1 s at startup).
-See `buildClouds` in [`examples/lab/onsen/main.ts`](../../examples/lab/onsen/main.ts).
+See `buildClouds` in [`examples/lab/onsen/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/onsen/main.ts).
 
 - **`max`** takes whichever of target and asset has the larger profile, all channels: a union. Use `densityScale` and `detailType` to retune a hero for its place (the fog banks use `detailType: 0.8` and a low `densityScale`).
 - **`replace`** overwrites the target where the asset has density and empties the target within `clearMargin` metres (default 48) of the asset's surface.

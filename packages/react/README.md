@@ -48,7 +48,7 @@ export function Scape() {
 }
 ```
 
-Reference: [API](../../docs/guide/api.md#cloudsreact) · [getting started](../../docs/guide/getting-started.md) · [demos](../../docs/guide/demos.md#r3f).
+Reference: [API](../../docs/guide/api.mdx#@clouds/react) · [getting started](../../docs/guide/getting-started.mdx) · [demos](../../docs/guide/demos.mdx#r3f).
 
 ## Behaviour worth knowing
 

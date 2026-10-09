@@ -1,9 +1,13 @@
-# API reference
+---
+title: API reference
+description: "Signatures and defaults for @clouds/three, @clouds/react and @clouds/runtime."
+nav: 1
+---
 
 Signatures and defaults here are read from the code. The source files carry the full doc comments:
-[`packages/three/src/clouds.ts`](../../packages/three/src/clouds.ts),
-[`packages/react/src/index.tsx`](../../packages/react/src/index.tsx),
-[`packages/runtime/src/runtime.ts`](../../packages/runtime/src/runtime.ts).
+[`packages/three/src/clouds.ts`](https://github.com/pmndrs/clouds/blob/main/packages/three/src/clouds.ts),
+[`packages/react/src/index.tsx`](https://github.com/pmndrs/clouds/blob/main/packages/react/src/index.tsx),
+[`packages/runtime/src/runtime.ts`](https://github.com/pmndrs/clouds/blob/main/packages/runtime/src/runtime.ts).
 
 Conventions used everywhere:
 
@@ -12,18 +16,18 @@ Conventions used everywhere:
 - **Volume position.** `@clouds/three` and `@clouds/react` take the **base centre** of the volume (x/z centre, y = floor). `@clouds/runtime` takes its **minimum corner**. The adapter converts.
 - **Ownership.** A `CloudVolumeAsset` passed to `setVolume` is uploaded and owned by the runtime. A `GpuCloudVolume` (generator, stamp or import output) stays **yours**: the runtime never destroys it, and you must not destroy it while it is shown.
 
-Contents: [`@clouds/three`](#cloudsthree) · [`@clouds/react`](#cloudsreact) · [`@clouds/runtime`](#cloudsruntime)
+Contents: [`@clouds/three`](#@clouds/three) · [`@clouds/react`](#@clouds/react) · [`@clouds/runtime`](#@clouds/runtime)
 
 ## @clouds/three
 
 ### `Clouds`
 
-<!-- doc-preamble
+{/* doc-preamble
 import type { WebGPURenderer } from 'three/webgpu';
 import type { CloudsOptions } from '@clouds/three';
 declare const renderer: WebGPURenderer;
 declare const options: CloudsOptions;
--->
+*/}
 ```ts
 import { Clouds } from '@clouds/three';
 const clouds = new Clouds(renderer, options);
@@ -36,7 +40,7 @@ const clouds = new Clouds(renderer, options);
 | Option | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `sky` | `Sky` (`@pmndrs/sky`) | none | Sun, ambient and aerial perspective come from its LUTs. Compile it (`await sky.compileAsync()`) before `load()`. Omit for uniform lighting. |
-| `quality` | `'ultra' \| 'high' \| 'medium' \| 'low' \| 'mobile' \| 'auto'` | `'high'` | See [quality and performance](quality-and-performance.md). `'auto'` never picks `'ultra'`. |
+| `quality` | `'ultra' \| 'high' \| 'medium' \| 'low' \| 'mobile' \| 'auto'` | `'high'` | See [quality and performance](./quality-and-performance.mdx). `'auto'` never picks `'ultra'`. |
 | `budgetMs` | `number` | `3` | `'auto'` only. GPU ms the cloud passes may take per frame. |
 | `expectedPixels` | `number` | 1920 x 1080 | `'auto'` only. Output size the first tier is picked for. |
 | `auto` | `Partial<AutoQualityOptions>` | see below | `'auto'` only. Controller tuning. |
@@ -90,7 +94,7 @@ void reflectedClouds;
 ```
 
 `examples/lab/scenes/ocean` hooks the same value into three's own environment node for the water; see the
-[open-water demo](demos.md#open-water).
+[open-water demo](./demos.mdx#open-water).
 
 #### Frame order
 
@@ -315,14 +319,14 @@ the default; the others are art defaults.
 | `shadowStrength` | 0.6 | 0..1 darkening of opaque scene pixels by cloud shadow. 0 disables. |
 
 The Nubis-neutral values (`msStrength` 1, `deepScatter` 0, ...) are noted in
-[`CloudSettings`' doc comments](../../packages/runtime/src/runtime.ts) and the formulas in
-[`docs/research/nubis-sources.md`](../research/nubis-sources.md).
+[`CloudSettings`' doc comments](https://github.com/pmndrs/clouds/blob/main/packages/runtime/src/runtime.ts) and the formulas in
+[`docs/research/nubis-sources.md`](https://github.com/pmndrs/clouds/blob/main/docs/research/nubis-sources.md).
 
 ### Quality presets
 
 `CLOUD_QUALITY_PRESETS` (`Record<CloudQuality, CloudQualityPreset>`) and `CLOUD_QUALITY_ORDER`
 (`['mobile', 'low', 'medium', 'high', 'ultra']`). The table is in
-[quality and performance](quality-and-performance.md#what-a-tier-changes).
+[quality and performance](./quality-and-performance.mdx#what-a-tier-changes).
 
 ### Assets and GPU upload
 
@@ -336,7 +340,7 @@ The Nubis-neutral values (`msStrength` 1, `deepScatter` 0, ...) are noted in
 
 The NVDF channels are R dimensional profile, G detail type (0 wispy, 1 billowy), B density scale. The SDF is signed
 distance in metres, negative inside, never larger than the true distance (the march relies on that). File layout:
-[`assets/clouds/README.md`](../../assets/clouds/README.md).
+[`assets/clouds/README.md`](https://github.com/pmndrs/clouds/blob/main/assets/clouds/README.md).
 
 ### Generate a cloudscape
 
@@ -416,7 +420,7 @@ in one shot (P5-A). `stampCloud` returns `{ boundsMin, boundsMax, voxels }`.
 
 ### Import a `.vdb`
 
-See [Authoring](authoring.md#in-browser-vdb-import) for the workflow and the modes.
+See [Authoring](./authoring.mdx#in-browser-.vdb-import) for the workflow and the modes.
 
 | Export | Description |
 | --- | --- |

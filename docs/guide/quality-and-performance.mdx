@@ -1,4 +1,8 @@
-# Quality and performance
+---
+title: Quality and performance
+description: Quality tiers, GPU budgets, memory and the measurements behind them.
+nav: 3
+---
 
 Every number here comes from a work report (named in brackets) and was measured on one machine: an Apple
 M-series GPU on Metal, headless Chrome, `timestamp-query` per pass. Treat them as ratios and orders of magnitude.
@@ -39,7 +43,7 @@ console.log(auto.auto?.tier, auto.auto?.reasons, auto.auto?.scale);
 
 ### What a tier changes
 
-`CLOUD_QUALITY_PRESETS` in [`runtime.ts`](../../packages/runtime/src/runtime.ts). Scales are fractions of the output
+`CLOUD_QUALITY_PRESETS` in [`runtime.ts`](https://github.com/pmndrs/clouds/blob/main/packages/runtime/src/runtime.ts). Scales are fractions of the output
 size (linear, per axis); "k" is the temporal rate: the pass traces `1/k` of its pixels per frame and resolves the rest from reprojected history.
 
 | | ultra | high | medium | low | mobile |
@@ -65,7 +69,7 @@ Scene depth is read at scene size either way.
 ## Cost tables
 
 Cloud passes only, full clock, GPU ms [P5-C]. "flagship" is the Parkouring pack in the lab flagship page; "open-water" and
-"plains" are the generated 512x512x64 cumulus scenes (see [demos](demos.md)).
+"plains" are the generated 512x512x64 cumulus scenes (see [demos](./demos.mdx)).
 
 **2560x1440**
 

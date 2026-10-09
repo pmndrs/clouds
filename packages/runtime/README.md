@@ -64,8 +64,8 @@ With a physical sky, pass `atmosphere` (a bind group over the sky LUTs; see `cre
 | Sky and lighting | `createSkyLayer`, `atmosphereWgsl`, `createAtmosphereBindGroup*`, `createLightGrid`, the reflection dome helpers |
 | Tooling | `GpuTimer` (timestamp queries), the WGSL strings (`MARCH_WGSL`, `DENSITY_WGSL`, ...) |
 
-Full signatures and defaults: [API reference](../../docs/guide/api.md#cloudsruntime). Tiers, budgets and memory:
-[quality and performance](../../docs/guide/quality-and-performance.md). Making clouds: [authoring](../../docs/guide/authoring.md).
+Full signatures and defaults: [API reference](../../docs/guide/api.mdx#@clouds/runtime). Tiers, budgets and memory:
+[quality and performance](../../docs/guide/quality-and-performance.mdx). Making clouds: [authoring](../../docs/guide/authoring.mdx).
 
 ## Facts
 
@@ -73,5 +73,5 @@ Full signatures and defaults: [API reference](../../docs/guide/api.md#cloudsrunt
 - Axes: world is y-up; volume textures are `(x, map row, up)`. Voxel size 8 m is the verified size.
 - A `GpuCloudVolume` you pass to `setVolume` stays yours; a `CloudVolumeAsset` is uploaded and owned by the runtime.
 - Size: the core entry is 153 KB minified, 48.7 KB gzip; `@clouds/three` with the runtime parts it uses is 51.3 KB gzip. `/generate` adds up to 14 KB gzip and `/import` up to 19 KB (shared code counted in each). `node scripts/check-bundle.mjs` prints the current numbers.
-- The `.vdb` importer (`/import`) bundles a vendored parser under the Apache License 2.0 (`vendor/vdb-web-tools` in this package; its LICENSE and NOTICE ship in the tarball); see [credits](../../docs/guide/credits.md#webvdb-the-vdb-parser).
+- The `.vdb` importer (`/import`) bundles a vendored parser under the Apache License 2.0 (`vendor/vdb-web-tools` in this package; its LICENSE and NOTICE ship in the tarball); see [credits](../../docs/guide/credits.mdx#webvdb:-the-.vdb-parser).
 - `peerDependencies`: `@webgpu/types` (optional; for the `GPU*` types in your own type check).

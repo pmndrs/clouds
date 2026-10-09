@@ -62,13 +62,13 @@ which is git-ignored.
 
 ## Documentation
 
-- [`docs/guide/`](docs/guide/getting-started.md): the guide.
-  [Getting started](docs/guide/getting-started.md) ·
-  [API reference](docs/guide/api.md) ·
-  [Quality and performance](docs/guide/quality-and-performance.md) ·
-  [Authoring clouds](docs/guide/authoring.md) ·
-  [Demos](docs/guide/demos.md) ·
-  [Credits](docs/guide/credits.md).
+- [`docs/guide/`](docs/guide/getting-started.mdx): the guide.
+  [Getting started](docs/guide/getting-started.mdx) ·
+  [API reference](docs/guide/api.mdx) ·
+  [Quality and performance](docs/guide/quality-and-performance.mdx) ·
+  [Authoring clouds](docs/guide/authoring.mdx) ·
+  [Demos](docs/guide/demos.mdx) ·
+  [Credits](docs/guide/credits.mdx).
 - [`docs/AUDIT-2026-10.md`](docs/AUDIT-2026-10.md): the plan, phases and success measures.
 - [`work/README.md`](work/README.md) and [`work/BOARD.md`](work/BOARD.md): how work is split, reviewed and reported, and the task list.
 - [`docs/research/nubis-sources.md`](docs/research/nubis-sources.md): formulas and constants, with slide references.

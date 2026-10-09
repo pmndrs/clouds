@@ -52,7 +52,7 @@ Seven lines are clouds-specific (the last two are the sky's own per-frame calls)
 - `clouds.reflection(dir)`: a TSL `vec4(rgb, T)` of the clouds toward a world direction, for water and other reflectors.
 - Also exported: `createSkyBridge`, `createUniformLighting`, `DEFAULT_UNIFORM_LIGHTING`, `sharedBackend` (the raw `GPUDevice` and `GPUTexture` behind three objects), `toHalfBits`, `CLOUD_QUALITIES`.
 
-Reference: [API](../../docs/guide/api.md#cloudsthree) · [getting started](../../docs/guide/getting-started.md) · [quality and performance](../../docs/guide/quality-and-performance.md) · [demos](../../docs/guide/demos.md).
+Reference: [API](../../docs/guide/api.mdx#@clouds/three) · [getting started](../../docs/guide/getting-started.mdx) · [quality and performance](../../docs/guide/quality-and-performance.mdx) · [demos](../../docs/guide/demos.mdx).
 
 ## Rules
 

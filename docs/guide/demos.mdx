@@ -1,4 +1,8 @@
-# Demos
+---
+title: Demos
+description: The lab pages that prove each claim in these docs, and the query parameters they take.
+nav: 4
+---
 
 The lab pages are the proof of every claim in these docs. Start the dev server and open them:
 
@@ -34,7 +38,7 @@ Lines in the pages tagged `// INTEGRATION` (or `// CLOUDS`) are what clouds cost
 
 ## three-adapter
 
-[`examples/lab/three-adapter/main.ts`](../../examples/lab/three-adapter/main.ts). The smallest `@clouds/three` scene: a ground plane, the sky and the Parkouring cloud.
+[`examples/lab/three-adapter/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/three-adapter/main.ts). The smallest `@clouds/three` scene: a ground plane, the sky and the Parkouring cloud.
 Eight lines are tagged `// INTEGRATION`, one of them the optional haze. Matches the flagship to a mean 0.11 to 0.38 of 255 per channel on the same bookmarks [P2-02].
 
 Query: `?quality=low|medium|high|ultra|mobile|auto`, `?uniform=1` (no sky: uniform lighting), `?haze=1` (`sky.applyHaze` before the node),
@@ -46,7 +50,7 @@ the tower shows above and below, and a 3x zoom shows no halo at the silhouettes 
 
 ## r3f
 
-[`examples/lab/r3f/main.tsx`](../../examples/lab/r3f/main.tsx). The same scene with `<Canvas>`, `<Sky>` and `<Clouds>`; the clouds themselves are one line. It matches
+[`examples/lab/r3f/main.tsx`](https://github.com/pmndrs/clouds/blob/main/examples/lab/r3f/main.tsx). The same scene with `<Canvas>`, `<Sky>` and `<Clouds>`; the clouds themselves are one line. It matches
 the three-adapter page to a mean 0.03 to 0.07 of 255 [P7-A]. `?haze=1|late|own` puts `<AutoHaze />` before, after, or `<Clouds haze>` (all three compose and the haze is applied once),
 `?uniform=1`, `?bookmark=`, `?quality=`, `?s.<setting>=N`.
 `?stress=1` runs a 16-step stress script (it also covers `<Cloudscape>` standalone and nested): volume swap, settings set and removed, quality changes, three remounts, `<Cloudscape>` standalone, nested and a preset change.
@@ -54,7 +58,7 @@ Result: 0 GPU errors, 0 device lost, and live GPU objects return to baseline (53
 
 ## open-water
 
-[`examples/lab/open-water/main.ts`](../../examples/lab/open-water/main.ts) with the reusable water in [`examples/lab/scenes/ocean/`](../../examples/lab/scenes/ocean/). Open sea to the horizon
+[`examples/lab/open-water/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/open-water/main.ts) with the reusable water in [`examples/lab/scenes/ocean/`](https://github.com/pmndrs/clouds/tree/main/examples/lab/scenes/ocean). Open sea to the horizon
 (layered Gerstner-style waves in TSL, Fresnel reflection of the sky, a sun glint from the sky's sun, a camera-following grid with distance LOD) under a generated cumulus field.
 
 - **Reflections.** `clouds.reflection(dir)` is hooked into the ocean material's environment node (`radiance = radiance * T + rgb`; 11 lines in the ocean module). Subtle on the rough default sea, clear on calm water (`?wave=0.05`): mean luma of the lower 590 px with and without reflections 42.3 vs 62.4 at sunset, 120.6 vs 117.4 at the horizon [P2-05].
@@ -65,7 +69,7 @@ Result: 0 GPU errors, 0 device lost, and live GPU objects return to baseline (53
 
 ## plains-flight
 
-[`examples/lab/plains-flight/main.ts`](../../examples/lab/plains-flight/main.ts). A scripted 40 s flight over plains through a **streaming** GPU-generated cumulus field: ground, up through the base,
+[`examples/lab/plains-flight/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/plains-flight/main.ts). A scripted 40 s flight over plains through a **streaming** GPU-generated cumulus field: ground, up through the base,
 through the clouds, above. One `setVolume` call per window swap; the volume belongs to the streamer.
 
 - Window swaps are invisible: weather and shape noise are world-anchored, so two overlapping windows are byte-identical in the interior of the overlap (0 occupancy mismatches in 1.57 M voxels) and the swap changes the image by 0.2/255 [P3-D].
@@ -75,7 +79,7 @@ through the clouds, above. One `setVolume` call per window swap; the volume belo
 
 ## onsen
 
-[`examples/lab/onsen/main.ts`](../../examples/lab/onsen/main.ts) with the terrain in [`examples/lab/scenes/terrain/`](../../examples/lab/scenes/terrain/). An onsen on a mountainside at golden hour over a misty valley.
+[`examples/lab/onsen/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/onsen/main.ts) with the terrain in [`examples/lab/scenes/terrain/`](https://github.com/pmndrs/clouds/tree/main/examples/lab/scenes/terrain). An onsen on a mountainside at golden hour over a misty valley.
 A 512x512x96 generated cumulus region at 12 m voxels is stamped with 10 valley-fog banks, 5 fair-weather clouds and one tower, the SDF is rebuilt once, and the whole thing is one `setVolume`.
 Haze comes from `sky.applyHaze`; cloud shadows come from the composite alpha; the heightfield's sun shadow is baked into per-tile textures and refreshed when the sun moves.
 
@@ -84,7 +88,7 @@ Query: `?time=<hours>` (default 18.6), `?bookmark=vantage|valley|sunset`, `?fogd
 
 ## vdb-drop
 
-[`examples/lab/vdb-drop/main.ts`](../../examples/lab/vdb-drop/main.ts). Drag a `.vdb` onto the page, or pick one, or `?url=<path>` for a file the dev server can reach (`/@fs/<abs path>.vdb`; `fs.allow` is `../..` relative to the checkout that serves it).
+[`examples/lab/vdb-drop/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/vdb-drop/main.ts). Drag a `.vdb` onto the page, or pick one, or `?url=<path>` for a file the dev server can reach (`/@fs/<abs path>.vdb`; `fs.allow` is `../..` relative to the checkout that serves it).
 It overlays the grid table, the mode picked, dims, timings, and frame/GPU ms, and builds `ground`, `edge`, `backlit`, `above` bookmarks from the imported bounds. Errors are shown in the page (for example
 the Blosc codec hint), not thrown.
 
@@ -95,8 +99,8 @@ the Blosc codec hint), not thrown.
 
 ## flagship
 
-[`examples/lab/flagship/main.ts`](../../examples/lab/flagship/main.ts). The reference page, built on the **raw runtime** with its own bridge to three
-([`three-bridge.ts`](../../examples/lab/flagship/three-bridge.ts)), so it is the worked example of using `@clouds/runtime` without the adapter. Orbit and free-fly camera, a time slider,
+[`examples/lab/flagship/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/flagship/main.ts). The reference page, built on the **raw runtime** with its own bridge to three
+([`three-bridge.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/flagship/three-bridge.ts)), so it is the worked example of using `@clouds/runtime` without the adapter. Orbit and free-fly camera, a time slider,
 sliders for `CloudSettings`, and a HUD with tier, scale, cost versus budget and memory.
 
 - `?cloud=` any of `parkouring` (default), `stormbird`, `houdini-test`, `heroes/tower`, `heroes/valley-fog`, `heroes/fairweather`, `heroes/sim-cumulus`, `heroes/sim-congestus`, `disney`, `local/bunny-cloud`, `local/cloud-0001`. The `local/*` assets are git-ignored.
@@ -105,17 +109,17 @@ sliders for `CloudSettings`, and a HUD with tier, scale, cost versus budget and 
 
 ## cloudscape-gen
 
-[`examples/lab/cloudscape-gen/main.ts`](../../examples/lab/cloudscape-gen/main.ts). A GPU-generated 4 km cloudscape (512x512x64 at 8 m) over a ground plane. `?preset=cumulus|congestus|stratocumulus`, `?seed=`, `?jobs=`,
+[`examples/lab/cloudscape-gen/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/cloudscape-gen/main.ts). A GPU-generated 4 km cloudscape (512x512x64 at 8 m) over a ground plane. `?preset=cumulus|congestus|stratocumulus`, `?seed=`, `?jobs=`,
 `?bookmark=ground|horizon|above|seamEast|seamSouth|seamNorth|seamHigh`, `?sky=1` for the distant sky layer (and `sky_<setting>=N` for its `SkyLayerSettings`), and any `NvdfParams` field as a query parameter.
 It showed the presets read as domed, cauliflower-lobed clouds with flat bases (no vertical walls or stacked shelves) and the sky layer continues the same field to the horizon with no visible seam, for about 1.0 ms amortized at 2560x1440 [P3-B, P3-C1, P3-P4-acceptance].
 
 ## evolve
 
-[`examples/lab/evolve/main.ts`](../../examples/lab/evolve/main.ts). Realtime cloud evolution: cumulus that form, drift, merge and dissipate over minutes at a small steady cost. This is the P6-A work, still in progress while this guide was written.
+[`examples/lab/evolve/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/evolve/main.ts). Realtime cloud evolution: cumulus that form, drift, merge and dissipate over minutes at a small steady cost. This is the P6-A work, still in progress while this guide was written.
 
 ## ocean
 
-[`examples/lab/ocean/`](../../examples/lab/ocean/). The water scene alone, with `@pmndrs/sky`, bookmarks, and an ocean-versus-no-ocean GPU measure. Useful for tuning the sea apart from the clouds.
+[`examples/lab/ocean/`](https://github.com/pmndrs/clouds/tree/main/examples/lab/ocean). The water scene alone, with `@pmndrs/sky`, bookmarks, and an ocean-versus-no-ocean GPU measure. Useful for tuning the sea apart from the clouds.
 
 ## runtime-tests
 
