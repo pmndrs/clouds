@@ -37,6 +37,13 @@ The owner judged that after Q2 we are still far behind Takram, Sky Pro and the p
 - It is a **stopgap** for sky-wide quality while the owner works through our authoring issues in the newer Nubis³ methods.
 - Nothing built so far is removed: the NVDF path, generator, species, library and heroes all stay, and the procedural model is a parallel, switchable `densityModel`.
 
+**Sky Pro code is usable (owner, 2026-10-09):** Sky Pro's noise and shaping code (MIT, the author's permission) may be ported directly into the procedural model, with a licence header and a NOTICE. That replaces the earlier "visual reference only" caution.
+
+**Our generator is paused, pending framing.** The owner noted it "doesn't have the direction it needs", so it will keep producing bad results until the problem is framed better. Before more generator work, hold a framing session with the owner to settle:
+- what the generator is for: sky-wide fields, hero and authored fields, or weather-to-NVDF for Nubis³;
+- what its inputs are: painted or derived weather and type maps, a library, sims;
+- how success is judged: photo-matched targets per species and scene.
+
 **Experiment first:**
 - **X1:** the procedural model in our runtime, A/B against our generated field and Takram.
 - **X2:** make the Sky Pro reference pane faithful to the real Tidewater demo.
