@@ -53,7 +53,8 @@ try {
   const sun = sky.createSun({ physical: true });
   sun.attach(scene);
   await sky.compileAsync();
-  const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality }); // INTEGRATION
+  // X4: ?uniform=1 gives the clouds no sky library (uniform lighting: the adapter's plain sun and ambient, its default sun direction); the ocean keeps the sky.
+  const clouds = new Clouds(renderer, { sky: query.get('uniform') === '1' ? undefined : sky, quality: (query.get('quality') ?? 'high') as CloudQuality }); // INTEGRATION
   const ocean = createOcean(renderer, scene, sky, { sun, reflection: query.get('reflect') === '0' ? undefined : dir => { const r = clouds.reflection(dir); return query.has('refgain') ? vec4(r.rgb.mul(Number(query.get('refgain'))), r.a) : r; } }); // INTEGRATION (cloud reflections on the water)
   // P10-A: ?shadowmap=0 falls back to the light-grid shadow, ?shadowdebug=1|2 outlines the shadow map's contour on the ground | on the cloud base plane, ?sunel= ?sunaz= override the bookmark's sun.
   clouds.core.shadowMap.settings.enabled = query.get('shadowmap') !== '0'; clouds.core.shadowMap.settings.debug = (Number(query.get('shadowdebug') ?? 0) | 0) as 0 | 1 | 2;
@@ -120,7 +121,9 @@ try {
     if (query.has('pos')) b.pos = query.get('pos')!.split(',').map(Number); // ?pos=x,y,z ?az= ?pitch=: free camera for debugging
     if (query.has('az')) b.lookAz = Number(query.get('az'));
     if (query.has('pitch')) b.pitch = Number(query.get('pitch'));
-    sky.setSunDirection({ elevation: Number(query.get('sunel') ?? b.sunEl), azimuth: Number(query.get('sunaz') ?? b.sunAz) });
+    const sunEl = Number(query.get('sunel') ?? b.sunEl), sunAz = Number(query.get('sunaz') ?? b.sunAz);
+    sky.setSunDirection({ elevation: sunEl, azimuth: sunAz });
+    if (clouds.lighting) { const e = (sunEl * Math.PI) / 180, a = (sunAz * Math.PI) / 180; clouds.lighting.sunDirection = [Math.sin(a) * Math.cos(e), Math.sin(e), -Math.cos(a) * Math.cos(e)]; } // ?uniform=1: the clouds' own sun follows the bookmark
     const az = (b.lookAz * Math.PI) / 180, pitch = (b.pitch * Math.PI) / 180;
     const d = [Math.sin(az) * Math.cos(pitch), Math.sin(pitch), -Math.cos(az) * Math.cos(pitch)];
     rig.set([...b.pos], [b.pos[0] + d[0] * 100, b.pos[1] + d[1] * 100, b.pos[2] + d[2] * 100]);
