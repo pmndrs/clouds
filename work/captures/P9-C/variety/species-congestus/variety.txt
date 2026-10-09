@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-congestus          PASS  CV 1.29 pass  ratio 70.4 pass  base 16m pass  acf 0.000 pass  clone 0.42 pass   (30 lobes in 15 footprints, cover 42%)

@@ -5,7 +5,7 @@
 // window keeps rendering; the new window, with the shaping it was configured with, replaces it in one frame once it is complete, and the
 // temporal history dissolves to it over one 16-frame cycle (no full-resolution reset trace).
 import { createWeatherBake, type ProceduralWeatherOptions, type WeatherBake } from './generate/weather';
-import { NVDF_DEFAULTS, type NvdfParams } from './generate/volume-generator';
+import { NVDF_DEFAULTS, altoFractions, type NvdfParams } from './generate/volume-generator';
 import type { GpuTimer } from './gpu-timer';
 import { COMMON_WGSL } from './shaders/common.wgsl';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
@@ -44,8 +44,9 @@ export interface SkyLayerSettings {
   debug: number;
   /**
    * Rows of the weather window baked per frame after a weather change or box move (P9-B2). The previous window renders until the new one is
-   * complete. Default 32: 64 frames for the default 2048^2 window, then one frame of max mips (about 0.07 ms). A 32-row tile is about 0.18 ms
-   * alone and 0.3-0.65 ms timed inside a full frame on an M-series GPU (64 rows: 0.35 / up to 1.1 ms). Read when a bake starts.
+   * complete. Default 24: 86 frames for the default 2048^2 window, then one frame of max mips (about 0.07 ms). P9-C: the species weather (denser
+   * cumulus cover, the species tables) made a 32-row tile 0.26 ms alone (worst 0.35) and up to 0.92 ms timed inside a full frame on an M-series
+   * GPU, too close to the 1 ms bound; 24 rows keep it about 0.7 (P9-B2's 32 rows were 0.18 / 0.3-0.65 ms). Read when a bake starts.
    */
   bakeRows: number;
 }
@@ -75,6 +76,12 @@ export interface SkyLayerOptions {
   weatherOrigin?: [number, number];
   /** World extent (x, z, metres) that the weather map's uv [0, 1] spans. Default: the volume box's extent (the streamer's `weatherExtent`, 4096 m, when the box is 4096 m). */
   weatherExtent?: [number, number];
+  /**
+   * HZD s45 horizon rule (P9-C): from `start` to `end` metres from the box centre the far field's species and clusters blend toward a mid-coverage
+   * cumulus sky, so the horizon is never empty or one uniform species. Default: HZD's 15 / 35 km scaled to the layer's range, { start: 15/35 of
+   * settings.maxDistance, end: maxDistance } (12.9 / 30 km; mediocris, cluster 0.55), unless the weather options set their own `horizon`; false turns it off.
+   */
+  horizon?: false | { start: number; end: number; species?: number; cluster?: number };
 }
 
 export interface SkyLayer {
@@ -128,7 +135,7 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, debug: 0, bakeRows: 32,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, debug: 0, bakeRows: 24,
 };
 
 /** Weather window mip levels: level 0 the bake, levels 1.. the 2x2 maxima (the trace's empty-space skip reads up to level 6). */
@@ -154,6 +161,7 @@ const CUT_TURN_COS = Math.cos((15 * Math.PI) / 180);
 const SUN_JUMP_COS = Math.cos((0.5 * Math.PI) / 180);
 const MODEL_PARAM_FLOATS = 36;        // params[0..36) describe the cloud model; a change resets the history (except 35, the temporal blend)
 const BLEND_PARAM = 35;
+const SPECIES_PARAM = 64;             // params[64..68): the species profiles (P9-C), part of the model too
 
 /** Invert a column-major 4x4 (gl-matrix style). Returns false when singular. */
 function invert4(m: ArrayLike<number>, out: Float32Array): boolean {
@@ -236,6 +244,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   const paramBuffer = device.createBuffer({ label: 'cloud sky params', size: SKY_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const params = new Float32Array(SKY_PARAM_FLOATS);
   const prevModel = new Float32Array(MODEL_PARAM_FLOATS);
+  const prevSpecies = new Float32Array(4);
 
   let options: SkyLayerOptions | null = null;
   let dirty = false;
@@ -325,7 +334,13 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     const wExtent: [number, number] = [o.weatherExtent?.[0] ?? sx, o.weatherExtent?.[1] ?? sz];
     const min: [number, number] = [cx - size / 2, cz - size / 2];
     const origin: [number, number] = [(min[0] - wOrigin[0]) / wExtent[0], (min[1] - wOrigin[1]) / wExtent[1]];
-    const bake = createWeatherBake(device, { ...o.weather, size: [res, res], border: 0, window: { origin, size: [size / wExtent[0], size / wExtent[1]] }, mipLevels: WEATHER_MIPS }, { tileRows: settings.bakeRows });
+    // HZD s45 (P9-C): the far field blends to a mid-coverage cumulus sky, measured from the box centre (uv 0.5 of the generator's map).
+    // HZD draws to 35 km and starts at 15 km; the layer draws to settings.maxDistance (30 km), so the default keeps HZD's ratio over our range.
+    const horizon = o.horizon === false ? undefined : (o.weather.horizon ?? o.horizon ?? { start: (15 / 35) * settings.maxDistance, end: settings.maxDistance });
+    const bake = createWeatherBake(device, {
+      ...o.weather, size: [res, res], border: 0, window: { origin, size: [size / wExtent[0], size / wExtent[1]] }, mipLevels: WEATHER_MIPS,
+      extentMeters: o.weather.extentMeters ?? wExtent[0], horizon,
+    }, { tileRows: settings.bakeRows });
     const border = o.weather.border ?? 0.08;
     const boxCopy = new Float64Array(6);
     for (let i = 0; i < 3; i++) { boxCopy[i] = box.minCorner[i]; boxCopy[3 + i] = box.extent[i]; }
@@ -402,6 +417,10 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       p[28] = resolved.billowAmp; p[29] = resolved.billowCellMeters; p[30] = resolved.seed; p[31] = s.debug;
       // During a weather dissolve a fresh sample replaces the history outright, so every pixel shows the new window after one 16-frame cycle.
       p[32] = win.voxelSize; p[33] = resolved.profileSigma; p[34] = s.lodScale; p[35] = dissolve > 0 ? 1 : s.temporalBlend;
+      // P9-C: the species profile table and the upper (altocumulus) layer, as fractions of the shell (= the generator's volume height).
+      const shellH = Math.max(win.box[4], 1);
+      const alto = altoFractions(resolved, shellH);
+      p[64] = resolved.profiles ? 1 : 0; p[65] = alto[0]; p[66] = alto[1]; p[67] = 0;
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
       const cam = a.cameraPosition, sun = a.sunDirection;
       forwardOf(a.inverseViewProjection, fwd);
@@ -412,6 +431,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         const sunDot = sun[0] * prevSun[0] + sun[1] * prevSun[1] + sun[2] * prevSun[2];
         if (d > CUT_POSITION_M || turn < CUT_TURN_COS || sunDot < SUN_JUMP_COS) cut = true;
         for (let i = 0; i < MODEL_PARAM_FLOATS && !cut; i++) if (i !== BLEND_PARAM && p[i] !== prevModel[i]) cut = true;
+        for (let i = 0; i < 4 && !cut; i++) if (p[SPECIES_PARAM + i] !== prevSpecies[i]) cut = true;
       }
       if (cut && s.temporal) resets++;
       const period = SKY_TEMPORAL_PERIOD;
@@ -422,6 +442,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       p[60] = win.wOrigin[0]; p[61] = win.wOrigin[1]; p[62] = resolved.shearX; p[63] = resolved.shearY;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
+      prevSpecies.set(p.subarray(SPECIES_PARAM, SPECIES_PARAM + 4));
       // Remember this frame's view for the next frame's reprojection.
       prevValid = invert4(a.inverseViewProjection, prevViewProj);
       prevCam[0] = cam[0]; prevCam[1] = cam[1]; prevCam[2] = cam[2];

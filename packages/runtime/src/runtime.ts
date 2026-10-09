@@ -724,7 +724,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const flashFrame = flash !== null || flashPrev;
       flashPrev = flash !== null;
       // The distant sky layer: bakes its weather window / compiles its pipeline on first use (async), then renders.
-      const skyActive = skyLayer.settings.enabled && skyLayer.prepare(encoder, skyBox, !!uniformLighting);
+      const skyActive = skyLayer.settings.enabled && skyLayer.prepare(encoder, skyBox, !!uniformLighting, timer);
       f[53] = skyActive ? 1 : 0;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates = [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];

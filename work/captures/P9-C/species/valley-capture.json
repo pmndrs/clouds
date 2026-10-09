@@ -1,0 +1,416 @@
+{
+  "url": "http://127.0.0.1:58291/species/?species=valley",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:35:16.508Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p9c/final2/valley/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5883905000000003,
+          "lightGridReduce": 0.088788,
+          "lightGrid": 0.1496752941176471,
+          "marchNear": 0.11972954999999998,
+          "marchFar": 0.9586416833333332,
+          "shadowMap": 0.2485573833333333,
+          "composite": 0.35271899999999995,
+          "dome": 1.4484022166666668,
+          "resolveNear": 0.023846700000000002,
+          "resolveFar": 0.04106123333333332,
+          "skyWeatherMips": 0.128748,
+          "skyLayer": 0.9884404666666664,
+          "skyResolve": 0.11480103333333333,
+          "cloudsTotal": 5.251801060784314
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.665838509316767
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "valley",
+        "frames": 192,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              0,
+              512
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 2,
+            "frames": 116,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "valley",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.16,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/scratch/p9c/final2/valley/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5883905000000003,
+          "lightGridReduce": 0.088788,
+          "lightGrid": 0.1483227575757576,
+          "marchNear": 0.06172476666666668,
+          "marchFar": 0.3384253666666668,
+          "shadowMap": 0.28161593333333335,
+          "composite": 0.30065929999999985,
+          "dome": 1.3357344333333334,
+          "resolveNear": 0.025750083333333326,
+          "resolveFar": 0.03978206666666668,
+          "skyWeatherMips": 0.128748,
+          "skyLayer": 1.6920539833333337,
+          "skyResolve": 0.10838795000000001,
+          "cloudsTotal": 5.138383140909092
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "valley",
+        "frames": 286,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              0,
+              512
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 3,
+            "frames": 210,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "valley",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.16,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/scratch/p9c/final2/valley/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5883905000000003,
+          "lightGridReduce": 0.088788,
+          "lightGrid": 0.14250663265306124,
+          "marchNear": 0.07322521666666668,
+          "marchFar": 0.2546662166666667,
+          "shadowMap": 0.31537370000000003,
+          "composite": 0.4239838166666668,
+          "dome": 1.2569120333333335,
+          "resolveNear": 0.02826405,
+          "resolveFar": 0.04731384999999998,
+          "skyWeatherMips": 0.128748,
+          "skyLayer": 0.8645533333333335,
+          "skyResolve": 0.12954811666666669,
+          "cloudsTotal": 4.342273465986395
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "valley",
+        "frames": 381,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              0,
+              512
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 4,
+            "frames": 305,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "valley",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.16,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/scratch/p9c/final2/valley/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5883905000000003,
+          "lightGridReduce": 0.088788,
+          "lightGrid": 0.11558846666666665,
+          "marchNear": 0.06249138333333334,
+          "marchFar": 0.5766023499999998,
+          "shadowMap": 0.2703020333333334,
+          "composite": 0.29322888333333336,
+          "dome": 1.530984883333333,
+          "resolveNear": 0.029262066666666673,
+          "resolveFar": 0.04495828333333333,
+          "skyWeatherMips": 0.128748,
+          "skyLayer": 1.1225487833333332,
+          "skyResolve": 0.1294967333333333,
+          "cloudsTotal": 4.981390366666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "species": "valley",
+        "frames": 476,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              0,
+              512
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 5,
+            "frames": 400,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "valley",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.16,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "wall",
+      "file": "work/captures/scratch/p9c/final2/valley/wall.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5883905000000003,
+          "lightGridReduce": 0.088788,
+          "lightGrid": 0.10662265,
+          "marchNear": 0.06464288333333333,
+          "marchFar": 0.5570282166666666,
+          "shadowMap": 0.24342596666666663,
+          "composite": 0.2119218166666666,
+          "dome": 1.001463166666667,
+          "resolveNear": 0.02228503333333332,
+          "resolveFar": 0.028706616666666667,
+          "skyWeatherMips": 0.128748,
+          "skyLayer": 2.4329155833333336,
+          "skyResolve": 0.08185556666666667,
+          "cloudsTotal": 5.556794
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "wall",
+        "species": "valley",
+        "frames": 571,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              0,
+              512
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 6,
+            "frames": 495,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "valley",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.16,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

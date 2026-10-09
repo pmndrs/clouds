@@ -1,0 +1,411 @@
+{
+  "url": "http://127.0.0.1:58520/species/?species=cumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:35:37.830Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p9c/final2/cumulus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6731670000000001,
+          "lightGridReduce": 0.087411,
+          "lightGrid": 0.12365023529411767,
+          "marchNear": 0.055929099999999995,
+          "marchFar": 0.8591647666666666,
+          "shadowMap": 0.43533700000000003,
+          "composite": 0.3244817500000001,
+          "dome": 0.49545561666666665,
+          "resolveNear": 0.027344700000000003,
+          "resolveFar": 0.043030583333333344,
+          "skyWeatherMips": 0.099165,
+          "skyLayer": 1.6024671666666666,
+          "skyResolve": 0.12739941666666668,
+          "cloudsTotal": 4.954003335294119
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.665605095541398
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "cumulus",
+        "frames": 188,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 2,
+            "frames": 112,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "cumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.09999999403954
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/scratch/p9c/final2/cumulus/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6731670000000001,
+          "lightGridReduce": 0.087411,
+          "lightGrid": 0.1194287878787879,
+          "marchNear": 0.059507349999999994,
+          "marchFar": 0.6846625833333331,
+          "shadowMap": 0.472365,
+          "composite": 0.31930488333333334,
+          "dome": 0.5843688833333334,
+          "resolveNear": 0.02876551666666667,
+          "resolveFar": 0.05554085,
+          "skyWeatherMips": 0.099165,
+          "skyLayer": 1.8145550000000001,
+          "skyResolve": 0.13008273333333328,
+          "cloudsTotal": 5.128324587878788
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "cumulus",
+        "frames": 283,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 3,
+            "frames": 207,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "cumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.09999999403954
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/scratch/p9c/final2/cumulus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6731670000000001,
+          "lightGridReduce": 0.087411,
+          "lightGrid": 0.11036142857142862,
+          "marchNear": 0.06994194999999997,
+          "marchFar": 0.5987401666666669,
+          "shadowMap": 0.48465851666666676,
+          "composite": 0.4649552833333334,
+          "dome": 0.5804334,
+          "resolveNear": 0.03618278333333334,
+          "resolveFar": 0.05712556666666666,
+          "skyWeatherMips": 0.099165,
+          "skyLayer": 1.170824433333333,
+          "skyResolve": 0.13907496666666663,
+          "cloudsTotal": 4.572041495238095
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "cumulus",
+        "frames": 378,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 4,
+            "frames": 302,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "cumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.09999999403954
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/scratch/p9c/final2/cumulus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6731670000000001,
+          "lightGridReduce": 0.087411,
+          "lightGrid": 0.08912840000000002,
+          "marchNear": 0.06115665,
+          "marchFar": 0.6568921000000002,
+          "shadowMap": 0.4699343666666666,
+          "composite": 0.3011530000000001,
+          "dome": 0.5310217,
+          "resolveNear": 0.025841316666666676,
+          "resolveFar": 0.04371526666666667,
+          "skyWeatherMips": 0.099165,
+          "skyLayer": 1.689885383333333,
+          "skyResolve": 0.1166844,
+          "cloudsTotal": 4.845155583333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "species": "cumulus",
+        "frames": 474,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 5,
+            "frames": 398,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "cumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.09999999403954
+        }
+      }
+    },
+    {
+      "name": "wall",
+      "file": "work/captures/scratch/p9c/final2/cumulus/wall.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6731670000000001,
+          "lightGridReduce": 0.087411,
+          "lightGrid": 0.08590705,
+          "marchNear": 0.05792471666666666,
+          "marchFar": 0.6861338833333331,
+          "shadowMap": 0.43121483333333344,
+          "composite": 0.2757916166666667,
+          "dome": 0.5180024833333335,
+          "resolveNear": 0.02887461666666667,
+          "resolveFar": 0.04075584999999999,
+          "skyWeatherMips": 0.099165,
+          "skyLayer": 1.8215367666666666,
+          "skyResolve": 0.11310524999999998,
+          "cloudsTotal": 4.918990066666668
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "wall",
+        "species": "cumulus",
+        "frames": 569,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 6,
+            "frames": 493,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "cumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.09999999403954
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

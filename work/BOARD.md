@@ -1444,7 +1444,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - `node scripts/variety.mjs` on the library page reports clone score ≤ 0.5 (extend the page with the `fields` hook).
   - 60 fps at 2560×1440 high. `pnpm check` green.
 
-### [~] P9-C Species profiles (vertical-profile tables) · Opus
+### [x] P9-C Species profiles (vertical-profile tables) · Opus
 - **Owns:**
   - `packages/runtime/src/generate/**` (shaders, weather, presets, volume-generator, evolution, index) and tests
   - `packages/runtime/src/sky-layer.ts` and `shaders/sky-layer.wgsl.ts`, for parity
@@ -1470,6 +1470,25 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The sky layer matches at the box wall.
   - Cost: high tier ≤ 3.5 ms at 2560×1440. Generation per job ≤ +20%. No frame over 1 ms of bake.
   - `pnpm check` green; the packed consumer passes.
+
+### [~] P9-C2 Species look fixes: altocumulus lattice, cylinder towers, stratus box edge · Opus
+- **Owns:** `packages/runtime/src/generate/**`, `packages/runtime/src/sky-layer.ts`, `shaders/sky-layer.wgsl.ts`, `examples/lab/species/**`.
+- **Problems** (orchestrator review of `work/captures/P9-C/species-sheet.jpg`):
+  1. **Altocumulus** is a near-perfect polka-dot lattice, worst from above. That is the "cloned" look again. Real altocumulus (castellanus/floccus/stratiformis) has regular-ish cells, but they vary in size and merge into rolls, rows and patches along the wind, with thinning toward gaps. Break the lattice: jitter, size variance, merging and roll alignment, patch-level coverage. Keep the clone and acf metrics honest; add the acf peak check to the altocumulus run.
+  2. **Congestus towers** have straight vertical walls, like cylinders or tree trunks (`congestus - ground/side`, `mixed - ground`). They need tapered, bulging cauliflower flanks with turrets at different heights, wider low or mid and narrowing up. The narrowing for short volumes must not produce straight walls.
+  3. **Stratus from above** shows the square box outline (`stratus - above`). The edge fade/handoff for full-sheet species has to hide the box.
+  4. **Mediocris and congestus "side"** views show vertical streaky textures on the near clouds. Check whether that is the profile or the detail type.
+- **Acceptance:** an updated species sheet in which the orchestrator sees no lattice, no cylinder walls and no box outline. Variety numbers hold. `pnpm check` green.
+
+### [ ] P9-C3 Cost back under budget after species · Opus (after P9-C2)
+- **Owns:** `packages/runtime/src/{runtime.ts,dome.ts,light-grid.ts}` and `shaders/{dome,march,light-grid,composite}.wgsl.ts`, plus `sky-layer` once P9-C2 lands.
+- **Does:** P9-C content (30–40% cover, taller clouds) pushed the high tier to 4.5–5.3 ms at 2560×1440 (budget 3.5). The march went 0.56 → 0.96 ms, the dome 0.39 → 0.74 and the sky layer 1.3 → 1.9.
+  - Add step/detail budgets in the sky layer and dome, and scale march detail with distance and coverage.
+  - Also fix the bright column on the voxel side of the box wall (P9-B2 open issue; suspected light-grid edge).
+- **Acceptance:**
+  - High ≤ 3.5 ms on cumulus and mixed at ground, horizon and above.
+  - No visible quality loss: A/B captures reviewed.
+  - The wall column is gone.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 

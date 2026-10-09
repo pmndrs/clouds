@@ -36,8 +36,18 @@ export interface NvdfParams {
   scaleTop: number;
   /** Spread of the profile around its mean depth law (PACK_FIT sigma). Default 0.64. */
   profileSigma: number;
-  /** How strongly the weather map's cloud type pushes the detail type (0..1). Default 0.3. */
+  /** How strongly the weather map's cloud type pushes the detail type (0..1). Default 0.3. Unused with `profiles` (the species' flip height sets it). */
   detailBias: number;
+  /**
+   * P9-C species profiles: each column's vertical shape comes from the profile table row its weather species (G) selects (generate/shaders.ts
+   * the SP_* species rows: base offset, full-mass depth in metres, top and bottom type, billow, detail flip height, density scale) instead of the global
+   * topFraction / domeExponent. `baseDefault` stays the condensation level; billowAmp / billowCellMeters scale the rows' own. Default false
+   * (the presets turn it on). Ignored with useMapHeights.
+   */
+  profiles: boolean;
+  /** P9-C upper layer (altocumulus, the weather map's A with `alto`): its base and depth, metres above the volume base. 0 = off. Needs `profiles`. Moved down to fit a short volume (altoFractions). */
+  altoBase: number;
+  altoDepth: number;
 }
 
 export interface VolumeGeneratorOptions {
@@ -65,6 +75,12 @@ export interface VolumeGeneratorOptions {
   scratch?: GeneratorScratch;
   /** A cumulonimbus (P6-C): a 3D cell unioned with the field in the shape stage. `restart({ storm })` moves it along its life cycle. */
   storm?: StormCellState;
+  /**
+   * P9-C terrain stub (for T3 valley seas): ground height in metres above the volume base over the volume footprint (uv as the weather map),
+   * a filterable float texture (r16float), red channel. Clouds stand on it where it is above their base and thin out where it rises to within
+   * 48 m of their top, so a stratus layer pools in the valleys under a flat top. The sky layer has no terrain (the far field is unchanged).
+   */
+  terrain?: GPUTexture;
 }
 
 /** One storm cell for the generator, in its own metres (voxel * voxelSize + origin along x and the map row; heights above the volume base). */
@@ -128,6 +144,7 @@ export interface VolumeGenerator {
 export const NVDF_DEFAULTS: NvdfParams = {
   coverageThreshold: 0.12, useMapHeights: false, baseDefault: 0.08, topFraction: 0.6, domeExponent: 2, billowAmp: 0.35, billowCellMeters: 320,
   baseLift: 0.1, shearX: 0, shearY: 0, seed: 1, scaleBase: 0.25, scaleTop: 0.85, profileSigma: 0.64, detailBias: 0.3,
+  profiles: false, altoBase: 0, altoDepth: 0,
 };
 
 /** Jump-flood step sizes (legacy helper, not used by the exact EDT any more): n/2 .. 1 (n the next power of two >= maxDim), then `refine` extra steps (JFA+1: [1], JFA+2: [2, 1]). */
@@ -141,8 +158,19 @@ export function jfaStepSequence(maxDim: number, refine: 0 | 1 | 2 = 0): number[]
   return steps;
 }
 
+/**
+ * The upper layer's base and depth as fractions of a volume `heightMeters` tall (0, 0 when off). A layer that does not fit is moved down so its
+ * top is at 0.95 of the volume (the tall species are clipped the same way in a short volume). The sky layer uses the same fractions.
+ */
+export function altoFractions(p: Pick<NvdfParams, 'altoBase' | 'altoDepth' | 'profiles'>, heightMeters: number): [number, number] {
+  if (!p.profiles || !(p.altoBase > 0) || !(p.altoDepth > 0)) return [0, 0];
+  const depth = Math.min(p.altoDepth, 0.4 * heightMeters);
+  const base = Math.max(0.3 * heightMeters, Math.min(p.altoBase, 0.95 * heightMeters - depth));
+  return [base / heightMeters, depth / heightMeters];
+}
+
 /** Size of the generator's params block (shaders.ts PARAMS); the stamp rebuilder binds the same block. */
-export const PARAM_BYTES = 144;
+export const PARAM_BYTES = 160;
 const PARAM_STRIDE = 256;
 const STORM_WORD = 24;
 
@@ -172,6 +200,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const weatherEntries: GPUBindGroupLayoutEntry[] = [
     { binding: 1, visibility: C, texture: { sampleType: 'float', viewDimension: '2d' } },
     { binding: 2, visibility: C, sampler: { type: 'filtering' } },
+    { binding: 6, visibility: C, texture: { sampleType: 'float', viewDimension: '2d' } },
   ];
   const compute = (name: string, code: string, entryPoint: string, entries: GPUBindGroupLayoutEntry[]) => {
     const layout = layoutOf(name, entries);
@@ -212,6 +241,12 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     f[at + 8] = st.shear?.[0] ?? 1; f[at + 9] = st.shear?.[1] ?? 0.35;
   };
   const LEAN_WORD = STORM_WORD + 10;
+  const PROFILE_WORD = LEAN_WORD + 2;
+  const volH = d * voxelSize;
+  const alto = altoFractions(p, volH);
+  // Terrain stub: the caller's texture, or a 1x1 zero ground.
+  const terrainTex = options.terrain ?? device.createTexture({ label: `${label} no terrain`, size: [1, 1], format: 'r16float', usage: GPUTextureUsage.TEXTURE_BINDING });
+  const terrainView = terrainTex.createView();
 
   // ---- plan ----
   const slots: ArrayBuffer[] = [];
@@ -229,6 +264,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     f[16] = p.seed; f[17] = p.scaleBase; f[18] = p.scaleTop; f[19] = p.profileSigma; f[20] = p.detailBias; f[21] = p.baseLift; f[22] = origin[0]; f[23] = origin[1];
     stormWords(f, STORM_WORD);
     f[LEAN_WORD] = p.shearX; f[LEAN_WORD + 1] = p.shearY;
+    f[PROFILE_WORD] = p.profiles ? 1 : 0; f[PROFILE_WORD + 1] = alto[0]; f[PROFILE_WORD + 2] = alto[1]; f[PROFILE_WORD + 3] = options.terrain ? 1 : 0;
   };
   const bgl = (x: { pipeline: GPUComputePipeline }) => x.pipeline.getBindGroupLayout(0);
   // One 256-byte-aligned parameter slot per dispatch (dynamic offsets): per chunk, nvdf + edt x/y/z + profile + sdf.
@@ -238,11 +274,11 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
   const fieldBG = (k: { pipeline: GPUComputePipeline }) => device.createBindGroup({ label: 'edt', layout: bgl(k), entries: [{ binding: 0, resource: uni }, { binding: 1, resource: { buffer: field } }] });
   const makeNvdfBG = () => device.createBindGroup({
     label: 'nvdf', layout: bgl(nvdfK),
-    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: weatherView }, { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: field } }],
+    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: weatherView }, { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: field } }, { binding: 6, resource: terrainView }],
   });
   const makeProfileBG = () => device.createBindGroup({
     label: 'profile', layout: bgl(profileK),
-    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: weatherView }, { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: field } }, { binding: 5, resource: nvdf.createView() }],
+    entries: [{ binding: 0, resource: uni }, { binding: 1, resource: weatherView }, { binding: 2, resource: sampler }, { binding: 3, resource: { buffer: field } }, { binding: 5, resource: nvdf.createView() }, { binding: 6, resource: terrainView }],
   });
 
   const bindings = { nvdf: makeNvdfBG(), profile: makeProfileBG() };
@@ -290,6 +326,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     if (destroyed) return;
     destroyed = true;
     nvdf.destroy(); sdf.destroy(); params.destroy();
+    if (!options.terrain) terrainTex.destroy();
     if (ownsScratch) scratch.destroy();
   };
   const v = voxelSize;

@@ -1,0 +1,411 @@
+{
+  "url": "http://127.0.0.1:57815/species/?species=congestus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:34:34.308Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p9c/final2/congestus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6528658,
+          "lightGridReduce": 0.123413,
+          "lightGrid": 0.24512441176470587,
+          "marchNear": 0.05032561666666666,
+          "marchFar": 0.6075580833333335,
+          "shadowMap": 0.32154504999999994,
+          "composite": 0.28049855,
+          "dome": 0.4568201333333333,
+          "resolveNear": 0.02661296666666666,
+          "resolveFar": 0.03703345,
+          "skyWeatherMips": 0.117165,
+          "skyLayer": 1.7194036166666669,
+          "skyResolve": 0.10712610000000002,
+          "cloudsTotal": 4.745491778431373
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.666285714285713
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "congestus",
+        "frames": 206,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 2,
+            "frames": 118,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "congestus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.06,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 395.69999998807907
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/scratch/p9c/final2/congestus/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6528658,
+          "lightGridReduce": 0.123413,
+          "lightGrid": 0.1845973636363637,
+          "marchNear": 0.05081165,
+          "marchFar": 0.49673215000000004,
+          "shadowMap": 0.3506584833333332,
+          "composite": 0.27681790000000006,
+          "dome": 0.6100025,
+          "resolveNear": 0.025677383333333338,
+          "resolveFar": 0.04626108333333334,
+          "skyWeatherMips": 0.117165,
+          "skyLayer": 2.0081638833333333,
+          "skyResolve": 0.10287266666666665,
+          "cloudsTotal": 5.046038863636364
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "congestus",
+        "frames": 302,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 3,
+            "frames": 214,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "congestus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.06,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 395.69999998807907
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/scratch/p9c/final2/congestus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6528658,
+          "lightGridReduce": 0.123413,
+          "lightGrid": 0.15757183673469394,
+          "marchNear": 0.06018306666666665,
+          "marchFar": 0.5830119833333334,
+          "shadowMap": 0.36747498333333345,
+          "composite": 0.35523420000000006,
+          "dome": 0.6832401666666669,
+          "resolveNear": 0.02710084999999999,
+          "resolveFar": 0.04115765,
+          "skyWeatherMips": 0.117165,
+          "skyLayer": 1.341069866666667,
+          "skyResolve": 0.11469491666666666,
+          "cloudsTotal": 4.6241833200680285
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "congestus",
+        "frames": 398,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 4,
+            "frames": 310,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "congestus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.06,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 395.69999998807907
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/scratch/p9c/final2/congestus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6528658,
+          "lightGridReduce": 0.123413,
+          "lightGrid": 0.10496576666666672,
+          "marchNear": 0.048844416666666675,
+          "marchFar": 0.5151893000000001,
+          "shadowMap": 0.3375059666666666,
+          "composite": 0.2613516833333334,
+          "dome": 0.5304939166666663,
+          "resolveNear": 0.021681716666666663,
+          "resolveFar": 0.036540533333333326,
+          "skyWeatherMips": 0.117165,
+          "skyLayer": 1.6879014000000003,
+          "skyResolve": 0.09765534999999999,
+          "cloudsTotal": 4.5355738500000005
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "species": "congestus",
+        "frames": 494,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 5,
+            "frames": 406,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "congestus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.06,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 395.69999998807907
+        }
+      }
+    },
+    {
+      "name": "wall",
+      "file": "work/captures/scratch/p9c/final2/congestus/wall.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6528658,
+          "lightGridReduce": 0.123413,
+          "lightGrid": 0.09417490000000002,
+          "marchNear": 0.04545966666666667,
+          "marchFar": 0.5653962,
+          "shadowMap": 0.3247852833333333,
+          "composite": 0.22500429999999996,
+          "dome": 0.47444343333333344,
+          "resolveNear": 0.030005200000000003,
+          "resolveFar": 0.04558131666666665,
+          "skyWeatherMips": 0.117165,
+          "skyLayer": 1.89593145,
+          "skyResolve": 0.09757495000000001,
+          "cloudsTotal": 4.691800500000001
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "wall",
+        "species": "congestus",
+        "frames": 590,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 6,
+            "frames": 502,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "congestus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.06,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 395.69999998807907
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

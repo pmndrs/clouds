@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-mediocris          PASS  CV 1.52 pass  ratio 212.7 pass  base 16m pass  acf 0.000 pass  clone 0.41 pass   (121 lobes in 61 footprints, cover 53%)

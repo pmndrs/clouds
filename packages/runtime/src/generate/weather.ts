@@ -24,8 +24,35 @@ export interface ProceduralWeatherOptions {
   lobeSplit?: number;
   /** 0..1: width of the per-cell radius and peak distributions (0: every cell of a layer the same size; 1: the full range). Default 1. */
   sizeSpread?: number;
-  /** -1..1: shifts the regional species field (negative: smaller, flatter humilis everywhere; positive: bigger, taller congestus). Default 0. */
+  /** -1..1: shifts the regional species field toward the low (negative) or high (positive) end of `speciesRange`. Default 0. */
   species?: number;
+  /**
+   * P9-C: the rows of the species profile table (generate/shaders.ts the SP_* species rows) the regional species field spans, low and high end:
+   * 0 stratus, 0.25 stratocumulus, 0.5 cumulus humilis, 0.75 mediocris, 1 congestus. Default [0.5, 1] (humilis to congestus regions, as P9-B).
+   * Equal ends give one species everywhere.
+   */
+  speciesRange?: [number, number];
+  /** Wind direction in map uv axes (normalised here): stratocumulus bands and rolls and the altocumulus patches align with it. Default [1, 0.5]. */
+  wind?: [number, number];
+  /**
+   * P9-C upper layer (altocumulus), written to A: small near-regular cells in patches. Off by default. The generator places it with
+   * NvdfParams.altoBase / altoDepth (and needs `profiles`).
+   */
+  alto?: {
+    /** 0..1: how much of the sky the patches cover and how solid they are. */
+    cover: number;
+    /** Cells across the map (uv 0..1). Default 18 (about 230 m at the default 4096 m extent; under 10 voxels a cell is too small for the voxel field). */
+    cells?: number;
+    /** Patches across the map. Default 1.5. */
+    patches?: number;
+    /** 0 a lattice .. 1 fully jittered. Default 0.35. */
+    jitter?: number;
+  };
+  /**
+   * HZD s45 horizon rule: beyond `start` metres from the map centre (uv 0.5, 0.5) the species and the cluster field blend toward a mid-coverage
+   * cumulus sky (`species` row, `cluster` value), fully at `end`. Only the sky layer's window reaches that far; it sets 15000 / 35000 by default.
+   */
+  horizon?: { start: number; end: number; species?: number; cluster?: number };
   /**
    * Evaluate this window of the map's uv space (origin and size in uv units; default [0,0] / [1,1]) into the texture. The fields are
    * procedural in uv, so a window beyond [0,1] continues the same world-anchored weather outside the volume (the distant sky layer
@@ -83,7 +110,7 @@ export function stormCellState(ph: number): { rise: number; towerEnvelope: numbe
   };
 }
 
-const WEATHER_PARAM_BYTES = 128;
+const WEATHER_PARAM_BYTES = 192;
 /** Uniform slots of a tiled bake are 256-byte aligned (minUniformBufferOffsetAlignment). */
 const WEATHER_PARAM_STRIDE = 256;
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
@@ -117,13 +144,22 @@ function weatherParams(options: ProceduralWeatherOptions, w: number, h: number, 
   }
   f[24] = options.storm ? 1 : 0; f[25] = options.lobeSplit ?? 0.5; f[26] = options.sizeSpread ?? 1;
   f[28] = options.extentMeters ?? 4096; f[29] = options.heightMeters ?? 512;
+  const range = options.speciesRange ?? [0.5, 1];
+  const wind = options.wind ?? [1, 0.5], wl = Math.hypot(wind[0], wind[1]) || 1;
+  f[32] = range[0]; f[33] = range[1]; f[34] = wind[0] / wl; f[35] = wind[1] / wl;
+  if (options.alto && options.alto.cover > 0) {
+    f[36] = options.alto.cover; f[37] = options.alto.cells ?? 18; f[38] = options.alto.patches ?? 1.5; f[39] = options.alto.jitter ?? 0.35;
+  }
+  if (options.horizon) {
+    f[40] = options.horizon.start; f[41] = options.horizon.end; f[42] = options.horizon.species ?? 0.75; f[43] = options.horizon.cluster ?? 0.55;
+  }
   return data;
 }
 
 /**
- * Encode a procedural weather map: rgba8unorm, R coverage, G species / cloud type (0 humilis, wispy .. 1 congestus, billowy),
- * B the billow weight of the column's cloud (with `storm`: the base height), A top height (fractions of the volume height; read with
- * useMapHeights). P9-B: an fBm cluster field (where clouds gather, with clear gaps) gates four
+ * Encode a procedural weather map: rgba8unorm, R coverage, G species (the profile table row, P9-C: 0 stratus .. 0.25 stratocumulus .. 0.5 humilis
+ * .. 0.75 mediocris .. 1 congestus), B the billow weight of the column's cloud (with `storm`: the base height), A the upper (altocumulus) layer's
+ * mass, 0 without `alto` (with `storm`: the top height; fractions of the volume height, read with useMapHeights). P9-B: an fBm cluster field (where clouds gather, with clear gaps) gates four
  * sparse layers of cells of different sizes, each cell with its own radius, peak, profile and sub-lobe split (shaders.ts WEATHER_WGSL).
  * The caller submits the encoder. The result is usable as `weather` for createVolumeGenerator.
  * One dispatch: about 1.4 ms at 512^2 and 13 ms at 2048^2 (M-series, P9-B). For a large map that must not stall a frame, use

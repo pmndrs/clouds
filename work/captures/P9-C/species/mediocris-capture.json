@@ -1,0 +1,411 @@
+{
+  "url": "http://127.0.0.1:57697/species/?species=mediocris",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:34:23.623Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p9c/final2/mediocris/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.7413352499999999,
+          "lightGridReduce": 0.164579,
+          "lightGrid": 0.3194745294117647,
+          "marchNear": 0.057690716666666676,
+          "marchFar": 0.6310652833333331,
+          "shadowMap": 0.31377231666666666,
+          "composite": 0.3360808666666667,
+          "dome": 0.6167259166666664,
+          "resolveNear": 0.025960799999999992,
+          "resolveFar": 0.04330760000000001,
+          "skyWeatherMips": 0.166747,
+          "skyLayer": 2.015676216666667,
+          "skyResolve": 0.1279738,
+          "cloudsTotal": 5.560389296078431
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.66586826347305
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "mediocris",
+        "frames": 198,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 2,
+            "frames": 110,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "mediocris",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 389.2000000178814
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/scratch/p9c/final2/mediocris/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.7413352499999999,
+          "lightGridReduce": 0.164579,
+          "lightGrid": 0.24004381818181814,
+          "marchNear": 0.05454978333333334,
+          "marchFar": 0.5049659166666667,
+          "shadowMap": 0.36380773333333316,
+          "composite": 0.28066036666666655,
+          "dome": 0.5489617666666667,
+          "resolveNear": 0.025311466666666664,
+          "resolveFar": 0.04745766666666667,
+          "skyWeatherMips": 0.166747,
+          "skyLayer": 1.9589673166666668,
+          "skyResolve": 0.10483508333333331,
+          "cloudsTotal": 5.202222168181819
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "mediocris",
+        "frames": 294,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 3,
+            "frames": 206,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "mediocris",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 389.2000000178814
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/scratch/p9c/final2/mediocris/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.7413352499999999,
+          "lightGridReduce": 0.164579,
+          "lightGrid": 0.1938504489795918,
+          "marchNear": 0.06987669999999999,
+          "marchFar": 0.5425431166666665,
+          "shadowMap": 0.36874155000000003,
+          "composite": 0.4055938166666668,
+          "dome": 0.7110278833333333,
+          "resolveNear": 0.02831133333333334,
+          "resolveFar": 0.050289583333333346,
+          "skyWeatherMips": 0.166747,
+          "skyLayer": 1.3556611666666667,
+          "skyResolve": 0.1363604166666667,
+          "cloudsTotal": 4.934917265646258
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "mediocris",
+        "frames": 390,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 4,
+            "frames": 302,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "mediocris",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 389.2000000178814
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/scratch/p9c/final2/mediocris/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.7413352499999999,
+          "lightGridReduce": 0.164579,
+          "lightGrid": 0.10895176666666662,
+          "marchNear": 0.053140116666666654,
+          "marchFar": 0.6200126333333336,
+          "shadowMap": 0.3474258333333333,
+          "composite": 0.2823088499999999,
+          "dome": 0.58145015,
+          "resolveNear": 0.023127433333333336,
+          "resolveFar": 0.03857451666666666,
+          "skyWeatherMips": 0.166747,
+          "skyLayer": 1.854243266666667,
+          "skyResolve": 0.1035053,
+          "cloudsTotal": 5.085401116666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "species": "mediocris",
+        "frames": 487,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 5,
+            "frames": 399,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "mediocris",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 389.2000000178814
+        }
+      }
+    },
+    {
+      "name": "wall",
+      "file": "work/captures/scratch/p9c/final2/mediocris/wall.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.7413352499999999,
+          "lightGridReduce": 0.164579,
+          "lightGrid": 0.10617546666666663,
+          "marchNear": 0.04643555,
+          "marchFar": 0.56857535,
+          "shadowMap": 0.32370394999999996,
+          "composite": 0.24085873333333335,
+          "dome": 0.59857705,
+          "resolveNear": 0.028000833333333343,
+          "resolveFar": 0.047811083333333323,
+          "skyWeatherMips": 0.166747,
+          "skyLayer": 1.8138903666666666,
+          "skyResolve": 0.09988791666666667,
+          "cloudsTotal": 4.946577550000001
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "wall",
+        "species": "mediocris",
+        "frames": 583,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 6,
+            "frames": 495,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "mediocris",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 389.2000000178814
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

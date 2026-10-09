@@ -1,0 +1,416 @@
+{
+  "url": "http://127.0.0.1:58174/species/?species=stratus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:35:06.112Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p9c/final2/stratus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5728810166666667,
+          "lightGridReduce": 0.094453,
+          "lightGrid": 0.12731447058823528,
+          "marchNear": 0.0759376166666667,
+          "marchFar": 1.1283466666666666,
+          "shadowMap": 0.29439555,
+          "composite": 0.37669365,
+          "dome": 0.6952145000000002,
+          "resolveNear": 0.030768366666666668,
+          "resolveFar": 0.04888876666666665,
+          "skyWeatherMips": 0.152957,
+          "skyLayer": 1.6743564833333335,
+          "skyResolve": 0.1420402,
+          "cloudsTotal": 5.414247287254903
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.6656050955414
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "stratus",
+        "frames": 188,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 2,
+            "frames": 112,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.25,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/scratch/p9c/final2/stratus/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5728810166666667,
+          "lightGridReduce": 0.094453,
+          "lightGrid": 0.14577063636363638,
+          "marchNear": 0.07831970000000002,
+          "marchFar": 0.57045025,
+          "shadowMap": 0.36214033333333345,
+          "composite": 0.3865141833333333,
+          "dome": 0.4998333833333334,
+          "resolveNear": 0.03621951666666667,
+          "resolveFar": 0.06674548333333334,
+          "skyWeatherMips": 0.152957,
+          "skyLayer": 1.7528497,
+          "skyResolve": 0.1544684166666666,
+          "cloudsTotal": 4.873602619696971
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "stratus",
+        "frames": 282,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 3,
+            "frames": 206,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.25,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/scratch/p9c/final2/stratus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5728810166666667,
+          "lightGridReduce": 0.094453,
+          "lightGrid": 0.14318573469387758,
+          "marchNear": 0.08789591666666664,
+          "marchFar": 0.4537660499999998,
+          "shadowMap": 0.41201325,
+          "composite": 0.57485235,
+          "dome": 0.5336925333333333,
+          "resolveNear": 0.036379833333333327,
+          "resolveFar": 0.06612535,
+          "skyWeatherMips": 0.152957,
+          "skyLayer": 1.1243626999999996,
+          "skyResolve": 0.17153084999999996,
+          "cloudsTotal": 4.424095584693877
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "stratus",
+        "frames": 377,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 4,
+            "frames": 301,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.25,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/scratch/p9c/final2/stratus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5728810166666667,
+          "lightGridReduce": 0.094453,
+          "lightGrid": 0.1297471666666667,
+          "marchNear": 0.08023223333333333,
+          "marchFar": 0.5976686833333336,
+          "shadowMap": 0.4029146333333332,
+          "composite": 0.40971113333333337,
+          "dome": 0.49747641666666664,
+          "resolveNear": 0.037266083333333325,
+          "resolveFar": 0.05543599999999999,
+          "skyWeatherMips": 0.152957,
+          "skyLayer": 1.9623275999999998,
+          "skyResolve": 0.15395603333333335,
+          "cloudsTotal": 5.1470270000000005
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "species": "stratus",
+        "frames": 472,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 5,
+            "frames": 396,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.25,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    },
+    {
+      "name": "wall",
+      "file": "work/captures/scratch/p9c/final2/stratus/wall.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5728810166666667,
+          "lightGridReduce": 0.094453,
+          "lightGrid": 0.12050285000000002,
+          "marchNear": 0.06953300000000001,
+          "marchFar": 0.7101967833333332,
+          "shadowMap": 0.3677290666666667,
+          "composite": 0.36147920000000006,
+          "dome": 0.4141846500000001,
+          "resolveNear": 0.03201391666666666,
+          "resolveFar": 0.05339428333333333,
+          "skyWeatherMips": 0.152957,
+          "skyLayer": 1.8865712000000001,
+          "skyResolve": 0.1500692666666667,
+          "cloudsTotal": 4.985965233333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "wall",
+        "species": "stratus",
+        "frames": 567,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 6,
+            "frames": 491,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.25,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.01,
+            "scaleBase": 0.5,
+            "shearX": 0.02,
+            "shearY": 0.01,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 194.5
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

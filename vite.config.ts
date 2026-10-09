@@ -37,6 +37,7 @@ export default defineConfig({
     testStamp: fileURLToPath(new URL('./examples/lab/runtime-tests/stamp/index.html', import.meta.url)),
     onsen: fileURLToPath(new URL('./examples/lab/onsen/index.html', import.meta.url)),
     library: fileURLToPath(new URL('./examples/lab/library/index.html', import.meta.url)),
+    species: fileURLToPath(new URL('./examples/lab/species/index.html', import.meta.url)),
     vdbDrop: fileURLToPath(new URL('./examples/lab/vdb-drop/index.html', import.meta.url)),
     r3f: fileURLToPath(new URL('./examples/lab/r3f/index.html', import.meta.url)),
     evolve: fileURLToPath(new URL('./examples/lab/evolve/index.html', import.meta.url)),

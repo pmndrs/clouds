@@ -1,0 +1,421 @@
+{
+  "url": "http://127.0.0.1:58056/species/?species=altocumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:34:55.492Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/scratch/p9c/final2/altocumulus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5304142999999999,
+          "lightGridReduce": 0.214328,
+          "lightGrid": 0.4191441764705882,
+          "marchNear": 0.08033836666666665,
+          "marchFar": 0.4647103166666666,
+          "shadowMap": 0.55057975,
+          "composite": 0.4220017333333332,
+          "dome": 0.6215662166666663,
+          "resolveNear": 0.03211676666666667,
+          "resolveFar": 0.05351300000000002,
+          "skyWeatherMips": 0.173248,
+          "skyLayer": 1.6762612666666667,
+          "skyResolve": 0.1564955833333333,
+          "cloudsTotal": 5.394717476470587
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.665868263473055
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "altocumulus",
+        "frames": 198,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 2,
+            "frames": 110,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "altocumulus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "altoBase": 1400,
+            "altoDepth": 180,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 390.2000000178814
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/scratch/p9c/final2/altocumulus/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5304142999999999,
+          "lightGridReduce": 0.214328,
+          "lightGrid": 0.2793372121212121,
+          "marchNear": 0.0741247,
+          "marchFar": 0.43799605,
+          "shadowMap": 0.6685051000000002,
+          "composite": 0.43374065000000006,
+          "dome": 0.5207656833333333,
+          "resolveNear": 0.03831193333333332,
+          "resolveFar": 0.07138015000000002,
+          "skyWeatherMips": 0.173248,
+          "skyLayer": 1.8692234666666672,
+          "skyResolve": 0.15936556666666665,
+          "cloudsTotal": 5.470740812121213
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "altocumulus",
+        "frames": 293,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 3,
+            "frames": 205,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "altocumulus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "altoBase": 1400,
+            "altoDepth": 180,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 390.2000000178814
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/scratch/p9c/final2/altocumulus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5304142999999999,
+          "lightGridReduce": 0.214328,
+          "lightGrid": 0.23266181632653063,
+          "marchNear": 0.09216668333333336,
+          "marchFar": 0.44168008333333336,
+          "shadowMap": 0.7327125166666665,
+          "composite": 0.5041194333333334,
+          "dome": 0.5502381000000001,
+          "resolveNear": 0.036972350000000015,
+          "resolveFar": 0.06373233333333332,
+          "skyWeatherMips": 0.173248,
+          "skyLayer": 0.8639694833333337,
+          "skyResolve": 0.1632446499999999,
+          "cloudsTotal": 4.599487749659865
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "altocumulus",
+        "frames": 388,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 4,
+            "frames": 300,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "altocumulus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "altoBase": 1400,
+            "altoDepth": 180,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 390.2000000178814
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/scratch/p9c/final2/altocumulus/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5304142999999999,
+          "lightGridReduce": 0.214328,
+          "lightGrid": 0.14707008333333338,
+          "marchNear": 0.08189815,
+          "marchFar": 0.49558891666666666,
+          "shadowMap": 0.71110455,
+          "composite": 0.44811965,
+          "dome": 0.5567734333333333,
+          "resolveNear": 0.03659178333333332,
+          "resolveFar": 0.06713918333333332,
+          "skyWeatherMips": 0.173248,
+          "skyLayer": 1.8669855000000004,
+          "skyResolve": 0.16459248333333332,
+          "cloudsTotal": 5.493854033333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66583333333334
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "species": "altocumulus",
+        "frames": 484,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 5,
+            "frames": 396,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "altocumulus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "altoBase": 1400,
+            "altoDepth": 180,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 390.2000000178814
+        }
+      }
+    },
+    {
+      "name": "wall",
+      "file": "work/captures/scratch/p9c/final2/altocumulus/wall.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5304142999999999,
+          "lightGridReduce": 0.214328,
+          "lightGrid": 0.14277711666666668,
+          "marchNear": 0.08126395000000002,
+          "marchFar": 0.37223044999999993,
+          "shadowMap": 0.5845855166666667,
+          "composite": 0.3892822666666666,
+          "dome": 0.48156969999999993,
+          "resolveNear": 0.05310110000000002,
+          "resolveFar": 0.07921121666666665,
+          "skyWeatherMips": 0.173248,
+          "skyLayer": 1.9345512166666674,
+          "skyResolve": 0.16758491666666667,
+          "cloudsTotal": 5.204147750000001
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "wall",
+        "species": "altocumulus",
+        "frames": 579,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -6394
+            ],
+            "resets": 6,
+            "frames": 491,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "altocumulus",
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.008,
+            "shearX": 0.045,
+            "shearY": 0.022,
+            "altoBase": 1400,
+            "altoDepth": 180,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 24,
+          "wallMs": 390.2000000178814
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
