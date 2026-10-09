@@ -1792,7 +1792,7 @@ Owner direction:
   - Usable live at `localhost:5173/compare/`.
   - `pnpm check` green.
 
-### [~] R2 Research: multi-view generation models for clouds · Sonnet
+### [x] R2 Research: multi-view generation models for clouds · Sonnet
 - **Owns:** `docs/research/multiview-models.md` and an index row.
 - **Does:**
   - Find current (2026) multi-view and novel-view image models: the multi-view stages of image-to-3D systems (MV-Adapter, Zero123++, SV3D, Era3D, Hunyuan3D multiview and their successors), plus anything newer.
@@ -1800,6 +1800,30 @@ Owner direction:
   - Run a small pilot on the hero tower crop with the 2–3 most promising available models: about $3 total cap, logged. The crop is at the scratchpad path `fal/tower.jpg` (session scratchpad; see `docs/research/image-gen-pilot.md`). Compare with the Qwen and nano-banana-2 pilot.
   - Outputs go to `work/captures/scratch/`, never committed.
 - **Acceptance:** a ranked recommendation with links, prices, the pilot sheet (local) and an honest note on 3D consistency for soft, translucent subjects.
+
+### [~] L1 Target loop, first target: the hero tower from "Texas afternoon" · Opus
+- **Owns:**
+  - a new `scripts/targets/**` (target-card extraction, matching and scoring)
+  - `scripts/vdb/authoring/sim/**` (recipe extensions)
+  - a new `assets/clouds/targets/texas-tower/` for the best results (each cloud < 4 MB)
+  - a new `examples/lab/target/` page (matching camera, side-by-side) and its vite input line
+- **Not:** runtime shaders, `procedural/**` or `generate/**` (X3 and B2 are running there).
+- **Does:** the target-driven loop from `docs/PLAN-2026-10-next.md` ("Authoring loop"), for ONE target:
+  1. **Target card** from the hero tower crop of `artifacts/research/cloud-photos/_targets/texas-afternoon.jpg`: silhouette mask on blue sky, width:height, base flatness, lobe-size spectrum along the silhouette, edge sharpness, lit:shadow ratio, connectedness (necks, merged lobes).
+  2. **Side and back "vibe" views** via the fal MCP:
+     - Qwen multi-angle (`fal-ai/qwen-image-edit-2511-multiple-angles`) at 90°, 270° and elevation −15°;
+     - nano-banana-2 (`fal-ai/nano-banana-2/edit`) for detail;
+     - optionally FLUX.2 multi-angle for the 180° seed (`docs/research/multiview-models.md`).
+     - Budget ≤ $2, logged. Outputs go to `work/captures/scratch/targets/` only.
+  3. **Recipe from the card** and views: emitter layout from the silhouette (a tower on a pedestal, attached left lobes), buoyancy, shear and lid. About 20 Pyro variants (Houdini 21 hython, as in P9-F).
+  4. **Auto-match:** render each candidate on the target page from a camera matching the photo's framing and sun, score it against the card, and make a top-5 contact sheet next to the photo crop.
+  5. **Grow the tools:** for each feature the recipe could not express, add the parameter or stage and note it.
+- **Acceptance:**
+  - A top-5 sheet next to the photo, kept local in scratch because it contains the photo.
+  - Our renders committed.
+  - Measured card scores per candidate.
+  - Picks are left to the owner (step 5 of the loop).
+  - `pnpm check` green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
