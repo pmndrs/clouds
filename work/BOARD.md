@@ -1778,7 +1778,7 @@ Owner direction:
   - Don't touch the sky-layer, shadow-map or procedural files (X3).
 - **Acceptance:** bundle headroom of 3 KB or more, behaviour identical (generate test pages pass), `pnpm check` green.
 
-### [r] T2 Testbench: fine sun control and the owner's photo browser · Sonnet
+### [x] T2 Testbench: fine sun control and the owner's photo browser · Sonnet
 - **Owns:** `examples/lab/compare/**`, except `panes/ours.ts` (shared with X3; touch only to add photo or sun plumbing).
 - **Does:**
   1. **Sun elevation control:** fine near the horizon. Use 0.1° steps across −6…+15° (e.g. a non-linear slider or a numeric field), plus keyboard nudges (`[`/`]` 0.1°, `{`/`}` 1°). It currently jumps from sunset to daylight in about 3 ticks.
