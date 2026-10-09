@@ -1262,7 +1262,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Phase 8: comparison, docs site, gallery, mobile, sparse heroes (owner request, 2026-10-09)
 
-### [~] P8-A Side-by-side comparison page · Sonnet (Fable on failure)
+### [x] P8-A Side-by-side comparison page · Sonnet (Fable on failure)
 - **Owns:**
   - `examples/lab/compare/**` (new), including any vendored code under `examples/lab/compare/vendor/` with a NOTICE
   - the root `package.json` devDependencies and `pnpm-lock.yaml`, for the Takram packages
