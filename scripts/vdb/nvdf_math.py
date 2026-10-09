@@ -208,11 +208,18 @@ def scale_from_density(density: np.ndarray, ref: float | None) -> tuple[np.ndarr
 # Parameters fitted by scripts/vdb/fit_pack_mapping.py against assets/clouds/{parkouring,stormbird}
 # (profile / detail type / density scale versus SDF depth and height fraction). See work/reports/P4-B.md.
 
+# 'corrVox' is the correlation length at the 8 m fit resolution (kept for tools that read it, e.g. the runtime importer);
+# 'corrMeters' (= corrVox * 8 m) is what the converter uses, so the patchwork statistics fitted at 8 m hold at 4 and 2 m voxels.
 PACK_FIT = {
-    'profile': {'d0': 1.4, 'D': 66.0, 'g': 1.05, 'base': 0.1, 'baseH': 0.22, 'sigma': 0.64, 'corrVox': 3.0},
+    'profile': {'d0': 1.4, 'D': 66.0, 'g': 1.05, 'base': 0.1, 'baseH': 0.22, 'sigma': 0.64, 'corrVox': 3.0, 'corrMeters': 24.0},
     'detail': {'lo': 0.1, 'hi': 0.75, 'depthShift': 0.25, 'depthRef': 32.0},
     'scale': {'s0': 0.04, 's1': 0.75, 'h1': 0.6},
 }
+
+
+def corr_voxels(voxel: float, prm=None) -> float:
+    """Correlation length of the profile-spread noise in voxels of size `voxel` (the fit stores it in metres)."""
+    return (prm or PACK_FIT)['profile']['corrMeters'] / voxel
 
 
 def height_fraction(mask: np.ndarray) -> np.ndarray:
@@ -253,3 +260,33 @@ def pack_scale(hfrac, prm=None):
     """Density scale rising with height: thin sheets at the base, dense towers at the top."""
     q = (prm or PACK_FIT)['scale']
     return (q['s0'] + (q['s1'] - q['s0']) * smoothstep(0.0, q['h1'], hfrac)).astype(np.float32)
+
+
+# ---------------------------------------------------------------- fine (hero) lattice: coarse-from-fine reduction (P8 spec 4.3)
+
+def block_view(a: np.ndarray, r: int) -> np.ndarray:
+    """(nz, ny, nx) with every extent a multiple of r -> (nz/r, r, ny/r, r, nx/r, r) view (no copy)."""
+    nz, ny, nx = a.shape
+    if nz % r or ny % r or nx % r:
+        raise ValueError(f'shape {a.shape} is not a multiple of {r}')
+    return a.reshape(nz // r, r, ny // r, r, nx // r, r)
+
+
+def block_any(mask: np.ndarray, r: int) -> np.ndarray:
+    return block_view(mask, r).any(axis=(1, 3, 5))
+
+
+def block_mean(a: np.ndarray, r: int) -> np.ndarray:
+    return block_view(a, r).mean(axis=(1, 3, 5), dtype=np.float64).astype(np.float32)
+
+
+def reduce_profile_u8(fine_u8: np.ndarray, r: int) -> np.ndarray:
+    """Coarse profile of a fine hero: mean of the r^3 fine profiles (rounded), floored at 1/255 when any of them is > 0.
+
+    Hence coarse profile > 0 exactly where any fine voxel of the block is > 0: the coarse occupancy is a superset of the fine
+    one (dilated to coarse voxels), so an SDF built from the coarse mask is a lower bound of the true distance to the fine surface.
+    """
+    mean = block_view(fine_u8, r).sum(axis=(1, 3, 5), dtype=np.uint32).astype(np.float64) / float(r ** 3)
+    coarse = np.clip(np.floor(mean + 0.5), 0, 255).astype(np.uint8)
+    any_fine = block_any(fine_u8 > 0, r)
+    return np.where(any_fine, np.maximum(coarse, 1), 0).astype(np.uint8)

@@ -1,0 +1,85 @@
+{
+  "url": "http://127.0.0.1:52932/flagship/?cloud=disney&time=15&noground=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T04:20:23.618Z",
+  "shots": [
+    {
+      "name": "edge",
+      "file": "work/captures/P13-H2/before-disney/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.2532756500000001,
+          "skyCompute": 0.063582,
+          "lightGridReduce": 0.02958,
+          "lightGrid": 0.037995,
+          "marchNear": 0.04651943333333333,
+          "marchFar": 0.2584428166666667,
+          "composite": 0.10235719999999998,
+          "dome": 0.042325800000000004,
+          "resolveNear": 0.021680099999999997,
+          "resolveFar": 0.03582301666666667,
+          "shadowMap": 0.0071625217391304355
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.02958,
+          "lightGrid": 0.037995,
+          "marchNear": 0.043041,
+          "marchFar": 0.247288,
+          "composite": 0.093082,
+          "dome": 0.04025,
+          "resolveNear": 0.020331,
+          "resolveFar": 0.032708,
+          "shadowMap": 0.006417
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 15,
+        "sunElevation": 49.08506948284602,
+        "sunAzimuth": 259.9271921656391,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 3110400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1943040,
+          "shadow": 8388608,
+          "total": 27770188
+        },
+        "cloud": "disney",
+        "frames": 93,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 93,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 28.69999998807907,
+        "firstCloudFrameMs": 29.599999994039536
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

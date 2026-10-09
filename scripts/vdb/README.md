@@ -46,8 +46,38 @@ Resampling to a different voxel size uses an area-average (down) / linear (up) f
   Houdini SOP network: `python` points, `vdbfromparticles`, `volumewrangle`.
   `hython scripts/vdb/make_test_cloud.py out.vdb --width 800 --count 16 --sdf-out sdf.vdb`
 - `check_parity.py A B` compares two converted directories (board thresholds).
+- `vdb-to-nvdb.mjs` fine.vdb -> fine.nvdb (WebVDB, vendored in `vendor/webvdb/`, see its NOTICE); `vdb-to-nvdb.test.mjs` runs under `pnpm test`.
 - Tests: `python3 scripts/vdb/test_nvdf_math.py` (plain python, needs numpy) and `hython scripts/vdb/test_hython.py`
   (end to end, small).
+
+## Hero clouds: fine lattice, `fine.vdb`, `fine.nvdb` (P8 spec, task H2)
+
+`--fine-voxel-size 4` (fog mode) resamples the source to a 4 m lattice and derives everything from it:
+
+```bash
+$HYTHON scripts/vdb/vdb_to_nvdf.py --mode fog IN.vdb --out assets/clouds/NAME --world-scale S --margin 1 --fine-voxel-size 4 [--fine-shell 40]
+python3 scripts/vdb/check_parity.py --fine assets/clouds/NAME        # needs node
+```
+
+- Fine profile: mask, exact EDT at 4 m, PACK_FIT (`--fine-smooth` sigma 1 fine voxel). The profile-spread noise length is
+  now `PACK_FIT.profile.corrMeters` = 24 m (was `corrVox` 3 voxels), so 8 m output is bit-identical to before and 4 / 2 m
+  keep the fitted statistics.
+- Coarse field by reduction: R = mean of the ratio^3 fine profiles, floored at 1/255 where any is > 0, so coarse occupancy is a
+  superset of the fine one. SDF = exact EDT of the coarse mask, G/B as before from the coarse mask and the block-mean density.
+  Both lattices are nested: the fine array is padded so each coarse voxel is exactly one block, and the fine crop is the coarse crop x ratio.
+- `fine.vdb`: a float fog grid `profile` (values k/255, written by Houdini via a volume and `convertvdb`), index (i, j, k) = lattice
+  (x, up, map row), index 0 = the crop min corner voxel, voxel size = fine size, world translation = `houdini.cropMinWorld`.
+  Houdini writes uniform 8^3 blocks as constant tiles; `vdb-to-nvdb.mjs` expands them.
+- `fine.nvdb`: `node scripts/vdb/vdb-to-nvdb.mjs fine.vdb fine.nvdb --fp8` (WebVDB `parseVdb` -> `buildFromVdb` -> `quantize('fp8')` ->
+  `writeNvdb`, vendored in `vendor/webvdb/`; `node scripts/vdb/vendor/webvdb/build.mjs` rebuilds the bundle). The converter runs it for you
+  when `node` is on the path, and with `--check-u8` compares every voxel of the written file (read back through `NanoVDBFile` + the CPU
+  `readValue`) with the exact uint8 lattice; the run fails unless the match is exact. `--decode` turns a `.nvdb` back into the dense lattice.
+- `--drop-fine-vdb` deletes `fine.vdb` once `fine.nvdb` is verified (the shipped assets keep only the `.nvdb`).
+- `--fine-shell M` zeroes fine voxels deeper than M metres (default off; 32-40 m recommended at 2 m). The coarse field keeps the interior.
+- `cloud.json` gains `fine` (file, voxelSizeMeters, ratio, shellMeters, offsetFineVoxels, dims, leaves, bytes, indexAxes).
+- Sim heroes: `authoring/sim/sim_clouds_p4f.py <name> --divsize 0.04 --tag _4m` grows the sim at 4 m, then
+  `--convert-only <vdb> --fine-voxel-size 4` writes the asset. (`sim_clouds.py` after the P9-F rewrite no longer reproduces the shipped
+  sim-cumulus / sim-congestus, `sim_clouds_p4f.py` is the P4-F script and does, byte for byte at 8 m.)
 
 ## Pack parity (done once, recorded in work/reports/P4-A.md)
 

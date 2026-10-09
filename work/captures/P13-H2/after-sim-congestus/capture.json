@@ -1,0 +1,85 @@
+{
+  "url": "http://127.0.0.1:56921/flagship/?cloud=heroes/sim-congestus&time=15&noground=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T04:25:46.935Z",
+  "shots": [
+    {
+      "name": "edge",
+      "file": "work/captures/P13-H2/after-sim-congestus/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8521357833333332,
+          "skyCompute": 0.166622,
+          "lightGridReduce": 0.063993,
+          "lightGrid": 0.085824,
+          "marchNear": 0.09968846666666668,
+          "marchFar": 0.5436549999999999,
+          "composite": 0.19651796666666668,
+          "dome": 0.14096756666666668,
+          "resolveNear": 0.04616103333333334,
+          "resolveFar": 0.06948833333333333,
+          "shadowMap": 0.012732739130434784
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.063993,
+          "lightGrid": 0.085824,
+          "marchNear": 0.101747,
+          "marchFar": 0.518825,
+          "composite": 0.178914,
+          "dome": 0.118663,
+          "resolveNear": 0.039083,
+          "resolveFar": 0.062749,
+          "shadowMap": 0.007624
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 15,
+        "sunElevation": 49.08506948284602,
+        "sunAzimuth": 259.9271921656391,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 3110400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 2633664,
+          "shadow": 8388608,
+          "total": 28460812
+        },
+        "cloud": "heroes/sim-congestus",
+        "frames": 93,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 93,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 26,
+        "firstCloudFrameMs": 33.69999998807907
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

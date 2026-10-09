@@ -46,6 +46,14 @@ median |diff| 4.4 m (Parkouring) and 4.9 m (Stormbird), p90 10-12 m, sign mismat
 about 0.55 M voxels beyond one 17 m quantum. The 529 are all at grid z = 0..1, where the pack's own SDF
 is flat zero at the floor. 4, 6, 10, 12 and 16 m all fit worse (median 21-110 m).
 
+## Hero assets: `fine.nvdb` (additive, P8 spec)
+
+The `-fine` heroes (`disney-fine`, `heroes/sim-cumulus-fine`, `heroes/sim-congestus-fine`) carry `fine.nvdb`: a NanoVDB Fp8 fog grid `profile` (codec NONE, values k/255) of the
+dimensional profile at 4 m (2 m for `local/disney-2m`), (the float `fine.vdb` it was built from is dropped; rebuild it with the recipe). `cloud.json` has a `fine`
+block (`ratio`, `dims`, `shellMeters`, `bytes`, `leaves`, `indexAxes`). Loaders that do not know `fine` ignore it. The coarse
+`nvdf.bin`/`sdf.bin` of these assets are the 2x2x2 reduction of the fine profile (mean, floored at 1/255 where any fine voxel is set),
+so they differ from the shipped 8 m `disney` and `heroes/sim-*`, which stay unchanged for the existing demos. The sim heroes were re-simmed at 4 m, so they are a different realisation; `sim-congestus-fine` is 5.15 MB coarse, over the usual 4 MB cap, which is accepted for this showcase asset. Recipe and checks: `scripts/vdb/README.md`.
+
 ## Artist pipeline: Houdini VDB to NVDF
 
 `scripts/vdb/vdb_to_nvdf.py` (run with hython, see `scripts/vdb/README.md`) writes this same format from VDBs:

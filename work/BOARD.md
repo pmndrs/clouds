@@ -1490,7 +1490,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - No visible quality loss: A/B captures reviewed.
   - The wall column is gone.
 
-### [~] P13-H2 Hero converter: fine.nvdb via WebVDB · Sonnet (Opus on failure)
+### [x] P13-H2 Hero converter: fine.nvdb via WebVDB · Sonnet (Opus on failure)
 - **Owns:**
   - `scripts/vdb/**`
   - `assets/clouds/**`: the heroes and disney rebuilds; a 2 m Disney goes in `assets/clouds/local/`, gitignored, if it is over 15 MB

@@ -6,6 +6,8 @@
   $HYTHON scripts/vdb/vdb_to_nvdf.py --mode fog  IN.vdb --out assets/clouds/NAME [--density-grid density]
   $HYTHON scripts/vdb/vdb_to_nvdf.py --mode sdf  IN.vdb --out assets/clouds/NAME [--sdf-grid sdf]
 
+Hero clouds (P8): add --fine-voxel-size 4 [--fine-shell 40] to also write fine.vdb + fine.nvdb (see scripts/vdb/README.md).
+
 Writes the same runtime format as scripts/nubis/convert.mjs (cloud.json, nvdf.bin rgba8, sdf.bin r16
 unorm -256..4096 m rounded down). See scripts/vdb/README.md and assets/clouds/README.md.
 """
@@ -14,6 +16,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
+import subprocess
+import tempfile
 import math
 import os
 import sys
@@ -123,6 +128,124 @@ def resample_to_target(arr, lo, sv, tv):
     return np.ascontiguousarray(arr, dtype=np.float32), t0
 
 
+
+# ---------------------------------------------------------------- fine (hero) lattice
+
+def fine_profile(mask_f, fv, args):
+    """Profile at the fine voxel size: same PACK_FIT mapping as the coarse path, with the noise correlation length in metres.
+    Returns (uint8 profile, true depth in metres below the surface)."""
+    if args.mapping != 'pack':
+        fail('--fine-voxel-size needs --mapping pack')
+    sdf = nm.signed_distance(mask_f, fv)
+    depth_true = np.where(mask_f, np.maximum(-sdf, 0.0), 0.0).astype(np.float32)
+    driver = nm.gaussian_blur(sdf, args.fine_smooth)
+    del sdf
+    depth = np.where(mask_f, np.maximum(-driver, 0.0), 0.0).astype(np.float32)
+    del driver
+    hfrac = nm.height_fraction(mask_f)
+    noise = nm.smooth_noise(mask_f.shape, nm.corr_voxels(fv), args.seed)
+    prof = np.where(mask_f, nm.pack_profile(depth, hfrac, noise * args.profile_noise), 0.0)
+    prof = np.clip(prof * args.profile_gain, 0.0, 1.0)
+    r8 = nm.quantize_unorm8(prof)
+    return np.where(mask_f, np.maximum(r8, 1), 0).astype(np.uint8), depth_true
+
+
+def write_fine_vdb(fine_u8_tex, out_path, min_corner_world, fv):
+    """Write the fine profile lattice (uint8, texture order [up, row, x]) as a float fog VDB grid 'profile' with values k/255.
+
+    VDB index (i, j, k) = (x, up, row) of the lattice, voxel (0, 0, 0) is the lattice corner voxel: index 0 has its centre at
+    min_corner_world + fv/2 and the voxel size is fv. Houdini may store uniform 8^3 blocks as constant tiles; vdb-to-nvdb.mjs expands them to leaves.
+    Returns {'activeVoxels': n, 'dimsHou': [nx, ny, nz]}."""
+    import hou
+    import __main__
+    hou_arr = np.ascontiguousarray(fine_u8_tex.transpose(1, 0, 2))      # [row, up, x] = hou flat order z, y, x
+    nz, ny, nx = hou_arr.shape
+    geo = hou.Geometry()
+    geo.addAttrib(hou.attribType.Prim, 'name', '')
+    bb = hou.BoundingBox(*[float(c) for c in min_corner_world], *[float(min_corner_world[i] + n * fv) for i, n in enumerate((nx, ny, nz))])
+    vol = geo.createVolume(nx, ny, nz, bb)
+    vol.setAttribValue('name', 'profile')
+    vol.setAllVoxels((hou_arr.astype(np.float32) / 255.0).ravel().tolist())
+    __main__._FINE_GEO = geo
+    net = hou.node('/obj').createNode('geo')
+    src = net.createNode('python')
+    src.parm('python').set('import __main__\nhou.pwd().geometry().merge(__main__._FINE_GEO)')
+    cv = net.createNode('convertvdb')
+    cv.setInput(0, src)
+    cv.parm('conversion').set('vdb')
+    cv.parm('vdbclass').set('fog')
+    cv.parm('vdbtype').set('float')
+    cv.parm('prune').set(0)   # (Houdini still writes uniform 8^3 blocks as tiles; vdb-to-nvdb.mjs handles both)
+    cv.cook(force=True)
+    out = cv.geometry()
+    prims = [p for p in out.prims() if isinstance(p, hou.VDB)]
+    if len(prims) != 1:
+        fail(f'convertvdb produced {len(prims)} VDB primitives')
+    v = prims[0]
+    c0 = [float(c) for c in v.indexToPos([0, 0, 0])]
+    want = [min_corner_world[i] + 0.5 * fv for i in range(3)]
+    if max(abs(c0[i] - want[i]) for i in range(3)) > 1e-4 or abs(float(v.voxelSize()[0]) - fv) > 1e-6 * fv:
+        fail(f'fine VDB lattice is off: index 0 at {c0}, want {want}; voxel {list(v.voxelSize())}, want {fv}')
+    n_active = int(v.activeVoxelCount())
+    if n_active != int((hou_arr > 0).sum()):
+        fail(f'fine VDB has {n_active} active voxels, lattice has {int((hou_arr > 0).sum())} non-zero')
+    out.saveToFile(str(out_path))
+    net.destroy()
+    del __main__._FINE_GEO
+    return {'activeVoxels': n_active, 'dimsHou': [nx, ny, nz]}
+
+
+def write_fine_nvdb(fine_vdb, fine_nvdb, fine_u8_tex, fine_dims_hou):
+    """fine.vdb -> fine.nvdb through scripts/vdb/vdb-to-nvdb.mjs (WebVDB), checking the result against the exact lattice.
+    Returns the script's JSON, or None when node is not on the path (then prints the command)."""
+    node = shutil.which('node')
+    script = Path(__file__).with_name('vdb-to-nvdb.mjs')
+    if node is None:
+        print(f'vdb_to_nvdf: node not found; run: node {script} {fine_vdb} {fine_nvdb} --fp8', file=sys.stderr)
+        return None
+    with tempfile.TemporaryDirectory() as td:
+        u8 = Path(td) / 'fine.u8'
+        u8.write_bytes(np.ascontiguousarray(fine_u8_tex.transpose(1, 0, 2)).tobytes())   # hou flat order (z, y, x)
+        cmd = [node, str(script), str(fine_vdb), str(fine_nvdb), '--grid', 'profile', '--fp8', '--check-u8', str(u8), '--dims', *map(str, fine_dims_hou)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        fail(f'vdb-to-nvdb failed ({res.returncode}): {res.stderr.strip() or res.stdout.strip()}')
+    return json.loads(res.stdout.strip().splitlines()[-1])
+
+
+
+def write_fine(out, r8_fine, depth_fine, cmin, cdims, ratio, fv, tv, corner0, t0, args):
+    """Crop the fine lattice to the coarse crop (x ratio), apply the shell, write fine.vdb + fine.nvdb. Returns cloud.json block and report."""
+    fcmin = [c * ratio for c in cmin]
+    fdims = [d * ratio for d in cdims]
+    fine = nm.crop(r8_fine, fcmin, fdims)
+    if args.fine_shell:
+        deep = nm.crop(depth_fine, fcmin, fdims) > args.fine_shell
+        fine = np.where(deep, 0, fine).astype(np.uint8)
+    # world position (hou axes, metres) of the fine lattice corner = the coarse crop min corner
+    crop_offset = [t0[0] + cmin[0], t0[2] + cmin[1], t0[1] + cmin[2]]
+    min_world = [corner0[0] + crop_offset[0] * tv, corner0[1] + crop_offset[2] * tv, corner0[2] + crop_offset[1] * tv]
+    vdb_path, nvdb_path = out / 'fine.vdb', out / 'fine.nvdb'
+    vinfo = write_fine_vdb(fine, vdb_path, min_world, fv)
+    ninfo = write_fine_nvdb(vdb_path, nvdb_path, fine, vinfo['dimsHou'])
+    if args.drop_fine_vdb and ninfo:
+        vdb_bytes = vdb_path.stat().st_size
+        vdb_path.unlink()
+    else:
+        vdb_bytes = vdb_path.stat().st_size
+    occupied = int((fine > 0).sum())
+    cj = {'file': 'fine.nvdb', 'voxelSizeMeters': fv, 'grid': 'profile', 'ratio': ratio, 'shellMeters': args.fine_shell or None,
+          'offsetFineVoxels': [0, 0, 0], 'dims': fdims,
+          'indexAxes': 'fine.nvdb index (i, j, k) = lattice (x, up, map row); index (0, 0, 0) is the lattice corner voxel at the coarse crop min corner; value = profile / 255 (Fp8, exact for k/255)',
+          'activeVoxels': vinfo['activeVoxels'], 'occupiedFraction': round(occupied / float(fine.size), 4)}
+    if ninfo:
+        cj.update({'bytes': ninfo['fileBytes'], 'leaves': None})
+        if 'nodeCounts' in ninfo:
+            cj['leaves'] = ninfo['nodeCounts']['leaf']
+    rep = {'vdbBytes': vdb_bytes, 'nvdb': ninfo, 'fineDims': fdims}
+    return {'cloudJson': cj, 'report': rep}
+
+
 # ---------------------------------------------------------------- conversion
 
 def convert(args):
@@ -151,6 +274,15 @@ def convert(args):
 
     sv = float(base.voxelSize()[0]) * args.world_scale   # source voxel size in metres
     tv = float(args.voxel_size) if args.voxel_size else (sv if mode == 'pack' else 8.0)
+    fv = float(args.fine_voxel_size) if args.fine_voxel_size else None
+    ratio = None
+    if fv:
+        if mode != 'fog':
+            fail('--fine-voxel-size is only supported with --mode fog')
+        ratio = int(round(tv / fv))
+        if ratio < 2 or abs(ratio * fv - tv) > 1e-6 * tv:
+            fail(f'--fine-voxel-size {fv} must divide the coarse voxel size {tv} into an integer ratio >= 2 (nested lattices)')
+    rtv = fv if fv else tv   # voxel size the source is resampled to (fine lattice for heroes)
     centre0 = [float(c) * args.world_scale for c in base.indexToPos([0, 0, 0])]
     corner0 = [c - 0.5 * sv for c in centre0]            # world position (hou axes, metres) of the corner of source voxel (0,0,0)
 
@@ -185,7 +317,7 @@ def convert(args):
         arr = fetch(name)
         if scale_to_metres:
             arr = arr * (args.world_scale)
-        arr, t0 = resample_to_target(arr, lo, sv, tv)
+        arr, t0 = resample_to_target(arr, lo, sv, rtv)
         return arr, t0
 
     # --- gather resampled fields (texture order), target lattice origin t0 (hou x,y,z)
@@ -213,6 +345,19 @@ def convert(args):
         detail = fetch_resampled(args.detail_grid)[0] if args.detail_grid else None
         scale = fetch_resampled(args.scale_grid)[0] if args.scale_grid else None
         density = None
+    if fv:
+        # Nested lattices: pad the fine field with zeros so its origin and extents are multiples of the ratio. Each coarse voxel is then
+        # exactly one ratio^3 block of fine voxels (global index // ratio), and the coarse field is derived from the fine one.
+        pads, t0n = [], list(t0)
+        for tex_axis, ha in enumerate([1, 2, 0]):
+            lo_pad = t0[ha] % ratio
+            hi_pad = (-(density.shape[tex_axis] + lo_pad)) % ratio
+            pads.append((lo_pad, hi_pad))
+            t0n[ha] = t0[ha] - lo_pad
+        padf = lambda a: None if a is None else np.pad(a, pads)
+        density, detail, scale = padf(density), padf(detail), padf(scale)
+        mask = density >= args.iso
+        t0 = t0n
     if args.rotate_y:
         # Quarter turns about the up axis (texture arrays are [up, row, x]); lets an elongated cloud face the flagship's side-on bookmarks.
         k = (args.rotate_y // 90) % 4
@@ -223,6 +368,18 @@ def convert(args):
             r8 = rot(r8)
         t0 = [0, 0, 0]   # placement metadata is not tracked through the rotation (the runtime centres the cloud itself)
     timer.lap('read+resample')
+
+    # --- fine hero lattice: profile at the fine voxel size, coarse field by reduction (P8 spec 4.3)
+    r8_fine = depth_fine = r8_coarse_pre = None
+    if fv:
+        r8_fine, depth_fine = fine_profile(mask, fv, args)
+        r8_coarse_pre = nm.reduce_profile_u8(r8_fine, ratio)
+        mask = r8_coarse_pre > 0                      # coarse occupancy = any fine voxel of the block (superset)
+        density = nm.block_mean(density, ratio)
+        detail = None if detail is None else nm.block_mean(detail, ratio)
+        scale = None if scale is None else nm.block_mean(scale, ratio)
+        t0 = [t0[0] // ratio, t0[1] // ratio, t0[2] // ratio]
+        timer.lap('fine profile')
 
     # --- crop (on the occupancy mask)
     b = nm.occupied_bounds(mask.astype(np.uint8), args.margin)
@@ -252,15 +409,18 @@ def convert(args):
         legacy = args.mapping == 'legacy'
         depth_c = np.where(mask_c, np.maximum(-driver, 0.0), 0.0)
         hfrac = nm.height_fraction(mask_c)
-        if legacy:
-            prof_c = nm.profile_from_sdf(driver, mask_c, args.depth, args.gamma)
+        if r8_coarse_pre is not None:
+            r8_c = nm.crop(r8_coarse_pre, cmin, cdims)      # hero: the coarse profile is the reduction of the fine one
         else:
-            noise = nm.smooth_noise(mask_c.shape, nm.PACK_FIT['profile']['corrVox'], args.seed)
-            prof_c = np.where(mask_c, nm.pack_profile(depth_c, hfrac, noise * args.profile_noise), 0.0)
-            prof_c = prof_c * args.profile_gain
-            prof_c = np.clip(prof_c, 0.0, 1.0)
-        r8_c = nm.quantize_unorm8(prof_c)
-        r8_c = np.where(mask_c, np.maximum(r8_c, 1), 0).astype(np.uint8)
+            if legacy:
+                prof_c = nm.profile_from_sdf(driver, mask_c, args.depth, args.gamma)
+            else:
+                noise = nm.smooth_noise(mask_c.shape, nm.corr_voxels(tv), args.seed)
+                prof_c = np.where(mask_c, nm.pack_profile(depth_c, hfrac, noise * args.profile_noise), 0.0)
+                prof_c = prof_c * args.profile_gain
+                prof_c = np.clip(prof_c, 0.0, 1.0)
+            r8_c = nm.quantize_unorm8(prof_c)
+            r8_c = np.where(mask_c, np.maximum(r8_c, 1), 0).astype(np.uint8)
         if detail_c is None:
             detail_c = (nm.detail_from_height(mask_c, args.detail_bottom, args.detail_top) if legacy
                         else nm.pack_detail(depth_c, hfrac))
@@ -291,6 +451,10 @@ def convert(args):
     out.mkdir(parents=True, exist_ok=True)
     (out / 'nvdf.bin').write_bytes(nvdf.tobytes())
     (out / 'sdf.bin').write_bytes(sdf16.astype('<u2').tobytes())
+    fine_meta = None
+    if fv:
+        fine_meta = write_fine(out, r8_fine, depth_fine, cmin, cdims, ratio, fv, tv, corner0, t0, args)
+        timer.lap('fine write')
     name = args.name or out.name
     # target-lattice origin in "source axes" (x, map row, up) = (hou x, hou z, hou y)
     t0_src = [t0[0], t0[2], t0[1]]
@@ -334,8 +498,14 @@ def convert(args):
         },
         'converter': {'script': 'scripts/vdb/vdb_to_nvdf.py', 'mode': mode, 'grid': base_name, 'clampedToGrid': clamped, **extra},
     }
+    if fine_meta:
+        meta['fine'] = fine_meta['cloudJson']
+        meta['converter']['fine'] = {'voxelSizeMeters': fv, 'ratio': ratio, 'coarseFromFine': 'mean of the ratio^3 fine profiles, floored at 1/255 where any is > 0',
+                                     'fineSmoothVoxels': args.fine_smooth, 'corrMeters': nm.PACK_FIT['profile']['corrMeters']}
     (out / 'cloud.json').write_text(json.dumps(meta, indent=2) + '\n')
     timer.lap('write')
+    if fine_meta:
+        report['fine'] = fine_meta['report']
     report.update({'out': str(out), 'dims': cdims, 'cropOffset': crop_offset, 'voxelSizeMeters': tv, 'sourceVoxelSizeMeters': sv,
                    'bytes': int(nvdf.nbytes + sdf16.nbytes), 'occupiedFraction': float(mask_c.mean()), 'seconds': round(timer.total, 3), 'stages': timer.stages})
     print(json.dumps(report, indent=2))
@@ -358,6 +528,11 @@ def parser():
     p.add_argument('--scale-grid', help='density-scale grid (0..1). pack default: density_scale; fog/sdf: optional')
     p.add_argument('--sdf-grid', help='level-set grid. pack default: sdf; sdf mode default: first level set')
     p.add_argument('--sdf-source', choices=['edt', 'vdb'], default='edt', help='pack mode: recompute the SDF from profile > 0 (edt, matches convert.mjs) or resample the VDB sdf grid (vdb)')
+    f = p.add_argument_group('hero clouds (fog mode): fine lattice -> fine.vdb / fine.nvdb, coarse field by reduction')
+    f.add_argument('--fine-voxel-size', type=float, help='fine voxel size in metres (4 or 2); must divide --voxel-size (default 8) into an integer ratio. Writes fine.vdb and fine.nvdb next to nvdf.bin')
+    f.add_argument('--fine-shell', type=float, help='keep fine voxels only within this many metres of the surface (e.g. 40); the coarse field is unaffected')
+    f.add_argument('--drop-fine-vdb', action='store_true', help='delete fine.vdb after fine.nvdb is built and verified (the shipped assets keep only the .nvdb; fine.vdb is reproducible)')
+    f.add_argument('--fine-smooth', type=float, default=1.0, help='gaussian sigma (fine voxels) applied to the fine SDF that drives the profile (default 1)')
     g = p.add_argument_group('fog / sdf modes: deriving the Nubis fields')
     g.add_argument('--density-grid', default='density')
     g.add_argument('--iso', type=float, default=0.05, help='fog: density threshold that defines the cloud surface (default 0.05)')

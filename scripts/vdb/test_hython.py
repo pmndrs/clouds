@@ -53,6 +53,16 @@ def main():
     _, a, _ = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'd1'), '--depth', '24', '--mapping', 'legacy'])
     _, b, _ = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'd2'), '--depth', '200', '--mapping', 'legacy'])
     assert (a[:, 0] == 255).sum() > (b[:, 0] == 255).sum()
+    # hero: 4 m fine lattice (coarse 8 m by reduction); fine.nvdb parity is asserted inside the converter, then re-checked from the files
+    for shell in (None, 24.0):
+        d = os.path.join(tmp, 'fine' if shell is None else 'fine-shell')
+        meta, nvdf, sdf = run(['--mode', 'fog', fog, '--out', d, '--voxel-size', '8', '--fine-voxel-size', '4'] + ([] if shell is None else ['--fine-shell', str(shell)]))
+        check_common(meta, nvdf, sdf, 8.0)
+        f = meta['fine']
+        assert f['ratio'] == 2 and f['dims'] == [2 * n for n in meta['dims']] and f['leaves'] > 0 and f['bytes'] > 0
+        assert os.path.exists(os.path.join(d, 'fine.vdb')) and os.path.exists(os.path.join(d, 'fine.nvdb'))
+        r = subprocess.run([sys.executable, os.path.join(HERE, 'check_parity.py'), '--fine', d], capture_output=True, text=True)
+        assert r.returncode == 0, r.stdout + r.stderr
     print('test_hython: OK')
 
 

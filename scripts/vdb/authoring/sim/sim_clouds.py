@@ -284,11 +284,11 @@ def grow_region(geo, rcp):
     a.parmTuple('size').set([mx[i] - mn[i] for i in range(3)])
 
 
-def convert(name, vdb_path, rcp, assets_dir):
+def convert(name, vdb_path, rcp, assets_dir, extra=()):
     out = os.path.join(assets_dir, name)
     hython = os.path.join(hou.text.expandString('$HFS'), 'bin', 'hython')
     cmd = [hython, CONVERTER, '--mode', 'fog', vdb_path, '--out', out, '--voxel-size', str(rcp.get('voxel', 8)), '--name', name,
-           '--world-scale', str(rcp['world_scale'])] + [str(a) for a in rcp.get('convert', [])]
+           '--world-scale', str(rcp['world_scale'])] + [str(a) for a in rcp.get('convert', [])] + [str(a) for a in extra]
     print('[convert]', ' '.join(cmd))
     r = subprocess.run(cmd, capture_output=True, text=True)
     sys.stdout.write(r.stdout[-1500:])
@@ -417,21 +417,25 @@ def main():
     ap.add_argument('--tag', default='', help='suffix on cache file names (experiments)')
     ap.add_argument('--convert-frame', type=int, help='after the sim, convert this cached frame into assets (default: last)')
     ap.add_argument('--no-convert', action='store_true')
+    ap.add_argument('--fine-voxel-size', type=float, help='hero: also write fine.vdb/fine.nvdb at this voxel size (4 = default hero tier) and derive the coarse field from it')
+    ap.add_argument('--fine-shell', type=float, help='hero: keep fine voxels only this many metres inside the surface')
+    ap.add_argument('--drop-fine-vdb', action='store_true', help='hero: delete fine.vdb after fine.nvdb is verified')
     ap.add_argument('--hip')
     ap.add_argument('--convert-only', metavar='VDB', help='skip the sim: just convert this cached VDB into assets/clouds/heroes/sim-NAME')
     a = ap.parse_args()
+    extra = (['--fine-voxel-size', a.fine_voxel_size] if a.fine_voxel_size else []) + (['--fine-shell', a.fine_shell] if a.fine_shell else []) + (['--drop-fine-vdb'] if a.drop_fine_vdb else [])
     rcp = json.loads(json.dumps(RECIPES[a.name]))
     apply_overrides(rcp, a.set)
     if a.divsize:
         rcp['divsize'] = a.divsize
     if a.convert_only:
-        convert('sim-' + a.name, a.convert_only, rcp, a.assets_dir)
+        convert('sim-' + a.name, a.convert_only, rcp, a.assets_dir, extra)
         return
     outs = [int(x) for x in a.out_frames.split(',')] if a.out_frames else None
     paths, _ = simulate(a.name, rcp, a.work_dir, a.frames, outs, a.tag, a.hip)
     if not a.no_convert:
         cf = a.convert_frame or max(paths)
-        convert('sim-' + a.name, paths[cf], rcp, a.assets_dir)
+        convert('sim-' + a.name, paths[cf], rcp, a.assets_dir, extra)
 
 
 if __name__ == '__main__':
