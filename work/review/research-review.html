@@ -1,0 +1,327 @@
+<title>Cloud Research Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column like a field notebook; a cloud-base "sounding" rule marks each section. */
+:root {
+  --bg: #eef2f6;          /* cool paper, slight sky bias */
+  --panel: #f8fafc;
+  --ink: #18222f;
+  --muted: #566476;
+  --line: #cfd8e3;
+  --sky: #34587f;         /* slate sky, links and structure */
+  --sun: #b7791f;         /* low-sun gold, the one accent */
+  --sun-soft: #f3e3c3;
+  --ok: #2f7a4f; --hold: #a26a12; --skip: #8a3b3b;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544;
+  --sky: #8fb0dd; --sun: #e2a94a; --sun-soft: #3a2c14; --ok: #6cc293; --hold: #e2a94a; --skip: #e08a8a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544;
+  --sky: #8fb0dd; --sun: #e2a94a; --sun-soft: #3a2c14; --ok: #6cc293; --hold: #e2a94a; --skip: #e08a8a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); }
+.wrap { max-width: 940px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.55rem; font-weight: 700; }
+h3 { font-size: 1.08rem; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--sky); }
+code, .mono { font-family: var(--mono); font-size: 0.82em; }
+.eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 14px; }
+.lede { font-size: 1.12rem; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+.stats b { color: var(--ink); font-weight: 500; }
+section { display: grid; gap: 18px; }
+.rule { display: flex; align-items: baseline; gap: 14px; border-top: 2px solid var(--ink); padding-top: 10px; }
+.rule .alt { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); margin-left: auto; white-space: nowrap; }
+ul.find { margin: 0; padding-left: 1.1em; display: grid; gap: 10px; max-width: 72ch; }
+ul.find li::marker { color: var(--sun); }
+.callout { background: var(--sun-soft); border-left: 4px solid var(--sun); padding: 14px 18px; border-radius: 2px; display: grid; gap: 8px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; border-radius: 4px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.card p { font-size: 0.95rem; }
+.items { display: grid; gap: 10px; }
+.item { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; display: grid; grid-template-columns: 2.6rem 1fr; gap: 4px 14px; min-width: 0; }
+.item .rank { font-family: var(--display); font-weight: 800; font-size: 1.35rem; color: var(--muted); grid-row: span 3; font-variant-numeric: tabular-nums; }
+.item .t { font-family: var(--display); font-weight: 700; font-size: 1.02rem; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.item .why { font-size: 0.95rem; color: var(--ink); }
+.item .meta { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); overflow-wrap: anywhere; }
+.tag { font-family: var(--mono); font-size: 0.68rem; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); font-weight: 400; }
+.tag.owner { border-color: var(--sun); color: var(--sun); }
+.controls { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.seg button { font: 500 0.78rem var(--mono); background: transparent; color: var(--muted); border: 0; padding: 5px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"][data-v="go"] { background: var(--ok); color: var(--bg); }
+.seg button[aria-pressed="true"][data-v="hold"] { background: var(--hold); color: var(--bg); }
+.seg button[aria-pressed="true"][data-v="skip"] { background: var(--skip); color: var(--bg); }
+.seg button[aria-pressed="true"][data-v="yes"] { background: var(--ok); color: var(--bg); }
+.seg button[aria-pressed="true"][data-v="no"] { background: var(--skip); color: var(--bg); }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+input.note, textarea { font: 0.92rem/1.45 var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 3px; padding: 6px 9px; width: 100%; box-sizing: border-box; }
+input.note { flex: 1 1 220px; width: auto; min-width: 0; }
+textarea { min-height: 3.2em; resize: vertical; }
+.q { display: grid; gap: 6px; padding: 14px 0; border-top: 1px solid var(--line); }
+.q:first-of-type { border-top: 0; }
+.q .qt { font-weight: 600; }
+.q .ctx { font-size: 0.92rem; color: var(--muted); max-width: 72ch; }
+.qhead { display: flex; gap: 10px; align-items: baseline; }
+.qhead .n { font-family: var(--mono); font-size: 0.78rem; color: var(--sun); min-width: 2.2rem; }
+.status { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+.status.live { color: var(--ok); }
+.saved { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); min-height: 1em; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.tablewrap { overflow-x: auto; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+td.path { font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
+.profile { width: 100%; max-width: 640px; height: auto; }
+.profile text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.profile .lbl { fill: var(--ink); font-size: 12px; }
+@media (max-width: 520px) { .item { grid-template-columns: 1fr; } .item .rank { grid-row: auto; } .controls { grid-column: 1; } }
+@media (prefers-reduced-motion: no-preference) { .seg button { transition: background .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">WebGPU Clouds · research organisation · overnight 2026-10-09 → 10</span>
+  <h1>Cloud Research Review</h1>
+  <p class="lede">The papers, decks and Houdini assets are now extracted, summarised with exact formulas and code pointers, spot-checked against the sources, and folded into five topic guides. No engine code changed. This page asks you for the decisions the next round needs.</p>
+  <div class="stats">
+    <span><b>17</b> source notes</span><span><b>5</b> topic guides</span><span><b>2</b> photo target studies</span><span><b>~120</b> code listings transcribed (local)</span><span><b>11</b> notes reviewed against sources</span><span><b>20</b> ranked next steps</span>
+  </div>
+  <p class="status" id="dbstatus">Answers save as you type once the page connects.</p>
+</header>
+
+<section>
+  <div class="rule"><h2>What we learned</h2><span class="alt">docs/research/topics/README.md</span></div>
+  <ul class="find">
+    <li><b>None of our three density paths runs the Horizon Zero Dawn chain.</b> The procedural path is a Takram / Sky Pro port (one semicircle height profile, only the first noise channel, curl on everything). The sky layer and the voxel path follow Nubis Cubed, not HZD. Step one is an HZD reference shaper built from GPU Pro 7, with the real noise set.</li>
+    <li><b>The real HZD height curves are now known exactly.</b> The Nutshell deck stores them as gradient stops in the slide XML, and the Nubis 2017 in-game strips agree within 0.02. Cumulus is full density from 9% to 65% of the layer height; our profile has no flat core at all. Nubis Cubed slide 18's top and bottom type tables are sampled to data too.</li>
+    <li><b>Surface detail is being thrown away before it reaches the screen.</b> The noise blur constant (0.01) filters our 20 m billows to grey past about 1.2 km, and every cloud in your photos is 4–12 km away. Our march step inside clouds is 2.5–3× coarser than the deck's. Low and mobile tiers cut near-camera detail before its blend finishes (a real bug, confirmed in code).</li>
+    <li><b>Noise can only carry the two finest lobe levels.</b> Your photos step lobes about 3.5× per level (300 → 70 → 20 m). The 300 m and 70 m levels have to be in the shape itself, procedural or authored.</li>
+    <li><b>Guerrilla grew clouds from a thin flat lens at the cloud base</b> (Nubis Cubed s64). The EmberGen CloudPack does the same: one wide lens, one burst, the plume stops itself by cooling and diffusion. Our Pyro sims emit from hot spots, which is why L2 grew chimneys.</li>
+    <li><b>Houdini 21 has cloud tools we never used</b>: cloud shape generate / replicate / from line / from intersection, billowy and wispy cloud noise, cloud clip for bases, VDB morph and reshape. The authoring guide maps each to a detail in your photos.</li>
+    <li><b>Guerrilla's Houdini noise generator</b> (cooked headlessly) is a 1 : 1.7 : 2.3 Worley ladder over a chained Perlin-Worley, tiled by blending edges. Its default TGA export brightens two channels by about 35%; use EXR. psrdnoise can rebuild it with exact periodic tiling.</li>
+    <li><b>Takram is not the target.</b> Recorded in memory, the plan and the agent brief. Every note now compares against the papers. Native ports that claim HZD clouds are surveyed for optional comparison only (Unity HDRP, Frostnova, Volumarcher, Project-Marshmallow).</li>
+  </ul>
+</section>
+
+<section>
+  <div class="rule"><h2>Santa's Sleigh, read as a scene</h2><span class="alt">docs/research/targets/santa-sleigh.md</span></div>
+  <p>The study now treats your hero as several bodies in one line, as you described. Measured from <code>early</code> → <code>middle</code> → <code>end</code> (17:23 to 17:28) and the 105 mm detail pan:</p>
+  <div class="grid2">
+    <div class="card"><h3>The line</h3><p>Head nearest, link next, main body about 1.5× farther. The line recedes right at about 34° to the picture plane, bodies 2–2.5 base-heights apart.</p></div>
+    <div class="card"><h3>Ejection dominates</h3><p>Main tower height ÷ width went 0.48 → 0.68 → 0.76, a rise of about 3 m/s, all on the side facing the head.</p></div>
+    <div class="card"><h3>Shear</h3><p>Every detached turret leans up and toward the head by 30–48°, consistent with the deep body riding faster wind.</p></div>
+    <div class="card"><h3>One life cycle, staggered</h3><p>The head at <code>end</code> matches the main at <code>early</code> (H/W 0.50 vs 0.48). One template set with time offsets could cover all bodies.</p></div>
+    <div class="card"><h3>Edges</h3><p>Lit edges 3–12 m wide; shaded undersides and tails 20–40 m, 3–6× softer. Lobes step about 3.5× per level.</p></div>
+    <div class="card"><h3>Frog</h3><p>Lobing about 2× finer than Santa's. Lit bubbles on shaded faces, a lacy see-through undercut, a dissolving belly with shreds.</p></div>
+  </div>
+  <div class="callout">
+    <h3>One reading to check</h3>
+    <p>Across the five minutes the main body's left edge did not move against the line (within about 1°). The gap closed because the link and the small puffs built into the main, not because the main slid sideways. That may still be the main overtaking along the line of sight. Questions T1–T3 below ask what you saw.</p>
+  </div>
+  <svg class="profile" viewBox="0 0 640 210" role="img" aria-label="Shipped HZD height gradients from the Nutshell slide XML: stratus, stratocumulus and cumulus density versus normalised layer height">
+    <line x1="60" y1="170" x2="620" y2="170" stroke="currentColor" style="stroke:var(--line)"/>
+    <line x1="60" y1="20" x2="60" y2="170" style="stroke:var(--line)"/>
+    <text x="60" y="190">0</text><text x="200" y="190">0.25</text><text x="340" y="190">0.5</text><text x="480" y="190">0.75</text><text x="606" y="190">1.0</text>
+    <text x="8" y="44">full</text><text x="8" y="174">0</text>
+    <text x="250" y="206">normalised height in the layer</text>
+    <!-- x = 60 + h*560 ; full density y=40, zero y=170 -->
+    <polyline fill="none" style="stroke:var(--muted)" stroke-width="2.5" points="71,170 99,40 122,40 161,170"/>
+    <polyline fill="none" style="stroke:var(--sky)" stroke-width="2.5" points="82,170 150,40 239,40 329,170"/>
+    <polyline fill="none" style="stroke:var(--sun)" stroke-width="3" points="66,170 110,40 424,40 508,170"/>
+    <text class="lbl" x="104" y="32">stratus</text><text class="lbl" x="196" y="58">stratocumulus</text><text class="lbl" x="300" y="32">cumulus (flat core 0.09–0.65)</text>
+  </svg>
+  <p class="eyebrow">Shipped HZD height gradients, Nutshell s7–8 slide XML; Nubis 2017 in-game strips agree within 0.02</p>
+</section>
+
+<section>
+  <div class="rule"><h2>Next steps, ranked</h2><span class="alt">approve · hold · skip</span></div>
+  <p>Procedural mastery to HZD level first, with the fixes that make detail visible. Authoring runs in parallel from rank 15. Mark each one; a note is optional. Items tagged <span class="tag owner">needs you</span> depend on a question below.</p>
+  <div class="items" id="items"></div>
+</section>
+
+<section>
+  <div class="rule"><h2>Questions for you</h2><span class="alt">from the five guides</span></div>
+  <div id="qs"></div>
+</section>
+
+<section>
+  <div class="rule"><h2>Questions about your photos</h2><span class="alt">target studies</span></div>
+  <div id="tqs"></div>
+</section>
+
+<section>
+  <div class="rule"><h2>Papers to fetch</h2><span class="alt">downloads need your OK</span></div>
+  <p>From the 2021 survey's bibliography, ranked for shape, layering and detail. Mark the ones you want me to download (or drop them into <code>artifacts/research/papers/</code> yourself).</p>
+  <div class="items" id="fetch"></div>
+</section>
+
+<section>
+  <div class="rule"><h2>Anything else</h2></div>
+  <textarea id="free" aria-label="Free notes" placeholder="Corrections, priorities, things the agents still have wrong."></textarea>
+  <span class="saved" id="free-saved"></span>
+</section>
+
+<section>
+  <div class="rule"><h2>Where things are</h2><span class="alt">branch claude/cloud-research-setup-10bf11</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>What</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Start here: topic map, top 20, all questions</td><td class="path">docs/research/topics/README.md</td></tr>
+      <tr><td>Topic guides</td><td class="path">docs/research/topics/{shape,layering,weather,surface-detail,authoring}.md</td></tr>
+      <tr><td>Nubis Cubed entry note (deck vs runtime diff)</td><td class="path">docs/research/sources/n3.md</td></tr>
+      <tr><td>Source notes (one per paper/deck/tool)</td><td class="path">docs/research/sources/*.md</td></tr>
+      <tr><td>Your photo studies</td><td class="path">docs/research/targets/{santa-sleigh,frog}.md</td></tr>
+      <tr><td>Tracker and index</td><td class="path">docs/research/{TRACKING,README}.md</td></tr>
+      <tr><td>Transcribed code, slide text, renders (local only)</td><td class="path">artifacts/research/extracted/&lt;id&gt;/</td></tr>
+      <tr><td>Extraction scripts</td><td class="path">scripts/research/extract-{pptx.py,pdf.sh}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+</div>
+
+<script>
+const ITEMS = [
+ ["S2","Bake the HZD noise set","Nubis-recipe 128³ RGBA with exact tiling, 32³ Worley detail, 128² curl; plus an RGBA16 / periodic re-bake of the pack noise. Prerequisite for the HZD shaper.","noise, tvn, psrd, n3 s90",false],
+ ["SD1","Noise blur constant 0.01 → 0.0015","Far clouds look plastic: billow noise is filtered to grey beyond about 1.2 km. One number, A/B 0.001–0.005.","n3 s92 · runtime.ts:427",false],
+ ["SD4","Fix the near-detail gate on low/mobile","A dithered density shell around the camera. A bug, confirmed in code.","n3 s104, s109 · march.wgsl.ts:218",false],
+ ["S1","HZD reference shaper in procedural/","GPU Pro 7 chain, Nutshell trapezoids blended by type, coverage sign from HFW, base fade before erosion, curl on detail only. Lets us show HZD side by side for the first time.","gp7, nut, n17, hfw, hzd15, hag",false],
+ ["S5","Nubis defaults for wispyBias and detailBias (0)","Bases are made wispy twice; billows are cut 1.5× deeper than the deck.","n3 s98, s100 · runtime.ts:425, 432",false],
+ ["SD2","Deck step max(1, 0.08√t) inside clouds","Interior lobes undersampled; 20 m features alias past 2.5 km.","n3 s150 · march.wgsl.ts:110",false],
+ ["S6","Curl on detail only (current procedural path)","Torn silhouettes under turbulence, until the HZD shaper lands.","hzd15 s37, gp7 p.108",false],
+ ["S4","Erosion-law A/B (HZD additive vs ValueErosion)","Distant bodies have flat, textureless cores. You judge the stills.","n3 s24, s93, ne22 p.34",true],
+ ["S3","Top × bottom profile tables in the sky layer","No tiered tops; base raggedness tied to species instead of chosen.","n3 s18, ne22 p.21–28",false],
+ ["L1","Decide the weather-map layout","Every later weather and layer item reads these channels; sources disagree on G. See question 1.","hzd15, gp7, n17, nut, hag",true],
+ ["W2","A real weather map for the procedural path","Today's map has no islands, clusters or types. N17 gate × footprints + type channel.","n17 p.53–58, hzd15 s40–46",false],
+ ["L2","One volumetric shell with continuous type","Four summed layers smear where they overlap; no stratus-to-cumulus across the map.","hzd15 s73, gp7 p.98–104",false],
+ ["SD3","Type and density scale from the surface normal (converter + Houdini)","Undersides and overhangs are as crisp as tops; no lacy undercut or skirt.","santa, frog, syn s28",true],
+ ["S7","Anvils (N17 exponent + Häggström density fix)","No anvils outside the hand-built storm cell.","n17 p.46–50, hag eq 17–18",false],
+ ["AU1","Rebuild the Frog with Houdini's cloud nodes; save frog.hip","Heroes lack the 3.5× lobe ladder and real bases; fine noise is baked where the 8 m grid can't hold it.","frog, n3 s66",true],
+ ["AU3","Lens-seeded Pyro test (flat lens, one burst)","L2 chimneys; no flat-based grown heap.","n3 s64, cloudpack-embergen",false],
+ ["AU2","Rigs you can open: builders saved as .hip","You can't inspect or fix what agents built.","your request",true],
+ ["SD6","Metre-scale rim pass (Bouthors)","No cotton fuzz on lit edges; bump size not tied to cloud size.","bou08 p.7, frog F1–F2",false],
+ ["W3","Weather states, scheduler and an HZD bias panel","No weather change, no art direction controls.","n17 p.59–72, hzd15 s38–45",false],
+ ["W1","Weather-map movement as a setting","Motion reads wrong either way. See question 2.","n17 p.45, nut s15, cloud-motion-ideas",true]
+];
+const QS = [
+ ["q01","Weather channel layout","Which meaning for G: precipitation (HZD 2015, GPU Pro 7), a second coverage pattern (Nubis 2017, Nutshell), fill coverage (Häggström), or our species row? Proposal: map A = coverage, top type, bottom type, precipitation; map B = min/max height."],
+ ["q02","Does the weather map move?","Nubis keeps it still and scrolls noise through it; ours moves it rigidly; you observed that detail travels with the cloud. Can you share 2–3 time-lapses (a cumulus crossing, one dissipating)?"],
+ ["q03","Which erosion reads as HZD?","You'd judge A/B stills: HZD remap, Nubis Evolved additive, or ValueErosion cores."],
+ ["q04","Lead and shear direction per asset","For normal-based detail type: take it from the weather wind, the asset's own lean, or paint it?"],
+ ["q05","Distance to judge surface detail at","Your photos' 4–12 km first, or close fly-bys under 1 km first? Both are planned; the order changes."],
+ ["q06","How crisp is crisp?","Lit edges are 3–12 m, only 1–3 pixels at 5–10 km. Is a slightly soft far edge fine if 1 km views are crisp?"],
+ ["q07","Frog pano scale","Was the panorama merged at native scale? Every metre figure for the Frog depends on it."],
+ ["q08","Santa scene domain","One dense grid at 16 m (~200 MB, authored at 8 m) or per-body volumes (runtime work)? Is a 1.5 km base height right?"],
+ ["q09","Sculpt first or grow first?","The plan sculpts the bodies (deterministic, editable) and grows only the arm. Or grow the main body in a sim, accepting less control?"],
+ ["q10","Houdini rigs in git?","Commit .hip networks under houdini/rigs/ (small, Indie-flagged), or keep them local and commit only the builder scripts?"],
+ ["q11","Paint tool for weather overrides","A small page in the repo, or inside an existing tool?"],
+ ["q12","Valley fog layer","Do you want it, at what priority, and do you have valley-fog photos?"]
+];
+const TQS = [
+ ["t01","Sketch orientation","Where were you standing, and which way does slide 4 face? The measured layout fits the sketch only if the camera is at its right edge."],
+ ["t02","Direction of travel","All loose turrets lean up and toward the head. Was the formation drifting left and away from you? (It shrank about 15% in five minutes.)"],
+ ["t03","The catch-up","Did you see the main overtake the line, or did the pieces grow into it? Is there video?"],
+ ["t04","Same formation later?","Are congestus/…173330_DSC00669 and …173342_DSC00678 this formation five minutes after end?"],
+ ["t05","Is end.jpg cropped?","It is a 2048 px export dated 2022-08-02; the original DSC00629 would confirm the 40 mm scale."],
+ ["t06","The early ragged right third","In early, is the unboxed ragged right third of the left cloud what became the link, or the arm?"],
+ ["t07","The trail of small blobs","Is the slide-4 trail the ejected arm plus the free puffs between the link and the main?"],
+ ["t08","Location and base height","Roughly where were you, which way facing, and is the base height known? That turns every distance into metres."],
+ ["t09","Why a frog?","What makes it a frog, and which part is the head?"],
+ ["t10","Frog satellites","Are they breaking off the main body or growing toward it? Any video?"],
+ ["t11","Frog satellite 2","A separate cloud farther away, or attached and lower?"]
+];
+const FETCH = [
+ ["f01","Bouthors & Neyret 2004, Modeling Clouds Shape","Blobs on blobs with fields for size, overlap and bottom flatness: lobes on lobes, flat bases, overlapping bodies."],
+ ["f02","Neyret 2000, A phenomenological shader for cumulus","Why the rim looks the way it does: surface noise, Lambertian corona vs scattered core, light-trap concavities."],
+ ["f03","Goswami & Neyret 2017; Goswami 2019 (cloud map)","Evolving cumulus on a landscape at 200 fps; the closest published work to your merging line."],
+ ["f04","Ebert 1997 / Texturing & Modeling cloud chapter","The implicit-sphere-plus-turbulence recipe with code; the ancestor of ours."],
+ ["f05","Perlin & Hoffert 1989, Hypertexture","Origin of S(D + noise); defines the shaping functions Bouthors names but doesn't specify."],
+ ["f06","Neyret 2003, Advected textures","Detail that moves with the flow without stretching: travelling instead of boiling detail."],
+ ["f07","Schpok et al. 2003","Octave-stack GPU noise; macro/micro animation with wisps straying at edges."],
+ ["f08","Neyret 1997, Qualitative simulation of cloud formation","Bubbles that attract, mix and spawn vortices: the cheapest multi-body interaction model."],
+ ["f09","Duarte & Gomes 2017, cumulus via skewT/LogP","Particles → mesh → voxel distance field with noise; close to our voxel SDF path."],
+ ["f10","Miller et al. 2012, clouds for Puss in Boots","Production recipe: modelled meshes plus procedural noise into sparse VDB."],
+ ["f11","Barbosa et al. 2015, adaptive cloud simulation (PBF)","Particles that merge and split with detail demand: body merge and LOD in one rule."],
+ ["f12","Webanck 2018 supplementary material","The other eight per-type shape functions the paper leaves out."]
+];
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+let db = null; const state = { verdicts:{}, answers:{}, fetch:{} };
+const timers = {};
+function save(coll, id, data, savedEl) {
+  state[coll][id] = Object.assign({}, state[coll][id] || {}, data);
+  if (!db) { if (savedEl) savedEl.textContent = "not saved: page not connected"; return; }
+  clearTimeout(timers[coll+id]);
+  timers[coll+id] = setTimeout(async () => {
+    try { await db.collection(coll).doc(id).set(Object.assign({ at: new Date().toISOString() }, state[coll][id])); if (savedEl) savedEl.textContent = "saved"; }
+    catch (e) { if (savedEl) savedEl.textContent = "not saved: " + (e && e.code || "error"); }
+  }, 600);
+}
+function seg(opts, current, onPick, label) {
+  const w = document.createElement("div"); w.className = "seg"; w.setAttribute("role","group"); w.setAttribute("aria-label", label);
+  for (const [v, t] of opts) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.v = v; b.textContent = t;
+    b.setAttribute("aria-pressed", String(current === v));
+    b.addEventListener("click", () => { const on = b.getAttribute("aria-pressed") !== "true"; w.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed","false")); if (on) b.setAttribute("aria-pressed","true"); onPick(on ? v : ""); });
+    w.append(b);
+  }
+  return w;
+}
+function render() {
+  const items = $("#items"); items.textContent = "";
+  ITEMS.forEach(([id, title, why, src, owner], i) => {
+    const st = state.verdicts[id] || {};
+    const el = document.createElement("div"); el.className = "item";
+    el.innerHTML = `<div class="rank">${i+1}</div><div class="t">${esc(title)} <span class="tag">${id}</span>${owner ? '<span class="tag owner">needs you</span>' : ""}</div><p class="why">${esc(why)}</p><div class="meta">${esc(src)}</div>`;
+    const c = document.createElement("div"); c.className = "controls";
+    const saved = document.createElement("span"); saved.className = "saved";
+    c.append(seg([["go","approve"],["hold","hold"],["skip","skip"]], st.verdict || "", v => save("verdicts", id, { verdict: v, rank: i+1, title }, saved), "Verdict for " + title));
+    const note = document.createElement("input"); note.className = "note"; note.id = "note-" + id; note.placeholder = "note (optional)"; note.value = st.note || ""; note.setAttribute("aria-label", "Note for " + title);
+    note.addEventListener("input", () => save("verdicts", id, { note: note.value, rank: i+1, title }, saved));
+    c.append(note, saved); el.append(c); items.append(el);
+  });
+  const qblock = (host, list, coll) => { host.textContent = ""; list.forEach(([id, q, ctx], i) => {
+    const st = state.answers[id] || {};
+    const el = document.createElement("div"); el.className = "q";
+    el.innerHTML = `<div class="qhead"><span class="n">${id.toUpperCase()}</span><span class="qt">${esc(q)}</span></div><p class="ctx">${esc(ctx)}</p>`;
+    const ta = document.createElement("textarea"); ta.id = "ans-" + id; ta.value = st.text || ""; ta.setAttribute("aria-label", q);
+    const saved = document.createElement("span"); saved.className = "saved";
+    ta.addEventListener("input", () => save("answers", id, { text: ta.value, question: q }, saved));
+    el.append(ta, saved); host.append(el);
+  }); };
+  qblock($("#qs"), QS); qblock($("#tqs"), TQS);
+  const f = $("#fetch"); f.textContent = "";
+  FETCH.forEach(([id, t, why], i) => {
+    const st = state.fetch[id] || {};
+    const el = document.createElement("div"); el.className = "item";
+    el.innerHTML = `<div class="rank">${i+1}</div><div class="t">${esc(t)}</div><p class="why">${esc(why)}</p><div class="meta"></div>`;
+    const c = document.createElement("div"); c.className = "controls"; const saved = document.createElement("span"); saved.className = "saved";
+    c.append(seg([["yes","fetch"],["no","skip"]], st.choice || "", v => save("fetch", id, { choice: v, title: t }, saved), "Fetch " + t), saved);
+    el.append(c); f.append(el);
+  });
+  const free = $("#free"); free.value = (state.answers.free || {}).text || "";
+}
+$("#free").addEventListener("input", e => save("answers", "free", { text: e.target.value, question: "Anything else" }, $("#free-saved")));
+render();
+(async () => {
+  try {
+    db = await (window.claude && window.claude.use ? window.claude.use("db") : null);
+    if (!db) { $("#dbstatus").textContent = "Not connected: answers on this page won't be saved. Open it in claude.ai while signed in."; return; }
+    for (const c of ["verdicts","answers","fetch"]) {
+      try { const snap = await db.collection(c).get(); snap.docs.forEach(d => { state[c][d.id] = Object.assign({}, d.data()); }); } catch (e) {}
+    }
+    render();
+    $("#dbstatus").textContent = "Connected: answers save as you type."; $("#dbstatus").classList.add("live");
+  } catch (e) { $("#dbstatus").textContent = "Not connected: answers on this page won't be saved."; }
+})();
+</script>

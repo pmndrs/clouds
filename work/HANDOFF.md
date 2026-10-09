@@ -1,4 +1,34 @@
-# Orchestrator handoff (2026-10-09, night)
+# Orchestrator handoff (2026-10-10, early morning)
+
+For the next orchestrator session. Read this, then `docs/research/topics/README.md` (topic map, combined top-20, all owner questions), `work/README.md` (protocol) and `docs/PLAN-2026-10-next.md`.
+
+## State
+
+- **Branch:** `claude/cloud-research-setup-10bf11` (worktree `.claude/worktrees/cloud-research-setup-10bf11`). It fast-forwarded from the audit branch's 0dbc220 and carries all of the research work below. The audit worktree is stale.
+- **Research organisation is done (RS-0 to RS-6, plus RS-T, RS-V, RS-N).** No engine code changed. All agents are stopped.
+  - 17 source notes in `docs/research/sources/` (n3 split by section plus the `n3.md` entry note with the deck-vs-runtime diff), 11 of them spot-checked by Opus against the sources.
+  - 5 topic guides in `docs/research/topics/` with ranked try-next lists, merged into a combined top-20 in `topics/README.md`.
+  - Owner photo studies: `docs/research/targets/santa-sleigh.md` (the hero is a multi-body merging line, not one tower) and `frog.md`.
+  - Also: `native-implementations.md` (comparison only), `cloudpack-embergen.md` (EmberGen VDBs, Z-up), Houdini 21 cloud-node dumps in `artifacts/research/extracted/houdini/`.
+- **Owner review page:** https://claude.ai/artifact/SUx3sFPuiHSBEARrFHhsfS (source `work/review/research-review.html`). Read its database with `ArtifactData`: `verdicts` (doc id = top-20 item id, `{verdict: go|hold|skip, note, rank}`), `answers` (`q01`–`q12` guide questions, `t01`–`t11` photo questions, `free`; `{text}`), `fetch` (`f01`–`f12` papers; `{choice: yes|no}`). The older review https://claude.ai/artifact/J3Ybc83B1HbCXwxjyQ3Fp4 was still empty on 2026-10-10.
+
+## Next steps, in order
+
+1. Read the owner's verdicts and answers. Ask before acting on partial answers.
+2. Start the approved top-20 items as board tasks. Ranks 1–7 need no owner input (noise set bake, noise blur constant, the low/mobile near-detail gate bug, the `hzd` reference shaper, Nubis art-bias defaults, deck step size, curl on detail only).
+3. Fetch the papers the owner approves (downloads need their OK).
+4. Carry over: P9-E2 cirrus brush strokes and L2 library regrow are still paused (see below). L2 should switch to lens-seeded Pyro (authoring AU3).
+
+## Owner direction added 2026-10-10
+
+- **Takram is not the target.** HZD and the owner's photos are. Takram and Sky Pro are simplified single-type takes on HZD; never tune toward them.
+- **Procedural mastery first**, Houdini authoring in parallel (Houdini has many cloud tools beyond Pyro), and save rigs as `.hip` files the owner can open.
+- The hero is a scene of several bodies; see the target study.
+
+---
+
+# Previous handoff (2026-10-09, night)
+
 
 For the next orchestrator session. Read this, then `work/README.md` (protocol), `docs/PLAN-2026-10-next.md` (roadmap and owner direction), `docs/research/README.md` and `docs/research/TRACKING.md`.
 
