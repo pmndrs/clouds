@@ -1,0 +1,154 @@
+{
+  "url": "http://127.0.0.1:58176/vdb-drop/?url=/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/webgpu-cloud-audit-8c9f29/artifacts/research/disney-cloud/wdas_cloud_eighth.vdb&fine=4&width=1500",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T09:42:20.179Z",
+  "shots": [
+    {
+      "name": "edge",
+      "file": "work/captures/P13-H3/vdb-drop-eighth-4m/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7952940833333333,
+          "lightGridReduce": 0.10487,
+          "lightGrid": 0.760548,
+          "marchNear": 0.1762570166666667,
+          "marchFar": 1.9806078999999996,
+          "shadowMap": 0.04486624242424242,
+          "composite": 0.44818615,
+          "dome": 0.2057203833333333,
+          "resolveNear": 0.0730843,
+          "resolveFar": 0.12740905
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "frames": 106,
+        "cloudsReady": true,
+        "source": "wdas_cloud_eighth.vdb",
+        "options": {
+          "voxelSize": 8,
+          "mode": "auto",
+          "fineVoxelSize": 4,
+          "targetWidthMeters": 1500
+        },
+        "import": {
+          "mode": "fog",
+          "fileVersion": 223,
+          "fileBytes": 10032545,
+          "grids": [
+            {
+              "name": "density",
+              "valueType": "float",
+              "gridClass": "fog volume",
+              "voxelSize": [
+                1.6666666269302368,
+                1.6666666269302368,
+                1.6666666269302368
+              ],
+              "indexBBox": {
+                "min": [
+                  -131,
+                  -41,
+                  -179
+                ],
+                "max": [
+                  118,
+                  128,
+                  127
+                ]
+              },
+              "compression": "none",
+              "unsupported": null,
+              "role": "density"
+            }
+          ],
+          "baseGrid": "density",
+          "sourceVoxelSizeMeters": [
+            4.88599348534202,
+            4.88599348534202,
+            4.88599348534202
+          ],
+          "voxelSizeMeters": 8,
+          "worldScale": 2.931596161099911,
+          "sourceWidthMeters": 1500,
+          "dims": [
+            167,
+            201,
+            118
+          ],
+          "cropOffset": [
+            -87,
+            -115,
+            -31
+          ],
+          "occupiedMin": [
+            8,
+            8,
+            8
+          ],
+          "occupiedMax": [
+            158,
+            192,
+            109
+          ],
+          "occupiedFraction": 0.17365294707826948,
+          "sizeMeters": [
+            1336,
+            944,
+            1608
+          ],
+          "houdiniMinMeters": [
+            -698.442996742671,
+            -250.442996742671,
+            -922.442996742671
+          ],
+          "densityRef": 0.9170746207237244,
+          "notes": [],
+          "timings": {
+            "parseMs": 23.400000005960464,
+            "resampleMs": 225.5,
+            "channelsMs": 6093.5,
+            "totalMs": 6668.199999988079,
+            "uploadMs": 19,
+            "sdfGpuMs": 20,
+            "fineMs": 286.40000000596046
+          },
+          "fine": {
+            "voxelSizeMeters": 4,
+            "dims": [
+              334,
+              402,
+              236
+            ],
+            "occupiedFraction": 0.16423041849516248,
+            "bricks": 16158,
+            "gpuBytes": 65793040
+          }
+        },
+        "pageMs": {
+          "readMs": 42.89999997615814,
+          "importWallMs": 6678.5999999940395,
+          "firstFrameMs": 38.80000001192093
+        },
+        "error": null,
+        "compare": null
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

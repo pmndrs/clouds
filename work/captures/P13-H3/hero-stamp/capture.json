@@ -1,0 +1,736 @@
+{
+  "url": "http://127.0.0.1:57971/runtime-tests/hero-stamp/?hud=0&deterministic=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T09:41:56.457Z",
+  "shots": [
+    {
+      "name": "direct-coarse@close",
+      "file": "work/captures/P13-H3/hero-stamp/direct-coarse@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.052082,
+          "lightGrid": 0.054539,
+          "marchNear": 0.34737,
+          "marchFar": 1.53506,
+          "shadowMap": 0.03179,
+          "composite": 0.336495,
+          "dome": 0.114833,
+          "resolveNear": 0.046916,
+          "resolveFar": 0.064416
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "direct-coarse@close",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "direct-fine@close",
+      "file": "work/captures/P13-H3/hero-stamp/direct-fine@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.052082,
+          "lightGrid": 0.054539,
+          "marchNear": 0.458618,
+          "marchFar": 2.197008,
+          "shadowMap": 0.03179,
+          "composite": 0.424869,
+          "dome": 0.122957,
+          "resolveNear": 0.049708,
+          "resolveFar": 0.081998
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "direct-fine@close",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "direct-coarse@top",
+      "file": "work/captures/P13-H3/hero-stamp/direct-coarse@top.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.052082,
+          "lightGrid": 0.054539,
+          "marchNear": 0.192081,
+          "marchFar": 1.471978,
+          "shadowMap": 0.03179,
+          "composite": 0.397952,
+          "dome": 0.107623,
+          "resolveNear": 0.049958,
+          "resolveFar": 0.081789
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "direct-coarse@top",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "direct-fine@top",
+      "file": "work/captures/P13-H3/hero-stamp/direct-fine@top.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.052082,
+          "lightGrid": 0.054539,
+          "marchNear": 0.214664,
+          "marchFar": 1.806557,
+          "shadowMap": 0.03179,
+          "composite": 0.419577,
+          "dome": 0.106665,
+          "resolveNear": 0.051542,
+          "resolveFar": 0.083457
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "direct-fine@top",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "region-fine@far",
+      "file": "work/captures/P13-H3/hero-stamp/region-fine@far.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.094249,
+          "lightGrid": 3.096453,
+          "marchNear": 0.175456,
+          "marchFar": 1.410061,
+          "shadowMap": 0.022334,
+          "composite": 0.525409,
+          "dome": 0.139706,
+          "resolveNear": 0.071457,
+          "resolveFar": 0.121665
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "region-fine@far",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "region-coarse@close",
+      "file": "work/captures/P13-H3/hero-stamp/region-coarse@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.094249,
+          "lightGrid": 3.096453,
+          "marchNear": 0.468618,
+          "marchFar": 2.062094,
+          "shadowMap": 0.015542,
+          "composite": 0.425744,
+          "dome": 0.153415,
+          "resolveNear": 0.049249,
+          "resolveFar": 0.082124
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "region-coarse@close",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "region-fine@close",
+      "file": "work/captures/P13-H3/hero-stamp/region-fine@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.094249,
+          "lightGrid": 3.096453,
+          "marchNear": 0.41866,
+          "marchFar": 2.277465,
+          "shadowMap": 0.015542,
+          "composite": 0.32937,
+          "dome": 0.130414,
+          "resolveNear": 0.040875,
+          "resolveFar": 0.06654
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "region-fine@close",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    },
+    {
+      "name": "alone-fine@close",
+      "file": "work/captures/P13-H3/hero-stamp/alone-fine@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.073624,
+          "lightGrid": 1.222647,
+          "marchNear": 0.483577,
+          "marchFar": 2.159675,
+          "shadowMap": 0.012541,
+          "composite": 0.32887,
+          "dome": 0.118623,
+          "resolveNear": 0.041791,
+          "resolveFar": 0.066666
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "alone-fine@close",
+        "quality": "high",
+        "notes": [
+          "disney-fine: coarse 110x92x63 @ 8 m, fine 220x184x126 @ 4 m, 3264 leaves -> 4181 bricks (margin 3), pool+indirection 19.6 MB (payload 15.9 MB); loader CPU 37.2 ms (decode + pack), wall 50 ms incl. fetch",
+          "PASS fill: hero pool R equals the decoded lattice (79781 texels sampled, 0 differ, 0 set voxels without a brick)",
+          "PASS fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| 0/255)",
+          "PASS exact stamp 0: fine layer stamped ({\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0})",
+          "PASS exact stamp 1: fine layer stamped ({\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0})",
+          "PASS exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (0 mismatches)",
+          "PASS exact: every hero fine voxel reads the same profile through the stamped overlay (10200960 voxels, 2256868 set, 0 mismatches)",
+          "PASS exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (2432144 voxels, 0 differ)",
+          "exact stamps: {\"position\":[456,276,408],\"yaw\":0,\"bricks\":5365,\"added\":5365,\"rebuilt\":0}; {\"position\":[1320,284,488],\"yaw\":1.5707963267948966,\"bricks\":9888,\"added\":4523,\"rebuilt\":0}",
+          "region stamps: A {\"position\":[704,252,1104],\"yaw\":0,\"bricks\":4479,\"added\":4479,\"rebuilt\":0} 9 ms; B {\"position\":[1752,292,1000],\"yaw\":1.5707963267948966,\"bricks\":9491,\"added\":5012,\"rebuilt\":0} 7 ms; C {\"position\":[1904,332,1504],\"yaw\":3.141592653589793,\"bricks\":14204,\"added\":4713,\"rebuilt\":1326} 9 ms; region pool 55.2 MB",
+          "PASS sdf: GPU SDF never overshoots the CPU EDT of the stamped coarse mask (8847360 voxels, max over -4.000 m, 0 over, 0 sign flips)",
+          "PASS sdf: fine occupancy inside coarse occupancy after the stamps (3259762 fine voxels set, 0 in empty coarse voxels)",
+          "PASS sdf: no empty brick texels deep inside the coarse cloud (1168736 deep texels, 0 empty)",
+          "views: flank 788,204,388 top 540,452,380 (box-local metres)"
+        ],
+        "loader": {
+          "loadMs": 37.20000001788139,
+          "wallMs": 49.80000001192093,
+          "leaves": 3264,
+          "bricks": 4181,
+          "bytes": 20521216
+        },
+        "region": [
+          {
+            "position": [
+              704,
+              252,
+              1104
+            ],
+            "yaw": 0,
+            "bricks": 4479,
+            "added": 4479,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1752,
+              292,
+              1000
+            ],
+            "yaw": 1.5707963267948966,
+            "bricks": 9491,
+            "added": 5012,
+            "rebuilt": 0
+          },
+          {
+            "position": [
+              1904,
+              332,
+              1504
+            ],
+            "yaw": 3.141592653589793,
+            "bricks": 14204,
+            "added": 4713,
+            "rebuilt": 1326
+          }
+        ],
+        "stampMs": [
+          8.5,
+          6.600000023841858,
+          9.299999982118607
+        ]
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

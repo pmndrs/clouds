@@ -1,0 +1,154 @@
+{
+  "url": "http://127.0.0.1:54333/flagship/?cloud=disney-fine&quality=high&s.fineDistance=0",
+  "size": [
+    2560,
+    1440
+  ],
+  "startedAt": "2026-10-09T09:33:31.748Z",
+  "shots": [
+    {
+      "name": "edge",
+      "file": "work/captures/scratch/h3-cost/coarse-3/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.8548243166666671,
+          "skyCompute": 0.216414,
+          "lightGridReduce": 0.042828,
+          "lightGrid": 0.042288,
+          "marchNear": 0.26856323333333326,
+          "marchFar": 0.8437691000000002,
+          "shadowMap": 0.08919508695652173,
+          "composite": 0.5590900666666665,
+          "dome": 0.16891831666666668,
+          "resolveNear": 0.08610636666666666,
+          "resolveFar": 0.1452436
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.042828,
+          "lightGrid": 0.042288,
+          "marchNear": 0.293453,
+          "marchFar": 0.873737,
+          "shadowMap": 0.12283,
+          "composite": 0.571033,
+          "dome": 0.154123,
+          "resolveNear": 0.103415,
+          "resolveFar": 0.146748
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "last": 16.700000000000273
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 21802824,
+          "trace": 2728716,
+          "sky": 22118400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1943040,
+          "shadow": 8388608,
+          "total": 57505876
+        },
+        "cloud": "disney-fine",
+        "frames": 154,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 154,
+          "bytes": 24531540
+        },
+        "assetLoadMs": 53.099999994039536,
+        "firstCloudFrameMs": 42.599999994039536
+      }
+    },
+    {
+      "name": "inside",
+      "file": "work/captures/scratch/h3-cost/coarse-3/inside.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.5113278166666668,
+          "skyCompute": 0.135873,
+          "lightGridReduce": 0.042828,
+          "lightGrid": 0.042288,
+          "marchNear": 1.2322422166666664,
+          "marchFar": 0.35426618333333343,
+          "shadowMap": 0.08919508695652173,
+          "composite": 0.5840439333333334,
+          "dome": 0.14424518333333333,
+          "resolveNear": 0.07517940000000002,
+          "resolveFar": 0.1364117833333333
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.042828,
+          "lightGrid": 0.042288,
+          "marchNear": 1.234064,
+          "marchFar": 0.345329,
+          "shadowMap": 0.12283,
+          "composite": 0.577117,
+          "dome": 0.124165,
+          "resolveNear": 0.075249,
+          "resolveFar": 0.131748
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.700000000000728
+        },
+        "renderSize": [
+          2560,
+          1440
+        ],
+        "bookmark": "inside",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 21802824,
+          "trace": 2728716,
+          "sky": 22118400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1943040,
+          "shadow": 8388608,
+          "total": 57505876
+        },
+        "cloud": "disney-fine",
+        "frames": 309,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 3,
+          "frames": 309,
+          "bytes": 24531540
+        },
+        "assetLoadMs": 53.099999994039536,
+        "firstCloudFrameMs": 42.599999994039536
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
