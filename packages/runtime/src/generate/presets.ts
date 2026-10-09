@@ -28,7 +28,9 @@ export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
   // Fair-weather cumulus in clusters with clear gaps: humilis puffs and mediocris of 0.5-1.3 km with several turrets (the species field spans
   // humilis to mediocris), scraps at their rims, one flat base, a slight lean downwind. Cover 30-40 percent (P9-C; P9-B left it at 22).
   cumulus: {
-    weather: { scale: 2, cellular: 1, cellScale: 10, coverageLo: 0.42, coverageHi: 0.82, fractus: 0.6, lobeSplit: 0.8, speciesRange: [0.55, 0.78], wind: [2, 1] },
+    // Q2: larger structure (cellScale 10 -> 5, cluster scale 2 -> 1.5, fractus 0.6 -> 0.3): next to Takram and the midday photos the field read as
+    // many scattered small puffs. Variety (scripts/variety.mjs, cloudscape-gen): clone 0.47 -> 0.54, CV 1.37 -> 1.54, cover 29 -> 26%, 118 -> 42 lobes.
+    weather: { scale: 1.5, cellular: 1, cellScale: 5, coverageLo: 0.36, coverageHi: 0.82, fractus: 0.3, lobeSplit: 0.8, speciesRange: [0.55, 0.78], wind: [2, 1] },
     params: { profiles: true, baseDefault: 0.08, billowAmp: 0.4, billowCellMeters: 450, coverageThreshold: 0.15, baseLift: 0.03, shearX: 0.08, shearY: 0.04 },
   },
   // Cumulus humilis only: small, flat puffs, wider than tall, many of them.

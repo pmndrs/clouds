@@ -57,9 +57,14 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     const encoder = device.createCommandEncoder();
     weatherOpts = { ...preset.weather, coverageLo: cov.lo, coverageHi: cov.hi, size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}) };
     params = { ...preset.params, seed };
+    // ?w_<key>=N / ?p_<key>=N override a weather option / generator parameter of the preset (look experiments, as on the species page).
+    for (const [k, v] of query) {
+      if (k.startsWith('w_')) (weatherOpts as unknown as Record<string, number>)[k.slice(2)] = Number(v);
+      if (k.startsWith('p_')) (params as Record<string, number>)[k.slice(2)] = Number(v);
+    }
     const weather = encodeProceduralWeatherMap(device, encoder, weatherOpts);
     device.queue.submit([encoder.finish()]);
-    gen = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params: { ...preset.params, seed } });
+    gen = createVolumeGenerator(device, { dims: FIELD.dims, voxelSize: FIELD.voxel, weather, sliceDepth: 4, params });
     state.weatherKey = cov.lo.toFixed(3);
     appliedCoverage = coverage;
     stepGen = () => {
