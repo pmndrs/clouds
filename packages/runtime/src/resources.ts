@@ -1,6 +1,6 @@
 import type { CloudNoiseAsset, CloudVolumeAsset } from './assets';
 import { toHalfBitsRoundDown } from './half';
-import type { GpuFineOverlay } from './hero/overlay';
+import { uploadFineProfile, type GpuFineOverlay } from './hero/overlay';
 
 /** A cloud volume on the GPU. Texture axes are source axes (x, map row, up); see work/specs/P1-runtime.md. */
 export interface GpuCloudVolume {
@@ -30,10 +30,13 @@ export function uploadCloudVolume(device: GPUDevice, asset: CloudVolumeAsset): G
   const sdf = device.createTexture({ label: `${asset.name} sdf`, dimension: '3d', format: 'r16float', size, usage });
   device.queue.writeTexture({ texture: sdf }, halfs, { bytesPerRow: w * 2, rowsPerImage: h }, size);
   const v = asset.voxelSizeMeters;
+  // P13-H3: the fine hero profile (owned by this volume): bricks plus the coarse G/B, filled on the GPU.
+  const fine = asset.fine && uploadFineProfile(device, asset.fine.bricks, nvdf, asset.dims, asset.name);
   return {
     nvdf, sdf, dims: [w, h, d], voxelSize: v,
     extentMeters: [w * v, d * v, h * v],
-    destroy() { nvdf.destroy(); sdf.destroy(); },
+    ...(fine ? { fine } : {}),
+    destroy() { nvdf.destroy(); sdf.destroy(); fine?.destroy(); },
   };
 }
 

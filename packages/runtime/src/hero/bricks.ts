@@ -49,25 +49,7 @@ export function packFineBricks(rgba: Uint8Array, dims: readonly [number, number,
   const cells: [number, number, number] = [Math.ceil(nx / 8), Math.ceil(ny / 8), Math.ceil(nz / 8)];
   const [cx, cy, cz] = cells;
   const nCells = cx * cy * cz;
-  const used = new Uint8Array(nCells);
-  if (options.all) used.fill(1);
-  else {
-    const m = options.margin ?? 1;
-    // Cells c with 8c - m <= i < 8c + 8 + m, per axis.
-    const range = (n: number, cn: number) => {
-      const lo = new Int32Array(n), hi = new Int32Array(n);
-      for (let i = 0; i < n; i++) { lo[i] = Math.max(0, Math.ceil((i - 7 - m) / 8)); hi[i] = Math.min(cn - 1, Math.floor((i + m) / 8)); }
-      return [lo, hi];
-    };
-    const [xl, xh] = range(nx, cx), [yl, yh] = range(ny, cy), [zl, zh] = range(nz, cz);
-    for (let z = 0; z < nz; z++) for (let y = 0; y < ny; y++) {
-      const row = (z * ny + y) * nx;
-      for (let x = 0; x < nx; x++) {
-        if (!rgba[(row + x) * 4]) continue;
-        for (let c2 = zl[z]; c2 <= zh[z]; c2++) for (let c1 = yl[y]; c1 <= yh[y]; c1++) for (let c0 = xl[x]; c0 <= xh[x]; c0++) used[(c2 * cy + c1) * cx + c0] = 1;
-      }
-    }
-  }
+  const used = options.all ? new Uint8Array(nCells).fill(1) : markCells(rgba, 4, dims, cells, options.margin ?? 1);
   const indir = new Uint32Array(nCells).fill(HERO_EMPTY);
   let count = 0;
   for (let i = 0; i < nCells; i++) if (used[i] && (!options.keep || options.keep(i))) indir[i] = count++;
@@ -92,6 +74,81 @@ export function packFineBricks(rgba: Uint8Array, dims: readonly [number, number,
     }
   }
   return { fineVoxel, cells, indir, count, slabs };
+}
+
+/** Cells (x fastest) with a voxel of `data[i * stride] > 0` within `m` voxels of their 8^3 payload: 8c - m <= i < 8c + 8 + m per axis. */
+function markCells(data: Uint8Array, stride: number, dims: readonly [number, number, number], cells: readonly [number, number, number], m: number): Uint8Array {
+  const [nx, ny, nz] = dims, [cx, cy, cz] = cells;
+  const used = new Uint8Array(cx * cy * cz);
+  const lo = (i: number) => Math.max(0, Math.ceil((i - 7 - m) / 8)), hi = (i: number, cn: number) => Math.min(cn - 1, Math.floor((i + m) / 8));
+  // Per row (y, z): the x cells its set voxels reach, then OR that row mask into the (y, z) cell rows the row reaches.
+  const xm = new Uint8Array(cx);
+  for (let z = 0; z < nz; z++) for (let y = 0; y < ny; y++) {
+    const row = (z * ny + y) * nx;
+    let any = false, last = -1;
+    for (let x = 0; x < nx; x++) {
+      if (!data[(row + x) * stride]) continue;
+      if (!any) { xm.fill(0); any = true; }
+      // Cells for x; a run of set voxels marks lo(first)..hi(last), so only the run ends matter.
+      if (x !== last + 1) for (let c = lo(x); c <= hi(x, cx); c++) xm[c] = 1;
+      else xm[hi(x, cx)] = 1;
+      last = x;
+    }
+    if (!any) continue;
+    for (let c2 = lo(z); c2 <= hi(z, cz); c2++) for (let c1 = lo(y); c1 <= hi(y, cy); c1++) {
+      const o = (c2 * cy + c1) * cx;
+      for (let c0 = 0; c0 < cx; c0++) used[o + c0] |= xm[c0];
+    }
+  }
+  return used;
+}
+
+/**
+ * A fine profile packed into bricks, R only (P13-H3): the loaders' form. `profile` holds 1,000 bytes per brick (texel (tx, ty, tz) at
+ * tx + 10 ty + 100 tz, payload plus apron, clamped at the lattice faces like `packFineBricks`), `cellOf` each brick's cell index. G and B
+ * are filled on the GPU from the coarse NVDF at upload (`uploadFineProfile`), so the CPU never touches four bytes per texel.
+ */
+export interface FineProfileBricks {
+  fineVoxel: number;
+  /** Fine lattice dims, texture axes. */
+  dims: [number, number, number];
+  cells: [number, number, number];
+  indir: Uint32Array<ArrayBuffer>;
+  count: number;
+  profile: Uint8Array<ArrayBuffer>;
+  cellOf: Uint32Array<ArrayBuffer>;
+}
+
+/**
+ * Pack a dense fine profile lattice (uint8, texture axes, x fastest) into R-only bricks. A cell gets a brick when a set voxel lies within
+ * `margin` voxels of it; loaders pass ceil(1.5 * coarse / fine) (3 at 4 m under 8 m) so the coarse field's filtered halo never shows in an
+ * empty cell next to a brick (P13-H1 note).
+ */
+export function packFineProfile(profile: Uint8Array, dims: readonly [number, number, number], fineVoxel: number, margin = 1): FineProfileBricks {
+  const [nx, ny, nz] = dims;
+  if (profile.length < nx * ny * nz) throw new Error(`packFineProfile: lattice has ${profile.length} bytes, dims need ${nx * ny * nz}`);
+  const cells: [number, number, number] = [Math.ceil(nx / 8), Math.ceil(ny / 8), Math.ceil(nz / 8)];
+  const [cx, cy, cz] = cells;
+  const used = markCells(profile, 1, dims, cells, margin);
+  const indir = new Uint32Array(cx * cy * cz).fill(HERO_EMPTY);
+  let count = 0;
+  for (let i = 0; i < used.length; i++) if (used[i]) indir[i] = count++;
+  if (count > POOL_SLAB_BRICKS * 204) throw new Error(`packFineProfile: ${count} bricks, over the pool limit (204 slabs)`);
+  const out = new Uint8Array(count * 1000), cellOf = new Uint32Array(count);
+  const clampIdx = (c: number, n: number, o: Int32Array) => { for (let t = 0; t < BRICK_TEXELS; t++) o[t] = Math.min(n - 1, Math.max(0, c * 8 - 1 + t)); };
+  const ix = new Int32Array(BRICK_TEXELS), iy = new Int32Array(BRICK_TEXELS), iz = new Int32Array(BRICK_TEXELS);
+  for (let c2 = 0; c2 < cz; c2++) for (let c1 = 0; c1 < cy; c1++) for (let c0 = 0; c0 < cx; c0++) {
+    const cell = (c2 * cy + c1) * cx + c0, s = indir[cell];
+    if (s === HERO_EMPTY) continue;
+    cellOf[s] = cell;
+    clampIdx(c0, nx, ix); clampIdx(c1, ny, iy); clampIdx(c2, nz, iz);
+    let o = s * 1000;
+    for (let tz = 0; tz < BRICK_TEXELS; tz++) for (let ty = 0; ty < BRICK_TEXELS; ty++) {
+      const row = (iz[tz] * ny + iy[ty]) * nx;
+      for (let tx = 0; tx < BRICK_TEXELS; tx++) out[o++] = profile[row + ix[tx]];
+    }
+  }
+  return { fineVoxel, dims: [nx, ny, nz], cells, indir, count, profile: out, cellOf };
 }
 
 /**
