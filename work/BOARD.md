@@ -1574,7 +1574,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The minified build passes the packed consumer, and a dist-built page renders identically (capture A/B).
   - `pnpm check` green.
 
-### [x] T4 Layered sunset scene · Opus (worker: claude-opus T4; report: work/reports/T4.md)
+### [~] T4 Layered sunset scene · Opus (living target: re-shot after every quality pass, never "done") (worker: claude-opus T4; report: work/reports/T4.md)
 - **Owns:**
   - a new `examples/lab/sunset/` page and its vite input line
   - a gallery card in `examples/lab/gallery/cards.json`
@@ -1640,6 +1640,16 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 - **Acceptance:**
   - Every top-5 gap is fixed, or explained with a concrete next step.
   - The owner looks at the before/after and agrees ours no longer looks worse than Takram at midday.
+
+### [ ] R1 Scene review loop · Haiku (after each quality pass)
+- **Owns:** `scripts/review-scenes.mjs` (new) and `work/captures/review/<date>-<pass>/`, which holds our renders only.
+- **Does:** one command re-shoots every scene target with fixed bookmarks:
+  - T4 `sunset/` (golden, sunset, afterglow, side, zenith);
+  - compare `ours,takram` (horizon, sunset, dusk, afterglow);
+  - species mixed, open-water, plains-flight and onsen.
+
+  It writes a dated contact sheet next to the previous one, so progress is visible pass by pass. A `--photos` flag also builds side-by-sides with the owner's reference picks into `work/captures/scratch/review/`, which is never committed.
+- **Acceptance:** one command, about 5 minutes, and a before/after sheet against the last run.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
