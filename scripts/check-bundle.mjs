@@ -42,6 +42,8 @@ async function measure(t, extra) {
     bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
     minify: true, legalComments: 'none', jsx: 'automatic', logLevel: 'error',
     external: [...external, ...extra],
+    // The repo's tsconfig `paths` alias @clouds/* to source; a consumer resolves the packages' dist/, so ignore them (else the +deps rows measure unminified source).
+    tsconfigRaw: { compilerOptions: { jsx: 'react-jsx' } },
   });
   if (result.outputFiles.length !== 1) throw new Error(`${t.name}: expected one output chunk, got ${result.outputFiles.length}`);
   const bytes = Buffer.from(result.outputFiles[0].contents);

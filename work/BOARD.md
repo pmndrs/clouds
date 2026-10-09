@@ -1558,7 +1558,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Compare page `horizon` and `sunset` views: no band or speckle, and far clouds fade like the photos and Takram.
   - Cost neutral. `pnpm check` green.
 
-### [~] B1 Core bundle back under 60 KB gzip · Sonnet (Opus on failure)
+### [x] B1 Core bundle back under 60 KB gzip · Sonnet (Opus on failure)
 - **Owns:**
   - `scripts/build-release.mjs` and `scripts/check-bundle.mjs`
   - package build configs (`packages/*/vite.config.*`, `package.json` exports)

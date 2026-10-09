@@ -3,6 +3,9 @@
 //   node scripts/build-release.mjs            dist/ (ESM + .d.ts) for the three packages, then `npm pack --dry-run` file lists
 //   node scripts/build-release.mjs --pack     also write the tarballs (pnpm pack, so workspace:* becomes a version) to artifacts/release-pkgs/
 //   node scripts/build-release.mjs --no-list  skip the dry-run lists
+//   node scripts/build-release.mjs --no-wgsl-min  keep the WGSL template strings as written (A/B against the minified build)
+//
+// WGSL: the `/* wgsl */` template strings are minified at build time by scripts/wgsl-minify.mjs (comments and whitespace only); sources stay readable.
 //
 // JS: esbuild, ESM, es2022, unminified (consumers' bundlers minify), code splitting inside a package so the subpath entries share chunks.
 // Other @clouds/* packages and every peer (three, react, @react-three/*, @pmndrs/*) stay external. Types: `tsc -p <pkg>/tsconfig.build.json`
@@ -12,6 +15,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { wgslMinifyPlugin } from './wgsl-minify.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = new Set(process.argv.slice(2));
@@ -33,6 +37,7 @@ for (const p of packages) {
   await build({
     absWorkingDir: cwd, entryPoints: p.entries, outdir: 'dist', bundle: true, splitting: true, format: 'esm', platform: 'browser', target: 'es2022',
     jsx: 'automatic', external, logLevel: 'warning', legalComments: 'none', chunkNames: 'chunks/[name]-[hash]',
+    plugins: args.has('--no-wgsl-min') ? [] : [wgslMinifyPlugin],
     // tsconfig `paths` (the repo's source aliases) must not rewrite @clouds/* here: they are external imports of the published packages.
     tsconfigRaw: { compilerOptions: { jsx: 'react-jsx' } },
   });
