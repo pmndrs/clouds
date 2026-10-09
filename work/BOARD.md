@@ -1770,6 +1770,49 @@ Owner direction:
   - `pnpm check`, bundle and packed consumer green.
   - Checkpoint-commit often.
 
+### [ ] P9-E High layer: cirrus and cirrostratus · Opus
+- **Owns:**
+  - `packages/runtime/src/cirrus/**` (new)
+  - `packages/runtime/src/shaders/composite.wgsl.ts` and `runtime.ts`: only the hook that draws the layer behind the low clouds
+  - `examples/lab/compare/panes/ours.ts`: query keys only (`cirrus=0|1`, `cirrus_cov`, `cirrus_alt`)
+- **Not:** `procedural/**`, `light-grid*`, `generate/**` (other tasks)
+- **Read first:**
+  - `docs/research/README.md`
+  - Nubis Evolved p.65 high-tier recipe in `docs/research/hzd-nubis-evolved.md`
+  - Witcher 3 cirrus notes in `docs/research/legacy-and-survey.md`
+  - the owner's cirrus photos: `artifacts/research/cloud-photos/` (cirrus and cirrostratus folders; local only, never commit)
+  - the veil in `artifacts/research/cloud-photos/_targets/texas-afternoon.jpg`
+- **Does:**
+  - A thin high layer (default 8–10 km) with its own wind.
+  - Fibrous streaks: anisotropic, stretched along the wind, hooked ends (uncinus).
+  - A cirrostratus veil mode.
+  - Lit by the same sun and sky as the low clouds, including low-sun colour from C1, the per-altitude sun and the Earth's shadow, so at sunset it stays lit after the low clouds go dark.
+  - Haze applied like the other layers. It does not cast a ground shadow by default (optional, faint).
+  - Works with every density model: `nvdf`, `procedural` and `hybrid`.
+  - Public settings with docs comments.
+- **Acceptance:**
+  - Captures at ground midday, sunset and dusk on compare, next to the owner's cirrus photos (photo pane; captures that contain photos go to `work/captures/scratch/`).
+  - Reads as fibrous cirrus from the ground, not noise or fog, and holds colour after sunset.
+  - Cost reported; a guide of about +0.3 ms is not a gate.
+  - `pnpm check` and the packed consumer green.
+  - Checkpoint-commit often.
+
+### [ ] X4 Hybrid follow-ups: heroes shadowed by procedural clouds · Opus
+- **Owns:**
+  - `packages/runtime/src/light-grid*` and `shaders/light-grid.wgsl.ts`
+  - `packages/runtime/src/procedural/**` (only where the light grid needs its density)
+  - `examples/lab/open-water/main.ts`
+- **Not:** `composite.wgsl.ts` and the cirrus hook (P9-E), `generate/**`
+- **Does:**
+  1. The voxel light grid bake sees procedural density (X3 open issue). In `hybrid`, a hero under a procedural cloud is shadowed by it.
+  2. Check the procedural path with no sky library (uniform lighting) and fix whatever breaks.
+  3. Investigate the blocky distant voxel cloud in open-water `cruise`, which predates X3. Fix it, or report its cause.
+- **Acceptance:**
+  - Onsen `?model=hybrid` with a procedural cloud passing over the hero tower: before and after captures.
+  - Default NVDF path unchanged (pixel-diff as in X3).
+  - `pnpm check` green.
+  - Checkpoint-commit often.
+
 ### [x] B2 Split the generator out of the core bundle · Sonnet
 - **Owns:** `packages/runtime/src/generate/**` and the build and bundle scripts.
 - **Does:**
