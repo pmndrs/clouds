@@ -1,0 +1,122 @@
+{
+  "name": "r2_07",
+  "source": "r2_07_f204.vdb (fog mode, via scripts/vdb/vdb_to_nvdf.py)",
+  "dims": [
+    103,
+    77,
+    68
+  ],
+  "voxelSizeMeters": 36.0,
+  "layout": "x fastest, then y (map row, +Y = up in the source image), then z (slice, up); texel (x,y,z) at ((z*dims[1]+y)*dims[0]+x)",
+  "cropOffset": [
+    4,
+    2,
+    15
+  ],
+  "occupiedMin": [
+    5,
+    3,
+    16
+  ],
+  "occupiedMax": [
+    105,
+    77,
+    81
+  ],
+  "margin": 1,
+  "boundsMeters": {
+    "note": "source axes: x = map column, y = map row, z = up; origin = corner of source-lattice voxel (0,0,0). VDB mapping: x = hou X, row = hou Z, up = hou Y.",
+    "min": [
+      144.0,
+      72.0,
+      540.0
+    ],
+    "max": [
+      3852.0,
+      2844.0,
+      2988.0
+    ],
+    "size": [
+      3708.0,
+      2772.0,
+      2448.0
+    ]
+  },
+  "houdini": {
+    "note": "world position (hou axes x, y-up, z, metres after --world-scale) of the crop min corner and of source voxel (0,0,0) corner",
+    "cropMinWorld": [
+      -1656.0000357627869,
+      -11.999974215688894,
+      -1439.9999406447807
+    ],
+    "sourceOriginCornerWorld": [
+      -1800.0000357627869,
+      -551.9999742156889,
+      -1511.9999406447807
+    ],
+    "sourceVoxelSizeMeters": 23.99999992979085,
+    "worldScale": 300.0
+  },
+  "nvdf": {
+    "file": "nvdf.bin",
+    "format": "rgba8unorm",
+    "bytes": 2157232,
+    "channels": {
+      "r": "dimensional profile (0 none, 1 full cloud)",
+      "g": "detail type (0 wispy, 1 billowy)",
+      "b": "density scale",
+      "a": "unused"
+    }
+  },
+  "sdf": {
+    "file": "sdf.bin",
+    "format": "r16unorm little-endian",
+    "bytes": 1078616,
+    "encoding": {
+      "minMeters": -256.0,
+      "maxMeters": 4096.0,
+      "decode": "meters = minMeters + v * (maxMeters - minMeters)",
+      "rounding": "down"
+    },
+    "source": "exact 3D EDT of (profile > 0) on the cropped lattice, signed (negative inside), surface at half a voxel from the nearest centres",
+    "outsideCrop": "treat as far / empty (distance >= margin*voxel from the occupied bounds, except where the crop is clamped to the grid)"
+  },
+  "converter": {
+    "script": "scripts/vdb/vdb_to_nvdf.py",
+    "mode": "fog",
+    "grid": "density",
+    "clampedToGrid": false,
+    "densityRef": 1.0,
+    "profileMapping": {
+      "mapping": "pack",
+      "packFit": {
+        "profile": {
+          "d0": 1.4,
+          "D": 66.0,
+          "g": 1.05,
+          "base": 0.1,
+          "baseH": 0.22,
+          "sigma": 0.64,
+          "corrVox": 3.0,
+          "corrMeters": 24.0
+        },
+        "detail": {
+          "lo": 0.1,
+          "hi": 0.75,
+          "depthShift": 0.25,
+          "depthRef": 32.0
+        },
+        "scale": {
+          "s0": 0.04,
+          "s1": 0.75,
+          "h1": 0.6
+        }
+      },
+      "depthMeters": 96.0,
+      "gamma": 1.0,
+      "smoothVoxels": 1.0,
+      "detail": "height heuristic 0.15->0.85",
+      "densityScale": "density / p99"
+    }
+  }
+}

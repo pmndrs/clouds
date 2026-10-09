@@ -84,7 +84,7 @@ SWEEP = {
         }),
 }
 # levers only the refinement rounds explore (added after round 1 so the round-1 variants stay reproducible)
-REFINE_EXTRA = {'texas-tower': {'remap.hi': ('uni', 0.35, 1.0)}}
+REFINE_EXTRA = {'texas-tower': {'remap.hi': ('uni', 0.35, 1.0), 'emit.2.x': ('uni', -2.8, -1.6), 'emit.3.weight': ('uni', 0.4, 1.0)}}
 EMIT_FIELDS = dict(x=0, z=1, rx=2, rz=3, weight=4, start=5, heat=6)
 
 

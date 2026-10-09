@@ -1,0 +1,159 @@
+{
+  "name": "v14",
+  "target": "texas-tower",
+  "variant": {
+    "seed": 883,
+    "frames": 204,
+    "solver.buoyancylift": 0.483,
+    "solver.turbulence": 0.171,
+    "solver.disturbance": 0.107,
+    "cap.strength": 0.014,
+    "cap.height": 3.741,
+    "remap.stretch": 1.174,
+    "remap.taper": 0.098,
+    "remap.shear": 0.027,
+    "remap.lo": 0.049,
+    "emit.0.rx": 0.936,
+    "emit.1.heat": 0.495,
+    "emit.1.rx": 2.727,
+    "emit.2.heat": 0.366,
+    "emit.2.weight": 0.637,
+    "emit.4.weight": 0.556
+  },
+  "frame": 204,
+  "simSeconds": 29.4,
+  "bytes": 2794745,
+  "dims": [
+    94,
+    75,
+    66
+  ],
+  "voxelSizeMeters": 36.0,
+  "sizeMeters": [
+    3384.0,
+    2700.0,
+    2376.0
+  ],
+  "baseMeters": 36.0,
+  "lowestMeters": 36.0,
+  "topMeters": 2340.0,
+  "footprintMeters": [
+    3384.0,
+    2700.0
+  ],
+  "occupiedVoxels": 76118,
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 204,
+    "out_frames": [],
+    "source": {
+      "radius": 1.0,
+      "height": 0.4,
+      "rate": 2.0,
+      "temp": 1.0,
+      "noisefreq": 1.0,
+      "noiseamp": 0.8,
+      "edge": 0.5,
+      "cellfreq": 1.5,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.15,
+      "emit_frames": 260,
+      "emitters": [
+        [
+          0.2,
+          0.0,
+          0.936,
+          0.8892,
+          1.0,
+          0,
+          1.0
+        ],
+        [
+          1.0,
+          0.1,
+          2.727,
+          1.6,
+          0.8,
+          0,
+          0.495
+        ],
+        [
+          -2.0,
+          0.2,
+          1.3,
+          0.9,
+          0.637,
+          20,
+          0.366
+        ],
+        [
+          -3.4,
+          -0.1,
+          0.9,
+          0.7,
+          0.7,
+          40,
+          0.45
+        ],
+        [
+          -1.7,
+          -0.6,
+          0.45,
+          0.45,
+          0.556,
+          30,
+          0.85
+        ]
+      ]
+    },
+    "solver": {
+      "temperature0": 1.0,
+      "temperature1": 2.0,
+      "buoyancylift": 0.483,
+      "tempcooling": 0.03,
+      "dissipation": 0.006,
+      "enable_turbulence": 1,
+      "turbulence": 0.171,
+      "turbulence_swirlsize": 0.4,
+      "enable_disturbance": 1,
+      "disturbance": 0.107,
+      "disturbance_blocksize": 0.4
+    },
+    "cap": {
+      "height": 3.741,
+      "thick": 0.6,
+      "strength": 0.014,
+      "reach": 3.5
+    },
+    "remap": {
+      "lo": 0.049,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 1.174,
+      "stretch_from": 1.0,
+      "taper": 0.098,
+      "taper_y0": 3.0,
+      "taper_y1": 10.0,
+      "taper_x": 0.2,
+      "taper_z": 0.0,
+      "shear": 0.027
+    },
+    "smooth": 1,
+    "prune": 0.02,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "out": {
+      "world_scale": 300.0,
+      "voxel": 36
+    },
+    "seed": 883
+  },
+  "generator": "scripts/vdb/authoring/sim/targets.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

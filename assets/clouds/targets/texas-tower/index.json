@@ -1,0 +1,91 @@
+{
+ "target": "texas-tower",
+ "note": "L1 target-loop picks; regenerate with scripts/vdb/authoring/sim/targets.py and scripts/targets/match.py",
+ "clouds": [
+  {
+   "name": "v11",
+   "rank": 1,
+   "bestYaw": 0,
+   "total": 0.5764,
+   "iou": 0.7018,
+   "features": 0.4509,
+   "sizeMeters": [
+    3168.0,
+    2484.0,
+    2664.0
+   ],
+   "baseMeters": 36.0,
+   "topMeters": 2628.0,
+   "voxelSizeMeters": 36.0,
+   "bytes": 2695968
+  },
+  {
+   "name": "v14",
+   "rank": 2,
+   "bestYaw": 270,
+   "total": 0.5606,
+   "iou": 0.7144,
+   "features": 0.4068,
+   "sizeMeters": [
+    3384.0,
+    2700.0,
+    2376.0
+   ],
+   "baseMeters": 36.0,
+   "topMeters": 2340.0,
+   "voxelSizeMeters": 36.0,
+   "bytes": 2791800
+  },
+  {
+   "name": "v18",
+   "rank": 3,
+   "bestYaw": 90,
+   "total": 0.5479,
+   "iou": 0.7061,
+   "features": 0.3897,
+   "sizeMeters": [
+    1908.0,
+    1980.0,
+    1080.0
+   ],
+   "baseMeters": 36.0,
+   "topMeters": 1044.0,
+   "voxelSizeMeters": 36.0,
+   "bytes": 524700
+  },
+  {
+   "name": "r2_07",
+   "rank": 4,
+   "bestYaw": 180,
+   "total": 0.5474,
+   "iou": 0.6954,
+   "features": 0.3995,
+   "sizeMeters": [
+    3708.0,
+    2772.0,
+    2448.0
+   ],
+   "baseMeters": 36.0,
+   "topMeters": 2412.0,
+   "voxelSizeMeters": 36.0,
+   "bytes": 3235848
+  },
+  {
+   "name": "v03",
+   "rank": 5,
+   "bestYaw": 0,
+   "total": 0.5449,
+   "iou": 0.7148,
+   "features": 0.3751,
+   "sizeMeters": [
+    2916.0,
+    1692.0,
+    2412.0
+   ],
+   "baseMeters": 36.0,
+   "topMeters": 2376.0,
+   "voxelSizeMeters": 36.0,
+   "bytes": 1530414
+  }
+ ]
+}

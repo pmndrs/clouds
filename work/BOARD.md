@@ -1867,7 +1867,7 @@ Owner direction:
   - Outputs go to `work/captures/scratch/`, never committed.
 - **Acceptance:** a ranked recommendation with links, prices, the pilot sheet (local) and an honest note on 3D consistency for soft, translucent subjects.
 
-### [~] L1 Target loop, first target: the hero tower from "Texas afternoon" · Opus
+### [r] L1 Target loop, first target: the hero tower from "Texas afternoon" · Opus (report: work/reports/L1.md)
 - **Owns:**
   - a new `scripts/targets/**` (target-card extraction, matching and scoring)
   - `scripts/vdb/authoring/sim/**` (recipe extensions)
