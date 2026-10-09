@@ -7,7 +7,7 @@ Visual reference for agents that shape and light clouds. Use it to check a rende
 - **Local photos** (not in git) are in the main checkout under `artifacts/research/cloud-photos/`:
   - `<id>/` holds the owner's own photos, one folder per catalog `id`. A photo can appear in more than one folder, for example a sunset shot from a plane in `stratocumulus/`, `aerial-cloud-deck/` and `sunset-layers/`.
   - `_reference/` holds the Commons images listed in `webReferences`.
-  - `manifest.json` (once present) tags each personal photo: `{ "file", "types": [ids], "view": viewTag, "time": timeTag, "source", "notes" }`. The tag vocabularies are `viewTags` and `timeTags` in the catalog.
+  - `manifest.json` tags each personal photo, and `index.html` is a local gallery of them. Files are prefixed with their grade (`A_` hero reference, `B_` good, `C_` weak). Each entry in `manifest.json` has `{ file, folders, types, view, time, grade, notes, captured, camera, source }`. The tag vocabularies are `viewTags` and `timeTags` in the catalog.
 
 ## How to use it when shaping
 
