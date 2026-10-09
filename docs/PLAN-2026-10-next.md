@@ -32,6 +32,11 @@ The owner judged that after Q2 we are still far behind Takram, Sky Pro and the p
 - Our architecture stays: API, shadows, sunset lighting, haze, temporal resolve, tooling.
 - The Nubis³ voxel path stays for authored heroes, storms, VDB import and 4 m fine detail.
 
+**Owner clarification:**
+- Build the procedural model from our papers (HZD 2015, Nubis 2017, Nubis Evolved 2022, Frostbite 2016 and the rest in `docs/research/`). Takram and Sky Pro are implementation examples.
+- It is a **stopgap** for sky-wide quality while the owner works through our authoring issues in the newer Nubis³ methods.
+- Nothing built so far is removed: the NVDF path, generator, species, library and heroes all stay, and the procedural model is a parallel, switchable `densityModel`.
+
 **Experiment first:**
 - **X1:** the procedural model in our runtime, A/B against our generated field and Takram.
 - **X2:** make the Sky Pro reference pane faithful to the real Tidewater demo.
