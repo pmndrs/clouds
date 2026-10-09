@@ -57,7 +57,7 @@ struct ProcParams {
   tkRepeat: vec4<f32>,   // weather tile (m), shape repeat (1/m), detail repeat (1/m), turbulence tiles per weather tile
   tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), 0, 0
   lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, 0
-  octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, 0
+  octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, diffusion tail weight
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
   drift: vec4<f32>,      // wind offset (CloudSettings.windOffset, m), 0         (likewise)
   hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1), 0, 0
@@ -70,6 +70,14 @@ const PROC_EARTH_M = 6371000.0;
 fn procAltitude(p: vec3<f32>) -> f32 {
   let d = p.xz - P.origin.xz;
   return p.y + dot(d, d) / (2.0 * PROC_EARTH_M);
+}
+// X3 hybrid (needs volumeWgsl's cloudVolume): 1 outside the voxel box, falling to 0 over P.hybrid.x metres inside its walls (0 = union: always 1).
+fn procCarve(p: vec3<f32>) -> f32 {
+  if (P.hybrid.x <= 0.0) { return 1.0; }
+  let lo = p - cloudVolume.minCorner;
+  let hi = cloudVolume.minCorner + cloudVolume.extent - p;
+  let inside = min(min(min(lo.x, hi.x), min(lo.y, hi.y)), min(lo.z, hi.z));
+  return 1.0 - smoothstep(0.0, P.hybrid.x, inside);
 }
 `;
 

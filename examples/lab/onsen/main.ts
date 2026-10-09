@@ -7,6 +7,8 @@
 //   ?quality=       cloud quality                                      ?exposure=  tone-mapping exposure     ?haze=  aerial-perspective distance scale
 //   ?hud=0 hides the debug text, ?clean=1 hides all UI (hud and bookmark buttons)   ?drift=0 also freezes the camera; ?fogdrift=0 freezes the valley fog's slow flow
 //   ?skylayer=1     enable the distant procedural sky layer (P3-C1)    ?seed=  cloud seed     ?reflect=0  no cloud reflection in the pool
+//   ?model=hybrid   X3: the heroes and the valley fog inside a procedural cumulus sky (the generated cumulus is dropped unless ?lo= / ?hi= are given);
+//                   ?model=procedural the procedural sky only; ?light= ?vlight= ?proc_<key>= ?tk_<key>= see scenes/procedural-sky.ts
 import { ACESFilmicToneMapping, IcosahedronGeometry, Mesh, PerspectiveCamera, Scene, type BufferGeometry } from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MeshStandardNodeMaterial, RenderPipeline, WebGPURenderer } from 'three/webgpu';
@@ -20,6 +22,7 @@ import {
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { createPool } from '../scenes/terrain/pool';
 import { createTerrain } from '../scenes/terrain';
+import { attachProceduralSky } from '../scenes/procedural-sky';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
@@ -36,6 +39,7 @@ const NAMES = Object.keys(BOOKMARKS) as BookmarkName[];
 const isName = (n: string): n is BookmarkName => n in BOOKMARKS;
 const TIME = num('time', 18.6);
 const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
+const HYBRID = query.get('model') === 'hybrid';
 
 // Cloud region (CONTENT): 512 x 512 x 112 voxels at 12 m = 6.1 km square, 1344 m tall, centred over the valley north of the terrace; its floor is at y = 0.
 const FIELD = { dims: [512, 512, 112] as [number, number, number], voxel: 12, centre: [0, -4600] as const };
@@ -117,7 +121,7 @@ try {
     const H = FIELD.dims[2] * FIELD.voxel;
     // The preset's height fractions are for a 512 m column; here the layer sits 640-900 m up in a 1152 m column.
     const params = { ...preset.params, seed: cloudSeed, baseDefault: 640 / H, topFraction: 940 / H, baseLift: 0.05 };
-    const weatherOpts = { ...preset.weather, coverageLo: num('lo', 0.6), coverageHi: num('hi', 0.98), size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed: cloudSeed };
+    const weatherOpts = { ...preset.weather, coverageLo: num('lo', HYBRID ? 2 : 0.6), coverageHi: num('hi', HYBRID ? 3 : 0.98), size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed: cloudSeed };
     const scratch = createGeneratorScratch(device, FIELD.dims, 'onsen');
     const enc0 = device.createCommandEncoder();
     const weather = encodeProceduralWeatherMap(device, enc0, weatherOpts);
@@ -150,6 +154,7 @@ try {
     device.queue.submit([enc2.finish()]);
     await device.queue.onSubmittedWorkDone();
     await clouds.setVolume(gen.volume, { position: [FIELD.centre[0], MIN[1], FIELD.centre[1]] }); // INTEGRATION (the volume stays caller-owned: `gen` stays alive)
+    await attachProceduralSky(clouds.core, device, query); // X3 (optional procedural sky: ?model=hybrid|procedural)
     if (query.get('skylayer') === '1') { const l = clouds.core.skyLayer; l.configure({ weather: weatherOpts, shape: params, voxelSize: FIELD.voxel }); l.settings.enabled = true; } // CONTENT (optional distant layer)
     cloudInfo.buildMs = performance.now() - t0;
   };

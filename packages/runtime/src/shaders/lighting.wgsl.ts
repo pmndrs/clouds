@@ -94,10 +94,10 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
 // Octave 0 is the low order (rims, silver lining) and keeps the sun. Octaves >= 1 are the body: C1's low-sun handoff (Bouthors 2008) scales
 // their sun share by elevation and the optical depth toward the sun (frame.body.x, .w) and gives the share it lost to the environment pair,
 // isotropically (irradiance / 4 pi = radiance / 4), with the same depth falloff. Ambient: the sky irradiance / 4 pi along a height gradient
-// (0.5 at the base, 1 at the top, Frostbite/Hogfeldt's [a, 1] bias), the lower hemisphere at half weight, times ambientGain.
-// Powder (Takram): radiance *= 1 - o.w exp(-sigma 150 m). Takram's values: o = (0.7, -0.2, 0.5, 0.8), gain 1.
+// (0.5 at the base, 1 at the top, Frostbite/Hogfeldt's [a, 1] bias), the ground bounce from below at half weight, times the ambient gain (o2.y).
+// Powder (Takram): radiance *= 1 - o.w exp(-sigma 150 m). o2 = (diffusion tail weight, ambient gain, 0, 0). Takram's values: o = (0.7, -0.2, 0.5, 0.8), o2 = (0, 1).
 const OCTAVE_COUNT = 8;
-fn cloudOctaveLight(tau: f32, cosSun: f32, h: f32, sigma: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>, envUp: vec3<f32>, envDown: vec3<f32>, o: vec4<f32>, ambientGain: f32) -> vec3<f32> {
+fn cloudOctaveLight(tau: f32, cosSun: f32, h: f32, sigma: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>, envUp: vec3<f32>, envDown: vec3<f32>, o: vec4<f32>, o2: vec4<f32>) -> vec3<f32> {
   var low = 0.0; var body = 0.0; var bodyIso = 0.0;
   var k = 1.0;
   for (var n = 0; n < OCTAVE_COUNT; n++) {
@@ -110,9 +110,15 @@ fn cloudOctaveLight(tau: f32, cosSun: f32, h: f32, sigma: f32, sun: vec3<f32>, u
   let envShare = frame.body.y * (1.0 - sunShare);
   let g = saturate(h) * 0.5 + 0.5;
   let direct = sun * low;
-  let msLight = sun * (body * sunShare);
+  // Diffusion tail (X3, o2.x): the octave sum dies as exp(-tau / 128) at most, so a cloud in another's shadow (tau 10-30) keeps about 5 percent,
+  // where the two-stream diffuse transmittance of a thick conservative scatterer is 1 / (1 + 0.75 (1 - g) tau) (about 0.3 at tau 20, g 0.85;
+  // Bouthors 2008: the orders above 30 are isotropic and carry the body). An isotropic sun term with that falloff, weight o2.x (0 = Takram).
+  let diffuse = sun * (o2.x * ISO_PHASE * sunShare / (1.0 + 0.11 * tau));
+  let msLight = sun * (body * sunShare) + diffuse;
   let envLight = mix(envDown, envUp, g) * (0.25 * envShare * bodyIso);
-  let ambient = (up * g + down * ((1.0 - g) * 0.5)) * (0.25 * ambientGain);
+  // From below: the environment's lower term (skyLight[6]: the lower hemisphere plus the ground bounce, albedo * (sun mu / pi + sky)), as Takram's
+  // GROUND_BOUNCE adds the lit ground's radiance / 4 pi to the base. The ambient pair's lower term alone is the unlit lower hemisphere.
+  let ambient = (up * g + envDown * ((1.0 - g) * 0.5)) * (0.25 * o2.y);
   let powder = 1.0 - o.w * exp(-sigma * 150.0);
   if (frame.lightDebug > 0.5 && frame.lightDebug < 5.5) {
     let k = u32(frame.lightDebug);
@@ -123,6 +129,9 @@ fn cloudOctaveLight(tau: f32, cosSun: f32, h: f32, sigma: f32, sun: vec3<f32>, u
 // The voxel march and the NVDF sky layer in 'octave' mode (frame.haze.w = 1): Takram's phase and powder.
 const OCTAVE_DEFAULT = vec4(0.7, -0.2, 0.5, 0.8);
 fn octaveOn() -> bool { return frame.haze.w > 0.5; }
+// The voxel path's tail weight and ambient gain (CloudSettings.ambientStrength).
+const OCTAVE_VOXEL_DIFFUSE = 0.5;
+fn octaveVoxel() -> vec4<f32> { return vec4(OCTAVE_VOXEL_DIFFUSE, frame.ambientStrength, 0.0, 0.0); }
 // Dark edges (front-lit): rays that only graze the cloud (shallow in the SDF) scatter little. Multiply the ray's radiance by this.
 fn cloudEdgeFactor(depthMax: f32, frontness: f32) -> f32 {
   return mix(1.0, mix(EDGE_FLOOR, 1.0, smoothstep(0.0, EDGE_DEPTH, depthMax)), frame.edgeDarkening * frontness);

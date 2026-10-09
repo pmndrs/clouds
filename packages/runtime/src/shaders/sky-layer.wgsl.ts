@@ -612,7 +612,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
                 }
                 let microOcc = exp(-frame.microShadow * microTau);
                 // Same arguments as the voxel march: the cheap term (profile * scale) as the in-scatter probability, -depth as the sdf.
-                if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, saturate(sp.hz), sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, frame.ambientStrength); }
+                if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, saturate(sp.hz), sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
                 else { lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc); }
               }
               if (ts < tSplit) {

@@ -86,6 +86,8 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       if (k.startsWith('proc_')) num(proc.settings, k.slice(5), v);
       if (k.startsWith('sp_')) num(proc.settings.skypro, k.slice(3), v);
       if (k.startsWith('tk_')) num(proc.settings.takram, k.slice(3), v);
+      // X3: ?tkl<i>_<key>=N overrides Takram layer i (0..3), e.g. tkl1_densityScale=0 hides the second cumulus layer.
+      const m = k.match(/^tkl(\d)_(\w+)$/); if (m && proc.settings.takram.layers[Number(m[1])]) num(proc.settings.takram.layers[Number(m[1])], m[2], v);
     }
     if (MODEL === 'procedural') await clouds.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
     clouds.core.setProceduralModel(proc);

@@ -3,7 +3,7 @@ import type { GpuTimer } from './gpu-timer';
 import { createLightGrid, type LightGrid } from './light-grid';
 import { createAtmosphereBindGroupLayout } from './shaders/atmosphere.wgsl';
 import { defaultDomeSettings, type CloudDome } from './dome';
-import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_SKY_PARAMS_BINDING, DOME_SKY_SAMPLER_BINDING, DOME_SKY_WEATHER_BINDING, DOME_WGSL } from './shaders/dome.wgsl';
+import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_SKY_PARAMS_BINDING, DOME_SKY_SAMPLER_BINDING, DOME_SKY_WEATHER_BINDING, DOME_WGSL, DOME_PROCEDURAL_BINDING, domeWgsl } from './shaders/dome.wgsl';
 import { uploadCloudNoise, uploadCloudVolume, type GpuCloudVolume } from './resources';
 import { COMMON_WGSL } from './shaders/common.wgsl';
 import { COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPLER_BINDING, COMPOSITE_SHADOW_BINDING, COMPOSITE_SKY_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
@@ -530,7 +530,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const domeSize = Math.max(4, (options.domeSize ?? startPreset.domeSize) & ~3);
   const domeSettings = defaultDomeSettings();
   domeSettings.maxSteps = startPreset.domeMaxSteps; domeSettings.enabled = startPreset.domeEnabled;
-  const domeLayout = device.createBindGroupLayout({ label: 'cloud dome', entries: [
+  const domeLayoutEntries: GPUBindGroupLayoutEntry[] = [
     { binding: DOME_FRAME_BINDING, visibility: C, buffer: { type: 'uniform' } },
     { binding: DOME_DEPTH_BINDING, visibility: C, texture: { sampleType: 'depth' } },
     { binding: DOME_OUT_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
@@ -540,8 +540,26 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: DOME_SKY_WEATHER_BINDING, visibility: C, texture: { sampleType: 'float' } },
     { binding: DOME_SKY_SAMPLER_BINDING, visibility: C, sampler: { type: 'filtering' } },
     { binding: DOME_SKY_PARAMS_BINDING, visibility: C, buffer: { type: 'uniform' } },
-  ] });
+  ];
+  const domeLayout = device.createBindGroupLayout({ label: 'cloud dome', entries: domeLayoutEntries });
   const domePipeline = pipeline('cloud dome', COMMON_WGSL + volumeWgsl(0) + DOME_WGSL, domeLayout);
+  // X3: dome pipelines that march a procedural model's clouds outside the box (one per shaper, compiled asynchronously on first use).
+  const domeProc = new Map<string, { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null }>();
+  const domeProcPipeline = (m: ProceduralDensityModel) => {
+    let e = domeProc.get(m.wgslKey);
+    if (!e) {
+      const layout = device.createBindGroupLayout({ label: 'cloud dome (procedural)', entries: [...domeLayoutEntries, ...m.layoutEntries(DOME_PROCEDURAL_BINDING, C)] });
+      const entry: { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null } = { layout, pipeline: null };
+      e = entry;
+      domeProc.set(m.wgslKey, entry);
+      void device.createComputePipelineAsync({
+        label: `cloud dome (procedural ${m.wgslKey})`, layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, layout] }),
+        compute: { module: device.createShaderModule({ label: 'cloud dome (procedural)', code: COMMON_WGSL + volumeWgsl(0) + domeWgsl(m.densityWgsl(1, DOME_PROCEDURAL_BINDING)) }), entryPoint: 'main' },
+      }).then(p => { entry.pipeline = p; }, err => console.error('cloud dome procedural pipeline failed', err));
+    }
+    return e;
+  };
+  let domeProcKey: object | null = null;
   const domeTexture = device.createTexture({ label: 'cloud reflection dome', size: [domeSize, domeSize], format: 'rgba16float', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST });
   const domeView = domeTexture.createView();
   {
@@ -987,6 +1005,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           volumeGroup, lightGrid: grid, gridFront: gridStep.front, gridSwapped: gridStep.swapped, sunDirection: frame.sunDirection, cameraPosition: frame.cameraPosition,
           box: skyBox, extinction: settings.densityScale, lightDensityScale: settings.lightDensityScale, shadowStrength: settings.shadowStrength,
           sky: skyRes ? { ...skyRes, key: [ss.densityScale, ss.curvature] } : null, timer,
+          // X3: the procedural model's clouds move with the wind offset: a refresh once they have moved by about a near-cascade texel.
+          procedural: procOn ? proc : null,
+          procKey: procOn ? [proc!.version, Math.round(settings.windOffset[0] / 8), Math.round(settings.windOffset[2] / 8)] : undefined,
         });
       }
 
@@ -1035,12 +1056,17 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         domeParamU32[4] = domeSize; domeParamU32[5] = domeSlot; domeParamU32[6] = domeSettings.maxSteps >>> 0; domeParamU32[7] = slots;
         domeParamF32[8] = domeSettings.stepMin; domeParamF32[9] = domeSettings.stepRel; domeParamF32[10] = domeSettings.maxDistance;
         const skyRes = skyLayer.domeResources;
-        domeParamF32[11] = skyRes ? 1 : 0;
+        // X3: with a procedural model on, its clouds replace the layer's field outside the box (once its dome pipeline is compiled).
+        const dProc = procOn ? domeProcPipeline(proc!) : null;
+        const domeProcOn = !!dProc?.pipeline;
+        domeParamF32[11] = skyRes || domeProcOn ? 1 : 0;
         if ((skyRes?.weather ?? null) !== domeSkyKey) { domeSkyKey = skyRes?.weather ?? null; domeGroups = null; }   // the layer re-bakes its window when the box moves
+        const pk = domeProcOn ? proc!.resourceKey : null;
+        if (pk !== domeProcKey) { domeProcKey = pk; domeGroups = null; domeRefreshFrames = 0; }
         device.queue.writeBuffer(domeParamBuffer, 0, domeParamData);
         domeSlot = (domeSlot + slots) % DOME_REFRESH_FRAMES;
         domeRefreshFrames = Math.min(DOME_REFRESH_FRAMES, domeRefreshFrames + slots);
-        domeGroups ??= [0, 1].map(slot => device.createBindGroup({ label: `cloud dome ${slot}`, layout: domeLayout, entries: [
+        domeGroups ??= [0, 1].map(slot => device.createBindGroup({ label: `cloud dome ${slot}`, layout: domeProcOn ? dProc!.layout : domeLayout, entries: [
           { binding: DOME_FRAME_BINDING, resource: { buffer: domeFrameBuffer } },
           { binding: DOME_DEPTH_BINDING, resource: domeDepth.createView() },
           { binding: DOME_OUT_BINDING, resource: domeView },
@@ -1050,9 +1076,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           { binding: DOME_SKY_WEATHER_BINDING, resource: (skyRes?.weather ?? domeSkyDummy).createView() },
           { binding: DOME_SKY_SAMPLER_BINDING, resource: domeSkySampler },
           { binding: DOME_SKY_PARAMS_BINDING, resource: { buffer: skyRes?.params ?? domeSkyDummyParams } },
+          ...(domeProcOn ? proc!.resourceEntries(DOME_PROCEDURAL_BINDING) : []),
         ] }));
         const pass = encoder.beginComputePass({ label: 'cloud dome', timestampWrites: timer?.passTimestampWrites('dome') });
-        pass.setPipeline(domePipeline);
+        pass.setPipeline(domeProcOn ? dProc!.pipeline! : domePipeline);
         pass.setBindGroup(0, volumeGroup);
         pass.setBindGroup(1, domeGroups[gridStep.front]);
         const blocks = Math.ceil(domeSize / 4 / 8);

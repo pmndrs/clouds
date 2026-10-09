@@ -18,6 +18,8 @@ export interface ProceduralDensityModel {
    * when the model changes (a history cut), not when only the view moves.
    */
   update(time: number, view: { camera: ArrayLike<number>; wind: ArrayLike<number> }): { version: number };
+  /** X3: the version `update` last returned. */
+  readonly version: number;
   /** X3: the lowest and highest altitude (m) the model's clouds can reach, as of the last `update`. */
   readonly shell: readonly [number, number];
   /** X3: the model's density for another pass: ProcParams `P`, its bindings in `group` from binding `base`, procSample(p, t, footprint, full, jitter). Needs COMMON_WGSL before it. */

@@ -243,7 +243,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               var lit: vec3<f32>;
-              if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, frame.ambientStrength); }
+              if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
               else { lit = cloudInScatterMicro(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc); }
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).

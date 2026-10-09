@@ -9,6 +9,7 @@ import { CLOUD_PRESETS, type NvdfParams, createVolumeGenerator, encodeProcedural
 import { installCloudsHarness, readCloudColumns } from '../harness/clouds-contract';
 import { createOcean } from '../scenes/ocean';
 import { CameraRig } from '../flagship/controls';
+import { attachProceduralSky } from '../scenes/procedural-sky';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
@@ -27,7 +28,7 @@ const isName = (n: string): n is BookmarkName => n in BOOKMARKS;
 
 // Cloudscape: 512 x 512 x 64 voxels at 8 m = 4.1 km square, 512 m tall, base 150 m, centred 2.3 km north of the origin.
 const FIELD = { dims: [512, 512, 64] as [number, number, number], voxel: 8, base: 150, centre: [0, -2300] as const };
-// ?hud=0 hides the debug text, ?clean=1 hides all UI (hud and bookmark buttons). ?sky=0 turns the distant sky layer off. ?quality=auto|low|medium|high|ultra.
+// ?hud=0 hides the debug text, ?clean=1 hides all UI (hud and bookmark buttons). ?sky=0 turns the distant sky layer off. ?model=hybrid|procedural (X3): a procedural sky, see scenes/procedural-sky.ts. ?quality=auto|low|medium|high|ultra.
 const SHOW_HUD = query.get('hud') !== '0' && query.get('clean') !== '1', SHOW_UI = query.get('clean') !== '1';
 const SKY_LAYER = query.get('sky') !== '0';
 const JOBS_PER_FRAME = Number(query.get('jobs') ?? 2);
@@ -91,7 +92,9 @@ try {
     gen.gpuSubmitMs += performance.now() - t; gen.frames++;
     if (g.done) {
       gen.doneMs = performance.now() - gen.startMs; genVolume = g.volume;
-      void clouds.setVolume(g.volume, { position: cloudPos }).then(() => {
+      void clouds.setVolume(g.volume, { position: cloudPos }).then(async () => {
+        // X3: ?model=hybrid puts the generated field inside a procedural sky (the field replaces it in its box over a 400 m fade; ?proc_boxCarve=0 for the union).
+        if (await attachProceduralSky(clouds.core, device, query, { boxCarve: 400 })) { ready(); return; }
         if (SKY_LAYER && gen.weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: gen.weatherOpts, shape: gen.params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; for (const k of Object.keys(l.settings)) { const v = query.get('sky_' + k); if (v !== null) (l.settings as unknown as Record<string, number | boolean>)[k] = typeof (l.settings as unknown as Record<string, unknown>)[k] === 'boolean' ? v === '1' : Number(v); } } // INTEGRATION (cloud cover to the horizon)
         skyWait = SKY_LAYER && clouds.core.skyLayer.settings.enabled; if (!skyWait) ready();
       }); // INTEGRATION (the volume stays caller-owned: `g` stays alive; the harness waits for the clouds)

@@ -61,6 +61,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     settings,
     get ready() { return haveShaper(); },
     get shell() { return shell; },
+    get version() { return version; },
     get lightingModel() { return settings.lightingModel; },
     get wgslKey() { return settings.shaper; },
     get resourceKey() { return resourceKey; },
@@ -149,20 +150,23 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
 }
 
 /**
- * Opt a page in (open-water, plains-flight, sunset, species, ...: `if (query.get('model') === 'procedural') await attachProceduralClouds(...)`):
- * creates and loads the model, binds the placeholder volume when the runtime has none yet, and switches `densityModel`. The page passes the
- * texture URLs (vite: `import url from '.../node_modules/@takram/three-clouds/assets/shape.bin?url'`, see examples/lab/compare/panes/ours.ts).
+ * Opt a page in (open-water, onsen, plains-flight, sunset, species, ...: `if (query.get('model')) await attachProceduralClouds(...)`): creates and loads
+ * the model and switches `densityModel`. 'procedural' (default) binds the placeholder volume when the runtime has none yet; X3 'hybrid' keeps the
+ * page's voxel volume (heroes, stamps, a generated field) inside the procedural sky. The page passes the texture URLs (vite:
+ * `import url from '.../node_modules/@takram/three-clouds/assets/shape.bin?url'`, see examples/lab/scenes/procedural-sky.ts).
  */
 export async function attachProceduralClouds(
-  runtime: { setProceduralModel(m: ProceduralDensityModel | null): void; settings: { densityModel: 'nvdf' | 'procedural' }; readonly extent: unknown; setVolume(asset: CloudVolumeAsset, o: { position: [number, number, number] }): Promise<void> },
+  runtime: { setProceduralModel(m: ProceduralDensityModel | null): void; settings: { densityModel: 'nvdf' | 'procedural' | 'hybrid' }; readonly extent: unknown; setVolume(asset: CloudVolumeAsset, o: { position: [number, number, number] }): Promise<void> },
   device: GPUDevice,
-  options: { shaper?: ProceduralShaper; urls: { skyproNoise?: string; takram?: TakramTextureUrls } },
+  options: { shaper?: ProceduralShaper; urls: { skyproNoise?: string; takram?: TakramTextureUrls }; model?: 'procedural' | 'hybrid'; settings?: Partial<Omit<ProceduralSettings, 'skypro' | 'takram'>> },
 ): Promise<ProceduralClouds> {
   const proc = createProceduralClouds(device, { shaper: options.shaper });
+  Object.assign(proc.settings, options.settings ?? {});
   await proc.load(options.urls);
-  if (!runtime.extent) await runtime.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
+  const model = options.model ?? 'procedural';
+  if (model === 'procedural' && !runtime.extent) await runtime.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
   runtime.setProceduralModel(proc);
-  runtime.settings.densityModel = 'procedural';
+  runtime.settings.densityModel = model;
   return proc;
 }
 

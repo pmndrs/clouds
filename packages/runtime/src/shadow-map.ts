@@ -2,7 +2,8 @@
 // See shaders/shadow-map.wgsl.ts for the method. This file owns the textures, the refresh schedule and the invalidation. No three imports.
 import type { GpuTimer } from './gpu-timer';
 import { COMMON_WGSL } from './shaders/common.wgsl';
-import { SHADOW_MAP_BINDINGS, SHADOW_MAP_PARAM_BYTES, SHADOW_MAP_WGSL, cloudShadowMapWgsl } from './shaders/shadow-map.wgsl';
+import type { ProceduralDensityModel } from './procedural/types';
+import { SHADOW_MAP_BINDINGS, SHADOW_MAP_PARAM_BYTES, cloudShadowMapWgsl, shadowMapWgsl } from './shaders/shadow-map.wgsl';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
 
@@ -19,6 +20,8 @@ export interface CloudShadowMapSettings {
   refreshFrames: number;
   /** Samples along each sun ray through the shell. Default 48. */
   steps: number;
+  /** X3: samples along each sun ray through a procedural model's shell. Default 64. */
+  proceduralSteps: number;
   /** Height of the ground the cascades centre on (the camera's foot point), metres. Default 0. */
   groundHeight: number;
   /** Debug view (0 off). 1: outline the shadow map's tau contour on the ground. 2: the same outline on the cloud shell's base plane (seen from below, it should trace the cloud silhouettes when the sun is high). */
@@ -30,7 +33,7 @@ export interface CloudShadowMapSettings {
 }
 
 export const SHADOW_MAP_DEFAULTS: CloudShadowMapSettings = {
-  enabled: true, nearExtent: 8192, farExtent: 65536, refreshFrames: 24, steps: 48, groundHeight: 0, debug: 0, debugThreshold: 0.3, debugGain: 8,
+  enabled: true, nearExtent: 8192, farExtent: 65536, refreshFrames: 24, steps: 48, proceduralSteps: 64, groundHeight: 0, debug: 0, debugThreshold: 0.3, debugGain: 8,
 };
 
 export interface ShadowMapSky {
@@ -59,6 +62,12 @@ export interface ShadowMapEncodeArgs {
   shadowStrength: number;
   /** The sky layer's resources while it renders this frame, else null (the map then covers the voxel box only). */
   sky: ShadowMapSky | null;
+  /**
+   * X3: the procedural density model while it renders this frame (densityModel 'procedural' or 'hybrid'), else null. Its clouds are integrated
+   * over its shell; the map plane drops to the lower of the box's and the shell's base. `procKey` (its version and the wind offset, rounded) invalidates.
+   */
+  procedural?: ProceduralDensityModel | null;
+  procKey?: readonly number[];
   timer?: GpuTimer;
 }
 
@@ -105,7 +114,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
   const dummyParams = device.createBuffer({ label: 'cloud shadow map dummy sky params', size: SKY_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM });
   const dummySampler = device.createSampler({ label: 'cloud shadow map dummy sampler', magFilter: 'linear', minFilter: 'linear' });
 
-  const layout = device.createBindGroupLayout({ label: 'cloud shadow map refresh', entries: [
+  const layoutEntries: GPUBindGroupLayoutEntry[] = [
     { binding: SHADOW_MAP_BINDINGS.params, visibility: C, buffer: { type: 'uniform' } },
     { binding: SHADOW_MAP_BINDINGS.outNear, visibility: C, storageTexture: { access: 'write-only', format: 'r32float' } },
     { binding: SHADOW_MAP_BINDINGS.outFar, visibility: C, storageTexture: { access: 'write-only', format: 'r32float' } },
@@ -114,13 +123,31 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
     { binding: SHADOW_MAP_BINDINGS.skyWeather, visibility: C, texture: { sampleType: 'float' } },
     { binding: SHADOW_MAP_BINDINGS.skySampler, visibility: C, sampler: { type: 'filtering' } },
     { binding: SHADOW_MAP_BINDINGS.skyParams, visibility: C, buffer: { type: 'uniform' } },
-  ] });
+  ];
+  const layout = device.createBindGroupLayout({ label: 'cloud shadow map refresh', entries: layoutEntries });
   let pipeline: GPUComputePipeline | null = null;
   void device.createComputePipelineAsync({
     label: 'cloud shadow map refresh',
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, layout] }),
-    compute: { module: device.createShaderModule({ label: 'cloud shadow map refresh', code: COMMON_WGSL + volumeWgsl(0) + SHADOW_MAP_WGSL }), entryPoint: 'main' },
+    compute: { module: device.createShaderModule({ label: 'cloud shadow map refresh', code: COMMON_WGSL + volumeWgsl(0) + shadowMapWgsl() }), entryPoint: 'main' },
   }).then(pl => { pipeline = pl; }, e => { console.error('cloud shadow map pipeline failed', e); });
+  // X3: one pipeline per procedural shaper (the model's density WGSL), compiled on first use.
+  const procPipelines = new Map<string, { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null }>();
+  const procPipeline = (m: ProceduralDensityModel) => {
+    let e = procPipelines.get(m.wgslKey);
+    if (!e) {
+      const pl = device.createBindGroupLayout({ label: 'cloud shadow map refresh (procedural)', entries: [...layoutEntries, ...m.layoutEntries(SHADOW_MAP_BINDINGS.procedural, C)] });
+      const entry: { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null } = { layout: pl, pipeline: null };
+      e = entry;
+      procPipelines.set(m.wgslKey, entry);
+      void device.createComputePipelineAsync({
+        label: `cloud shadow map refresh (procedural ${m.wgslKey})`,
+        layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, pl] }),
+        compute: { module: device.createShaderModule({ label: 'cloud shadow map refresh (procedural)', code: COMMON_WGSL + volumeWgsl(0) + shadowMapWgsl(m.densityWgsl(1, SHADOW_MAP_BINDINGS.procedural)) }), entryPoint: 'main' },
+      }).then(p => { entry.pipeline = p; }, err => { console.error('cloud shadow map procedural pipeline failed', err); });
+    }
+    return e;
+  };
 
   let disposed = false;
   let valid = false;          // a complete refresh has landed
@@ -134,7 +161,8 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
   let lastBox = new Float64Array(6);
   let lastScalars = [NaN, NaN, NaN, NaN, NaN];
   const groups: (GPUBindGroup | undefined)[] = [undefined, undefined];
-  let groupGrid: unknown = null, groupWeather: GPUTexture | null = null, groupParams: GPUBuffer | null = null;
+  let groupGrid: unknown = null, groupWeather: GPUTexture | null = null, groupParams: GPUBuffer | null = null, groupProc: object | null = null;
+  let lastProc: object | null = null, lastProcKey: readonly number[] = [];
 
   const projected = (s: ArrayLike<number>) => [s[0] / s[1], s[2] / s[1]];
 
@@ -160,8 +188,14 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
     encode(encoder, a) {
       const s = settings;
       const sun = a.sunDirection;
-      const off = !s.enabled || disposed || a.shadowStrength <= 0 || sun[1] <= MIN_SUN_Y || !pipeline;
-      const planeY = a.box.minCorner[1], H = a.box.extent[1];
+      const proc = a.procedural ?? null;
+      const procEntry = proc ? procPipeline(proc) : null;
+      const pipe = procEntry ? procEntry.pipeline : pipeline;
+      const off = !s.enabled || disposed || a.shadowStrength <= 0 || sun[1] <= MIN_SUN_Y || !pipe;
+      // X3: with a procedural model the plane is the lower of the box's base and the model's shell base, and the shell reaches the higher top.
+      const boxTop = a.box.minCorner[1] + a.box.extent[1];
+      const planeY = proc ? Math.min(a.box.minCorner[1], proc.shell[0]) : a.box.minCorner[1];
+      const H = (proc ? Math.max(boxTop, proc.shell[1]) : boxTop) - planeY;
       if (off) {
         // Offered nothing; when it comes back on, the whole map is rebuilt first.
         valid = false; hardPending = true; remaining = N; lastGrid = null; origin.placed = false;
@@ -170,12 +204,19 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
         return false;
       }
 
-      const skyOn = !!a.sky;
+      const skyOn = !!a.sky || !!proc;
       // ---- invalidation ----
       const grid = a.lightGrid;
       let hard = false, stale = false;
       if (grid !== lastGrid) { hard = true; lastGrid = grid; }
-      if ((skyOn ? 1 : 0) !== (lastWeather ? 1 : 0)) { hard = true; }
+      if ((a.sky ? 1 : 0) !== (lastWeather ? 1 : 0)) { hard = true; }
+      // X3: a model switch is hard; a model change or the wind moving its clouds by a texel is a refresh (it restarts a sweep only when none is running,
+      // so a steady wind never starves the first fill).
+      const procRes = proc ? proc.resourceKey : null;
+      if (procRes !== lastProc) { hard = true; lastProc = procRes; }
+      const pk = a.procKey ?? [];
+      let procDrift = false;
+      if (pk.length !== lastProcKey.length || pk.some((v, i) => v !== lastProcKey[i])) { procDrift = true; lastProcKey = pk; }
       if ((a.sky?.weather ?? null) !== lastWeather) { stale = true; lastWeather = a.sky?.weather ?? null; }
       const sk = a.sky?.key ?? [];
       if (sk.length !== lastSkyKey.length || sk.some((v, i) => v !== lastSkyKey[i])) { stale = true; lastSkyKey = sk; }
@@ -210,6 +251,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       origin.placed = true;
       if (near.moved || far.moved) stale = true;
       if (stale) remaining = N;
+      else if (procDrift && remaining === 0) remaining = N;
 
       // ---- uniform ----
       p[0] = mapSun[0]; p[1] = mapSun[1]; p[2] = mapSun[2]; p[3] = planeY;
@@ -217,7 +259,8 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       p[8] = origin.far[0]; p[9] = origin.far[1]; p[10] = far.cell; p[11] = skyOn ? N : 0;
       p[13] = BLEND_CELLS; p[14] = s.debug; p[15] = s.debugThreshold;
       p[16] = a.extinction; p[17] = a.lightDensityScale;
-      p[20] = skyOn ? 1 : 0; p[21] = H; p[22] = Math.max(8, s.steps); p[23] = s.debugGain;
+      p[20] = a.sky ? 1 : 0; p[21] = H; p[22] = Math.max(8, s.steps); p[23] = s.debugGain;
+      p[24] = proc ? proc.shell[0] : 0; p[25] = proc ? proc.shell[1] : 0; p[26] = proc ? Math.max(8, s.proceduralSteps) : 0; p[27] = 0;
 
       // ---- the refresh slice ----
       let rows = 0;
@@ -232,10 +275,10 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       device.queue.writeBuffer(paramsBuffer, 0, p);
       if (rows > 0) {
         const sky = a.sky;
-        if (groupGrid !== grid || groupWeather !== (sky?.weather ?? null) || groupParams !== (sky?.params ?? null)) {
-          groups[0] = groups[1] = undefined; groupGrid = grid; groupWeather = sky?.weather ?? null; groupParams = sky?.params ?? null;
+        if (groupGrid !== grid || groupWeather !== (sky?.weather ?? null) || groupParams !== (sky?.params ?? null) || groupProc !== (proc ? proc.resourceKey : null)) {
+          groups[0] = groups[1] = undefined; groupGrid = grid; groupWeather = sky?.weather ?? null; groupParams = sky?.params ?? null; groupProc = proc ? proc.resourceKey : null;
         }
-        const group = groups[a.gridFront] ??= device.createBindGroup({ label: `cloud shadow map refresh ${a.gridFront}`, layout, entries: [
+        const group = groups[a.gridFront] ??= device.createBindGroup({ label: `cloud shadow map refresh ${a.gridFront}`, layout: procEntry ? procEntry.layout : layout, entries: [
           { binding: SHADOW_MAP_BINDINGS.params, resource: { buffer: paramsBuffer } },
           { binding: SHADOW_MAP_BINDINGS.outNear, resource: views[0] },
           { binding: SHADOW_MAP_BINDINGS.outFar, resource: views[1] },
@@ -243,9 +286,10 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
           { binding: SHADOW_MAP_BINDINGS.skyWeather, resource: (sky?.weather ?? dummyWeather).createView() },
           { binding: SHADOW_MAP_BINDINGS.skySampler, resource: sky?.sampler ?? dummySampler },
           { binding: SHADOW_MAP_BINDINGS.skyParams, resource: { buffer: sky?.params ?? dummyParams } },
+          ...(proc ? proc.resourceEntries(SHADOW_MAP_BINDINGS.procedural) : []),
         ] });
         const pass = encoder.beginComputePass({ label: 'cloud shadow map', timestampWrites: a.timer?.passTimestampWrites('shadowMap') });
-        pass.setPipeline(pipeline!);
+        pass.setPipeline(pipe!);
         pass.setBindGroup(0, a.volumeGroup);
         pass.setBindGroup(1, group);
         pass.dispatchWorkgroups(N / 8, Math.ceil(rows / 8), skyOn ? 2 : 1);

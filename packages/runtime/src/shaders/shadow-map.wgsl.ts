@@ -3,9 +3,9 @@ import { lightGridWgsl } from './light-grid.wgsl';
 import { SKY_FIELD_WGSL, SKY_STRUCT_WGSL } from './sky-layer.wgsl';
 
 /** Refresh pass bindings (group 1). Group 0 is the volume. The light grid takes 3 and 4. */
-export const SHADOW_MAP_BINDINGS = { params: 0, outNear: 1, outFar: 2, lightGrid: 3, skyWeather: 5, skySampler: 6, skyParams: 7 } as const;
-/** Bytes of the CloudShadowMap uniform: 6 vec4. */
-export const SHADOW_MAP_PARAM_BYTES = 96;
+export const SHADOW_MAP_BINDINGS = { params: 0, outNear: 1, outFar: 2, lightGrid: 3, skyWeather: 5, skySampler: 6, skyParams: 7, procedural: 8 } as const;
+/** Bytes of the CloudShadowMap uniform: 7 vec4. */
+export const SHADOW_MAP_PARAM_BYTES = 112;
 
 /**
  * Cloud shadow map (P10-A). A world-anchored 2D map of the cloud optical depth along the sun ray.
@@ -31,6 +31,7 @@ struct CloudShadowMap {
   misc: vec4<f32>,   // x: 1 when the map holds a complete refresh, y: blend width (cells), z: debug view (0 off, 1 ground outline, 2 plane outline), w: outline tau
   work: vec4<f32>,   // refresh pass: extinction, light density scale, first row, row count
   work2: vec4<f32>,  // refresh pass: sky field on (0/1), shell height (m), march steps, debug gain
+  work3: vec4<f32>,  // X3 refresh pass: procedural shell min y, max y (m), march steps (0 = no procedural model), 0
 }
 `;
 
@@ -123,12 +124,15 @@ fn cloudShadowOutline(q: vec2<f32>) -> f32 {
 }
 
 /**
- * Refresh pass. Concatenate COMMON_WGSL + volumeWgsl(0) + SHADOW_MAP_WGSL. Dispatch (ceil(N / 8), ceil(rows / 8), cascades): one thread
+ * Refresh pass. Concatenate COMMON_WGSL + volumeWgsl(0) + shadowMapWgsl(procedural).
+ * X3: `procedural` is a procedural density model's WGSL (ProceduralDensityModel.densityWgsl(1, SHADOW_MAP_BINDINGS.procedural)); its clouds are
+ * integrated too (the cheap density, midpoint steps over the model's shell, work3), so they cast ground shadows like the sky layer's. Dispatch (ceil(N / 8), ceil(rows / 8), cascades): one thread
  * per texel of the row range [work.z, work.z + work.w) of each cascade. Marches the sun ray over the shell with a fixed step (the
  * same texel always takes the same samples, so the map is stable between refreshes), skipping empty space through the sky field's
  * own conservative skip distances and its coverage-maxima mips.
  */
-export const SHADOW_MAP_WGSL = /* wgsl */ `
+export function shadowMapWgsl(procedural?: string): string {
+  return /* wgsl */ `
 ${SHADOW_MAP_STRUCT_WGSL}
 @group(1) @binding(${SHADOW_MAP_BINDINGS.params}) var<uniform> csMap: CloudShadowMap;
 @group(1) @binding(${SHADOW_MAP_BINDINGS.outNear}) var csOutNear: texture_storage_2d<r32float, write>;
@@ -140,6 +144,7 @@ ${lightGridWgsl(1, SHADOW_MAP_BINDINGS.lightGrid)}
 ${SKY_STRUCT_WGSL}
 ${BILLOW_WGSL}
 ${SKY_FIELD_WGSL}
+${procedural ?? ''}
 
 const CS_MAX_RAY = 60000.0;
 
@@ -179,6 +184,18 @@ fn csIntegrate(q: vec2<f32>) -> f32 {
       }
     }
   }
+${procedural ? `  // X3: the procedural model's clouds between its shell's base and top (a little higher for the curvature drop out to the far cascade).
+  if (csMap.work3.z > 0.0) {
+    let ta = max((csMap.work3.x - p0.y) / sun.y, 0.0);
+    let tb = min((csMap.work3.y + 150.0 - p0.y) / sun.y, CS_MAX_RAY);
+    let n = csMap.work3.z;
+    let ds = (tb - ta) / n;
+    let ext = P.misc.x * P.misc.y;   // the model's extinction and light scale (its own light taps use the same)
+    for (var i = 0.0; i < n; i += 1.0) {
+      let ps = p0 + sun * (ta + (i + 0.5) * ds);
+      tau += procSample(ps, 0.0, 0.0, false, 0.5).sigma * procCarve(ps) * ext * ds;
+    }
+  }` : ''}
   return tau;
 }
 
@@ -200,3 +217,4 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   else { textureStore(csOutFar, vec2<i32>(sx, sy), vec4(tau, 0.0, 0.0, 0.0)); }
 }
 `;
+}

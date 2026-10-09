@@ -80,14 +80,6 @@ fn procVoxelSigma(q: vec3<f32>) -> f32 {
   let m = sampleModeling(q, 0.0);
   return m.x * m.z * frame.extinction;
 }
-// X3 hybrid: 1 outside the voxel box, falling to 0 over P.hybrid.x metres inside its walls (0 = union: always 1).
-fn procCarve(p: vec3<f32>) -> f32 {
-  if (P.hybrid.x <= 0.0) { return 1.0; }
-  let lo = p - cloudVolume.minCorner;
-  let hi = cloudVolume.minCorner + cloudVolume.extent - p;
-  let inside = min(min(min(lo.x, hi.x), min(lo.y, hi.y)), min(lo.z, hi.z));
-  return 1.0 - smoothstep(0.0, P.hybrid.x, inside);
-}
 
 fn procSunRadiance(p: vec3<f32>) -> vec3<f32> {
 ${atm ? '  return sunRadianceAt(vec3(p.x, procAltitude(p), p.z));' : '  return sunRadianceAtHeight(procAltitude(p));'}
@@ -287,7 +279,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         // PACK_FIT ramp; the coarse (dimensional) density bounds it (NE p.54, p.59).
         let profile = min(pow(saturate(s.depth / max(P.misc.w, 1.0)), 1.05), s.coarse);
         var lit: vec3<f32>;
-        if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), P.lit.z); }
+        if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), vec4(P.octave.w, P.lit.z, 0.0, 0.0)); }
         else { lit = cloudInScatterMicro(max(profile, 1.0 / 255.0), -s.depth, saturate(s.h), tau, skyTau, phase, sunRelax, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, microOcc); }
         if (t < tSplit) { procPartAdd(&front, lit, t, stepT); } else { procPartAdd(&back, lit, t, stepT); }
         depthMax = max(depthMax, s.depth);

@@ -3,6 +3,7 @@ import { lightGridWgsl } from './light-grid.wgsl';
 import { BILLOW_WGSL } from '../generate/shaders';
 import { LIGHTING_WGSL } from './lighting.wgsl';
 import { SKY_FIELD_WGSL, SKY_PARAMS_WGSL } from './sky-layer.wgsl';
+import { SKY_LIGHT_ENTRIES } from './march.wgsl';
 
 /** Dome refresh pass bindings (group 1). Group 0 is the volume; there is no atmosphere group (sun and ambient come from the sky light buffer). */
 export const DOME_FRAME_BINDING = 0;      // Frame uniform (same struct as the march)
@@ -15,6 +16,8 @@ export const DOME_SKY_LIGHT_BINDING = 6;
 export const DOME_SKY_WEATHER_BINDING = 7;
 export const DOME_SKY_SAMPLER_BINDING = 8;
 export const DOME_SKY_PARAMS_BINDING = 9;
+/** X3: a procedural density model's bindings start here (ProceduralDensityModel.densityWgsl(1, DOME_PROCEDURAL_BINDING)). */
+export const DOME_PROCEDURAL_BINDING = 10;
 export const DOME_PARAM_BYTES = 48;
 /** The dome is refreshed over this many frames (1/16 of the texels per frame, 4x4 interleave). */
 export const DOME_REFRESH_FRAMES = 16;
@@ -76,8 +79,12 @@ fn cloudDomeSample(dir: vec3<f32>) -> vec4<f32> {
  *
  * One thread per 4x4 block; the thread shades the texel its block-local Bayer slot picks for this frame, so any 16 consecutive
  * frames cover every texel exactly once.
+ * X3: `procedural` (a procedural model's densityWgsl(1, DOME_PROCEDURAL_BINDING)) replaces the sky layer's field outside the box with the model's
+ * cheap density over its shell, lit by four cheap taps toward the sun and two up, in the model's lighting model. The voxel box keeps its SDF
+ * march (hybrid). Either branch takes the 'octave' model when it is selected (frame.haze.w for the voxel field, P.lit.x for the model).
  */
-export const DOME_WGSL = /* wgsl */ `
+export function domeWgsl(procedural?: string): string {
+  return /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(${DOME_OUT_BINDING}) var domeOut: texture_storage_2d<rgba16float, write>;
 struct DomeParams {
@@ -87,7 +94,7 @@ struct DomeParams {
 }
 @group(1) @binding(${DOME_PARAMS_BINDING}) var<uniform> dome: DomeParams;
 ${lightGridWgsl(1, DOME_LIGHT_GRID_BINDING)}
-@group(1) @binding(${DOME_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
+@group(1) @binding(${DOME_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, ${SKY_LIGHT_ENTRIES}>;
 @group(1) @binding(${DOME_SKY_WEATHER_BINDING}) var skyWeather: texture_2d<f32>;
 @group(1) @binding(${DOME_SKY_SAMPLER_BINDING}) var skySampler: sampler;
 @group(1) @binding(${DOME_SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
@@ -96,6 +103,7 @@ ${BILLOW_WGSL}
 ${SKY_FIELD_WGSL}
 ${DOME_OCT_WGSL}
 ${LIGHTING_WGSL}
+${procedural ?? ''}
 
 const SDF_SKIP_MARGIN = 6.0;
 const SDF_SKIP_RANGE = 48.0;
@@ -105,6 +113,8 @@ const DOME_LIGHT_REFRESH_M = 24.0;
 const DOME_LIGHT_REFRESH_REL = 0.03;
 const DOME_SUN_T = array<f32, 3>(84.0, 180.0, 355.0);
 const DOME_SUN_L = array<f32, 3>(72.0, 120.0, 230.0);
+const DOME_PROC_SUN_T = array<f32, 4>(40.0, 150.0, 450.0, 1200.0);
+const DOME_PROC_SUN_L = array<f32, 4>(80.0, 150.0, 450.0, 1000.0);
 
 fn shade(texel: vec2<u32>) {
   let dir = domeOctDecode((vec2<f32>(texel) + 0.5) / f32(dome.size));
@@ -120,8 +130,11 @@ fn shade(texel: vec2<u32>) {
   var tEnd = select(min(interval.y, dome.maxDistance), dome.maxDistance, sky);
   var t = select(max(interval.x, 0.0), 0.0, sky);
   if (sky) {   // clip to the cloud shell's slab
-    let sy = SKY.shell.x - origin.y;
-    let sy1 = SKY.shell.y - origin.y;
+${procedural ? `    // The procedural shell (a little higher for the curvature drop), out to its own range.
+    tEnd = min(P.shell.z, 60000.0);
+    let sy = P.shell.x - origin.y;
+    let sy1 = P.shell.y + 150.0 - origin.y;` : `    let sy = SKY.shell.x - origin.y;
+    let sy1 = SKY.shell.y - origin.y;`}
     if (abs(dir.y) > 1.0e-4) {
       let ta = sy / dir.y;
       let tb = sy1 / dir.y;
@@ -138,6 +151,8 @@ fn shade(texel: vec2<u32>) {
     let sunRadiance = skyLight[0].xyz;
     let ambientUp = skyLight[1].xyz;
     let ambientDown = skyLight[2].xyz;
+    let envUp = skyLight[5].xyz;
+    let envDown = skyLight[6].xyz;
     let sunInline0 = frame.sunDir * (0.5 * INLINE_NEAR);
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let sunGrid = frame.sunDir * INLINE_FAR;
@@ -177,7 +192,9 @@ fn shade(texel: vec2<u32>) {
                 let grid = lightGridSampleClamped(ps + sunGrid);
                 let tau = tauInline + grid.x * frame.lightDensityScale;
                 let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
-                let lit = cloudInScatter(ps0, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
+                var lit: vec3<f32>;
+                if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadiance, ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
+                else { lit = cloudInScatter(ps0, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown); }
                 depthMax = max(depthMax, -sdf);
                 radiance += lit * (T * (1.0 - stepT));
               }
@@ -187,7 +204,33 @@ fn shade(texel: vec2<u32>) {
         }
         if (t + step > interval.y) { step = max(interval.y - t, 0.0) + 1.0e-3; }   // continue just past the wall in the sky field
       } else if (sky) {
-        let ts = t + jitter * step;
+${procedural ? `        let ts = t + jitter * step;
+        let ps = origin + dir * ts;
+        let ds = min(step, tEnd - t);
+        let sp = procSample(ps, ts, ts * 0.004, false, jitter);
+        let sigma = sp.sigma * P.misc.x * procCarve(ps) * dome.densityScale;
+        if (sigma > 0.0) {
+          let stepT = exp(-sigma * ds);
+          if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
+            if (ts - litT > DOME_LIGHT_REFRESH_M + DOME_LIGHT_REFRESH_REL * ts) {
+              litT = ts;
+              var tauSun = 0.0;
+              for (var k = 0; k < 4; k++) { tauSun += procSample(ps + frame.sunDir * DOME_PROC_SUN_T[k], ts, DOME_PROC_SUN_T[k] * 0.1, false, jitter).sigma * DOME_PROC_SUN_L[k]; }
+              litTau = tauSun * P.misc.x * P.misc.y * dome.densityScale;
+              litUp = (procSample(ps + vec3(0.0, 125.0, 0.0), ts, 20.0, false, jitter).sigma * 250.0 + procSample(ps + vec3(0.0, 600.0, 0.0), ts, 80.0, false, jitter).sigma * 700.0) * P.misc.x * dome.densityScale;
+            }
+            var lit: vec3<f32>;
+            if (P.lit.x > 0.5) { lit = cloudOctaveLight(litTau, cosSun, saturate(sp.h), sigma, sunRadiance, ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), vec4(P.octave.w, P.lit.z, 0.0, 0.0)); }
+            else {
+              let profile = min(pow(saturate(sp.depth / max(P.misc.w, 1.0)), 1.05), sp.coarse);
+              lit = cloudInScatter(max(profile, 1.0 / 255.0), -sp.depth, saturate(sp.h), litTau, litUp, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
+              depthMax = max(depthMax, sp.depth);
+            }
+            radiance += lit * (T * (1.0 - stepT));
+          }
+          T *= stepT;
+        }
+` : `        let ts = t + jitter * step;
         let ps = origin + dir * ts;
         let sp = skyModel(ps, -1.0, true);
         let ps0 = sp.m.x * sp.m.z;
@@ -220,13 +263,14 @@ fn shade(texel: vec2<u32>) {
           step = max(step, sp.skip);
           if (sp.empty2d) { step = max(step, skyEmptySkip(ps, dir) - jitter * step); }
         }
+`}
         if (boxHit && t < interval.x) { step = min(step, max(interval.x - t, 0.0) + 1.0e-3); }   // do not step over the box: its clouds are the SDF march's
       }
       t += step;
     }
     if (capped && t < tEnd && T < 0.3) { T = 0.0; }
     if (T < frame.tCutoff) { radiance /= max(1.0 - T, 0.5); T = 0.0; }
-    radiance *= cloudEdgeFactor(depthMax, frontness);
+    radiance *= select(cloudEdgeFactor(depthMax, frontness), 1.0, octaveOn());
   }
   textureStore(domeOut, vec2<i32>(texel), vec4(clamp(radiance, vec3(0.0), vec3(60000.0)), T));
 }
@@ -242,3 +286,5 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
 }
 `;
+}
+export const DOME_WGSL = domeWgsl();

@@ -108,6 +108,11 @@ export interface ProceduralSettings {
   octavePhase: [number, number, number];
   ambientGain: number;
   /**
+   * Octave model: weight of the diffusion tail, an isotropic sun term falling as 1 / (1 + 0.11 tau) (two-stream diffuse transmittance), so a
+   * cloud in another's shadow keeps the light that diffuses through it instead of the octaves' 5 percent (X1's "drip"). 0 = Takram's model.
+   */
+  octaveDiffuse: number;
+  /**
    * X3 hybrid (CloudSettings.densityModel 'hybrid'): 0 (default) = density union, the procedural field continues through the voxel box and the
    * two add where they overlap. > 0: the procedural density fades out over this many metres inside the box walls, so a generated voxel field
    * replaces the procedural one there (the NVDF sky layer's hard partition, softened).
@@ -149,7 +154,7 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, boxCarve: 0, voxelShadow: true,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
   };
@@ -195,7 +200,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
   out.set([tk.turbulenceDisplacement, tk.detailDistance, 0, 0], 96);
   out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, 0], 100);
-  out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], 0], 104);
+  out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
   out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, 0, 0], 116);
   return [minY, maxY];
