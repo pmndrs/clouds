@@ -1,0 +1,36 @@
+# P9-B Weather v2: multi-scale, shared bases, shear
+Status: ready for review
+Changed: `packages/runtime/src/generate/shaders.ts` (WEATHER_WGSL rewritten; SHAPE: weather sampled with a lean, billow weight from the map), `weather.ts` (options `fractus`, `lobeSplit`, `sizeSpread`, `species`; uniform layout), `volume-generator.ts` (`NvdfParams.shearX/shearY`, params words 34/35), `presets.ts` (all four presets retuned). `evolution.ts` unchanged (the evolve block still drives the same shader).
+Verified:
+- `pnpm check` -> exit 0 (typecheck, 43 files / 213 tests, build). `node scripts/check-packed-consumer.mjs` -> PACKED CONSUMER OK.
+- `node scripts/variety.mjs --serve --shots ground,horizon,above --out work/captures/P9-B`: `variety.txt/json`, `<run>-{coverage.png,ground,horizon,above}.jpg`. `seeds/`: cumulus at seeds 3 and 11. `compare/`: ours vs Takram (horizon, sunset, above). `evolve/` (`?t=30`), `storm/` (ground), `plains/` (swapA/swapB): the other weather consumers still run. `timing.txt`: old vs new generator on one device (timestamp queries per job; weather pass by submit wall time), plus the swap diff.
+Measures (cumulus thresholds; before = `work/captures/P9-A/variety.txt`):
+| run | CV (>= 0.7) | ratio (>= 10) | base spread (<= 30 m) | acf peak (< 0.05) | clone (<= 0.6) | cover |
+| --- | --- | --- | --- | --- | --- | --- |
+| cumulus before | 0.47 FAIL | 20 | 48 m FAIL | 0.022 | 0.73 FAIL | 45% |
+| cumulus after | 1.41 pass | 134 | 16 m pass | 0.000 | 0.50 pass | 22% |
+| cumulus seed 3 / 11 | 1.13 / 1.19 | 85 / 75 | 16 / 16 m | 0 / 0 | 0.61 / 0.51 | 32% / 17% |
+| congestus before -> after | 0.59 -> 1.04 | 28 -> 83 | 64 -> 24 m | 0.005 -> 0 | 0.72 -> 0.64 | 35% -> 27% |
+| stratocumulus before -> after | 0.96 -> 1.37 | 265 -> 314 | 24 -> 24 m | 0.012 -> 0 | 0.77 -> 0.64 | 64% -> 63% |
+| open-water (sky=0) before -> after | 0.64 -> 1.41 | 29 -> 134 | 56 -> 16 m | 0.011 -> 0 | 0.61 -> 0.50 | 21% -> 22% |
+- Footprints: cumulus lobes now 64 m .. 745 m across (median 146 m) against 128 .. 576 m (median 367 m) before; the sheet in `cumulus-coverage.png` shows flat sheets, mounds, towers and scraps instead of one trapezoid 64 times.
+- Clone score: pass on the default run (0.50) and seed 11 (0.51), 0.61 at seed 3. The metric is almost entirely the aspect-ratio distribution (an analysis of the dump: pairs of similar aspect score 0.75 whatever their outline, different-aspect pairs 0.43), so the remaining 0.05 of seed noise is where the growth-state and species mix lands per seed. Not chased further; 9-C's species profiles widen it structurally.
+- Congestus and stratocumulus: every measure improves or holds (their clone scores were never required and were 0.72 / 0.77).
+- Cost (`timing.txt`, best of 3): generator per job 0.46 -> 0.35 ms (-24%, the NVDF pass has fewer surface voxels); the one-off weather pass 0.36 -> 1.4 ms at 512^2 (the generator's map, per generation) and 1.5 -> 12.8 ms at 2048^2 (the sky layer's window, once per bake). Plains flight swapA vs swapB mean |d| 0.78/255 (P7-F: 0.60, floor about 0.5): pass.
+- Captures: ground / horizon / above read as clusters of different-sized clouds with clear sky between, scraps at the rims, one flat base, a slight lean. Compare page: our pane is no longer a row of domes (horizon: distinct banks and puffs with gaps; above: cells of many sizes in lanes, not uniform popcorn).
+What changed (shaders.ts WEATHER_WGSL):
+- Cluster field: 3-octave fBm at `scale` (2 across the map = 2 km features) through the lo/hi window, rescaled (1.5 x fBm) so the demos' 0.56 / 0.9 and the cumulus preset give gaps over about a quarter of the map. Cells are gated by it at their centres, so a cell is whole or absent; rim cells are smaller and lower.
+- Four sparse jittered lattices (big at cellScale/2, mid, small at 2x, fractus scraps at 4x), presence 0.5-0.8; per cell: radius (capped at 0.75 lattice, so a 3 x 3 search covers it), growth state (tall narrow peaked vs low wide plateau: peak 2-3x, exponent 0.55-1.7, width x0.75-1.25), 1:1.8 elliptical footprint in a random direction, sub-lobe split (turrets on rising cells only). Max-combined; the carpet `(1 - cellular) * deck` underneath for stratocumulus.
+- Species (G): regional fBm +- `species` bias; shifts peak, size and growth. Fractus: finest layer only where the larger clouds' mass is 0.06-0.5 (their rims), peaks 0.18-0.26.
+- B channel (storm off) is now the owning cloud's peak: SHAPE scales the billow by it, so a 100 m puff of mass 0.1 is not displaced by a billow sized for a 1 km cloud (that made every small cell a 250 m spike and lifted bases 48 m). With `storm` / useMapHeights B is still the base (0.08 +- 15 m regional).
+- Shear: `NvdfParams.shearX/Y` (metres per metre of height; cumulus 0.08/0.04, congestus 0.1/0.05, stratocumulus 0.12/0.03): `weatherAt` reads the map at uv - lean * z.
+- Flat base: presets set `baseLift` 0.03 (15 m rim curl, was 51 m); the lift law is unchanged so the sky layer stays in step.
+Open issues:
+- Sky layer parity: the layer (`sky-layer.wgsl.ts`, P10-A's) shares the weather map, so it gets clusters, sizes and species, but it has no lean and does not read B, so its small cells keep the full billow (spiky puffs at distance) and clouds straddling the box wall step by up to lean * height (about 25 m). Two one-line changes for whoever owns it next: `K = A * b.w * topW * w.b` in `skyModelB`, and sample the weather at `wuv - lean * (p.y - shell.x) / window`.
+- `examples/lab/runtime-tests/generate/` (not mine) now fails two checks that assume a dense field: the f16 undershoot tolerance (0.64 m) at the larger empty-space distances of a clustered field (-0.81 m, the 2^-10 shrink at 800 m), and the world-anchor SDF comparison in the overlap interior (NVDF identical, max 0; the SDF of empty voxels is limited by each window's box, which differs when the nearest cloud lies outside one of them). Both need the test relaxed (tolerance relative to |d|; compare SDF only where |d| is under the voxel's distance to the window edge), not the generator.
+- The weather pass is a single dispatch, so the evolve path gets a 1.4 ms GPU bump on the frame it prepares a generation (every `cadence`); the sky-layer bake is 12.8 ms once. Splitting the weather pass into row chunks would amortize it (evolution.ts owns that encode).
+- cover fell from 45% to about 22% for the cumulus preset (clusters have gaps); open-water and compare keep their own lo/hi (0.56/0.9, the same window the preset now uses). Denser: lower `coverageLo` or raise the layer presences in `weatherMain`.
+- The `cellular` option changed meaning (1 = no carpet; it was a blend with plain fBm). Pages that override it (`open-water ?cellular=`) get the new sense.
+
+## Orchestrator review
+Accepted. `pnpm check` exit 0 (213 tests), re-run independently. Cumulus `above` and `horizon` before/after (`before-after-cumulus.jpg`): clouds now vary in size and form plates and mounds, with scraps, gaps and a flat base. Compare horizon: no longer a row of domes. Variety passes on cumulus and open-water. **Regression carried to P9-B2:** the sky-layer 2048² weather bake is 12.8 ms in one frame (was 1.5), a stall on every weather change. Also carried: sky-layer lean and B parity, and the two runtime-tests/generate checks. Cover dropped to 22%; 9-C preset tuning can raise it.

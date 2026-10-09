@@ -1355,7 +1355,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Results are written to `work/captures/P9-A/variety.json` and a readable summary.
   - `pnpm check` green.
 
-### [r] P9-B Weather v2: multi-scale, shared bases, shear · Fable (in flight; new tasks: Haiku/Sonnet/Opus, Fable only if Opus struggles)
+### [x] P9-B Weather v2: multi-scale, shared bases, shear · Fable (in flight; new tasks: Haiku/Sonnet/Opus, Fable only if Opus struggles)
 - **Owns:** `packages/runtime/src/generate/{weather.ts,shaders.ts,presets.ts,volume-generator.ts,evolution.ts}` and tests.
 - **Pages, read-only until P10-A lands:** do not edit `examples/lab/cloudscape-gen/main.ts` or `open-water/main.ts`, since P10-A has uncommitted edits there. Use the existing `?preset=`, `?w_*` and `?p_*` overrides, or add a new preset name.
 - **Does:** the plan's 9-B row (`docs/PLAN-2026-10-variety.md`).
@@ -1404,6 +1404,21 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Cost ≤ 0.1 ms.
   - The renderer-agnostic test still passes.
   - `pnpm check` green; the packed consumer passes; `node scripts/check-docs.mjs` green.
+
+### [~] P9-B2 Weather v2 follow-ups: no-stall bake, sky-layer parity, test relax · Opus
+- **Owns:**
+  - `packages/runtime/src/sky-layer.ts` and `shaders/sky-layer.wgsl.ts`
+  - `packages/runtime/src/generate/weather.ts` (encode API for tiled bakes)
+  - `examples/lab/runtime-tests/generate/**`
+- **Does:**
+  1. **Stall:** P9-B's richer weather shader makes the sky layer's one-off 2048² weather bake take **12.8 ms** in one frame (was 1.5). That is a stall on every weather change, which the plan rules out. Tile the bake (rows or blocks) over frames, keeping the old window until the new one is complete, or otherwise get every frame ≤ 1 ms. The 512² generator bake (1.4 ms) is inside the amortized generator job budget; check it.
+  2. **Sky-layer parity:** in `work/reports/P9-B.md` open issue 1, the sky layer has no shear lean and ignores channel B (the owning cloud's peak scale), so distant small cells keep the full billow and clouds straddling the box wall step by up to about 25 m. Apply the two changes the report lists and verify seams with cloudscape-gen `sky=1` `seamNorth`/`seamEast`.
+  3. **Tests:** `runtime-tests/generate` fails two checks that assume a dense field (P9-B open issue 2). Relax them properly: test the invariant (SDF is conservative, f16 tolerance scaled with distance), not the old density.
+- **Acceptance:**
+  - No frame over 1 ms of weather or bake work when changing weather (GPU timestamps; quote the frame series).
+  - Seam captures with no visible step.
+  - The `runtime-tests/generate` page passes.
+  - `pnpm check` green; the packed consumer passes.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 

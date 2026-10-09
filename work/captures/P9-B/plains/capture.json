@@ -1,0 +1,251 @@
+{
+  "url": "http://127.0.0.1:50269/plains-flight/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:23:03.660Z",
+  "shots": [
+    {
+      "name": "swapA",
+      "file": "work/captures/P9-B/plains/swapA.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.2837470666666667,
+          "lightGridReduce": 0.166715,
+          "lightGrid": 1.374908,
+          "marchNear": 0.05619721666666667,
+          "marchFar": 0.24718856666666655,
+          "shadowMap": 0.20613891666666664,
+          "composite": 0.30826060000000016,
+          "dome": 0.18910599999999997,
+          "resolveNear": 0.02564894999999999,
+          "resolveFar": 0.04072844999999999,
+          "skyLayer": 2.361718116666666,
+          "skyResolve": 0.1211946666666667,
+          "cloudsTotal": 5.0978044833333325,
+          "cloudsMarch": 3.5561814833333325,
+          "total": 5.381551549999999
+        },
+        "frameMs": {
+          "p50": 16.699999999999932,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "swapA",
+        "simT": 20,
+        "frames": 119,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2048,
+          "z": 248,
+          "y": 1074.56,
+          "yaw": 1.5707963267948966,
+          "pitch": 0.11487144583496268
+        },
+        "windowCentre": [
+          2048,
+          904
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 119,
+          "bytes": 13803852
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666958,
+            "frame": 29,
+            "setVolumeMs": 0.19999998807907104,
+            "centre": [
+              2048,
+              904
+            ],
+            "before": 0,
+            "after": [
+              16.699999999999932,
+              16.700000000000045,
+              16.600000000000023,
+              16.699999999999932
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666958,
+            "lightGridPeakMs": 1.980773,
+            "cloudsPeakMs": 4.9941819999999995,
+            "lightGridBeforeMedianMs": 0.769043
+          }
+        ],
+        "stream": {
+          "windows": 2,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.19999998807907104,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.20000001788139343,
+              "wallMs": 0.20000001788139343,
+              "origin": [
+                0,
+                -1144
+              ],
+              "centre": [
+                2048,
+                904
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "swapB",
+      "file": "work/captures/P9-B/plains/swapB.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.36196725,
+          "lightGridReduce": 0.14603166666666667,
+          "lightGrid": 1.1482266666666667,
+          "marchNear": 0.06772536666666665,
+          "marchFar": 0.28421098333333344,
+          "shadowMap": 0.2409553333333333,
+          "composite": 0.36086468333333327,
+          "dome": 0.2324026833333333,
+          "resolveNear": 0.03287588333333334,
+          "resolveFar": 0.04601036666666666,
+          "skyLayer": 2.768874433333333,
+          "skyResolve": 0.13823401666666663,
+          "cloudsTotal": 5.466412083333333,
+          "cloudsMarch": 4.17215375,
+          "total": 5.828379333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "swapB",
+        "simT": 20,
+        "frames": 262,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2048,
+          "z": 248,
+          "y": 1074.56,
+          "yaw": 1.5707963267948966,
+          "pitch": 0.11487144583496268
+        },
+        "windowCentre": [
+          2048,
+          -448
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 3,
+          "frames": 262,
+          "bytes": 13803852
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666958,
+            "frame": 29,
+            "setVolumeMs": 0.19999998807907104,
+            "centre": [
+              2048,
+              904
+            ],
+            "before": 0,
+            "after": [
+              16.699999999999932,
+              16.700000000000045,
+              16.600000000000023,
+              16.699999999999932
+            ]
+          },
+          {
+            "simT": 20,
+            "frame": 170,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              2048,
+              -448
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.59999999999991,
+              16.700000000000273,
+              16.59999999999991,
+              16.699999999999818
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666958,
+            "lightGridPeakMs": 1.980773,
+            "cloudsPeakMs": 4.9941819999999995,
+            "lightGridBeforeMedianMs": 0.769043
+          },
+          {
+            "simT": 20,
+            "lightGridPeakMs": 1.980773,
+            "cloudsPeakMs": 6.726367000000001,
+            "lightGridBeforeMedianMs": 1.980773
+          }
+        ],
+        "stream": {
+          "windows": 3,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.19999998807907104,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.20000001788139343,
+              "wallMs": 0.20000001788139343,
+              "origin": [
+                0,
+                -1144
+              ],
+              "centre": [
+                2048,
+                904
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 1.199999988079071,
+              "wallMs": 780.5,
+              "origin": [
+                0,
+                -2496
+              ],
+              "centre": [
+                2048,
+                -448
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

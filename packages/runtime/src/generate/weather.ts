@@ -11,10 +11,21 @@ export interface ProceduralWeatherOptions {
   coverageHi?: number;
   /** Width (fraction of the map) of the fade to zero at the borders. Default 0.08. */
   border?: number;
-  /** 0..1: blend from plain fBm (0) to one dome per Worley cell (1). Default 0. */
+  /**
+   * 0..1: how much of the coverage is cells and how much the carpet under them. 1: separate clouds (cumulus); below it, (1 - cellular) of the
+   * cluster field is a deck the cells stand on (stratocumulus). Default 1.
+   */
   cellular?: number;
-  /** Worley cells across the map when `cellular` > 0. Default 6. */
+  /** Cells across the map of the mid layer; the big layer has half as many, the small one twice, fractus scraps four times. Default 6. */
   cellScale?: number;
+  /** 0..1: how much of the fractus scraps (the finest layer, around the rims of larger clouds) to show. Default 0.6. */
+  fractus?: number;
+  /** 0..1: sub-lobe split of the big and mid cells (turrets of different heights on one cloud instead of one dome). Default 0.5. */
+  lobeSplit?: number;
+  /** 0..1: width of the per-cell radius and peak distributions (0: every cell of a layer the same size; 1: the full range). Default 1. */
+  sizeSpread?: number;
+  /** -1..1: shifts the regional species field (negative: smaller, flatter humilis everywhere; positive: bigger, taller congestus). Default 0. */
+  species?: number;
   /**
    * Evaluate this window of the map's uv space (origin and size in uv units; default [0,0] / [1,1]) into the texture. The fields are
    * procedural in uv, so a window beyond [0,1] continues the same world-anchored weather outside the volume (the distant sky layer
@@ -76,8 +87,10 @@ const WEATHER_PARAM_BYTES = 128;
 const pipelines = new WeakMap<GPUDevice, GPUComputePipeline>();
 
 /**
- * Encode a procedural weather map: rgba8unorm, R coverage, G cloud type (0 wispy/stratiform .. 1 billowy/cumuliform),
- * B base height, A top height (both fractions of the volume height). fBm for coverage and heights, Worley for type.
+ * Encode a procedural weather map: rgba8unorm, R coverage, G species / cloud type (0 humilis, wispy .. 1 congestus, billowy),
+ * B the billow weight of the column's cloud (with `storm`: the base height), A top height (fractions of the volume height; read with
+ * useMapHeights). P9-B: an fBm cluster field (where clouds gather, with clear gaps) gates four
+ * sparse layers of cells of different sizes, each cell with its own radius, peak, profile and sub-lobe split (shaders.ts WEATHER_WGSL).
  * The caller submits the encoder. The result is usable as `weather` for createVolumeGenerator.
  */
 export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUCommandEncoder, options: ProceduralWeatherOptions): GPUTexture {
@@ -98,7 +111,8 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
   const u = new Uint32Array(data), f = new Float32Array(data);
   u[0] = w; u[1] = h;
   f[2] = options.seed ?? 1; f[3] = options.scale ?? 4;
-  f[4] = options.coverageLo ?? 0.42; f[5] = options.coverageHi ?? 0.8; f[6] = options.border ?? 0.08; f[7] = options.cellular ?? 0; f[8] = options.cellScale ?? 6;
+  f[4] = options.coverageLo ?? 0.42; f[5] = options.coverageHi ?? 0.8; f[6] = options.border ?? 0.08; f[7] = options.cellular ?? 1; f[8] = options.cellScale ?? 6;
+  f[10] = options.fractus ?? 0.6; f[11] = options.species ?? 0;
   const win = options.window ?? { origin: [0, 0], size: [1, 1] };
   f[12] = win.origin[0]; f[13] = win.origin[1]; f[14] = win.size[0]; f[15] = win.size[1];
   if (options.evolve) {
@@ -107,7 +121,7 @@ export function encodeProceduralWeatherMap(device: GPUDevice, encoder: GPUComman
     f[16] = e.time; f[17] = e.lifeSeconds ?? 600; f[18] = e.advection?.[0] ?? 0; f[19] = e.advection?.[1] ?? 0;
     f[20] = e.drift?.[0] ?? 0; f[21] = e.drift?.[1] ?? 0;
   }
-  f[24] = options.storm ? 1 : 0;
+  f[24] = options.storm ? 1 : 0; f[25] = options.lobeSplit ?? 0.5; f[26] = options.sizeSpread ?? 1;
   f[28] = options.extentMeters ?? 4096; f[29] = options.heightMeters ?? 512;
   const uniforms = device.createBuffer({ label: 'weather params', size: WEATHER_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(uniforms, 0, data);

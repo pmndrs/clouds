@@ -24,8 +24,11 @@ export interface NvdfParams {
   billowAmp: number;
   /** Largest billow cell in metres (octaves halve it). Default 320. */
   billowCellMeters: number;
-  /** Rim lift of the base (fraction of the volume height): base rises by lift * (1 - mass)^1.5 toward a lobe's edge. Default 0.1. */
+  /** Rim lift of the base (fraction of the volume height): the base rises by up to this in the outermost rim of a cloud (mass < 0.12), which trims the thin skirt; under the cloud it is flat. Default 0.1. */
   baseLift: number;
+  /** Wind-shear lean along x and the map row: metres the column is displaced downwind per metre above the volume base (0.1 = a 300 m cloud leans 30 m). Default 0. */
+  shearX: number;
+  shearY: number;
   /** Noise seed. Default 1. */
   seed: number;
   /** Density scale (NVDF B) at the cloud base and top. Defaults 0.25 / 0.85 (the fit says 0.04 / 0.75; the base is lifted, see report). */
@@ -124,7 +127,7 @@ export interface VolumeGenerator {
 
 export const NVDF_DEFAULTS: NvdfParams = {
   coverageThreshold: 0.12, useMapHeights: false, baseDefault: 0.08, topFraction: 0.6, domeExponent: 2, billowAmp: 0.35, billowCellMeters: 320,
-  baseLift: 0.1, seed: 1, scaleBase: 0.25, scaleTop: 0.85, profileSigma: 0.64, detailBias: 0.3,
+  baseLift: 0.1, shearX: 0, shearY: 0, seed: 1, scaleBase: 0.25, scaleTop: 0.85, profileSigma: 0.64, detailBias: 0.3,
 };
 
 /** Jump-flood step sizes (legacy helper, not used by the exact EDT any more): n/2 .. 1 (n the next power of two >= maxDim), then `refine` extra steps (JFA+1: [1], JFA+2: [2, 1]). */
@@ -208,6 +211,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     f[at + 4] = st.towerRadius; f[at + 5] = st.towerHeight; f[at + 6] = st.anvilRadius; f[at + 7] = st.phase;
     f[at + 8] = st.shear?.[0] ?? 1; f[at + 9] = st.shear?.[1] ?? 0.35;
   };
+  const LEAN_WORD = STORM_WORD + 10;
 
   // ---- plan ----
   const slots: ArrayBuffer[] = [];
@@ -224,6 +228,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     f[12] = p.topFraction; f[13] = p.domeExponent; f[14] = p.billowAmp; f[15] = p.billowCellMeters;
     f[16] = p.seed; f[17] = p.scaleBase; f[18] = p.scaleTop; f[19] = p.profileSigma; f[20] = p.detailBias; f[21] = p.baseLift; f[22] = origin[0]; f[23] = origin[1];
     stormWords(f, STORM_WORD);
+    f[LEAN_WORD] = p.shearX; f[LEAN_WORD + 1] = p.shearY;
   };
   const bgl = (x: { pipeline: GPUComputePipeline }) => x.pipeline.getBindGroupLayout(0);
   // One 256-byte-aligned parameter slot per dispatch (dynamic offsets): per chunk, nvdf + edt x/y/z + profile + sdf.

@@ -1,0 +1,146 @@
+{
+  "url": "http://127.0.0.1:50037/evolve/?t=30",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T01:22:50.968Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/P9-B/evolve/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5118278166666665,
+          "lightGridReduce": 0.065118,
+          "lightGrid": 0.12553523529411767,
+          "marchNear": 0.13027095,
+          "marchFar": 1.0212442833333335,
+          "shadowMap": 0.014371261904761904,
+          "composite": 0.34610838333333355,
+          "dome": 0.10947475000000001,
+          "resolveNear": 0.058696349999999994,
+          "resolveFar": 0.09429576666666667,
+          "cloudsTotal": 1.9651149805322132,
+          "cloudsMarch": 1.7744617452380955,
+          "total": 2.4769427971988796
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "demoT": 30,
+        "simT": 300,
+        "timeScale": 10,
+        "frames": 93,
+        "cloudsReady": true,
+        "mode": "frozen",
+        "playback": null,
+        "evolution": {
+          "swaps": 1,
+          "swapVolumeCalls": 0,
+          "setVolumeCalls": 1,
+          "memoryMB": 129.0234375,
+          "worstEncodeSubmitMs": 0.20000001788139343,
+          "generations": [],
+          "genGpuMsPerFrame": {
+            "frames": 0,
+            "mean": 0,
+            "meanOverActiveFrames": 0,
+            "max": 0,
+            "p95": 0,
+            "activeFrames": 0
+          },
+          "swapEvents": []
+        },
+        "lightGridMs": {
+          "swapFrames": {
+            "mean": 0,
+            "max": 0
+          },
+          "otherFrames": {
+            "mean": 0.078159,
+            "max": 0.07815899999999999
+          }
+        },
+        "diff": null
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P9-B/evolve/above.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7170570999999999,
+          "lightGridReduce": 0.065118,
+          "lightGrid": 0.1896236363636364,
+          "marchNear": 0.12626681666666667,
+          "marchFar": 0.5720315999999998,
+          "shadowMap": 0.049149933333333326,
+          "composite": 0.4312649500000001,
+          "dome": 0.1664071666666667,
+          "resolveNear": 0.05031171666666667,
+          "resolveFar": 0.08406676666666665,
+          "cloudsTotal": 1.734240586363636,
+          "cloudsMarch": 1.4794989499999998,
+          "total": 2.451297686363636
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "demoT": 30,
+        "simT": 300,
+        "timeScale": 10,
+        "frames": 188,
+        "cloudsReady": true,
+        "mode": "frozen",
+        "playback": null,
+        "evolution": {
+          "swaps": 1,
+          "swapVolumeCalls": 0,
+          "setVolumeCalls": 1,
+          "memoryMB": 129.0234375,
+          "worstEncodeSubmitMs": 0.20000001788139343,
+          "generations": [],
+          "genGpuMsPerFrame": {
+            "frames": 0,
+            "mean": 0,
+            "meanOverActiveFrames": 0,
+            "max": 0,
+            "p95": 0,
+            "activeFrames": 0
+          },
+          "swapEvents": []
+        },
+        "lightGridMs": {
+          "swapFrames": {
+            "mean": 0,
+            "max": 0
+          },
+          "otherFrames": {
+            "mean": 0.20344782677165396,
+            "max": 0.857648
+          }
+        },
+        "diff": null
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

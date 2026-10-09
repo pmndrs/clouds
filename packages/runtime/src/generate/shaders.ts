@@ -16,7 +16,7 @@ struct Params {
   detailBias: f32, baseLift: f32, originX: f32, originY: f32,   // origin: world metres of voxel (0,0) along x and the map row
   stormOn: f32, stormX: f32, stormY: f32, stormBase: f32,        // storm cell: on (> 0.5), centre (pm metres), base height above the volume base (m)
   stormR: f32, stormH: f32, anvilR: f32, stormPh: f32,           // mature tower radius / top height (m), mature anvil radius (m), life phase (age / grow)
-  shearX: f32, shearY: f32, stormPad0: f32, stormPad1: f32,      // anvil spread direction (pm axes)
+  shearX: f32, shearY: f32, leanX: f32, leanY: f32,              // anvil spread direction (pm axes); lean: wind-shear lean of every column, metres per metre of height (P9-B)
 }
 @group(0) @binding(0) var<uniform> P: Params;
 `;
@@ -365,8 +365,18 @@ fn dome(h: f32, s: f32) -> f32 {
   // g(h): hemisphere-like height law; below the base a steep soft ramp (flat base: a ramp of about s/24 of the height, i.e. one or two voxels, so contours of the base do not stack into shelves).
   return select(-h * 24.0, pow(h, P.domeExp), h >= 0.0);
 }
-fn shapeAt(p: vec3<i32>, w: vec4<f32>, withNoise: bool) -> Shape {
+/**
+ * The weather at voxel p, with the wind-shear lean (P9-B): the column is read lean metres downwind per metre above the volume base, so every
+ * cloud leans the same way (its top displaced by lean * height). The map spans the volume footprint 1:1 (uv = (voxel + 0.5) / dims).
+ */
+fn weatherAt(p: vec3<i32>) -> vec4<f32> {
+  let uv = (vec2<f32>(f32(p.x), f32(p.y)) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));
+  let lean = vec2<f32>(P.leanX, P.leanY) * (f32(p.z) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));   // voxel units of z, over the map's voxel extent: lean is metres per metre
+  return textureSampleLevel(weather, weatherSampler, uv - lean, 0.0);
+}
+fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
   var r: Shape;
+  let w = weatherAt(p);
   r.cloudType = w.g;
   r.anvil = 0.0; r.fade = 1.0;
   r.base = P.baseDefault; r.top = P.topFrac;
@@ -375,14 +385,17 @@ fn shapeAt(p: vec3<i32>, w: vec4<f32>, withNoise: bool) -> Shape {
   let st = stormField(pm);
   r.s = clamp((w.r - P.covThreshold) / (1.0 - P.covThreshold), 0.0, 1.0) * (1.0 - st.sup);
   let hz = (f32(p.z) + 0.5) / f32(P.dims.z);
-  // The base is flat in the middle of a lobe and curls up toward its rim (a concave underside; also trims the thin skirts around a cloud).
+  // The base is flat in the middle of a lobe and curls up toward its rim (a concave underside; also trims the thin skirts around a cloud). One
+  // condensation level per layer: the presets keep baseLift at about 15 m (P9-B), the sky layer mirrors this law (sky-layer.wgsl.ts skySmooth).
   r.base = r.base + P.baseLift * pow(1.0 - r.s, 1.5);
   r.h = (hz - r.base) / max(r.top - r.base, 1e-3);
   r.f0 = r.s - dome(r.h, r.s);
   // Fraction of the way up this column's own extent (column top is where s = h^p).
   r.hcol = clamp(r.h / pow(max(r.s, 0.05), 1.0 / P.domeExp), 0.0, 1.0);
   // Billow weight: strongest on tops and near the surface, none deep inside or far outside, none near the ceiling (so towers do not hit the volume top and get cut flat).
-  var topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, r.hcol)) * (1.0 - smoothstep(0.82, 1.0, r.h));
+  // P9-B: times the map's billow weight (B when the map's heights are not in use): the mass of the cloud the column belongs to, so a 100 m puff of mass
+  // 0.1 is not displaced by a billow sized for a 1 km cloud of mass 1 (which made every small cell a 250 m spike), while big clouds keep ragged rims.
+  var topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, r.hcol)) * (1.0 - smoothstep(0.82, 1.0, r.h)) * select(w.b, 1.0, P.useHeights > 0.5);
   var hasMass = r.s > 0.0;
   var band = vec4<f32>(0.18, 0.45, -0.55, -0.3);   // the band of f0 around the surface that the billow displaces
   if (st.f > r.f0) {
@@ -404,10 +417,11 @@ fn shapeAt(p: vec3<i32>, w: vec4<f32>, withNoise: bool) -> Shape {
 `;
 
 /** Occupancy: f > 0 (before the profile is known) -> the class bit of the distance field. Binding 3 is the field. One thread, two voxels. */
-export const NVDF_WGSL = /* wgsl */ `${PARAMS}${SHAPE}${EDT_COMMON}
+export const NVDF_WGSL = /* wgsl */ `${PARAMS}
 @group(0) @binding(1) var weather: texture_2d<f32>;
 @group(0) @binding(2) var weatherSampler: sampler;
 @group(0) @binding(3) var<storage, read_write> fld: array<u32>;
+${SHAPE}${EDT_COMMON}
 
 @compute @workgroup_size(8, 8, 4)
 fn nvdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
@@ -419,8 +433,7 @@ fn nvdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
     let x = x0 + s;
     if (x >= P.dims.x) { break; }
     let p = vec3<i32>(i32(x), i32(g.y), i32(z));
-    let uv = (vec2<f32>(f32(x), f32(g.y)) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));
-    let sh = shapeAt(p, textureSampleLevel(weather, weatherSampler, uv, 0.0), true);
+    let sh = shapeAt(p, true);
     if (sh.f > 0.0 && sh.h < 1.5) { o = o | (CLS << (16u * s)); }
   }
   fld[wIdx(x0, g.y, z)] = o;
@@ -434,11 +447,12 @@ fn nvdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
  * depth = distance (m) to the nearest outside voxel centre minus half a voxel. Occupied voxels keep profile >= 1/255 so the
  * texture's non-zero set equals the SDF mask. Outside the cloud the shipped assets hold G = B = 1.
  */
-export const PROFILE_WGSL = /* wgsl */ `${PARAMS}${SHAPE}${EDT_COMMON}
+export const PROFILE_WGSL = /* wgsl */ `${PARAMS}
 @group(0) @binding(1) var weather: texture_2d<f32>;
 @group(0) @binding(2) var weatherSampler: sampler;
 @group(0) @binding(3) var<storage, read> fld: array<u32>;
 @group(0) @binding(5) var nvdf: texture_storage_3d<rgba8unorm, write>;
+${SHAPE}${EDT_COMMON}
 
 @compute @workgroup_size(8, 8, 4)
 fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
@@ -446,8 +460,7 @@ fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
   let p = vec3<i32>(i32(g.x), i32(g.y), i32(P.zStart + g.z));
   let raw = (fld[wIdx(g.x, g.y, P.zStart + g.z)] >> ((g.x & 1u) * 16u)) & 0xffffu;
   if ((raw & CLS) == 0u) { textureStore(nvdf, p, vec4<f32>(0.0, 1.0, 1.0, 1.0)); return; }
-  let uv = (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(P.dims.x), f32(P.dims.y));
-  let sh = shapeAt(p, textureSampleLevel(weather, weatherSampler, uv, 0.0), false);
+  let sh = shapeAt(p, false);
   var depth = P.maxDist;
   if ((raw & CAP) != CAP) { depth = max(0.0, (f32(raw & CAP) * (1.0 / 64.0) - 0.5) * P.voxelSize); }
   // Smooth unit-ish noise, lattice-free (profileNoise), 36-48 m correlation.
@@ -495,16 +508,33 @@ fn sdfMain(@builtin(global_invocation_id) g: vec3<u32>) {
 }
 `;
 
-/** Procedural weather map: R coverage, G cloud type, B base height, A top height (fractions of the volume height). */
+/**
+ * Procedural weather map v2 (P9-B): R coverage (the 2D mass the shape stage turns into a dome), G species (0 humilis / wispy .. 1 congestus / billowy,
+ * a regional field; 9-C consumes it, for now it shifts sizes and heights), B base height, A top height (fractions of the volume height; read with
+ * useMapHeights only). The map describes a sky, not a lattice:
+ *   clusters   an fBm at `scale` cells across the map (2-8 km features) through the coverageLo..Hi ramp says where clouds gather and where the
+ *              gaps are (clusterAt: 0 clear gap .. 1 cluster core);
+ *   cells      four sparse jittered Worley layers (big, mid, small, fractus) at cellScale/2, cellScale, 2x and 4x cells across the map. Every lattice
+ *              cell holds a cloud with some probability, with its own radius, peak mass, profile exponent (plateau .. tower) and sub-lobe split from
+ *              hashes, and is scaled by the cluster field at its centre: big cells only in cluster cores, small ones out to the rims, so the size
+ *              distribution is wide and nothing repeats at the cell spacing (cellLayer);
+ *   fractus    scraps of the finest layer where the mass of the larger clouds is low but not zero: ragged bits around the big cells;
+ *   deck       (1 - cellular) of the cluster field as a carpet the cells stand on (stratocumulus);
+ *   species    a regional fBm: congestus regions have bigger, taller, peakier cells; humilis regions smaller plateaus.
+ * B is the billow weight of the column's cloud (its peak mass, so small puffs are not displaced by a billow sized for a 1 km cloud); with `storm`
+ * (useMapHeights) B is instead one condensation level (0.08 +- 15 m of a 512 m volume, regional). Shear is not here: the map is 2D, the generator leans the
+ * column (shaders.ts SHAPE, NvdfParams.shearX/Y). Evolution (`evolve`): every cell has the life cycle of P6-A (grow 22 percent, mature to 66,
+ * dissipate, restart elsewhere with new parameters), the pattern is advected and the cluster fBm drifts.
+ */
 export const WEATHER_WGSL = /* wgsl */ `
 struct WeatherParams {
   size: vec2<u32>, seed: f32, scale: f32,
   coverageLo: f32, coverageHi: f32, border: f32, cellular: f32,
-  cellScale: f32, evoOn: f32, p1: f32, p2: f32,
+  cellScale: f32, evoOn: f32, fractus: f32, species: f32,
   uvOrigin: vec2<f32>, uvSize: vec2<f32>,   // window of the map's own uv space this texture shows (default 0,0 / 1,1)
   evo: vec4<f32>,    // evolution: time (s), life cycle (s), pattern advection (uv, x then y)
   drift: vec4<f32>,  // evolution: fBm drift per second (uv units of the fBm domain, x then y), unused zw
-  storm: vec4<f32>,  // x: storm field (> 0.5): the low field of a storm scene (P6-C: the cell itself is a 3D field in the generator, shaders.ts STORM_WGSL); unused yzw
+  storm: vec4<f32>,  // x: storm field (> 0.5): the low field of a storm scene (P6-C: the cell itself is a 3D field in the generator, shaders.ts STORM_WGSL); y: lobeSplit; z: sizeSpread; w: unused
   dims: vec4<f32>,   // metres spanned by uv 0..1, height of the volume in metres (storm only: the heights are written as fractions of it), unused zw
 }
 @group(0) @binding(0) var<uniform> W: WeatherParams;
@@ -516,95 +546,185 @@ fn hash(p: vec2<i32>) -> f32 {
   h = h ^ (h >> 16u);
   return f32(h) * (1.0 / 4294967295.0);
 }
-fn hash2(p: vec2<i32>) -> vec2<f32> { return vec2<f32>(hash(p), hash(p + vec2<i32>(101, 57))); }
 fn valueNoise(p: vec2<f32>) -> f32 {
   let i = vec2<i32>(floor(p));
   let f = fract(p);
   let u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2<i32>(1, 0)), u.x), mix(hash(i + vec2<i32>(0, 1)), hash(i + vec2<i32>(1, 1)), u.x), u.y);
 }
-fn fbm(p0: vec2<f32>) -> f32 {
+fn fbmN(p0: vec2<f32>, octaves: i32) -> f32 {
   var p = p0; var a = 0.5; var s = 0.0; var n = 0.0;
-  for (var o = 0; o < 5; o++) { s += a * valueNoise(p); n += a; p = p * 2.03 + vec2<f32>(17.1, 9.7); a *= 0.5; }
+  for (var o = 0; o < octaves; o++) { s += a * valueNoise(p); n += a; p = p * 2.03 + vec2<f32>(17.1, 9.7); a *= 0.5; }
   return s / n;
 }
-fn hashS(p: vec2<i32>, salt: u32) -> f32 {
+fn fbm(p0: vec2<f32>) -> f32 { return fbmN(p0, 5); }
+fn hashSu(p: vec2<i32>, salt: u32) -> u32 {
   var h = u32(p.x) * 374761393u + u32(p.y) * 668265263u + (u32(W.seed * 977.0) + salt * 3266489917u) * 2246822519u;
   h = (h ^ (h >> 13u)) * 1274126177u;
   h = h ^ (h >> 16u);
   h = (h ^ (h >> 15u)) * 2246822519u;
-  h = h ^ (h >> 13u);
-  return f32(h) * (1.0 / 4294967295.0);
+  return h ^ (h >> 13u);
 }
-// Evolving cellular mass: every Worley cell carries a cumulus with its own life cycle (grows over the first 22 percent, mature to 66
-// percent, dissipates over the rest). A cell restarts each cycle with a new jitter, strength and radius while its envelope is zero, so
-// nothing pops. The result is the max over the 3 x 3 neighbours of envelope * dome(distance), continuous in space and time.
-fn evolvingCells(p: vec2<f32>, t: f32, life: f32) -> f32 {
+fn hashS(p: vec2<i32>, salt: u32) -> f32 { return f32(hashSu(p, salt)) * (1.0 / 4294967295.0); }
+/** Two uniform values (16 bits each) from one hash: the per-cell parameters need no more. */
+fn hash2S(p: vec2<i32>, salt: u32) -> vec2<f32> {
+  let h = hashSu(p, salt);
+  return vec2<f32>(f32(h & 0xffffu), f32(h >> 16u)) * (1.0 / 65535.0);
+}
+// ---- the cluster and species fields (uvc: the advected pattern uv; dOff: the fBm drift) ----
+// Where clouds gather, 0 clear gap .. 1 cluster core: 1.5 x the fBm (mean 0.5, spread about 0.12) through the coverageLo..Hi window, scaled so
+// the demos' fair-weather window (lo 0.56 / hi 0.9, the cumulus preset too) gives gaps over about a quarter of the map and cores over a fifth:
+// the window keeps its old sense (lower lo = more cloud; the compare page's coverage slider maps onto it).
+// Three octaves: it is read at cell centres (at least 100 m apart) and gates whole cells, so the finer octaves would only cost (the deck keeps five).
+fn clusterAt(uvc: vec2<f32>, dOff: vec2<f32>) -> f32 {
+  let fb = fbmN(uvc * W.scale + vec2<f32>(W.seed * 13.0, 0.0) + dOff, 3);
+  return clamp(((1.5 * fb - W.coverageLo) / max(W.coverageHi - W.coverageLo, 1e-4) - 0.2) / 0.8, 0.0, 1.0);
+}
+// The carpet (stratocumulus deck) the cells stand on: the old map's fBm coverage with the P7-F dome ramp, times (1 - cellular).
+fn deckAt(uvc: vec2<f32>, dOff: vec2<f32>) -> f32 {
+  let fb = fbm(uvc * W.scale + vec2<f32>(W.seed * 13.0, 0.0) + dOff);
+  let u = clamp(((fb - W.coverageLo) / max(W.coverageHi - W.coverageLo, 1e-4) - 0.2) / 0.8, 0.0, 1.0);
+  return pow(1.0 - pow(1.0 - u, 1.7), 1.6) * (1.0 - W.cellular);
+}
+// Regional species, 0 humilis .. 1 congestus: a coarser fBm (0.6 of the cluster scale), stretched so regions reach both ends, plus the preset's bias.
+fn speciesAt(uvc: vec2<f32>, dOff: vec2<f32>) -> f32 {
+  let t = fbmN(uvc * W.scale * 0.6 + vec2<f32>(31.0, W.seed * 7.0) + dOff * 0.6, 3);
+  return clamp((t - 0.5) * 3.2 + 0.5 + W.species, 0.0, 1.0);
+}
+// ---- cells ----
+// The mass profile of one cell: 1 at the centre, 0 at the rim (d = distance / radius). The rounded ramp is P7-F's: under the shape law f = s - h^p
+// it is a mound with a tapered foot and a horizontal top. Raised to the cell's own exponent e: below 1 a plateau (wide, flat humilis), above 1 a peak (tower).
+fn cellDome(d: f32, e: f32) -> f32 {
+  let u = clamp(1.0 - d, 0.0, 1.0);
+  return pow(pow(1.0 - pow(1.0 - u, 1.7), 1.6), e);
+}
+// Sub-lobe field: rounded bumps, one per jittered lattice point, radius 0.75-1.3 cells and height 0.65-1, max over the neighbourhood (0.3..1 inside a cloud).
+fn lobes2(p: vec2<f32>, salt: u32) -> f32 {
   let i = vec2<i32>(floor(p));
   let f = fract(p);
   var m = 0.0;
   for (var y = -1; y <= 1; y++) { for (var x = -1; x <= 1; x++) {
     let c = i + vec2<i32>(x, y);
-    let cyc = t / (life * (0.6 + 0.8 * hashS(c, 3u))) + hashS(c, 4u);
-    let gen = floor(cyc);
-    let u = cyc - gen;
-    let salt = 16u + u32(gen) * 8u;
-    let jit = vec2<f32>(hashS(c, salt), hashS(c, salt + 1u));
-    let str = 0.95 + 0.4 * hashS(c, salt + 2u);
-    let rad = 1.25 * (0.8 + 0.4 * hashS(c, salt + 3u));
-    let env = smoothstep(0.0, 0.22, u) * (1.0 - smoothstep(0.66, 1.0, u));
-    let d = length(vec2<f32>(f32(x), f32(y)) + jit - f);
-    m = max(m, env * str * clamp(1.0 - d * rad, 0.0, 1.0));
+    let d = length(vec2<f32>(f32(x), f32(y)) + vec2<f32>(hashS(c, salt), hashS(c, salt + 1u)) - f);
+    let t = max(0.0, 1.0 - d / (0.75 + 0.55 * hashS(c, salt + 2u)));
+    m = max(m, (0.65 + 0.35 * hashS(c, salt + 3u)) * t * t * (3.0 - 2.0 * t));
   } }
   return m;
 }
-fn worleyF1(p: vec2<f32>) -> f32 {
+/**
+ * One sparse layer of cells on a jittered lattice of across cells across the map. Each lattice cell holds a cloud with probability presence; its
+ * feature point is jittered over the whole cell, its radius is rMin..rMax cells (so neighbouring domes rarely merge and the footprints spread), its
+ * peak mass mMin..mMax, its profile exponent eMin..eMax (plateau .. tower, following the peak), its footprint an ellipse of up to 1:elong in a random
+ * direction, its sub-lobe split up to split; all from hashes. The cluster field at the cell's
+ * centre gates it (smoothstep gate0..gate1: 0 = absent) and shrinks and lowers it toward the cluster rim; the regional species makes congestus
+ * cells bigger, taller and peakier. Evolving (on): P6-A's per-cell life cycle (grow over 22 percent, mature to 66, dissipate; restart with new
+ * parameters while the envelope is zero, so nothing pops). Returns the max over the 3 x 3 neighbours of envelope * peak * profile.
+ */
+fn cellLayer(uvc: vec2<f32>, across: f32, salt: u32, presence: f32, rMin: f32, rMax: f32, mMin: f32, mMax: f32, eMin: f32, eMax: f32, elong: f32, gate0: f32, gate1: f32, split: f32, dOff: vec2<f32>) -> vec2<f32> {
+  let off = vec2<f32>(W.seed * 3.7 + f32(salt) * 0.37, 1.3 + f32(salt) * 0.71);
+  let p = uvc * across + off;
   let i = vec2<i32>(floor(p));
   let f = fract(p);
-  var m = 8.0;
-  for (var y = -1; y <= 1; y++) { for (var x = -1; x <= 1; x++) {
-    let o = vec2<i32>(x, y);
-    let d = vec2<f32>(f32(x), f32(y)) + hash2(i + o) - f;
-    m = min(m, dot(d, d));
+  let on = W.evoOn > 0.5;
+  let spread = W.storm.z;
+  // The sub-lobe field is a function of the layer's lattice coordinates, not of the cell: once per layer, not per neighbour.
+  var sub = 1.0;
+  if (split > 0.0) { sub = lobes2(p * 2.2 + vec2<f32>(f32(salt) * 0.13, 0.0), salt + 99u); }
+  // The furthest a cell can reach (its long semi-axis; the radius is capped at rMax after the species, growth and gate factors), and the lattice
+  // neighbourhood that covers it: 3 x 3 up to 1 cell (rMax 0.75 with elong 1.8), 5 x 5 beyond (2.8x the hashes).
+  let reachMax = rMax * sqrt(elong);
+  let n = select(1, 2, reachMax > 1.0);
+  var m = vec2<f32>(0.0);
+  for (var y = -n; y <= n; y++) { for (var x = -n; x <= n; x++) {
+    let c = i + vec2<i32>(x, y);
+    var env = 1.0;
+    var s2 = salt + 16u;
+    if (on) {
+      let cyc = W.evo.x / (W.evo.y * (0.6 + 0.8 * hashS(c, salt + 3u))) + hashS(c, salt + 4u);
+      let gen = floor(cyc);
+      let u = cyc - gen;
+      env = smoothstep(0.0, 0.22, u) * (1.0 - smoothstep(0.66, 1.0, u));
+      s2 = salt + 16u + u32(gen) * 8u;
+    }
+    let h0 = hash2S(c, s2);          // presence, jitter x
+    if (h0.x > presence || env <= 0.0) { continue; }
+    let h1 = hash2S(c, s2 + 1u);     // jitter y, radius
+    let jit = vec2<f32>(h0.y, h1.x);
+    let v = vec2<f32>(f32(x), f32(y)) + jit - f;
+    if (dot(v, v) >= reachMax * reachMax) { continue; }   // beyond the largest possible reach: skip before the cluster and species fBm (most of the neighbourhood)
+    let centreUv = (vec2<f32>(c) + jit - off) / across;
+    let g = smoothstep(gate0, gate1, clusterAt(centreUv, dOff));
+    if (g <= 0.0) { continue; }
+    let sp = speciesAt(centreUv, dOff);
+    let h2 = hash2S(c, s2 + 2u);     // peak, profile exponent jitter
+    let h3 = hash2S(c, s2 + 3u);     // elongation direction, elongation
+    // Growth state pk (0 decaying .. 1 rising): rising cells are tall, narrow and peaked; decaying ones low, wide plateaus (deck-scenes.md 2.3: the
+    // growing / spreading pair is what a sky of one recipe lacks). Congestus regions and cluster cores push it up.
+    let pk = clamp(mix(0.5, h2.x, spread) + (sp - 0.5) * 0.3 + (g - 1.0) * 0.2, 0.0, 1.0);
+    let r = min(mix(rMin, rMax, mix(0.5, h1.y, spread)) * mix(1.25, 0.75, pk) * mix(0.55, 1.0, g), rMax);
+    let peak = mix(mMin, mMax, pk);
+    let e = mix(eMin, eMax, clamp(pk * 0.75 + h2.y * 0.25, 0.0, 1.0));
+    // Elliptical footprint: semi-axes r sqrt(a) along a random direction and r / sqrt(a) across (cloud streets, no two outlines alike).
+    let a = mix(1.0, elong, h3.y);
+    let ang = h3.x * 3.14159265;
+    let u = vec2<f32>(cos(ang), sin(ang));
+    let along = dot(v, u); let across2 = v.x * u.y - v.y * u.x;
+    let d = sqrt(along * along / a + across2 * across2 * a) / max(r, 1e-3);
+    if (d >= 1.0) { continue; }
+    var prof = cellDome(d, e);
+    if (split > 0.0) {
+      // Turrets on rising cells; a decaying plateau stays one smooth lobe.
+      let amp = split * (0.45 + 0.4 * hash2S(c, s2 + 4u).x) * pk;
+      prof = prof * (1.0 - amp * (1.0 - sub));
+    }
+    m = max(m, vec2<f32>(env * peak * prof, env * peak));
   } }
-  return sqrt(m);
+  return m;
 }
-
 @compute @workgroup_size(8, 8, 1)
 fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {
   if (g.x >= W.size.x || g.y >= W.size.y) { return; }
   let uv = W.uvOrigin + (vec2<f32>(f32(g.x), f32(g.y)) + 0.5) / vec2<f32>(f32(W.size.x), f32(W.size.y)) * W.uvSize;
   let on = W.evoOn > 0.5;
   let uvc = select(uv, uv - W.evo.zw, on);              // the pattern is advected; the window border (edge below) stays with the box
-  let q = uvc * W.scale;
-  let fb = fbm(q + vec2<f32>(W.seed * 13.0, 0.0) + select(vec2<f32>(0.0), W.drift.xy * W.evo.x, on));
-  // Cellular mass: one dome per Worley cell (cumulus lobes), modulated by fBm so cells differ in size and some die out.
-  var cell: f32;
-  if (on) { cell = evolvingCells(uvc * W.cellScale + vec2<f32>(W.seed * 3.7, 1.3), W.evo.x, W.evo.y); }
-  else { cell = 1.0 - clamp(worleyF1(uv * W.cellScale + vec2<f32>(W.seed * 3.7, 1.3)) * 1.25, 0.0, 1.0); }
-  let n = mix(fb, clamp(0.25 + 0.75 * cell * (0.45 + 1.1 * fb), 0.0, 1.0), W.cellular);
+  let dOff = select(vec2<f32>(0.0), W.drift.xy * W.evo.x, on);
+  let cs = W.cellScale;
+  let split = W.storm.y;
+  // Cells, large to small (x: mass, y: the owning cloud's peak): big mediocris only in cluster cores (peak 0.7-1, so their footprint is most of the
+  // radius), mid cells, small humilis puffs (low peaks: 60-110 m tall, 100-200 m across) out to the cluster rims.
+  // Profile exponents: big and mid cells are mounds to peaks (1 .. 1.7: a plateau at their size is a slab), small puffs may be plateaus (0.6 ..).
+  // Peaks span 2-3x within a layer (heights 3x, widths 2x the other way: aspect ratios from flat sheets to towers), footprints up to 1.8x elongated.
+  var cells = cellLayer(uvc, cs * 0.5, 1u, 0.8, 0.45, 0.75, 0.45, 1.0, 0.8, 1.7, 1.8, 0.15, 0.6, split, dOff);
+  cells = max(cells, cellLayer(uvc, cs, 2u, 0.8, 0.35, 0.75, 0.3, 1.0, 0.6, 1.6, 1.8, 0.05, 0.45, 0.6 * split, dOff));
+  cells = max(cells, cellLayer(uvc, cs * 2.0, 3u, 0.7, 0.4, 0.75, 0.18, 0.36, 0.55, 1.3, 1.6, 0.0, 0.3, 0.5 * split, dOff));
+  // Fractus: scraps of the finest layer in the band where the larger clouds' mass is low but not zero (their rims, just inside and outside the footprint).
+  if (W.fractus > 0.0) {
+    let band = smoothstep(0.0, 0.06, cells.x) * (1.0 - smoothstep(0.3, 0.5, cells.x));
+    if (band > 0.0) {
+      let scrap = cellLayer(uvc, cs * 4.0, 4u, 0.5, 0.35, 0.75, 0.18, 0.26, 0.6, 1.0, 1.5, 0.0, 0.3, 0.0, dOff);
+      cells = max(cells, W.fractus * band * scrap);
+    }
+  }
+  // The carpet the cells stand on (stratocumulus: 1 - cellular of the deck), then the border fade.
+  var carpet = 0.0;
+  if (W.cellular < 1.0) { carpet = deckAt(uvc, dOff); }
+  let mass = carpet + cells.x * (1.0 - carpet);
+  // Billow weight (B when the heights are not in use, shaders.ts SHAPE): the mass of the cloud this column belongs to, 1 from mass 0.5 up.
+  let billowW = min(1.0, 2.0 * max(cells.y, carpet));
   let edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
-  // Wide ramp (no saturation plateau): coverage stays a smooth, peaked mass field. Fade to nothing near the border.
-  // Rounded mass profile. The shape stage builds the cloud as f = cov - h^p, so cov must itself be the dome profile: with u the linear ramp
-  // (a cone over a Worley cell) and cov = (u (2 - u))^0.8, a column of mass u reaches height h = sqrt(u (2 - u))^(0.8 / p * 2), which for the
-  // cumulus exponent p = 1.6 is a hemisphere (r = R sqrt(1 - h^2)): widest at the base, tangent-horizontal at the top, no saturation plateau
-  // (the old smoothstep ramp made vertical-walled columns with flat tops) and no straight creases (the cone's ridge never reaches the surface).
-  // The ramp starts at 0.2 of the lo..hi range: the old smoothstep ramp was ~0 over its first fifth, and the dome profile rises at once, so this keeps the footprint where the presets tuned it.
-  let u = clamp(((n - W.coverageLo) / max(W.coverageHi - W.coverageLo, 1e-4) - 0.2) / 0.8, 0.0, 1.0);
-  let cov = pow(1.0 - pow(1.0 - u, 1.7), 1.6) * select(1.0, smoothstep(0.0, W.border, edge), W.border > 0.0);
-  let t = fbm(q * 0.7 + vec2<f32>(31.0, W.seed * 7.0));
-  let cellType = 1.0 - clamp(worleyF1(q * 1.6) * 1.3, 0.0, 1.0);
-  let cloudType = clamp(0.6 * t + 0.5 * cellType - 0.05, 0.0, 1.0);
-  let base = 0.06 + 0.14 * fbm(q * 1.3 + vec2<f32>(5.0, 3.0));
-  let top = min(0.98, base + 0.2 + 0.7 * cov * (0.55 + 0.45 * fbm(q * 1.1 + vec2<f32>(11.0, 29.0))));
+  let cov = mass * select(1.0, smoothstep(0.0, W.border, edge), W.border > 0.0);
+  let cloudType = speciesAt(uvc, dOff);
+  // One condensation level: 0.08 of the volume with a regional +-15 m (of 512 m) wander. Tops (useMapHeights only) from the mass with a gentle fBm.
+  let base = 0.08 + 0.03 * (2.0 * fbm(uvc * W.scale * 0.5 + vec2<f32>(5.0, 3.0)) - 1.0);
+  let top = min(0.98, base + 0.2 + 0.7 * cov * (0.55 + 0.45 * fbm(uvc * W.scale * 1.1 + vec2<f32>(11.0, 29.0))));
   if (W.storm.x > 0.5) {
     // Storm scene (P6-B/C): the field's heights as fractions of a taller volume (the base/top above are of a 512 m one); tops from a gentle fBm
     // (not from the mass: height ~ mass * dome law would make cones), the dome law rounds them. The cell itself is a 3D field in the generator.
     let k = 512.0 / W.dims.y;
-    let bgTop = min(0.98, base + 0.22 + 0.38 * fbm(q * 1.1 + vec2<f32>(11.0, 29.0)));
+    let bgTop = min(0.98, base + 0.22 + 0.38 * fbm(uvc * W.scale * 1.1 + vec2<f32>(11.0, 29.0)));
     textureStore(outTex, vec2<i32>(g.xy), vec4<f32>(cov, cloudType, base * k, min(0.98, bgTop * k)));
     return;
   }
-  textureStore(outTex, vec2<i32>(g.xy), vec4<f32>(cov, cloudType, base, top));
+  textureStore(outTex, vec2<i32>(g.xy), vec4<f32>(cov, cloudType, billowW, top));
 }
 `;
