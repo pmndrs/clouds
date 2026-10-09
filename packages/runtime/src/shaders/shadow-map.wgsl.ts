@@ -69,6 +69,33 @@ fn csCascade(tex: texture_2d<f32>, c: vec4<f32>, q: vec2<f32>) -> vec2<f32> {
   let e = min(min(rel.x, rel.y), min(n - 2 - rel.x, n - 2 - rel.y));
   return vec2(tau, saturate(f32(e) / max(csMap.misc.y, 1.0)));
 }
+// Q2: the far cascade (64 m texels) with a cubic B-spline instead of bilinear. A small cloud covers two or three far texels, and bilinear drew its
+// ground shadow as a hard-cornered diamond (a visible pattern of squares in every view from above); the B-spline weights are smooth, so the same
+// texels give a rounded blob. 16 loads, only where the near cascade does not cover.
+fn csBspline(t: f32) -> vec4<f32> {
+  let t2 = t * t; let t3 = t2 * t;
+  return vec4((1.0 - t) * (1.0 - t) * (1.0 - t), 3.0 * t3 - 6.0 * t2 + 4.0, -3.0 * t3 + 3.0 * t2 + 3.0 * t + 1.0, t3) * (1.0 / 6.0);
+}
+fn csCascadeCubic(tex: texture_2d<f32>, c: vec4<f32>, q: vec2<f32>) -> vec2<f32> {
+  let n = i32(c.w);
+  let u = q / max(c.z, 1e-3) - vec2(0.5);
+  let b = floor(u);
+  let f = u - b;
+  let bi = vec2<i32>(b);
+  let rel = bi - vec2<i32>(c.xy);
+  if (n < 4 || any(rel < vec2<i32>(1)) || any(rel > vec2<i32>(n - 3))) { return csCascade(tex, c, q); }
+  let m = vec2<i32>(n - 1);
+  let wx = csBspline(f.x);
+  let wy = csBspline(f.y);
+  var tau = 0.0;
+  for (var j = 0; j < 4; j++) {
+    var row = 0.0;
+    for (var i = 0; i < 4; i++) { row += wx[i] * textureLoad(tex, (bi + vec2<i32>(i - 1, j - 1)) & m, 0).x; }
+    tau += wy[j] * row;
+  }
+  let e = min(min(rel.x, rel.y), min(n - 2 - rel.x, n - 2 - rel.y));
+  return vec2(tau, saturate(f32(e) / max(csMap.misc.y, 1.0)));
+}
 // The point where the sun ray through world point p crosses the map plane.
 fn cloudShadowPlanePoint(p: vec3<f32>) -> vec2<f32> {
   let s = csMap.sun.xyz;
@@ -76,7 +103,8 @@ fn cloudShadowPlanePoint(p: vec3<f32>) -> vec2<f32> {
 }
 fn cloudShadowTauQ(q: vec2<f32>) -> f32 {
   let n = csCascade(csNearTex, csMap.near, q);
-  let f = csCascade(csFarTex, csMap.far, q);
+  var f = vec2(0.0);
+  if (n.y < 1.0) { f = csCascadeCubic(csFarTex, csMap.far, q); }
   return n.x * n.y + (1.0 - n.y) * f.x * f.y;
 }
 fn cloudShadowTau(p: vec3<f32>) -> f32 { return cloudShadowTauQ(cloudShadowPlanePoint(p)); }
