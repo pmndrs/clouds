@@ -35,7 +35,7 @@ Supersedes the ordering in `docs/PLAN-2026-10-variety.md`. That plan's task defi
 | --- | --- | --- | --- |
 | **9-C2 Look fixes** (running) | Species sheet shows no lattice, cylinders or box outline; it reads like the photo sheet of each species | Any species still reads as a primitive or a pattern | Lenticular, mammatus |
 | **9-C3 Cost** | High ≤ 3.5 ms on cumulus and mixed at ground, horizon and above; A/B shows no visible loss; the box-wall bright column is gone | Over budget, or quality visibly drops | Low/mobile re-tuning (Phase F) |
-| **9-D Shape detail** | Neighbouring clouds differ in lobe scale and edge character up close: rising clouds crisp, decaying ones wispy. ≤ +0.3 ms | Same cauliflower everywhere | Per-cloud animated growth |
+| **9-D Shape detail** | Neighbouring clouds differ in lobe scale and edge character up close: rising clouds crisp, decaying ones wispy. **Directional detail:** the leading face (into the wind or shear) is sharper and more compact, the trailing edge softer with wisps trailing downwind, tops crisp and ridged, bases smooth (from the owner's observations, `docs/research/cloud-motion-ideas.md`). ≤ +0.3 ms | Same cauliflower everywhere | Per-cloud animated growth |
 | **9-E High layer** (cirrus, cirrostratus; NE p.65 recipe) | Fibrous streaks and veils from the ground at midday and sunset, matching the cirrus photo sheet. ≤ +0.3 ms | Reads as noise or fog | Contrails, halos |
 
 **Phase A passes** when the species sheet and photo sheets are judged side by side and match in silhouette, spacing and edges, with variety thresholds and cost met.
