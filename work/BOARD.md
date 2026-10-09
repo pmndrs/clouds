@@ -1770,7 +1770,7 @@ Owner direction:
   - `pnpm check`, bundle and packed consumer green.
   - Checkpoint-commit often.
 
-### [~] B2 Split the generator out of the core bundle · Sonnet
+### [r] B2 Split the generator out of the core bundle · Sonnet
 - **Owns:** `packages/runtime/src/generate/**` and the build and bundle scripts.
 - **Does:**
   - Split `generate/shaders.ts` (B1 proposal 1): the shared field WGSL (BILLOW, profile, species tables) that the sky layer and shadow map need stays at its current export path, so their imports don't change. Generator-only kernels move to a module imported only from `generate/index.ts`.

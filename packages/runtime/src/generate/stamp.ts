@@ -16,8 +16,9 @@
 import type { GpuCloudVolume } from '../resources';
 import { BRICK_TEXELS, HERO_EMPTY, POOL_SLAB_BRICKS, POOL_SLAB_BYTES, POOL_XY } from '../hero/bricks';
 import type { GpuFineOverlay } from '../hero/overlay';
-import { EDT_X_WGSL, SDF_WGSL, edtLineWGSL } from './shaders';
-import { createGeneratorScratch, PARAM_BYTES, rangeChunks, type GeneratorScratch } from './volume-generator';
+import { EDT_X_WGSL, SDF_WGSL, edtLineWGSL } from './passes';
+import { createGeneratorScratch, rangeChunks, type GeneratorScratch } from './generator';
+import { PARAM_BYTES } from './volume-generator';
 
 export type StampMode = 'max' | 'replace' | 'cutout';
 
@@ -478,7 +479,7 @@ export interface SdfRebuilder {
   destroy(): void;
 }
 
-const PARAM_STRIDE = 256;   // PARAM_BYTES: the generator's block (volume-generator.ts); only its first 9 words are filled here
+const PARAM_STRIDE = 256;   // PARAM_BYTES: the generator's block (generator.ts); only its first 9 words are filled here
 
 /**
  * Rebuild `target.sdf` from `target.nvdf` (voxel is inside where profile > 0): occupancy, exact separable EDT (x, y, z) in one u16 field,

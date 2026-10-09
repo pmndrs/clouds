@@ -7,7 +7,8 @@
 // (the u16 distance field, 33.6 MB at 512 x 512 x 64; the old jump-flood seeds took about 300 MB); only one generator runs at a time.
 import type { GpuCloudVolume } from '../resources';
 import { CLOUD_PRESETS, type CloudPreset, type CloudPresetName } from './presets';
-import { createGeneratorScratch, createVolumeGenerator, type GeneratorScratch, type NvdfParams, type VolumeGenerator } from './volume-generator';
+import { createGeneratorScratch, createVolumeGenerator, type GeneratorScratch, type VolumeGenerator } from './generator';
+import type { NvdfParams } from './volume-generator';
 import { encodeProceduralWeatherMap, type ProceduralWeatherOptions } from './weather';
 
 export interface StreamingCloudscapeOptions {

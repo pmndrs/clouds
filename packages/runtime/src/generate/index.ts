@@ -1,5 +1,7 @@
-export { createVolumeGenerator, createGeneratorScratch, scratchBytes, jfaStepSequence, altoFractions, NVDF_DEFAULTS, PARAM_BYTES } from './volume-generator';
-export type { NvdfParams, VolumeGenerator, VolumeGeneratorOptions, GenerateProgress, GeneratorScratch, GeneratorMemory, StormCellState } from './volume-generator';
+export { createVolumeGenerator, createGeneratorScratch, scratchBytes } from './generator';
+export type { VolumeGenerator, VolumeGeneratorOptions, GenerateProgress, GeneratorScratch, GeneratorMemory, StormCellState } from './generator';
+export { jfaStepSequence, altoFractions, NVDF_DEFAULTS, PARAM_BYTES } from './volume-generator';
+export type { NvdfParams } from './volume-generator';
 export { encodeProceduralWeatherMap, createWeatherBake, stormCellState } from './weather';
 export type { ProceduralWeatherOptions, StormCellOptions, WeatherBake, WeatherBakeOptions } from './weather';
 export { signedDistanceCpu, squaredDistanceToMask } from './cpu-edt';

@@ -13,7 +13,8 @@
 //     swap never jumps them; (3) the content is generated for the time the swap is expected to happen, not the time it started.
 import type { GpuCloudVolume } from '../resources';
 import { CLOUD_PRESETS, type CloudPreset, type CloudPresetName } from './presets';
-import { createGeneratorScratch, createVolumeGenerator, NVDF_DEFAULTS, type GeneratorScratch, type NvdfParams, type StormCellState, type VolumeGenerator } from './volume-generator';
+import { createGeneratorScratch, createVolumeGenerator, type GeneratorScratch, type StormCellState, type VolumeGenerator } from './generator';
+import { NVDF_DEFAULTS, type NvdfParams } from './volume-generator';
 import { encodeProceduralWeatherMap, type ProceduralWeatherOptions, type StormCellOptions } from './weather';
 
 export interface EvolvingCloudscapeOptions {
