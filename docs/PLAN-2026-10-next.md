@@ -49,6 +49,44 @@ The owner judged that after Q2 we are still far behind Takram, Sky Pro and the p
 - **X2:** make the Sky Pro reference pane faithful to the real Tidewater demo.
 - Phase 9 generator work (9-D, species tuning) pauses until X1 reports.
 
+## Authoring loop: target-driven (owner, 2026-10-09)
+
+**Scene goal (pass/fail by the owner):** recreate the owner's photo "Texas afternoon". It has:
+- a cirrus/cirrostratus veil;
+- a dark shaded cumulus mass at top right;
+- a connected mediocris band from the left;
+- a congestus hero tower with a cauliflower crown and flat base;
+- a field of humilis at the horizon;
+- fractus scraps.
+
+The photo is local only; its path is held by the owner. It is shared in session as `images/1.jpg`; copy it into `artifacts/research/cloud-photos/` as the canonical target.
+
+**Stretch goals:**
+- `cloud-photos/altocumulus/A_20230101-085048_7620B8FE.jpg`: a sheared, fibrous sunset wisp, lit from below.
+- `.../A_20211022-122749_D057D7E4.jpg`: a moonlit altocumulus/stratocumulus mesh with a corona. Needs moonlight.
+
+**Loop:**
+1. **Target cards** from photo crops: silhouette, aspect, base flatness, lobe spectrum, edge sharpness, lit:shadow, connectedness.
+2. **Optional extra views and a 3D seed** via fal.ai (owner-funded): nano-banana edit, FLUX Kontext, image-to-3D. Pilot first.
+3. **Houdini sim recipe** built from the card or seed. About 20 variants.
+4. **Auto-match:** render with a matching camera and sun, score against the card, show the top 5 to the owner.
+5. **Owner picks** and adds notes; the recipe is refined.
+6. **The tools grow** whenever a target needs a missing parameter or stage.
+7. **Compose the scene;** compare against the photo in the compare-page photo pane.
+
+**Two parallel tracks:**
+- A surface-detail track: renderer erosion and noise tuned against close-up photo and slide crops.
+- Deck slides used as judgement references for T1–T7.
+
+**Distance tiers:**
+
+| Distance | Technique |
+| --- | --- |
+| Near / fly-through | Voxel (authored, composed) |
+| Mid and far, most of what is seen from the ground | Procedural 2.5D |
+| High clouds | 2D cirrus layer |
+| Very far | Impostors/billboards of library clouds (Sea of Thieves-style), a new item |
+
 ## Priority (owner, 2026-10-09): quality first, performance later
 
 Our clouds still don't match the WebGL work we are building on (Takram, Sky Pro) or the photos. Until they do, **visual quality comes first.**
