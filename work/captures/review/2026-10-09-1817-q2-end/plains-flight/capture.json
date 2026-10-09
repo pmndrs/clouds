@@ -1,0 +1,153 @@
+{
+  "url": "http://127.0.0.1:63764/plains-flight/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T09:18:09.406Z",
+  "shots": [
+    {
+      "name": "t25",
+      "file": "work/captures/review/2026-10-09-1817-q2-end/plains-flight/t25.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6202155666666666,
+          "skyWeather": 0.39365715000000007,
+          "lightGridReduce": 0.097328,
+          "lightGrid": 0.2496417619047618,
+          "marchNear": 0.07794598333333334,
+          "marchFar": 0.15376778333333327,
+          "shadowMap": 0.3678109333333333,
+          "composite": 0.3102599833333334,
+          "dome": 0.36184654999999993,
+          "resolveNear": 0.025741249999999997,
+          "resolveFar": 0.037559283333333346,
+          "skyWeatherMips": 0.15581050000000002,
+          "skyLayer": 2.4582756333333333,
+          "skyResolve": 0.09316175000000002,
+          "cloudsTotal": 4.782806561904762,
+          "cloudsMarch": 4.4358368,
+          "total": 5.403022128571428
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "t25",
+        "simT": 24.99999999999986,
+        "frames": 202,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2050.1484374999995,
+          "z": -351.99999999998363,
+          "y": 1200,
+          "yaw": -0.0026528758940507925,
+          "pitch": -0.2792526803190927
+        },
+        "windowCentre": [
+          2048,
+          -216
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 202,
+          "bytes": 13803852
+        },
+        "swapEvents": [
+          {
+            "simT": 14.316666666666958,
+            "frame": 112,
+            "setVolumeMs": 0.19999998807907104,
+            "centre": [
+              2048,
+              904
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.59999999999991,
+              16.59999999999991,
+              16.800000000000182,
+              16.5
+            ]
+          },
+          {
+            "simT": 23.866666666666593,
+            "frame": 112,
+            "setVolumeMs": 0.09999999403953552,
+            "centre": [
+              2048,
+              -216
+            ],
+            "before": 16.699999999999818,
+            "after": [
+              16.59999999999991,
+              16.59999999999991,
+              16.800000000000182,
+              16.5
+            ]
+          }
+        ],
+        "swapGpu": [
+          {
+            "simT": 14.316666666666958,
+            "lightGridPeakMs": 0.78703,
+            "cloudsPeakMs": 10.558422,
+            "lightGridBeforeMedianMs": 0.085415
+          },
+          {
+            "simT": 23.866666666666593,
+            "lightGridPeakMs": 0.78703,
+            "cloudsPeakMs": 10.558422,
+            "lightGridBeforeMedianMs": 0.085415
+          }
+        ],
+        "stream": {
+          "windows": 3,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.10000002384185791,
+          "generations": [
+            {
+              "frames": 48,
+              "encodeMs": 0.20000001788139343,
+              "wallMs": 0.20000001788139343,
+              "origin": [
+                0,
+                -1144
+              ],
+              "centre": [
+                2048,
+                904
+              ]
+            },
+            {
+              "frames": 48,
+              "encodeMs": 0.19999998807907104,
+              "wallMs": 0.19999998807907104,
+              "origin": [
+                0,
+                -2264
+              ],
+              "centre": [
+                2048,
+                -216
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

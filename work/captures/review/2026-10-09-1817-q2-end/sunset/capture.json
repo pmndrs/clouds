@@ -1,0 +1,616 @@
+{
+  "url": "http://127.0.0.1:63386/sunset/?hud=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T09:17:37.109Z",
+  "shots": [
+    {
+      "name": "golden",
+      "file": "work/captures/review/2026-10-09-1817-q2-end/sunset/golden.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 1.1204939833333336,
+          "lightGridReduce": 0.242743,
+          "lightGrid": 0.6416373636363637,
+          "marchNear": 0.059576800000000006,
+          "marchFar": 0.5307933166666667,
+          "composite": 0.3364976833333333,
+          "dome": 0.5677941666666667,
+          "resolveNear": 0.03847788333333333,
+          "resolveFar": 0.05503808333333335,
+          "skyWeatherMips": 0.153206,
+          "skyLayer": 2.323707616666667,
+          "skyResolve": 0.09955253333333332,
+          "shadowMap": 0.41117653846153845,
+          "cloudsTotal": 6.58069496876457
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.666494845360823
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "golden",
+        "view": {
+          "pos": [
+            2600,
+            2,
+            0
+          ],
+          "lookAz": 270,
+          "pitch": 16,
+          "sunEl": 4,
+          "sunAz": 262,
+          "fov": 55,
+          "exposure": 0.45
+        },
+        "quality": "high",
+        "frames": 225,
+        "generation": {
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "wallMs": 393.19999998807907,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 420,
+            "coverageThreshold": 0.12,
+            "baseLift": 0.008,
+            "shearX": 0.03,
+            "shearY": 0.1,
+            "altoBase": 1650,
+            "altoDepth": 200,
+            "seed": 11
+          },
+          "weather": {
+            "scale": 3.3000000000000003,
+            "cellular": 1,
+            "cellScale": 13.5,
+            "coverageLo": 0.46,
+            "coverageHi": 0.66,
+            "fractus": 0.4,
+            "lobeSplit": 0.5,
+            "speciesRange": [
+              0.22,
+              0.3
+            ],
+            "wind": [
+              0.35,
+              1
+            ],
+            "alto": {
+              "cover": 1,
+              "cells": 27,
+              "patches": 3.75,
+              "jitter": 1
+            },
+            "size": [
+              384,
+              384
+            ],
+            "seed": 11,
+            "extentMeters": 6144,
+            "heightMeters": 2048,
+            "border": 0
+          }
+        },
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -3072
+            ],
+            "resets": 2,
+            "frames": 115,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/review/2026-10-09-1817-q2-end/sunset/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 1.1204939833333336,
+          "lightGridReduce": 0.242743,
+          "lightGrid": 0.5735078571428571,
+          "marchNear": 0.06603373333333334,
+          "marchFar": 0.5277072666666667,
+          "composite": 0.3366934833333333,
+          "dome": 0.5689495166666668,
+          "resolveNear": 0.032534933333333335,
+          "resolveFar": 0.05544148333333331,
+          "skyWeatherMips": 0.153206,
+          "skyLayer": 2.350700983333333,
+          "skyResolve": 0.10268241666666669,
+          "shadowMap": 0.41117653846153845,
+          "cloudsTotal": 6.541871195604396
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "view": {
+          "pos": [
+            2600,
+            2,
+            0
+          ],
+          "lookAz": 270,
+          "pitch": 16,
+          "sunEl": 1,
+          "sunAz": 262,
+          "fov": 55,
+          "exposure": 0.7
+        },
+        "quality": "high",
+        "frames": 320,
+        "generation": {
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "wallMs": 393.19999998807907,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 420,
+            "coverageThreshold": 0.12,
+            "baseLift": 0.008,
+            "shearX": 0.03,
+            "shearY": 0.1,
+            "altoBase": 1650,
+            "altoDepth": 200,
+            "seed": 11
+          },
+          "weather": {
+            "scale": 3.3000000000000003,
+            "cellular": 1,
+            "cellScale": 13.5,
+            "coverageLo": 0.46,
+            "coverageHi": 0.66,
+            "fractus": 0.4,
+            "lobeSplit": 0.5,
+            "speciesRange": [
+              0.22,
+              0.3
+            ],
+            "wind": [
+              0.35,
+              1
+            ],
+            "alto": {
+              "cover": 1,
+              "cells": 27,
+              "patches": 3.75,
+              "jitter": 1
+            },
+            "size": [
+              384,
+              384
+            ],
+            "seed": 11,
+            "extentMeters": 6144,
+            "heightMeters": 2048,
+            "border": 0
+          }
+        },
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -3072
+            ],
+            "resets": 3,
+            "frames": 210,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        }
+      }
+    },
+    {
+      "name": "afterglow",
+      "file": "work/captures/review/2026-10-09-1817-q2-end/sunset/afterglow.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 1.1204939833333336,
+          "lightGridReduce": 0.242743,
+          "lightGrid": 0.39110095,
+          "marchNear": 0.06149059999999998,
+          "marchFar": 0.5362989166666665,
+          "composite": 0.33138315000000007,
+          "dome": 0.5691482666666666,
+          "resolveNear": 0.03462591666666668,
+          "resolveFar": 0.05724221666666667,
+          "skyWeatherMips": 0.153206,
+          "skyLayer": 2.3348616000000004,
+          "skyResolve": 0.10237834999999999,
+          "shadowMap": 0.41117653846153845,
+          "cloudsTotal": 6.34614948846154
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665416666666665
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "afterglow",
+        "view": {
+          "pos": [
+            2600,
+            2,
+            0
+          ],
+          "lookAz": 270,
+          "pitch": 16,
+          "sunEl": -1,
+          "sunAz": 262,
+          "fov": 55,
+          "exposure": 1.6
+        },
+        "quality": "high",
+        "frames": 415,
+        "generation": {
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "wallMs": 393.19999998807907,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 420,
+            "coverageThreshold": 0.12,
+            "baseLift": 0.008,
+            "shearX": 0.03,
+            "shearY": 0.1,
+            "altoBase": 1650,
+            "altoDepth": 200,
+            "seed": 11
+          },
+          "weather": {
+            "scale": 3.3000000000000003,
+            "cellular": 1,
+            "cellScale": 13.5,
+            "coverageLo": 0.46,
+            "coverageHi": 0.66,
+            "fractus": 0.4,
+            "lobeSplit": 0.5,
+            "speciesRange": [
+              0.22,
+              0.3
+            ],
+            "wind": [
+              0.35,
+              1
+            ],
+            "alto": {
+              "cover": 1,
+              "cells": 27,
+              "patches": 3.75,
+              "jitter": 1
+            },
+            "size": [
+              384,
+              384
+            ],
+            "seed": 11,
+            "extentMeters": 6144,
+            "heightMeters": 2048,
+            "border": 0
+          }
+        },
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -3072
+            ],
+            "resets": 4,
+            "frames": 305,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/review/2026-10-09-1817-q2-end/sunset/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 1.1204939833333336,
+          "lightGridReduce": 0.242743,
+          "lightGrid": 0.4046611666666668,
+          "marchNear": 0.061009449999999986,
+          "marchFar": 0.44095231666666673,
+          "composite": 0.3124611999999999,
+          "dome": 0.5373848666666666,
+          "resolveNear": 0.03274198333333334,
+          "resolveFar": 0.03945558333333334,
+          "skyWeatherMips": 0.153206,
+          "skyLayer": 2.4117383500000007,
+          "skyResolve": 0.09519488333333333,
+          "shadowMap": 0.41117653846153845,
+          "cloudsTotal": 6.263219321794874
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "view": {
+          "pos": [
+            2600,
+            2,
+            0
+          ],
+          "lookAz": 320,
+          "pitch": 12,
+          "sunEl": 1,
+          "sunAz": 262,
+          "fov": 55,
+          "exposure": 0.7
+        },
+        "quality": "high",
+        "frames": 510,
+        "generation": {
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "wallMs": 393.19999998807907,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 420,
+            "coverageThreshold": 0.12,
+            "baseLift": 0.008,
+            "shearX": 0.03,
+            "shearY": 0.1,
+            "altoBase": 1650,
+            "altoDepth": 200,
+            "seed": 11
+          },
+          "weather": {
+            "scale": 3.3000000000000003,
+            "cellular": 1,
+            "cellScale": 13.5,
+            "coverageLo": 0.46,
+            "coverageHi": 0.66,
+            "fractus": 0.4,
+            "lobeSplit": 0.5,
+            "speciesRange": [
+              0.22,
+              0.3
+            ],
+            "wind": [
+              0.35,
+              1
+            ],
+            "alto": {
+              "cover": 1,
+              "cells": 27,
+              "patches": 3.75,
+              "jitter": 1
+            },
+            "size": [
+              384,
+              384
+            ],
+            "seed": 11,
+            "extentMeters": 6144,
+            "heightMeters": 2048,
+            "border": 0
+          }
+        },
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -3072
+            ],
+            "resets": 5,
+            "frames": 400,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        }
+      }
+    },
+    {
+      "name": "zenith",
+      "file": "work/captures/review/2026-10-09-1817-q2-end/sunset/zenith.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 1.1204939833333336,
+          "lightGridReduce": 0.242743,
+          "lightGrid": 0.5044485666666667,
+          "marchNear": 0.08416868333333333,
+          "marchFar": 0.6721279000000001,
+          "composite": 0.47713858333333353,
+          "dome": 0.8037440333333338,
+          "resolveNear": 0.03927656666666668,
+          "resolveFar": 0.06391431666666667,
+          "skyWeatherMips": 0.153206,
+          "skyLayer": 1.2830047333333332,
+          "skyResolve": 0.13772153333333337,
+          "shadowMap": 0.41117653846153845,
+          "cloudsTotal": 5.993164438461539
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "zenith",
+        "view": {
+          "pos": [
+            2600,
+            2,
+            0
+          ],
+          "lookAz": 270,
+          "pitch": 38,
+          "sunEl": -1,
+          "sunAz": 262,
+          "fov": 55,
+          "exposure": 1.6
+        },
+        "quality": "high",
+        "frames": 605,
+        "generation": {
+          "dims": [
+            384,
+            384,
+            128
+          ],
+          "voxel": 16,
+          "wallMs": 393.19999998807907,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 420,
+            "coverageThreshold": 0.12,
+            "baseLift": 0.008,
+            "shearX": 0.03,
+            "shearY": 0.1,
+            "altoBase": 1650,
+            "altoDepth": 200,
+            "seed": 11
+          },
+          "weather": {
+            "scale": 3.3000000000000003,
+            "cellular": 1,
+            "cellScale": 13.5,
+            "coverageLo": 0.46,
+            "coverageHi": 0.66,
+            "fractus": 0.4,
+            "lobeSplit": 0.5,
+            "speciesRange": [
+              0.22,
+              0.3
+            ],
+            "wind": [
+              0.35,
+              1
+            ],
+            "alto": {
+              "cover": 1,
+              "cells": 27,
+              "patches": 3.75,
+              "jitter": 1
+            },
+            "size": [
+              384,
+              384
+            ],
+            "seed": 11,
+            "extentMeters": 6144,
+            "heightMeters": 2048,
+            "border": 0
+          }
+        },
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              2198
+            ],
+            "weatherOrigin": [
+              -3072,
+              -3072
+            ],
+            "resets": 6,
+            "frames": 495,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
