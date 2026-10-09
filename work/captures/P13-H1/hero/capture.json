@@ -1,0 +1,838 @@
+{
+  "url": "http://127.0.0.1:54117/runtime-tests/hero-fine/?hud=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T04:47:30.038Z",
+  "shots": [
+    {
+      "name": "dense",
+      "file": "work/captures/P13-H1/hero/dense.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.044831,
+          "lightGrid": 0.101953,
+          "marchNear": 0.175206,
+          "marchFar": 1.148691,
+          "shadowMap": 0.188705,
+          "composite": 0.593532,
+          "dome": 0.103872,
+          "resolveNear": 0.070166,
+          "resolveFar": 0.11654
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "dense",
+        "quality": "high",
+        "ramp": {
+          "all": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5073705,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 99,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 2572521,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cube": {
+            "dims": [
+              64,
+              64,
+              64
+            ],
+            "bricks": 512,
+            "cells": [
+              8,
+              8,
+              8
+            ],
+            "samples": 16974593,
+            "compared": 16974593,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "control": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5032287,
+            "maxDiff255": [
+              2.5,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              5.5,
+              1,
+              0
+            ]
+          },
+          "ms": 67
+        },
+        "notes": [
+          "PASS pool vs dense trilinear (all bricks, 61x44x29, 192 bricks, 5073705 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (half the bricks, 61x44x29, 99 bricks, 2572521 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (64^3, all bricks, 64x64x64, 512 bricks, 16974593 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS the ramp test detects a half-voxel offset (control: max |diff| R/G/B 2.5 / 0 / 0 /255)",
+          "field: 228356 occupied fine voxels (10.9%), coarse 64x64x64, 921 bricks (margin 3) of 16x16x16 cells, pool 3.9 MB; all-fine 4096 bricks; CPU build 3951 ms"
+        ]
+      }
+    },
+    {
+      "name": "coarse",
+      "file": "work/captures/P13-H1/hero/coarse.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.075457,
+          "lightGrid": 0.067666,
+          "marchNear": 0.176247,
+          "marchFar": 1.15515,
+          "shadowMap": 0.015584,
+          "composite": 0.593283,
+          "dome": 0.119373,
+          "resolveNear": 0.069749,
+          "resolveFar": 0.114998
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "coarse",
+        "quality": "high",
+        "ramp": {
+          "all": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5073705,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 99,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 2572521,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cube": {
+            "dims": [
+              64,
+              64,
+              64
+            ],
+            "bricks": 512,
+            "cells": [
+              8,
+              8,
+              8
+            ],
+            "samples": 16974593,
+            "compared": 16974593,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "control": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5032287,
+            "maxDiff255": [
+              2.5,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              5.5,
+              1,
+              0
+            ]
+          },
+          "ms": 67
+        },
+        "notes": [
+          "PASS pool vs dense trilinear (all bricks, 61x44x29, 192 bricks, 5073705 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (half the bricks, 61x44x29, 99 bricks, 2572521 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (64^3, all bricks, 64x64x64, 512 bricks, 16974593 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS the ramp test detects a half-voxel offset (control: max |diff| R/G/B 2.5 / 0 / 0 /255)",
+          "field: 228356 occupied fine voxels (10.9%), coarse 64x64x64, 921 bricks (margin 3) of 16x16x16 cells, pool 3.9 MB; all-fine 4096 bricks; CPU build 3951 ms"
+        ]
+      }
+    },
+    {
+      "name": "fine",
+      "file": "work/captures/P13-H1/hero/fine.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.09104,
+          "lightGrid": 0.088583,
+          "marchNear": 0.178788,
+          "marchFar": 1.271355,
+          "shadowMap": 0.021459,
+          "composite": 0.596698,
+          "dome": 0.131956,
+          "resolveNear": 0.070541,
+          "resolveFar": 0.115498
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "fine",
+        "quality": "high",
+        "ramp": {
+          "all": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5073705,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 99,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 2572521,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cube": {
+            "dims": [
+              64,
+              64,
+              64
+            ],
+            "bricks": 512,
+            "cells": [
+              8,
+              8,
+              8
+            ],
+            "samples": 16974593,
+            "compared": 16974593,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "control": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5032287,
+            "maxDiff255": [
+              2.5,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              5.5,
+              1,
+              0
+            ]
+          },
+          "ms": 67
+        },
+        "notes": [
+          "PASS pool vs dense trilinear (all bricks, 61x44x29, 192 bricks, 5073705 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (half the bricks, 61x44x29, 99 bricks, 2572521 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (64^3, all bricks, 64x64x64, 512 bricks, 16974593 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS the ramp test detects a half-voxel offset (control: max |diff| R/G/B 2.5 / 0 / 0 /255)",
+          "field: 228356 occupied fine voxels (10.9%), coarse 64x64x64, 921 bricks (margin 3) of 16x16x16 cells, pool 3.9 MB; all-fine 4096 bricks; CPU build 3951 ms"
+        ]
+      }
+    },
+    {
+      "name": "dense@close",
+      "file": "work/captures/P13-H1/hero/dense@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.217955,
+          "lightGrid": 0.481534,
+          "marchNear": 0.798822,
+          "marchFar": 0.297704,
+          "shadowMap": 0.049708,
+          "composite": 0.578117,
+          "dome": 0.138873,
+          "resolveNear": 0.070874,
+          "resolveFar": 0.116665
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "dense@close",
+        "quality": "high",
+        "ramp": {
+          "all": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5073705,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 99,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 2572521,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cube": {
+            "dims": [
+              64,
+              64,
+              64
+            ],
+            "bricks": 512,
+            "cells": [
+              8,
+              8,
+              8
+            ],
+            "samples": 16974593,
+            "compared": 16974593,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "control": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5032287,
+            "maxDiff255": [
+              2.5,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              5.5,
+              1,
+              0
+            ]
+          },
+          "ms": 67
+        },
+        "notes": [
+          "PASS pool vs dense trilinear (all bricks, 61x44x29, 192 bricks, 5073705 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (half the bricks, 61x44x29, 99 bricks, 2572521 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (64^3, all bricks, 64x64x64, 512 bricks, 16974593 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS the ramp test detects a half-voxel offset (control: max |diff| R/G/B 2.5 / 0 / 0 /255)",
+          "field: 228356 occupied fine voxels (10.9%), coarse 64x64x64, 921 bricks (margin 3) of 16x16x16 cells, pool 3.9 MB; all-fine 4096 bricks; CPU build 3951 ms"
+        ]
+      }
+    },
+    {
+      "name": "coarse@close",
+      "file": "work/captures/P13-H1/hero/coarse@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.095457,
+          "lightGrid": 0.084873,
+          "marchNear": 0.855945,
+          "marchFar": 0.29937,
+          "shadowMap": 0.021499,
+          "composite": 0.577283,
+          "dome": 0.131123,
+          "resolveNear": 0.070582,
+          "resolveFar": 0.116332
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "coarse@close",
+        "quality": "high",
+        "ramp": {
+          "all": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5073705,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 99,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 2572521,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cube": {
+            "dims": [
+              64,
+              64,
+              64
+            ],
+            "bricks": 512,
+            "cells": [
+              8,
+              8,
+              8
+            ],
+            "samples": 16974593,
+            "compared": 16974593,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "control": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5032287,
+            "maxDiff255": [
+              2.5,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              5.5,
+              1,
+              0
+            ]
+          },
+          "ms": 67
+        },
+        "notes": [
+          "PASS pool vs dense trilinear (all bricks, 61x44x29, 192 bricks, 5073705 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (half the bricks, 61x44x29, 99 bricks, 2572521 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (64^3, all bricks, 64x64x64, 512 bricks, 16974593 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS the ramp test detects a half-voxel offset (control: max |diff| R/G/B 2.5 / 0 / 0 /255)",
+          "field: 228356 occupied fine voxels (10.9%), coarse 64x64x64, 921 bricks (margin 3) of 16x16x16 cells, pool 3.9 MB; all-fine 4096 bricks; CPU build 3951 ms"
+        ]
+      }
+    },
+    {
+      "name": "fine@close",
+      "file": "work/captures/P13-H1/hero/fine@close.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.093665,
+          "lightGrid": 0.084706,
+          "marchNear": 0.87607,
+          "marchFar": 0.304453,
+          "shadowMap": 0.021541,
+          "composite": 0.576991,
+          "dome": 0.140831,
+          "resolveNear": 0.071499,
+          "resolveFar": 0.116289
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "fine@close",
+        "quality": "high",
+        "ramp": {
+          "all": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5073705,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 99,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 2572521,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cube": {
+            "dims": [
+              64,
+              64,
+              64
+            ],
+            "bricks": 512,
+            "cells": [
+              8,
+              8,
+              8
+            ],
+            "samples": 16974593,
+            "compared": 16974593,
+            "maxDiff255": [
+              0,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              0,
+              0,
+              0
+            ]
+          },
+          "control": {
+            "dims": [
+              61,
+              44,
+              29
+            ],
+            "bricks": 192,
+            "cells": [
+              8,
+              6,
+              4
+            ],
+            "samples": 5073705,
+            "compared": 5032287,
+            "maxDiff255": [
+              2.5,
+              0,
+              0
+            ],
+            "worstAtFineVoxel": [
+              5.5,
+              1,
+              0
+            ]
+          },
+          "ms": 67
+        },
+        "notes": [
+          "PASS pool vs dense trilinear (all bricks, 61x44x29, 192 bricks, 5073705 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (half the bricks, 61x44x29, 99 bricks, 2572521 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS pool vs dense trilinear (64^3, all bricks, 64x64x64, 512 bricks, 16974593 samples): max |diff| R/G/B 0 / 0 / 0 /255 (<= 1)",
+          "PASS the ramp test detects a half-voxel offset (control: max |diff| R/G/B 2.5 / 0 / 0 /255)",
+          "field: 228356 occupied fine voxels (10.9%), coarse 64x64x64, 921 bricks (margin 3) of 16x16x16 cells, pool 3.9 MB; all-fine 4096 bricks; CPU build 3951 ms"
+        ]
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

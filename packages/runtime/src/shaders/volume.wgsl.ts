@@ -2,11 +2,14 @@
  * Cloud volume bindings and sampling. World is (x, y-up, z) metres; texture axes are (x, map row, up),
  * so a world point maps to texture (x, z, y). See work/specs/P1-runtime.md.
  *
- * Bindings (group `g`): 0 uniforms, 1 NVDF, 2 SDF, 3 noise, 4 clamp sampler, 5 repeat sampler.
+ * Bindings (group `g`): 0 uniforms, 1 NVDF, 2 SDF, 3 noise, 4 clamp sampler, 5 repeat sampler,
+ * 6 fine hero indirection, 7 fine hero brick pool, 8 hero uniforms (P8 spec section 4; placeholders when the volume has none).
  * Every pass uses the explicit layout from createVolumeBindGroupLayout() (never layout: 'auto', which strips
  * unused bindings), so one bind group serves all passes.
  */
 export const VOLUME_UNIFORM_BYTES = 48;
+/** HeroParams: cells (u32 x3), fine voxel (m), 1 / pool size in texels (x3), fineDistance (m), fineErosion, 3 pad. */
+export const HERO_UNIFORM_BYTES = 48;
 
 export function volumeWgsl(group: number): string {
   return /* wgsl */ `
@@ -21,6 +24,12 @@ struct CloudVolume {
 @group(${group}) @binding(3) var cloudNoise: texture_3d<f32>;
 @group(${group}) @binding(4) var clampSampler: sampler;
 @group(${group}) @binding(5) var repeatSampler: sampler;
+// Fine hero overlay (P8 spec section 4): one r32uint cell per 8^3 fine voxels holds a brick slot (or HERO_EMPTY); bricks are 10^3 rgba8
+// texels (8^3 payload + a one-voxel apron), 32 x 32 per slab. fineDistance 0 (no fine data bound) turns the overlay off.
+struct HeroParams { cells: vec3<u32>, fineVoxel: f32, invPool: vec3<f32>, fineDistance: f32, fineErosion: f32, _h0: f32, _h1: f32, _h2: f32 }
+@group(${group}) @binding(6) var heroIndir: texture_3d<u32>;
+@group(${group}) @binding(7) var heroPool: texture_3d<f32>;
+@group(${group}) @binding(8) var<uniform> hero: HeroParams;
 
 fn volumeUvw(p: vec3<f32>) -> vec3<f32> {
   let q = p - cloudVolume.minCorner;
@@ -34,6 +43,17 @@ fn insideVolume(p: vec3<f32>) -> bool {
 fn sampleModeling(p: vec3<f32>, mip: f32) -> vec3<f32> {
   if (!insideVolume(p)) { return vec3(0.0); }
   return textureSampleLevel(cloudNvdf, clampSampler, volumeUvw(p), mip).rgb;
+}
+// The modeling triple with the fine hero overlay where a brick exists, the coarse one elsewhere; w = 1 inside a fine brick.
+fn sampleModelingHero(p: vec3<f32>, mip: f32) -> vec4<f32> {
+  if (!insideVolume(p)) { return vec4(0.0); }
+  let q = p - cloudVolume.minCorner;
+  let f = vec3(q.x, q.z, q.y) / hero.fineVoxel;   // fine voxel coordinates, texture axes
+  let cell = min(vec3<u32>(f * 0.125), hero.cells - 1u);
+  let slot = textureLoad(heroIndir, cell, 0).r;
+  if (slot == 0xffffffffu) { return vec4(sampleModeling(p, mip), 0.0); }
+  let o = vec3(f32(slot & 31u), f32((slot >> 5u) & 31u), f32(slot >> 10u)) * 10.0 + 1.0;
+  return vec4(textureSampleLevel(heroPool, clampSampler, (o + f - vec3<f32>(cell) * 8.0) * hero.invPool, 0.0).rgb, 1.0);
 }
 // Signed distance to cloud in metres, never larger than the true distance.
 // Outside the cropped box: the cloud lies inside the box, so the box distance is a lower bound, and so is
@@ -66,6 +86,13 @@ export function volumeUniformData(position: readonly [number, number, number], e
   return new Float32Array([...position, voxelSize, ...extentMeters, 0, noiseScale, 0, 0, 0]);
 }
 
+/** The fine hero overlay's bindings (6-8). `uniforms` holds HeroParams (heroUniformData). */
+export interface HeroBindingResources {
+  indir: GPUTexture;
+  pool: GPUTexture;
+  uniforms: GPUBuffer;
+}
+
 export interface VolumeBindingResources {
   uniforms: GPUBuffer;
   nvdf: GPUTexture;
@@ -73,6 +100,31 @@ export interface VolumeBindingResources {
   noise: GPUTexture;
   clampSampler: GPUSampler;
   repeatSampler: GPUSampler;
+  /** Omitted: empty placeholders with fineDistance 0, so the shaders take the coarse path only. */
+  hero?: HeroBindingResources;
+}
+
+/** HeroParams for a fine overlay (`cells` indirection size, `poolSize` brick pool size in texels). fineDistance 0 turns it off. */
+export function heroUniformData(cells: readonly number[], fineVoxel: number, poolSize: readonly number[], fineDistance: number, fineErosion = 1): ArrayBuffer {
+  const b = new ArrayBuffer(HERO_UNIFORM_BYTES), u = new Uint32Array(b), f = new Float32Array(b);
+  u.set(cells.slice(0, 3)); f[3] = fineVoxel;
+  for (let i = 0; i < 3; i++) f[4 + i] = 1 / poolSize[i];
+  f[7] = fineDistance; f[8] = fineErosion;
+  return b;
+}
+
+const placeholders = new WeakMap<GPUDevice, HeroBindingResources>();
+/** Per device: a 1^3 empty indirection, a 1^3 pool and zeroed HeroParams (fineDistance 0). */
+function heroPlaceholders(device: GPUDevice): HeroBindingResources {
+  let p = placeholders.get(device);
+  if (!p) {
+    const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
+    const indir = device.createTexture({ label: 'hero indirection (none)', dimension: '3d', format: 'r32uint', size: [1, 1, 1], usage });
+    device.queue.writeTexture({ texture: indir }, new Uint32Array([0xffffffff]), { bytesPerRow: 4 }, [1, 1, 1]);
+    p = { indir, pool: device.createTexture({ label: 'hero pool (none)', dimension: '3d', format: 'rgba8unorm', size: [1, 1, 1], usage }), uniforms: device.createBuffer({ label: 'hero params (none)', size: HERO_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM }) };
+    placeholders.set(device, p);
+  }
+  return p;
 }
 
 export function createVolumeBindGroupLayout(device: GPUDevice): GPUBindGroupLayout {
@@ -86,11 +138,15 @@ export function createVolumeBindGroupLayout(device: GPUDevice): GPUBindGroupLayo
       { binding: 3, visibility: v, texture: { sampleType: 'float', viewDimension: '3d' } },
       { binding: 4, visibility: v, sampler: { type: 'filtering' } },
       { binding: 5, visibility: v, sampler: { type: 'filtering' } },
+      { binding: 6, visibility: v, texture: { sampleType: 'uint', viewDimension: '3d' } },
+      { binding: 7, visibility: v, texture: { sampleType: 'float', viewDimension: '3d' } },
+      { binding: 8, visibility: v, buffer: { type: 'uniform' } },
     ],
   });
 }
 
 export function createVolumeBindGroup(device: GPUDevice, layout: GPUBindGroupLayout, r: VolumeBindingResources): GPUBindGroup {
+  const h = r.hero ?? heroPlaceholders(device);
   return device.createBindGroup({
     label: 'cloud volume',
     layout,
@@ -101,6 +157,9 @@ export function createVolumeBindGroup(device: GPUDevice, layout: GPUBindGroupLay
       { binding: 3, resource: r.noise.createView() },
       { binding: 4, resource: r.clampSampler },
       { binding: 5, resource: r.repeatSampler },
+      { binding: 6, resource: h.indir.createView() },
+      { binding: 7, resource: h.pool.createView() },
+      { binding: 8, resource: { buffer: h.uniforms } },
     ],
   });
 }

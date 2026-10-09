@@ -60,14 +60,18 @@ fn flashGlow(p: vec3<f32>, rho: f32) -> vec3<f32> {
  * samples of the real up-rezzed density (to 16 m and 16-48 m: keeps surface detail), the rest from the voxel light grid at
  * p + sun * 48 m. The first 16 m also occlude the glow terms (cloudInScatterMicro).
  * Everything is in the sky's exposure units (sunRadiance = sunRadianceAt, ambient = skyAmbient), no literal colours.
+ * `fine` (P13-H1): every density sample (the step, the micro and the in-line sun samples) goes through cloudDensityFine, so within
+ * hero.fineDistance they read the volume's fine hero overlay; flashGlow, the light grid and the dome stay on the coarse field. Without it
+ * the shader is the pre-H1 one (cloudDensity), which keeps volumes without fine data bit-identical.
  */
 export type MarchLightingMode = 'atmosphere' | 'uniform';
 /**
  * 'uniform' drops the atmosphere group (no sky library): sun radiance and ambient come only from the skyLight buffer, and the
  * cloud gets no aerial perspective. Pipeline layout is then [volume, pass] only.
  */
-export function marchWgsl(mode: MarchLightingMode, direct = true): string {
+export function marchWgsl(mode: MarchLightingMode, direct = true, fine = false): string {
   const atm = mode === 'atmosphere';
+  const density = fine ? 'cloudDensityFine' : 'cloudDensity';
   return /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(2) var marchColor: texture_storage_2d<rgba16float, write>;
@@ -188,7 +192,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         if (ts < tEnd) {
           inputs.hfDetails = select(0u, 1u, ts < frame.misc.x);
           let ps = origin + dir * ts;
-          let d = cloudDensity(ps, ts, inputs);
+          let d = ${density}(ps, ts, inputs);
           sparseRun = select(0.0, min(sparseRun + 1.0, SPARSE_MAX), d.x * frame.extinction * step < SPARSE_THIN);
           if (d.x > 0.0) {
             let sigma = d.x * frame.extinction;
@@ -196,8 +200,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
               if (ts - inlineT >= INLINE_REUSE_DIST) {
-                let d0 = cloudDensity(ps + sunInline0, ts, lightInputs).x;
-                let d1 = cloudDensity(ps + sunInline1, ts, lightInputs).x;
+                let d0 = ${density}(ps + sunInline0, ts, lightInputs).x;
+                let d1 = ${density}(ps + sunInline1, ts, lightInputs).x;
                 tauNear = d0 * (INLINE_NEAR - frame.microDist) * frame.extinction;
                 tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * frame.extinction;
                 inlineT = ts;
@@ -208,7 +212,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // glows less than its lit side. The relaxed, grid-fed tau in the lighting keeps the inner glow of deep interiors.
               // Deeper than the erosion shell the sample's own density stands in for it (the lobes are all within MICRO_DEPTH of the surface).
               var tauMicro = d.x * frame.microDist * frame.extinction;
-              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = cloudDensity(ps + sunMicro, ts, inputs).x * frame.microDist * frame.extinction; }
+              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * frame.extinction; }
               let microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
               let grid = lightGridSample(ps + sunGrid);
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;

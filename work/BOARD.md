@@ -1506,7 +1506,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Existing coarse assets unchanged unless the spec says the coarse-from-fine reduction replaces them; if they change, A/B the flagship and onsen.
   - `pnpm check` green.
 
-### [~] P13-H1 Fine hero overlay in the runtime · Opus
+### [x] P13-H1 Fine hero overlay in the runtime · Opus
 - **Owns:**
   - `packages/runtime/src/shaders/{volume,density,march}.wgsl.ts`, `runtime.ts`, `resources.ts`, `index.ts`
   - a new `packages/runtime/src/hero/**`
@@ -1524,7 +1524,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The all-fine march is ≤ 1.2× the dense one (GPU timer).
   - `pnpm check` green; the packed consumer passes.
 
-### [ ] C1 Sunset and low-sun colour · Opus (after P13-H1)
+### [~] C1 Sunset and low-sun colour · Opus
 - **Owns:**
   - `packages/runtime/src/shaders/{march,lighting,atmosphere}.wgsl.ts`
   - the lighting uniforms in `runtime.ts`
@@ -1557,6 +1557,22 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 - **Acceptance:**
   - Compare page `horizon` and `sunset` views: no band or speckle, and far clouds fade like the photos and Takram.
   - Cost neutral. `pnpm check` green.
+
+### [~] B1 Core bundle back under 60 KB gzip · Sonnet (Opus on failure)
+- **Owns:**
+  - `scripts/build-release.mjs` and `scripts/check-bundle.mjs`
+  - package build configs (`packages/*/vite.config.*`, `package.json` exports)
+  - a new build-time WGSL minifier (a script or vite plugin)
+- **Read-only:** runtime sources. C1 owns the march, lighting and sky layer. Structural moves of source between modules go on the board as a proposal, not as edits.
+- **Problem:** the core entry is 77.9 KB gzip (238 KB raw), against 60 KB. It was 48.7 KB at P7-C. Since then it gained the shadow map, weather v2 and species, the tiled bake, sky-layer parity and the hero overlay. The WGSL template strings carry long comments.
+- **Does:**
+  1. Attribute the size by module, e.g. with a rollup visualizer or a per-module gzip estimate; write the table into the report.
+  2. Add build-time WGSL minification (strip comments and whitespace, keep identifiers) for the dist builds only. Sources stay readable.
+  3. Propose, without doing them, structural moves: e.g. the sky-layer weather bake into the `generate` subpath, or a lazy shadow map.
+- **Acceptance:**
+  - Core entry ≤ 60 KB gzip and the three-user path ≤ 60 KB (`check-bundle --strict` green), or a clear report of what structural move closes the gap.
+  - The minified build passes the packed consumer, and a dist-built page renders identically (capture A/B).
+  - `pnpm check` green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 

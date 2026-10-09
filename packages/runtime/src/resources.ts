@@ -1,5 +1,6 @@
 import type { CloudNoiseAsset, CloudVolumeAsset } from './assets';
 import { toHalfBitsRoundDown } from './half';
+import type { GpuFineOverlay } from './hero/overlay';
 
 /** A cloud volume on the GPU. Texture axes are source axes (x, map row, up); see work/specs/P1-runtime.md. */
 export interface GpuCloudVolume {
@@ -9,6 +10,12 @@ export interface GpuCloudVolume {
   voxelSize: number;
   /** World-space extent in metres, world axes (x, y-up, z) = (dims.x, dims.z, dims.y) * voxelSize. */
   extentMeters: [number, number, number];
+  /**
+   * P13-H1: the fine hero overlay (brick pool + indirection over this volume's box), read by the march within
+   * `CloudSettings.fineDistance`. Its lattice must be nested in this one (same min corner, fine voxel = voxelSize / 2 or / 4).
+   * `destroy()` releases it only when the code that attached it says so (uploadFineBricks results are caller-owned).
+   */
+  fine?: GpuFineOverlay;
   destroy(): void;
 }
 

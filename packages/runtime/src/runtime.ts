@@ -16,7 +16,7 @@ import { createLightning, type FlashOptions, type LightningSettings } from './li
 import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
-import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, volumeUniformData, volumeWgsl, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
+import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, heroUniformData, volumeUniformData, volumeWgsl, HERO_UNIFORM_BYTES, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
 
 export type CloudQuality = 'ultra' | 'high' | 'medium' | 'low' | 'mobile';
 /** A tier, or 'auto': the tier is picked from the adapter (auto-quality.ts) and the render scale follows a GPU time budget. */
@@ -58,16 +58,18 @@ export interface CloudQualityPreset {
   outputScale: number;
   /** Whether the reflection dome is refreshed (CloudDomeSettings.enabled). Turn it on when something reflects the clouds. */
   domeEnabled: boolean;
+  /** P13-H1: the march reads a volume's fine hero overlay within this distance (m, CloudSettings.fineDistance); 0 = fine off. */
+  fineDistance: number;
 }
 /** Fraction of a march pass's pixels traced per frame is 1/k. 1 = every pixel every frame (no history). */
 export type TemporalRate = 1 | 2 | 4;
 const NO_LIMIT = 1.0e6;
 export const CLOUD_QUALITY_PRESETS: Record<CloudQuality, CloudQualityPreset> = {
-  ultra: { nearScale: 0.5, farScale: 0.75, splitDistance: 240, maxSteps: 1024, transmittanceCutoff: 0.005, temporalNear: 1, temporalFar: 1, stepScale: 1, microDist: 4, detailDistance: 150, farLimit: NO_LIMIT, lightGridDivisor: 1, domeSize: 256, domeMaxSteps: 96, skyScale: 0.25, outputScale: 1, domeEnabled: true },
-  high: { nearScale: 0.28, farScale: 0.41, splitDistance: 200, maxSteps: 768, transmittanceCutoff: 0.01, temporalNear: 4, temporalFar: 4, stepScale: 1, microDist: 4, detailDistance: 150, farLimit: NO_LIMIT, lightGridDivisor: 1, domeSize: 256, domeMaxSteps: 96, skyScale: 0.25, outputScale: 1, domeEnabled: true },
-  medium: { nearScale: 0.25, farScale: 0.4, splitDistance: 200, maxSteps: 512, transmittanceCutoff: 0.03, temporalNear: 4, temporalFar: 4, stepScale: 1.5, microDist: 4, detailDistance: 150, farLimit: NO_LIMIT, lightGridDivisor: 1, domeSize: 256, domeMaxSteps: 64, skyScale: 0.25, outputScale: 1, domeEnabled: true },
-  low: { nearScale: 0.18, farScale: 0.26, splitDistance: 160, maxSteps: 320, transmittanceCutoff: 0.05, temporalNear: 4, temporalFar: 4, stepScale: 2, microDist: 0, detailDistance: 100, farLimit: NO_LIMIT, lightGridDivisor: 2, domeSize: 128, domeMaxSteps: 48, skyScale: 0.2, outputScale: 0.5, domeEnabled: true },
-  mobile: { nearScale: 0, farScale: 0.15, splitDistance: 0, maxSteps: 160, transmittanceCutoff: 0.08, temporalNear: 4, temporalFar: 4, stepScale: 2, microDist: 0, detailDistance: 60, farLimit: 6000, lightGridDivisor: 2, domeSize: 64, domeMaxSteps: 32, skyScale: 0.125, outputScale: 0.5, domeEnabled: false },
+  ultra: { nearScale: 0.5, farScale: 0.75, splitDistance: 240, maxSteps: 1024, transmittanceCutoff: 0.005, temporalNear: 1, temporalFar: 1, stepScale: 1, microDist: 4, detailDistance: 150, farLimit: NO_LIMIT, lightGridDivisor: 1, domeSize: 256, domeMaxSteps: 96, skyScale: 0.25, outputScale: 1, domeEnabled: true, fineDistance: 3000 },
+  high: { nearScale: 0.28, farScale: 0.41, splitDistance: 200, maxSteps: 768, transmittanceCutoff: 0.01, temporalNear: 4, temporalFar: 4, stepScale: 1, microDist: 4, detailDistance: 150, farLimit: NO_LIMIT, lightGridDivisor: 1, domeSize: 256, domeMaxSteps: 96, skyScale: 0.25, outputScale: 1, domeEnabled: true, fineDistance: 3000 },
+  medium: { nearScale: 0.25, farScale: 0.4, splitDistance: 200, maxSteps: 512, transmittanceCutoff: 0.03, temporalNear: 4, temporalFar: 4, stepScale: 1.5, microDist: 4, detailDistance: 150, farLimit: NO_LIMIT, lightGridDivisor: 1, domeSize: 256, domeMaxSteps: 64, skyScale: 0.25, outputScale: 1, domeEnabled: true, fineDistance: 1500 },
+  low: { nearScale: 0.18, farScale: 0.26, splitDistance: 160, maxSteps: 320, transmittanceCutoff: 0.05, temporalNear: 4, temporalFar: 4, stepScale: 2, microDist: 0, detailDistance: 100, farLimit: NO_LIMIT, lightGridDivisor: 2, domeSize: 128, domeMaxSteps: 48, skyScale: 0.2, outputScale: 0.5, domeEnabled: true, fineDistance: 600 },
+  mobile: { nearScale: 0, farScale: 0.15, splitDistance: 0, maxSteps: 160, transmittanceCutoff: 0.08, temporalNear: 4, temporalFar: 4, stepScale: 2, microDist: 0, detailDistance: 60, farLimit: 6000, lightGridDivisor: 2, domeSize: 64, domeMaxSteps: 32, skyScale: 0.125, outputScale: 0.5, domeEnabled: false, fineDistance: 0 },
 };
 
 /** Live knobs. Safe to change every frame. */
@@ -111,6 +113,10 @@ export interface CloudSettings {
   detailBias: number;
   /** Q-1: scales the march step floor (3 m + 0.2 sqrt(t)). 1 = P3-E tuning. */
   stepScale: number;
+  /** P13-H1: distance (m) within which the march reads the volume's fine hero overlay (GpuCloudVolume.fine); the tiers set it, 0 = off. */
+  fineDistance: number;
+  /** P13-H1: scales the erosion noise inside fine bricks (1 = Nubis; 0.6-1 if fine heroes read double-detailed). */
+  fineErosion: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
   windOffset: [number, number, number];
   windVelocity: [number, number, number];
@@ -354,6 +360,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,
     shadowStrength: 0.6, compositeShadow: 1, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
     microDist: startPreset.microDist, microShadow: 1, detailBias: 0.5, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
+    fineDistance: startPreset.fineDistance, fineErosion: 1,
   };
 
   const volumeLayout = createVolumeBindGroupLayout(device);
@@ -408,11 +415,20 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     layout: device.createPipelineLayout({ bindGroupLayouts: group2 ? [volumeLayout, group1, group2] : [volumeLayout, group1] }),
     compute: { module: device.createShaderModule({ label, code }), entryPoint: 'main' },
   });
-  const marchCode = (mode: 'atmosphere' | 'uniform', direct: boolean) => COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + marchWgsl(mode, direct);
-  // Pipelines by [uniform lighting][direct]; the atmosphere ones are built now, the uniform-lighting ones (no sky library) on first use.
-  const marchPipelines: (GPUComputePipeline | undefined)[] = new Array(4).fill(undefined);
-  const getMarchPipeline = (uniform: boolean, direct: boolean) => marchPipelines[(uniform ? 2 : 0) + (direct ? 1 : 0)] ??= pipeline(`cloud march ${uniform ? 'uniform ' : ''}${direct ? 'direct' : 'trace'}`, marchCode(uniform ? 'uniform' : 'atmosphere', direct), marchLayouts[direct ? 1 : 0], uniform ? undefined : atmosphereLayout);
-  getMarchPipeline(false, true); getMarchPipeline(false, false);
+  const marchCode = (mode: 'atmosphere' | 'uniform', direct: boolean, fine: boolean) => COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + marchWgsl(mode, direct, fine);
+  // Pipelines by [fine][uniform lighting][direct]; the plain atmosphere ones are built now, the fine ones (P13-H1, a volume with a fine overlay)
+  // when such a volume is set, the uniform-lighting ones (no sky library) on first use.
+  const marchPipelines: (GPUComputePipeline | undefined)[] = new Array(8).fill(undefined);
+  const marchDesc = (uniform: boolean, direct: boolean, fine: boolean): GPUComputePipelineDescriptor => {
+    const label = `cloud march ${fine ? 'fine ' : ''}${uniform ? 'uniform ' : ''}${direct ? 'direct' : 'trace'}`;
+    return {
+      label, layout: device.createPipelineLayout({ bindGroupLayouts: uniform ? [volumeLayout, marchLayouts[+direct]] : [volumeLayout, marchLayouts[+direct], atmosphereLayout] }),
+      compute: { module: device.createShaderModule({ label, code: marchCode(uniform ? 'uniform' : 'atmosphere', direct, fine) }), entryPoint: 'main' },
+    };
+  };
+  const marchSlot = (uniform: boolean, direct: boolean, fine: boolean) => (fine ? 4 : 0) + (uniform ? 2 : 0) + (direct ? 1 : 0);
+  const getMarchPipeline = (uniform: boolean, direct: boolean, fine: boolean) => marchPipelines[marchSlot(uniform, direct, fine)] ??= device.createComputePipeline(marchDesc(uniform, direct, fine));
+  getMarchPipeline(false, true, false); getMarchPipeline(false, false, false);
   const skyLightPipeline = pipeline('cloud sky light', COMMON_WGSL + volumeWgsl(0) + SKY_LIGHT_WGSL, skyLightLayout, atmosphereLayout);
   const resolvePipeline = pipeline('cloud temporal resolve', COMMON_WGSL + volumeWgsl(0) + TEMPORAL_WGSL, resolveLayout);
   const compositePipeline = pipeline('cloud composite', COMMON_WGSL + volumeWgsl(0) + COMPOSITE_WGSL, compositeLayout);
@@ -422,6 +438,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const skyBox = { minCorner: [0, 0, 0], extent: [1, 1, 1] };
   const samplers = createVolumeSamplers(device);
   const volumeUniforms = device.createBuffer({ label: 'cloud volume uniforms', size: VOLUME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  // P13-H1: HeroParams of the bound volume's fine overlay (unused, and the placeholders bound, when it has none).
+  const heroUniforms = device.createBuffer({ label: 'cloud hero params', size: HERO_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  let heroKey = '';
   // One frame uniform per march pass (render size and pass mode differ); the composite reads the near one.
   const frameUniforms = [0, 1, 2].map(i => device.createBuffer({ label: `cloud frame uniforms ${['near', 'far', 'sky'][i]}`, size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }));
   const dummyNear = device.createTexture({ label: 'cloud dummy near', size: [1, 1], format: 'rgba16float', usage: GPUTextureUsage.TEXTURE_BINDING });
@@ -519,9 +538,11 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     return createLightGrid(device, volumeLayout, { dims, voxelSize: v.voxelSize, extentMeters: v.extentMeters });
   };
   const rebuildVolumeGroup = () => {
+    const fine = volume?.fine;
     volumeGroup = volume && noise
-      ? createVolumeBindGroup(device, volumeLayout, { uniforms: volumeUniforms, nvdf: volume.nvdf, sdf: volume.sdf, noise, ...samplers })
+      ? createVolumeBindGroup(device, volumeLayout, { uniforms: volumeUniforms, nvdf: volume.nvdf, sdf: volume.sdf, noise, ...samplers, hero: fine && { indir: fine.indir, pool: fine.pool, uniforms: heroUniforms } })
       : null;
+    heroKey = '';
   };
   const releaseTrace = (t: PassTarget) => { t.trace?.color.destroy(); t.trace?.depth.destroy(); t.trace = null; };
   const releaseTargets = () => {
@@ -586,6 +607,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     settings.maxSteps = p.maxSteps; settings.transmittanceCutoff = p.transmittanceCutoff; settings.splitDistance = p.splitDistance;
     settings.temporalNear = p.temporalNear; settings.temporalFar = p.temporalFar;
     settings.stepScale = p.stepScale; settings.microDist = p.microDist; settings.detailDistance = p.detailDistance; settings.farLimit = p.farLimit;
+    settings.fineDistance = p.fineDistance;
     domeSettings.maxSteps = p.domeMaxSteps; domeSettings.enabled = p.domeEnabled;
     skyLayer.settings.resolutionScale = p.skyScale;
   };
@@ -611,6 +633,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     setBudget(ms) { dynamic?.setBudget(ms); },
     async setVolume(asset, opts) {
       if (disposed) return;
+      if ('extentMeters' in asset && asset.fine) {
+        // A fine hero overlay: compile the fine march variants off the frame path first (P13-H1).
+        await Promise.all([true, false].map(async direct => {
+          marchPipelines[marchSlot(false, direct, true)] ??= await device.createComputePipelineAsync(marchDesc(false, direct, true));
+        }));
+        if (disposed) return;
+      }
       if (ownsVolume) volume?.destroy();
       lightGrid?.destroy();
       const external = 'extentMeters' in asset;   // a GpuCloudVolume: caller-owned
@@ -685,6 +714,16 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         compositeGroups.fill(undefined);
       }
       if (frame.depth !== boundDepth) { forgetGroups(); boundDepth = frame.depth; }
+      const fine = volume?.fine;
+      if (fine) {
+        // The overlay's params; a change of distance or erosion is a model change (history cut).
+        const key = `${settings.fineDistance},${settings.fineErosion}`;
+        if (key !== heroKey) {
+          if (heroKey) needReset = true;
+          heroKey = key;
+          device.queue.writeBuffer(heroUniforms, 0, heroUniformData(fine.cells, fine.fineVoxel, fine.poolSize, Math.max(0, settings.fineDistance), settings.fineErosion));
+        }
+      }
       const grid = lightGrid;
       const [near, far] = targets;
       const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, frame.time - lastTime));
@@ -802,7 +841,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         const direct = k === 1 || passFull[pass];
         const marchIndex = ((pass * 2 + gridStep.front) * 2 + cur) * 2 + (direct ? 1 : 0);
         const march = encoder.beginComputePass({ label: pass ? 'cloud march far' : 'cloud march near', timestampWrites: timer?.passTimestampWrites(pass ? 'marchFar' : 'marchNear') });
-        march.setPipeline(getMarchPipeline(!!uniformLighting, direct));
+        march.setPipeline(getMarchPipeline(!!uniformLighting, direct, !!fine && settings.fineDistance > 0));
         march.setBindGroup(0, volumeGroup);
         march.setBindGroup(1, marchGroups[marchIndex] ??= device.createBindGroup({ label: `cloud march ${t.name}`, layout: marchLayouts[direct ? 1 : 0], entries: [
           { binding: 0, resource: { buffer: frameUniforms[pass] } },
@@ -930,7 +969,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       disposed = true;
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
-      volumeUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
+      volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
       skyLayer.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };

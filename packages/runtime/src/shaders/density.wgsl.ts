@@ -6,6 +6,11 @@
  * Deviations from the Decima source: the world is y-up, so the NVDF (x, row, up) is addressed as (x, z, y) by
  * volumeUvw, and noise is sampled at `(p - wind) * noiseScale` with a horizontal (xz) wind. The reflection-dome
  * branch is not ported. The `fineDetailMipDistanceScale` constant (not published) is passed in.
+ *
+ * P13-H1: `cloudDensityFine` is the march's entry. Within `hero.fineDistance` of the camera it reads the fine hero overlay
+ * (sampleModelingHero) and scales the erosion noise by `hero.fineErosion` inside fine bricks (1 = Nubis). With no fine data bound
+ * fineDistance is 0 and it is exactly `cloudDensity`. Deviation from the P8 spec: the switch is that function, not a
+ * `DensityInputs.fine` field, because other modules (the sky layer, the parity page) construct DensityInputs positionally.
  */
 export const DENSITY_WGSL = /* wgsl */ `
 // wispyBias and detailBias are art knobs; 0 = the Nubis sampler (the parity page passes 0).
@@ -15,6 +20,18 @@ struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfD
 fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
   let hFrac = saturate((p.y - cloudVolume.minCorner.y) / max(cloudVolume.extent.y, 1.0));
   return cloudDensityShaped(p, rayDistance, inputs, sampleModeling(p, inputs.baseMip), hFrac);
+}
+
+fn cloudDensityFine(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
+  if (rayDistance < hero.fineDistance) {
+    let m = sampleModelingHero(p, inputs.baseMip);
+    let hFrac = saturate((p.y - cloudVolume.minCorner.y) / max(cloudVolume.extent.y, 1.0));
+    // fineErosion scales the noise composite inside fine bricks: folded into detailBias, noise * (1 + bias) * fineErosion.
+    var fi = inputs;
+    if (m.w > 0.0) { fi.detailBias = (1.0 + inputs.detailBias) * hero.fineErosion - 1.0; }
+    return cloudDensityShaped(p, rayDistance, fi, m.xyz, hFrac);
+  }
+  return cloudDensity(p, rayDistance, inputs);
 }
 
 // The up-rez itself, given the modeling triple (profile, detail type, density scale) and the height fraction in the volume.
