@@ -53,8 +53,8 @@ export interface CirrusSettings {
 }
 
 export const CIRRUS_DEFAULTS: Readonly<Omit<CirrusSettings, 'windVelocity' | 'windOffset'>> & { windVelocity: readonly [number, number] } = {
-  enabled: false, altitude: 9000, thickness: 600, coverage: 0.55, type: 0.15, veil: 0, opticalDepth: 0.5, scale: 40000, detail: 0.7,
-  coverageVariation: 0.35, windVelocity: [22, -6], animSpeed: 1, streakAngle: null, shadowStrength: 0, halo: 0,
+  enabled: false, altitude: 9000, thickness: 600, coverage: 0.55, type: 0.15, veil: 0, opticalDepth: 1, scale: 80000, detail: 0.5,
+  coverageVariation: 0.6, windVelocity: [22, -6], animSpeed: 1, streakAngle: null, shadowStrength: 0, halo: 0,
   phaseForward: 0.8, phaseBroad: 0.2, phaseForwardWeight: 0.45, multipleScattering: 1, sunGain: 1, ambientGain: 1,
 };
 
@@ -100,7 +100,7 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
   const seed = options.seed ?? 3;
   const noise = device.createTexture({ label: 'cirrus noise tile', size: [TILE, TILE], mipLevelCount: MIP_LEVELS, format: 'rgba8unorm', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING });
   const noiseView = noise.createView();
-  const sampler = device.createSampler({ label: 'cirrus noise', addressModeU: 'repeat', addressModeV: 'repeat', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', maxAnisotropy: 16 });
+  const sampler = device.createSampler({ label: 'cirrus noise', addressModeU: 'repeat', addressModeV: 'repeat', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', maxAnisotropy: 4 });
   const dummy = device.createBuffer({ label: 'cirrus dummy', size: 16, usage: GPUBufferUsage.STORAGE });
   const compositeParams = device.createBuffer({ label: 'cirrus composite params', size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const params = device.createBuffer({ label: 'cirrus params', size: CIRRUS_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });

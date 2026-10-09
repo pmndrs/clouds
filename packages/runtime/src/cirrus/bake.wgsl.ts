@@ -62,12 +62,12 @@ fn hooks(uv: vec2<f32>, s: u32) -> f32 {
     for (var dv = -3; dv <= 3; dv++) {
       let cx = wrapI(cu + du, HOOK_NU); let cy = wrapI(cv + dv, HOOK_NV);
       let r0 = h01(cx, cy, s);
-      if (r0 > 0.18) { continue; }   // a few cells hold a hook
+      if (r0 > 0.12) { continue; }   // a few cells hold a hook
       let r1 = h01(cx, cy, s + 1u); let r2 = h01(cx, cy, s + 2u); let r3 = h01(cx, cy, s + 3u); let r4 = h01(cx, cy, s + 4u); let r5 = h01(cx, cy, s + 5u);
       let head = vec2((f32(cx) + r1) / f32(HOOK_NU), (f32(cy) + r2) / f32(HOOK_NV));
       let L = mix(1.2, 3.0, r3) / f32(HOOK_NU);                      // tail length
       let sh = mix(0.22, 0.4, r4) * L;                                  // length of the curl at the head
-      let hookH = select(-1.0, 1.0, r5 > 0.5) * mix(0.3, 0.8, r0 / 0.18) / f32(HOOK_NV);
+      let hookH = select(-1.0, 1.0, r5 > 0.5) * mix(0.3, 0.8, r0 / 0.12) / f32(HOOK_NV);
       let sag = (r1 - 0.5) * 1.2 / f32(HOOK_NV);                        // the tail's own gentle curve
       let x = wrapD(head.x - uv.x);                                     // distance behind the head along the wind
       let sT = x / L;

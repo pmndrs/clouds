@@ -52,7 +52,7 @@ ${atm ? atmosphereWgsl(CIRRUS_ATMOSPHERE_GROUP) : ''}
 
 const CIRRUS_RADIANCE_LIMIT = 60000.0;
 const SUN_HALF_ANGLE_COS = 0.0047;
-const SUN_PATH_MAX = 6.0;
+const SUN_PATH_MAX = 3.0;
 
 fn planetCentre() -> vec3<f32> {
   ${atm ? 'if (atmosphere.flatWorld < 0.5) { return atmosphere.planetCenter; }' : ''}
@@ -115,7 +115,8 @@ fn cirrusDensity(n: vec4<f32>, fine: f32, veilBase: f32, cov: f32) -> f32 {
   d *= valueRemap(cov * cov, 0.0, 0.36, 0.0, 1.0);
   d *= mix(1.0, saturate(0.35 + 1.3 * fine), cp.look.x);
   // Cirrostratus veil: a smooth sheet with faint fibres, its own coverage the same field.
-  let veil = cp.shape.z * saturate(0.35 + 1.1 * veilBase) * mix(1.0, 0.7 + 0.6 * fine, 0.5) * smoothstep(0.0, 0.5, cov);
+  // It follows the large-scale coverage, so the sheet covers part of the sky and thins out elsewhere.
+  let veil = cp.shape.z * saturate(1.4 * veilBase - 0.1) * mix(1.0, 0.7 + 0.6 * fine, 0.5) * smoothstep(0.3, 0.85, cov);
   return saturate(d + veil * (1.0 - d));
 }
 fn hg(c: f32, g: f32) -> f32 {
@@ -151,8 +152,15 @@ fn fetch(p: vec3<f32>, gx: vec2<f32>, gy: vec2<f32>) -> Sample {
   let uv = tileUv(p, cp.wind.xy, cp.layer.w);
   s.n = textureSampleGrad(noiseTex, noiseSampler, uv, gx, gy);
   s.fine = textureSampleGrad(noiseTex, noiseSampler, tileUv(p, cp.fine.xy, cp.layer.w * 0.25), gx * 4.0, gy * 4.0).a;
-  s.veil = textureSampleLevel(noiseTex, noiseSampler, uv * 0.5 + 0.31, 6.0).y;
+  s.veil = 0.0;
+  if (cp.shape.z > 0.0) { s.veil = textureSampleLevel(noiseTex, noiseSampler, uv * 0.5 + 0.31, 6.0).y; }
   return s;
+}
+// Distance to the layer's mid surface only (the neighbour rays for the texture gradients): 0 = none.
+fn layerT(origin: vec3<f32>, dir: vec3<f32>) -> f32 {
+  let h = sphereHit(origin - planetCentre(), dir, cp.layer.z + cp.layer.x);
+  if (h.x > h.y) { return 0.0; }
+  return select(h.x, h.y, h.x <= 0.0);
 }
 
 @compute @workgroup_size(8, 8)
@@ -203,7 +211,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Texture gradients from the neighbouring pixels' hits (anisotropic filtering at grazing angles).
   let dx = normalize(unprojectDepth(uv + vec2(1.0 / cs.x, 0.0), 1.0) - origin);
   let dy = normalize(unprojectDepth(uv + vec2(0.0, 1.0 / cs.y), 1.0) - origin);
-  let hx = layerHit(origin, dx).x; let hy = layerHit(origin, dy).x;
+  let hx = layerT(origin, dx); let hy = layerT(origin, dy);
   let uv0 = tileUv(p, cp.wind.xy, cp.layer.w);
   var gx = select(vec2(0.05), tileUv(origin + dx * hx, cp.wind.xy, cp.layer.w) - uv0, hx > 0.0);
   var gy = select(vec2(0.05), tileUv(origin + dy * hy, cp.wind.xy, cp.layer.w) - uv0, hy > 0.0);
@@ -215,20 +223,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let tauV = d * cp.shape.w;
   let T = exp(-tauV * hit.y / th);
 
-  // Toward the sun across the layer: two taps of the density (a coarser footprint), the path factor from the chord along the sun.
+  // Toward the sun across the layer: two taps of the main noise at a coarser mip (no anisotropy; the fine and veil terms are this pixel's).
+  // The path factor 1 / mu is capped: the layer is patchy, so a grazing sun reaches a fibre through gaps (a uniform slab would black it out).
   let up = normalize(p - planetCentre());
   let muS = dot(sun, up);
-  let sunChord = layerHit(p - sun * (2.0 * th), sun).y;   // the full chord along the sun through this point's shell
   let sunH = sun - up * muS;
   let reach = min(0.5 * th * length(sunH) / max(muS, 0.03), 12000.0);
   let sH = sunH / max(length(sunH), 1e-4);
-  let g2x = gx * 2.0; let g2y = gy * 2.0;
-  let s1 = fetch(p + sH * (0.35 * reach), g2x, g2y);
-  let s2 = fetch(p + sH * reach, g2x, g2y);
-  let d1 = cirrusDensity(s1.n, s1.fine, s1.veil, cov);
-  let d2 = cirrusDensity(s2.n, s2.fine, s2.veil, cov);
-  // The path factor is capped: the layer is patchy, so a grazing sun reaches a fibre through gaps (a uniform slab would black it out).
-  let tauSun = (0.3 * d + 0.4 * d1 + 0.3 * d2) * cp.shape.w * 0.5 * min(sunChord / th, SUN_PATH_MAX);
+  let lod = clamp(log2(max(length(gx), length(gy)) * f32(textureDimensions(noiseTex).x)) + 1.5, 0.0, 10.0);
+  let n1 = textureSampleLevel(noiseTex, noiseSampler, tileUv(p + sH * (0.35 * reach), cp.wind.xy, cp.layer.w), lod);
+  let n2 = textureSampleLevel(noiseTex, noiseSampler, tileUv(p + sH * reach, cp.wind.xy, cp.layer.w), lod);
+  let d1 = cirrusDensity(n1, s0.fine, s0.veil, cov);
+  let d2 = cirrusDensity(n2, s0.fine, s0.veil, cov);
+  let tauSun = (0.3 * d + 0.4 * d1 + 0.3 * d2) * cp.shape.w * 0.5 * min(1.0 / max(muS, 1e-3), SUN_PATH_MAX);
 
   let sunL = cirrusSun(p) * cp.fine.z;
   let cosS = dot(dir, sun);
