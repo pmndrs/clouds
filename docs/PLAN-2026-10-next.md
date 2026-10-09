@@ -89,6 +89,8 @@ The photo is local only; its path is held by the owner. It is shared in session 
 
 ## Priority (owner, 2026-10-09): quality first, performance later
 
+**What quality means now (owner, 2026-10-09 night):** our biggest issues are **shape, layering, and surface noise/detail**. Lighting is adjustable later and is not the current focus. Takram is the benchmark for shape only, **not for lighting**: don't tune or judge our lighting against Takram's. The papers (HZD 2015, Nubis 2017, Nubis Evolved, the 2021 survey and others) describe many procedural shaping methods, some with code; mine them for shape and layering before inventing.
+
 Our clouds still don't match the WebGL work we are building on (Takram, Sky Pro) or the photos. Until they do, **visual quality comes first.**
 - Performance budgets are guards against regressions, not goals. Keep demos at interactive rates on the owner's laptop, and don't let any change more than double a pass without a reason.
 - The budget model below and the scheduler work (S1) still stand. They come after look parity.
