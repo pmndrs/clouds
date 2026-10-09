@@ -89,9 +89,9 @@ The photo is local only; its path is held by the owner. It is shared in session 
 
 ## Priority (owner, 2026-10-09): quality first, performance later
 
-**What quality means now (owner, 2026-10-09 night):** our biggest issues are **shape, layering, and surface noise/detail**. Lighting is adjustable later and is not the current focus. Takram is the benchmark for shape only, **not for lighting**: don't tune or judge our lighting against Takram's. The papers (HZD 2015, Nubis 2017, Nubis Evolved, the 2021 survey and others) describe many procedural shaping methods, some with code; mine them for shape and layering before inventing.
+**What quality means now (owner, 2026-10-09 night):** our biggest issues are **shape, layering, and surface noise/detail**. Lighting is adjustable later and is not the current focus. **Takram is not the target** (owner, 2026-10-10): it is a simplified, single-cloud-type take on HZD, in shape and in lighting. The targets are **Horizon Zero Dawn and the owner's photos**. Don't tune or judge against Takram; at most it is a sanity check. Native libraries that claim HZD-equivalent clouds may be compared against if needed. The papers (HZD 2015, Nubis 2017, Nubis Evolved, the 2021 survey and others) describe many procedural shaping methods, some with code; mine them for shape and layering before inventing.
 
-Our clouds still don't match the WebGL work we are building on (Takram, Sky Pro) or the photos. Until they do, **visual quality comes first.**
+Our clouds still don't match Horizon Zero Dawn or the photos (and, earlier, not even the simpler WebGL work: Takram, Sky Pro). Until they do, **visual quality comes first.**
 - Performance budgets are guards against regressions, not goals. Keep demos at interactive rates on the owner's laptop, and don't let any change more than double a pass without a reason.
 - The budget model below and the scheduler work (S1) still stand. They come after look parity.
 - Order: look parity and the species, then scenes, then hero detail, then performance (9-C3 follow-ups, S1, ray reconstruction).

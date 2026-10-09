@@ -45,7 +45,7 @@ All agents are stopped. Every change is committed, on branch `claude/webgpu-clou
 
 ## Owner direction to keep (also in memory and the plan)
 
-- **Biggest problems: shape, layering, surface noise and detail.** Lighting is adjustable later; ours is fine. Takram is a benchmark for shape only, never for lighting.
+- **Biggest problems: shape, layering, surface noise and detail.** Lighting is adjustable later; ours is fine. **Takram is not the target** (owner, 2026-10-10): it simplifies HZD to one cloud type. Targets are HZD and the owner's photos; never tune toward Takram.
 - Quality first, performance later. Budgets are relative: steady cost about 20% of the frame and spikes at most 10%, both at the app's target fps. Phones are deferred. No bundle size cap.
 - **Hybrid, never procedural-only.** Keep the NVDF, generator, species, library and hero work, and keep both shapers and both lighting models switchable. Our generator is paused until a framing session with the owner.
 - Sky Pro's MIT code may be used directly, with attribution. Takram is MIT.
