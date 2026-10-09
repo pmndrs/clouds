@@ -22,15 +22,16 @@ mapping fitted to Guerrilla's two example clouds [P4-B]. Four ways in, from leas
 | [hython converter](#hython-converter) | Houdini (Indie is fine) | 4 to 16 s |
 | [Cloud SOP recipe](#houdini-cloud-sop-recipe) / [Pyro sim recipe](#houdini-pyro-recipe) | Houdini | 20 to 30 s per cloud |
 | [Blender via VDB export](#blender-via-vdb-export) | Blender, plus a small amount of checking | untested here |
-| [Generate](./api.mdx#generate-a-cloudscape) | Nothing; presets | 17 ms |
+| [Generate](./api.mdx#generate-a-cloudscape) | Nothing; presets and [species](./api.mdx#species-and-presets) | 17 ms |
+| [Library](#the-authored-library) | The shipped 17 Pyro-grown clouds | load and stamp |
 
-Then [stamp](#stamping-and-cutouts) the result into a generated cloudscape.
+Then [stamp](#stamping-and-cutouts) the result into a generated cloudscape. For a hero that has to survive a close look, add a [fine overlay](#fine-hero-clouds).
 
 ## Budgets and limits
 
 - **Dense storage.** `nvdf` (4 bytes) + `sdf` (2 bytes) are dense over the bounding box: 6 bytes a voxel. A 4 MB cap is about 650 thousand voxels at 8 m (for example 85x92x62). The first tower, 1.2 km by 900 m, came to 7.5 MB and had to be built at 0.77 scale.
 - **8 m voxels.** Everything is tuned and verified at 8 m. The loader accepts other sizes (12 m for bigger clouds) but they are not verified.
-- **Detail finer than about 25 m is not representable** at 8 m voxels. Fine lobes (5 to 20 m) of a Hyperion-quality cloud are out of reach; the 100 m noise tiles carry the small scale [Q-1, P4-G].
+- **Detail finer than about 25 m is not representable** at 8 m voxels. Fine lobes (5 to 20 m) of a Hyperion-quality cloud are out of reach; the 100 m noise tiles carry the small scale [Q-1, P4-G]. A hero cloud can add a 4 m or 2 m [fine overlay](#fine-hero-clouds) for the part near the camera.
 - Rotation: the importer and converter require an axis-aligned transform with cubic voxels.
 
 ## In-browser `.vdb` import
@@ -180,6 +181,70 @@ into the Pyro Solver, a smoothstep density remap with a soft flat base, a vertic
 Gotchas found: Volume SOP `uniformsamples` index 5 is "By Size" (the Cloud SOP's uses 1); VEX `smooth(a, b, x)` with a > b returns 0; `@Frame` is
 undefined in a volume wrangle (use `` `$FF` ``); `mix` does not exist in VEX (use `lerp`). Results: `sim-cumulus` 85x92x62 (2.78 MiB), `sim-congestus` 82x76x101
 (3.60 MiB), clearly more organic than the SOP tower; congestus is 808 m tall, a little under the 1 km target, which would exceed 4 MB at 8 m [P4-F].
+
+## The authored library
+
+`assets/clouds/library/` holds 17 Pyro-grown clouds, each under 4 MB (largest 3.29 MiB, 23.9 MiB in all), made to be **stamped many times** into one sky [P9-F].
+One command grows all of them, unattended (about 6 minutes, 340 s measured; Houdini Indie is enough), and re-running gives byte-identical files:
+
+```sh
+$HYTHON scripts/vdb/authoring/sim/library.py                        # everything: sim, convert, index.json
+$HYTHON scripts/vdb/authoring/sim/library.py fractus pileus-tower   # some
+$HYTHON scripts/vdb/authoring/sim/library.py --list                 # list the entries
+$HYTHON scripts/vdb/authoring/sim/library.py --reindex              # refresh stamp hints and index.json without sims
+python3 scripts/vdb/authoring/sim/contact_sheet.py DIR OUT.jpg      # tile the library page's ?sheet=1 captures
+```
+
+Each entry writes `<name>/cloud.json`, `nvdf.bin`, `sdf.bin` and a `manifest.json` (species, size, base and top, seed, frame, sim seconds, bytes and the full recipe), and
+`index.json` lists them with a `stamp` block of hints. The files are ordinary packs: `loadCloudVolume('/clouds/library/congestus-a/')`.
+
+| Group | Clouds |
+| --- | --- |
+| Humilis | `humilis-a`, `humilis-b` (a pair) |
+| Mediocris | `mediocris-a`, `mediocris-oblong` (a ridge), `mediocris-cluster` (three staggered cells), `mediocris-sheared` (wind and shear) |
+| Congestus | `congestus-a`, `congestus-turrets`, `congestus-broad` (broad base and a tower), `congestus-lean` (wind and shear), `pileus-tower`, `rising-young` (a young towering cumulus) |
+| Flat and sheet | `cumulus-flattop` (under an inversion), `stratocumulus-slab`, `stratocumulus-band` (12 m voxels) |
+| Broken and old | `decaying-wisp` (emission stopped, smeared), `fractus` (broken pieces) |
+
+Sizes run from 368 x 368 x 136 m (`humilis-b`) to 810 x 770 x 720 m (`congestus-broad`). The `stamp` hints are `weight` (how often the page deals it: the towers, which differ most from each other, get 2 or 3), `scale` (a yaw-and-scale range, for example `[0.6, 1.2]` for the humilis), and
+optionally `detailType` and `densityScale`. The batch script is `sim_clouds.py` generalised with a seed, several emitters (`source.emitters`: `[x, z, rx, rz, weight, start_frame]` discs), wind during the sim (the plume leans), an inversion lid (`cap`:
+flat tops), a post shear and flatten, a scripted pileus dome (`pileus`) and an island prune (`prune`, detached blobs smaller than a fraction of the main body are dropped), with the full table in
+[`scripts/vdb/authoring/sim/README.md`](https://github.com/pmndrs/clouds/blob/main/scripts/vdb/authoring/sim/README.md). The library recipes use a 20 m base fade (the P4-F recipe's 100 m made rounded bottoms).
+
+[`examples/lab/library/`](./demos.mdx#library) stamps them Atlas-style: a seeded layout deals the library in shuffled rounds (a cloud `weight` times per round), each with its own yaw, scale and
+position, bases on one condensation level, neighbours allowed to overlap into "frankenclouds", and copies of the same cloud at least 1.8 km apart. It uses `stampCloud` and one SDF rebuild
+(115 ms once at load for 36 instances), the same path as [Stamping and cutouts](#stamping-and-cutouts).
+At 2560x1440 `high` the three bookmarks run at 60 fps vsync with 2.6 to 4.7 ms of cloud passes; the variety harness scores the sky 0.47 for clone similarity (target 0.5 or less).
+The pileus is a scripted smooth dome fused to the tower top (a hood, not a separate veil), and from above the tower crowns look alike.
+
+## Fine hero clouds
+
+A hero cloud can ship a **fine lattice** next to its 8 m files: a 4 m (or 2 m) copy of the profile as a sparse VDB, `fine.nvdb`, which the runtime reads within `settings.fineDistance` of the camera
+(see [Fine hero overlay](./api.mdx#fine-hero-overlay)). The coarse files are derived from it, so the two always agree [P13-H2].
+
+```sh
+$HYTHON scripts/vdb/vdb_to_nvdf.py --mode fog IN.vdb --out assets/clouds/NAME --world-scale S --margin 1 --fine-voxel-size 4 --drop-fine-vdb
+python3 scripts/vdb/check_parity.py --fine assets/clouds/NAME                     # needs node
+```
+
+- **Fine profile.** The converter resamples the source to the fine lattice and runs the mask, exact distance transform at that size and the fitted mapping there (`--fine-smooth`, sigma one fine voxel). The profile-spread noise length is `PACK_FIT.profile.corrMeters`, 24 m (it was 3 voxels), so the 8 m output of an unchanged recipe is bit-identical to before.
+- **Coarse field by reduction.** R is the mean of the `ratio^3` fine profiles, floored at 1/255 wherever any is set, so coarse occupancy is a superset of the fine one. The SDF is the exact distance transform of the coarse mask, so it stays conservative by construction. G and B come from the coarse mask and the block-mean density as before. The lattices are nested: the fine array is padded so each coarse voxel is one block, and the fine crop is the coarse crop times the ratio.
+- **`fine.nvdb`.** A NanoVDB file with one `profile` grid (values `k/255`, 8-bit). The converter runs Houdini's `convertvdb` to `fine.vdb`, then `node scripts/vdb/vdb-to-nvdb.mjs fine.vdb fine.nvdb --fp8` (WebVDB, vendored in `scripts/vdb/vendor/webvdb/` with its licence), and compares every voxel of the written file with the exact uint8 lattice; the run fails unless they match. Houdini stores uniform 8 x 8 x 8 blocks as constant tiles, which the converter expands to leaves. `fine.vdb` is reproducible, so `--drop-fine-vdb` deletes it.
+- **`--fine-shell M`.** Zeroes fine voxels deeper than M metres (32 to 40 recommended at 2 m); the coarse field keeps the interior.
+- **`cloud.json`** gains a `fine` block: `file`, `voxelSizeMeters`, `grid`, `ratio`, `shellMeters`, `offsetFineVoxels`, `dims`, `activeVoxels`, `occupiedFraction`, `bytes`, `leaves`, and `indexAxes` (fine index `(i, j, k)` is lattice `(x, up, map row)`; index 0 is the lattice corner voxel at the coarse crop's minimum corner).
+
+| Asset (`assets/clouds/`) | Coarse files | `fine.nvdb` | Convert |
+| --- | --- | --- | --- |
+| `disney-fine` (110 x 92 x 63 at 8 m, fine 4 m) | 3.83 MB | 2.39 MB (3264 leaves) | 37 s |
+| `heroes/sim-cumulus-fine` (4 m) | 3.58 MB | 2.43 MB | 3 s, plus a 141 s sim |
+| `heroes/sim-congestus-fine` (4 m) | 5.15 MB | 3.21 MB | 4 s, plus a 141 s sim |
+| `local/disney-2m` (2 m, shell 40; git-ignored) | 3.96 MB | 12.32 MB (18,702 leaves) | 765 s on a loaded machine (the Python distance transform on 42 M voxels dominates) |
+
+Budgets: the fine file stays under about 3 MB at 4 m and the coarse pair under 4 MB (`sim-congestus-fine` is over, at 5.15 MB, accepted for a showcase asset). The original `disney`, `heroes/sim-*` directories are
+unchanged, so existing scenes keep working; the `-fine` assets are separate directories with the new files. The sim heroes at 4 m come from a real 4 m Pyro sim (an 8 m sim upsampled would carry no
+fine detail), so they are different realisations of the same recipes; `authoring/sim/sim_clouds_p4f.py <name> --divsize 0.04 --tag _4m` grows them, then `--convert-only <vdb> --fine-voxel-size 4` writes the asset
+(`sim_clouds.py` after the library rewrite no longer reproduces the old sim heroes; `sim_clouds_p4f.py` is the original script and does, byte for byte at 8 m).
+The in-browser importer does not make a fine overlay yet, and the loader does not read `fine.nvdb` yet: see the note in the [API](./api.mdx#fine-hero-overlay).
 
 ## Blender via VDB export
 

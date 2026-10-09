@@ -1,7 +1,8 @@
 # @clouds/runtime
 
 The renderer-agnostic core of the WebGPU voxel clouds: Nubis³-style density, an SDF sphere-trace march, a voxel light
-grid, a near/far resolution split with temporal amortization, a distant sky layer, a reflection dome, a GPU cloud generator,
+grid, a near/far resolution split with temporal amortization, a distant sky layer, a reflection dome, a cloud shadow map, lightning,
+low-sun lighting and horizon haze, a fine overlay for hero clouds, a GPU cloud generator with species presets and a storm cell,
 stamping of authored clouds and an in-browser `.vdb` importer. It talks to WebGPU only (a test forbids importing three.js), so
 it can sit behind any renderer. For three.js use [`@clouds/three`](../three/README.md); for React Three Fiber
 [`@clouds/react`](../react/README.md).
@@ -59,7 +60,9 @@ With a physical sky, pass `atmosphere` (a bind group over the sky LUTs; see `cre
 | Runtime | `createCloudRuntime`, `CLOUD_QUALITY_PRESETS`, `CLOUD_QUALITY_ORDER`, `estimateCloudMemory`, `CloudSettings`, `CloudFrame`, `CloudRuntime` |
 | Assets | `loadCloudVolume`, `loadCloudNoise`, `uploadCloudVolume`, `uploadCloudNoise`, `decodeSdf` |
 | Auto quality | `selectTier`, `describeDevice`, `DynamicScale`, `AUTO_QUALITY_DEFAULTS`, `controlledCost` |
-| Generate (`/generate`) | `createVolumeGenerator`, `encodeProceduralWeatherMap`, `CLOUD_PRESETS`, `createStreamingCloudscape`, `createGeneratorScratch` |
+| Generate (`/generate`) | `createVolumeGenerator`, `encodeProceduralWeatherMap`, `CLOUD_PRESETS` (ten species presets), `createStreamingCloudscape`, `createEvolvingCloudscape` (with a storm cell), `createGeneratorScratch` |
+| Shadows and lightning | `runtime.shadowMap` (`cloudShadowMapWgsl`), `runtime.flash`, `settings.lightning`, `settings.compositeShadow` |
+| Fine heroes | `GpuCloudVolume.fine`, `uploadFineBricks`, `settings.fineDistance` |
 | Authored clouds | `stampCloud`, `createSdfRebuilder`, `createEmptyCloudVolume` (`/generate`); `importVdb`, `convertVdb`, `inspectVdb` (`/import`) |
 | Sky and lighting | `createSkyLayer`, `atmosphereWgsl`, `createAtmosphereBindGroup*`, `createLightGrid`, the reflection dome helpers |
 | Tooling | `GpuTimer` (timestamp queries), the WGSL strings (`MARCH_WGSL`, `DENSITY_WGSL`, ...) |
@@ -72,6 +75,6 @@ Full signatures and defaults: [API reference](../../docs/guide/api.mdx#@clouds/r
 - Needs WebGPU; `timestamp-query` is optional but required for `quality: 'auto'` to measure and for `GpuTimer`.
 - Axes: world is y-up; volume textures are `(x, map row, up)`. Voxel size 8 m is the verified size.
 - A `GpuCloudVolume` you pass to `setVolume` stays yours; a `CloudVolumeAsset` is uploaded and owned by the runtime.
-- Size: the core entry is 153 KB minified, 48.7 KB gzip; `@clouds/three` with the runtime parts it uses is 51.3 KB gzip. `/generate` adds up to 14 KB gzip and `/import` up to 19 KB (shared code counted in each). `node scripts/check-bundle.mjs` prints the current numbers.
+- Size: the core entry is 171 KB minified, 53.8 KB gzip; `@clouds/three` with the runtime parts it uses is 57.1 KB gzip. `/generate` adds up to 20 KB gzip and `/import` up to 25 KB (shared code counted in each). `node scripts/check-bundle.mjs` prints the current numbers. Every WGSL template string must carry the `/* wgsl */` tag so the release build minifies it ([contributing shader code](../../docs/guide/quality-and-performance.mdx#contributing-shader-code)).
 - The `.vdb` importer (`/import`) bundles a vendored parser under the Apache License 2.0 (`vendor/vdb-web-tools` in this package; its LICENSE and NOTICE ship in the tarball); see [credits](../../docs/guide/credits.mdx#webvdb:-the-.vdb-parser).
 - `peerDependencies`: `@webgpu/types` (optional; for the `GPU*` types in your own type check).

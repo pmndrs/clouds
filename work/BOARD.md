@@ -1671,7 +1671,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The importer round-trips byte-equal.
   - `pnpm check`, bundle and packed consumer green.
 
-### [~] D1 Docs refresh for new features · Sonnet
+### [r] D1 Docs refresh for new features · Sonnet
 - **Owns:** `docs/guide/*.mdx` and the package READMEs.
 - **Does:** document what has landed since P8-B, with values read from the code:
   - shadows: `applyShadow(light)`, `clouds.shadow()`, `compositeShadow`, the shadow map;

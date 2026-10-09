@@ -59,7 +59,7 @@ const clouds = new Clouds(renderer, options);
 | `reflection(dirNode)` | TSL `vec4(rgb, T)`: premultiplied cloud radiance and transmittance toward a world-space direction. Blend as `env * T + rgb`. Below the horizon it gives `(0, 0, 0, 1)`. Turns the reflection dome on (it is off on the `'mobile'` tier). One reference point, the camera's x/z at ground level, so it suits large flat reflectors like water. About one frame of lag. |
 | `applyShadow(light)`, `removeShadow(light)` | Cloud shadows through three's lighting: `applyShadow(sun.light)` sets `light.shadow.shadowNode` to `shadow()` (multiplied with a node already there, such as a heightfield shadow), `light.castShadow` and `renderer.shadowMap.enabled`, and sets `settings.compositeShadow = 0` so nothing is shadowed twice. Materials with `receiveShadow = true` then lose only the direct sun; sky, IBL and ambient stay. Call it after any code that installs its own `shadowNode`. See [Cloud shadows](#cloud-shadows). |
 | `shadow(positionNode?)` | TSL float, 1 = sunlit, 0 = shadowed, for a world position (default `positionWorld`). The cloud shadow map's optical depth turned into light, for materials that mix their own lighting. 1 until the map has landed. |
-| `settings` | Live [`CloudSettings`](#cloudsettings), safe to change every frame. |
+| `settings` | Live [`CloudSettings`](#cloudsettings), safe to change every frame. Includes `settings.lightning`, see [Lightning](#lightning). |
 | `lighting` | Live `UniformLightingValues` (`sunDirection`, `sunRadiance`, `ambientTop`, `ambientBottom`) when there is no sky; `undefined` with a sky. |
 | `setQuality(tier)`, `quality` | Switch tier; the tier in effect. Under `'auto'` the dynamic scale keeps running on top. |
 | `auto` | `AutoQualityInfo \| null`: `{ tier, reasons, scale, costMs, budgetMs, measured, changes }`. `null` for a fixed tier. |
@@ -67,7 +67,7 @@ const clouds = new Clouds(renderer, options);
 | `memory` | `CloudMemory` in bytes: `history`, `trace`, `sky`, `output`, `dome`, `lightGrid`, `shadow`, `total`. |
 | `timings`, `lastTimings` | Rolling-average and most-recent GPU ms per pass (`lightGrid`, `marchNear`, `resolveNear`, `marchFar`, `resolveFar`, `composite`, `dome`, `skyLayer`, `skyResolve`). Empty without `timestamp-query`. The last lags the frame by 2 or 3. |
 | `isReady` | True once volume and noise are loaded and the first frame sized the output. Until then the node shows the plain scene. |
-| `core` | The `CloudRuntime` underneath (settings, `dome`, `skyLayer`, `resetTemporal()`, ...). |
+| `core` | The `CloudRuntime` underneath (settings, `dome`, `skyLayer`, `shadowMap`, `flash()`, `resetTemporal()`, ...). There is no `Clouds.flash`; call `clouds.core.flash(...)`. |
 | `renderer`, `sky` | What you passed. |
 | `dispose()` | Frees the runtime, timer, lighting and nodes. Idempotent. |
 
@@ -97,13 +97,25 @@ void reflectedClouds;
 
 ##### Cloud shadows
 
-The runtime keeps a world-anchored shadow map of the sun-ray optical depth through the voxel volume and the sky layer
-(`core.shadowMap`; two 1024 cascades, 8 km at 8 m texels and 64 km, refreshed a slice per frame). By default the
-composite darkens every opaque pixel with it (the alpha path, `compositeShadow` 1). That path also darkens ambient
-light. For three materials the better route is the light: `clouds.applyShadow(sun.light)` once, set
-`receiveShadow = true` on the ground, water and props, and three multiplies the cloud shadow into that light's colour
-only. A terrain that installs its own `light.shadow.shadowNode` (a heightfield sun shadow) is multiplied, not replaced,
-provided `applyShadow` runs after it.
+The runtime keeps a world-anchored **shadow map**: the optical depth of the sun ray through the voxel volume and the
+sky layer, in two cascades of 1024 x 1024 `r32float` texels (the near cascade covers 8192 m at 8 m texels, the far one
+65536 m at 64 m texels, blended over the near window's outer 16 texels). A cascade follows the camera's foot point in
+64-texel snaps, so a texel's world cell never changes and the shadows do not swim. It refreshes 1/24 of its rows a
+frame (twice that for the first fill and after a sun jump), and only while stale: a sun that moved the shell's plane
+point by more than 4 m, a light-grid rebuild, a weather re-bake, a new `densityScale` or `lightDensityScale`, a moved
+box or a recentred window. Until the first full sweep has landed (`core.shadowMap.info.valid`) the composite uses the
+light-grid shadow of the voxel region only, so a half-built map is never shown. The map costs 8 MB
+(`CloudMemory.shadow`) and about 0.3 ms of GPU on a refresh frame, 0 ms while nothing is stale [P10-A].
+
+There are two ways to use it:
+
+- **Composite (the default).** `compositeShadow` is 1, and the composite darkens every opaque pixel with the map by
+  `shadowStrength`. That also darkens the sky ambient on the surface, and it needs nothing from your materials.
+- **Through the light.** `clouds.applyShadow(sun.light)` once, then `receiveShadow = true` on the ground, water and props.
+  three multiplies the cloud shadow into that light's colour only, so the direct sun is dimmed and the sky, IBL and
+  ambient light stay. A terrain that installs its own `light.shadow.shadowNode` (a heightfield sun shadow) is multiplied,
+  not replaced, provided `applyShadow` runs after it. Meshes without `receiveShadow` get no cloud shadow while
+  `compositeShadow` is 0. React: `<Clouds shadowLight={light} />`.
 
 ```ts
 import type { Clouds } from '@clouds/three';
@@ -117,8 +129,35 @@ ground.receiveShadow = true;
 clouds.applyShadow(sunLight); // direct sun only; the composite shadow turns itself off
 ```
 
-`examples/lab/scenes/ocean` hooks the same value into three's own environment node for the water; see the
-[open-water demo](./demos.mdx#open-water).
+How the light route works: the two cascades are copied (`copyTextureToTexture`, only on frames when a refresh slice
+ran) into two three `StorageTexture`s, and `clouds.shadow()` is the TSL port of the runtime's `cloudShadowTau` lookup
+plus the composite's optical-depth-to-light curve. It returns 1 until the map is valid. `examples/lab/scenes/ocean` hooks the same
+value into three's own environment node for the water; see the [open-water demo](./demos.mdx#open-water).
+
+Limits: the map plane is the cloud shell's base, so a surface that stands inside the shell (a hill poking into the
+cloud layer) reads the full column and is over-shadowed. The lookup uses the sun the map was built with, which lags the
+live sun by up to about 4 m of shadow position until the map refreshes. The sky-layer part uses the layer's smooth
+field, so its footprints are slightly rounder than the rendered clouds.
+
+The map is also exposed to your own passes. `core.shadowMap.textures` are the two cascades,
+`paramsBuffer` the uniform (`params` is a CPU mirror), and `cloudShadowMapWgsl(group, binding)` returns WGSL that
+defines `cloudShadowTau(p)` and `cloudShadowValid()` (uniform at `binding`, near cascade at `+1`, far at `+2`, `textureLoad` only).
+`bindGroupLayoutEntries(binding, visibility)` and `bindGroupEntries(binding)` build the matching layout and bind group entries.
+`shadowMap.invalidate(hard?)` marks the map stale (`hard` also withholds it from the composite until the refresh completes).
+
+`core.shadowMap.settings` (defaults in `SHADOW_MAP_DEFAULTS`; a change invalidates the map):
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `enabled` | true | Off: the composite falls back to the light-grid shadow (voxel region only). Handy for A/B. |
+| `nearExtent`, `farExtent` | 8192, 65536 | World extent (m) of each cascade; texel size = extent / 1024. |
+| `refreshFrames` | 24 | Frames one full refresh of both cascades takes. |
+| `steps` | 48 | Samples along each sun ray through the shell. |
+| `groundHeight` | 0 | Height (m) of the ground the cascades centre on. |
+| `debug` | 0 | 1: outline the map's optical-depth contour on the ground. 2: the same outline on the cloud base plane. |
+| `debugThreshold`, `debugGain` | 0.3, 8 | Contour optical depth and its radiance (output units). |
+
+`CloudSettings.shadowStrength` (0.6) is the darkening of a fully shadowed pixel; `0` disables the map as well.
 
 #### Frame order
 
@@ -190,7 +229,7 @@ nested inside a `<Clouds>` it drives that instance.
 
 | Prop | Default | Notes |
 | --- | --- | --- |
-| `preset` | `'cumulus'` | `'cumulus' \| 'congestus' \| 'stratocumulus'` or a `CloudPreset` object. A change regenerates from scratch. |
+| `preset` | `'cumulus'` | A `CloudPresetName` (`'cumulus'`, `'humilis'`, `'mediocris'`, `'congestus'`, `'stratocumulus'`, `'altocumulus'`, `'stratus'`, `'mixed'`, `'storm'`, `'layered'`; see [Species and presets](#species-and-presets)) or a `CloudPreset` object. A change regenerates from scratch. The tall presets name a `volume`: pass its `dims` and `voxelSize` here. |
 | `seed` | `1` | |
 | `dims` | `[512, 512, 64]` | Volume dims (x, map row, up). |
 | `voxelSize` | `8` | Metres per voxel. |
@@ -249,9 +288,10 @@ A `CloudRuntime` has:
 | `resetTemporal()`, `temporalInfo` | Drop the history (call on a cut the runtime cannot see, such as a sky jump); rates in effect, resets, frames, bytes. |
 | `extent` | World size of the volume `[x, y, z]` once set. |
 | `dome` | The octahedral reflection dome (`texture`, `view`, `size`, `settings`: `enabled`, `referencePoint`, `groundHeight`, ...). |
-| `shadowMap` | The cloud shadow map (P10-A): `settings` (`enabled`, `nearExtent`, `farExtent`, `refreshFrames`, `steps`), `textures` (two `r32float` cascades of optical depth), `paramsBuffer`, `params` (CPU mirror), `info.valid`. WGSL consumers call `cloudShadowMapWgsl(group, binding)` for `cloudShadowTau(p)`. |
+| `shadowMap` | The cloud shadow map: `settings`, `textures` (two `r32float` cascades of optical depth), `paramsBuffer`, `params` (CPU mirror), `info.valid`, `invalidate()`. See [Cloud shadows](#cloud-shadows). WGSL consumers call `cloudShadowMapWgsl(group, binding)` for `cloudShadowTau(p)`. |
+| `flash(options)`, `flashLevel` | A lightning flash, a transient point light inside the cloud, and the envelope 0..1 of the flash the last `encode` rendered. See [Lightning](#lightning). |
 | `skyLayer` | The distant 2.5D layer; off by default. See [Distant sky layer](#distant-sky-layer). |
-| `swapVolume(volume, { position })`, `setVolumePosition(position)` | In-flight with the realtime-evolution work (P6-A): swap in a caller-owned volume of the same shape without cutting history, and move the box with a uniform write. |
+| `swapVolume(volume, { position })`, `setVolumePosition(position)` | Swap in a caller-owned volume of the same dims, voxel size and extent without cutting history (the light grid is kept and rebuilt in its slices; returns `false`, doing nothing, if that is not possible: call `setVolume`), and move the box with a uniform write. For time-evolving fields, see [Evolving](#evolve-a-cloudscape-over-time). |
 | `dispose()` | |
 
 #### `CloudFrame`
@@ -345,9 +385,127 @@ the default; the others are art defaults.
 | `shadowStrength` | 0.6 | 0..1 darkening of opaque scene pixels by cloud shadow. 0 disables the shadow map too. Also the strength of `Clouds.shadow()`. |
 | `compositeShadow` | 1 | 1: the composite folds the shadow into its alpha (darkens everything, ambient included). 0: not; `Clouds.applyShadow` sets this so the light does the shadowing. |
 
+| `fineDistance` | tier (3000 ultra and high; 1500 medium; 600 low; 0 mobile) | Distance (m) within which the march reads a volume's [fine hero overlay](#fine-hero-overlay). 0 = off. Changing it cuts the history. |
+| `fineErosion` | 1 | Scales the erosion noise inside fine bricks (1 = Nubis; 0.6 to 1 if fine heroes read double-detailed). |
+| `lightDebug` | 0 | 0 normal; 1 to 5 render only the direct, multiple-scattering (ms), deep-octave, ambient or environment-body term, without aerial perspective; 6 all terms without aerial perspective and haze. |
+| `lightning` | see [Lightning](#lightning) | `LightningSettings`: automatic flashes. Off (`rate` 0). |
+
+#### Low-sun lighting
+
+Settings added for sunrise and sunset [C1]. They only do anything when the sun is below the knee; above it the lighting
+is exactly what it was. With the sun high they cost nothing and change nothing (compare ground and horizon: mean difference 0.13/255, the capture noise).
+
+The problem they solve: the multiple-scattering body terms (`msStrength`, the deep octaves) carry no phase function, so
+they took the full sun colour at every elevation and a sunset cloud came out cream. Now the sun's share of those terms is
+
+`mix(bodySunFloor, 1, saturate(sin(elevation) / bodySunKnee))`
+
+(Bouthors 2008), multiplied at low sun by `exp(-tau * bodyDepth * (1 - sunUp))` where `tau` is the optical depth toward the
+sun, so dense faces go sky-lit first. An isotropic environment-lit body (`bodyEnv`) replaces exactly the share the sun
+lost: sky above, ground bounce below. The direct term is untouched.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `bodySunFloor` | 0.05 | The sun's share of the body terms with the sun on the horizon. |
+| `bodySunKnee` | 0.4 | `sin(elevation)` at and above which the share is 1 (about 24 degrees). |
+| `bodyEnv` | 1 | Gain of the environment-lit body that takes over what the sun lost. 0 = off. |
+| `bodyDepth` | 0.1 | How strongly optical depth toward the sun removes the sun's share at low sun. |
+| `envSunWeight` | 4 | Weight toward the sun when the sky is reduced to the body's environment light (`1 + w * cos^2`). 0 = plain cosine-weighted mean. |
+| `ambientLowSun` | 1 | 0..1: how far the cloud ambient leans from the plain sky hemispheres to the environment pair (sun-weighted sky, ground bounce) at low sun. |
+| `groundAlbedo` | 0.2 | Albedo of the ground whose bounce lights the body from below. |
+| `phaseModel` | `'hg'` | `'hg'`: the two-lobe Henyey-Greenstein mix (`phaseG`, `silverG`, `silverStrength`). `'mie'`: a Henyey-Greenstein plus Draine fit of water droplets (Jendersie and d'Eon 2023). |
+| `dropletDiameter` | 10 | Mean droplet diameter (um, 5 to 50) of the `'mie'` model. |
+
+Also at low sun the sun's colour is sampled per altitude: log sun radiance at the base of the lit part and at the volume
+top, interpolated geometrically along the march, and a flat-world earth-shadow height `R / sqrt(1 - mu^2) - R` with a
+sun-disc penumbra cuts the light off the low cloud while high cloud stays lit. Negative sun elevations work: with the sun
+at -1 degree the high cells are lit pink from below and the low bodies stay slate. Nothing in the cloud lighting cuts at
+`sun.y <= 0` (the shadow map and `cloudShadow` only skip the ground shadow). The earth shadow assumes a flat world (`y` is
+altitude), so in planet mode it is approximate. `phaseModel: 'mie'` is not the default: in the A/B it tightened the glare but
+cooled the dusk warm area and flattened midday.
+
+```ts
+import type { Clouds } from '@clouds/three';
+
+declare const clouds: Clouds;
+
+clouds.settings.bodySunFloor = 0.1; // a little more sun in the body at the horizon
+clouds.settings.phaseModel = 'mie'; // droplet phase function
+clouds.settings.dropletDiameter = 20;
+clouds.settings.lightDebug = 4;     // look at the ambient term alone
+```
+
+#### Horizon haze
+
+An exponential boundary-layer haze on top of the sky's aerial perspective [C2]. The `@pmndrs/sky` default air is very
+clean (about 200 km visibility), so without it far clouds hit the horizon with their full contrast. The haze is applied
+once per ray, at the cloud's transmittance-weighted distance, with the analytic optical depth of the camera-to-cloud
+segment, and it fades the cloud toward the sky's own radiance in that direction (the sky-view LUT): a fully hazed cloud
+equals the sky behind it, and clear sky is unchanged. No literal colours.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `hazeDensity` | 0.05 | Extinction (per km) at `hazeBase`. 0 = off. |
+| `hazeHeight` | 1000 | Scale height (m) of the exponential fall-off. |
+| `hazeBase` | 0 | Altitude (m, world y) of the haze's densest level. |
+
+Needs the sky: with uniform lighting there is no sky radiance to fade toward and the haze has no effect. It is not applied
+in the reflection dome (water reflections of far clouds are unhazed), and the sky's own `setAerialPerspectiveDistanceScale`
+and `setHazeStrength` are not read by the clouds' aerial perspective lookup, so if you change them the scene haze and the
+cloud haze diverge. This is separate from `sky.applyHaze` for the scene, see
+[getting started](./getting-started.mdx#clouds-in-a-three.js-scene).
+
+The sky layer also keeps the opacity-weighted mean and spread of each ray's depth, and the composite keeps the share of
+cloud in front of a surface instead of an all-or-nothing test at one mean distance, so a surface partly inside a distant
+cloud blends smoothly.
+
 The Nubis-neutral values (`msStrength` 1, `deepScatter` 0, ...) are noted in
 [`CloudSettings`' doc comments](https://github.com/pmndrs/clouds/blob/main/packages/runtime/src/runtime.ts) and the formulas in
 [`docs/research/nubis-sources.md`](https://github.com/pmndrs/clouds/blob/main/docs/research/nubis-sources.md).
+
+### Lightning
+
+A flash is a transient point light inside the cloud: the Nubis³ glow term in the march, driven by one uniform. While no
+flash is active the radius is 0 and the branch in the march is not taken, so it costs nothing (measured: within noise,
+at most +0.1 ms with a flash held) [P6-B, P6-C].
+
+```ts
+import type { CloudRuntime } from '@clouds/runtime';
+
+declare const runtime: CloudRuntime; // clouds.core with @clouds/three
+
+// One strike, now: world metres, a reach of 900 m, brighter than the scene's own light
+runtime.flash({ position: [200, 900, -1500], radius: 900, intensity: 1.2, duration: 0.35 });
+
+// Automatic strikes: about one every 4 s, inside a cylinder (centre x, base y, z; radius; height)
+runtime.settings.lightning.rate = 0.25;
+runtime.settings.lightning.region = { center: [0, 300, -1500], radius: 1500, height: 1500 };
+```
+
+`FlashOptions`:
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `position` | required | World metres. |
+| `radius` | 600 | Reach of the glow, metres. |
+| `intensity` | 1 | Peak brightness as a multiple of the scene's own light (the luminance of sun plus sky ambient), so it follows exposure. In full daylight a flash of 1 is barely visible against sunlit cloud; dusk shows it. |
+| `duration` | 0.3 | Seconds for the whole flash (the strokes plus the continuing glow). |
+| `color` | cold white-blue | Linear RGB tint, multiplied by intensity. The core runs warm white at the strike to this colour at the edge. |
+| `strokes` | 2 to 4 from the seed | Return strokes, 1 to 6. |
+| `seed` | from the position | Stroke timing and strengths. |
+| `steady` | false | A constant flash for `duration`, no flicker (deterministic captures and look development). |
+
+`settings.lightning` (`LightningSettings`, defaults in `LIGHTNING_DEFAULTS`): `rate` 0 (automatic flashes per second,
+Poisson), `region` null (without a region automatic flashes stay off), `radiusRange` [450, 900], `intensityRange`
+[0.6, 1.6], `durationRange` [0.22, 0.45], `color` [0.78, 0.88, 1]. One flash is rendered at a time (the brightest).
+The core is inverse-square with a 110 m core, occluded by the cloud between the sample and the strike (three cheap
+profile taps), so the glow is brightest at the strike and reaches the surface where the cloud is thin. The reflection
+dome and the distant sky layer ignore flashes.
+
+The temporal history is not cut by a flash. While one is up (and one frame after) the resolve weights fresh samples at
+`max(temporalBlend, 0.85)`, so it does not smear. `runtime.flashLevel` is the envelope of the flash rendered by the last `encode`
+(0 = none), for tooling. The pure helpers are exported too: `createLightning`, `strokeProfile(duration, seed, count?)` and
+`flashEnvelope(strokes, duration, age)`.
 
 ### Quality presets
 
@@ -371,18 +529,193 @@ distance in metres, negative inside, never larger than the true distance (the ma
 
 ### Generate a cloudscape
 
-All of it is GPU compute and runs in small jobs you spread over frames. P6-A (realtime evolution, in progress) adds
-`createEvolvingCloudscape` beside these; it is exported from the same module but not documented here until it settles.
+All of it is GPU compute and runs in small jobs you spread over frames. Everything here is exported from
+`@clouds/runtime/generate` (and, for the lab pages' convenience, the package root).
 
 | Export | Description |
 | --- | --- |
-| `encodeProceduralWeatherMap(device, encoder, options)` | A `rgba8unorm` weather map: R coverage, G cloud type, B base height, A top height. Options: `size` (required), `seed`, `scale` 4, `coverageLo` 0.42, `coverageHi` 0.8, `border` 0.08, `cellular` 0, `cellScale` 6, `window`, `evolve`, `mipLevels`. The caller submits the encoder and owns the texture. |
-| `createVolumeGenerator(device, options)` | `{ dims, voxelSize = 8, weather, params?, sliceDepth?, marginVoxels = 1, maxDistance = 4096, origin = [0, 0], scratch? }`. Returns a `VolumeGenerator`: `volume`, `generate(encoder, maxJobs?)` (returns `{ done, jobsEncoded, jobsDone, jobsTotal }`), `restart(next?)`, `done`, `jobsTotal`, `memoryBytes`, `destroy()`. |
-| `NvdfParams` / `NVDF_DEFAULTS` | The shaping parameters: `coverageThreshold` 0.12, `useMapHeights` false, `baseDefault` 0.08, `topFraction` 0.6, `domeExponent` 2, `billowAmp` 0.35, `billowCellMeters` 320, `baseLift` 0.1, `seed` 1, `scaleBase` 0.25, `scaleTop` 0.85, `profileSigma` 0.64, `detailBias` 0.3. |
-| `CLOUD_PRESETS` | `cumulus`, `congestus`, `stratocumulus`: each `{ weather, params }` for a 512 x 512 x 64 field at 8 m (4.1 km, 512 m tall). Spread them into the two calls above. |
+| `encodeProceduralWeatherMap(device, encoder, options)` | A `rgba8unorm` weather map: R coverage, G species, B base height (or the owning cloud's peak mass, see below), A top height (or the altocumulus layer). Options in [Weather map](#weather-map). The caller submits the encoder and owns the texture. |
+| `createWeatherBake(...)` | The same map in row tiles, one per `step`, for a window that must not stall a frame (the sky layer uses it). The tiled output is identical to the one-shot map. |
+| `createVolumeGenerator(device, options)` | `{ dims, voxelSize = 8, weather, params?, sliceDepth?, marginVoxels = 1, maxDistance = 4096, origin = [0, 0], scratch?, storm?, terrain? }`. Returns a `VolumeGenerator`: `volume`, `generate(encoder, maxJobs?)` (returns `{ done, jobsEncoded, jobsDone, jobsTotal }`), `restart(next?)` (`next`: `weather`, `origin`, `storm`), `done`, `jobsTotal`, `jobLabels`, `memoryBytes`, `destroy()`. |
+| `NvdfParams` / `NVDF_DEFAULTS` | The shaping parameters, see [Shaping parameters](#shaping-parameters). |
+| `CLOUD_PRESETS` | Ten presets, `{ weather, params, volume? }` each. Spread them into the two calls above. See [Species and presets](#species-and-presets). |
 | `createGeneratorScratch(device, dims, label?)`, `scratchBytes(dims)` | The one u16-per-voxel work buffer (33.6 MB at 512 x 512 x 64). Generators and SDF rebuilders can share one if they never run at the same time. |
 | `createStreamingCloudscape(device, options)` | A camera-centred window that regenerates before the camera leaves it. See below. |
+| `createEvolvingCloudscape(device, options)` | A field that grows, drifts and dissipates over simulated minutes. See [Evolve a cloudscape over time](#evolve-a-cloudscape-over-time). |
+| `stormCellState(phase)`, `StormCellState`, `StormCellOptions` | A cumulonimbus life cycle. See [Storm cell](#storm-cell). |
 | `signedDistanceCpu`, `squaredDistanceToMask` | CPU exact distance transforms (tests, tooling). |
+
+#### Weather map
+
+`ProceduralWeatherOptions` (all optional except `size`; defaults are the function's, the presets set their own):
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `size` | required | Map size in pixels. Match the volume's (x, map row) dims for 1:1 sampling. |
+| `seed` | 1 | |
+| `scale` | 4 | Cluster fBm frequency across the map. 2 means features of about 2 km on a 4 km map. |
+| `coverageLo`, `coverageHi` | 0.42, 0.8 | Coverage ramps from 0 to 1 over this window of the cluster fBm; more room between them is more gaps. |
+| `border` | 0.08 | Fraction of the map faded to zero at the edges. 0 for a window that continues the world. |
+| `cellular` | 1 | 1: separate clouds. Below 1, `(1 - cellular)` of the cluster field is a deck the cells stand on (stratocumulus). |
+| `cellScale` | 6 | Cells across the map of the mid layer. The big layer has half as many, the small one twice, the fractus scraps four times. |
+| `fractus` | 0.6 | 0..1: scraps at the rims of larger clouds. |
+| `lobeSplit` | 0.5 | 0..1: turrets of different heights on one cloud instead of one dome. |
+| `sizeSpread` | 1 | 0..1: width of the per-cell radius and peak distributions. |
+| `species` | 0 | -1..1: shifts the regional species field within `speciesRange`. |
+| `speciesRange` | [0.5, 1] | The rows of the species table the regional species field spans, low and high. Equal ends: one species everywhere. |
+| `wind` | [1, 0.5] | Direction in map uv axes (normalised): stratocumulus bands and rolls and the altocumulus patches align with it. |
+| `alto` | off | `{ cover, cells = 18, patches = 1.5, jitter = 1 }`: an upper altocumulus layer written to A. The generator places it with `altoBase`/`altoDepth` and needs `profiles`. |
+| `horizon` | none | `{ start, end, species?, cluster? }`: beyond `start` metres from the map centre the species and clusters blend toward a mid-coverage cumulus sky, fully at `end`. Only the sky layer's window reaches that far. |
+| `window` | whole map | `{ origin, size }` in uv. The fields are procedural in uv, so a window beyond [0, 1] continues the same weather outside the volume. |
+| `evolve` | off | `{ time, lifeSeconds?, advection?, drift? }`: the pattern as a function of time, see [Evolve](#evolve-a-cloudscape-over-time). |
+| `storm`, `extentMeters`, `heightMeters` | false, 4096, 512 | The storm scene's low field: write base and top as fractions of `heightMeters`. |
+| `mipLevels` | 1 | The pass writes level 0; the sky layer fills the rest with coverage maxima. |
+
+The map is a cluster field (3-octave fBm) gating four sparse jittered lattices of cells, so a cell is whole or absent.
+Per cell it picks a radius, a growth state (tall and narrow against low and wide), a 1:1.8 elliptical footprint in a random
+direction and a sub-lobe split. With `storm` off, B is the owning cloud's peak mass and the shape stage scales the
+billow by it, so a 100 m puff is not displaced by a billow sized for a 1 km cloud. With `storm` or `useMapHeights`,
+B is the base height.
+
+#### Shaping parameters
+
+`NvdfParams` (`NVDF_DEFAULTS` is what you get with no overrides; each preset sets its own):
+
+| Parameter | Default | Meaning |
+| --- | --- | --- |
+| `coverageThreshold` | 0.12 | Coverage below this is empty; above it `(coverage - t) / (1 - t)` is the smooth mass field. |
+| `useMapHeights` | false | Read base and top (fractions of the volume height) from the weather map's B and A. |
+| `baseDefault` | 0.08 | Flat cloud base as a fraction of the volume height; with `profiles`, the condensation level. |
+| `topFraction` | 0.6 | Height a column of full mass reaches. Ignored with `profiles`. |
+| `domeExponent` | 2 | Top height goes as `mass^(1/p)`. 2 hemispherical lobes; larger flatter; smaller towers. Ignored with `profiles`. |
+| `billowAmp`, `billowCellMeters` | 0.35, 320 | Billow erosion amplitude (0 off, 0.2 subtle, 0.45 strong) and the largest billow cell. |
+| `baseLift` | 0.1 | Rim lift of the base as a fraction of the volume height. Low presets use 0.03 (15 m of curl in a 512 m volume), the tall ones 0.008 (16 m). |
+| `shearX`, `shearY` | 0, 0 | Wind-shear lean: metres a column is displaced downwind per metre above the base. 0.1 means a 300 m cloud leans 30 m. |
+| `seed` | 1 | |
+| `scaleBase`, `scaleTop` | 0.25, 0.85 | Density scale (NVDF B) at the cloud base and top. |
+| `profileSigma` | 0.64 | Spread of the profile around its mean depth law (`PACK_FIT` sigma). |
+| `detailBias` | 0.3 | How strongly the weather's species pushes the detail type. Unused with `profiles`. |
+| `profiles` | false | Use the species profile table (below). The presets turn it on. |
+| `altoBase`, `altoDepth` | 0, 0 | Upper layer base and depth in metres above the volume base; 0 = off. Needs `profiles`. Moved down to fit a short volume (`altoFractions`). |
+| `edgeFade` | 0 | Metres over which a sheet's density fades in from the box walls, the complement of the sky layer's `densityFade` (pass the same value to both). 0 keeps the hard partition that separate clouds use. |
+
+#### Species and presets
+
+With `profiles: true`, each column's vertical shape comes from a row of a profile table, selected by the weather map's
+species value G and interpolated between rows: 0 stratus, 0.25 stratocumulus, 0.5 cumulus humilis, 0.75 mediocris, 1
+congestus. A row sets the top type (an exponent p, with the column top at `mass^(1/p)`), the bottom type (metres the base
+sags under a full-mass column), a minimum height, a maximum depth in metres, the billow amplitude and cell size, the height
+where the detail flips from wispy to billowy, and the density scale. At the rim p falls to 2, so flat-topped species get rounded shoulders. A second table
+sets the horizontal habit per cell (presence by size class, size, growth, turrets, elongation and wind alignment, sheet
+weight). Species taller than the volume are narrowed so a congestus in a short box stays a tower. The species table is
+shared by the generator, the weather pass and the sky layer, so the voxel field and the distant layer draw the same clouds.
+
+| Preset | Species | Volume |
+| --- | --- | --- |
+| `cumulus` | clusters of humilis to mediocris, 0.5 to 1.3 km, scraps at the rims, one flat base, a slight lean; cover about 26 to 40 percent | default 512 x 512 x 64 at 8 m |
+| `humilis` | small flat puffs, wider than tall | default |
+| `mediocris` | domes about as tall as wide | `volume`: 384 x 384 x 128 at 16 m |
+| `congestus` | fewer, narrower, much taller towers with turrets | 384 x 384 x 128 at 16 m |
+| `stratocumulus` | a lumpy sheet in bands along the wind with gaps, sheared | default |
+| `altocumulus` | no low cloud; a high layer of small irregular cells in patches (base 1400 m) | 384 x 384 x 128 at 16 m |
+| `stratus` | a flat featureless grey layer with a soft base | default |
+| `mixed` | stratocumulus, humilis, mediocris and congestus regions in one layer, under altocumulus patches | 384 x 384 x 128 at 16 m |
+| `layered` | long stratocumulus bands under a broken altocumulus layer at about 1.65 km (the layered sunset sky) | 384 x 384 x 128 at 16 m |
+| `storm` | scattered smaller cells around a storm cell; no profile table, the map carries the heights. The cell itself comes from `createEvolvingCloudscape({ storm })`; the preset alone is just the surrounding field | for a 2 km tall volume, see [Storm cell](#storm-cell) |
+
+A preset's optional `volume: { dims, voxelSize }` is informational: the caller sizes the generator. The tall species are clipped to the
+volume's height in a 512 m volume. Pass `preset.volume` to `createVolumeGenerator` (or as `dims`/`voxelSize` to `createStreamingCloudscape` and
+`<Cloudscape>`) when it is set.
+
+```ts
+import { CLOUD_PRESETS, createVolumeGenerator, encodeProceduralWeatherMap } from '@clouds/runtime/generate';
+
+declare const device: GPUDevice;
+
+const preset = CLOUD_PRESETS.mixed;
+const { dims, voxelSize } = preset.volume ?? { dims: [512, 512, 64] as [number, number, number], voxelSize: 8 };
+const encoder = device.createCommandEncoder();
+const weather = encodeProceduralWeatherMap(device, encoder, { ...preset.weather, size: [dims[0], dims[1]], seed: 3 });
+device.queue.submit([encoder.finish()]);
+export const generator = createVolumeGenerator(device, { dims, voxelSize, weather, sliceDepth: 4, params: { ...preset.params, seed: 3 } });
+```
+
+Two more generator inputs:
+
+- **Terrain stub.** `VolumeGeneratorOptions.terrain` is a filterable `r16float` texture (red channel) of ground height in metres above the volume base, over the volume footprint. Clouds stand on it where it is above their base and thin out within 48 m of their top, so a stratus layer pools in the valleys under a flat top. The sky layer has no terrain; the far field is unchanged.
+- **Wind shear.** `shearX` and `shearY` lean the columns downwind, and the weather is read at `uv - lean * height`. The distant sky layer applies the same lean, so the cloud outlines continue across the box wall. The presets use 0.02 to 0.14 on the low ones (stratocumulus is the strongest) and 0.045/0.022 on the tall ones.
+
+#### Storm cell
+
+A cumulonimbus is a parametric 3D field in the shape stage, unioned (smooth max) with the cumulus field, so it has real overhangs: a leaning core with eight turrets, each widening toward its own rounded top, under an anvil carried downwind
+(thick over the tower, thinning to a plate with a ragged rim and mammatus pouches on the underside). It follows a life cycle on `age / growSeconds`:
+the tower rises over phase 0 to 0.75, the anvil spreads over 0.42 to 1.05, the tower is gone by 2.6 and the anvil by 3.6.
+Needs a tall volume (the demo uses 256 x 256 x 128 at 16 m, 4 km by 2 km) and `useMapHeights` (the evolving cloudscape sets it when `storm` is given).
+
+```ts
+import { createEvolvingCloudscape } from '@clouds/runtime/generate';
+
+declare const device: GPUDevice;
+
+export const storm = createEvolvingCloudscape(device, {
+  preset: 'storm', dims: [256, 256, 128], voxelSize: 16, seed: 7,
+  storm: { center: [0.5, 0.5], start: -30, growSeconds: 120, towerRadius: 520, towerHeight: 1560, anvilRadius: 1500, baseHeight: 60 },
+});
+```
+
+`StormCellOptions` (all optional): `center` (map uv, [0.5, 0.5]), `start` (the `evolve.time` at which age is 0; negative begins with a young cell, 0), `growSeconds` (120),
+`towerRadius` (520 m), `towerHeight` (0.9 of the volume height), `anvilRadius` (1500 m), `shear` (anvil direction in map uv, [1, 0.35]) and `baseHeight` (60 m).
+`stormCellState(phase)` returns the life-cycle curves (`rise`, `towerEnvelope`, `anvilSpread`, `anvilEnvelope`, `radiusScale`, `heightScale`), which the storm demo uses to place lightning in the tower.
+With the generator directly, pass a `StormCellState` (`center` in generator metres, `phase`, `towerRadius`, `towerHeight`, `anvilRadius`, `baseHeight?`, `shear?`) as
+`VolumeGeneratorOptions.storm` or `restart({ storm })`. Pair it with [Lightning](#lightning).
+
+#### Evolve a cloudscape over time
+
+`createEvolvingCloudscape` regenerates the field on a cadence from a weather map that is a function of simulated time: every
+cell grows, matures and dissipates over `lifeSeconds` (0.6x to 1.4x per cell, random phase) and restarts with a new position, shifted by the wind.
+Each generation is spread over frames, and the result is swapped in without cutting the history.
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `preset`, `dims`, `voxelSize`, `seed`, `weather`, `params` | `'cumulus'`, [512, 512, 64], 8, 1 | As for the generator. |
+| `lifeSeconds` | 600 | Mean cumulus life cycle in simulated seconds (300 to 1200 is realistic). |
+| `wind` | [2, 1] | Metres per simulated second along world x and z. |
+| `drift` | [0.0012, -0.0008] | Drift of the fBm layer per simulated second. |
+| `cadence` | 1.5 | Real seconds between the starts of two generations. Shorter is smoother and costs about `20 ms / (cadence * fps)` of GPU per frame. |
+| `generationShare` | 0.8 | Fraction of `cadence` over which one generation's jobs are spread. |
+| `sliceDepth` | 4 | z slices per job. |
+| `weatherExtent`, `border` | 4096, 0.06 | Metres the weather uv spans; coverage fade at the border. |
+| `storm` | none | A [storm cell](#storm-cell). |
+
+`start(simTime)` generates one field completely (a stall of about 20 ms; await it) and `update(simTime, dt)` runs once per frame. Its result: `swapped`, `volume`
+(cloudscape-owned; do not destroy), `offset` (add to the box's base position every frame, the wind advection since the shown generation), `advection`,
+`contentTime`, `generating`. Also `stats`, `memoryBytes`, `dims`, `voxelSize`, `destroy()`.
+
+```ts
+import type { Clouds } from '@clouds/three';
+import { createEvolvingCloudscape } from '@clouds/runtime/generate';
+
+declare const device: GPUDevice;
+declare const clouds: Clouds;
+
+const evolving = createEvolvingCloudscape(device, { preset: 'cumulus', seed: 7, wind: [2, 1] });
+const dims = evolving.dims, voxel = evolving.voxelSize;
+const centre = (o: [number, number]): [number, number, number] => [o[0], 600, o[1]]; // base centre, what Clouds takes
+const corner = (o: [number, number]): [number, number, number] => [o[0] - (dims[0] * voxel) / 2, 600, o[1] - (dims[1] * voxel) / 2]; // minimum corner, what the runtime takes
+
+clouds.settings.windVelocity.fill(0); // the field moves with the wind itself; scrolling the detail noise as well would slide it over the clouds
+let update = await evolving.start(0);
+await clouds.setVolume(update.volume, { position: centre(update.offset) });
+
+export function onFrame(simTime: number, dt: number): void {
+  update = evolving.update(simTime, dt);
+  if (update.swapped && !clouds.core.swapVolume(update.volume, { position: corner(update.offset) })) {
+    void clouds.setVolume(update.volume, { position: centre(update.offset) }); // the first time, or if the shape changed
+  } else clouds.core.setVolumePosition(corner(update.offset));
+}
+```
+
+#### Streaming
 
 ```ts
 import { createStreamingCloudscape } from '@clouds/runtime/generate';
@@ -460,10 +793,37 @@ See [Authoring](./authoring.mdx#in-browser-.vdb-import) for the workflow and the
 `targetWidthMeters`, `grid`, `iso` 0.05, `sdfOffset` 0, `margin` 8, and the fog/sdf mapping knobs `seed`,
 `profileNoise`, `profileGain`, `scaleGain`, `smooth`, `densityRef`, `scaleFloor`, `cpuSdf`.
 
+### Fine hero overlay
+
+A hero cloud is an 8 m volume (the coarse field every pass uses) plus an optional **fine overlay** at 4 m or 2 m that
+the march reads only within `settings.fineDistance` of the camera. The 8 m field carries the shape, the SDF and the far view; the overlay
+restores the lobes the 8 m lattice cannot show [P13-H1]. Volumes without an overlay run the exact shader they ran before (the
+flagship is bit-identical, 11 of 11 test pairs).
+
+The overlay is a sparse **brick pool**: bricks of 8 x 8 x 8 fine voxels with a one-voxel apron (10 x 10 x 10 texels, `rgba8unorm`, 4 MB per slab of 1024 bricks)
+and an `r32uint` indirection grid with one texel per brick cell (the brick slot, or `0xffffffff` for none). Cells without a brick fall back to the coarse field.
+
+| Export | Description |
+| --- | --- |
+| `GpuCloudVolume.fine?: GpuFineOverlay` | The overlay of a volume. Its lattice must be nested in the volume's: same minimum corner, fine voxel = `voxelSize / 2` or `/ 4`. |
+| `uploadFineBricks(device, bricks, label?)` | Uploads packed `FineBricks` (one `writeTexture` per slab plus the indirection grid). Returns a caller-owned `GpuFineOverlay` `{ indir, pool, fineVoxel, cells, poolSize, bricks, bytes, destroy() }`. |
+| `heroUniformData`, `HERO_UNIFORM_BYTES`, `HeroBindingResources` | The overlay's bindings (indirection, pool, 48-byte params) for custom passes. Bindings 6 to 8 of the volume group are always present; placeholders are bound when there is no overlay. |
+| `CloudSettings.fineDistance`, `fineErosion` | See [CloudSettings](#cloudsettings). |
+
+When a volume with an overlay is set, the runtime compiles a separate march pipeline for it (asynchronously, before the swap); a branch inside
+the one shader gave pixel differences on Metal. Cost with a brick in every cell, close view, against a dense volume at the same resolution: 1.14x at `'high'`,
+1.01x at `'ultra'`. A change to `fineDistance` or `fineErosion` cuts the temporal history. The overlay's bytes are not in `CloudMemory`.
+
+Not in the runtime yet: `loadCloudVolume` does not read `fine.nvdb`, and the CPU packer (`packFineBricks`, `reduceFineLattice`) is not exported
+from the package root. They live in `packages/runtime/src/hero/` and are meant for the loader and the importer (task H3 and H4).
+The converter that writes the assets is documented under [Authoring](./authoring.mdx#fine-hero-clouds). When you pack a lattice yourself, give a cell a brick when a set voxel lies within
+`ceil(1.5 * coarse voxel / fine voxel)` voxels of it (the packer's `margin`, default 1), or the coarse field's filtered halo shows in empty cells next to bricks.
+
 ### Distant sky layer
 
 The 2.5D vertical-profile layer that carries cloud cover from the edge of the voxel box to the horizon. Off by
-default. It re-evaluates the same weather the generator used, so you configure it with the same options.
+default. It re-evaluates the same weather and shaping the generator used (the species table, the shear lean, the
+altocumulus layer, the billow), so you configure it with the same options.
 
 ```ts
 import type { CloudRuntime } from '@clouds/runtime';
@@ -480,10 +840,19 @@ runtime.skyLayer.configure({
 runtime.skyLayer.settings.enabled = true;
 ```
 
+`configure` bakes the weather window in tiles, `settings.bakeRows` rows a frame (about 0.3 ms each; 86 frames for the default 2048 x 2048 window, then one frame
+of coverage mips). The previous configuration keeps rendering until the new window is complete, then the new weather and shaping switch together in one frame,
+and the new window replaces the history over one 16-frame cycle, so a weather change costs no stall and no history cut (a change of model or a moved window still cuts).
+The first window at startup takes the same time before the layer appears. `skyLayer.info` reports `bakes`, `bakesAbandoned` and `baking` progress.
+
 `SkyLayerSettings` (defaults in `SKY_LAYER_DEFAULTS`): `enabled` false, `densityScale` 1, `maxDistance` 30000,
 `maxSteps` 256, `transmittanceCutoff` 0.05, `stepMin` 8, `stepRel` 0.006, `lodScale` 0.7, `curvature` 0 (1/(2R);
-`1 / (2 * 6371000)` for Earth), `resolutionScale` 0.25, `temporal` true, `temporalBlend` 0.3, `debug` 0.
-`configure` options also take `window` (`{ size, resolution }`, default 51200 m at 2048^2) and `rimWidth`.
+`1 / (2 * 6371000)` for Earth), `resolutionScale` (the tier sets the starting value: 0.75 ultra, 0.5 high, 0.25 medium,
+0.2 low, 0.125 mobile; changing it re-allocates), `temporal` true, `temporalBlend` 0.3, `bakeRows` 24, `debug` 0.
+`configure` options also take `window` (`{ size, resolution }`, default 51200 m at 2048^2), `rimWidth`, `densityFade`
+(metres of hand-off for sheets; use it with the generator's `edgeFade`), `weatherOrigin` and `weatherExtent` (where the weather map's uv origin and extent sit in the world: a
+streaming cloudscape passes `[0, 0]`), and `horizon` (the horizon rule, default 15/35 of `maxDistance` toward a mid-coverage
+mediocris sky; `false` turns it off).
 
 ### Other exports
 
@@ -497,4 +866,6 @@ runtime.skyLayer.settings.enabled = true;
 | `createLightGrid`, `lightGridDims`, `LightGridScheduler`, `lightGridWgsl` | The sun-driven voxel light grid (half the volume's dims per axis, at least 16). |
 | `cloudDomeWgsl`, `defaultDomeSettings`, `domeDirectionToUv`, `domeUvToDirection`, `domeTexelDirection`, `domeDirectionToTexel`, `DOME_REFRESH_FRAMES` | Reflection dome helpers (CPU side and WGSL). |
 | `COMMON_WGSL`, `DENSITY_WGSL`, `MARCH_WGSL`, `marchWgsl`, `LIGHTING_WGSL`, `COMPOSITE_WGSL`, `FRAME_WGSL`, `volumeWgsl`, `skyLayerWgsl`, ... | The shader sources, for people writing their own passes. |
+| `createCloudShadowMap`, `cloudShadowMapWgsl`, `SHADOW_MAP_DEFAULTS` | The [shadow map](#cloud-shadows) on its own, and the WGSL to sample it. |
+| `createLightning`, `strokeProfile`, `flashEnvelope`, `LIGHTNING_DEFAULTS` | The [flash](#lightning) list, stroke profile and automatic generator (CPU side). |
 | `createVolumeBindGroupLayout`, `createVolumeBindGroup`, `createVolumeSamplers`, `volumeUniformData` | Volume bindings for custom passes. |

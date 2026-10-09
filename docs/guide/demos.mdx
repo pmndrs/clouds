@@ -32,14 +32,19 @@ Lines in the pages tagged `// INTEGRATION` (or `// CLOUDS`) are what clouds cost
 | [`/vdb-drop/`](#vdb-drop) | `@clouds/runtime` | Houdini to browser in under two minutes, no code changes. |
 | [`/flagship/`](#flagship) | `@clouds/runtime` | The reference page: every cloud asset, every bookmark, a HUD for tiers and memory. |
 | [`/cloudscape-gen/`](#cloudscape-gen) | `@clouds/three` | The GPU generator, its presets and the distant sky layer. |
-| [`/evolve/`](#evolve) | `@clouds/three` | Realtime evolution (P6-A, in progress). |
+| [`/evolve/`](#evolve) | `@clouds/three` | Realtime evolution: cumulus that form, drift, merge and dissipate. |
+| [`/storm/`](#storm) | `@clouds/three` | A cumulonimbus that grows with an anvil, and lightning. |
+| [`/species/`](#species) | `@clouds/three` | One cloudscape per cloud species, a mixed sky and a valley sea. |
+| [`/sunset/`](#sunset) | `@clouds/three` | The layered low-sun sky: stratocumulus bands under altocumulus, haze, twilight. |
+| [`/library/`](#library) | `@clouds/three` | The 17 authored clouds stamped into one sky. |
+| [`/compare/`](#compare) | `@clouds/three` | Side-by-side with Takram and Sky Pro, and a reference photo pane. |
 | [`/ocean/`](#ocean) | none | The reusable water scene on its own. |
 | [`/runtime-tests/*`](#runtime-tests) | `@clouds/runtime` | GPU-versus-CPU checks that back the numbers. |
 
 ## three-adapter
 
 [`examples/lab/three-adapter/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/three-adapter/main.ts). The smallest `@clouds/three` scene: a ground plane, the sky and the Parkouring cloud.
-Eight lines are tagged `// INTEGRATION`, one of them the optional haze. Matches the flagship to a mean 0.11 to 0.38 of 255 per channel on the same bookmarks [P2-02].
+Eight lines are tagged `// INTEGRATION`, one of them the optional haze (plus the `applyShadow` line for [cloud shadows](./api.mdx#cloud-shadows), switched off by `?cloudshadow=0`). Matches the flagship to a mean 0.11 to 0.38 of 255 per channel on the same bookmarks [P2-02].
 
 Query: `?quality=low|medium|high|ultra|mobile|auto`, `?uniform=1` (no sky: uniform lighting), `?haze=1` (`sky.applyHaze` before the node),
 `?objects=1` (adds bookmarks `objects`, `pierce`, `front`, `behind`), `?s.<setting>=N` (any `CloudSettings` value), `?exposure=`.
@@ -62,7 +67,7 @@ Result: 0 GPU errors, 0 device lost, and live GPU objects return to baseline (53
 (layered Gerstner-style waves in TSL, Fresnel reflection of the sky, a sun glint from the sky's sun, a camera-following grid with distance LOD) under a generated cumulus field.
 
 - **Reflections.** `clouds.reflection(dir)` is hooked into the ocean material's environment node (`radiance = radiance * T + rgb`; 11 lines in the ocean module). Subtle on the rough default sea, clear on calm water (`?wave=0.05`): mean luma of the lower 590 px with and without reflections 42.3 vs 62.4 at sunset, 120.6 vs 117.4 at the horizon [P2-05].
-- **Shadows.** Cloud shadows fall on the water through the composite alpha.
+- **Shadows.** Cloud shadows fall on the water through the shadow map: `applyShadow(sun.light)` with `receiveShadow` on the ocean mesh, so only the direct sun and glint are dimmed (`?cloudshadow=0` returns to the composite path). `?shadowmap=0` falls back to the light-grid shadow, `?shadowdebug=1|2` outlines the map's contour on the ground or the cloud base, `?sm_<setting>=N` sets a `shadowMap.settings` value, `?sunel=` and `?sunaz=` move the sun.
 - **Cost.** 60 fps at 2560x1440 `high` with a p95 frame of 16.7 ms and 5 to 6 ms of whole-frame GPU in steady state [P2-06].
 - Query: `?preset=cumulus|congestus|stratocumulus`, `?seed=`, `?reflect=0`, `?refgain=N` (debug gain on the cloud rgb), `?wave=`, `?cloud=<pack>` (a pack instead of the generator), `?quality=`.
 - Bookmarks: `shore`, `horizon`, `sunset`, `flight`.
@@ -70,7 +75,7 @@ Result: 0 GPU errors, 0 device lost, and live GPU objects return to baseline (53
 ## plains-flight
 
 [`examples/lab/plains-flight/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/plains-flight/main.ts). A scripted 40 s flight over plains through a **streaming** GPU-generated cumulus field: ground, up through the base,
-through the clouds, above. One `setVolume` call per window swap; the volume belongs to the streamer.
+through the clouds, above. One `setVolume` call per window swap; the volume belongs to the streamer. Cloud shadows move across the fields with `applyShadow` (`?cloudshadow=0` for the composite path).
 
 - Window swaps are invisible: weather and shape noise are world-anchored, so two overlapping windows are byte-identical in the interior of the overlap (0 occupancy mismatches in 1.57 M voxels) and the swap changes the image by 0.2/255 [P3-D].
 - Generation of a window takes 48 frames at 2 jobs a frame, with a worst encode and submit of 0.2 ms; the swap frame spikes about 1 ms (light grid) [P5-A].
@@ -81,7 +86,7 @@ through the clouds, above. One `setVolume` call per window swap; the volume belo
 
 [`examples/lab/onsen/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/onsen/main.ts) with the terrain in [`examples/lab/scenes/terrain/`](https://github.com/pmndrs/clouds/tree/main/examples/lab/scenes/terrain). An onsen on a mountainside at golden hour over a misty valley.
 A 512x512x96 generated cumulus region at 12 m voxels is stamped with 10 valley-fog banks, 5 fair-weather clouds and one tower, the SDF is rebuilt once, and the whole thing is one `setVolume`.
-Haze comes from `sky.applyHaze`; cloud shadows come from the composite alpha; the heightfield's sun shadow is baked into per-tile textures and refreshed when the sun moves.
+Haze comes from `sky.applyHaze`; cloud shadows are multiplied onto the heightfield's baked sun shadow with `applyShadow` (call it after the terrain installs its shadow node; `?cloudshadow=0` turns it off); the heightfield's sun shadow is baked into per-tile textures and refreshed when the sun moves.
 
 Whole frame 9.2 to 14.3 ms at 2560x1440 (60 fps vsync, p50 16.7 ms), of which terrain, pool and rocks are about 4 ms of scene and the clouds 5 to 10 ms before the P5 optimisations [P4-D]. Ten `// INTEGRATION` lines.
 Query: `?time=<hours>` (default 18.6), `?bookmark=vantage|valley|sunset`, `?fogd=` (valley-fog density), `?skylayer=1` (the distant layer), `?clouds=0`, `?terrain=0`, `?pool=0`, `?shadow=0`, `?haze=`, `?pos=x,y,z&az=&pitch=`.
@@ -110,12 +115,60 @@ sliders for `CloudSettings`, and a HUD with tier, scale, cost versus budget and 
 ## cloudscape-gen
 
 [`examples/lab/cloudscape-gen/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/cloudscape-gen/main.ts). A GPU-generated 4 km cloudscape (512x512x64 at 8 m) over a ground plane. `?preset=cumulus|congestus|stratocumulus`, `?seed=`, `?jobs=`,
-`?bookmark=ground|horizon|above|seamEast|seamSouth|seamNorth|seamHigh`, `?sky=1` for the distant sky layer (and `sky_<setting>=N` for its `SkyLayerSettings`), and any `NvdfParams` field as a query parameter.
+`?bookmark=ground|horizon|above|seamEast|seamSouth|seamNorth|seamHigh`, `?sky=1` for the distant sky layer (and `sky_<setting>=N` for its `SkyLayerSettings`), `?shadowmap=0`, `?shadowdebug=1|2`, and any `NvdfParams` field as a query parameter (`w_<option>` for the weather map's).
 It showed the presets read as domed, cauliflower-lobed clouds with flat bases (no vertical walls or stacked shelves) and the sky layer continues the same field to the horizon with no visible seam, for about 1.0 ms amortized at 2560x1440 [P3-B, P3-C1, P3-P4-acceptance].
 
 ## evolve
 
-[`examples/lab/evolve/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/evolve/main.ts). Realtime cloud evolution: cumulus that form, drift, merge and dissipate over minutes at a small steady cost. This is the P6-A work, still in progress while this guide was written.
+[`examples/lab/evolve/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/evolve/main.ts). Realtime cloud evolution: cumulus that form, drift, merge and dissipate over minutes at a small steady cost.
+`createEvolvingCloudscape` regenerates the field every `cadence` seconds in amortized jobs into a back volume and `swapVolume` takes it without cutting the history; see
+[Evolve a cloudscape over time](./api.mdx#evolve-a-cloudscape-over-time).
+
+- Query: `?timeScale=<n>` (simulated seconds per real second, default 10), `?t=<s>` (freeze at a demo time), `?play=1`, `?step=1` (deterministic playback, 1/60 s a frame), `?bookmark=ground|above|horizon|top`, `?preset=`, `?seed=`, `?life=<sim s>`, `?wind=x,z`, `?cadence=`, `?evolve=0` (A/B for the added cost), `?inplace=0` (swap with `setVolume`), `?diff=1` (mean frame-to-frame change and the swap frames).
+
+## storm
+
+[`examples/lab/storm/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/storm/main.ts). A cumulus field grows a cumulonimbus over about two minutes of simulated time (a leaning column of turrets under an overhanging, downwind anvil),
+and lightning lights it from inside. The volume is 256 x 256 x 128 at 16 m (4 km by 2 km). See [Storm cell](./api.mdx#storm-cell) and [Lightning](./api.mdx#lightning). A held flash adds within noise of nothing (3.49 against 3.64 ms), and the cell
+itself costs about 0.2 to 0.4 ms because there is more cloud on screen [P6-B, P6-C].
+
+- Query: `?timeScale=<n>` (default 4), `?sim=<s>` (freeze at a simulated time; `?play=1` plays from it, `?step=1` plays deterministically), `?flash=hold` (a steady flash at the cell) or `?flash=x,y,z,r,i`, `?lightning=0`, `?rate=<per s>` (automatic flashes; default 0.25 once the cell is a congestus),
+  `?storm=0` (the same field without the cell), `?bookmark=ground|distant|top|inside|anvil`, `?wind=x,z`, `?height=`, `?radius=`, `?anvil=` (the cell's mature size in metres), `?p_<NvdfParams key>=N`, `?sunEl=`, `?sunAz=`, `?exposure=`. The `f` key fires a flash.
+- A flash in daylight is faint; the captures use `?sunEl=3&exposure=0.5`. The `inside` bookmark is inside solid cloud and is not tuned.
+
+## species
+
+[`examples/lab/species/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/species/main.ts). One generated cloudscape per cloud species from the profile table, plus a `mixed` sky (stratocumulus, humilis, mediocris and congestus regions under altocumulus) and a `valley` sea (stratus pooled in a
+terrain stub). See [Species and presets](./api.mdx#species-and-presets).
+
+- Query: `?species=humilis|mediocris|congestus|stratocumulus|altocumulus|stratus|valley|mixed|cumulus` (default `mixed`), `?bookmark=ground|side|above|horizon|wall` (a species name as a bookmark regenerates that species; give it time, `--settle 200`), `?sky=0` (no distant layer),
+  `?horizon=1|0` (force the horizon rule), `?seed=`, `?jobs=`, `?fields=low|all|alto` (what the variety harness scores), `?pos=x,y,z&look=az,pitch`, `?timegen=1` (generator timing), and `NvdfParams` fields or `w_<weather option>` as on cloudscape-gen.
+
+## sunset
+
+[`examples/lab/sunset/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/sunset/main.ts). The layered sunset: long stratocumulus bands with gaps under a broken altocumulus layer at about 1.6 km, haze at the horizon, and the sun low in the west behind the bands, shot from the east of the
+field so the bands lie across the view as silhouettes. It is the page for the [low-sun lighting](./api.mdx#low-sun-lighting) and [horizon haze](./api.mdx#horizon-haze) settings.
+
+- Query: `?bookmark=golden|sunset|afterglow|side|zenith` (the sun at +4, +1 and -1 degrees, +1 with the sun to the left, and looking up the sun side at -1; each bookmark has its own absolute exposure), `?sunel=`, `?sunaz=`, `?lookaz=`, `?pitch=`, `?fov=`, `?exposure=`, `?seed=`, `?quality=`,
+  `?sky=0`, `?c_<setting>=N` (any `CloudSettings` number, for example `c_lightDebug=1..6`), `?sky_<setting>=N`, `?w_<key>=N`, `?<NvdfParams key>=N`.
+
+## library
+
+[`examples/lab/library/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/library/main.ts). The 17 [authored clouds](./authoring.mdx#the-authored-library) stamped into one 6.1 km, 1.5 km tall region (512 x 512 x 128 at 12 m), 36 instances with seeded yaw, scale and position.
+
+- Query: `?seed=N` (layout, default 7), `?count=N` (36), `?spacing=F` (gap between footprints as a fraction of their radii sum, 0.55; lower merges more), `?repeat=M` (minimum distance between two copies of the same cloud, 1800 m), `?only=a,b`, `?gen=1` (the generator's cumulus underneath, untuned), `?sheet=1`
+  (contact-sheet mode: one cloud at a time, side-lit; the bookmarks are the cloud names), `?quality=`, `?exposure=`, `?clean=1`. Bookmarks `ground`, `horizon`, `above`.
+
+## compare
+
+[`examples/lab/compare/main.ts`](https://github.com/pmndrs/clouds/blob/main/examples/lab/compare/main.ts). The same scene, camera, sun and exposure through several cloud implementations, each in its own canvas: `ours` (this library), `takram` (`@takram/three-clouds`) and `skypro` (a vendored copy of
+Tidewater's Sky Pro clouds), plus a `photo` pane for a reference photograph. It is how the look is judged; the Takram and Sky Pro packages are dev dependencies of the repository only.
+
+- Query: `?impls=ours,skypro,takram,photo` (any order; default `ours,takram`), `?layout=rows|cols`, `?bookmark=ground|horizon|sunset|dusk|afterglow|above`, `?coverage=0..1`, `?exposure=`, `?fov=`, `?sunel=`, `?sunaz=`, `?lookaz=`, `?pitch=`, `?hud=0`, `?clean=1`, `?clouds=0` (a clear sky in every pane),
+  `?quality=`, `?seed=`, `?sky=0` (ours), `?c_<setting>=N` (ours: a `CloudSettings` number; `c_lightDebug=1..5` splits the light terms), `?phase=mie`, `?takram_quality=`, `?stbn=<url>`, `?shadows=1`.
+- **Photo pane.** `?impls=ours,photo&photo=<ref>` where `<ref>` is `/@fs/<absolute path>`, a bare absolute path (rewritten to `/@fs/...`) or an http(s) or blob URL; `?photofit=cover|contain`. You can also drop an image on the page or use the bar's "photo file" button, and
+  `?photooverlay=1&photoopacity=0.5` (or the `P` key) lays the photo over the renders. The dev server serves files only inside the repository and the research folder (`CLOUDS_RESEARCH_DIR` adds one). Every pane's label shows the sun elevation and bookmark. Keep photo captures out of version control.
+- Lessons it taught: the horizon needs aerial perspective and haze, low sun needs a body that goes sky-lit (both now in the runtime), and altitude sets apparent cloud size (Takram's first layer is at 750 m; `?base=` moves ours).
 
 ## ocean
 
@@ -133,3 +186,11 @@ Each is a page plus a report that the capture harness exits non-zero on if a che
 | `/runtime-tests/dome/` | The reflection dome as an equirect panorama, the sun-change refresh and a frame-stall check. |
 | `/runtime-tests/generate/` | Generated SDF against an exact CPU EDT over every voxel of 256x256x32 and each preset (never over, no sign flips); overlap byte-identity of two windows; timings. |
 | `/runtime-tests/stamp/` | Stamp resampling against a CPU reference; the SDF after stamping against a CPU EDT over 14.2 M voxels (never over: max -4 m, 0 sign flips); per-stamp cost. |
+| `/runtime-tests/generate/sky-bake/` | The sky layer's tiled weather bake in the running runtime: no frame spends more than 1 ms in bake passes (worst 0.37 to 0.51 ms, against 13 to 16 ms for the one-shot bake), the old window renders until the new one is complete, the swap adds no full-resolution trace frame. `?rows=2048` is the old one-shot bake; `?changes=0` with the `wallEast`, `wallSouth` and `wallEastTop` bookmarks looks along a box wall for seams. |
+| `/runtime-tests/hero-fine/` | The [fine hero overlay](./api.mdx#fine-hero-overlay): the brick pool against a dense trilinear volume within 1/255 (0 measured) with every brick and with a random half, bumps visible at 4 m and not at 8 m, and the all-fine march cost against dense (1.14x at `'high'`). `still.html` renders a fixed-clock scene for byte-for-byte A/B of a tree against another. |
+
+## Review loop
+
+`node scripts/review-scenes.mjs --label <name>` re-shoots every scene target (sunset, compare, species, open-water, plains-flight, onsen: 15 shots in 6 groups, about a minute on a desktop GPU) with fixed bookmarks through the capture harness, and writes
+`work/captures/review/<date-time>-<name>/` with a contact sheet (`sheet.jpg`) and, when an earlier review folder exists, a before/after sheet (`vs-previous.jpg`). `--from <folder> --photos` rebuilds the sheets without shooting and adds side-by-sides with reference photos
+into `work/captures/scratch/review/` (never committed); `CLOUD_PHOTOS` overrides the photo folder. Run it before and after any change to lighting, haze or generation to see what moved.

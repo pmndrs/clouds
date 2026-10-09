@@ -36,6 +36,8 @@ into your static folder at the same paths (or pass other URLs).
 | `assets/clouds/parkouring/`, `stormbird/` | Guerrilla's two example clouds (from the Nubis pack). | 3.4 MB each |
 | `assets/clouds/disney/` | The Disney WDAS cloud, converted from VDB. CC BY-SA, see [credits](./credits.mdx). | 3.6 MB |
 | `assets/clouds/heroes/*` | Houdini-authored clouds: `tower`, `valley-fog`, `fairweather`, `sim-cumulus`, `sim-congestus`. | 1.4 to 3.6 MB each |
+| `assets/clouds/disney-fine/`, `heroes/sim-cumulus-fine/`, `heroes/sim-congestus-fine/` | The same heroes with a 4 m `fine.nvdb` next to the 8 m files ([fine heroes](./authoring.mdx#fine-hero-clouds)). The loader does not read `fine.nvdb` yet. | 5.7 to 8.4 MB each |
+| `assets/clouds/library/*` | 17 Pyro-grown clouds for stamping many times, with an `index.json` ([the library](./authoring.mdx#the-authored-library)). | 0.2 to 3.3 MB each, 23.9 MB in all |
 | `assets/clouds/houdini-test/` | First converter proof (a noise-displaced sphere cluster). | 4.0 MB |
 
 You can also skip files entirely: [generate](./api.mdx#generate-a-cloudscape) a field on the GPU, or
@@ -92,6 +94,25 @@ Things that matter:
 - Use an altitude-proportional near plane if the camera climbs through the clouds (the demos use `min(200, max(0.5, y * 0.002))`). The depth buffer has to separate a nearby wall of cloud from the ground.
 - The order is scene haze first, then clouds: `clouds.node(sky.applyHaze(scenePass.getTextureNode(), { scenePass }), scenePass)`. The clouds carry their own aerial perspective, so they are never hazed twice.
 
+### Cloud shadows on your scene
+
+The clouds keep a shadow map of the sun ray through the volume and the distant layer. Without any code the composite darkens every opaque pixel with it (sky ambient included).
+To dim only the direct sun on your own materials, give the sun light to the clouds and let the surfaces receive shadows:
+
+```ts
+import { DirectionalLight, Mesh } from 'three';
+import type { Clouds } from '@clouds/three';
+
+declare const clouds: Clouds;
+declare const sun: DirectionalLight; // for example the light from sky.createSun({ physical: true })
+declare const ground: Mesh;
+
+ground.receiveShadow = true;
+clouds.applyShadow(sun); // after anything that installs its own light.shadow.shadowNode
+```
+
+In React, `<Clouds shadowLight={sun} />`. Details, limits and the shadow map's settings: [Cloud shadows](./api.mdx#cloud-shadows).
+
 ### Without a sky library
 
 Leave `sky` out and give the clouds sun and ambient values instead. They are plain RGB radiances, in the
@@ -140,7 +161,8 @@ including `<Cloudscape>` (a generated field that follows the camera) and `useClo
 ## Generated clouds instead of files
 
 A weather map and a few parameters make a cloud field on the GPU in about 17 ms for 512x512x64 (or amortized over
-about 96 jobs of 0.34 ms), with presets for cumulus, congestus and stratocumulus.
+about 96 jobs of 0.34 ms), with ten presets: cumulus, humilis, mediocris, congestus, stratocumulus, altocumulus, stratus, a mixed sky, a layered sunset sky and a storm
+([species and presets](./api.mdx#species-and-presets)). The tall species name a taller `volume` (384 x 384 x 128 at 16 m); size the generator from it.
 
 ```ts
 import type { WebGPURenderer } from 'three/webgpu';
@@ -182,5 +204,5 @@ see [Generate a cloudscape](./api.mdx#generate-a-cloudscape).
 - [API reference](./api.mdx): every export with signatures and defaults.
 - [Quality and performance](./quality-and-performance.mdx): tiers, `'auto'`, budgets, memory.
 - [Authoring](./authoring.mdx): Houdini, Blender and `.vdb` drop.
-- [Demos](./demos.mdx): the lab pages and what each proves.
+- [Demos](./demos.mdx): the lab pages and what each proves, including the [storm](./demos.mdx#storm), [species](./demos.mdx#species), [sunset](./demos.mdx#sunset) and [compare](./demos.mdx#compare) pages.
 - [Credits](./credits.mdx): sources and licences.

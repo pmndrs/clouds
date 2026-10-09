@@ -59,7 +59,8 @@ size (linear, per axis); "k" is the temporal rate: the pass traces `1/k` of its 
 | far limit (m) | none | none | none | none | 6000 |
 | light-grid divisor | 1 | 1 | 1 | 2 | 2 |
 | dome size / steps | 256 / 96 | 256 / 96 | 256 / 64 | 128 / 48 | 64 / 32 |
-| sky-layer scale | 0.25 | 0.25 | 0.25 | 0.2 | 0.125 |
+| sky-layer scale | 0.75 | 0.5 | 0.25 | 0.2 | 0.125 |
+| fine hero distance (m) | 3000 | 3000 | 1500 | 600 | off |
 | composite scale | 1 | 1 | 1 | 0.5 | 0.5 |
 | dome on by default | yes | yes | yes | yes | no |
 
@@ -118,6 +119,12 @@ Reading them:
 | `.vdb` drop, Nubis pack file (45 MB) | 64 ms total (166 ms in a fresh page, pipeline creation included) | P4-H |
 | `.vdb` drop, artist fog (WDAS eighth) | 1.9 s | P4-H |
 | `.vdb` drop, 80 MB ZIP file | 6.8 s (the pure-TS inflate dominates; Blosc lz4 and uncompressed files parse in tens of ms) | P4-H |
+| Cloud shadow map refresh | 0.32 ms per refresh frame at 2560x1440 (1/24 of the rows of both cascades; about 0.55 ms for the first fill or a sun jump); 0 ms while nothing is stale. The composite does 8 more texture loads per opaque pixel: 0.50 to 0.69 ms at 1440p. `applyShadow` adds two 4 MB texture copies on refresh frames only | P10-A, P10-B |
+| Sky-layer weather bake (a weather change) | 24 rows a frame, worst frame 0.4 to 0.9 ms over 86 frames, then one frame of mips; the one-shot bake was 13 to 16 ms | P9-B2, P9-C |
+| Lightning flash | within noise (at most +0.1 ms) while held; nothing while none is active | P6-B, P6-C |
+| Storm cell | about +0.2 to 0.4 ms (more cloud on screen); the generator takes the whole 1.5 s cadence of a 256 x 256 x 128 storm volume comfortably | P6-B, P6-C |
+| Fine hero overlay | 1.14x the march at `'high'` and 1.01x at `'ultra'` against a dense volume of the same resolution, with a brick in every cell; nothing for volumes without one | P13-H1 |
+| Horizon haze, low-sun lighting | within run noise at 1080p (march and composite unchanged; the sky layer's depth targets are `rgba32float`, +0.03 ms) | C1, C2 |
 | `setVolume` / `setNoise` / `setQuality` / resize | a history cut: every pixel of both march passes is traced that frame (about twice a normal frame's march) | P5-B |
 
 ## Auto quality
@@ -198,6 +205,8 @@ is off. 12 bytes per pixel, twice, is the floor of this design [P5-C].
 | 2560x1440, generated 512x512x64 | high | 20.8 | 2.6 | 5.3 | 28.1 | 0.5 | 48.0 | **105.3** |
 | | low | 8.4 | 1.1 | 3.4 | 7.0 | 0.1 | 6.0 | **26.0** |
 
+The cloud shadow map adds a fixed 8 MiB (two 1024 x 1024 `r32float` cascades) to every row above; it is `CloudMemory.shadow`, and `estimateCloudMemory` includes it in `total` (so the totals here are 8 MiB low). A fine hero overlay is the caller's memory (3.9 MB of brick pool for the 150 m sphere test, 921 bricks) and is not counted.
+
 The `'high'` history plus trace at 2560x1440 is 23.4 MiB (24.5 MB decimal), inside the 25 MB target; it was 63.5 MB
 before P5-C [P5-C]. At 1280x720 history plus trace is 18.0 (ultra), 6.1 (high), 5.5 (medium), 2.5 (low) and 0.6 MB (mobile).
 The light grid (three rgba16float 3D textures at half the volume's dims per axis) is the biggest item for a generated field.
@@ -230,20 +239,42 @@ shrinks 8x. If memory matters, choose a smaller `dims` or a larger `voxelSize` f
 ## Bundle size
 
 `node scripts/check-bundle.mjs` builds `dist/` (when missing) and bundles each entry the way a consumer's bundler sees it (three, react and `@pmndrs/*`
-external, minified, es2022), printing raw, gzip and brotli sizes. The numbers below are from P7-C and move with the code.
+external, minified, es2022), printing raw, gzip and brotli sizes. `--strict` exits non-zero over the 60 KB budget. The numbers below are from a recent run and move with the code.
 
 | Entry | build | raw | gzip | brotli |
 | --- | --- | --- | --- | --- |
-| `@clouds/runtime` (core entry) | alone | 153.3 KB | **48.7 KB** | 41.5 KB |
-| `@clouds/runtime/generate` | alone | 42.0 KB | 14.3 KB | 12.7 KB |
-| `@clouds/runtime/import` | alone | 48.3 KB | 18.8 KB | 16.9 KB |
-| `@clouds/runtime` core + generate + import | alone | 210.3 KB | 70.1 KB | 59.6 KB |
-| `@clouds/three` | alone | 11.2 KB | 4.1 KB | 3.8 KB |
-| `@clouds/three` | with `@clouds/runtime` tree-shaken to what it uses | 160.8 KB | **51.3 KB** | 43.5 KB |
-| `@clouds/react` | alone | 5.3 KB | 2.3 KB | 2.1 KB |
-| `@clouds/react` | with `@clouds/three` and `@clouds/runtime` (+ `/generate`) | 177.9 KB | 57.8 KB | 48.8 KB |
+| `@clouds/runtime` (core entry) | alone | 170.6 KB | **53.8 KB** | 46.5 KB |
+| `@clouds/runtime/generate` | alone | 60.6 KB | 20.2 KB | 18.0 KB |
+| `@clouds/runtime/import` | alone | 66.4 KB | 24.8 KB | 22.4 KB |
+| `@clouds/runtime` core + generate + import | alone | 231.0 KB | 76.0 KB | 65.1 KB |
+| `@clouds/three` | alone | 13.9 KB | 5.2 KB | 4.8 KB |
+| `@clouds/three` | with `@clouds/runtime` tree-shaken to what it uses | 180.1 KB | **57.1 KB** | 49.2 KB |
+| `@clouds/react` | alone | 5.4 KB | 2.4 KB | 2.2 KB |
+| `@clouds/react` | with `@clouds/three` and `@clouds/runtime` (+ `/generate`) | 200.8 KB | 64.0 KB | 55.1 KB |
 
-The target is under 60 KB gzip for the core entry and for a `Clouds` user: 48.7 KB and 51.3 KB. The generator and the `.vdb`
+The target is under 60 KB gzip for the core entry and for a `Clouds` user. The generator and the `.vdb`
 importer (with its vendored parser) are the `@clouds/runtime/generate` and `@clouds/runtime/import` subpaths, so you pay for
 them only when you import them (the generate and import rows count shared code in each; the core + generate + import row is the whole set).
 The packages are marked `sideEffects: false`, so a bundler also drops unused core exports.
+
+### Contributing shader code
+
+WGSL text is about 60 to 70 percent of the core. The release build (`scripts/build-release.mjs`) minifies it with `scripts/wgsl-minify.mjs`, an esbuild plugin that rewrites **only template literals tagged with a `/* wgsl */` comment**:
+it removes comments, collapses whitespace and drops the spaces around `{ } ( ) [ ] ; , : =`. Identifiers, operators, numbers and `${}` interpolations are untouched. That took the core from 77.9 to 50.4 KB gzip at the time (the three path from 81.2 to 53.6 KB).
+
+```ts nocheck
+export const MY_PASS_WGSL = /* wgsl */ `
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  // comments and indentation are removed in the release build
+}
+`;
+```
+
+Rules for contributors:
+
+- Every WGSL template string carries the `/* wgsl */` tag, including ones assembled from pieces (`${PART}` nested templates inside a tagged template inherit it). An untagged template ships unminified and counts against the budget.
+- Do not put a backslash in a WGSL part, leave a comment unterminated, or let a `//` comment run into a `${}`: the minifier throws on these.
+- `node scripts/build-release.mjs --no-wgsl-min` builds without it, to A/B a problem. Sources stay readable; only the built files change.
+- After shader changes run `node scripts/check-bundle.mjs --strict` and `node scripts/check-packed-consumer.mjs`.
+- Shared field functions are in `generate/shaders.ts`, which is pulled into the core by the sky layer and the shadow map (28.7 KB raw after minification, the largest module). Splitting the shared functions from the generation passes is the next saving (about 3 KB gzip).

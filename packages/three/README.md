@@ -47,12 +47,15 @@ Seven lines are clouds-specific (the last two are the sky's own per-frame calls)
 
 ## What you get
 
-- `new Clouds(renderer, { sky?, quality?, budgetMs?, lighting?, planetCenter?, ... })`, `load`, `setVolume`, `setNoise`, `node`, `reflection`, `settings`, `lighting`, `setQuality`, `auto`, `setBudget`, `memory`, `timings`, `isReady`, `core`, `dispose`.
+- `new Clouds(renderer, { sky?, quality?, budgetMs?, lighting?, planetCenter?, ... })`, `load`, `setVolume`, `setNoise`, `node`, `reflection`, `applyShadow`, `removeShadow`, `shadow`, `settings`, `lighting`, `setQuality`, `auto`, `setBudget`, `memory`, `timings`, `isReady`, `core`, `dispose`.
 - `quality`: `'ultra' | 'high' | 'medium' | 'low' | 'mobile' | 'auto'`. `'auto'` picks a tier from the adapter and moves the render scale toward a GPU budget.
 - `clouds.reflection(dir)`: a TSL `vec4(rgb, T)` of the clouds toward a world direction, for water and other reflectors.
+- `clouds.applyShadow(sun.light)`: cloud shadows through three's own lighting. Set `receiveShadow = true` on the ground, water and props and only the direct sun is dimmed; sky, IBL and ambient stay. `clouds.shadow(positionNode?)` is the same value as a TSL float (1 lit) for materials that mix their own lighting. Without it the composite darkens every opaque pixel (ambient included). Call `applyShadow` after anything that installs its own `light.shadow.shadowNode`.
+- Lightning and low-level controls live on the runtime: `clouds.core.flash({ position, radius, intensity })`, `clouds.settings.lightning`, `clouds.core.shadowMap`, `clouds.core.skyLayer`.
+- Low-sun colour (`bodySunFloor`, `phaseModel`, ...) and horizon haze (`hazeDensity`, ...) are `clouds.settings` values; the haze needs the `sky` option.
 - Also exported: `createSkyBridge`, `createUniformLighting`, `DEFAULT_UNIFORM_LIGHTING`, `sharedBackend` (the raw `GPUDevice` and `GPUTexture` behind three objects), `toHalfBits`, `CLOUD_QUALITIES`.
 
-Reference: [API](../../docs/guide/api.mdx#@clouds/three) · [getting started](../../docs/guide/getting-started.mdx) · [quality and performance](../../docs/guide/quality-and-performance.mdx) · [demos](../../docs/guide/demos.mdx).
+Reference: [API](../../docs/guide/api.mdx#@clouds/three) · [cloud shadows](../../docs/guide/api.mdx#cloud-shadows) · [getting started](../../docs/guide/getting-started.mdx) · [quality and performance](../../docs/guide/quality-and-performance.mdx) · [demos](../../docs/guide/demos.mdx).
 
 ## Rules
 
@@ -64,4 +67,4 @@ Reference: [API](../../docs/guide/api.mdx#@clouds/three) · [getting started](..
 ## Packaging
 
 `peerDependencies`: `three >= 0.186.0`; `@pmndrs/sky >= 0.5.0` (optional: only its types and, with a sky, its LUTs are used); `@webgpu/types` (optional).
-`dependencies`: `@clouds/runtime`. `sideEffects: false`. About 4.2 KB gzip alone, 51.2 KB gzip with the runtime parts it uses (`node scripts/check-bundle.mjs`).
+`dependencies`: `@clouds/runtime`. `sideEffects: false`. About 5.2 KB gzip alone, 57.1 KB gzip with the runtime parts it uses (`node scripts/check-bundle.mjs`).

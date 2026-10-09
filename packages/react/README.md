@@ -25,11 +25,11 @@ The clouds cost two lines: the import and the element.
 
 ## Props
 
-`<Clouds volume noise position quality settings sky haze lighting planetCenter onLoad>`. Any other prop is a `CloudSettings` value
+`<Clouds volume noise position quality settings sky haze lighting planetCenter shadowLight onLoad>`. Any other prop is a `CloudSettings` value
 (`<Clouds densityScale={0.1} />`) and wins over `settings`. `<Clouds>` must be inside `<Sky>` unless you pass `sky={false}` (uniform lighting) or a `Sky`.
-It suspends while the volume and noise load (the R3F `<Canvas>` supplies a `Suspense` boundary); `preloadClouds(url)` starts the fetch early.
+`shadowLight={sun}` calls `clouds.applyShadow(sun)` while set: cloud shadows on the direct sun of `receiveShadow` meshes ([cloud shadows](../../docs/guide/api.mdx#cloud-shadows)). It suspends while the volume and noise load (the R3F `<Canvas>` supplies a `Suspense` boundary); `preloadClouds(url)` starts the fetch early.
 
-`<Cloudscape preset seed dims voxelSize baseHeight follow jobsPerFrame>` generates a cloud field on the GPU and follows the camera. Standalone it creates its own `<Clouds>`;
+`<Cloudscape preset seed dims voxelSize baseHeight follow jobsPerFrame>` generates a cloud field on the GPU and follows the camera. `preset` is any of the ten generator presets (cumulus, humilis, mediocris, congestus, stratocumulus, altocumulus, stratus, mixed, storm, layered); the tall ones name a larger `volume` to pass as `dims` and `voxelSize`. Standalone it creates its own `<Clouds>`;
 inside one it drives that instance.
 
 ```tsx
@@ -60,4 +60,4 @@ Reference: [API](../../docs/guide/api.mdx#@clouds/react) · [getting started](..
 ## Packaging
 
 `peerDependencies`: `three >= 0.186.0`, `react >= 19`, `@react-three/fiber >= 10.0.0-0`, `@pmndrs/sky >= 0.5.0` (required: `<Clouds>` reads the sky from its React context), `@webgpu/types` (optional).
-`dependencies`: `@clouds/runtime`, `@clouds/three`. `sideEffects: false`. 2.3 KB gzip alone, 57.7 KB with its dependencies (`node scripts/check-bundle.mjs`).
+`dependencies`: `@clouds/runtime`, `@clouds/three`. `sideEffects: false`. 2.4 KB gzip alone, 64.0 KB with its dependencies (`node scripts/check-bundle.mjs`).
