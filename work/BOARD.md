@@ -1300,7 +1300,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - **Local build:** if feasible, build locally with a clone of `pmndrs/docs` in the scratchpad (not committed) and record the result. Otherwise validate the frontmatter schema against pmndrs/docs' source.
 - **Acceptance:** `node scripts/check-docs.mjs` green; `pnpm check` green; a local pmndrs/docs build or a schema check is recorded in the report.
 
-### [~] P8-C Examples gallery · Sonnet
+### [x] P8-C Examples gallery · Sonnet
 - **Owns:**
   - `examples/lab/{index.html,main.ts,style.css}`
   - a new `examples/lab/gallery/thumbs/`
