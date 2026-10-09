@@ -8,3 +8,8 @@ __pycache__/
 *.pyc
 work/captures/scratch/
 assets/clouds/local/
+
+# local secrets (e.g. FAL_KEY for image-generation pilots); never commit
+.env
+.env.local
+.env.*.local
