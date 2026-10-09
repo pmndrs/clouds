@@ -1641,7 +1641,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Every top-5 gap is fixed, or explained with a concrete next step.
   - The owner looks at the before/after and agrees ours no longer looks worse than Takram at midday.
 
-### [ ] R1 Scene review loop · Haiku (after each quality pass)
+### [r] R1 Scene review loop · Haiku (after each quality pass)
 - **Owns:** `scripts/review-scenes.mjs` (new) and `work/captures/review/<date>-<pass>/`, which holds our renders only.
 - **Does:** one command re-shoots every scene target with fixed bookmarks:
   - T4 `sunset/` (golden, sunset, afterglow, side, zenith);
