@@ -12,7 +12,7 @@ This folder is the working surface:
 
 | Role | Who | Does |
 | --- | --- | --- |
-| Orchestrator | root session | Splits phases into tasks, assigns them, does visual acceptance, commits, decides plan changes |
+| Orchestrator | root session | Splits phases into tasks, assigns them, does visual acceptance, makes final commits, decides plan changes |
 | Implementer | Haiku for mechanical work; Sonnet for code; Fable for hard rendering problems after one failed attempt | One task, only its listed files, ends with a report |
 | Reviewer | Sonnet, with a fresh context | Checks a finished task against its acceptance list; reads the diff, report and captures; never rewrites the work |
 
@@ -29,8 +29,13 @@ This folder is the working surface:
      reasoning about the shader.
 3. **Report.** Write `reports/<task-id>.md` from the template below and set the
    task to `[r]`.
-4. **Commit.** Don't commit. The orchestrator commits after review, so
-   parallel agents never fight over the git index.
+4. **Commit checkpoints often** (owner, 2026-10-09). Commit whenever you have a working state, and always before you
+   start chasing a different look, so there is a safe version to fall back on. History can be rearranged later.
+   - Commit **only your owned files**, by pathspec: `git commit -m "WIP <task-id>: ..." -- <your files>`. Never use
+     `git add -A` or `git commit -a`, because other agents share this worktree.
+   - Never commit the owner's photos or slide images, including captures that contain them.
+   - End messages with the attribution line `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+   - The orchestrator reviews and makes the final commit that marks the task `[x]`.
 
 ## Report template (keep it under 40 lines)
 

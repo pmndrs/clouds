@@ -1574,7 +1574,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The minified build passes the packed consumer, and a dist-built page renders identically (capture A/B).
   - `pnpm check` green.
 
-### [~] T4 Layered sunset scene · Opus (worker: claude-opus T4; report: work/reports/T4.md)
+### [x] T4 Layered sunset scene · Opus (worker: claude-opus T4; report: work/reports/T4.md)
 - **Owns:**
   - a new `examples/lab/sunset/` page and its vite input line
   - a gallery card in `examples/lab/gallery/cards.json`
