@@ -193,6 +193,9 @@ def build(name, rcp, hip=None):
         ps.parm('turbulence_seed').set(int(rcp['seed']))
     for k, v in rcp['solver'].items():
         ps.parm(k).set(v)
+    if rcp['solver'].get('temperature0', 300.0) <= 0:
+        # Pyro's lift is -buoyancylift * (T1 - T0) / T0 * g: T0 = 0 divides by zero and buoyancy is silently off (README, L1)
+        print(f'[{name}] WARNING: solver.temperature0 <= 0 disables buoyancy (plume moves by turbulence only)')
     kp = geo.createNode('blast', 'keep_density')
     kp.setInput(0, ps)
     kp.parm('group').set('@name=density')

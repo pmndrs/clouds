@@ -1,11 +1,12 @@
 // L1: target page for the target-driven authoring loop (docs/PLAN-2026-10-next.md, "Authoring loop").
 // Renders ONE candidate cloud from a camera that matches the target photo's framing and sun, so the render can be scored against
-// the photo's target card (scripts/targets/card.py, scripts/targets/match.mjs).  Default target: the hero tower of "Texas afternoon".
+// the photo's target card (scripts/targets/card.py, scripts/targets/match.py).  Default target: the hero tower of "Texas afternoon".
 //
 //   ?src=local/texas-tower/        where candidates live under /clouds/ (default; gitignored sims). Committed picks: targets/texas-tower/
-//   ?cand=v00&yaw=0                the candidate and its yaw (deg)          bookmarks: "<cand>@<yaw>", e.g. v03@90 (what match.mjs captures)
+//   ?cand=v00&yaw=0                the candidate and its yaw (deg)          bookmarks: "<cand>@<yaw>", e.g. v03@90, and "sky" (no cloud: the
+//                                  plate scripts/targets/match.py segments renders against)
 //   ?photo=1                       side by side with the owner's photo (local only; via the compare page's /__photos dev middleware)
-//   ?sunel=50&sunaz=-60            sun elevation / azimuth (deg; azimuth from the view direction, negative = left)
+//   ?sunel=45&sunaz=-150           sun elevation / azimuth (deg, the sky's convention; the camera looks north, so -150 is behind-left)
 //   ?quality=high  ?exposure=0.4  ?clean=1 (no HUD)
 //
 // MATCHING CAMERA (photo 2000x1336, no EXIF; assumed 46 deg vertical FOV, i.e. a 28 mm full-frame lens): the horizon is hidden by
@@ -87,6 +88,15 @@ try {
   /** Stamps the candidate (yawed) into a fresh region placed so its base and crown land on the photo's elevations, then aims the camera. */
   const show = async (name: string, yawDeg: number) => {
     const t0 = performance.now();
+    if (name === 'sky') {
+      // the sky plate: same camera and sun with an empty region (the scorer segments renders against it)
+      const region = createEmptyCloudVolume(device, [8, 8, 8], 30, 'target empty');
+      await clouds.setVolume(region, { position: [0, 20000, -50000] });
+      shown?.destroy(); shown = region;
+      Object.assign(info, { cand: 'sky', yaw: 0, buildMs: performance.now() - t0 });
+      aim();
+      return;
+    }
     const { asset, info: c } = await getCandidate(name);
     const vs = c.voxelSizeMeters;
     const [sx, sz, sy] = c.sizeMeters;                       // manifest sizeMeters = [x, row, up]
@@ -117,12 +127,16 @@ try {
     await clouds.setVolume(region, { position: [cx, baseAlt - 2 * vs - c.baseMeters, cz] });
     shown?.destroy();
     shown = region;
-    sky.setSunDirection({ elevation: num('sunel', 50), azimuth: num('sunaz', -60) });
+    aim();
+    Object.assign(info, { cand: name, yaw: yawDeg, baseAltitude: baseAlt, distance: d, buildMs: performance.now() - t0, region: dims });
+  };
+
+  function aim() {
+    sky.setSunDirection({ elevation: num('sunel', 45), azimuth: num('sunaz', -150) });
     camera.position.set(0, 2, 0);
     const p = FRAME.pitch * deg;
     camera.lookAt(0, 2 + Math.sin(p) * 100, -Math.cos(p) * 100);
-    Object.assign(info, { cand: name, yaw: yawDeg, baseAltitude: baseAlt, distance: d, buildMs: performance.now() - t0, region: dims });
-  };
+  }
 
   const resize = () => {
     const w = PHOTO ? Math.floor(innerWidth / 2) : innerWidth;

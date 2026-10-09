@@ -96,3 +96,33 @@ capped) and overrides it per section. Levers added to `sim_clouds.py` for it:
 
 The manifest records species, size, base/top (metres above the asset box floor), seed, frame, sim seconds, bytes and the full
 recipe. `examples/lab/library/` stamps the library (see its header for query options; `?sheet=1` is the isolated contact-sheet mode).
+
+## Target-driven recipes (L1): `targets.py`
+
+**Buoyancy was off in every recipe above (found in L1).** Inside the Pyro Solver SOP the gasbuoyancy lift is
+`-buoyancylift * (temperature1 - temperature0) / temperature0 * gravaccel`, and the P4-F/P9-F recipes set `temperature0 = 0`: a
+division by zero, so buoyancy did nothing (identical sims at `buoyancylift` 12 and 60, and with buoyancy disabled; with turbulence and
+disturbance off nothing moves at all). Those plumes spread by turbulence alone, and their height came from `remap.stretch`, hence the
+flame streaks and mounds. `targets.py` uses `temperature0 = 1, temperature1 = 2`: then `buoyancylift` 0.3-0.8 grows a real rising
+tower with round domes in 150-210 frames, no stretch needed. The "Knobs that matter" table above describes the old, buoyancy-less
+behaviour; regrowing the library with working buoyancy is a follow-up.
+
+Also: the inversion lid (`cap`) is *added* to temperature every frame, so it settles near `-strength / tempcooling` (0.15 gave about
+-11, a hard ceiling). Useful values are 0.005-0.025.
+
+```bash
+$HYTHON scripts/vdb/authoring/sim/targets.py texas-tower                      # 20-variant sweep -> assets/clouds/local/texas-tower/ (gitignored)
+$HYTHON scripts/vdb/authoring/sim/targets.py texas-tower --refine v05,v11 --n 10 --round r2    # children of the best-ranked
+$HYTHON scripts/vdb/authoring/sim/targets.py texas-tower --only v00 --tag _t --set emit.1.heat=0.4 --set cap.strength=0.01
+python3 scripts/targets/match.py texas-tower      # render every candidate x 4 yaws on examples/lab/target/, score, rank, top-5 sheet
+python3 scripts/targets/promote.py texas-tower v05 r2_03 ...    # copy picks to assets/clouds/targets/texas-tower/
+```
+
+New levers in `sim_clouds.py`:
+
+| Key | Effect |
+| --- | --- |
+| emitter `heat` (7th element) | scales the emitter's temperature only (weight scales density and temperature): a hot core tower on a warm, lazier pedestal |
+| `remap.stretch_from` | no vertical stretch below this output height, so a pedestal keeps its aspect while the tower above is stretched |
+| `remap.taper`, `taper_y0/y1`, `taper_x/z` | horizontal scale `1 - taper * smooth(y0, y1, y)` about the axis: a tower narrowing toward its crown |
+| `--set emit.I.FIELD=V` (targets.py) | edit one emitter (x z rx rz weight start heat) from the command line |

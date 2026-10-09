@@ -63,26 +63,20 @@ def fit_sky(rgb, sky_mask, step=4):
 
 
 def label(mask):
-    """4-connected components (numpy, label propagation with pointer jumping).  Returns labels (0 = background) and sizes by label."""
+    """4-connected components via Pillow flood fills (C speed).  Returns labels (0 = background) and sizes by label."""
     h, w = mask.shape
-    lab = np.where(mask, np.arange(1, h * w + 1).reshape(h, w), 0)
-    for _ in range(4000):
-        prev = lab
-        m = lab.copy()
-        m[1:, :] = np.maximum(m[1:, :], np.where(mask[1:, :], lab[:-1, :], 0))
-        m[:-1, :] = np.maximum(m[:-1, :], np.where(mask[:-1, :], lab[1:, :], 0))
-        m[:, 1:] = np.maximum(m[:, 1:], np.where(mask[:, 1:], lab[:, :-1], 0))
-        m[:, :-1] = np.maximum(m[:, :-1], np.where(mask[:, :-1], lab[:, 1:], 0))
-        flat = m.ravel()
-        for _ in range(4):
-            nz = flat > 0
-            flat = np.where(nz, np.maximum(flat, flat[np.maximum(flat - 1, 0)]), 0)
-        lab = flat.reshape(h, w)
-        if np.array_equal(lab, prev):
-            break
-    ids, inv = np.unique(lab, return_inverse=True)
-    lab = inv.reshape(h, w)          # 0 stays 0 (it is the smallest id)
-    sizes = np.bincount(lab.ravel())
+    im = Image.fromarray(np.where(mask, -1, 0).astype(np.int32), mode='I')
+    todo = np.flatnonzero(mask)
+    n = 0
+    px = im.load()
+    for i in todo:
+        y, x = divmod(int(i), w)
+        if px[x, y] != -1:
+            continue
+        n += 1
+        ImageDraw.floodfill(im, (x, y), n, thresh=0)
+    lab = np.asarray(im).astype(np.int64) if n else np.zeros((h, w), np.int64)
+    sizes = np.bincount(lab.ravel(), minlength=n + 1)
     sizes[0] = 0
     return lab, sizes
 
@@ -95,6 +89,17 @@ def segment(rgb, sky_s=SKY_S, cloud_s=CLOUD_S, cloud_dr=CLOUD_DR, seed=None, min
     sky = fit_sky(rgb, s > sky_s)
     dr = R - sky[..., 0]
     mask = (dr > cloud_dr) & (s < cloud_s)
+    return clean(mask, seed, min_piece, near)
+
+
+def segment_plate(rgb, plate, diff=0.035, min_piece=0.004, near=NEAR):
+    """Cloud mask of a render against its sky plate (the same camera and sun with no cloud): any channel differing by more than
+    `diff` is cloud.  Then the same cleanup as segment(): the largest piece plus nearby pieces, small holes filled."""
+    d = np.abs(rgb - plate).max(axis=-1)
+    return clean(d > diff, None, min_piece, near)
+
+
+def clean(mask, seed, min_piece, near):
     lab, sizes = label(mask)
     if sizes.max() == 0:
         return mask
@@ -287,12 +292,14 @@ def measure(rgb, mask, cut_left=False):
 TOL = dict(aspect=0.25, taper=0.2, pedestal=0.35, baseFlat=0.02, leanDeg=8.0, crownOffset=0.12, solidity=0.08, edge=0.6,
            litShadow=0.6, topBottom=0.25, notch=0.05, necks=1.5, pieces=1.5)
 WEIGHT = dict(aspect=1.0, taper=1.5, pedestal=1.5, baseFlat=1.0, leanDeg=0.5, crownOffset=1.0, solidity=1.5, edge=0.5,
-              litShadow=0.75, topBottom=0.5, notch=1.0, necks=0.5, pieces=0.5, widthProfile=2.0, lobeSpectrum=1.5)
+              litShadow=0.75, topBottom=0.5, notch=1.0, necks=0.5, pieces=0.5, widthProfile=3.0, lobeSpectrum=1.5)
 
 
 def silhouette_iou(mt, mc, cut_left=False):
-    """Best IoU of two NORM-height masks, bottoms aligned, over horizontal shifts.  With cut_left, candidate pixels left of the
-    target's left edge do not count against it (the target's left side is a crop cut)."""
+    """Silhouette match of two NORM-height masks, bottoms aligned, best over horizontal shifts: the mean of the IoU of the whole
+    masks and the IoU of their upper halves (the tower: two bulky shapes overlap well whatever their tops do, so the upper half
+    is scored on its own).  With cut_left, candidate pixels left of the target's left edge do not count (the target's left side
+    is a crop cut)."""
     def tight(m):
         ys, xs = np.nonzero(m)
         return m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
@@ -307,8 +314,11 @@ def silhouette_iou(mt, mc, cut_left=False):
         Bm[H - b.shape[0]:, dx - x0:dx - x0 + b.shape[1]] = b
         if cut_left:
             Bm[:, :-x0] = False
-        inter = (A & Bm).sum(); uni = (A | Bm).sum()
-        iou = inter / max(1, uni)
+        full = (A & Bm).sum() / max(1, (A | Bm).sum())
+        top = H - NORM // 2
+        At, Bt = A[:max(top, 1)], Bm[:max(top, 1)]
+        upper = (At & Bt).sum() / max(1, (At | Bt).sum())
+        iou = 0.5 * (full + upper)
         if iou > best:
             best, best_dx = float(iou), dx
     return best, best_dx
@@ -319,7 +329,7 @@ def similarity(t, c):
     for k, tol in TOL.items():
         parts[k] = math.exp(-((c[k] - t[k]) / tol) ** 2)
     wp = np.array(c['widthProfile']) - np.array(t['widthProfile'])
-    parts['widthProfile'] = math.exp(-(np.sqrt((wp ** 2).mean()) / 0.12) ** 2)
+    parts['widthProfile'] = math.exp(-(np.sqrt((wp ** 2).mean()) / 0.10) ** 2)
     ls = np.array(c['lobeSpectrum']) - np.array(t['lobeSpectrum'])
     parts['lobeSpectrum'] = math.exp(-(np.sqrt((ls ** 2).sum()) / 0.04) ** 2)
     total = sum(WEIGHT[k] * v for k, v in parts.items()) / sum(WEIGHT[k] for k in parts)
@@ -346,6 +356,7 @@ def main():
     c.add_argument('--name', default='target')
     m = sub.add_parser('measure'); m.add_argument('image'); m.add_argument('--box')
     s = sub.add_parser('score'); s.add_argument('card'); s.add_argument('renders', nargs='+'); s.add_argument('--out', required=True); s.add_argument('--debug')
+    s.add_argument('--plate', help='sky plate render (same camera, no cloud); default: sky-model segmentation')
     a = ap.parse_args()
     if a.cmd == 'card':
         box = [int(v) for v in a.box.split(',')]
@@ -370,11 +381,12 @@ def main():
         target = json.load(open(a.card))
         tmask = np.load(a.card[:-5] + '.mask.npy')
         out = {}
+        plate = load_rgb(a.plate) if a.plate else None
         for r in a.renders:
             name = os.path.splitext(os.path.basename(r))[0]
             rgb = load_rgb(r)
             try:
-                res, mk = score(target, tmask, rgb, segment(rgb))
+                res, mk = score(target, tmask, rgb, segment_plate(rgb, plate) if plate is not None else segment(rgb))
             except Exception as e:  # an empty or broken render scores 0
                 res, mk = dict(total=0.0, iou=0.0, features=0.0, error=str(e)), None
             out[name] = res
