@@ -1695,7 +1695,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Fix the flagship thumbnail's HUD sliver.
 - **Acceptance:** a gallery capture at desktop and phone width, with every card linking.
 
-### [~] S1-spec Scheduler amortized-jobs API proposal · Sonnet
+### [x] S1-spec Scheduler amortized-jobs API proposal · Sonnet
 - **Owns:** `work/specs/scheduler-amortized-jobs.md` (new). No code changes.
 - **Does:** design the time-sliced job API for `@pmndrs/scheduler`, which the owner maintains.
   - **Inputs:** read the package (`node_modules/@pmndrs/scheduler`, its types and README), r3f v10 `useFrame` usage (`~/Developer/react-three-fiber`, if present), and our amortized work: P9-C3's report lists candidates and rates; the sky layer is 1/16 per frame, the light grid in 8 slices, the shadow map 1/24 rows, the weather bake 32 rows per frame, evolution every 1.5 s.

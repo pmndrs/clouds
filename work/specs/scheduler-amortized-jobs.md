@@ -105,6 +105,8 @@ interface WorkJobControls extends FrameControls {
   reset(): void;
   /** Feed a measurement for a past slice (section 5). */
   report(ticket: SliceTicket, ms: number): void;
+  /** The host marks the current cycle recorded (e.g. after its GPU work is encoded); the job goes 'complete' until wake(). */
+  complete(): void;
   readonly stats: WorkStats;
 }
 interface WorkStats {
