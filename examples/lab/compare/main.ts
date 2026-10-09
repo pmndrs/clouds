@@ -2,6 +2,7 @@
 //   ?impls=ours,skypro,takram,photo   which panes (default ours,takram)   photo: ?photo=<path|url> ?photofit=cover|contain, or drop an image / use the bar's "photo file" (see panes/photo.ts)       ?layout=rows|cols (default rows)
 //   ?bookmark=ground|horizon|sunset|dusk|afterglow|above   ?coverage=0..1   ?exposure=  ?fov=   ?hud=0 / ?clean=1 hide the labels / all UI
 //   ?sunel= ?sunaz= ?lookaz= ?pitch= override the bookmark; ours: ?c_<setting>=<number> overrides a runtime setting (c_lightDebug=1..5 splits the light terms), ?phase=mie
+//   ?vibe=1 ours,takram,photo in cols. Sun el: slider (0.1 deg steps -6..15) + number field, keys [ ] 0.1 deg, { } 1 deg. Photo drawer: O, step with , and .
 // Other query keys pass through to the panes (ours: quality, seed, sky=0; Takram: takram_quality, stbn=<url>; every pane: clouds=0 for a clear sky).
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { BOOKMARKS, BOOKMARK_NAMES, DEFAULT_COVERAGE, GROUND_HEX, mapCoverage, forwardOf, type Pane, type ViewState } from './shared';
@@ -9,6 +10,8 @@ import { Rig } from './rig';
 import { createOursPane } from './panes/ours';
 import { createTakramPane } from './panes/takram';
 import { createPhotoPane, type PhotoPane } from './panes/photo';
+import { addSunControl } from './sun-control';
+import { addPhotoPicker } from './panes/photo-picker';
 import { createSkyProPane } from './vendor/skypro/skypro-pane.js';
 import { Color } from 'three';
 
@@ -21,8 +24,10 @@ const query = new URLSearchParams(location.search);
 const msg = document.getElementById('msg')!;
 const SHOW_LABELS = query.get('hud') !== '0';
 const SHOW_UI = query.get('clean') !== '1';
-const IMPLS = (query.get('impls') ?? 'ours,takram').split(',').filter(s => ['ours', 'skypro', 'takram', 'photo'].includes(s)) as Pane['id'][];
-const LAYOUT = query.get('layout') === 'cols' ? 'cols' : 'rows';
+// ?vibe=1: ours, Takram and the photo in three columns (the "vibe" layout; the bar's "vibe" button reloads into it).
+const VIBE = query.get('vibe') === '1';
+const IMPLS = (query.get('impls') ?? (VIBE ? 'ours,takram,photo' : 'ours,takram')).split(',').filter(s => ['ours', 'skypro', 'takram', 'photo'].includes(s)) as Pane['id'][];
+const LAYOUT = query.get('layout') === 'cols' || (VIBE && query.get('layout') !== 'rows') ? 'cols' : 'rows';
 msg.classList.toggle('hidden', !SHOW_UI);
 
 try {
@@ -93,7 +98,7 @@ try {
     sync.push(() => { i.value = String(get()); t.textContent = String(Math.round(get() * 100) / 100); });
     bar.appendChild(l);
   };
-  slider('sun el', -6, 90, 0.5, () => view.sunEl, v => { view.sunEl = v; });
+  addSunControl(bar, view, sync);
   slider('sun az', 0, 360, 1, () => view.sunAz, v => { view.sunAz = v; });
   slider('coverage', 0, 1, 0.01, () => view.coverage, v => { view.coverage = v; });
   slider('exposure', 0.25, 4, 0.05, () => view.exposure, v => { view.exposure = v; });
@@ -121,6 +126,8 @@ try {
     addEventListener('drop', e => { e.preventDefault(); const f = [...(e.dataTransfer?.files ?? [])].find(x => x.type.startsWith('image/')); if (f) void photo.setFile(f); });
     if (query.get('photooverlay') === '1') { overlay = true; opacity = Number(query.get('photoopacity') ?? 0.5); i.value = String(opacity); ovBtn.textContent = 'photo overlay: on'; applyOverlay(); }
   }
+  { const q = new URLSearchParams(location.search); q.set('vibe', '1'); q.delete('impls'); q.delete('layout'); q.set('bookmark', bookmark); q.set('sunel', String(view.sunEl)); const b = document.createElement('button'); b.textContent = VIBE ? 'vibe: on' : 'vibe'; b.title = 'ours | Takram | photo in three columns'; b.onclick = () => { location.search = q.toString(); }; bar.appendChild(b); }
+  if (photo) void addPhotoPicker(bar, photo, view, syncUi, { loadLast: !query.has('photo') });
   syncUi();
 
   // ---- loop

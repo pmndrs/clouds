@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
+import { cloudPhotos } from './examples/lab/compare/photos-plugin';
 export default defineConfig({
   root: 'examples/lab',
+  plugins: [cloudPhotos(fileURLToPath(new URL('.', import.meta.url)))],
   resolve: { alias: {
     '@clouds/legacy-three/layers': fileURLToPath(new URL('./packages/legacy/three/src/layers/index.ts', import.meta.url)),
     '@clouds/legacy-three/environment': fileURLToPath(new URL('./packages/legacy/three/src/environment/index.ts', import.meta.url)),
