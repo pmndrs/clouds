@@ -38,39 +38,52 @@ export interface PackFineOptions {
   margin?: number;
   /** Give every cell a brick (cost and seam tests). */
   all?: boolean;
+  /**
+   * P13-H3, the loaders' form: `lattice` is the profile alone (uint8, one byte per voxel) and each texel's G/B are those of the coarse voxel
+   * holding it in `coarse` (the coarse NVDF, rgba, dims ceil(dims / ratio), same min corner). The lattices are nested, so a fine surface voxel
+   * keeps its own coarse voxel's detail type and density scale, never the outside's.
+   */
+  coarse?: { rgba: Uint8Array; ratio: number };
   /** Return only these cells' bricks: `keep(cellIndex)` false leaves the cell empty (tests). */
   keep?: (cell: number) => boolean;
 }
 
-/** Pack a dense fine lattice (`rgba`, dims in texture axes, R = profile, G/B as in the NVDF) into bricks. */
-export function packFineBricks(rgba: Uint8Array, dims: readonly [number, number, number], fineVoxel: number, options: PackFineOptions = {}): FineBricks {
-  const [nx, ny, nz] = dims;
-  if (rgba.length < nx * ny * nz * 4) throw new Error(`packFineBricks: lattice has ${rgba.length} bytes, dims need ${nx * ny * nz * 4}`);
+/**
+ * Pack a dense fine lattice (`lattice`: rgba, dims in texture axes, R = profile, G/B as in the NVDF; or the profile alone with
+ * `options.coarse`) into bricks. Lattices must start at a 4-byte boundary.
+ */
+export function packFineBricks(lattice: Uint8Array, dims: readonly [number, number, number], fineVoxel: number, options: PackFineOptions = {}): FineBricks {
+  const [nx, ny, nz] = dims, co = options.coarse, stride = co ? 1 : 4;
+  if (lattice.length < nx * ny * nz * stride) throw new Error(`packFineBricks: lattice has ${lattice.length} bytes, dims need ${nx * ny * nz * stride}`);
   const cells: [number, number, number] = [Math.ceil(nx / 8), Math.ceil(ny / 8), Math.ceil(nz / 8)];
   const [cx, cy, cz] = cells;
   const nCells = cx * cy * cz;
-  const used = options.all ? new Uint8Array(nCells).fill(1) : markCells(rgba, 4, dims, cells, options.margin ?? 1);
+  const used = options.all ? new Uint8Array(nCells).fill(1) : markCells(lattice, stride, dims, cells, options.margin ?? 1);
   const indir = new Uint32Array(nCells).fill(HERO_EMPTY);
   let count = 0;
   for (let i = 0; i < nCells; i++) if (used[i] && (!options.keep || options.keep(i))) indir[i] = count++;
   const slabCount = Math.ceil(count / POOL_SLAB_BRICKS);
   if (slabCount * BRICK_TEXELS > 2048) throw new Error(`packFineBricks: ${count} bricks need ${slabCount} slabs, over the 3D texture depth limit (204)`);
   const slabs = Array.from({ length: slabCount }, () => new Uint8Array(POOL_SLAB_BYTES));
-  // Clamped lattice index per brick texel, per axis: texel t of cell c reads fine voxel clamp(8c - 1 + t).
+  // Clamped lattice index per brick texel, per axis: texel t of cell c reads fine voxel clamp(8c - 1 + t); jx: its coarse voxel along x.
   const clampIdx = (c: number, n: number, out: Int32Array) => { for (let t = 0; t < BRICK_TEXELS; t++) out[t] = Math.min(n - 1, Math.max(0, c * 8 - 1 + t)); };
-  const ix = new Int32Array(BRICK_TEXELS), iy = new Int32Array(BRICK_TEXELS), iz = new Int32Array(BRICK_TEXELS);
-  const src = new Uint32Array(rgba.buffer, rgba.byteOffset, (rgba.byteOffset & 3) === 0 ? nx * ny * nz : 0);
+  const ix = new Int32Array(BRICK_TEXELS), iy = new Int32Array(BRICK_TEXELS), iz = new Int32Array(BRICK_TEXELS), jx = new Int32Array(BRICK_TEXELS);
+  const src = co ? lattice : new Uint32Array(lattice.buffer, lattice.byteOffset, nx * ny * nz);
+  const r = co?.ratio ?? 1, kx = Math.ceil(nx / r), ky = Math.ceil(ny / r);
+  const gb = co && new Uint32Array(co.rgba.buffer, co.rgba.byteOffset, co.rgba.length >> 2);
   for (let c2 = 0; c2 < cz; c2++) for (let c1 = 0; c1 < cy; c1++) for (let c0 = 0; c0 < cx; c0++) {
     const s = indir[(c2 * cy + c1) * cx + c0];
     if (s === HERO_EMPTY) continue;
     clampIdx(c0, nx, ix); clampIdx(c1, ny, iy); clampIdx(c2, nz, iz);
-    const slab = slabs[Math.floor(s / POOL_SLAB_BRICKS)];
-    const dst = new Uint32Array(slab.buffer);
+    for (let t = 0; t < BRICK_TEXELS; t++) jx[t] = Math.floor(ix[t] / r);
+    const dst = new Uint32Array(slabs[Math.floor(s / POOL_SLAB_BRICKS)].buffer);
     const bx = (s % POOL_BRICKS_XY) * BRICK_TEXELS, by = (Math.floor(s / POOL_BRICKS_XY) % POOL_BRICKS_XY) * BRICK_TEXELS;
     for (let tz = 0; tz < BRICK_TEXELS; tz++) for (let ty = 0; ty < BRICK_TEXELS; ty++) {
       const srcRow = (iz[tz] * ny + iy[ty]) * nx, dstRow = (tz * POOL_XY + by + ty) * POOL_XY + bx;
-      if (src.length) for (let tx = 0; tx < BRICK_TEXELS; tx++) dst[dstRow + tx] = src[srcRow + ix[tx]];
-      else for (let tx = 0; tx < BRICK_TEXELS; tx++) slab.set(rgba.subarray((srcRow + ix[tx]) * 4, (srcRow + ix[tx]) * 4 + 4), (dstRow + tx) * 4);
+      if (gb) {
+        const g = (Math.floor(iz[tz] / r) * ky + Math.floor(iy[ty] / r)) * kx;
+        for (let tx = 0; tx < BRICK_TEXELS; tx++) dst[dstRow + tx] = (gb[g + jx[tx]] & 0xffff00) | 0xff000000 | src[srcRow + ix[tx]];
+      } else for (let tx = 0; tx < BRICK_TEXELS; tx++) dst[dstRow + tx] = src[srcRow + ix[tx]];
     }
   }
   return { fineVoxel, cells, indir, count, slabs };
@@ -101,54 +114,6 @@ function markCells(data: Uint8Array, stride: number, dims: readonly [number, num
     }
   }
   return used;
-}
-
-/**
- * A fine profile packed into bricks, R only (P13-H3): the loaders' form. `profile` holds 1,000 bytes per brick (texel (tx, ty, tz) at
- * tx + 10 ty + 100 tz, payload plus apron, clamped at the lattice faces like `packFineBricks`), `cellOf` each brick's cell index. G and B
- * are filled on the GPU from the coarse NVDF at upload (`uploadFineProfile`), so the CPU never touches four bytes per texel.
- */
-export interface FineProfileBricks {
-  fineVoxel: number;
-  /** Fine lattice dims, texture axes. */
-  dims: [number, number, number];
-  cells: [number, number, number];
-  indir: Uint32Array<ArrayBuffer>;
-  count: number;
-  profile: Uint8Array<ArrayBuffer>;
-  cellOf: Uint32Array<ArrayBuffer>;
-}
-
-/**
- * Pack a dense fine profile lattice (uint8, texture axes, x fastest) into R-only bricks. A cell gets a brick when a set voxel lies within
- * `margin` voxels of it; loaders pass ceil(1.5 * coarse / fine) (3 at 4 m under 8 m) so the coarse field's filtered halo never shows in an
- * empty cell next to a brick (P13-H1 note).
- */
-export function packFineProfile(profile: Uint8Array, dims: readonly [number, number, number], fineVoxel: number, margin = 1): FineProfileBricks {
-  const [nx, ny, nz] = dims;
-  if (profile.length < nx * ny * nz) throw new Error(`packFineProfile: lattice has ${profile.length} bytes, dims need ${nx * ny * nz}`);
-  const cells: [number, number, number] = [Math.ceil(nx / 8), Math.ceil(ny / 8), Math.ceil(nz / 8)];
-  const [cx, cy, cz] = cells;
-  const used = markCells(profile, 1, dims, cells, margin);
-  const indir = new Uint32Array(cx * cy * cz).fill(HERO_EMPTY);
-  let count = 0;
-  for (let i = 0; i < used.length; i++) if (used[i]) indir[i] = count++;
-  if (count > POOL_SLAB_BRICKS * 204) throw new Error(`packFineProfile: ${count} bricks, over the pool limit (204 slabs)`);
-  const out = new Uint8Array(count * 1000), cellOf = new Uint32Array(count);
-  const clampIdx = (c: number, n: number, o: Int32Array) => { for (let t = 0; t < BRICK_TEXELS; t++) o[t] = Math.min(n - 1, Math.max(0, c * 8 - 1 + t)); };
-  const ix = new Int32Array(BRICK_TEXELS), iy = new Int32Array(BRICK_TEXELS), iz = new Int32Array(BRICK_TEXELS);
-  for (let c2 = 0; c2 < cz; c2++) for (let c1 = 0; c1 < cy; c1++) for (let c0 = 0; c0 < cx; c0++) {
-    const cell = (c2 * cy + c1) * cx + c0, s = indir[cell];
-    if (s === HERO_EMPTY) continue;
-    cellOf[s] = cell;
-    clampIdx(c0, nx, ix); clampIdx(c1, ny, iy); clampIdx(c2, nz, iz);
-    let o = s * 1000;
-    for (let tz = 0; tz < BRICK_TEXELS; tz++) for (let ty = 0; ty < BRICK_TEXELS; ty++) {
-      const row = (iz[tz] * ny + iy[ty]) * nx;
-      for (let tx = 0; tx < BRICK_TEXELS; tx++) out[o++] = profile[row + ix[tx]];
-    }
-  }
-  return { fineVoxel, dims: [nx, ny, nz], cells, indir, count, profile: out, cellOf };
 }
 
 /**

@@ -1,6 +1,7 @@
 // In-browser .vdb import (P4-H): drop a .vdb on the page (or ?url=) and get a Nubis cloud, no Houdini or Python.
 //   ?url=<path>        load a file served by the dev server, e.g. /@fs/<abs path>/ParkouringCloud.vdb (see README note in work/reports/P4-H.md)
 //   ?mode=auto|pack|fog|sdf   ?voxel=8   ?scale=<world scale>   ?width=<metres>   ?iso=0.05   ?grid=<name>   ?seed=1
+//   ?fine=4|2          also build a fine hero layer at that voxel size (P13-H4); the "fine" picker re-imports, "download fine.nvdb" exports it
 //   ?compare=parkouring       after import, read the NVDF back and compare with /clouds/<name>/nvdf.bin (reported in __clouds.report().compare)
 //   ?quality=high  ?haze=1  ?exposure=0.35
 // Without ?width / ?scale, a cloud narrower than 600 m (a typical artist VDB in real-world units) is scaled to 1500 m wide.
@@ -9,7 +10,7 @@ import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
 import { pass } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend } from '@clouds/three';
-import { inspectVdb, importVdb, loadCloudNoise, VdbImportError, type GpuCloudVolume, type VdbImportInfo, type VdbImportMode, type VdbImportOptions } from '@clouds/runtime';
+import { exportFineNvdb, inspectVdb, importVdb, loadCloudNoise, VdbImportError, type FineProfile, type GpuCloudVolume, type VdbImportInfo, type VdbImportMode, type VdbImportOptions } from '@clouds/runtime';
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { CLOUD_BASE_HEIGHT, CLOUD_BOX, FOCUS_BOX, INSIDE_POINT, bookmarkTime, isBookmarkName, resolveBookmark, sunVector, type BookmarkName } from '../flagship/bookmarks';
 import { CameraRig } from '../flagship/controls';
@@ -97,6 +98,26 @@ try {
   picker.type = 'file'; picker.accept = '.vdb'; picker.style.cssText = 'color:#fff;font:12px monospace;max-width:170px';
   picker.onchange = () => { const f = picker.files?.[0]; if (f) void loadFile(f); };
   bar.append(picker);
+  // Fine hero layer (P13-H4): off, 4 m or 2 m under the 8 m volume; changing it re-imports the current file.
+  const fineSel = document.createElement('select');
+  for (const [v, label] of [['', 'fine: off'], ['4', 'fine: 4 m'], ['2', 'fine: 2 m']]) { const o = document.createElement('option'); o.value = v; o.textContent = label; fineSel.append(o); }
+  fineSel.value = query.get('fine') ?? '';
+  fineSel.onchange = () => { if (lastBuffer) void loadBuffer(lastBuffer, sourceName, 0); };
+  const download = document.createElement('button');
+  download.textContent = 'download fine.nvdb'; download.disabled = true;
+  download.onclick = () => {
+    if (!lastFine) return;
+    const t = performance.now();
+    const { buffer, leaves } = exportFineNvdb(lastFine);
+    pageMs.exportMs = performance.now() - t;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([buffer], { type: 'application/octet-stream' }));
+    a.download = `${sourceName.replace(/\.vdb$/i, '') || 'hero'}-fine-${lastFine.voxelSize}m.nvdb`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    console.log(`exported fine.nvdb: ${buffer.byteLength} bytes, ${leaves} leaves`);
+  };
+  bar.append(fineSel, download);
   for (const name of BOOKMARKS) { const b = document.createElement('button'); b.textContent = name; b.onclick = () => applyBookmark(name); bar.appendChild(b); }
   addEventListener('dragover', e => { e.preventDefault(); hint.style.borderColor = '#7cf'; });
   addEventListener('dragleave', () => { hint.style.borderColor = 'rgba(255,255,255,.7)'; });
@@ -125,10 +146,12 @@ try {
   let volume: GpuCloudVolume | null = null;
   let lastInfo: VdbImportInfo | null = null, lastError: string | null = null, lastCompare: CompareResult | null = null;
   let pageMs: Record<string, number> = {}, sourceName = '', optionsUsed: VdbImportOptions = {};
+  let lastBuffer: ArrayBuffer | null = null, lastFine: FineProfile | null = null;
   let frame = 0;
   const num = (k: string): number | undefined => (query.has(k) && query.get(k) !== '' ? Number(query.get(k)) : undefined);
   const importOptions = (ab: ArrayBuffer): VdbImportOptions => {
     const o: VdbImportOptions = { voxelSize: num('voxel') ?? 8, mode: (query.get('mode') as VdbImportMode | null) ?? 'auto' };
+    if (fineSel.value) o.fineVoxelSize = Number(fineSel.value);
     for (const k of ['iso', 'seed', 'margin', 'smooth', 'profileGain', 'scaleGain', 'profileNoise'] as const) { const v = num(k); if (v !== undefined) o[k] = v; }
     if (query.has('grid')) o.grid = query.get('grid')!;
     const width = num('width'), scale = num('scale');
@@ -149,7 +172,8 @@ try {
       lines.push(`mode ${info.mode}  base grid "${info.baseGrid}"  world scale ${info.worldScale.toFixed(4)}  source width ${info.sourceWidthMeters.toFixed(0)} m`);
       lines.push(`grids: ${info.grids.map(g => `${g.name} [${g.gridClass || g.valueType}${g.voxelSize ? `, ${g.voxelSize[0].toPrecision(3)}` : ''}, ${g.compression}${g.unsupported ? ', UNSUPPORTED' : ''}] ${g.role}`).join(' | ')}`);
       lines.push(`volume ${info.dims.join('x')} @ ${info.voxelSizeMeters} m = ${info.sizeMeters.map(v => v.toFixed(0)).join(' x ')} m (x,y-up,z), ${(100 * info.occupiedFraction).toFixed(1)}% occupied`);
-      lines.push(`import ms: read ${f(pageMs.readMs)}  parse ${f(t.parseMs)}  resample ${f(t.resampleMs)}  channels ${f(t.channelsMs)}  upload ${f(t.uploadMs)}  gpu sdf ${f(t.sdfGpuMs)}  = ${f(t.totalMs)}${pageMs.firstFrameMs ? `  (first frame +${f(pageMs.firstFrameMs)})` : ''}`);
+      if (info.fine) lines.push(`fine ${info.fine.dims.join('x')} @ ${info.fine.voxelSizeMeters} m, ${(100 * info.fine.occupiedFraction).toFixed(1)}% occupied, ${info.fine.bricks} bricks, ${(info.fine.gpuBytes / 1048576).toFixed(1)} MB GPU`);
+      lines.push(`import ms: read ${f(pageMs.readMs)}  parse ${f(t.parseMs)}  resample ${f(t.resampleMs)}  channels ${f(t.channelsMs)}  upload ${f(t.uploadMs)}  gpu sdf ${f(t.sdfGpuMs)}${t.fineMs !== undefined ? `  fine ${f(t.fineMs)}` : ''}  = ${f(t.totalMs)}${pageMs.firstFrameMs ? `  (first frame +${f(pageMs.firstFrameMs)})` : ''}`);
       for (const n of info.notes) lines.push(`note: ${n}`);
       if (lastCompare) lines.push(`vs assets/clouds/${lastCompare.against}: dims ${lastCompare.dimsMatch}, crop ${lastCompare.cropOffsetMatch}; within 2/255 R/G/B ${lastCompare.withinTwo.map(v => (100 * v).toFixed(3)).join('/')}%`);
     }
@@ -162,7 +186,9 @@ try {
     try {
       optionsUsed = importOptions(ab);
       const t0 = performance.now();
-      const { volume: next, info } = await importVdb(device, ab, optionsUsed);
+      lastBuffer = ab;
+      const { volume: next, info, fine } = await importVdb(device, ab, optionsUsed);
+      lastFine = fine ?? null; download.disabled = !fine;
       const prev = volume;
       await clouds.setVolume(next, { position: [0, CLOUD_BASE_HEIGHT, 0] });
       volume = next; lastInfo = info;

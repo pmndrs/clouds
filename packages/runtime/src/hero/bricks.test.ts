@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BRICK_TEXELS, HERO_EMPTY, packFineBricks, packFineProfile, POOL_XY, reduceFineLattice } from './bricks';
+import { BRICK_TEXELS, HERO_EMPTY, packFineBricks, POOL_XY, reduceFineLattice } from './bricks';
 
 const lattice = (dims: [number, number, number], f: (x: number, y: number, z: number) => number) => {
   const out = new Uint8Array(dims[0] * dims[1] * dims[2] * 4);
@@ -42,29 +42,35 @@ describe('packFineBricks', () => {
   });
 });
 
-describe('packFineProfile', () => {
-  it('allocates exactly the cells within the margin of a set voxel (brute force), with clamped aprons', () => {
+describe('packFineBricks on a hero profile (coarse G/B)', () => {
+  it('allocates exactly the cells within the margin of a set voxel (brute force), clamped aprons, G/B of the holding coarse voxel', () => {
     const dims: [number, number, number] = [37, 29, 21];
     let seed = 7;
     const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
     const p = new Uint8Array(dims[0] * dims[1] * dims[2]);
     for (let i = 0; i < p.length; i++) if (rnd() < 0.004) p[i] = 1 + Math.floor(rnd() * 255);
     for (let x = 3; x < 12; x++) p[x + dims[0] * (5 + dims[1] * 9)] = 200;   // a run along x
+    const cd = [19, 15, 11];
+    const coarse = new Uint8Array(cd[0] * cd[1] * cd[2] * 4);
+    for (let i = 0; i < coarse.length; i += 4) coarse.set([9, i % 251, (i >> 2) % 241, 0], i);
     for (const m of [0, 1, 3]) {
-      const b = packFineProfile(p, dims, 4, m);
+      const b = packFineBricks(p, dims, 4, { margin: m, coarse: { rgba: coarse, ratio: 2 } });
       const [cx, cy, cz] = b.cells;
       for (let c2 = 0; c2 < cz; c2++) for (let c1 = 0; c1 < cy; c1++) for (let c0 = 0; c0 < cx; c0++) {
         let want = false;
         for (let z = Math.max(0, c2 * 8 - m); z < Math.min(dims[2], c2 * 8 + 8 + m) && !want; z++)
           for (let y = Math.max(0, c1 * 8 - m); y < Math.min(dims[1], c1 * 8 + 8 + m) && !want; y++)
             for (let x = Math.max(0, c0 * 8 - m); x < Math.min(dims[0], c0 * 8 + 8 + m); x++) if (p[(z * dims[1] + y) * dims[0] + x]) { want = true; break; }
-        expect(b.indir[(c2 * cy + c1) * cx + c0] !== HERO_EMPTY, `m=${m} cell ${c0},${c1},${c2}`).toBe(want);
-      }
-      for (let s = 0; s < b.count; s++) {
-        const c = b.cellOf[s], c0 = c % cx, c1 = Math.floor(c / cx) % cy, c2 = Math.floor(c / (cx * cy));
+        const s = b.indir[(c2 * cy + c1) * cx + c0];
+        expect(s !== HERO_EMPTY, `m=${m} cell ${c0},${c1},${c2}`).toBe(want);
+        if (s === HERO_EMPTY) continue;
+        const slab = b.slabs[Math.floor(s / 1024)];
         for (let t = 0; t < 1000; t += 13) {
-          const v = [c0 * 8 - 1 + (t % 10), c1 * 8 - 1 + (Math.floor(t / 10) % 10), c2 * 8 - 1 + Math.floor(t / 100)].map((q, a) => Math.min(dims[a] - 1, Math.max(0, q)));
-          expect(b.profile[s * 1000 + t]).toBe(p[(v[2] * dims[1] + v[1]) * dims[0] + v[0]]);
+          const tt = [t % 10, Math.floor(t / 10) % 10, Math.floor(t / 100)];
+          const v = [c0, c1, c2].map((c, a) => Math.min(dims[a] - 1, Math.max(0, c * 8 - 1 + tt[a])));
+          const o = ((tt[2] * POOL_XY + (Math.floor(s / 32) % 32) * BRICK_TEXELS + tt[1]) * POOL_XY + (s % 32) * BRICK_TEXELS + tt[0]) * 4;
+          const co = (((v[2] >> 1) * cd[1] + (v[1] >> 1)) * cd[0] + (v[0] >> 1)) * 4;
+          expect(Array.from(slab.subarray(o, o + 4))).toEqual([p[(v[2] * dims[1] + v[1]) * dims[0] + v[0]], coarse[co + 1], coarse[co + 2], 255]);
         }
       }
     }

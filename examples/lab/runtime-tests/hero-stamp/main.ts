@@ -5,12 +5,15 @@
 //   region   a generated cumulus region with disney-fine stamped three times (replace): A at yaw 0, B at yaw 90 deg, C at 180 deg overlapping B
 // Each renders with the fine layer (`fine`) or with `fineDistance = 0` (`coarse`), so the A/B is the same asset, same frame.
 // Checks at load (fail the page):
+//   fill      the loaded hero's pool: R equals the decoded fine.nvdb lattice (clamped at the faces), G/B those of the coarse voxel holding
+//             the texel (the loader's rule)
 //   exact     two stamps into an empty target (yaw 0 and 90 deg): the target's coarse NVDF over each box equals the hero's (rotated), and
 //             every hero fine voxel reads the same profile through the target overlay as through the hero's own (R exact, G/B <= 1/255 inside)
 //   sdf       region after the stamps and the SDF rebuild: the GPU SDF never overshoots the CPU EDT of the stamped coarse mask (P4-C check),
 //             and every fine voxel with a profile > 0 lies in a coarse voxel with profile > 0 (so the coarse SDF bounds the fine field too)
-// Bookmarks: <direct|region>-<fine|coarse>@<far|near|close>, and cost-<...> (same view; GPU medians in the report).
-import { createEmptyCloudVolume, createGeneratorScratch, createSdfRebuilder, createVolumeGenerator, CLOUD_PRESETS, encodeProceduralWeatherMap, loadCloudNoise, loadCloudVolume, signedDistanceCpu, stampCloud, uploadCloudVolume, type CloudQuality, type CloudVolumeAsset, type GpuCloudVolume, type StampResult } from '@clouds/runtime';
+//   alone    stamp A by itself in an empty region of the same size
+// Bookmarks: <direct|region|alone>-<fine|coarse>@<far|near|close>, and cost-<...> (same view; GPU medians in the report).
+import { decodeFineNvdb, createEmptyCloudVolume, createGeneratorScratch, createSdfRebuilder, createVolumeGenerator, CLOUD_PRESETS, encodeProceduralWeatherMap, loadCloudNoise, loadCloudVolume, signedDistanceCpu, stampCloud, uploadCloudVolume, type CloudQuality, type CloudVolumeAsset, type GpuCloudVolume, type StampResult } from '@clouds/runtime';
 import { fromHalfBits } from '../../../../packages/runtime/src/half';
 import { installCloudsHarness } from '../../harness/clouds-contract';
 import { createStage } from '../hero-fine/stage';
@@ -56,7 +59,7 @@ try {
   const stage = await createStage({ quality, timeOfDay: 14, deterministic: query.get('deterministic') === '1' });
   const { device, runtime } = stage;
   device.addEventListener('uncapturederror', e => harness.fail((e as GPUUncapturedErrorEvent).error.message));
-  const fineDistance = runtime.settings.fineDistance;
+  const fineDistance = query.has('fd') ? Number(query.get('fd')) : runtime.settings.fineDistance;   // ?fd= overrides the tier's fineDistance in the fine bookmarks
 
   // ---- the hero: the shipped loader path ----
   const t0 = performance.now();
@@ -67,6 +70,25 @@ try {
   await device.queue.onSubmittedWorkDone();
   const ratio = asset.voxelSizeMeters / fa.voxelSizeMeters;
   notes.push(`disney-fine: coarse ${asset.dims.join('x')} @ ${asset.voxelSizeMeters} m, fine ${fa.dims.join('x')} @ ${fa.voxelSizeMeters} m, ${fa.leaves} leaves -> ${hero.fine!.bricks} bricks (margin ${Math.ceil(1.5 * ratio)}), pool+indirection ${(hero.fine!.bytes / 1048576).toFixed(1)} MB (payload ${(hero.fine!.bricks * 4000 / 1048576).toFixed(1)} MB); loader CPU ${fa.loadMs.toFixed(1)} ms (decode + pack), wall ${loadWallMs.toFixed(0)} ms incl. fetch`);
+
+  // ---- fill: the loader's bricks against the lattice and the coarse G/B ----
+  {
+    const meta = await (await fetch('/clouds/disney-fine/cloud.json')).json() as { fine: { file: string } };
+    const lattice = decodeFineNvdb(await (await fetch(`/clouds/disney-fine/${meta.fine.file}`)).arrayBuffer(), fa.dims).profile;
+    const rd = await readOverlay(device, hero);
+    const [fx, fy, fz] = fa.dims, [cx, cy] = asset.dims;
+    const near = (c: number, f: number[]) => asset.nvdf[((Math.floor(f[2] / ratio) * cy + Math.floor(f[1] / ratio)) * cx + Math.floor(f[0] / ratio)) * 4 + c];
+    let n = 0, rBad = 0, gbMax = 0, missing = 0;
+    for (let z = 0; z < fz; z += 3) for (let y = 0; y < fy; y += 3) for (let x = 0; x < fx; x += 3) {
+      const g = rd(x, y, z), want = lattice[(z * fy + y) * fx + x];
+      if (!g) { if (want) missing++; continue; }
+      n++;
+      if (g[0] !== want) rBad++;
+      gbMax = Math.max(gbMax, Math.abs(g[1] - near(1, [x, y, z])), Math.abs(g[2] - near(2, [x, y, z])));
+    }
+    check(rBad === 0 && missing === 0 && n > 0, `fill: hero pool R equals the decoded lattice (${n} texels sampled, ${rBad} differ, ${missing} set voxels without a brick)`);
+    check(gbMax === 0, `fill: hero pool G/B equal those of the coarse voxel holding each texel (max |diff| ${gbMax}/255)`);
+  }
 
   // ---- exact: two stamps into an empty target ----
   const [aw, ah, ad] = asset.dims, v = asset.voxelSizeMeters;
@@ -88,13 +110,6 @@ try {
     const heroRead = await readOverlay(device, hero), tgtRead = await readOverlay(device, empty);
     const tn = new Uint8Array(await readTexture(device, empty.nvdf, 4));
     let coarseBad = 0, fineBad = 0, gbBad = 0, nGb = 0, n = 0, set = 0;
-    const interior = (x: number, y: number, z: number) => {
-      for (let dz = -1; dz <= 1; dz++) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-        const X = x + dx, Y = y + dy, Z = z + dz;
-        if (X < 0 || Y < 0 || Z < 0 || X >= aw || Y >= ah || Z >= ad || !asset.nvdf[((Z * ah + Y) * aw + X) * 4]) return false;
-      }
-      return true;
-    };
     for (const [k, res] of exactResults.entries()) {
       const f = res.fine && 'position' in res.fine ? res.fine : null;
       check(!!f, `exact stamp ${k}: fine layer stamped (${JSON.stringify(res.fine)})`);
@@ -118,17 +133,16 @@ try {
         const hr = h ? h[0] : 0, gr = g ? g[0] : 0;
         n++; if (hr) set++;
         if (hr !== gr) fineBad++;
-        // G/B: the stamp writes the hero's G/B where its coarse profile is set and clears (G = B = 1) elsewhere, so they agree where every
-        // coarse tap of the trilinear is set (3^3 coarse voxels around the texel's own).
-        if (h && g && hr && interior(Math.floor(x / ratio), Math.floor(y / ratio), Math.floor(z / ratio))) {
+        // G/B: the stamp copies the hero's coarse G/B where its coarse profile is set (and clears elsewhere), so they agree exactly there.
+        if (h && g && asset.nvdf[((Math.floor(z / ratio) * ah + Math.floor(y / ratio)) * aw + Math.floor(x / ratio)) * 4]) {
           nGb++;
-          if (Math.abs(h[1] - g[1]) > 1 || Math.abs(h[2] - g[2]) > 1) gbBad++;
+          if (h[1] !== g[1] || h[2] !== g[2]) gbBad++;
         }
       }
     }
     check(coarseBad === 0, `exact: coarse NVDF stamped at the snapped placement equals the hero's, R over both boxes (${coarseBad} mismatches)`);
     check(fineBad === 0 && set > 0, `exact: every hero fine voxel reads the same profile through the stamped overlay (${n} voxels, ${set} set, ${fineBad} mismatches)`);
-    check(gbBad === 0 && nGb > 0, `exact: G/B of the stamped bricks within 1/255 of the hero's inside the cloud (${nGb} voxels, ${gbBad} over)`);
+    check(gbBad === 0 && nGb > 0, `exact: G/B of the stamped bricks equal the hero's where its coarse profile is set (${nGb} voxels, ${gbBad} differ)`);
     notes.push(`exact stamps: ${exactResults.map(r => JSON.stringify(r.fine)).join('; ')}`);
   }
   empty.destroy();
@@ -193,8 +207,34 @@ try {
       }
     }
     check(fineSet > 0 && outside === 0, `sdf: fine occupancy inside coarse occupancy after the stamps (${fineSet} fine voxels set, ${outside} in empty coarse voxels)`);
+    // No holes: a brick texel deep inside the coarse cloud (its coarse voxel and the 26 around it at R >= 64) must not be empty.
+    let deep = 0, holes = 0;
+    const holeAt: string[] = [];
+    const cR = (x: number, y: number, z: number) => (x < 0 || y < 0 || z < 0 || x >= DIMS[0] || y >= DIMS[1] || z >= DIMS[2]) ? 0 : nv[((z * DIMS[1] + y) * DIMS[0] + x) * 4];
+    for (let c2 = 0; c2 < cz; c2++) for (let c1 = 0; c1 < cy; c1++) for (let c0 = 0; c0 < cx; c0++) {
+      if (region.fine!.indirData![(c2 * cy + c1) * cx + c0] === EMPTY) continue;
+      for (let z = c2 * 8; z < Math.min(c2 * 8 + 8, DIMS[2] * ratio); z++) for (let y = c1 * 8; y < Math.min(c1 * 8 + 8, DIMS[1] * ratio); y++) for (let x = c0 * 8; x < Math.min(c0 * 8 + 8, DIMS[0] * ratio); x++) {
+        const X = Math.floor(x / ratio), Y = Math.floor(y / ratio), Z = Math.floor(z / ratio);
+        let ok = true;
+        for (let dz = -1; dz <= 1 && ok; dz++) for (let dy = -1; dy <= 1 && ok; dy++) for (let dx = -1; dx <= 1; dx++) if (cR(X + dx, Y + dy, Z + dz) < 64) { ok = false; break; }
+        if (!ok) continue;
+        deep++;
+        if (!rd(x, y, z)![0]) { holes++; if (holeAt.length < 6) holeAt.push(`[${x},${y},${z}] cell ${c0},${c1},${c2} slot ${region.fine!.indirData![(c2 * cy + c1) * cx + c0]}`); }
+      }
+    }
+    check(deep > 0 && holes === 0, `sdf: no empty brick texels deep inside the coarse cloud (${deep} deep texels, ${holes} empty${holeAt.length ? ': ' + holeAt.join('; ') : ''})`);
   }
   rebuilder.destroy(); scratch.destroy();
+  // `alone`: stamp A by itself into an empty region of the same size (what the hero contributes to the region views).
+  const alone = createEmptyCloudVolume(device, DIMS, v, 'hero-stamp alone');
+  {
+    const enc = device.createCommandEncoder();
+    stampCloud(device, enc, alone, hero, { position: stamps[0].position, yaw: stamps[0].yaw, mode: 'replace' });
+    device.queue.submit([enc.finish()]);
+    const rb = createSdfRebuilder(device, alone);
+    const enc2 = device.createCommandEncoder(); rb.generate(enc2); device.queue.submit([enc2.finish()]);
+    await device.queue.onSubmittedWorkDone(); rb.destroy();
+  }
 
   // ---- views ----
   await runtime.setNoise(await loadCloudNoise('/clouds/noise/'));
@@ -218,15 +258,15 @@ try {
   // Region placement of stamp A's box min corner (snapped).
   const fa0 = regionResults[0].fine && 'position' in regionResults[0].fine ? regionResults[0].fine.position : stamps[0].position;
   const aMin: V3 = [REGION_POS[0] + fa0[0] - aw * v / 2, REGION_POS[1] + fa0[1] - ad * v / 2, REGION_POS[2] + fa0[2] - ah * v / 2];
-  const VIEWS = { direct: viewsFor(DIRECT_POS), region: { ...viewsFor(aMin), far: { pos: [REGION_POS[0] + 1300, 700, REGION_POS[2] + DIMS[1] * v + 900] as V3, target: [REGION_POS[0] + 1300, 650, REGION_POS[2] + 1100] as V3 } } };
+  const VIEWS = { direct: viewsFor(DIRECT_POS), region: { ...viewsFor(aMin), far: { pos: [REGION_POS[0] + 1300, 1300, REGION_POS[2] + DIMS[1] * v + 900] as V3, target: [REGION_POS[0] + 1350, 500, REGION_POS[2] + 1250] as V3 } } };
   let current = '', bound: GpuCloudVolume | null = null;
   const apply = async (name: string) => {
-    const m = /^(cost-)?(direct|region)-(fine|coarse)(?:@(far|near|close|top))?$/.exec(name);
+    const m = /^(cost-)?(direct|region|alone)-(fine|coarse)(?:@(far|near|close|top))?$/.exec(name);
     if (!m) throw new Error(`unknown bookmark ${name}`);
-    const vol = m[2] === 'direct' ? hero : region;
+    const vol = m[2] === 'direct' ? hero : m[2] === 'alone' ? alone : region;
     if (bound !== vol) { await runtime.setVolume(vol, { position: m[2] === 'direct' ? DIRECT_POS : REGION_POS }); bound = vol; }
     runtime.settings.fineDistance = m[3] === 'fine' ? fineDistance : 0;
-    const view = VIEWS[m[2] as 'direct'][(m[4] ?? 'near') as 'near'];
+    const view = VIEWS[m[2] === 'alone' ? 'region' : m[2] as 'direct'][(m[4] ?? 'near') as 'near'];
     stage.sky.setSunDirection({ elevation: 35, azimuth: 235 });
     stage.rig.set(view.pos, view.target);
     stage.resetSamples();
@@ -242,7 +282,7 @@ try {
   });
   const summary = { notes, loader: { loadMs: fa.loadMs, wallMs: loadWallMs, leaves: fa.leaves, bricks: hero.fine!.bricks, bytes: hero.fine!.bytes }, region: regionResults.map(r => r.fine), stampMs };
   console.log(JSON.stringify(summary));
-  if (failures.length) harness.fail(`hero-stamp checks failed: ${failures.join(' | ')}`);
+  if (failures.length && query.get('strict') !== '0') harness.fail(`hero-stamp checks failed: ${failures.join(' | ')}`);   // ?strict=0: render anyway (debugging)
   else harness.ready({
     bookmark: name => apply(name),
     report: () => ({ gpuMs: stage.gpuMedian(), frameMs: stage.frameMs(), renderSize: [innerWidth, innerHeight], bookmark: current, quality: runtime.quality, ...summary }),

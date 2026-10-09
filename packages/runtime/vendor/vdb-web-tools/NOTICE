@@ -1,12 +1,13 @@
-vdb-web-tools (the `.vdb` parser only)
+vdb-web-tools (the `.vdb` parser, and the NanoVDB writer for exportFineNvdb)
 Copyright the WebVDB authors. Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 Source:  /Users/dex/Developer/WebVDB/packages/vdb-web-tools/src/vdb/  (the user's own WebVDB project,
          https://github.com/DennisSmolek/WebVDB)
 Commit:  9a8c1a5aa5c8242722904e91780224570aac7064
 
-Vendored: src/*.ts are the files of src/vdb/ (parseVdb and its helpers). The NanoVDB builder, quantizer and
-writer of the package are not vendored; nothing here needs them.
+Vendored: src/*.ts are the files of src/vdb/ (parseVdb and its helpers). src/nanovdb/ (P13-H4) holds the package's NanoVDB dense
+builder, Fp8 quantizer and .nvdb writer (bytes, tree, stats, leaf-codec, serialize, quantize, write-nvdb: unchanged; index.ts trimmed to
+those exports), used by exportFineNvdb in @clouds/runtime/import. buildFromVdb, transform and inspect are not vendored.
 
 Changes from upstream (made for the Nubis cloud importer, P4-H):
 - parse.ts: optional second argument `{ select }`. After a grid's metadata and transform are read, `select(descriptor)`

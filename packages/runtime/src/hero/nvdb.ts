@@ -8,55 +8,33 @@
  * Axes: index (i, j, k) of a hero grid is lattice (x, up, map row), so voxel (i, j, k) lands at texture (x = i, row = k, up = j).
  */
 
-const FILE_HEADER = 16, FILE_META = 176, META_GRID_SIZE = 0, META_GRID_TYPE = 32, META_NAME_SIZE = 136;
-const GRID_SIZE = 672, GRID_OFF_TYPE = 636, TREE_OFF_LEAF = 0, TREE_OFF_LEAF_COUNT = 32;
-const FP8 = 14, LEAF_SIZE = 608, LEAF_MIN = 80, LEAF_QUANTUM = 84, LEAF_CODES = 96;
-
-/** Byte offset of the first (only used) grid image in a `.nvdb` buffer. Throws on anything but an uncompressed Fp8 grid. */
-function gridOffset(v: DataView): number {
-  const magic = String.fromCharCode(...new Uint8Array(v.buffer, v.byteOffset, 8));
-  if (magic === 'NanoVDB1') return 0;   // a raw grid buffer
-  if (magic !== 'NanoVDB0' && magic !== 'NanoVDB2') throw new Error(`fine.nvdb: not a NanoVDB file (magic "${magic}")`);
-  if (v.getUint32(8, true) >>> 21 !== 32) throw new Error(`fine.nvdb: NanoVDB major version ${v.getUint32(8, true) >>> 21}, expected 32`);
-  if (v.getUint16(14, true) !== 0) throw new Error('fine.nvdb: compressed (ZIP/Blosc) files are not supported here; write codec NONE');
-  return FILE_HEADER + FILE_META + v.getUint32(FILE_HEADER + META_NAME_SIZE, true);
-}
+const FP8 = 14, LEAF_SIZE = 608;
 
 /**
  * Decode an Fp8 `.nvdb` (hero fine profile) into a dense uint8 lattice, texture axes (x, map row, up), x fastest. Values are
  * round(255 * value); voxels outside `dims` are dropped (the converter writes none). Returns the lattice and the leaf count.
  */
 export function decodeFineNvdb(buffer: ArrayBuffer, dims: readonly [number, number, number]): { profile: Uint8Array<ArrayBuffer>; leaves: number } {
-  const v = new DataView(buffer);
-  const g = gridOffset(v);
-  const type = v.getUint32(g + GRID_OFF_TYPE, true);
-  if (type !== FP8 || (g && v.getUint32(FILE_HEADER + META_GRID_TYPE, true) !== FP8)) throw new Error(`fine.nvdb: grid type ${type}, expected Fp8 (${FP8})`);
-  if (g && Number(v.getBigUint64(FILE_HEADER + META_GRID_SIZE, true)) + g > buffer.byteLength) throw new Error('fine.nvdb: truncated');
-  const tree = g + GRID_SIZE;
-  const first = tree + Number(v.getBigUint64(tree + TREE_OFF_LEAF, true));
-  const count = v.getUint32(tree + TREE_OFF_LEAF_COUNT, true);
-  if (first + count * LEAF_SIZE > buffer.byteLength) throw new Error('fine.nvdb: leaf array runs past the end of the file');
+  const v = new DataView(buffer), bytes = new Uint8Array(buffer);
+  const magic = String.fromCharCode(...bytes.subarray(0, 8));
+  // A segment file: 16-byte header (version at 8, codec at 14), 176-byte metadata (name size at 136), the name, then the grid. NanoVDB1: a raw grid.
+  const g = magic === 'NanoVDB1' ? 0 : 192 + v.getUint32(152, true);
+  // GridData is 672 bytes (grid type at 636), then TreeData (first leaf offset at 0, leaf count at 32).
+  const tree = g + 672, first = tree + Number(v.getBigUint64(tree, true)), count = v.getUint32(tree + 32, true);
+  if (!/^NanoVDB[012]$/.test(magic) || (g && (v.getUint32(8, true) >>> 21 !== 32 || v.getUint16(14, true))) || v.getUint32(g + 636, true) !== FP8 || first + count * LEAF_SIZE > buffer.byteLength) {
+    throw new Error('fine.nvdb: need an uncompressed Fp8 grid, NanoVDB 32.x');
+  }
   const [nx, ny, nz] = dims;
   const profile = new Uint8Array(nx * ny * nz);
-  const bytes = new Uint8Array(buffer);
   for (let l = 0; l < count; l++) {
     const a = first + l * LEAF_SIZE;
     // The leaf origin is its bbox min with the low three bits cleared (NanoVDB LeafData::origin()).
     const i0 = v.getInt32(a, true) & ~7, j0 = v.getInt32(a + 4, true) & ~7, k0 = v.getInt32(a + 8, true) & ~7;
-    const min = v.getFloat32(a + LEAF_MIN, true), q = v.getFloat32(a + LEAF_QUANTUM, true);
-    const s = 255 * q, o = 255 * min, codes = a + LEAF_CODES;
-    // Leaf voxel n = (i << 6) | (j << 3) | k.
-    if (i0 >= 0 && j0 >= 0 && k0 >= 0 && i0 + 8 <= nx && k0 + 8 <= ny && j0 + 8 <= nz) {
-      for (let n = 0, di = 0; di < 8; di++) for (let dj = 0; dj < 8; dj++) {
-        let p = ((j0 + dj) * ny + k0) * nx + i0 + di;
-        for (let dk = 0; dk < 8; dk++, n++, p += nx) profile[p] = Math.round(bytes[codes + n] * s + o);
-      }
-      continue;
-    }
+    // Leaf minimum and quantum at 80 and 84, the 512 codes at 96; voxel n = (i << 6) | (j << 3) | k.
+    const s = 255 * v.getFloat32(a + 84, true), o = 255 * v.getFloat32(a + 80, true);
     for (let n = 0; n < 512; n++) {
       const x = i0 + (n >> 6), up = j0 + ((n >> 3) & 7), row = k0 + (n & 7);
-      if (x < 0 || up < 0 || row < 0 || x >= nx || row >= ny || up >= nz) continue;
-      profile[(up * ny + row) * nx + x] = Math.round(bytes[codes + n] * s + o);
+      if (x >= 0 && up >= 0 && row >= 0 && x < nx && row < ny && up < nz) profile[(up * ny + row) * nx + x] = Math.round(bytes[a + 96 + n] * s + o);
     }
   }
   return { profile, leaves: count };

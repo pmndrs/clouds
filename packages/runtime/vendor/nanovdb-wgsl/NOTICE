@@ -1,0 +1,13 @@
+nanovdb-wgsl (the CPU half only), vendored for the hero fine-layer tests (P13-H3)
+Copyright the WebVDB authors. Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Source:  /Users/dex/Developer/WebVDB/packages/nanovdb-wgsl/src/ (the user's own WebVDB project, https://github.com/DennisSmolek/WebVDB)
+Commit:  9a8c1a5aa5c8242722904e91780224570aac7064 (copied via scripts/vdb/vendor/webvdb, P13-H2)
+
+Vendored: src/nvdb-file.ts (NanoVDBFile) and src/cpu/{read-value, stride-tables, stride-tables.generated}.ts (the CPU readValue and the
+PNanoVDB.h ABI 32.9 offsets). They are the reference the runtime's own Fp8 leaf walker (src/hero/nvdb.ts) is tested against; no shipped
+entry imports them. The WGSL traversal (pnanovdb.wgsl) is not vendored (spec P8 section 6: not on the hot path).
+
+Changes from upstream:
+- nvdb-file.ts: the ZIP codec inflates through ../../vdb-web-tools/src/inflate.ts (inflateZlib) instead of fflate, so the runtime keeps no
+  dependency. fflate's bounded `out` buffer is emulated by a size check after inflation.

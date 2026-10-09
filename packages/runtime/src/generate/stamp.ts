@@ -252,7 +252,7 @@ const warned = new Set<string>();
 // One thread per texel of a target brick that the hero touches (P13-H3). `owned` replays the coarse stamp's decision for the target voxel
 // that holds the texel (the hero wrote it, or cleared it within clearMargin): owned texels read the hero's fine profile through its
 // indirection and pool (exact, the placement is snapped), the others keep the previous brick or take the target's coarse profile.
-// G and B come from the stamped target NVDF.
+// G and B come from the stamped target NVDF (the coarse voxel holding the texel).
 const REBRICK_WGSL = /* wgsl */ `
 struct P {
   tcells: vec4<u32>,   // target cells xyz, job count
@@ -301,10 +301,10 @@ fn rebrickMain(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_i
     out = textureLoad(oldPool, slotOrigin(job.z) + tt, 0);
   } else {
     let fc = vec3<f32>(f) + 0.5;
-    let coarse = textureSampleLevel(targetNvdf, smp, fc / (vec3<f32>(P0.tdims.xyz)), 0.0);
-    // Not owned: the coarse profile, zero where the coarse voxel holding the texel is empty, so fine occupancy stays inside coarse
-    // occupancy (the SDF bound) although the pool filters the coarse field a second time.
-    var r = select(0.0, coarse.r, textureLoad(targetNvdf, f / ratio, 0).r > 0.0);
+    // G/B: the coarse voxel holding the texel (as the loaders do). Not owned: the coarse profile (trilinear), zero where that voxel is
+    // empty, so fine occupancy stays inside coarse occupancy (the SDF bound) although the pool filters the coarse field a second time.
+    let cv = textureLoad(targetNvdf, f / ratio, 0);
+    var r = select(0.0, textureSampleLevel(targetNvdf, smp, fc / (vec3<f32>(P0.tdims.xyz)), 0.0).r, cv.r > 0.0);
     if (owned) {
       let uf = toAsset(fc * P0.adims.w);
       let h = vec3<i32>(floor(vec3<f32>(uf.x, uf.z, uf.y) / P0.adims.w + vec3<f32>(P0.hdims.xyz) * 0.5));
@@ -314,7 +314,7 @@ fn rebrickMain(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_i
         if (s != 0xffffffffu) { r = textureLoad(heroPool, slotOrigin(s) + 1u + vec3<u32>(h) % 8u, 0).r; }
       }
     }
-    out = vec4<f32>(r, coarse.g, coarse.b, 1.0);
+    out = vec4<f32>(r, cv.g, cv.b, 1.0);
   }
   textureStore(outPool, slotOrigin(job.x) + tt, out);
 }

@@ -1,5 +1,5 @@
 /** Runtime cloud assets produced by scripts/nubis/convert.mjs (see assets/clouds/README.md). */
-import { packFineProfile, type FineProfileBricks } from './hero/bricks';
+import { packFineBricks, type FineBricks } from './hero/bricks';
 import { decodeFineNvdb } from './hero/nvdb';
 
 export interface CloudVolumeAsset {
@@ -20,7 +20,8 @@ export interface CloudFineAsset {
   voxelSizeMeters: number;
   /** Fine lattice dims, texture axes (x, map row, up): coarse dims x (coarse voxel / fine voxel). */
   dims: [number, number, number];
-  bricks: FineProfileBricks;
+  /** The fine bricks (rgba slabs: R the fine profile, G/B of the coarse voxel holding each texel), ready for uploadFineBricks. */
+  bricks: FineBricks;
   /** Leaves in `fine.nvdb`. */
   leaves: number;
   /** CPU ms of the decode and the brick packing (the loader cost; the fetch is not counted). */
@@ -87,10 +88,9 @@ export async function loadCloudVolume(baseUrl: string, options: LoadCloudVolumeO
   };
   if (f && fineBuffer) {
     const ratio = meta.voxelSizeMeters / f.voxelSizeMeters;
-    if (f.offsetFineVoxels?.some(o => o) || f.dims.some((d, i) => d !== meta.dims[i] * ratio)) throw new Error(`Cloud ${meta.name}: the fine lattice is not nested in the coarse one.`);
     const t0 = performance.now();
     const { profile, leaves } = decodeFineNvdb(fineBuffer, f.dims);
-    const bricks = packFineProfile(profile, f.dims, f.voxelSizeMeters, Math.ceil(1.5 * ratio));
+    const bricks = packFineBricks(profile, f.dims, f.voxelSizeMeters, { margin: Math.ceil(1.5 * ratio), coarse: { rgba: asset.nvdf, ratio } });
     asset.fine = { voxelSizeMeters: f.voxelSizeMeters, dims: f.dims, bricks, leaves, loadMs: performance.now() - t0 };
   }
   return asset;

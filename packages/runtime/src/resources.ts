@@ -1,6 +1,6 @@
 import type { CloudNoiseAsset, CloudVolumeAsset } from './assets';
 import { toHalfBitsRoundDown } from './half';
-import { uploadFineProfile, type GpuFineOverlay } from './hero/overlay';
+import { uploadFineBricks, type GpuFineOverlay } from './hero/overlay';
 
 /** A cloud volume on the GPU. Texture axes are source axes (x, map row, up); see work/specs/P1-runtime.md. */
 export interface GpuCloudVolume {
@@ -13,7 +13,8 @@ export interface GpuCloudVolume {
   /**
    * P13-H1: the fine hero overlay (brick pool + indirection over this volume's box), read by the march within
    * `CloudSettings.fineDistance`. Its lattice must be nested in this one (same min corner, fine voxel = voxelSize / 2 or / 4).
-   * `destroy()` releases it only when the code that attached it says so (uploadFineBricks results are caller-owned).
+   * Who owns it: uploadCloudVolume (an asset with `fine`), importVdb (fineVoxelSize) and stampCloud (fine heroes stamped into the volume)
+   * attach overlays the volume's `destroy()` releases; an overlay from uploadFineBricks attached by hand stays the caller's.
    */
   fine?: GpuFineOverlay;
   destroy(): void;
@@ -30,8 +31,8 @@ export function uploadCloudVolume(device: GPUDevice, asset: CloudVolumeAsset): G
   const sdf = device.createTexture({ label: `${asset.name} sdf`, dimension: '3d', format: 'r16float', size, usage });
   device.queue.writeTexture({ texture: sdf }, halfs, { bytesPerRow: w * 2, rowsPerImage: h }, size);
   const v = asset.voxelSizeMeters;
-  // P13-H3: the fine hero profile (owned by this volume): bricks plus the coarse G/B, filled on the GPU.
-  const fine = asset.fine && uploadFineProfile(device, asset.fine.bricks, nvdf, asset.dims, asset.name);
+  // P13-H3: the fine hero layer's bricks (owned by this volume).
+  const fine = asset.fine && uploadFineBricks(device, asset.fine.bricks, asset.name);
   return {
     nvdf, sdf, dims: [w, h, d], voxelSize: v,
     extentMeters: [w * v, d * v, h * v],

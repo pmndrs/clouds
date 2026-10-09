@@ -8,8 +8,8 @@
 // GPU: the SDF by the jump flood of createSdfRebuilder (2 rounds), as for stamped clouds.
 import type { GpuCloudVolume } from '../resources';
 import { createEmptyCloudVolume, createSdfRebuilder } from '../generate/stamp';
-import { packFineProfile } from '../hero/bricks';
-import { uploadFineProfile } from '../hero/overlay';
+import { packFineBricks } from '../hero/bricks';
+import { uploadFineBricks } from '../hero/overlay';
 import { convertVdb, VdbImportError, type ConvertedVdb, type VdbImportInfo, type VdbImportOptions } from './convert';
 import { splitFineLattice, type FineProfile } from './fine';
 
@@ -18,7 +18,7 @@ export type { ConvertedVdb, VdbGridSummary, VdbImportErrorCode, VdbImportInfo, V
 export { PACK_FIT } from './pack-fit';
 export { exportFineNvdb, splitFineLattice, type ExportFineNvdbOptions, type FineProfile } from './fine';
 // The fine hero tools (P13-H3): the fine.nvdb reader and the brick packers, for loaders and tools that build their own volumes.
-export { decodeFineNvdb, packFineProfile, packFineBricks, reduceFineLattice, uploadFineProfile, type FineProfileBricks, type PackFineOptions } from '../hero';
+export { decodeFineNvdb, packFineBricks, reduceFineLattice, type PackFineOptions } from '../hero';
 
 export interface ImportedVdb {
   volume: GpuCloudVolume;
@@ -76,8 +76,8 @@ export async function importVdb(device: GPUDevice, arrayBuffer: ArrayBuffer, opt
     occupiedFraction: occ / (cd[0] * cd[1] * cd[2]), sizeMeters: [cd[0] * v, cd[2] * v, cd[1] * v],
   };
   const { volume, uploadMs, sdfGpuMs } = await uploadConvertedVdb(device, { nvdf: split.coarse.nvdf, dims: cd, voxelSize: v, info });
-  const bricks = packFineProfile(split.fine.profile, split.fine.dims, fv, Math.ceil(1.5 * ratio));
-  const fine = uploadFineProfile(device, bricks, volume.nvdf, cd, 'vdb import fine');
+  const bricks = packFineBricks(split.fine.profile, split.fine.dims, fv, { margin: Math.ceil(1.5 * ratio), coarse: { rgba: split.coarse.nvdf, ratio } });
+  const fine = uploadFineBricks(device, bricks, 'vdb import fine');
   await device.queue.onSubmittedWorkDone();
   volume.fine = fine;
   const destroy = volume.destroy;

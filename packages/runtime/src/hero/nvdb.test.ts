@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { NanoVDBFile } from '../../vendor/nanovdb-wgsl/src/nvdb-file';
 import { readValue } from '../../vendor/nanovdb-wgsl/src/cpu/read-value';
 import { defineNumber, gridTypeConstantsFor, gridTypeIds } from '../../vendor/nanovdb-wgsl/src/cpu/stride-tables';
-import { BRICK_TEXELS, HERO_EMPTY, packFineBricks, packFineProfile, POOL_XY, reduceFineLattice } from './bricks';
+import { HERO_EMPTY, packFineBricks, reduceFineLattice } from './bricks';
 import { decodeFineNvdb } from './nvdb';
 
 const ASSET = new URL('../../../../assets/clouds/disney-fine/', import.meta.url);
@@ -58,24 +58,13 @@ describe('decodeFineNvdb', () => {
     expect(bad).toBe(0);
   });
 
-  it('packs R-only bricks like packFineBricks, with the loader margin; loader cost logged', () => {
+  it('packs the loader bricks (margin 3); loader cost logged', () => {
+    const nvdf = new Uint8Array(read('nvdf.bin'));
     const t1 = performance.now();
-    const b = packFineProfile(profile, meta.fine.dims, 4, 3);
+    const b = packFineBricks(profile, meta.fine.dims, 4, { margin: 3, coarse: { rgba: nvdf, ratio: 2 } });
     const packMs = performance.now() - t1;
-    console.log(`disney-fine loader: decode ${decodeMs.toFixed(1)} ms, pack ${packMs.toFixed(1)} ms, ${b.count} bricks (${leaves} leaves), cells ${b.cells.join('x')}`);
-    const rgba = new Uint8Array(profile.length * 4);
-    for (let i = 0; i < profile.length; i++) rgba[i * 4] = profile[i];
-    const ref = packFineBricks(rgba, meta.fine.dims, 4, { margin: 3 });
-    expect(Array.from(b.indir)).toEqual(Array.from(ref.indir));
-    for (let s = 0; s < b.count; s += 97) {
-      expect(b.indir[b.cellOf[s]]).toBe(s);
-      const slab = ref.slabs[Math.floor(s / 1024)];
-      for (let t = 0; t < 1000; t += 37) {
-        const tx = t % 10, ty = Math.floor(t / 10) % 10, tz = Math.floor(t / 100);
-        const x = (s % 32) * BRICK_TEXELS + tx, y = (Math.floor(s / 32) % 32) * BRICK_TEXELS + ty;
-        expect(b.profile[s * 1000 + t]).toBe(slab[((tz * POOL_XY + y) * POOL_XY + x) * 4]);
-      }
-    }
+    console.log(`disney-fine loader: decode ${decodeMs.toFixed(1)} ms, lattice + pack ${packMs.toFixed(1)} ms, ${b.count} bricks (${leaves} leaves), cells ${b.cells.join('x')}`);
+    expect(b.count).toBeGreaterThan(leaves);
     expect(b.indir.some(s => s === HERO_EMPTY)).toBe(true);
   });
 });
