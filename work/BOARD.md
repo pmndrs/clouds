@@ -1728,7 +1728,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Default (NVDF) path unchanged.
   - `pnpm check` green.
 
-### [~] X2 Faithful Sky Pro reference pane · Sonnet
+### [r] X2 Faithful Sky Pro reference pane · Sonnet
 - **Owns:** `examples/lab/compare/vendor/skypro/**` and `examples/lab/compare/panes/*skypro*`.
 - **Does:**
   - Run the real Tidewater demo (`/Users/dex/Developer/tidewater`, `npm run dev`, port 5189; read-only) and capture its sky and clouds at comparable sun angles.

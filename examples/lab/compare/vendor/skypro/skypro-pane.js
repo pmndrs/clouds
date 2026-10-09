@@ -14,6 +14,25 @@ import blueNoiseUrl from './clouds/blueNoise.bin?url';
 
 const smoothstep = ( x, a, b ) => { const t = Math.min( 1, Math.max( 0, ( x - a ) / ( b - a ) ) ); return t * t * ( 3 - 2 * t ); };
 
+// Tidewater meters an auto exposure (PostFX, refLum 0.25, clamp 0.6..6) on its whole frame (sky, sea, island). This pane has no such scene, so the multiplier
+// follows the sun elevation through the values measured in the real demo looking out to sea (X2: 0.86 at 60, 1.19 at 10, 2.02 at 3 degrees). `?skypro_ae=<number>` overrides it.
+const AE_POINTS = [ [ 3, 2.02 ], [ 10, 1.19 ], [ 60, 0.86 ] ];
+const AE_OVERRIDE = new URLSearchParams( globalThis.location?.search ?? '' ).get( 'skypro_ae' );
+function autoExposure( elevationDeg ) {
+
+	if ( AE_OVERRIDE !== null && AE_OVERRIDE !== '' ) return Number( AE_OVERRIDE );
+	const P = AE_POINTS;
+	if ( elevationDeg <= P[ 0 ][ 0 ] ) return P[ 0 ][ 1 ];
+	for ( let i = 1; i < P.length; i ++ ) {
+
+		if ( elevationDeg <= P[ i ][ 0 ] ) { const t = ( elevationDeg - P[ i - 1 ][ 0 ] ) / ( P[ i ][ 0 ] - P[ i - 1 ][ 0 ] ); return P[ i - 1 ][ 1 ] + t * ( P[ i ][ 1 ] - P[ i - 1 ][ 1 ] ); }
+
+	}
+
+	return P[ P.length - 1 ][ 1 ];
+
+}
+
 /**
  * @param {HTMLCanvasElement} canvas
  * @param {{ groundAlbedo: [number, number, number] }} options
@@ -72,7 +91,14 @@ fn fragment( in: FSIn ) -> vec4f {
 		let fog = 1.0 - exp( -t / 30000.0 );
 		L = mix( lit, fogColor, fog );
 	}
-	return vec4f( linearToSrgb( aces( L * frame.exposure ) ), 1.0 );
+	// Tidewater's grading (PostFX.js defaults): white balance nudge, saturation and contrast around mid grey in linear HDR, elliptical vignette (bloom, grain and sharpen are left out)
+	var c = L * vec3f( 1.0 + 0.02, 1.0, 1.0 - 0.02 );
+	let lum = dot( c, vec3f( 0.2126, 0.7152, 0.0722 ) );
+	c = mix( vec3f( lum ), c, 1.06 );
+	c = pow( max( c, vec3f( 0.0 ) ) / 0.18, vec3f( 1.04 ) ) * 0.18;
+	let dv = ( uv - 0.5 ) * vec2f( 1.0, 0.8 );
+	c = c * ( 1.0 - smoothstep( 0.25, 0.75, length( dv ) ) * 0.28 );
+	return vec4f( linearToSrgb( aces( c * frame.exposure ) ), 1.0 );
 }`,
 	} );
 
@@ -134,7 +160,7 @@ fn fragment( in: FSIn ) -> vec4f {
 			state.prevVP = F.viewProjNoJitter.value.clone(); state.prevPos = F.cameraPos.value.clone();
 			F.outputResolution.value.set( w, h );
 			F.time.value += dt; F.dt.value = dt; F.frameIndex.value = state.frame;
-			exposureUniform.value = view.exposure;
+			exposureUniform.value = view.exposure * autoExposure( view.sunEl );
 			clouds.coverage.value = view.coverage;
 			applySun( view );
 

@@ -24,3 +24,5 @@ Only the comparison page imports it (`examples/lab/compare/`); no `@clouds/*` pa
 - Aerial perspective on the ground is a plain exponential haze toward the clear horizon colour (Tidewater's atmosphere has no aerial perspective volume).
 - Night, moon and stars are off.
 - The preset is Tidewater's "Partly cloudy" with its 12 m/s wind; the quality tier is its "high" (see `SkyProClouds.js`).
+
+- X2: the driver applies Tidewater's PostFX grading (saturation, contrast, warmth, vignette; no bloom, grain or sharpen) and an exposure of 0.55 times an auto exposure interpolated from values measured in the real demo over sun elevation (`?skypro_ae=` overrides). See `work/reports/X2.md`.

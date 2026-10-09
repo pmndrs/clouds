@@ -13,7 +13,7 @@ import { createSkyProPane } from './vendor/skypro/skypro-pane.js';
 import { Color } from 'three';
 
 // Calibrated exposure of the Sky Pro pane relative to ours (see the P8-A report).
-const SKYPRO_EXPOSURE = 1.35;
+const SKYPRO_EXPOSURE = 0.55; // Tidewater's own exposure setting (X2); was 1.35 (P8-A, matched to our sky)
 /** Ground albedo multiplier for the Sky Pro and Takram panes: their Lambertian ground reads darker than ours (three's standard material under the physical sun), measured at the four bookmarks. */
 const GROUND_GAIN = 1.45;
 const harness = installCloudsHarness();
