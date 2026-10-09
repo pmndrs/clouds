@@ -1339,6 +1339,40 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Include prototype numbers if a quick measurement is cheap.
 - **Acceptance:** a spec the orchestrator can split into implementation tasks, with risks and an explicit recommendation.
 
+## Phase 9–13: variety, shadows, deck scenes (plan: `docs/PLAN-2026-10-variety.md`)
+
+### [~] P9-A Variety metrics · Sonnet
+- **Owns:** `scripts/variety.mjs` (new) and its tests; a small read-only hook in `examples/lab/harness/clouds-contract.ts` if a page must expose data (additive).
+- **Does:** score a cloudscape's variety from the capture harness. Measures are defined in the plan's 9-A row:
+  - footprint statistics from a top-down coverage view (connected components, size CV, largest/smallest ratio);
+  - base-altitude spread per layer;
+  - a clone score: median normalised cross-correlation of silhouette crops of different clouds from a side view;
+  - autocorrelation peak at the cell spacing.
+  - Prefer reading the generator's weather map or NVDF back from the GPU through the page contract over image heuristics where that is more robust. Document which source each metric uses.
+- **Acceptance:**
+  - Runs on cloudscape-gen (cumulus, congestus, stratocumulus) and open-water.
+  - It scores today's cumulus as failing the plan thresholds, as a sanity check.
+  - Results are written to `work/captures/P9-A/variety.json` and a readable summary.
+  - `pnpm check` green.
+
+### [~] P10-A Cloud shadow map · Sonnet (Fable on failure)
+- **Owns:**
+  - a new `packages/runtime/src/shadow-map.ts` and `packages/runtime/src/shaders/shadow-map.wgsl.ts`
+  - minimal hooks in `runtime.ts`
+  - `packages/runtime/src/shaders/composite.wgsl.ts`: switch the composite shadow to the map
+  - the sky-layer shader, read-only, for the shared field functions
+- **Does:** a texture seen from the sun that holds cloud optical depth along the sun ray.
+  - **Coverage:** the voxel region, plus the sky layer's field out to the horizon. Two cascades: near ≈ 8 km at 8 m texels, far ≈ 60 km.
+  - **Refresh:** amortized over frames, and invalidated on sun, weather or volume change.
+  - **Interface:** expose it on the runtime (texture, view-projection, sampling WGSL) for adapters. 10-B adds the three node; this task only switches the composite path to it.
+- **Acceptance:**
+  - Sky-layer clouds shadow ground and water in open-water and cloudscape-gen.
+  - A debug overlay projecting the shadow map onto the ground matches cloud silhouettes within 2 texels.
+  - No swimming as the camera moves (A/B frames).
+  - Cost ≤ 0.3 ms amortized, ≤ 1 ms on a refresh frame, at 2560×1440 high.
+  - Flagship A/B shows no regression except the intended shadow change.
+  - `pnpm check` green; the packed consumer passes.
+
 ## Ahead of phase (parallel, no file overlap with P1)
 
 ### [x] P2-A Open-water scene module · Sonnet
