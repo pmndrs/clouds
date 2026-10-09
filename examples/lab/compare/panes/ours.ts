@@ -61,6 +61,13 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     if (query.get('phase') === 'mie') clouds.core.settings.phaseModel = 'mie';
     if (query.get('vlight') === 'octave') clouds.core.settings.lightingModel = 'octave';
     for (const key of Object.keys(clouds.core.settings)) { const v = query.get('c_' + key); if (v !== null && typeof (clouds.core.settings as unknown as Record<string, unknown>)[key] === 'number') (clouds.core.settings as unknown as Record<string, number>)[key] = Number(v); }
+    // P9-E high layer: ?cirrus=1 turns it on, ?cirrus_cov=0..1, ?cirrus_alt=<m>; ?cirrus_<setting>=N sets any other numeric setting (type, veil, opticalDepth, halo, ...).
+    const ci = clouds.core.cirrus.settings as unknown as Record<string, unknown>;
+    if (query.get('cirrus') === '1') clouds.core.cirrus.settings.enabled = true;
+    for (const [k, v] of query) {
+      const key = k === 'cirrus_cov' ? 'coverage' : k === 'cirrus_alt' ? 'altitude' : k.startsWith('cirrus_') ? k.slice(7) : '';
+      if (key && typeof ci[key] === 'number') ci[key] = Number(v);
+    }
     post = new RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
     post.outputNode = state.cloudsOn ? clouds.node(scenePass.getTextureNode(), scenePass) : scenePass.getTextureNode();

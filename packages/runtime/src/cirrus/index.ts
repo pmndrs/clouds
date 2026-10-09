@@ -1,0 +1,279 @@
+// P9-E: the high cloud layer (cirrus, cirrostratus). A 2.5D slab on a planet-curved shell at 8-10 km, its own wind, lit by the same sun and
+// sky as the low clouds; drawn behind them by the composite. Renderer-agnostic (WebGPU only, no three imports).
+import type { GpuTimer } from '../gpu-timer';
+import { CIRRUS_BAKE_WGSL, CIRRUS_MIP_WGSL } from './bake.wgsl';
+import { CIRRUS_ATMOSPHERE_GROUP, CIRRUS_PARAM_BYTES, cirrusRenderWgsl } from './render.wgsl';
+
+export { cirrusRenderWgsl, CIRRUS_PARAM_BYTES } from './render.wgsl';
+export { CIRRUS_BAKE_WGSL } from './bake.wgsl';
+
+/** Live knobs of the high cloud layer. Safe to change every frame (nothing re-bakes). */
+export interface CirrusSettings {
+  /** Draw the layer. Off by default. The noise tile bakes over the first 65 frames after it is first enabled (no stall); the layer appears then. */
+  enabled: boolean;
+  /** Altitude of the layer's mid surface above the ground (m). Cirrus: 8-10 km. */
+  altitude: number;
+  /** Thickness of the slab (m): sets how the optical depth grows along slanted view and sun paths, not where the layer is. */
+  thickness: number;
+  /** 0..1 cloud cover (Nubis Evolved p.65: an exponent on the noise and a fade-in; 0 = clear, 1 = nearly overcast). */
+  coverage: number;
+  /** 0..1 noise type (NE p.65): 0 = streaky (fibratus streaks and uncinus hooks), 0.5 = wispy (feathery patches), 1 = round (cirrocumulus cells). */
+  type: number;
+  /** 0..1 cirrostratus veil: a smooth milky sheet with faint fibres added under the streaks. 0 = cirrus only. */
+  veil: number;
+  /** Vertical optical depth of the slab where the noise is 1 (thin ice: 0.1-1; cirrostratus about 0.3, spissatus 1-3). */
+  opticalDepth: number;
+  /** Size of the noise tile in metres (the streak scale): a streak bundle is about a tenth of it. */
+  scale: number;
+  /** 0..1 strength of the fine fibre texture inside the streaks (read at 4x the tile's frequency). */
+  detail: number;
+  /** 0..1 large-scale variation of the coverage (non-tiling, about 50 km): patches and bands instead of an even spread. */
+  coverageVariation: number;
+  /** The layer's own wind (m/s, world x and z). High-level wind is usually faster than the low clouds' and from another direction. */
+  windVelocity: [number, number];
+  /** Integrated wind offset (m, x and z). The runtime advances it from windVelocity * animSpeed; set it to place the pattern. */
+  windOffset: [number, number];
+  /** Multiplies the wind speed (as CloudSettings.animSpeed). */
+  animSpeed: number;
+  /** Direction of the streaks (degrees from world +x toward +z), or null to follow the wind (cirrus streaks lie along the shear). */
+  streakAngle: number | null;
+  /** 0..1 ground shadow of the layer on opaque scene pixels. 0 (default): none; real cirrus shadows are faint (0.2-0.4). */
+  shadowStrength: number;
+  /** 0..1 strength of the 22 degree halo around the sun (cirrostratus ice). 0 = none. */
+  halo: number;
+  /** Ice phase function: the forward lobe's anisotropy, the broad lobe's, and the forward lobe's weight. */
+  phaseForward: number;
+  phaseBroad: number;
+  phaseForwardWeight: number;
+  /** Weight of the low-order multiple scattering that brightens thicker parts of the layer (1 = default). */
+  multipleScattering: number;
+  /** Art gains on the sun and the sky ambient the layer sees (1 = physical). */
+  sunGain: number;
+  ambientGain: number;
+}
+
+export const CIRRUS_DEFAULTS: Readonly<Omit<CirrusSettings, 'windVelocity' | 'windOffset'>> & { windVelocity: readonly [number, number] } = {
+  enabled: false, altitude: 9000, thickness: 600, coverage: 0.55, type: 0.15, veil: 0, opticalDepth: 0.5, scale: 40000, detail: 0.7,
+  coverageVariation: 0.35, windVelocity: [22, -6], animSpeed: 1, streakAngle: null, shadowStrength: 0, halo: 0,
+  phaseForward: 0.8, phaseBroad: 0.2, phaseForwardWeight: 0.45, multipleScattering: 1, sunGain: 1, ambientGain: 1,
+};
+
+export interface CirrusEncodeArgs {
+  /** The runtime's Frame uniform (camera, sun, haze; misc.zw = the composite size this pass renders at). */
+  frameBuffer: GPUBuffer;
+  depth: GPUTextureView;
+  /** The sky light buffer (march.wgsl.ts SKY_LIGHT_ENTRIES): [0] sun (uniform lighting), [1]/[2] ambient. */
+  skyLightBuffer: GPUBuffer;
+  /** Bind group of atmosphereWgsl (the sky's LUTs); undefined = uniform lighting. */
+  atmosphere?: GPUBindGroup;
+  /** The composite's size. */
+  width: number;
+  height: number;
+  cameraPosition: ArrayLike<number>;
+  time: number;
+  timer?: GpuTimer;
+}
+
+export interface CirrusLayer {
+  readonly settings: CirrusSettings;
+  /** True once the noise tile is baked and the pipeline compiled; the layer renders from then on while enabled. */
+  readonly ready: boolean;
+  /** Renders the layer for this frame (bakes a tile slice first while not baked). Returns true when the output holds this frame's layer. */
+  encode(encoder: GPUCommandEncoder, args: CirrusEncodeArgs): boolean;
+  /** Composite hook: layout entries (the layer's storage buffer, two pack2x16float words per composite pixel, a 16-byte uniform: x = on, y = in front of the low clouds) at binding, binding + 1. */
+  compositeLayoutEntries(binding: number, visibility: number): GPUBindGroupLayoutEntry[];
+  compositeEntries(binding: number): GPUBindGroupEntry[];
+  /** Changes whenever compositeEntries would return other resources (rebuild the composite bind group). */
+  readonly bindKey: object;
+  /** GPU memory held (bytes): the noise tile with its mips and the output. */
+  readonly bytes: number;
+  dispose(): void;
+}
+
+const TILE = 2048;
+const BAKE_SLICES = 64;
+const MIP_LEVELS = 12;
+
+export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGroupLayout, options: { seed?: number } = {}): CirrusLayer {
+  const settings: CirrusSettings = { ...CIRRUS_DEFAULTS, windVelocity: [...CIRRUS_DEFAULTS.windVelocity] as [number, number], windOffset: [0, 0] };
+  const C = GPUShaderStage.COMPUTE;
+  const seed = options.seed ?? 3;
+  const noise = device.createTexture({ label: 'cirrus noise tile', size: [TILE, TILE], mipLevelCount: MIP_LEVELS, format: 'rgba8unorm', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING });
+  const noiseView = noise.createView();
+  const sampler = device.createSampler({ label: 'cirrus noise', addressModeU: 'repeat', addressModeV: 'repeat', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', maxAnisotropy: 16 });
+  const dummy = device.createBuffer({ label: 'cirrus dummy', size: 16, usage: GPUBufferUsage.STORAGE });
+  const compositeParams = device.createBuffer({ label: 'cirrus composite params', size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const params = device.createBuffer({ label: 'cirrus params', size: CIRRUS_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const paramF32 = new Float32Array(CIRRUS_PARAM_BYTES / 4);
+  const compF32 = new Float32Array(4);
+  let compKey = '';
+
+  // ---- bake (async compile, then BAKE_SLICES row slices over as many frames, then the mip chain in one frame) ----
+  const bakeLayout = device.createBindGroupLayout({ label: 'cirrus bake', entries: [
+    { binding: 0, visibility: C, buffer: { type: 'uniform' } },
+    { binding: 1, visibility: C, storageTexture: { access: 'write-only', format: 'rgba8unorm' } },
+  ] });
+  const mipLayout = device.createBindGroupLayout({ label: 'cirrus mip', entries: [
+    { binding: 0, visibility: C, texture: { sampleType: 'float' } },
+    { binding: 1, visibility: C, storageTexture: { access: 'write-only', format: 'rgba8unorm' } },
+  ] });
+  let bakePipeline: GPUComputePipeline | null = null, mipPipeline: GPUComputePipeline | null = null;
+  let bakeStarted = false, bakeSlice = 0, baked = false;
+  const startBake = () => {
+    bakeStarted = true;
+    void device.createComputePipelineAsync({ label: 'cirrus bake', layout: device.createPipelineLayout({ bindGroupLayouts: [bakeLayout] }), compute: { module: device.createShaderModule({ label: 'cirrus bake', code: CIRRUS_BAKE_WGSL }), entryPoint: 'main' } })
+      .then(p => { bakePipeline = p; }, err => console.error('cirrus bake pipeline failed', err));
+    void device.createComputePipelineAsync({ label: 'cirrus mip', layout: device.createPipelineLayout({ bindGroupLayouts: [mipLayout] }), compute: { module: device.createShaderModule({ label: 'cirrus mip', code: CIRRUS_MIP_WGSL }), entryPoint: 'main' } })
+      .then(p => { mipPipeline = p; }, err => console.error('cirrus mip pipeline failed', err));
+    const rows = TILE / BAKE_SLICES;
+    const u = new Uint32Array(4 * BAKE_SLICES);
+    for (let i = 0; i < BAKE_SLICES; i++) u.set([i * rows, rows, TILE, seed], i * 4);
+    // One tiny uniform per slice (dynamic offsets would need 256-byte records).
+    for (let i = 0; i < BAKE_SLICES; i++) { const b = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }); device.queue.writeBuffer(b, 0, u, i * 4, 4); sliceBuffers.push(b); }
+  };
+  const sliceBuffers: GPUBuffer[] = [];
+  const level0 = noise.createView({ baseMipLevel: 0, mipLevelCount: 1 });
+  const stepBake = (encoder: GPUCommandEncoder, timer?: GpuTimer) => {
+    if (!bakeStarted) startBake();
+    if (!bakePipeline || !mipPipeline) return;
+    const pass = encoder.beginComputePass({ label: 'cirrus bake', timestampWrites: timer?.passTimestampWrites('cirrusBake') });
+    if (bakeSlice < BAKE_SLICES) {
+      pass.setPipeline(bakePipeline);
+      pass.setBindGroup(0, device.createBindGroup({ layout: bakeLayout, entries: [{ binding: 0, resource: { buffer: sliceBuffers[bakeSlice] } }, { binding: 1, resource: level0 }] }));
+      pass.dispatchWorkgroups(TILE / 8, TILE / BAKE_SLICES / 8);
+      bakeSlice++;
+    } else {
+      pass.setPipeline(mipPipeline);
+      for (let l = 1; l < MIP_LEVELS; l++) {
+        const size = Math.max(1, TILE >> l);
+        pass.setBindGroup(0, device.createBindGroup({ layout: mipLayout, entries: [
+          { binding: 0, resource: noise.createView({ baseMipLevel: l - 1, mipLevelCount: 1 }) },
+          { binding: 1, resource: noise.createView({ baseMipLevel: l, mipLevelCount: 1 }) },
+        ] }));
+        pass.dispatchWorkgroups(Math.ceil(size / 8), Math.ceil(size / 8));
+      }
+      baked = true;
+      for (const b of sliceBuffers) b.destroy();
+      sliceBuffers.length = 0;
+    }
+    pass.end();
+  };
+
+  // ---- render ----
+  const emptyLayout = device.createBindGroupLayout({ label: 'cirrus empty', entries: [] });
+  const emptyGroup = device.createBindGroup({ label: 'cirrus empty', layout: emptyLayout, entries: [] });
+  const renderLayout = device.createBindGroupLayout({ label: 'cirrus render', entries: [
+    { binding: 0, visibility: C, buffer: { type: 'uniform' } },
+    { binding: 1, visibility: C, texture: { sampleType: 'depth' } },
+    { binding: 2, visibility: C, buffer: { type: 'storage' } },
+    { binding: 3, visibility: C, buffer: { type: 'uniform' } },
+    { binding: 4, visibility: C, texture: { sampleType: 'float' } },
+    { binding: 5, visibility: C, sampler: { type: 'filtering' } },
+    { binding: 6, visibility: C, buffer: { type: 'read-only-storage' } },
+  ] });
+  const pipelines: { atmosphere: GPUComputePipeline | null; uniform: GPUComputePipeline | null } = { atmosphere: null, uniform: null };
+  const requested = { atmosphere: false, uniform: false };
+  const requestPipeline = (mode: 'atmosphere' | 'uniform') => {
+    if (requested[mode]) return;
+    requested[mode] = true;
+    const layouts = mode === 'atmosphere' ? [emptyLayout, renderLayout, atmosphereLayout] : [emptyLayout, renderLayout];
+    void device.createComputePipelineAsync({ label: `cirrus ${mode}`, layout: device.createPipelineLayout({ bindGroupLayouts: layouts }), compute: { module: device.createShaderModule({ label: `cirrus ${mode}`, code: cirrusRenderWgsl(mode) }), entryPoint: 'main' } })
+      .then(p => { pipelines[mode] = p; }, err => console.error(`cirrus ${mode} pipeline failed`, err));
+  };
+  void CIRRUS_ATMOSPHERE_GROUP;
+
+  let output: GPUBuffer | null = null;
+  let outW = 0, outH = 0;
+  let bindKey: object = dummy;
+  let group: GPUBindGroup | null = null;
+  let groupKey: unknown[] = [];
+  let lastTime = -1;
+  const fineOffset = [0, 0];
+
+  const writeComposite = (on: boolean, front: boolean) => {
+    const key = `${+on}${+front}`;
+    if (key === compKey) return;
+    compKey = key;
+    compF32[0] = on ? 1 : 0; compF32[1] = front ? 1 : 0;
+    device.queue.writeBuffer(compositeParams, 0, compF32);
+  };
+
+  const layer: CirrusLayer = {
+    settings,
+    get ready() { return baked && !!pipelines.atmosphere; },
+    get bindKey() { return bindKey; },
+    get bytes() { return Math.round(TILE * TILE * 4 * 4 / 3) + (output ? outW * outH * 8 : 0); },
+    encode(encoder, a) {
+      const s = settings;
+      const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, a.time - lastTime));
+      lastTime = a.time;
+      if (!s.enabled) { writeComposite(false, false); return false; }
+      const mode = a.atmosphere ? 'atmosphere' : 'uniform';
+      requestPipeline(mode);
+      if (!baked) { stepBake(encoder, a.timer); writeComposite(false, false); return false; }
+      const pipe = pipelines[mode];
+      if (!pipe) { writeComposite(false, false); return false; }
+      if (!output || outW !== a.width || outH !== a.height) {
+        output?.destroy();
+        outW = a.width; outH = a.height;
+        output = device.createBuffer({ label: 'cirrus layer', size: Math.max(16, a.width * a.height * 8), usage: GPUBufferUsage.STORAGE });
+        bindKey = output;
+        group = null;
+      }
+      // Wind: the pattern scrolls with the layer's wind; the fine fibres a little faster and sideways, so the texture evolves instead of sliding rigidly.
+      const k = s.animSpeed * dt;
+      s.windOffset[0] += s.windVelocity[0] * k; s.windOffset[1] += s.windVelocity[1] * k;
+      fineOffset[0] += (s.windVelocity[0] * 1.12 - s.windVelocity[1] * 0.08) * k; fineOffset[1] += (s.windVelocity[1] * 1.12 + s.windVelocity[0] * 0.08) * k;
+      let ang = s.streakAngle === null ? Math.atan2(s.windVelocity[1], s.windVelocity[0]) : s.streakAngle * Math.PI / 180;
+      if (!Number.isFinite(ang) || (s.streakAngle === null && Math.hypot(s.windVelocity[0], s.windVelocity[1]) < 1e-3)) ang = 0;
+      const f = paramF32;
+      f[0] = Math.max(100, s.altitude); f[1] = Math.max(1, s.thickness); f[2] = 6360e3; f[3] = Math.max(1000, s.scale);
+      f[4] = Math.min(1, Math.max(0, s.coverage)); f[5] = Math.min(1, Math.max(0, s.type)); f[6] = Math.min(1, Math.max(0, s.veil)); f[7] = Math.max(0, s.opticalDepth);
+      f[8] = s.windOffset[0]; f[9] = s.windOffset[1]; f[10] = Math.cos(ang); f[11] = Math.sin(ang);
+      f[12] = Math.min(1, Math.max(0, s.detail)); f[13] = Math.min(1, Math.max(0, s.coverageVariation)); f[14] = Math.min(1, Math.max(0, s.shadowStrength)); f[15] = Math.max(0, s.halo);
+      f[16] = fineOffset[0]; f[17] = fineOffset[1]; f[18] = Math.max(0, s.sunGain); f[19] = Math.max(0, s.ambientGain);
+      f[20] = s.phaseForward; f[21] = s.phaseBroad; f[22] = Math.min(1, Math.max(0, s.phaseForwardWeight)); f[23] = Math.max(0, s.multipleScattering);
+      device.queue.writeBuffer(params, 0, f);
+      const key = [a.frameBuffer, a.depth, a.skyLightBuffer, output];
+      if (!group || key.some((v, i) => v !== groupKey[i])) {
+        groupKey = key;
+        group = device.createBindGroup({ label: 'cirrus render', layout: renderLayout, entries: [
+          { binding: 0, resource: { buffer: a.frameBuffer } },
+          { binding: 1, resource: a.depth },
+          { binding: 2, resource: { buffer: output } },
+          { binding: 3, resource: { buffer: params } },
+          { binding: 4, resource: noiseView },
+          { binding: 5, resource: sampler },
+          { binding: 6, resource: { buffer: a.skyLightBuffer } },
+        ] });
+      }
+      const pass = encoder.beginComputePass({ label: 'cirrus', timestampWrites: a.timer?.passTimestampWrites('cirrus') });
+      pass.setPipeline(pipe);
+      pass.setBindGroup(0, emptyGroup);
+      pass.setBindGroup(1, group);
+      if (a.atmosphere) pass.setBindGroup(CIRRUS_ATMOSPHERE_GROUP, a.atmosphere);
+      pass.dispatchWorkgroups(Math.ceil(a.width / 8), Math.ceil(a.height / 8));
+      pass.end();
+      // Above the layer the camera sees it in front of everything below it (the composite merges it first).
+      writeComposite(true, a.cameraPosition[1] > s.altitude);
+      return true;
+    },
+    compositeLayoutEntries(binding, visibility) {
+      return [
+        { binding, visibility, buffer: { type: 'read-only-storage' } },
+        { binding: binding + 1, visibility, buffer: { type: 'uniform' } },
+      ];
+    },
+    compositeEntries(binding) {
+      return [
+        { binding, resource: { buffer: output ?? dummy } },
+        { binding: binding + 1, resource: { buffer: compositeParams } },
+      ];
+    },
+    dispose() {
+      noise.destroy(); dummy.destroy(); output?.destroy(); compositeParams.destroy(); params.destroy();
+      for (const b of sliceBuffers) b.destroy();
+    },
+  };
+  return layer;
+}
