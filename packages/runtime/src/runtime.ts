@@ -13,7 +13,7 @@ import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { TEMPORAL_BINDINGS, TEMPORAL_PARAM_BYTES, TEMPORAL_WGSL } from './shaders/temporal.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { createLightning, type FlashOptions, type LightningSettings } from './lightning';
-import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
+import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_BYTES, SKY_LIGHT_ENTRIES, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, heroUniformData, volumeUniformData, volumeWgsl, HERO_UNIFORM_BYTES, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
@@ -115,6 +115,31 @@ export interface CloudSettings {
   stepScale: number;
   /** P13-H1: distance (m) within which the march reads the volume's fine hero overlay (GpuCloudVolume.fine); the tiers set it, 0 = off. */
   fineDistance: number;
+  /** C1 debug: 0 = normal; 1, 2, 3, 4, 5 = render only the direct, multiple-scattering (ms), deep-octave, ambient or environment-body term, without aerial perspective. */
+  lightDebug: number;
+  /**
+   * C1 low-sun handoff (Bouthors 2008): the sun's share of the multiple-scattering body terms (ms, deep octaves) is
+   * mix(bodySunFloor, 1, saturate(sin(sun elevation) / bodySunKnee)); 1 at and above the knee (default 0.4, about 24 degrees), so higher suns are unchanged.
+   */
+  bodySunFloor: number;
+  bodySunKnee: number;
+  /** C1: gain of the environment-lit body that takes over what the sun's share loses (sky above, ground bounce below). 0 = off. */
+  bodyEnv: number;
+  /**
+   * C1: dense cloud scatters the sun away before it reaches the body: the sun's share is also multiplied by exp(-tau * bodyDepth * (1 - sunUp)),
+   * tau = the optical depth toward the sun, sunUp = saturate(sin(elevation) / bodySunKnee). So thick regions go sky-lit at low sun; unchanged above the knee.
+   */
+  bodyDepth: number;
+  /** C1: weight toward the sun when the sky is reduced to the body's environment light (RDR2 S36). 0 = plain cosine-weighted mean. */
+  envSunWeight: number;
+  /** C1: 0..1, how far the cloud ambient leans from the plain sky hemispheres to the environment pair (sun-weighted sky, ground bounce) at low sun. 0 = off; unchanged above the knee. */
+  ambientLowSun: number;
+  /** C1: albedo of the ground whose bounce lights the body from below at low sun. */
+  groundAlbedo: number;
+  /** C1: phase function: 'hg' = the two-lobe HG mix (phaseG, silverG, silverStrength), 'mie' = the HG + Draine fit of droplets (Jendersie & d'Eon 2023). */
+  phaseModel: 'hg' | 'mie';
+  /** C1: mean droplet diameter (um, 5..50) of the 'mie' phase model. */
+  dropletDiameter: number;
   /** P13-H1: scales the erosion noise inside fine bricks (1 = Nubis; 0.6-1 if fine heroes read double-detailed). */
   fineErosion: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
@@ -310,11 +335,22 @@ const FLASH_BLEND = 0.85;
 const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
-const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73];
+const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91];
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
 const TRACE_TEXEL_BYTES = 8 + 4;
+
+/** C1: the HG + Draine fit (Jendersie & d'Eon 2023, eq. 4-7) for a mean droplet diameter d in um, valid for 5..50: (gHG, gD, alpha, wD). */
+export function mieParams(diameter: number): [number, number, number, number] {
+  const d = Math.min(50, Math.max(5, Number.isFinite(diameter) ? diameter : 10));
+  return [
+    Math.exp(-0.0990567 / (d - 1.67154)),
+    Math.exp(-2.20679 / (d + 3.91029)) - 0.428934,
+    Math.exp(3.62489 - 8.29288 / (d + 5.52825)),
+    Math.exp(-0.599085 / (d - 0.641583)) - 0.665888,
+  ];
+}
 
 /**
  * GPU memory a runtime holds for a scene of `width` x `height` at a tier, without creating one (pure arithmetic mirroring the allocations;
@@ -360,7 +396,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,
     shadowStrength: 0.6, compositeShadow: 1, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
     microDist: startPreset.microDist, microShadow: 1, detailBias: 0.5, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
-    fineDistance: startPreset.fineDistance, fineErosion: 1,
+    fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
+    bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
   };
 
   const volumeLayout = createVolumeBindGroupLayout(device);
@@ -452,7 +489,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const frameF32: Float32Array<ArrayBuffer> = new Float32Array(new ArrayBuffer(FRAME_UNIFORM_BYTES));
   const frameU32 = new Uint32Array(frameF32.buffer);
 
-  const skyLightBuffer = device.createBuffer({ label: 'cloud sky light', size: 48, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  const skyLightBuffer = device.createBuffer({ label: 'cloud sky light', size: SKY_LIGHT_BYTES, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
   const skyLightGroup = device.createBindGroup({ label: 'cloud sky light', layout: skyLightLayout, entries: [{ binding: SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } }] });
   // ---- reflection dome (P2-04) ----
   const domeSize = Math.max(4, (options.domeSize ?? startPreset.domeSize) & ~3);
@@ -499,7 +536,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get refreshFrames() { return domeRefreshFrames; },
   };
   let lightGrid: LightGrid | null = null;
-  const lightingData = new Float32Array(12);
+  const lightingData = new Float32Array(SKY_LIGHT_ENTRIES * 4);
+  let mieDiameter = NaN;
+  let lowSun = 0;   // 1 - saturate(sin(sun elevation) / bodySunKnee), this frame   // the diameter f[88..91] were last written for
   let disposed = false;
   let volume: GpuCloudVolume | null = null;
   let ownsVolume = false;
@@ -516,7 +555,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   // ---- P5-B temporal state ----
   const prevViewProj = new Float32Array(16);
   const prevCam = [0, 0, 0], prevFwd = [0, 0, 1], prevSun = [0, 1, 0];
-  const prevModel = new Float32Array(80);
+  const prevModel = new Float32Array(FRAME_UNIFORM_BYTES / 4);
   const lastRate = [0, 0];
   let prevValid = false, needReset = true, temporalFrames = 0, temporalResets = 0;
   const passFull = [true, true];
@@ -746,7 +785,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[40] = settings.phaseG; f[41] = settings.silverG; f[42] = settings.shadowStrength * (settings.compositeShadow > 0.5 ? 1 : 0); f[43] = settings.deepScatter;
       // A tier without a near pass (nearScale 0) marches the whole ray in the far pass: split 0 turns the near march, its resolve, the far pass's occlusion test and the composite's near upsample off.
       const nearActive = CLOUD_QUALITY_PRESETS[quality].nearScale > 0 && settings.splitDistance > 0;
-      f[44] = nearActive ? settings.splitDistance : 0; f[45] = settings.transmittanceCutoff;
+      f[44] = nearActive ? settings.splitDistance : 0; f[45] = settings.transmittanceCutoff; f[47] = settings.lightDebug;
       f[48] = settings.edgeDarkening; f[49] = settings.glowBoost; f[50] = settings.ambientSkyBias; f[51] = settings.wispyBias;
       f[52] = settings.glowFront; f[54] = settings.deepAttenuation; f[55] = settings.ambientFloor;
       f[56] = settings.microDist; f[57] = settings.microShadow; f[58] = settings.detailBias; f[59] = settings.stepScale;
@@ -757,6 +796,12 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const flash = lightning.update(frame.time);
       if (flash) { f[76] = flash.position[0]; f[77] = flash.position[1]; f[78] = flash.position[2]; f[79] = flash.radius; f[80] = flash.color[0]; f[81] = flash.color[1]; f[82] = flash.color[2]; f[83] = flash.level; }
       else { f[79] = 0; f[80] = f[81] = f[82] = f[83] = 0; }
+      // C1 low-sun lighting: the body terms' sun share and the environment's (sun elevation from the world-up sun direction), and the phase model.
+      const sunUp = Math.max(0, Math.min(1, frame.sunDirection[1] / Math.max(1e-3, settings.bodySunKnee)));
+      lowSun = 1 - sunUp;
+      f[84] = settings.bodySunFloor + (1 - settings.bodySunFloor) * sunUp; f[85] = settings.bodyEnv;
+      f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
+      if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
       // the frame after it, the resolve takes mostly fresh samples (blend FLASH_BLEND); the neighbourhood clip already pulls the history toward the fresh ones.
       flashLevelNow = flash ? flash.level : 0;
@@ -819,12 +864,17 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: settings.densityScale, frameIndex: frame.frameIndex }, timer);
 
       if (uniformLighting) {
-        for (let i = 0; i < 3; i++) {
-          const c = [uniformLighting.sunRadiance, uniformLighting.ambientTop, uniformLighting.ambientBottom][i];
-          lightingData[i * 4] = c[0]; lightingData[i * 4 + 1] = c[1]; lightingData[i * 4 + 2] = c[2];
-        }
+        // One sun for every height ([3] = [4] = log sun, heights 0 and 1 m, no earth shadow), the environment pair = the ambient pair (see SKY_LIGHT_ENTRIES).
+        const sun = uniformLighting.sunRadiance, top = uniformLighting.ambientTop, bottom = uniformLighting.ambientBottom;
+        const v3 = (c: ArrayLike<number>, w: number) => [c[0], c[1], c[2], w];
+        const logSun = [0, 1, 2].map(i => Math.log(Math.max(sun[i], 1e-12)));
+        const rows = [v3(sun, -1e9), v3(top, 0), v3(bottom, 1), v3(logSun, 0), v3(logSun, 1), v3(top, 0), v3(bottom, 0), [settings.groundAlbedo, settings.envSunWeight, 0, 0]];
+        for (let i = 0; i < SKY_LIGHT_ENTRIES; i++) for (let j = 0; j < 4; j++) lightingData[i * 4 + j] = rows[i][j];
         device.queue.writeBuffer(skyLightBuffer, 0, lightingData);
       } else {
+        // The compute pass reads its parameters from the last entry.
+        lightingData[28] = settings.groundAlbedo; lightingData[29] = settings.envSunWeight; lightingData[30] = lowSun * settings.ambientLowSun; lightingData[31] = 0;
+        device.queue.writeBuffer(skyLightBuffer, 28 * 4, lightingData, 28, 4);
         const sky = encoder.beginComputePass({ label: 'cloud sky light' });
         sky.setPipeline(skyLightPipeline);
         sky.setBindGroup(0, volumeGroup);

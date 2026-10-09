@@ -13,6 +13,27 @@ export const MARCH_ATMOSPHERE_GROUP = 2;
 export const MARCH_RADIANCE_LIMIT = 60000;
 
 /**
+ * Entries of the per-frame sky light buffer (vec4 each). The march, sky layer and dome read [0..2]; the march and sky layer also [3..6].
+ * [0] sun radiance at the volume centre (illuminance, exposure units), [1] sky ambient from above, [2] from below (mean radiance per hemisphere),
+ * C1: [3] / [4] log(sun radiance) at the lit part's lowest / the volume's top height (w = that height, m), mixed by sample height (sunRadianceAtHeight),
+ * [0].w = height of the earth's shadow (m; below it the sun has set, -1e9 while the sun is up), [2].w = half the width of its penumbra (m),
+ * [5] the environment light above the body (the sky reduced with a weight toward the sun), [6] below it (ground bounce + the lower hemisphere),
+ * [7] parameters written by the CPU before the dispatch: x = ground albedo, y = the sun weight of [5], z = how far [1]/[2] lean to [5]/[6] (low sun).
+ */
+export const SKY_LIGHT_ENTRIES = 8;
+export const SKY_LIGHT_BYTES = SKY_LIGHT_ENTRIES * 16;
+/** Per-sample sun radiance from the [3]/[4] pair: geometric interpolation in height, so the earth's shadow fades in from below. */
+export const SUN_HEIGHT_WGSL = /* wgsl */ `
+fn sunRadianceAtHeight(y: f32) -> vec3<f32> {
+  let lo = skyLight[3];
+  let hi = skyLight[4];
+  let pen = skyLight[2].w;
+  let earth = smoothstep(-pen, pen, y - skyLight[0].w);   // the earth's shadow, softened by the sun disc
+  return exp(mix(lo.xyz, hi.xyz, saturate((y - lo.w) / max(hi.w - lo.w, 1.0)))) * earth;
+}
+`;
+
+/**
  * P6-B/C lightning: in-scattered radiance (per unit scattering, in units of the scene light reference) at sample p from the flash point light.
  * Nubis³ s130 glow = pow(1 - d/r, 12) * (1 - sat(rho * 5)) lights the thin, wispy cloud near the discharge. On its own it vanishes wherever
  * rho > 0.2, which is all of a cumulonimbus's body, so a second term carries the light through dense cloud (documented deviation):
@@ -77,8 +98,9 @@ ${FRAME_WGSL}
 @group(1) @binding(2) var marchColor: texture_storage_2d<rgba16float, write>;
 ${direct ? '@group(1) @binding(3) var marchDepth: texture_storage_2d<r32uint, write>;' : '@group(1) @binding(3) var marchDepth: texture_storage_2d<r32float, write>;'}
 ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
-// [0] sun radiance (illuminance, exposure units), [1] sky ambient from above, [2] from below (mean radiance per hemisphere)
-@group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
+// The sky light buffer: see SKY_LIGHT_ENTRIES.
+@group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, ${SKY_LIGHT_ENTRIES}>;
+${SUN_HEIGHT_WGSL}
 @group(1) @binding(${MARCH_NEAR_BINDING}) var nearColor: texture_2d<f32>;
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
@@ -147,6 +169,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunRadiance = skyLight[0].xyz;
     let ambientUp = skyLight[1].xyz;
     let ambientDown = skyLight[2].xyz;
+    let envUp = skyLight[5].xyz;
+    let envDown = skyLight[6].xyz;
     let sunInline0 = frame.sunDir * (0.5 * INLINE_NEAR);
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let sunGrid = frame.sunDir * INLINE_FAR;
@@ -217,7 +241,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               let grid = lightGridSample(ps + sunGrid);
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
-              let lit = cloudInScatterMicro(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown, microOcc);
+              let lit = cloudInScatterMicro(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc);
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);
@@ -245,7 +269,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
 
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);
-${atm ? `  if (meanDistance > 0.0) {
+${atm ? `  if (meanDistance > 0.0 && frame.lightDebug < 0.5) {
     // Aerial perspective of the cloud as a whole, at its transmittance-weighted mean distance.
     radiance = applyAerialPerspective(radiance, T, normalize(unprojectDepth(uv, 1.0) - origin), meanDistance);
   }` : ''}
@@ -262,15 +286,47 @@ export const MARCH_WGSL = marchWgsl('atmosphere');
 /** One thread per frame: sun radiance and sky ambient at the volume centre -> a small buffer the march reads. */
 export const SKY_LIGHT_BINDING = 0;
 export const SKY_LIGHT_WGSL = /* wgsl */ `
-@group(1) @binding(${SKY_LIGHT_BINDING}) var<storage, read_write> skyLightOut: array<vec4<f32>, 3>;
+@group(1) @binding(${SKY_LIGHT_BINDING}) var<storage, read_write> skyLightOut: array<vec4<f32>, ${SKY_LIGHT_ENTRIES}>;
 ${atmosphereWgsl(MARCH_ATMOSPHERE_GROUP)}
 
+const LOG_FLOOR = 1.0e-12;
+const SUN_HALF_ANGLE = 0.00465;   // radians
 @compute @workgroup_size(1)
 fn main() {
   let c = cloudVolume.minCorner + cloudVolume.extent * 0.5;
   let a = skyAmbient(c);
-  skyLightOut[0] = vec4(sunRadianceAt(c), 0.0);
-  skyLightOut[1] = vec4(a.upper, 0.0);
-  skyLightOut[2] = vec4(a.lower, 0.0);
+  let sun = sunRadianceAt(c);
+  let params = skyLightOut[7];
+  let up = atmLocalUp(c);
+  // C1: after sunset at the ground, cloud above the earth's shadow still sees the sun (through the whole low atmosphere: red and dim).
+  // The shadow height over a flat world: r = R / sqrt(1 - mu^2) for mu < 0; its penumbra is the sun disc's angle times the distance to the
+  // tangent point. The per-height sun is sampled from just above the shadow (or the base) to the top, the shadow itself is applied per sample.
+  let muSun = dot(atmosphere.sunDirection, up);
+  var shadowY = -1.0e9;
+  var pen = 1.0;
+  if (muSun < 0.0) {
+    let R = atmosphere.bottomRadiusKm * 1000.0;
+    let hShadow = R / sqrt(max(1.0 - muSun * muSun, 1e-6)) - R;
+    pen = max(sqrt(2.0 * R * hShadow) * SUN_HALF_ANGLE, 1.0);
+    shadowY = hShadow;
+  }
+  let yBase = cloudVolume.minCorner.y;
+  let yTop = yBase + cloudVolume.extent.y;
+  let yLo = clamp(shadowY + pen, yBase, yTop);
+  let pLo = c + up * (yLo - c.y);
+  let pHi = c + up * (yTop - c.y);
+  skyLightOut[0] = vec4(sun, shadowY);
+  skyLightOut[3] = vec4(log(max(sunRadianceAt(pLo), vec3(LOG_FLOOR))), yLo);
+  skyLightOut[4] = vec4(log(max(sunRadianceAt(pHi), vec3(LOG_FLOOR))), yTop);
+  let envUp = skyAmbientSunWeighted(c, params.y);
+  // Ground bounce under the cloud: a Lambertian ground of albedo params.x lit by the sun and the sky, plus the haze of the lower hemisphere.
+  let ground = c - up * (atmRadiusKm(c) - atmosphere.bottomRadiusKm) * 1000.0;
+  let muS = max(dot(atmosphere.sunDirection, up), 0.0);
+  let envDown = a.lower + params.x * (sunRadianceAt(ground) * (muS / ATM_PI) + a.upper);
+  skyLightOut[5] = vec4(envUp, 0.0);
+  skyLightOut[6] = vec4(envDown, 0.0);
+  // The ambient pair leans to the environment pair as the sun drops (params.z = 0 at and above the body knee: unchanged by day).
+  skyLightOut[1] = vec4(mix(a.upper, envUp, params.z), 0.0);
+  skyLightOut[2] = vec4(mix(a.lower, envDown, params.z), pen);
 }
 `;

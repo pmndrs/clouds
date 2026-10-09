@@ -22,6 +22,10 @@ export const BOOKMARKS: Record<string, Bookmark> = {
   ground: { position: [0, 2, 0], lookAz: 0, pitch: 7, sunEl: 40, sunAz: 150 },
   horizon: { position: [0, 40, 0], lookAz: 15, pitch: 1.5, sunEl: 25, sunAz: 70 },
   sunset: { position: [0, 4, 0], lookAz: 355, pitch: 4, sunEl: 4, sunAz: 355 },
+  /** C1: the same low sun from the side (sun in the west, looking north): sun-facing flanks, shaded bodies and the twilight sky in one frame. */
+  dusk: { position: [0, 4, 0], lookAz: 0, pitch: 6, sunEl: 3, sunAz: 290 },
+  /** C1: the sun 1 degree below the ground's horizon: the ground and low cloud are in the earth's shadow, cloud above about 0.5 km still sees the sun from below. */
+  afterglow: { position: [0, 4, 0], lookAz: 320, pitch: 6, sunEl: -1, sunAz: 290 },
   above: { position: [0, 3000, 0], lookAz: 0, pitch: -9, sunEl: 50, sunAz: 150 },
 };
 export const BOOKMARK_NAMES = Object.keys(BOOKMARKS);

@@ -2,7 +2,7 @@ import { BILLOW_WGSL } from '../generate/shaders';
 import { atmosphereWgsl } from './atmosphere.wgsl';
 import { FRAME_WGSL } from './frame.wgsl';
 import { LIGHTING_WGSL } from './lighting.wgsl';
-import { MARCH_ATMOSPHERE_GROUP, MARCH_RADIANCE_LIMIT } from './march.wgsl';
+import { MARCH_ATMOSPHERE_GROUP, MARCH_RADIANCE_LIMIT, SKY_LIGHT_ENTRIES, SUN_HEIGHT_WGSL } from './march.wgsl';
 
 /** Group 1 bindings of the sky trace pass (0 Frame and 1 scene depth come from FRAME_WGSL). */
 export const SKY_COLOR_BINDING = 2;
@@ -424,7 +424,8 @@ ${SKY_PARAMS_WGSL}
 @group(1) @binding(${SKY_DEPTH_BINDING}) var skyDepthOut: texture_storage_2d<rg32float, write>;
 @group(1) @binding(${SKY_WEATHER_BINDING}) var skyWeather: texture_2d<f32>;
 @group(1) @binding(${SKY_SAMPLER_BINDING}) var skySampler: sampler;
-@group(1) @binding(${SKY_LIGHT_STORAGE_BINDING}) var<storage, read> skyLight: array<vec4<f32>, 3>;
+@group(1) @binding(${SKY_LIGHT_STORAGE_BINDING}) var<storage, read> skyLight: array<vec4<f32>, ${SKY_LIGHT_ENTRIES}>;
+${SUN_HEIGHT_WGSL}
 @group(1) @binding(${SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
 @group(1) @binding(${SKY_BACK_BINDING}) var skyBackOut: texture_storage_2d<rgba16float, write>;
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
@@ -509,9 +510,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     let phase = cloudPhase(cosSun);
     let sunRelax = valueRemap(cosSun, 0.0, 0.9, 0.0, 1.0);
     let frontness = (1.0 - smoothstep(-0.6, 0.1, cosSun));
-    let sunRadiance = skyLight[0].xyz;
     let ambientUp = skyLight[1].xyz;
     let ambientDown = skyLight[2].xyz;
+    let envUp = skyLight[5].xyz;
+    let envDown = skyLight[6].xyz;
     let sunInline0 = frame.sunDir * (0.5 * INLINE_NEAR);
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let ext = frame.extinction * SKY.shapeC.z;
@@ -553,7 +555,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
                 let tau = tauInline + sunFar * ext * frame.lightDensityScale;
                 if (firstTau < 0.0) { firstTau = tau; firstUp = gridUp * ext * frame.lightDensityScale * frame.ambientExtinction; }
                 // Same arguments as the voxel march: the cheap term (profile * scale) as the in-scatter probability, -depth as the sdf.
-                lit = cloudInScatter(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
+                lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, 1.0);
               }
               if (ts < tSplit) {
                 let w = front.T * (1.0 - stepT);
@@ -602,8 +604,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let meanFront = select(0.0, front.depthSum / max(front.weightSum, 1e-6), front.weightSum > 1e-3);
   let meanBack = select(0.0, back.depthSum / max(back.weightSum, 1e-6), back.weightSum > 1e-3);
-${atm ? `  if (meanFront > 0.0) { front.rad = applyAerialPerspective(front.rad, front.T, dir, meanFront); }
-  if (meanBack > 0.0) { back.rad = applyAerialPerspective(back.rad, back.T, dir, meanBack); }` : ''}
+${atm ? `  if (meanFront > 0.0 && frame.lightDebug < 0.5) { front.rad = applyAerialPerspective(front.rad, front.T, dir, meanFront); }
+  if (meanBack > 0.0 && frame.lightDebug < 0.5) { back.rad = applyAerialPerspective(back.rad, back.T, dir, meanBack); }` : ''}
   front.rad = clamp(front.rad, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   back.rad = clamp(back.rad, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
   textureStore(skyColorOut, px, vec4(front.rad, front.T));

@@ -37,6 +37,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     sky.createSun({ physical: true }).attach(scene);
     await sky.compileAsync();
     clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality });
+    // ?c_<setting>=<number> overrides a runtime setting (as on the species page), e.g. c_lightDebug=2 shows only the ms term.
+    if (query.get('phase') === 'mie') clouds.core.settings.phaseModel = 'mie';
+    for (const key of Object.keys(clouds.core.settings)) { const v = query.get('c_' + key); if (v !== null && typeof (clouds.core.settings as unknown as Record<string, unknown>)[key] === 'number') (clouds.core.settings as unknown as Record<string, number>)[key] = Number(v); }
     post = new RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
     post.outputNode = state.cloudsOn ? clouds.node(scenePass.getTextureNode(), scenePass) : scenePass.getTextureNode();

@@ -1,6 +1,7 @@
 // Side-by-side comparison of cloud implementations over the same wide scene. Each pane has its own canvas and renderer; one shared camera, sun and exposure drive them.
 //   ?impls=ours,skypro,takram   which panes (default ours,takram)       ?layout=rows|cols (default rows)
-//   ?bookmark=ground|horizon|sunset|above   ?coverage=0..1   ?exposure=  ?fov=   ?hud=0 / ?clean=1 hide the labels / all UI
+//   ?bookmark=ground|horizon|sunset|dusk|afterglow|above   ?coverage=0..1   ?exposure=  ?fov=   ?hud=0 / ?clean=1 hide the labels / all UI
+//   ?sunel= ?sunaz= ?lookaz= ?pitch= override the bookmark; ours: ?c_<setting>=<number> overrides a runtime setting (c_lightDebug=1..5 splits the light terms), ?phase=mie
 // Other query keys pass through to the panes (ours: quality, seed, sky=0; Takram: takram_quality, stbn=<url>; every pane: clouds=0 for a clear sky).
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { BOOKMARKS, BOOKMARK_NAMES, DEFAULT_COVERAGE, GROUND_HEX, mapCoverage, forwardOf, type Pane, type ViewState } from './shared';
@@ -33,6 +34,9 @@ try {
     if (!b) throw new Error(`unknown bookmark: ${name}`);
     bookmark = name;
     view.position = [...b.position]; view.lookAz = b.lookAz; view.pitch = b.pitch; view.sunEl = b.sunEl; view.sunAz = b.sunAz;
+    // ?sunel= ?sunaz= ?lookaz= ?pitch= override every bookmark's values (C1: low-sun A/B at other sun angles).
+    const num = (k: string, d: number) => (query.has(k) ? Number(query.get(k)) : d);
+    view.sunEl = num('sunel', view.sunEl); view.sunAz = num('sunaz', view.sunAz); view.lookAz = num('lookaz', view.lookAz); view.pitch = num('pitch', view.pitch);
     syncUi();
   };
 
@@ -87,7 +91,7 @@ try {
     sync.push(() => { i.value = String(get()); t.textContent = String(Math.round(get() * 100) / 100); });
     bar.appendChild(l);
   };
-  slider('sun el', 0, 90, 0.5, () => view.sunEl, v => { view.sunEl = v; });
+  slider('sun el', -6, 90, 0.5, () => view.sunEl, v => { view.sunEl = v; });
   slider('sun az', 0, 360, 1, () => view.sunAz, v => { view.sunAz = v; });
   slider('coverage', 0, 1, 0.01, () => view.coverage, v => { view.coverage = v; });
   slider('exposure', 0.25, 4, 0.05, () => view.exposure, v => { view.exposure = v; });

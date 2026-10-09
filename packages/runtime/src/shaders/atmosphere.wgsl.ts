@@ -137,6 +137,46 @@ fn atmHemisphereMean(v0: f32, v1: f32, zha: f32, beta: f32, dims: vec2<f32>) -> 
   }
   return acc * 2.0;
 }
+// C1 (RDR2 S36): the upper hemisphere's cosine-weighted mean radiance with the samples also weighted toward the sun, by
+// 1 + sunWeight * max(cos(angle to the sun), 0)^2, renormalised so a uniform sky gives the same value (sunWeight 0 = atmHemisphereMean).
+// At sunset this is the twilight sky the cloud body sees, leaning to the bright, warm side near the sun.
+fn atmHemisphereMeanSun(v0: f32, v1: f32, zha: f32, beta: f32, dims: vec2<f32>, muS: f32, sunWeight: f32) -> vec3<f32> {
+  var acc = vec3<f32>(0.0);
+  var wPlain = 0.0;
+  var wSun = 0.0;
+  let sinS = sqrt(max(0.0, 1.0 - muS * muS));
+  let dv = (v1 - v0) / f32(ATM_AMBIENT_V);
+  for (var i = 0; i < ATM_AMBIENT_V; i++) {
+    let v = v0 + (f32(i) + 0.5) * dv;
+    var theta: f32; var dtheta: f32;
+    if (v < 0.5) { let a = 1.0 - 2.0 * v; theta = zha * (1.0 - a * a); dtheta = zha * 4.0 * a; }
+    else { let b = 2.0 * v - 1.0; theta = zha + beta * b * b; dtheta = beta * 4.0 * b; }
+    let weight = abs(cos(theta)) * sin(theta) * dtheta * dv;
+    let uvY = (v + 0.5 / dims.y) * (dims.y / (dims.y + 1.0));
+    for (var j = 0; j < ATM_AMBIENT_AZIMUTHS; j++) {
+      let cosPhi = cos((f32(j) + 0.5) * ATM_PI / f32(ATM_AMBIENT_AZIMUTHS));
+      let uvX = (sqrt(saturate(-cosPhi * 0.5 + 0.5)) + 0.5 / dims.x) * (dims.x / (dims.x + 1.0));
+      let toSun = max(cos(theta) * muS + sin(theta) * sinS * cosPhi, 0.0);
+      let w = weight * (1.0 + sunWeight * toSun * toSun);
+      acc += textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb * w;
+      wPlain += weight;
+      wSun += w;
+    }
+  }
+  return acc * (2.0 * wPlain / max(wSun, 1e-20) / f32(ATM_AMBIENT_AZIMUTHS));
+}
+// The sky's upper hemisphere as atmHemisphereMeanSun at worldPos (see skyAmbient for the frame).
+fn skyAmbientSunWeighted(worldPos: vec3<f32>, sunWeight: f32) -> vec3<f32> {
+  let dims = vec2<f32>(textureDimensions(atmSkyViewLut, 0));
+  let bot = atmosphere.bottomRadiusKm;
+  let h = max(atmosphere.skyViewHeightKm, bot + 0.01);
+  let beta = acos(clamp(sqrt(max(h * h - bot * bot, 0.0)) / h, -1.0, 1.0));
+  let zha = ATM_PI - beta;
+  var v90 = 0.5;
+  if (zha > 0.5 * ATM_PI + 1e-4) { v90 = 0.5 * (1.0 - sqrt(max(0.0, 1.0 - 0.5 * ATM_PI / zha))); }
+  let muS = clamp(dot(atmosphere.sunDirection, atmLocalUp(worldPos)), -1.0, 1.0);
+  return atmHemisphereMeanSun(0.0, v90, zha, beta, dims, muS, sunWeight) * atmosphere.luminanceScale * atmosphere.sunColor;
+}
 fn skyAmbient(worldPos: vec3<f32>) -> SkyAmbientResult {
   let dims = vec2<f32>(textureDimensions(atmSkyViewLut, 0));
   let bot = atmosphere.bottomRadiusKm;

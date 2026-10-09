@@ -1524,7 +1524,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The all-fine march is ≤ 1.2× the dense one (GPU timer).
   - `pnpm check` green; the packed consumer passes.
 
-### [~] C1 Sunset and low-sun colour · Opus
+### [x] C1 Sunset and low-sun colour · Opus (report: work/reports/C1.md)
 - **Owns:**
   - `packages/runtime/src/shaders/{march,lighting,atmosphere}.wgsl.ts`
   - the lighting uniforms in `runtime.ts`
@@ -1546,7 +1546,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The orchestrator compares against the owner's sunset photos (local).
   - Cost neutral. `pnpm check` green.
 
-### [ ] C2 Horizon haze and aerial perspective · Opus (after P13-H1; parallel with C1 only if the files are split)
+### [~] C2 Horizon haze and aerial perspective · Opus
 - **Research:**
   - `rdr2-atmosphere.md` S62: aerial perspective once, at the transmittance-weighted depth, with a shared frustum LUT
   - `frostbite-yusov-hogfeldt.md`: Hillaire eq. 21/22, `L_AP*Tr_cloud + L_cloud`
