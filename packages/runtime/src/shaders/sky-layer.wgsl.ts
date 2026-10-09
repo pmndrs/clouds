@@ -482,7 +482,7 @@ const SKY_UP_L = array<f32, 3>(48.0, 64.0, 160.0);
 const SKY_LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3;
 const SKY_LIGHT_REFRESH_M = 24.0;      // lighting varies slowly along the ray: re-evaluate every (24 m + 3% of the distance)
 const SKY_LIGHT_REFRESH_REL = 0.03;
-const SKY_MICRO_NEAR = 1500.0;   // Q2: metres; the near micro shadow fades out over 1.5-3 km
+const SKY_MICRO_NEAR = 700.0;   // Q2: metres; the near micro shadow fades out over 0.7-1.4 km (further out it shows the noise tile as a regular weave)
 ${SKY_FIELD_WGSL}
 // Full up-rez density at a light-sample point (the in-line sun samples: the surface detail matters there).
 fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, view: SkyModel) -> f32 {
