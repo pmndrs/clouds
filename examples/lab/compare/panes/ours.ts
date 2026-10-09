@@ -77,7 +77,10 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
         const volume = g.volume;
         gen = undefined;
         void clouds.setVolume(volume, { position: [FIELD.centre[0], Number(query.get('base') ?? FIELD.base), FIELD.centre[1]] }).then(() => {
-          if (SKY_LAYER && weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: weatherOpts, shape: params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; }
+          if (SKY_LAYER && weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: weatherOpts, shape: params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true;
+            // ?sky_<setting>=N overrides a sky-layer setting (as on the species page).
+            for (const [k, v] of query) { if (k.startsWith('sky_') && k.slice(4) in l.settings) (l.settings as unknown as Record<string, number | boolean>)[k.slice(4)] = typeof (l.settings as unknown as Record<string, unknown>)[k.slice(4)] === 'boolean' ? v === '1' : Number(v); }
+          }
           state.generated = true;
           state.skyWait = SKY_LAYER && clouds.core.skyLayer.settings.enabled;
           if (!state.skyWait) state.ready = true;
