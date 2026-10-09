@@ -21,7 +21,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 | [legacy-and-survey.md](legacy-and-survey.md) | horizon sunset shadow cirrus | Nubis 2017 and the 2021 survey, answered against five targeted questions. Also notes on the Witcher 3 cirrus layer and a Unity shadow video |
 | [photo-species-specs.md](photo-species-specs.md) | shape sunset scene | **Measured from the owner's photos:** per-species silhouettes and ratios, altocumulus spacing CV, congestus taper, **sunset sRGB ranges**, picks for T1–T7, and the misfiled-photo list |
 | approximate-mie.md (in progress) | light sunset | Jendersie & d'Eon 2023 HG+Draine phase, a WGSL port, a C1 recommendation |
-| rdr2-atmosphere.md (in progress) | horizon sunset cirrus shadow | RDR2 atmosphere talk (SIGGRAPH 2019), if that is what the pptx is |
+| [rdr2-atmosphere.md](rdr2-atmosphere.md) | horizon sunset cirrus shadow perf | RDR2 (Bauer, SIGGRAPH 2019). The 2.5D map is coarse and gives little on shape. **Strongest ideas:** aerial perspective applied once at the transmittance-weighted depth with one shared frustum LUT (C2); a sun-weighted reduced-sky ambient and a back-scatter floor (C1); ESM cloud shadows with 1/16 texel updates and free god rays from the march (10); 1 ray per 2×2 half-res tile with reprojection (perf) |
 
 ### Pre-reset (2026-09 and earlier; may be stale; read critically)
 
@@ -45,7 +45,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 | `Nubis - Authoring Realtime Volumetric Cloudscapes ... Final .pdf` (2017) | authoring horizon | ✅ legacy-and-survey | Weather scheduler, the half-opaque haze depth, silver lobe |
 | `COMPREHENSIVE SURVEY OF CLOUDS 2021.pdf` | survey | ✅ legacy-and-survey | Nothing new on our five questions |
 | `jendersie/` (approximate Mie paper, supplemental, `draine.hlsl`) | light sunset | 🔄 | Phase function for droplets |
-| `slides_public_release.pptx` (238 MB, likely RDR2 2019) | horizon sunset | 🔄 | |
+| `slides_public_release.pptx` (238 MB): RDR2, Bauer, SIGGRAPH 2019 | horizon sunset shadow perf | ✅ rdr2-atmosphere | 78 slides |
 | `cloud-photos/` (about 500 photos, 15 types, `manifest.json`) | shape sunset scene | ✅ photo-species-specs | Many misfiles (see that doc). Empty: stratus/fog valley, lenticular, mammatus, shelf, nimbostratus, cirrocumulus |
 | `nubis-pack/`, `nubis-src/` | authoring | ✅ (P0) | Guerrilla's voxel cloud pack, MIT per the owner; assets in `assets/nubis-voxel-clouds/` |
 | `disney-cloud/` | authoring | ✅ (P4-G) | WDAS cloud, CC BY-SA 3.0 |
@@ -64,8 +64,9 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 
 | Gap | Read |
 | --- | --- |
-| Sunset colour (bodies should be mauve/slate with warm fringes) | photo-species-specs (targets), approximate-mie, rdr2-atmosphere, Hillaire 2016, Bouthors 2008 |
-| Horizon haze and distance | legacy-and-survey (half-opaque depth), rdr2-atmosphere, Ghost of Yōtei (depth variance) |
+| Sunset colour (bodies should be mauve/slate with warm fringes) | photo-species-specs (targets), rdr2-atmosphere (sun-weighted ambient, S36), approximate-mie, Hillaire 2016, Bouthors 2008 |
+| Horizon haze and distance | rdr2-atmosphere (transmittance-weighted depth, S62), legacy-and-survey (half-opaque depth), Ghost of Yōtei (depth variance) |
 | Cirrus | hzd-nubis-evolved (NE p.65), legacy-and-survey (Witcher fallback) |
 | Species shapes | hzd-nubis-evolved (profile tables), photo-species-specs (numbers), deck-scenes (vocabulary) |
-| Ground shadows and god rays | P10 reports; Ghost of Yōtei (fog shafts) |
+| Ground shadows and god rays | P10 reports; rdr2-atmosphere (ESM, free god rays, S35/S62); Ghost of Yōtei (fog shafts) |
+| Cost (high tier over budget) | rdr2-atmosphere (1 ray per 2×2 tile, S51–57) |
