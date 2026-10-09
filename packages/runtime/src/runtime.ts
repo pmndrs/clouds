@@ -396,7 +396,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const lightning = createLightning();
   const settings: CloudSettings = {
     lightning: lightning.settings,
-    densityScale: 0.2, lightDensityScale: 1.5, msStrength: 1.4, ambientStrength: 1, // P1-09 art defaults (Nubis neutral: 1, 1)
+    // Q2: extinction 0.2 -> 0.3 with the sun's optical-depth scale 1.5 -> 1.2: next to Takram and the photos the clouds read as soft, translucent
+    // 'potatoes' with little self-shadow between lobes. Denser view rays give crisper edges and sculpted lobes; the lower light scale keeps bodies bright.
+    densityScale: 0.3, lightDensityScale: 1.2, msStrength: 1.4, ambientStrength: 1, // P1-09 art defaults (Nubis neutral: 1, 1)
     silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.08, // 0.3 left bases charcoal; tuned by orchestrator sweep (P1-09)
     edgeDarkening: 0.5, glowBoost: 12, ambientSkyBias: 0.9, wispyBias: 1, glowFront: 1, deepScatter: 1.2, deepAttenuation: 0.35, ambientFloor: 0.15,
     windOffset: [0, 0, 0], windVelocity: [3, 0, 1.5], animSpeed: 1,
