@@ -26,7 +26,8 @@ export const LIGHT_GRID_PARAM_BYTES = 32;
 export const LIGHT_GRID_BUILD_WGSL = /* wgsl */ `
 struct LightGridParams {
   sunDir: vec3<f32>, densityScale: f32,
-  zOffset: u32, maxSteps: u32, skyOn: u32, _p1: u32,   // skyOn: 1 when the sky layer's field is bound (LIGHT_GRID_SKY_WGSL)
+  zOffset: u32, maxSteps: u32, skyOn: u32,   // skyOn: 1 when the sky layer's field is bound (LIGHT_GRID_SKY_WGSL)
+  procScale: f32,                            // X4: > 0 when a procedural model is bound (LIGHT_GRID_PROC_WGSL): 1 / (densityScale * lightDensityScale)
 }
 @group(1) @binding(0) var<uniform> lgParams: LightGridParams;
 @group(1) @binding(1) var lgDst: texture_storage_3d<rgba16float, write>;
@@ -99,6 +100,8 @@ fn buildLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) {
   // shadow map marches the field outside the box itself and reads only the in-box part (.r).
   var outside = 0.0;
   if (lgParams.skyOn != 0u) { outside = lgOutside(p + d * lgExitDistance(p, d), d); }
+  // X4: a procedural model's clouds toward the sun, from the texel itself (in 'hybrid' its field can run through the box), in the march's units.
+  if (lgParams.procScale > 0.0) { outside += lgProcedural(p, d, minStep) * lgParams.procScale; }
   let up = textureLoad(lgReduced, vec3<i32>(id), 0).g;
   textureStore(lgDst, vec3<i32>(id), vec4(sun, up, outside, 0.0) * lgParams.densityScale);
 }
@@ -154,5 +157,63 @@ fn lgOutside(o: vec3<f32>, d: vec3<f32>) -> f32 {
     if (v > 0.0) { acc += v * s; t += s; } else { t += max(s, sp.skip); }
   }
   return acc * SKY.shapeC.z;
+}
+`;
+
+/** X4: group 1 base binding of a procedural model's bindings (ProceduralDensityModel.densityWgsl(1, LIGHT_GRID_PROC_BINDING)). */
+export const LIGHT_GRID_PROC_BINDING = 8;
+/** X4: the build without a procedural model (procScale is 0 then; the stub keeps one build source). */
+export const LIGHT_GRID_PROC_STUB_WGSL = /* wgsl */ `
+fn lgProcedural(p: vec3<f32>, d: vec3<f32>, minStep: f32) -> f32 { return 0.0; }
+`;
+/**
+ * X4: the sun optical depth of a procedural model's clouds from a grid texel, so a voxel hero under a procedural cloud is in its shadow. Needs the
+ * model's densityWgsl (P, procSample, procCarve, procAltitude) before it. The same cheap density and extinction (P.misc.x * P.misc.y) as the model's
+ * own shadow map pass, times P.hybrid.z (ProceduralSettings.heroShadow).
+ *
+ * The march starts where the sun ray enters the model's shell (or at the texel inside it) with one grid cell and grows 10 % per step: 64 steps reach
+ * about 40 km, fine where the ray is near the hero and coarse far away, where a cloud only casts a soft shadow anyway. It stops once the sun is gone.
+ * Texels no voxel reads are skipped: the march samples the grid INLINE_FAR (48 m) toward the sun from each voxel, trilinearly, so the texel matters
+ * only when the reduced volume has density within a cell of the segment from it back 48 m away from the sun.
+ */
+export const LIGHT_GRID_PROC_WGSL = /* wgsl */ `
+const LG_PROC_STEPS = 64u;
+const LG_PROC_GROWTH = 0.1;
+const LG_PROC_REACH = 20000.0;   // the model's own far light taps (trace.wgsl.ts PROC_FAR_REACH)
+const LG_PROC_TAU_MAX = 12.0;
+const LG_READ_OFFSET = 48.0;   // lighting.wgsl.ts INLINE_FAR
+fn lgProcOccupied(p: vec3<f32>, d: vec3<f32>, cell: f32) -> bool {
+  let dims = vec3<f32>(textureDimensions(lgReduced));
+  let half = 0.5 * vec3(cloudVolume.extent.x / dims.x, cloudVolume.extent.y / dims.z, cloudVolume.extent.z / dims.y);
+  let n = i32(ceil(LG_READ_OFFSET / cell)) + 1;
+  for (var k = 0; k <= n; k++) {
+    let q = p - d * (f32(k) * cell);
+    for (var c = 0; c < 8; c++) {
+      let s = vec3(f32(c & 1), f32((c >> 1) & 1), f32((c >> 2) & 1)) * 2.0 - 1.0;
+      let uvw = volumeUvw(q + s * half);
+      if (textureSampleLevel(lgReduced, lgSampler, uvw, 0.0).r > 0.0) { return true; }
+    }
+  }
+  return false;
+}
+fn lgProcedural(p: vec3<f32>, d: vec3<f32>, minStep: f32) -> f32 {
+  let ext = P.misc.x * P.misc.y * P.hybrid.z;
+  if (ext <= 0.0 || d.y <= 0.0) { return 0.0; }
+  // Flat heights about the texel: the model's curvature drop is a few metres over the march's near part, and the shell top gets a margin for the far part.
+  let y0 = procAltitude(p);
+  let ta = max((P.shell.x - y0) / d.y, 0.0);
+  let tb = min((P.shell.y + 150.0 - y0) / d.y, LG_PROC_REACH);
+  if (tb <= ta) { return 0.0; }
+  if (!lgProcOccupied(p, d, minStep)) { return 0.0; }
+  var t = ta;
+  var acc = 0.0;
+  for (var i = 0u; i < LG_PROC_STEPS; i++) {
+    if (t >= tb || acc * ext > LG_PROC_TAU_MAX) { break; }
+    let s = min(max(minStep, (t - ta) * LG_PROC_GROWTH), tb - t);
+    let ps = p + d * (t + 0.5 * s);
+    acc += procSample(ps, 0.0, 0.0, false, 0.5).sigma * procCarve(ps) * s;
+    t += s;
+  }
+  return acc * ext;
 }
 `;

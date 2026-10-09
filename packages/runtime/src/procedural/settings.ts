@@ -120,6 +120,11 @@ export interface ProceduralSettings {
   boxCarve: number;
   /** X3 hybrid: the light taps toward the sun also integrate the voxel field (heroes shade the procedural cloud beside and below them). */
   voxelShadow: boolean;
+  /**
+   * X4 hybrid: strength of the procedural clouds' shadow on the voxel field (0 = none, 1 = their own extinction). The voxel light grid's sun channel
+   * integrates the model's density toward the sun, so a hero under a procedural cloud is shadowed by it. A number so pages can A/B it (?proc_heroShadow=0).
+   */
+  heroShadow: number;
   skypro: SkyProShape;
   takram: TakramShape;
 }
@@ -154,7 +159,7 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
   };
@@ -202,7 +207,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
-  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, 0, 0], 116);
+  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), 0], 116);
   return [minY, maxY];
 }
 

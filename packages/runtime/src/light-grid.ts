@@ -1,9 +1,10 @@
-import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_MAX_STEPS, LIGHT_GRID_PARAM_BYTES, LIGHT_GRID_SKY_BINDINGS, LIGHT_GRID_SKY_WGSL } from './shaders/light-grid.wgsl';
+import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_MAX_STEPS, LIGHT_GRID_PARAM_BYTES, LIGHT_GRID_PROC_BINDING, LIGHT_GRID_PROC_STUB_WGSL, LIGHT_GRID_PROC_WGSL, LIGHT_GRID_SKY_BINDINGS, LIGHT_GRID_SKY_WGSL } from './shaders/light-grid.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
 import { COMMON_WGSL } from './shaders/common.wgsl';
 import { BILLOW_WGSL } from './generate/shaders';
 import { SKY_FIELD_WGSL, SKY_PARAM_BYTES, SKY_STRUCT_WGSL } from './shaders/sky-layer.wgsl';
 import type { GpuTimer } from './gpu-timer';
+import type { ProceduralDensityModel } from './procedural/types';
 
 export { lightGridWgsl, LIGHT_GRID_MAX_STEPS } from './shaders/light-grid.wgsl';
 
@@ -40,6 +41,15 @@ export interface LightGridFrameParams {
    * ray past the box through that field, so voxel cloud next to a wall is shadowed by the cloud beyond it. A change of identity rebuilds the grid.
    */
   sky?: { weather: GPUTexture; sampler: GPUSampler; params: GPUBuffer } | null;
+  /**
+   * X4: the procedural density model while it renders ('hybrid', or 'procedural'), else null. The sun channel then also integrates its clouds toward
+   * the sun (from the texel, through and past the box), so heroes under a procedural cloud are shadowed by it. `procKey` (its version, the wind offset
+   * and the volume position, rounded) rebuilds the grid when it changes; a rebuild in progress finishes first, so a steady wind rebuilds back to back.
+   */
+  procedural?: ProceduralDensityModel | null;
+  procKey?: readonly number[];
+  /** X4: CloudSettings.lightDensityScale (the march multiplies the grid by it; the procedural part is divided by it so it keeps the model's extinction). */
+  lightDensityScale?: number;
 }
 
 export interface SliceDispatch { z0: number; z1: number; sun: [number, number, number]; densityScale: number; target: 0 | 1 }
@@ -171,9 +181,7 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
   const reducedView = reduced.createView();
   const sampler = device.createSampler({ label: 'light grid', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge', addressModeW: 'clamp-to-edge' });
 
-  const passLayout = device.createBindGroupLayout({
-    label: 'light grid build',
-    entries: [
+  const passEntries: GPUBindGroupLayoutEntry[] = [
       { binding: 0, visibility: COMPUTE, buffer: { type: 'uniform' } },
       { binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } },
       { binding: 2, visibility: COMPUTE, texture: { sampleType: 'float', viewDimension: '3d' } },
@@ -181,14 +189,15 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       { binding: SKY.weather, visibility: COMPUTE, texture: { sampleType: 'float' } },
       { binding: SKY.sampler, visibility: COMPUTE, sampler: { type: 'filtering' } },
       { binding: SKY.params, visibility: COMPUTE, buffer: { type: 'uniform' } },
-    ],
-  });
+  ];
+  const passLayout = device.createBindGroupLayout({ label: 'light grid build', entries: passEntries });
   // The reduce pass writes the reduced volume, so it cannot share a bind group with the build (which samples it).
   const reduceLayout = device.createBindGroupLayout({
     label: 'light grid reduce',
     entries: [{ binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } }],
   });
-  const module = device.createShaderModule({ label: 'light grid build', code: COMMON_WGSL + volumeWgsl(0) + LIGHT_GRID_BUILD_WGSL + LIGHT_GRID_SKY_WGSL + SKY_STRUCT_WGSL + BILLOW_WGSL + SKY_FIELD_WGSL });
+  const BUILD_CODE = COMMON_WGSL + volumeWgsl(0) + LIGHT_GRID_BUILD_WGSL + LIGHT_GRID_SKY_WGSL + SKY_STRUCT_WGSL + BILLOW_WGSL + SKY_FIELD_WGSL;
+  const module = device.createShaderModule({ label: 'light grid build', code: BUILD_CODE + LIGHT_GRID_PROC_STUB_WGSL });
   const pipeline = device.createComputePipeline({
     label: 'light grid build',
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, passLayout] }),
@@ -199,6 +208,23 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, reduceLayout] }),
     compute: { module, entryPoint: 'reduceLightGrid' },
   });
+  // X4: one build pipeline per procedural shaper (the model's density WGSL at LIGHT_GRID_PROC_BINDING), compiled asynchronously on first use.
+  const procPipelines = new Map<string, { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null }>();
+  const procPipeline = (m: ProceduralDensityModel) => {
+    let e = procPipelines.get(m.wgslKey);
+    if (!e) {
+      const layout = device.createBindGroupLayout({ label: `light grid build (procedural ${m.wgslKey})`, entries: [...passEntries, ...m.layoutEntries(LIGHT_GRID_PROC_BINDING, COMPUTE)] });
+      const entry: { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null } = { layout, pipeline: null };
+      e = entry;
+      procPipelines.set(m.wgslKey, entry);
+      void device.createComputePipelineAsync({
+        label: `light grid build (procedural ${m.wgslKey})`,
+        layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, layout] }),
+        compute: { module: device.createShaderModule({ label: `light grid build (procedural ${m.wgslKey})`, code: BUILD_CODE + m.densityWgsl(1, LIGHT_GRID_PROC_BINDING) + LIGHT_GRID_PROC_WGSL }), entryPoint: 'buildLightGrid' },
+      }).then(p => { entry.pipeline = p; }, err => console.error('light grid procedural pipeline failed', err));
+    }
+    return e;
+  };
   const reduceGroup = device.createBindGroup({ label: 'light grid reduce', layout: reduceLayout, entries: [{ binding: 1, resource: reducedView }] });
   let reducedValid = false;
   const paramBuffers = Array.from({ length: PARAM_RING }, (_, i) => device.createBuffer({ label: `light grid params ${i}`, size: LIGHT_GRID_PARAM_BYTES, usage: BUF_UNIFORM | BUF_COPY_DST }));
@@ -208,18 +234,21 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
   let skyKey: GPUTexture | null = null;
   let skyParamsKey: GPUBuffer | null = null;
   let passBindGroups: GPUBindGroup[][] = [];
-  const makeGroups = (sky: LightGridFrameParams['sky']) => {
+  // The procedural model the bind groups and the front texture were built with (null: none), its resources and its key.
+  let procBound: ProceduralDensityModel | null = null, procResKey: object | null = null, procKeyBound: readonly number[] = [];
+  const makeGroups = (sky: LightGridFrameParams['sky'], proc: { model: ProceduralDensityModel; layout: GPUBindGroupLayout } | null) => {
     passBindGroups = [0, 1].map(t => paramBuffers.map((b, i) => device.createBindGroup({
-      label: `light grid pass ${t}/${i}`, layout: passLayout,
+      label: `light grid pass ${t}/${i}`, layout: proc?.layout ?? passLayout,
       entries: [
         { binding: 0, resource: { buffer: b } }, { binding: 1, resource: views[t] }, { binding: 2, resource: reducedView }, { binding: 3, resource: sampler },
         { binding: SKY.weather, resource: (sky?.weather ?? dummyWeather).createView() },
         { binding: SKY.sampler, resource: sky?.sampler ?? sampler },
         { binding: SKY.params, resource: { buffer: sky?.params ?? dummyParams } },
+        ...(proc ? proc.model.resourceEntries(LIGHT_GRID_PROC_BINDING) : []),
       ],
     })));
   };
-  makeGroups(null);
+  makeGroups(null, null);
   const scheduler = new LightGridScheduler(dims[2], lightGridPasses(dims));
   const paramData = new ArrayBuffer(LIGHT_GRID_PARAM_BYTES);
   const f32 = new Float32Array(paramData), u32 = new Uint32Array(paramData);
@@ -241,12 +270,20 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     },
     encode(encoder, volumeBindGroup, params, timer) {
       const sky = params.sky ?? null;
-      if ((sky?.weather ?? null) !== skyKey || (sky?.params ?? null) !== skyParamsKey) {
-        // The field beyond the box changed (the layer was turned on or off, or a new weather window swapped in): rebuild.
+      // X4: a procedural model joins the build once its pipeline is compiled and the grid has a first (instant, model-free) build: the full-grid
+      // first build must not also march the model (a stall), so the model arrives through an ordinary sliced rebuild.
+      const m = params.procedural ?? null;
+      const pe = m && m.ready && scheduler.frontSun !== null ? procPipeline(m) : null;
+      const proc = m && pe?.pipeline ? { model: m, layout: pe.layout, pipeline: pe.pipeline } : null;
+      if ((sky?.weather ?? null) !== skyKey || (sky?.params ?? null) !== skyParamsKey || (proc?.model ?? null) !== procBound || (proc ? proc.model.resourceKey : null) !== procResKey) {
+        // The field beyond the box changed (the layer was turned on or off, a new weather window swapped in, a procedural model came or went): rebuild.
         skyKey = sky?.weather ?? null; skyParamsKey = sky?.params ?? null;
-        makeGroups(sky);
+        procBound = proc?.model ?? null; procResKey = proc ? proc.model.resourceKey : null;
+        makeGroups(sky, proc);
         scheduler.invalidate();
       }
+      const pk = proc ? [...(params.procKey ?? []), params.lightDensityScale ?? 1] : [];
+      if (pk.length !== procKeyBound.length || pk.some((v, i) => v !== procKeyBound[i])) { procKeyBound = pk; scheduler.invalidate(); }
       const result = scheduler.step(params.sunDirection, params.densityScale, params.frameIndex);
       const d = result.dispatch;
       if (!d) return result;
@@ -261,10 +298,11 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       }
       const slot = ring++ % PARAM_RING;
       f32[0] = d.sun[0]; f32[1] = d.sun[1]; f32[2] = d.sun[2]; f32[3] = d.densityScale;
-      u32[4] = d.z0; u32[5] = LIGHT_GRID_MAX_STEPS; u32[6] = skyKey ? 1 : 0; u32[7] = 0;
+      u32[4] = d.z0; u32[5] = LIGHT_GRID_MAX_STEPS; u32[6] = skyKey ? 1 : 0;
+      f32[7] = proc ? 1 / Math.max(d.densityScale * (params.lightDensityScale ?? 1), 1e-6) : 0;
       device.queue.writeBuffer(paramBuffers[slot], 0, paramData);
       const pass = encoder.beginComputePass({ label: 'light grid', timestampWrites: timer?.passTimestampWrites('lightGrid') });
-      pass.setPipeline(pipeline);
+      pass.setPipeline(proc ? proc.pipeline : pipeline);
       pass.setBindGroup(0, volumeBindGroup);
       pass.setBindGroup(1, passBindGroups[d.target][slot]);
       pass.dispatchWorkgroups(Math.ceil(dims[0] / 4), Math.ceil(dims[1] / 4), d.z1 - d.z0);
