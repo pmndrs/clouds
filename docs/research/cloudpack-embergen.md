@@ -137,7 +137,7 @@ Commands (hython 21.0.671, M-series Mac, scratch dir outside the repo). Pre-rota
 | as shipped, Z-up | `vdb_to_nvdf.py --mode fog cloud_01.vdb --world-scale 4` | succeeds in 15.0 s, dims 143 x 96 x 272 (clouds on end: up axis wrong), 22 MB |
 | rotated, 4 m source -> 8 m | `... c01_yup.vdb --world-scale 4` | 12.3 s (resample 6.4, SDF 4.0, channels 1.9), dims 141 x 273 x 96, 22 MB (nvdf 14.8 + sdf 7.4), bounds 1128 x 2184 x 768 m |
 | rotated, native 8 m (scale 8) | `... --world-scale 8` | 123 s (resample 0.8, **SDF 85**, channels 37), dims 274 x 533 x 178, **156 MB** (3.6 km x 4.3 km x 1.4 km) |
-| rotated, hero fine lattice | `... --world-scale 4 --margin 1 --fine-voxel-size 4` | 125 s (fine profile 118 s, coarse SDF 2.4), coarse dims 131 x 261 x 83 at 8 m, 17 MB total incl. `fine.nvdb`; works (node present) |
+| rotated, hero fine lattice | `... --world-scale 4 --margin 1 --fine-voxel-size 4` | 125 s (fine profile 118 s, coarse SDF 2.4), coarse dims 131 x 261 x 83 at 8 m, 17 MB nvdf+sdf plus 8.2 MB `fine.nvdb`; works (node present) |
 
 Edge cases and notes for the loader:
 - **Up axis:** add an `--up z` (or `--rotate-x`) option to the converter, or document the pre-rotation; EmberGen, Blender and many sims export Z-up.
