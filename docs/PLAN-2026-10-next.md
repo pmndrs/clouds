@@ -21,6 +21,22 @@ Supersedes the ordering in `docs/PLAN-2026-10-variety.md`. That plan's task defi
 | Sparse hero storage spec (WebVDB) | ✅ P8-E spec; implementation not started |
 | Cloud cost on high | ❌ 4.5–5.3 ms at 2560×1440 after P9-C (budget 3.5) |
 
+## Direction change (owner, 2026-10-09 evening): hybrid, experiment first
+
+The owner judged that after Q2 we are still far behind Takram, Sky Pro and the photos.
+
+**Diagnosis:** the weak link is our invented procedural NVDF generator for sky-wide clouds. Nubis³ assumes artist- or sim-made fields; we had none, so agents improvised the shapes. Takram and Sky Pro use the mature HZD-style per-sample procedural density: weather/coverage map, height profiles, and tiling Perlin-Worley shape and detail noise.
+
+**Decision: a hybrid.**
+- Sky-wide clouds move to a proven procedural density model in our runtime. It follows Takram (MIT) and Sky Pro (MIT, author's permission) rather than our own invention.
+- Our architecture stays: API, shadows, sunset lighting, haze, temporal resolve, tooling.
+- The Nubis³ voxel path stays for authored heroes, storms, VDB import and 4 m fine detail.
+
+**Experiment first:**
+- **X1:** the procedural model in our runtime, A/B against our generated field and Takram.
+- **X2:** make the Sky Pro reference pane faithful to the real Tidewater demo.
+- Phase 9 generator work (9-D, species tuning) pauses until X1 reports.
+
 ## Priority (owner, 2026-10-09): quality first, performance later
 
 Our clouds still don't match the WebGL work we are building on (Takram, Sky Pro) or the photos. Until they do, **visual quality comes first.**

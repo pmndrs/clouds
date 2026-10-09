@@ -1619,7 +1619,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Background spikes stay within 10% of the frame (GPU timestamps, per-frame series).
   - `pnpm check`, the bundle check and the packed consumer are green.
 
-### [r] Q2 Look parity with Takram and the photos (midday) · Opus (report: work/reports/Q2.md)
+### [x] Q2 Look parity with Takram and the photos (midday) · Opus (report: work/reports/Q2.md)
 - **Owns:** the cloud shading, density detail and sky layer (march, density, lighting, sky layer, composite), coordinated with 9-D and 9-E, which may be folded in.
 - **Does:**
   1. **Gap list first.** On the compare page (`ours,takram`, `ours,skypro`, `ours,photo` with the owner's midday photos: humilis, mediocris, congestus, stratocumulus), list every visible difference that makes ours look worse:
@@ -1702,6 +1702,39 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - **API:** per-job `fps` and `budgetMs`, step or generator slices, resumable state, priority under pressure, GPU-time feedback via timestamp results (async, one or more frames late), and an observed/visible gate (pause when off-screen; the owner's "freeze until observed").
   - **Examples:** how our runtime would expose jobs without depending on the scheduler.
 - **Acceptance:** a spec the owner can review and implement upstream, with an API sketch, semantics, edge cases and our usage examples.
+
+### [~] X1 Procedural density experiment (HZD/Takram/Sky Pro style) in our runtime · Opus
+- **Owns:**
+  - a new `packages/runtime/src/procedural/**` (density WGSL, noise textures and their loading or generation)
+  - minimal hooks in `runtime.ts`, `march.wgsl.ts`, `density.wgsl.ts` and the sky layer behind a `densityModel: 'nvdf' | 'procedural'` setting (default unchanged)
+  - the compare page "ours" pane option (`?model=procedural`)
+- **Not:** `assets.ts`, `resources.ts`, `hero/**`, `import/**` or `stamp.ts` (H3 is running there).
+- **Does:** implement the proven per-sample density in our renderer and lighting:
+  - a weather/coverage map (2D, large tiling);
+  - per-layer height profiles: altitude, thickness, shape and detail amounts, coverage remap;
+  - a 3D Perlin-Worley shape texture and a detail texture, with turbulence/curl offset;
+  - the coverage-remap erosion order.
+- **Sources** (MIT; Sky Pro by the author's permission):
+  - Takram `node_modules/@takram/three-clouds/src` (its density, cloud layers, weather and shape textures);
+  - Sky Pro `examples/lab/compare/vendor/skypro/` and `/Users/dex/Developer/tidewater/src/sky/`;
+  - `docs/research/hzd-nubis-evolved.md` (HZD formulas).
+
+  For the experiment, reusing Takram's shipped textures (`assets/shape.bin`, `shape_detail.bin`, `turbulence.png`, `local_weather.png`) is fine, with credit. Generating our own equivalent textures is a follow-up.
+- **Scope:** it must cover the sky to the horizon: replace or feed the sky layer, and the near field without the 8 m NVDF box, with sensible empty-space skipping. It uses our lighting (C1/C2), shadow map and haze.
+- **Acceptance:**
+  - Compare page, same views (ground, horizon, sunset, dusk, above): ours-NVDF vs ours-procedural vs Takram.
+  - An honest verdict on whether procedural closes most of the gap, and what remains (lighting vs shape).
+  - Cost reported, not gated.
+  - Default (NVDF) path unchanged.
+  - `pnpm check` green.
+
+### [~] X2 Faithful Sky Pro reference pane · Sonnet
+- **Owns:** `examples/lab/compare/vendor/skypro/**` and `examples/lab/compare/panes/*skypro*`.
+- **Does:**
+  - Run the real Tidewater demo (`/Users/dex/Developer/tidewater`, `npm run dev`, port 5189; read-only) and capture its sky and clouds at comparable sun angles.
+  - Compare with our compare page's Sky Pro pane, which renders sparse, high, small clouds. Fix the integration so the pane matches the real demo's defaults: cloud altitudes, coverage, density, noise scales, exposure.
+  - Document any remaining differences.
+- **Acceptance:** side-by-side captures, real Tidewater vs the Sky Pro pane, at 2–3 sun angles, read by the orchestrator as matching. `pnpm check` green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
