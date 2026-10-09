@@ -6,7 +6,7 @@ import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three';
 import { CLOUD_PRESETS, type NvdfParams, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type VolumeGenerator } from '@clouds/runtime';
 import { GROUND_HEX, forwardOf, mapCoverage, type Pane, type PaneStats, type ViewState } from '../shared';
-// X1: the procedural density model (not in the core entry; imported from source). ?model=procedural [&shaper=skypro|takram].
+// X1: the procedural density model (not in the core entry; imported from source). ?model=procedural|hybrid [&shaper=skypro|takram].
 import { createProceduralClouds, proceduralPlaceholderVolume, type ProceduralClouds, type ProceduralShaper } from '../../../../packages/runtime/src/procedural';
 import skyproNoiseUrl from '../vendor/skypro/clouds/baseShape64.bin?url';
 import tkShapeUrl from '../../../../node_modules/@takram/three-clouds/assets/shape.bin?url';
@@ -35,7 +35,11 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
   let gen: VolumeGenerator | undefined;
   let weatherOpts: Parameters<typeof encodeProceduralWeatherMap>[2] | undefined, params: Partial<NvdfParams> | undefined;
   let currentSun = '';
-  const PROCEDURAL = query.get('model') === 'procedural';
+  const MODEL = query.get('model') === 'procedural' || query.get('model') === 'hybrid' ? (query.get('model') as 'procedural' | 'hybrid') : 'nvdf';
+  const PROCEDURAL = MODEL === 'procedural';
+  // X3 lighting models: ?light=octave|nubis for the procedural model (default octave; X1's ?proc_lighting=0|1 still works), ?vlight=nubis|octave
+  // for the voxel field and the NVDF sky layer (default nubis).
+  const procLight = query.get('light') ?? (query.get('proc_lighting') === '0' ? 'nubis' : query.get('proc_lighting') === '1' ? 'octave' : 'octave');
   let proc: ProceduralClouds | undefined;
   let procFrames = 0;
 
@@ -55,21 +59,27 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     clouds = new Clouds(renderer, { sky, quality: (query.get('quality') ?? 'high') as CloudQuality });
     // ?c_<setting>=<number> overrides a runtime setting (as on the species page), e.g. c_lightDebug=2 shows only the ms term.
     if (query.get('phase') === 'mie') clouds.core.settings.phaseModel = 'mie';
+    if (query.get('vlight') === 'octave') clouds.core.settings.lightingModel = 'octave';
     for (const key of Object.keys(clouds.core.settings)) { const v = query.get('c_' + key); if (v !== null && typeof (clouds.core.settings as unknown as Record<string, unknown>)[key] === 'number') (clouds.core.settings as unknown as Record<string, number>)[key] = Number(v); }
     post = new RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
     post.outputNode = state.cloudsOn ? clouds.node(scenePass.getTextureNode(), scenePass) : scenePass.getTextureNode();
     await clouds.setNoise(await loadCloudNoise('/clouds/noise/'));
     if (state.cloudsOn && PROCEDURAL) await beginProcedural();
+    else if (state.cloudsOn && MODEL === 'hybrid') beginGeneration(Number(query.get('coverage') ?? 0.5));
     else if (state.cloudsOn) beginGeneration(Number(query.get('coverage') ?? 0.5)); else state.ready = true; // ?clouds=0: clear sky, nothing to generate
   };
   // X1: ?model=procedural renders the procedural model instead of the generated field. ?shaper=takram (default) | skypro picks the shaper,
-  // ?proc_lighting=1 Takram's lighting function instead of ours (the X1 lighting A/B);
+  // ?light=nubis|octave its lighting model (X3; default octave);
   // ?proc_<key>=N, ?sp_<key>=N, ?tk_<key>=N override a top-level, Sky Pro or Takram setting (numbers only).
+  // X3: ?model=hybrid generates the NVDF field as usual and renders the procedural sky around it (densityModel 'hybrid'); the field replaces the
+  // procedural clouds inside its box over a 400 m fade (?proc_boxCarve=0 for the density union instead).
   const beginProcedural = async () => {
     const device = sharedBackend(renderer).device;
     const shaper = (query.get('shaper') ?? 'takram') as ProceduralShaper;
     proc = createProceduralClouds(device, { shaper });
+    proc.settings.lightingModel = procLight === 'nubis' ? 'nubis' : 'octave';
+    if (MODEL === 'hybrid') proc.settings.boxCarve = 400;
     await proc.load(shaper === 'skypro' ? { skyproNoise: skyproNoiseUrl } : { takram: { shape: tkShapeUrl, shapeDetail: tkShapeDetailUrl, localWeather: tkLocalWeatherUrl, turbulence: tkTurbulenceUrl } });
     const num = (o: object, k: string, v: string) => { if (typeof (o as Record<string, unknown>)[k] === 'number') (o as Record<string, number>)[k] = Number(v); };
     for (const [k, v] of query) {
@@ -77,9 +87,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       if (k.startsWith('sp_')) num(proc.settings.skypro, k.slice(3), v);
       if (k.startsWith('tk_')) num(proc.settings.takram, k.slice(3), v);
     }
-    await clouds.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
+    if (MODEL === 'procedural') await clouds.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
     clouds.core.setProceduralModel(proc);
-    clouds.core.settings.densityModel = 'procedural';
+    clouds.core.settings.densityModel = MODEL as 'procedural' | 'hybrid';
     // ?sky_<setting>=N overrides a sky-layer setting here too (the procedural trace runs in the layer: resolutionScale, temporalBlend, transmittanceCutoff).
     const l = clouds.core.skyLayer.settings as unknown as Record<string, number | boolean>;
     for (const [k, v] of query) if (k.startsWith('sky_') && k.slice(4) in l) l[k.slice(4)] = typeof l[k.slice(4)] === 'boolean' ? v === '1' : Number(v);
@@ -118,7 +128,8 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       if (g.done) {
         const volume = g.volume;
         gen = undefined;
-        void clouds.setVolume(volume, { position: [FIELD.centre[0], Number(query.get('base') ?? FIELD.base), FIELD.centre[1]] }).then(() => {
+        void clouds.setVolume(volume, { position: [FIELD.centre[0], Number(query.get('base') ?? FIELD.base), FIELD.centre[1]] }).then(async () => {
+          if (MODEL === 'hybrid') { if (!proc) await beginProcedural(); state.ready = true; return; }
           if (SKY_LAYER && weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: weatherOpts, shape: params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true;
             // ?sky_<setting>=N overrides a sky-layer setting (as on the species page).
             for (const [k, v] of query) { if (k.startsWith('sky_') && k.slice(4) in l.settings) (l.settings as unknown as Record<string, number | boolean>)[k.slice(4)] = typeof (l.settings as unknown as Record<string, unknown>)[k.slice(4)] === 'boolean' ? v === '1' : Number(v); }
@@ -135,7 +146,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
 
   return {
     id: 'ours',
-    label: PROCEDURAL ? `ours: @clouds/three, procedural density (${query.get('shaper') ?? 'takram'} shaper, ${query.get('proc_lighting') === '1' ? 'Takram' : 'our'} lighting)` : 'ours: @clouds/three (WebGPU, TSL)',
+    label: MODEL !== 'nvdf' ? `ours: @clouds/three, ${MODEL} (${query.get('shaper') ?? 'takram'} shaper, ${procLight} lighting${MODEL === 'hybrid' ? `, NVDF ${query.get('vlight') ?? 'nubis'}` : ''})` : `ours: @clouds/three (WebGPU, TSL${query.get('vlight') === 'octave' ? ', octave lighting' : ''})`,
     canvas,
     init: start,
     resize(w, h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); },
@@ -145,8 +156,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       if (proc) {
         if (!query.has('sp_coverage')) proc.settings.skypro.coverage = mapCoverage.skypro(view.coverage);
         if (!query.has('tk_coverage')) proc.settings.takram.coverage = mapCoverage.takram(view.coverage);
-        if (!state.ready && ++procFrames > 40) state.ready = true;
-      } else if (view.coverage !== appliedCoverage && !gen && state.generated) { clearTimeout(coverageTimer); const c = view.coverage; coverageTimer = window.setTimeout(() => { if (!gen) beginGeneration(c); }, 400); }
+        if (PROCEDURAL && !state.ready && ++procFrames > 40) state.ready = true;
+      }
+      if (!PROCEDURAL && view.coverage !== appliedCoverage && !gen && state.generated) { clearTimeout(coverageTimer); const c = view.coverage; coverageTimer = window.setTimeout(() => { if (!gen) beginGeneration(c); }, 400); }
       stepGen();
       camera.fov = view.fov;
       camera.position.set(...view.position);
@@ -173,7 +185,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       const cloudSum = Object.values(c).reduce((x, y) => x + y, 0);
       return { gpuMs: { scene: mean(state.sceneGpu), ...c, cloudsTotal: cloudSum, total: mean(state.sceneGpu) + cloudSum }, cpuMs: mean(cpu) };
     },
-    detail: () => ({ cloudsReady: clouds?.isReady, generated: state.generated, exposure: renderer?.toneMappingExposure, coverageLo: state.weatherKey, model: proc ? `procedural/${proc.settings.shaper}` : 'nvdf' }),
+    detail: () => ({ cloudsReady: clouds?.isReady, generated: state.generated, exposure: renderer?.toneMappingExposure, coverageLo: state.weatherKey, model: proc ? `${MODEL}/${proc.settings.shaper}/${proc.settings.lightingModel}` : 'nvdf', voxelLighting: clouds?.core.settings.lightingModel }),
   };
 }
 

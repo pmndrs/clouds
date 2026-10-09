@@ -1,6 +1,7 @@
 // X1: the interface between the runtime (runtime.ts, sky-layer.ts) and a procedural density model. The core imports only this type, so the
 // procedural code (procedural/index.ts) is not in the core bundle: a page creates the model and hands it to `CloudRuntime.setProceduralModel`.
 // The model owns its trace pipeline and bind group; the sky layer gives it its pass layout and resources and runs the pass, the resolve and the copy.
+// X3: the model also hands its density WGSL and resources to other passes (the cloud shadow map, the reflection dome), which build their own pipelines.
 
 export interface ProceduralDensityModel {
   /** True once its textures are loaded and its parameters can be written. */
@@ -10,9 +11,24 @@ export interface ProceduralDensityModel {
    * [volume, the layer's pass entries plus the model's own, atmosphere (atmosphere mode only)].
    */
   pipeline(mode: 'atmosphere' | 'uniform', layouts: { volume: GPUBindGroupLayout; pass: GPUBindGroupLayoutEntry[]; atmosphere: GPUBindGroupLayout }): GPUComputePipeline | null;
-  /** The pass's group 1: the layer's entries (all but its weather binding, which the model fills) plus the model's. Rebuilt when `key` or the model's resources change. */
+  /** The pass's group 1: the layer's entries (all but its weather binding, which the model fills) plus the model's. Cached by `key` and the model's resources. */
   bindGroup(entries: GPUBindGroupEntry[], key: readonly unknown[]): GPUBindGroup;
-  /** Write this frame's parameters. Returns a version that changes when the model changes (a history cut). */
-  update(time: number): { version: number };
+  /**
+   * Write this frame's parameters (`view`: the camera, the curvature reference, and CloudSettings.windOffset). Returns a version that changes
+   * when the model changes (a history cut), not when only the view moves.
+   */
+  update(time: number, view: { camera: ArrayLike<number>; wind: ArrayLike<number> }): { version: number };
+  /** X3: the lowest and highest altitude (m) the model's clouds can reach, as of the last `update`. */
+  readonly shell: readonly [number, number];
+  /** X3: the model's density for another pass: ProcParams `P`, its bindings in `group` from binding `base`, procSample(p, t, footprint, full, jitter). Needs COMMON_WGSL before it. */
+  densityWgsl(group: number, base: number): string;
+  /** X3: a key for pipelines built from `densityWgsl` (it changes with the shaper). */
+  readonly wgslKey: string;
+  /** X3: layout and bind group entries of `densityWgsl`'s bindings. `resourceKey` changes identity when the entries do. */
+  layoutEntries(base: number, visibility: number): GPUBindGroupLayoutEntry[];
+  resourceEntries(base: number): GPUBindGroupEntry[];
+  readonly resourceKey: object;
+  /** X3: the procedural lighting model (the dome uses it for the model's clouds). */
+  readonly lightingModel: 'nubis' | 'octave';
   dispose(): void;
 }

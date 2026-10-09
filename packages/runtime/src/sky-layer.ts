@@ -13,7 +13,7 @@ import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { MARCH_ATMOSPHERE_GROUP } from './shaders/march.wgsl';
 import {
   SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAM_BYTES, SKY_PARAM_FLOATS, SKY_RESOLVE_BINDINGS,
-  SKY_RESOLVE_WGSL, SKY_SAMPLER_BINDING, SKY_TEMPORAL_PERIOD, SKY_WEATHER_BINDING, skyLayerWgsl,
+  SKY_RESOLVE_WGSL, SKY_SAMPLER_BINDING, SKY_TEMPORAL_PERIOD, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING, skyLayerWgsl,
 } from './shaders/sky-layer.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
 
@@ -145,6 +145,10 @@ export interface SkyEncodeArgs {
   procedural?: ProceduralDensityModel | null;
   /** Seconds (CloudFrame.time): drives the procedural model's evolution. */
   time?: number;
+  /** X3: the procedural model's view: the camera (curvature reference) and CloudSettings.windOffset. */
+  wind?: ArrayLike<number>;
+  /** X3 (procedural trace only): the voxel march's near and far history depth textures (r32uint words) this frame, for the hybrid split. */
+  voxelDepth?: { near: GPUTexture; far: GPUTexture };
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
@@ -225,6 +229,12 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     { binding: SKY_BACK_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
   ];
   const layout = device.createBindGroupLayout({ label: 'cloud sky trace', entries: layoutEntries });
+  // X3: the procedural trace's pass entries also carry the voxel march's depth words (the hybrid split).
+  const procLayoutEntries: GPUBindGroupLayoutEntry[] = [
+    ...layoutEntries,
+    { binding: SKY_VOXEL_DEPTH_BINDING, visibility: C, texture: { sampleType: 'uint' } },
+    { binding: SKY_VOXEL_DEPTH_BINDING + 1, visibility: C, texture: { sampleType: 'uint' } },
+  ];
   const R = SKY_RESOLVE_BINDINGS;
   const resolveLayout = device.createBindGroupLayout({ label: 'cloud sky resolve', entries: [
     { binding: 0, visibility: C, buffer: { type: 'uniform' } },
@@ -446,7 +456,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       if (procedural && !disposed) {
         if (retired.length) { for (const r of retired) r(); retired = []; }
         ensureResolve();
-        return procedural.ready && !!procedural.pipeline(uniformLighting ? 'uniform' : 'atmosphere', { volume: volumeLayout, pass: layoutEntries, atmosphere: atmosphereLayout })
+        return procedural.ready && !!procedural.pipeline(uniformLighting ? 'uniform' : 'atmosphere', { volume: volumeLayout, pass: procLayoutEntries, atmosphere: atmosphereLayout })
           && typeof resolvePipeline === 'object' && resolvePipeline !== null;
       }
       if (disposed || !options) return false;
@@ -465,7 +475,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       lastTimer = a.timer;
       // X1: a procedural model is traced with its own pipeline and bindings into the same targets, with the same temporal bookkeeping.
       const proc = a.procedural ?? null;
-      const pipeline = proc ? proc.pipeline(mode, { volume: volumeLayout, pass: layoutEntries, atmosphere: atmosphereLayout }) : pipelines[mode];
+      const pipeline = proc ? proc.pipeline(mode, { volume: volumeLayout, pass: procLayoutEntries, atmosphere: atmosphereLayout }) : pipelines[mode];
       const win = live;
       if ((!proc && !win) || !pipeline || pipeline === 'pending' || !resolvePipeline || resolvePipeline === 'pending') return;
       const w = a.color.width, h = a.color.height;
@@ -477,7 +487,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         // The procedural trace reads only the cutoff and the temporal fields of these params (and the resolve its blend); a model change cuts.
         p.fill(0);
         p[24] = s.stepMin; p[25] = s.stepRel; p[26] = s.maxSteps; p[27] = s.transmittanceCutoff; p[35] = s.temporalBlend;
-        const v = proc.update(a.time ?? 0).version;
+        const v = proc.update(a.time ?? 0, { camera: a.cameraPosition, wind: a.wind ?? [0, 0, 0] }).version;
         procCut = v !== procVersion || !procWasActive;
         procVersion = v;
       } else {
@@ -541,7 +551,11 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         { binding: SKY_BACK_BINDING, resource: tmp.traceBack.createView() },
       ];
       const gk = groupKey;
-      if (proc) { group = proc.bindGroup(base(), [a.frameBuffer, a.depth, tmp.trace, a.skyLightBuffer]); gk[0] = null; }
+      if (proc) {
+        const vd = a.voxelDepth!;
+        const entries = [...base(), { binding: SKY_VOXEL_DEPTH_BINDING, resource: vd.near.createView() }, { binding: SKY_VOXEL_DEPTH_BINDING + 1, resource: vd.far.createView() }];
+        group = proc.bindGroup(entries, [a.frameBuffer, a.depth, tmp.trace, a.skyLightBuffer, vd.near, vd.far]); gk[0] = null;
+      }
       else if (!group || gk[0] !== win!.texture || gk[1] !== a.frameBuffer || gk[2] !== a.depth || gk[3] !== tmp.trace || gk[4] !== a.skyLightBuffer) {
         gk[0] = win!.texture; gk[1] = a.frameBuffer; gk[2] = a.depth; gk[3] = tmp.trace; gk[4] = a.skyLightBuffer;
         group = device.createBindGroup({ label: 'cloud sky trace', layout, entries: [...base(), { binding: SKY_WEATHER_BINDING, resource: win!.texture.createView() }] });

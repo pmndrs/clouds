@@ -36,7 +36,7 @@ struct Frame {
   // mie = the HG + Draine fit's (gHG, gD, alpha, wD) for the droplet diameter (used when body.z = 1).
   body: vec4<f32>,
   mie: vec4<f32>,
-  // C2 horizon haze: (extinction per metre at the base height, 1 / scale height (per metre), base altitude (m), 0). x = 0: off.
+  // C2 horizon haze: (extinction per metre at the base height, 1 / scale height (per metre), base altitude (m), X3 lighting model: 0 nubis, 1 octave). x = 0: off.
   haze: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

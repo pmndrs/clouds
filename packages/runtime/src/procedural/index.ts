@@ -10,7 +10,8 @@ import type { CloudVolumeAsset } from '../assets';
 import { COMMON_WGSL } from '../shaders/common.wgsl';
 import { volumeWgsl } from '../shaders/volume.wgsl';
 import { SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
-import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
+import { defaultProceduralSettings, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
+import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL, PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, procBindingsWgsl } from './density.wgsl';
 import { bakeSkyProWeather, loadSkyProNoise, loadTakramTextures, skyProWeatherKey, type SkyProWeather, type TakramTextures, type TakramTextureUrls } from './textures';
 import { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 import type { ProceduralDensityModel } from './types';
@@ -21,8 +22,6 @@ export { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 
 export interface ProceduralClouds extends ProceduralDensityModel {
   readonly settings: ProceduralSettings;
-  /** The model's own group-1 resources (bindings PROC_BINDINGS); used by `bindGroup`. */
-  bindGroupEntries(): GPUBindGroupEntry[];
   /** Load the textures of one or both shapers. */
   load(urls: { skyproNoise?: string; takram?: TakramTextureUrls }): Promise<void>;
 }
@@ -39,31 +38,40 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   let skyproWeather: SkyProWeather | null = null;
   let takram: TakramTextures | null = null;
   let version = 0, resourceKey: object = {}, lastShaper: ProceduralShaper | null = null;
-  // Trace pipelines by shaper and lighting mode (compiled asynchronously), the pass layout they share, and the cached bind group.
+  let shell: [number, number] = [0, 1];
+  // Trace pipelines by shaper and lighting mode (compiled asynchronously), the pass layout they share, and the cached bind groups (the pass
+  // entries ping-pong with the voxel march's history, so a few are kept).
   const pipelines = new Map<string, GPUComputePipeline | 'pending'>();
   let passLayout: { entries: GPUBindGroupLayoutEntry[]; layout: GPUBindGroupLayout } | null = null;
-  let group: GPUBindGroup | null = null;
-  const groupKey: unknown[] = [];
+  let groups: { key: unknown[]; group: GPUBindGroup }[] = [];
   const dummyWeather = device.createTexture({ label: 'proc dummy weather', size: [1, 1], format: 'rgba8unorm', usage });
   const C = GPUShaderStage.COMPUTE;
-  const B = PROC_BINDINGS;
-  const layoutEntries: GPUBindGroupLayoutEntry[] = [
-    { binding: B.params, visibility: C, buffer: { type: 'uniform' } },
-    { binding: B.noiseA, visibility: C, texture: { sampleType: 'float', viewDimension: '3d' } },
-    { binding: B.noiseB, visibility: C, texture: { sampleType: 'float', viewDimension: '3d' } },
-    { binding: B.weather, visibility: C, texture: { sampleType: 'float' } },
-    { binding: B.aux, visibility: C, texture: { sampleType: 'float' } },
-    { binding: B.sampler, visibility: C, sampler: { type: 'filtering' } },
+  const O = PROC_BINDING_OFFSETS;
+  const layoutEntries = (base: number, visibility: number): GPUBindGroupLayoutEntry[] => [
+    { binding: base + O.params, visibility, buffer: { type: 'uniform' } },
+    { binding: base + O.noiseA, visibility, texture: { sampleType: 'float', viewDimension: '3d' } },
+    { binding: base + O.noiseB, visibility, texture: { sampleType: 'float', viewDimension: '3d' } },
+    { binding: base + O.weather, visibility, texture: { sampleType: 'float' } },
+    { binding: base + O.aux, visibility, texture: { sampleType: 'float' } },
+    { binding: base + O.sampler, visibility, sampler: { type: 'filtering' } },
   ];
   const haveShaper = () => (settings.shaper === 'skypro' ? !!skyproNoise : !!takram);
 
   return {
     settings,
     get ready() { return haveShaper(); },
+    get shell() { return shell; },
+    get lightingModel() { return settings.lightingModel; },
+    get wgslKey() { return settings.shaper; },
+    get resourceKey() { return resourceKey; },
+    densityWgsl(group, base) {
+      return PROC_PARAMS_WGSL + procBindingsWgsl(group, base) + (settings.shaper === 'skypro' ? PROC_SKYPRO_WGSL : PROC_TAKRAM_WGSL);
+    },
+    layoutEntries,
     pipeline(mode, layouts) {
       if (passLayout?.entries !== layouts.pass) {
-        passLayout = { entries: layouts.pass, layout: device.createBindGroupLayout({ label: 'proc trace', entries: [...layouts.pass, ...layoutEntries] }) };
-        pipelines.clear(); group = null;
+        passLayout = { entries: layouts.pass, layout: device.createBindGroupLayout({ label: 'proc trace', entries: [...layouts.pass, ...layoutEntries(PROC_BINDINGS.params, C)] }) };
+        pipelines.clear(); groups = [];
       }
       const key = `${settings.shaper}:${mode}`;
       const p = pipelines.get(key);
@@ -78,11 +86,12 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       return p === 'pending' ? null : p;
     },
     bindGroup(entries, key) {
-      const k = [...key, resourceKey];
-      if (!group || k.length !== groupKey.length || k.some((v, i) => v !== groupKey[i])) {
-        groupKey.length = 0; groupKey.push(...k);
-        group = device.createBindGroup({ label: 'proc trace', layout: passLayout!.layout, entries: [...entries, { binding: SKY_WEATHER_BINDING, resource: dummyWeather.createView() }, ...this.bindGroupEntries()] });
-      }
+      const k = [...key, resourceKey, passLayout];
+      const hit = groups.find(g => g.key.length === k.length && g.key.every((v, i) => v === k[i]));
+      if (hit) return hit.group;
+      const group = device.createBindGroup({ label: 'proc trace', layout: passLayout!.layout, entries: [...entries, { binding: SKY_WEATHER_BINDING, resource: dummyWeather.createView() }, ...this.resourceEntries(PROC_BINDINGS.params)] });
+      groups.unshift({ key: k, group });
+      if (groups.length > 4) groups.length = 4;
       return group;
     },
     async load(urls) {
@@ -92,7 +101,8 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       await Promise.all(jobs);
       resourceKey = {};
     },
-    bindGroupEntries() {
+    resourceEntries(base) {
+      const B = { params: base + O.params, noiseA: base + O.noiseA, noiseB: base + O.noiseB, weather: base + O.weather, aux: base + O.aux, sampler: base + O.sampler };
       if (settings.shaper === 'skypro') {
         if (!skyproWeather || skyproWeather.key !== skyProWeatherKey(settings.skypro)) {
           const old = skyproWeather;
@@ -118,13 +128,14 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         { binding: B.sampler, resource: sampler },
       ];
     },
-    update(time) {
+    update(time, view) {
       // A shaper switch or a new weather bake changes the resources.
       if (settings.shaper !== lastShaper || (settings.shaper === 'skypro' && skyproWeather && skyproWeather.key !== skyProWeatherKey(settings.skypro))) { lastShaper = settings.shaper; resourceKey = {}; }
-      packProceduralParams(settings, params);
+      shell = packProceduralParams(settings, params);
       let changed = false;
-      for (let i = 0; i < PROC_PARAM_FLOATS; i++) if (params[i] !== prev[i]) { changed = true; break; }
+      for (let i = 0; i < PROC_PARAM_FLOATS; i++) if ((i < PROC_VIEW_FLOATS[0] || i >= PROC_VIEW_FLOATS[1]) && params[i] !== prev[i]) { changed = true; break; }
       if (changed) { version++; prev.set(params); }
+      packProceduralView(view.camera, view.wind, params);
       // Sky Pro's evolution: the shape noise slides along the wind relative to the weather (PRESET.wind.evolutionSpeed at Tidewater's 12 m/s).
       params[10] = time * 60.8 * 12 / 89;
       device.queue.writeBuffer(buffer, 0, params);

@@ -185,8 +185,17 @@ export interface CloudSettings {
    * X1: 'nvdf' (default) renders the voxel field (and the sky layer when enabled). 'procedural' renders the model given to `setProceduralModel`
    * (procedural/index.ts: a per-sample HZD / Sky Pro style density) from the camera to the horizon through the sky layer's targets, resolve and
    * composite, with the same lighting, haze and aerial perspective; the voxel march is skipped. Without a ready model it falls back to 'nvdf'.
+   * X3: 'hybrid' renders both in one frame: the voxel field (heroes, stamps, a generated field) through the march, and the procedural model in
+   * place of the NVDF sky layer, split per pixel at the voxel cloud's distance into the part in front of it and the part behind, so the composite
+   * orders them (front over voxel over back). Where the two overlap their densities add; the procedural light taps also see the voxel field.
    */
-  densityModel: 'nvdf' | 'procedural';
+  densityModel: 'nvdf' | 'procedural' | 'hybrid';
+  /**
+   * X3: the lighting model of the voxel march and the NVDF sky layer. 'nubis' (default): the N3 model (SDF depth, in-scatter profile, glow,
+   * deep octaves, C1 low-sun handoff). 'octave': the per-sample Frostbite / Takram model (Wrenninge octaves, two-lobe HG, sky irradiance
+   * along a height gradient, powder; LIGHTING_WGSL cloudOctaveLight). The procedural model has its own (ProceduralSettings.lightingModel).
+   */
+  lightingModel: 'nubis' | 'octave';
 }
 
 export interface CloudUniformLighting {
@@ -355,7 +364,7 @@ const FLASH_BLEND = 0.85;
 const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
-const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94];
+const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95];
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
@@ -421,10 +430,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
     bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
     hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
-    densityModel: 'nvdf',
+    densityModel: 'nvdf', lightingModel: 'nubis',
   };
   let procModel: ProceduralDensityModel | null = null;
-  let procWas = false;
+  let procWas: CloudSettings['densityModel'] = 'nvdf';
 
   const volumeLayout = createVolumeBindGroupLayout(device);
   const C = GPUShaderStage.COMPUTE;
@@ -829,7 +838,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       lowSun = 1 - sunUp;
       f[84] = settings.bodySunFloor + (1 - settings.bodySunFloor) * sunUp; f[85] = settings.bodyEnv;
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
-      f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase;
+      f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
       // the frame after it, the resolve takes mostly fresh samples (blend FLASH_BLEND); the neighbourhood clip already pulls the history toward the fresh ones.
@@ -838,11 +847,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       flashPrev = flash !== null;
       // The distant sky layer: bakes its weather window / compiles its pipeline on first use (async), then renders.
       // X1: the procedural model replaces the voxel field and the layer's own field (the march passes run with no steps: clear).
-      const proc = settings.densityModel === 'procedural' && procModel?.ready ? procModel : null;
+      // X3: 'hybrid' keeps the voxel march; the procedural model still replaces the layer's own field.
+      const proc = settings.densityModel !== 'nvdf' && procModel?.ready ? procModel : null;
       const skyActive = (proc ? true : skyLayer.settings.enabled) && skyLayer.prepare(encoder, skyBox, !!uniformLighting, timer, proc);
       const procOn = !!proc && skyActive;
-      if (procOn !== procWas) { procWas = procOn; needReset = true; }
-      frameU32[33] = procOn ? 0 : settings.maxSteps >>> 0;
+      const procMode = procOn ? settings.densityModel : 'nvdf';
+      if (procMode !== procWas) { procWas = procMode; needReset = true; }
+      frameU32[33] = procMode === 'procedural' ? 0 : settings.maxSteps >>> 0;
       f[53] = skyActive ? 1 : 0;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates = [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
@@ -964,7 +975,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
 
       if (skyActive) {
-        skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null, time: frame.time });
+        skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null, time: frame.time,
+          wind: settings.windOffset, voxelDepth: { near: near.hist[cur].depth, far: far.hist[cur].depth } });
       }
 
       // Cloud shadow map: the sun-ray optical depth over the box and (with the layer on) out to the horizon, one slice per frame.

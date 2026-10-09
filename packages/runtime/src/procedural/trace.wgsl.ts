@@ -2,28 +2,34 @@ import { atmosphereWgsl } from '../shaders/atmosphere.wgsl';
 import { FRAME_WGSL } from '../shaders/frame.wgsl';
 import { LIGHTING_WGSL } from '../shaders/lighting.wgsl';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_RADIANCE_LIMIT, SKY_LIGHT_ENTRIES, SUN_HEIGHT_WGSL } from '../shaders/march.wgsl';
-import { SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAMS_WGSL, SKY_SAMPLER_BINDING, SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
-import { PROC_PARAMS_WGSL, PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL } from './density.wgsl';
+import { SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAMS_WGSL, SKY_SAMPLER_BINDING, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
+import { PROC_PARAMS_WGSL, PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, procBindingsWgsl } from './density.wgsl';
 import type { ProceduralShaper } from './settings';
 
 /** Extra group-1 bindings of the procedural trace (after the sky layer's 0..8). */
 export const PROC_BINDINGS = { params: 9, noiseA: 10, noiseB: 11, weather: 12, aux: 13, sampler: 14 } as const;
 
 /**
- * X1: the procedural trace. It replaces the sky layer's trace pass when CloudSettings.densityModel is 'procedural' and writes the same targets
- * (front colour, depth, back colour), so the sky layer's temporal resolve (1/16 pixels per frame, SKY_RESOLVE_WGSL), the composite and the haze
- * are shared. It covers everything from the camera to the horizon (no voxel box partition: the voxel march is off in this mode), so the whole
- * result is the 'front' part and the back part stays clear.
+ * X1: the procedural trace. It replaces the sky layer's trace pass when CloudSettings.densityModel is 'procedural' or 'hybrid' and writes the same
+ * targets (front colour, depth, back colour), so the sky layer's temporal resolve (1/16 pixels per frame, SKY_RESOLVE_WGSL), the composite and the
+ * haze are shared. It covers everything from the camera to the horizon.
+ * X3 hybrid: the voxel march runs too. Each layer pixel reads the voxel cloud's mean distance from the march's histories (the nearest over the output
+ * pixels it covers, near and far pass) and splits its samples there: in front of the voxel cloud into the front part, behind it into the back part,
+ * so the composite's front-over-voxel-over-back merge orders them. Where both have density they add (a union). The light taps also integrate the
+ * voxel field (P.hybrid.y), so a hero shades the procedural cloud next to and below it; P.hybrid.x > 0 fades the procedural density out inside
+ * the voxel box (a generated voxel field then replaces it there). With no voxel cloud on a pixel (or in the 'procedural' mode, where the march
+ * is off) the split is at infinity and everything is the front part.
  *
  * The march is Sky Pro's (sky-pro clouds.wgsl, via tidewater/src/sky/SkyProClouds.js scMarch; MIT, DRG Software Solutions LLC, used with the
  * author's permission): a spherical shell interval, coarse steps of 4x the fine step until a cloud is found, a step back, fine steps sized by the
  * pixel cone and shortened at the surface (0.5 / sigma), back to coarse after four empty steps; the Sky Pro shaper also skips whole empty weather
  * cells (64^2 maxima). This is HZD's cheap-to-full march (s75-80) with NE p.39's distance-growing step.
  * Light: Sky Pro's cone of light taps toward the sun (HZD s83: six cone samples, the last far away), 25 m * 1.7^i, the cheap density once the
- * ray is half opaque (HZD s84), reused while the density stays similar; two cheap taps straight up for the ambient optical depth. The radiance is
- * OUR lighting (LIGHTING_WGSL cloudInScatterMicro: N3 multiple-scattering body, the deep octaves, the C1 low-sun handoff, the ambient pair), with
- * the sun evaluated at the sample's altitude (sunRadianceAt) and our aerial perspective and C2 haze applied at the opacity-weighted mean
- * distance (NE p.187), as the voxel march and the sky layer do.
+ * ray is half opaque (HZD s84), reused while the density stays similar; two cheap taps straight up for the ambient optical depth. The radiance
+ * is one of the two lighting models in LIGHTING_WGSL (X3, P.lit.x): 'octave' (cloudOctaveLight, the default here: Frostbite / Takram octaves)
+ * or 'nubis' (cloudInScatterMicro: the N3 body, deep octaves, ambient pair, with proxies for the SDF depth and the in-scatter profile). Both
+ * take the C1 low-sun handoff, the sun evaluated at the sample's altitude (sunRadianceAt: per-altitude colour and the earth's shadow), and our
+ * aerial perspective and C2 haze applied at the opacity-weighted mean distance (NE p.187), per part, as the voxel march and the sky layer do.
  */
 export function proceduralTraceWgsl(mode: 'atmosphere' | 'uniform', shaper: ProceduralShaper): string {
   const atm = mode === 'atmosphere';
@@ -39,16 +45,49 @@ ${SKY_PARAMS_WGSL}
 ${SUN_HEIGHT_WGSL}
 @group(1) @binding(${SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
 @group(1) @binding(${SKY_BACK_BINDING}) var skyBackOut: texture_storage_2d<rgba16float, write>;
-@group(1) @binding(${B.params}) var<uniform> P: ProcParams;
-@group(1) @binding(${B.noiseA}) var procNoiseA: texture_3d<f32>;
-@group(1) @binding(${B.noiseB}) var procNoiseB: texture_3d<f32>;
-@group(1) @binding(${B.weather}) var procWeather: texture_2d<f32>;
-@group(1) @binding(${B.aux}) var procAux: texture_2d<f32>;
-@group(1) @binding(${B.sampler}) var procRepeat: sampler;
+@group(1) @binding(${SKY_VOXEL_DEPTH_BINDING}) var voxNearDepth: texture_2d<u32>;
+@group(1) @binding(${SKY_VOXEL_DEPTH_BINDING + 1}) var voxFarDepth: texture_2d<u32>;
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
 ${PROC_PARAMS_WGSL}
+${procBindingsWgsl(1, B.params)}
 ${shaper === 'skypro' ? PROC_SKYPRO_WGSL : PROC_TAKRAM_WGSL}
+
+// X3 hybrid: the nearest voxel cloud distance (march depth word x, 0 = no cloud) over the pass texels this layer pixel covers (at most 4 x 4).
+fn procVoxelMin(tex: texture_2d<u32>, rect: vec2<f32>, uv0: vec2<f32>, uv1: vec2<f32>) -> f32 {
+  let hiTex = vec2<i32>(rect) - vec2<i32>(1);
+  let lo = clamp(vec2<i32>(floor(uv0 * rect)), vec2<i32>(0), hiTex);
+  let hi = min(min(vec2<i32>(ceil(uv1 * rect)) - vec2<i32>(1), lo + vec2<i32>(3)), hiTex);
+  var m = FAR_T;
+  for (var y = lo.y; y <= hi.y; y++) {
+    for (var x = lo.x; x <= hi.x; x++) {
+      let d = depthWordX(textureLoad(tex, vec2<i32>(x, y), 0).x);
+      if (d > 0.0) { m = min(m, d); }
+    }
+  }
+  return m;
+}
+fn procVoxelSplit(px: vec2<i32>) -> f32 {
+  let uv0 = vec2<f32>(px) / frame.renderSize;
+  let uv1 = vec2<f32>(px + vec2<i32>(1)) / frame.renderSize;
+  var m = procVoxelMin(voxFarDepth, frame.rects.zw, uv0, uv1);
+  if (frame.splitDistance > 0.0) { m = min(m, procVoxelMin(voxNearDepth, frame.rects.xy, uv0, uv1)); }
+  return m;
+}
+// X3 hybrid: the voxel field's cheap density (profile * scale, as the dome and the flash use it) as extinction, for the light taps.
+fn procVoxelSigma(q: vec3<f32>) -> f32 {
+  if (P.hybrid.y < 0.5 || !insideVolume(q)) { return 0.0; }
+  let m = sampleModeling(q, 0.0);
+  return m.x * m.z * frame.extinction;
+}
+// X3 hybrid: 1 outside the voxel box, falling to 0 over P.hybrid.x metres inside its walls (0 = union: always 1).
+fn procCarve(p: vec3<f32>) -> f32 {
+  if (P.hybrid.x <= 0.0) { return 1.0; }
+  let lo = p - cloudVolume.minCorner;
+  let hi = cloudVolume.minCorner + cloudVolume.extent - p;
+  let inside = min(min(min(lo.x, hi.x), min(lo.y, hi.y)), min(lo.z, hi.z));
+  return 1.0 - smoothstep(0.0, P.hybrid.x, inside);
+}
 
 fn procSunRadiance(p: vec3<f32>) -> vec3<f32> {
 ${atm ? '  return sunRadianceAt(vec3(p.x, procAltitude(p), p.z));' : '  return sunRadianceAtHeight(procAltitude(p));'}
@@ -85,21 +124,12 @@ fn procCloudInterval(dir: vec3<f32>, originHeight: f32) -> vec2<f32> {
   if (ground.x > 0.0) { end = min(end, ground.x); }
   return vec2(start, end);
 }
-// Lighting A/B (P.lit.x = 1): Takram's per-sample radiance (@takram/three-clouds clouds.frag marchClouds, MIT): the multiple-scattering
-// approximation of Wrenninge's Oz volumes (8 octaves, attenuation = contribution = phase attenuation = 0.5) with Takram's two-lobe HG
-// (g = 0.7 and -0.2, mixed 50/50), the sky irradiance / 4 pi along a height gradient (0.5..1), powder. Same sun and sky radiance as ours:
-// the sky irradiance is pi * the cosine-weighted mean radiance (skyLight[1]); the ground bounce is approximated by the lower hemisphere.
-fn procHG(g: f32, c: f32) -> f32 { let g2 = g * g; return (1.0 - g2) / (4.0 * PI * pow(max(1.0 + g2 - 2.0 * g * c, 1e-7), 1.5)); }
-fn procTakramLight(tau: f32, cosSun: f32, h: f32, sigma: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
-  var ms = 0.0;
-  var k = 1.0;
-  for (var i = 0; i < 8; i++) {
-    ms += k * exp(-tau * k) * (0.5 * procHG(0.7 * k, cosSun) + 0.5 * procHG(-0.2 * k, cosSun));
-    k *= 0.5;
-  }
-  let skyGradient = h * 0.5 + 0.5;
-  var r = sun * ms + (up * skyGradient + down * (1.0 - skyGradient) * 0.5) * 0.25;
-  return r * (1.0 - P.lit.y * exp(-sigma * 150.0));
+// One premultiplied part (in front of the voxel cloud, or behind it) and its opacity-weighted distance moments.
+struct ProcPart { rad: vec3<f32>, T: f32, depthSum: f32, depthSqSum: f32, weightSum: f32 }
+fn procPartInit() -> ProcPart { return ProcPart(vec3(0.0), 1.0, 0.0, 0.0, 0.0); }
+fn procPartAdd(part: ptr<function, ProcPart>, lit: vec3<f32>, t: f32, stepT: f32) {
+  let w = (*part).T * (1.0 - stepT);
+  (*part).rad += lit * w; (*part).depthSum += t * w; (*part).depthSqSum += t * t * w; (*part).weightSum += w;
 }
 const PROC_FAR_TAPS = 4u;
 const PROC_FAR_REACH = 20000.0;
@@ -128,9 +158,12 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let interval = procCloudInterval(dir, origin.y);
   let tEnd = min(interval.y, sceneEnd);
 
-  var color = vec3(0.0);
+  // X3: front = in front of the voxel cloud, back = behind it (see the hybrid note above). The split is the pixel's, not the jittered ray's.
+  let tSplit = procVoxelSplit(px);
+  var front = procPartInit();
+  var back = procPartInit();
   var T = 1.0;
-  var depthSum = 0.0; var depthSqSum = 0.0; var weightSum = 0.0; var depthMax = 0.0;
+  var depthMax = 0.0;
   var steps = 0u; var firstHit = -1.0; var firstProfile = 0.0;
   if (tEnd > interval.x) {
     let jitter = ign(vec2<f32>(px), cycle);
@@ -172,7 +205,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       if (coarse && PROC_HAS_BOUNDS) {
         if (t >= cellEnd || t < cellStart) {
           let size = vec2<i32>(textureDimensions(procAux));
-          let grid = (origin.xz + dir.xz * t - frame.wind.xz) / P.spShape.x * vec2<f32>(size);
+          let grid = (origin.xz + dir.xz * t - P.drift.xz) / P.spShape.x * vec2<f32>(size);
           let cell = vec2<i32>(floor(grid));
           maximumWeather = textureLoad(procAux, ((cell % size) + size) % size, 0).r;
           let dist = select(fract(grid), 1.0 - fract(grid), dir.xz >= vec2(0.0)) / max(abs(dir.xz) * vec2<f32>(size) / P.spShape.x, vec2(0.0000001));
@@ -206,7 +239,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       }
       emptyRun = 0u; refineEnd = -1.0;
       let fade = 1.0 - smoothstep(fadeStart, P.shell.z, t);
-      let sigmaT = s.sigma * densityScale * fade;
+      let sigmaT = s.sigma * densityScale * fade * procCarve(p);
       let surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
       let stepLength = min(mix(surfaceStep, fineStep * 3.0, smoothstep(1.0, 3.0, accumulated)), tEnd - t);
       let stepT = exp(-sigmaT * stepLength);
@@ -218,8 +251,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
           for (var k = 1u; k < 8u; k++) {
             if (k >= taps) { break; }
             let o = tapOff[k];
-            let ls = procSample(p + o.xyz, t, max(footprint, length(o.xyz) * 0.1), !cheap, jitter);
-            let tau = ls.sigma * densityScale * o.w;
+            let q = p + o.xyz;
+            let ls = procSample(q, t, max(footprint, length(o.xyz) * 0.1), !cheap, jitter);
+            let tau = (ls.sigma * densityScale * procCarve(q) + procVoxelSigma(q)) * o.w;
             shadowTau += tau;
             if (k == 1u) { nearTau = tau; }
             if (shadowTau >= 32.0) { break; }
@@ -236,7 +270,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
             for (var k = 0u; k < PROC_FAR_TAPS; k++) {
               let b = a * ratio;
               let d = sqrt(a * b);
-              shadowTau += procSample(p + L * d, t, max(footprint, d * 0.1), false, jitter).sigma * densityScale * (b - a);
+              let q = p + L * d;
+              shadowTau += (procSample(q, t, max(footprint, d * 0.1), false, jitter).sigma * densityScale * procCarve(q) + procVoxelSigma(q)) * (b - a);
               a = b;
             }
           }
@@ -252,20 +287,22 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         // PACK_FIT ramp; the coarse (dimensional) density bounds it (NE p.54, p.59).
         let profile = min(pow(saturate(s.depth / max(P.misc.w, 1.0)), 1.05), s.coarse);
         var lit: vec3<f32>;
-        if (P.lit.x > 0.5) { lit = procTakramLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown); }
+        if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), P.lit.z); }
         else { lit = cloudInScatterMicro(max(profile, 1.0 / 255.0), -s.depth, saturate(s.h), tau, skyTau, phase, sunRelax, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, microOcc); }
-        let w = T * (1.0 - stepT);
-        color += lit * w;
-        depthSum += t * w; depthSqSum += t * t * w; weightSum += w;
+        if (t < tSplit) { procPartAdd(&front, lit, t, stepT); } else { procPartAdd(&back, lit, t, stepT); }
         depthMax = max(depthMax, s.depth);
         if (firstHit < 0.0) { firstHit = t; firstProfile = profile; }
       }
-      T *= stepT;
+      if (t < tSplit) { front.T *= stepT; } else { back.T *= stepT; }
+      T = front.T * back.T;
       accumulated += sigmaT * stepLength;
       t += stepLength;
     }
-    if (T < SKY.steps.w) { color /= max(1.0 - T, 0.5); T = 0.0; }
-    if (P.lit.x < 0.5) { color *= cloudEdgeFactor(depthMax, frontness); }
+    // Hit the cutoff: close the part being marched; the remaining light continues as the mean colour of what it accumulated (as the sky layer).
+    if (T < SKY.steps.w) {
+      if (t >= tSplit) { back.rad /= max(1.0 - back.T, 0.5); back.T = 0.0; } else { front.rad /= max(1.0 - front.T, 0.5); front.T = 0.0; }
+    }
+    if (P.lit.x < 0.5) { let e = cloudEdgeFactor(depthMax, frontness); front.rad *= e; back.rad *= e; }
     let dbg = u32(P.misc.z);
     if (dbg != 0u) {
       let k = max(ambientUp.x + ambientUp.y + ambientUp.z, 1e-3);
@@ -273,19 +310,28 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       if (dbg == 1u) { c = heat(f32(steps) / P.steps.y); }
       else if (dbg == 2u) { c = select(vec3(0.0, 0.0, 0.3), heat(firstHit / 30000.0), firstHit >= 0.0); }
       else if (dbg == 3u) { c = heat(firstProfile); }
-      color = c * k; T = select(1.0, 0.0, firstHit >= 0.0 || dbg == 1u);
+      else if (dbg == 4u) { c = select(vec3(0.0, 0.0, 0.3), heat(tSplit / 10000.0), tSplit < FAR_T); }
+      front.rad = c * k; front.T = select(1.0, 0.0, firstHit >= 0.0 || dbg == 1u || (dbg == 4u && tSplit < FAR_T));
+      back = procPartInit();
     }
   }
-  let mean = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);
-${atm ? `  if (mean > 0.0 && frame.lightDebug < 0.5 && P.misc.z < 0.5) {
-    color = applyHorizonHaze(applyAerialPerspective(color, T, dir, mean), T, origin, dir, mean, frame.haze);
+  let meanFront = select(0.0, front.depthSum / max(front.weightSum, 1e-6), front.weightSum > 1e-3);
+  let meanBack = select(0.0, back.depthSum / max(back.weightSum, 1e-6), back.weightSum > 1e-3);
+${atm ? `  if (frame.lightDebug < 0.5 && P.misc.z < 0.5) {
+    if (meanFront > 0.0) { front.rad = applyHorizonHaze(applyAerialPerspective(front.rad, front.T, dir, meanFront), front.T, origin, dir, meanFront, frame.haze); }
+    if (meanBack > 0.0) { back.rad = applyHorizonHaze(applyAerialPerspective(back.rad, back.T, dir, meanBack), back.T, origin, dir, meanBack, frame.haze); }
   }` : ''}
-  color = clamp(color, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0));
-  textureStore(skyColorOut, px, vec4(color, T));
-  textureStore(skyBackOut, px, vec4(0.0, 0.0, 0.0, 1.0));
+  textureStore(skyColorOut, px, vec4(clamp(front.rad, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0)), front.T));
+  textureStore(skyBackOut, px, vec4(clamp(back.rad, vec3(0.0), vec3(${MARCH_RADIANCE_LIMIT}.0)), back.T));
+  // The whole ray's opacity distribution (mean and spread over both parts), as the sky layer writes it (C2).
+  let wAll = front.weightSum + back.weightSum;
+  var meanAll = 0.0;
   var spread = 0.0;
-  if (weightSum > 1e-3) { spread = sqrt(max(depthSqSum / weightSum - mean * mean, 0.0)); }
-  textureStore(skyDepthOut, px, vec4(mean, sceneEnd, mean, spread));
+  if (wAll > 1e-3) {
+    meanAll = (front.depthSum + back.depthSum) / wAll;
+    spread = sqrt(max((front.depthSqSum + back.depthSqSum) / wAll - meanAll * meanAll, 0.0));
+  }
+  textureStore(skyDepthOut, px, vec4(select(meanBack, meanFront, meanFront > 0.0), sceneEnd, meanAll, spread));
 }
 `;
 }

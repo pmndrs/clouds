@@ -96,13 +96,25 @@ export interface ProceduralSettings {
   /** Debug view: 0 off, 1 step count, 2 first-hit distance, 3 profile at the first hit. */
   debug: number;
   /**
-   * Lighting A/B: 0 = ours (LIGHTING_WGSL cloudInScatterMicro, the default), 1 = Takram's per-sample model (clouds.frag: 8 multiple-scattering
-   * octaves with a two-lobe HG, a sky term of irradiance / 4 pi along a height gradient, powder), fed by the same sun and sky radiance and the
-   * same optical depths. For the X1 question "shape or lighting"; not a product setting.
+   * X3 lighting model. 'octave' (default for this model): the per-sample Frostbite / Takram model (LIGHTING_WGSL cloudOctaveLight: 8 Wrenninge
+   * octaves with a two-lobe HG, the sky irradiance / 4 pi along a height gradient, powder, C1's low-sun handoff on the body octaves).
+   * 'nubis': our N3 model (cloudInScatterMicro), with the depth below the surface and the in-scatter profile from proxies (`profileDepth`).
+   * Both get the same sun (per altitude, with the earth's shadow), sky and optical depths.
    */
-  lighting: number;
-  /** Takram's powder (lighting 1): radiance *= 1 - powderScale * exp(-extinction * 150 m). Takram default 0.8. */
+  lightingModel: 'nubis' | 'octave';
+  /** Octave model: powder, radiance *= 1 - powderScale * exp(-extinction * 150 m) (Takram 0.8). */
   powderScale: number;
+  /** Octave model: the two-lobe HG (forward g, back g, back-lobe weight; Takram 0.7, -0.2, 0.5) and the gain of the sky ambient (Takram 1). */
+  octavePhase: [number, number, number];
+  ambientGain: number;
+  /**
+   * X3 hybrid (CloudSettings.densityModel 'hybrid'): 0 (default) = density union, the procedural field continues through the voxel box and the
+   * two add where they overlap. > 0: the procedural density fades out over this many metres inside the box walls, so a generated voxel field
+   * replaces the procedural one there (the NVDF sky layer's hard partition, softened).
+   */
+  boxCarve: number;
+  /** X3 hybrid: the light taps toward the sun also integrate the voxel field (heroes shade the procedural cloud beside and below them). */
+  voxelShadow: boolean;
   skypro: SkyProShape;
   takram: TakramShape;
 }
@@ -136,7 +148,8 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
-    shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0, lighting: 0, powderScale: 0.8,
+    shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, boxCarve: 0, voxelShadow: true,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
   };
@@ -144,6 +157,8 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
 
 /** ProcParams uniform: 32 vec4. */
 export const PROC_PARAM_FLOATS = 128;
+/** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
+export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
 
 /** Pack the settings into the ProcParams uniform (layout in procedural/density.wgsl.ts). Returns the shell [minY, maxY] in metres. */
@@ -179,6 +194,15 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   lane(88, l => l.channel);
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
   out.set([tk.turbulenceDisplacement, tk.detailDistance, 0, 0], 96);
-  out.set([s.lighting, s.powderScale, 0, 0], 100);
+  out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, 0], 100);
+  out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], 0], 104);
+  // 108..115: the camera and the wind offset (packProceduralView).
+  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, 0, 0], 116);
   return [minY, maxY];
+}
+
+/** The per-frame part of ProcParams: the camera (curvature reference) and the wind offset. */
+export function packProceduralView(camera: ArrayLike<number>, wind: ArrayLike<number>, out: Float32Array): void {
+  out[108] = camera[0]; out[109] = camera[1]; out[110] = camera[2]; out[111] = 0;
+  out[112] = wind[0]; out[113] = wind[1]; out[114] = wind[2]; out[115] = 0;
 }

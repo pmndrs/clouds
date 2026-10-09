@@ -23,8 +23,22 @@
  *   - detail erosion by the 32^3 Worley texture, inverted toward the base for wisps (HZD s37 note), offset by a 2D turbulence texture
  *     (HZD s33/s37 curl distortion), only near the camera (HZD s77-80 cheap-then-expensive);
  *   - a linear density profile, denser at the top (HZD s36: "reduces density at the base").
- * Needs the bindings declared by the trace (procedural/trace.wgsl.ts): P (ProcParams), procNoiseA/B, procWeather, procAux, procRepeat.
+ * Needs the bindings of procBindingsWgsl (P (ProcParams), procNoiseA/B, procWeather, procAux, procRepeat) and COMMON_WGSL. X3: it reads no
+ * Frame uniform (the camera and the wind offset come in ProcParams), so the shadow map and the dome can include it too.
  */
+/** Binding offsets from a pass's base binding (the trace uses base 9, after the sky layer's 0..8). */
+export const PROC_BINDING_OFFSETS = { params: 0, noiseA: 1, noiseB: 2, weather: 3, aux: 4, sampler: 5 } as const;
+export function procBindingsWgsl(group: number, base: number): string {
+  const o = PROC_BINDING_OFFSETS;
+  return /* wgsl */ `
+@group(${group}) @binding(${base + o.params}) var<uniform> P: ProcParams;
+@group(${group}) @binding(${base + o.noiseA}) var procNoiseA: texture_3d<f32>;
+@group(${group}) @binding(${base + o.noiseB}) var procNoiseB: texture_3d<f32>;
+@group(${group}) @binding(${base + o.weather}) var procWeather: texture_2d<f32>;
+@group(${group}) @binding(${base + o.aux}) var procAux: texture_2d<f32>;
+@group(${group}) @binding(${base + o.sampler}) var procRepeat: sampler;
+`;
+}
 export const PROC_PARAMS_WGSL = /* wgsl */ `
 struct ProcParams {
   shell: vec4<f32>,      // min y, max y (m), max distance, coverage
@@ -42,15 +56,19 @@ struct ProcParams {
   tkChannel: vec4<f32>,
   tkRepeat: vec4<f32>,   // weather tile (m), shape repeat (1/m), detail repeat (1/m), turbulence tiles per weather tile
   tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), 0, 0
-  lit: vec4<f32>,        // lighting model (0 ours, 1 Takram's), powder scale, 0, 0
-  _pad: array<vec4<f32>, 6>,
+  lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, 0
+  octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, 0
+  origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
+  drift: vec4<f32>,      // wind offset (CloudSettings.windOffset, m), 0         (likewise)
+  hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1), 0, 0
+  _pad: array<vec4<f32>, 2>,
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
 const PROC_EARTH_M = 6371000.0;
 // Altitude above the flat world's ground with the planet's curvature about the camera (Sky Pro scShellHeight: a parabolic drop avoids
 // subtracting two 6371 km values in f32).
 fn procAltitude(p: vec3<f32>) -> f32 {
-  let d = p.xz - frame.cameraPos.xz;
+  let d = p.xz - P.origin.xz;
   return p.y + dot(d, d) / (2.0 * PROC_EARTH_M);
 }
 `;
@@ -61,7 +79,7 @@ struct ProcCandidate { conservative: f32, edge: f32, top: f32, floorMask: f32, s
 fn procConeLod(footprint: f32, scale: f32) -> f32 { return max(0.0, log2(max(footprint * 64.0 / scale, 1.0))); }
 fn procShellHeight(p: vec3<f32>) -> f32 { return (procAltitude(p) - P.spShell.x) / P.spShell.y; }
 fn procWeatherAt(p: vec3<f32>) -> f32 {
-  return textureSampleLevel(procWeather, procRepeat, (p.xz - frame.wind.xz) / P.spShape.x, 0.0).r;
+  return textureSampleLevel(procWeather, procRepeat, (p.xz - P.drift.xz) / P.spShape.x, 0.0).r;
 }
 fn procCandidate(p: vec3<f32>, coverage: f32, lod: f32) -> ProcCandidate {
   let h = procShellHeight(p);
@@ -69,7 +87,7 @@ fn procCandidate(p: vec3<f32>, coverage: f32, lod: f32) -> ProcCandidate {
   r.conservative = 0.0; r.edge = 0.0; r.top = 0.0; r.floorMask = 0.0; r.shellHeight = h; r.localHeight = 0.0; r.coverage = coverage; r.position = p;
   if (h < -0.1 || h > 1.3 || coverage <= 0.0) { return r; }
   let wd = P.spWind.xy;
-  let shapePosition = p - vec3(frame.wind.x, 0.0, frame.wind.z) - vec3(wd.x, 0.0, wd.y) * (P.spWind.z * max(h, 0.0) - P.wind.z);
+  let shapePosition = p - vec3(P.drift.x, 0.0, P.drift.z) - vec3(wd.x, 0.0, wd.y) * (P.spWind.z * max(h, 0.0) - P.wind.z);
   let weather = procWeatherAt(p);
   let edge = max(P.spBase.y * exp2(-max(h, 0.0) * P.spBase.z), 0.0001);
   // an all-one noise sample bounds the top dilation; a failed bound avoids the volume fetch
@@ -162,7 +180,7 @@ struct ProcWeather { hf: vec4<f32>, density: vec4<f32> }
 fn procWeatherSample(p: vec3<f32>, alt: f32) -> ProcWeather {
   var o: ProcWeather;
   o.hf = procRemap4(vec4(alt), P.tkMinH, P.tkMaxH);
-  let uv = (p.xz - frame.wind.xz) / P.tkRepeat.x;
+  let uv = (p.xz - P.drift.xz) / P.tkRepeat.x;
   let local = pow(procWeatherChannels(uv), P.tkWeatherExp);
   let heightScale = procShapeAltering(o.hf, P.tkBias);
   // Coverage as inflation (N17 p.40-44; Takram after Skybolt's Clouds.h): the threshold falls as coverage x height gradient rises.
@@ -182,9 +200,9 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   let w = procWeatherSample(p, alt);
   if (!any(w.density > vec4(1e-5))) { return o; }
   var density = w.density;
-  let uv = (p.xz - frame.wind.xz) / P.tkRepeat.x;
+  let uv = (p.xz - P.drift.xz) / P.tkRepeat.x;
   let turb = P.tkTurb.x * (textureSampleLevel(procAux, procRepeat, uv * P.tkRepeat.w, 0.0).rgb * 2.0 - 1.0) * dot(density, procRemap4(w.hf, vec4(0.3), vec4(0.0)));
-  let wp = vec3(p.x - frame.wind.x, alt, p.z - frame.wind.z);
+  let wp = vec3(p.x - P.drift.x, alt, p.z - P.drift.z);
   let shape = textureSampleLevel(procNoiseA, procRepeat, (wp + turb) * P.tkRepeat.y, 0.0).r;
   density = procRemap4(density, vec4(1.0 - shape) * P.tkShape, vec4(1.0));
   let coarse = density;

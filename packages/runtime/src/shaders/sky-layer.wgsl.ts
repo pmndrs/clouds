@@ -13,6 +13,8 @@ export const SKY_LIGHT_STORAGE_BINDING = 6;
 export const SKY_PARAMS_BINDING = 7;
 /** The part of the layer behind the voxel box (see the handoff note below). */
 export const SKY_BACK_BINDING = 8;
+/** X3: the procedural trace's extra pass bindings: the voxel march's near and far history depth words (r32uint) at this binding and +1 (after the model's 9..14). */
+export const SKY_VOXEL_DEPTH_BINDING = 15;
 /** Group 1 bindings of the resolve pass (0 Frame, 1 scene depth as above). */
 export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
@@ -610,7 +612,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
                 }
                 let microOcc = exp(-frame.microShadow * microTau);
                 // Same arguments as the voxel march: the cheap term (profile * scale) as the in-scatter probability, -depth as the sdf.
-                lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc);
+                if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, saturate(sp.hz), sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, frame.ambientStrength); }
+                else { lit = cloudInScatterMicro(sp.m.x * sp.m.z, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc); }
               }
               if (ts < tSplit) {
                 let w = front.T * (1.0 - stepT);
@@ -639,7 +642,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
     // One edge factor for the whole ray (P9-C2): per part, a split falling just under a surface gave the front part a small depthMax and so a
     // different edge factor, a thin line along every box edge seen across a sheet (stratus from above).
-    let edge = cloudEdgeFactor(max(front.depthMax, back.depthMax), frontness);
+    let edge = select(cloudEdgeFactor(max(front.depthMax, back.depthMax), frontness), 1.0, octaveOn());
     front.rad *= edge;
     back.rad *= edge;
     if (dbg != 0u && dbg != 4u && dbg != 6u) {

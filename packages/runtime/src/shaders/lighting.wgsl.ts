@@ -88,6 +88,41 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
   }
   return direct + msLight + deepLight + envLight + ambient;
 }
+// X3 'octave' lighting model (CloudSettings.lightingModel / ProceduralSettings.lightingModel): the per-sample model of Frostbite and Takram,
+// for density without an SDF or an in-scatter profile (Hillaire 2016 eq. 19-20 after Wrenninge 2013 "Oz"; Takram three-clouds clouds.frag).
+// n = 0..7: b^n * phase(g c^n) * exp(-a^n tau) with a = b = c = 0.5, phase a two-lobe HG (o.x forward g, o.y back g, o.z back weight).
+// Octave 0 is the low order (rims, silver lining) and keeps the sun. Octaves >= 1 are the body: C1's low-sun handoff (Bouthors 2008) scales
+// their sun share by elevation and the optical depth toward the sun (frame.body.x, .w) and gives the share it lost to the environment pair,
+// isotropically (irradiance / 4 pi = radiance / 4), with the same depth falloff. Ambient: the sky irradiance / 4 pi along a height gradient
+// (0.5 at the base, 1 at the top, Frostbite/Hogfeldt's [a, 1] bias), the lower hemisphere at half weight, times ambientGain.
+// Powder (Takram): radiance *= 1 - o.w exp(-sigma 150 m). Takram's values: o = (0.7, -0.2, 0.5, 0.8), gain 1.
+const OCTAVE_COUNT = 8;
+fn cloudOctaveLight(tau: f32, cosSun: f32, h: f32, sigma: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>, envUp: vec3<f32>, envDown: vec3<f32>, o: vec4<f32>, ambientGain: f32) -> vec3<f32> {
+  var low = 0.0; var body = 0.0; var bodyIso = 0.0;
+  var k = 1.0;
+  for (var n = 0; n < OCTAVE_COUNT; n++) {
+    let att = k * exp(-tau * k);
+    let s = att * mix(henyeyGreenstein(cosSun, o.x * k), henyeyGreenstein(cosSun, o.y * k), o.z);
+    if (n == 0) { low = s; } else { body += s; bodyIso += att; }
+    k *= 0.5;
+  }
+  let sunShare = frame.body.x * exp(-tau * frame.body.w);
+  let envShare = frame.body.y * (1.0 - sunShare);
+  let g = saturate(h) * 0.5 + 0.5;
+  let direct = sun * low;
+  let msLight = sun * (body * sunShare);
+  let envLight = mix(envDown, envUp, g) * (0.25 * envShare * bodyIso);
+  let ambient = (up * g + down * ((1.0 - g) * 0.5)) * (0.25 * ambientGain);
+  let powder = 1.0 - o.w * exp(-sigma * 150.0);
+  if (frame.lightDebug > 0.5 && frame.lightDebug < 5.5) {
+    let k = u32(frame.lightDebug);
+    return powder * select(select(select(select(envLight, ambient, k == 4u), vec3(0.0), k == 3u), msLight, k == 2u), direct, k == 1u);
+  }
+  return (direct + msLight + envLight + ambient) * powder;
+}
+// The voxel march and the NVDF sky layer in 'octave' mode (frame.haze.w = 1): Takram's phase and powder.
+const OCTAVE_DEFAULT = vec4(0.7, -0.2, 0.5, 0.8);
+fn octaveOn() -> bool { return frame.haze.w > 0.5; }
 // Dark edges (front-lit): rays that only graze the cloud (shallow in the SDF) scatter little. Multiply the ray's radiance by this.
 fn cloudEdgeFactor(depthMax: f32, frontness: f32) -> f32 {
   return mix(1.0, mix(EDGE_FLOOR, 1.0, smoothstep(0.0, EDGE_DEPTH, depthMax)), frame.edgeDarkening * frontness);
