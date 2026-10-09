@@ -62,7 +62,7 @@ export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
   },
   // Altocumulus: no low cloud; a high layer of small, regularly spaced cells in patches and bands (the weather's upper layer at 1.4 km).
   altocumulus: {
-    weather: { scale: 2, cellular: 1, cellScale: 9, coverageLo: 2, coverageHi: 3, fractus: 0, speciesRange: [0.5, 0.5], wind: [2, 1], alto: { cover: 1, cells: 18, patches: 1.2, jitter: 0.3 } },
+    weather: { scale: 2, cellular: 1, cellScale: 9, coverageLo: 2, coverageHi: 3, fractus: 0, speciesRange: [0.5, 0.5], wind: [2, 1], alto: { cover: 1, cells: 18, patches: 1.2, jitter: 1 } },
     params: { profiles: true, baseDefault: 0.08, billowAmp: 0.4, billowCellMeters: 450, coverageThreshold: 0.15, baseLift: 0.008, shearX: 0.045, shearY: 0.022, altoBase: 1400, altoDepth: 180 },
     volume: TALL,
   },
@@ -73,7 +73,7 @@ export const CLOUD_PRESETS: Record<CloudPresetName, CloudPreset> = {
   },
   // A mixed sky (T1/T4): stratocumulus, humilis, mediocris and congestus regions in one cumulus layer, under altocumulus patches at 1.4 km.
   mixed: {
-    weather: { scale: 1.6, cellular: 1, cellScale: 8, coverageLo: 0.52, coverageHi: 0.88, fractus: 0.5, lobeSplit: 0.8, speciesRange: [0.2, 1], wind: [2, 1], alto: { cover: 0.7, cells: 18, patches: 1.4, jitter: 0.35 } },
+    weather: { scale: 1.6, cellular: 1, cellScale: 8, coverageLo: 0.52, coverageHi: 0.88, fractus: 0.5, lobeSplit: 0.8, speciesRange: [0.2, 1], wind: [2, 1], alto: { cover: 0.7, cells: 18, patches: 1.4, jitter: 1 } },
     params: { profiles: true, baseDefault: 0.08, billowAmp: 0.4, billowCellMeters: 450, coverageThreshold: 0.15, baseLift: 0.008, shearX: 0.045, shearY: 0.022, altoBase: 1400, altoDepth: 180 },
     volume: TALL,
   },

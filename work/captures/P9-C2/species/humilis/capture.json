@@ -1,0 +1,256 @@
+{
+  "url": "http://127.0.0.1:59783/species/?species=humilis",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T04:29:57.113Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P9-C2/species/humilis/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6150924333333333,
+          "lightGridReduce": 0.083036,
+          "lightGrid": 0.13152329411764704,
+          "marchNear": 0.055520749999999994,
+          "marchFar": 0.44196906666666674,
+          "shadowMap": 0.40761459999999977,
+          "composite": 0.3328367166666668,
+          "dome": 0.5294474166666666,
+          "resolveNear": 0.026044150000000002,
+          "resolveFar": 0.04154928333333334,
+          "skyWeatherMips": 0.193705,
+          "skyLayer": 1.9470285833333336,
+          "skyResolve": 0.12525223333333335,
+          "cloudsTotal": 4.930619527450982
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "humilis",
+        "frames": 276,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 2,
+            "frames": 178,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "humilis",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.06,
+            "shearY": 0.03,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.5
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/P9-C2/species/humilis/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6150924333333333,
+          "lightGridReduce": 0.083036,
+          "lightGrid": 0.1061590606060606,
+          "marchNear": 0.05926925000000002,
+          "marchFar": 0.4700837499999999,
+          "shadowMap": 0.4392696666666667,
+          "composite": 0.31955068333333336,
+          "dome": 0.5439681833333333,
+          "resolveNear": 0.029856000000000004,
+          "resolveFar": 0.05384638333333335,
+          "skyWeatherMips": 0.193705,
+          "skyLayer": 2.2359790166666675,
+          "skyResolve": 0.12720153333333328,
+          "cloudsTotal": 5.277016960606061
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665833333333335
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "humilis",
+        "frames": 431,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 3,
+            "frames": 333,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "humilis",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.06,
+            "shearY": 0.03,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.5
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P9-C2/species/humilis/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.6150924333333333,
+          "lightGridReduce": 0.083036,
+          "lightGrid": 0.10169093877551018,
+          "marchNear": 0.0684934833333333,
+          "marchFar": 0.26440828333333327,
+          "shadowMap": 0.4724047666666666,
+          "composite": 0.46246801666666665,
+          "dome": 0.5561657499999998,
+          "resolveNear": 0.030539150000000004,
+          "resolveFar": 0.05024586666666667,
+          "skyWeatherMips": 0.193705,
+          "skyLayer": 0.9755468833333337,
+          "skyResolve": 0.14260130000000001,
+          "cloudsTotal": 4.016397872108844
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "humilis",
+        "frames": 586,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 4,
+            "frames": 488,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "humilis",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.06,
+            "shearY": 0.03,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 190.5
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

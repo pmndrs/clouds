@@ -65,6 +65,20 @@ describe('horizontal species table', () => {
     expect(congestus.pk).toBeGreaterThan(mediocris.pk);
     expect(congestus.split).toBeGreaterThan(humilis.split);
   });
+  it('gives congestus a peaked mass profile (P9-C2: a plateau under the tower law is a flat-topped cylinder)', () => {
+    expect(congestus.emul).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('P9-C2 look fixes', () => {
+  it('bounds the outward billow by the column mass and shares the bound with the sky layer', () => {
+    expect(BILLOW_WGSL).toMatch(/const BILLOW_LIFT = [\d.]+;/);
+    expect(BILLOW_WGSL).toMatch(/fn tallMass\(/);
+    expect(BILLOW_WGSL).toMatch(/fn towerShift\(/);
+  });
+  it('jitters the altocumulus cells fully (a lower jitter reads as a polka-dot lattice)', () => {
+    for (const name of ['altocumulus', 'mixed'] as const) expect(CLOUD_PRESETS[name].weather.alto?.jitter ?? 1).toBeGreaterThanOrEqual(0.85);
+  });
 });
 
 describe('presets', () => {

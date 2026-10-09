@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-altocumulus-alto   FAIL  CV 1.09 pass  ratio 40.5 pass  base 0m pass  acf 0.000 pass  clone 0.65 FAIL   (212 lobes in 248 footprints, cover 13%)

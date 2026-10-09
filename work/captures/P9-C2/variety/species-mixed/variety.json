@@ -1,0 +1,177 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T04:32:59.514Z",
+  "results": {
+    "species-mixed": {
+      "measures": {
+        "footprintCv": 2.1708694149592977,
+        "footprintRatio": 185,
+        "baseSpreadM": 16,
+        "autocorrPeak": 0,
+        "cloneScore": 0.5382982895629995
+      },
+      "verdict": {
+        "footprintCv": "pass",
+        "footprintRatio": "pass",
+        "baseSpreadM": "pass",
+        "autocorrPeak": "pass",
+        "cloneScore": "pass"
+      },
+      "pass": true,
+      "coverage": 0.1683010525173611,
+      "footprint": {
+        "components": 102,
+        "usedComponents": 69,
+        "edgeComponents": 20,
+        "ignoredSmall": 13,
+        "cv": 2.1708694149592977,
+        "ratio": 185,
+        "areaColumns": {
+          "min": 13,
+          "max": 2405,
+          "mean": 229.231884057971,
+          "median": 43
+        },
+        "diameterM": {
+          "min": 65.0948631220515,
+          "median": 118.3884323253107,
+          "max": 885.385861024754
+        }
+      },
+      "connectedFootprint": {
+        "components": 83,
+        "usedComponents": 64,
+        "edgeComponents": 18,
+        "ignoredSmall": 1,
+        "cv": 2.255889847535001,
+        "ratio": 566.25,
+        "areaColumns": {
+          "min": 4,
+          "max": 2265,
+          "mean": 210.375,
+          "median": 41.5
+        },
+        "diameterM": {
+          "min": 36.1081333470564,
+          "median": 116.30518872030761,
+          "max": 859.2294324679741
+        }
+      },
+      "base": {
+        "clouds": 45,
+        "coreColumns": 8948,
+        "baseSpreadM": 16,
+        "coreBaseM": {
+          "p5": 160,
+          "median": 176,
+          "p95": 176
+        },
+        "cloudBaseSpreadM": 0,
+        "cloudBaseMedianM": {
+          "min": 160,
+          "median": 176,
+          "max": 192
+        }
+      },
+      "clone": {
+        "clouds": 25,
+        "pairs": 600,
+        "median": 0.5382982895629995,
+        "p90": 0.7484091644281299,
+        "p10": 0.2998463420434685
+      },
+      "autocorr": {
+        "coverage": 0.1683010525173611,
+        "cellSpacingM": 512,
+        "peak": 0,
+        "peakLagM": null,
+        "peakLagOverSpacing": null,
+        "profile": [
+          1,
+          0.868,
+          0.764,
+          0.672,
+          0.6,
+          0.532,
+          0.478,
+          0.425,
+          0.378,
+          0.332,
+          0.295,
+          0.257,
+          0.223,
+          0.189,
+          0.159,
+          0.131,
+          0.107,
+          0.085,
+          0.066,
+          0.05,
+          0.037,
+          0.027,
+          0.019,
+          0.012,
+          0.005,
+          0,
+          -0.004,
+          -0.008,
+          -0.013,
+          -0.015,
+          -0.016,
+          -0.015,
+          -0.016,
+          -0.018,
+          -0.018,
+          -0.015,
+          -0.014,
+          -0.014,
+          -0.015,
+          -0.015,
+          -0.013,
+          -0.012,
+          -0.011,
+          -0.008,
+          -0.006,
+          -0.008,
+          -0.005,
+          -0.003,
+          -0.002,
+          0.002,
+          0.003,
+          0.004,
+          0.007,
+          0.009,
+          0.014,
+          0.016,
+          0.018,
+          0.016,
+          0.017,
+          0.018,
+          0.017,
+          0.017,
+          0.014,
+          0.011,
+          0.009
+        ]
+      },
+      "url": "species/?species=mixed",
+      "screenshots": []
+    }
+  }
+}

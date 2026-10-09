@@ -1,0 +1,177 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T04:33:13.064Z",
+  "results": {
+    "species-mediocris": {
+      "measures": {
+        "footprintCv": 1.5951423607514648,
+        "footprintRatio": 193.53846153846155,
+        "baseSpreadM": 16,
+        "autocorrPeak": 0,
+        "cloneScore": 0.4950123129842991
+      },
+      "verdict": {
+        "footprintCv": "pass",
+        "footprintRatio": "pass",
+        "baseSpreadM": "pass",
+        "autocorrPeak": "pass",
+        "cloneScore": "pass"
+      },
+      "pass": true,
+      "coverage": 0.4711235894097222,
+      "footprint": {
+        "components": 217,
+        "usedComponents": 124,
+        "edgeComponents": 39,
+        "ignoredSmall": 54,
+        "cv": 1.5951423607514648,
+        "ratio": 193.53846153846155,
+        "areaColumns": {
+          "min": 13,
+          "max": 2516,
+          "mean": 341.9032258064516,
+          "median": 58.5
+        },
+        "diameterM": {
+          "min": 65.0948631220515,
+          "median": 138.08705740203823,
+          "max": 905.5873772341018
+        }
+      },
+      "connectedFootprint": {
+        "components": 119,
+        "usedComponents": 95,
+        "edgeComponents": 19,
+        "ignoredSmall": 5,
+        "cv": 2.4648807743492926,
+        "ratio": 1081.5,
+        "areaColumns": {
+          "min": 2,
+          "max": 2163,
+          "mean": 109.25263157894737,
+          "median": 32
+        },
+        "diameterM": {
+          "min": 25.532305945691693,
+          "median": 102.12922378276677,
+          "max": 839.6596850076298
+        }
+      },
+      "base": {
+        "clouds": 59,
+        "coreColumns": 6752,
+        "baseSpreadM": 16,
+        "coreBaseM": {
+          "p5": 160,
+          "median": 176,
+          "p95": 176
+        },
+        "cloudBaseSpreadM": 0,
+        "cloudBaseMedianM": {
+          "min": 176,
+          "median": 176,
+          "max": 224
+        }
+      },
+      "clone": {
+        "clouds": 57,
+        "pairs": 3192,
+        "median": 0.4950123129842991,
+        "p90": 0.7325224177350047,
+        "p10": 0.19810955184904408
+      },
+      "autocorr": {
+        "coverage": 0.4711235894097222,
+        "cellSpacingM": 455.1111111111111,
+        "peak": 0,
+        "peakLagM": null,
+        "peakLagOverSpacing": null,
+        "profile": [
+          1,
+          0.846,
+          0.731,
+          0.632,
+          0.557,
+          0.488,
+          0.434,
+          0.385,
+          0.345,
+          0.31,
+          0.283,
+          0.257,
+          0.236,
+          0.215,
+          0.196,
+          0.177,
+          0.161,
+          0.146,
+          0.134,
+          0.121,
+          0.11,
+          0.103,
+          0.096,
+          0.091,
+          0.085,
+          0.082,
+          0.08,
+          0.08,
+          0.081,
+          0.081,
+          0.077,
+          0.075,
+          0.074,
+          0.072,
+          0.068,
+          0.064,
+          0.058,
+          0.053,
+          0.047,
+          0.04,
+          0.034,
+          0.027,
+          0.022,
+          0.018,
+          0.014,
+          0.009,
+          0.007,
+          0.005,
+          0.002,
+          0,
+          -0.001,
+          -0.003,
+          -0.003,
+          -0.005,
+          -0.006,
+          -0.008,
+          -0.01,
+          -0.012,
+          -0.014,
+          -0.017,
+          -0.02,
+          -0.023,
+          -0.025,
+          -0.028,
+          -0.031
+        ]
+      },
+      "url": "species/?species=mediocris",
+      "screenshots": []
+    }
+  }
+}

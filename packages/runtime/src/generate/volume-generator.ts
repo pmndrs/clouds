@@ -48,6 +48,11 @@ export interface NvdfParams {
   /** P9-C upper layer (altocumulus, the weather map's A with `alto`): its base and depth, metres above the volume base. 0 = off. Needs `profiles`. Moved down to fit a short volume (altoFractions). */
   altoBase: number;
   altoDepth: number;
+  /**
+   * P9-C2 density hand-off to the sky layer (sheets: stratus, stratocumulus): metres over which the density scale fades in from the box's side
+   * walls, the complement of the sky layer's `densityFade` (pass the same value to both). 0 = off (the default; separate clouds use the hard partition).
+   */
+  edgeFade: number;
 }
 
 export interface VolumeGeneratorOptions {
@@ -144,7 +149,7 @@ export interface VolumeGenerator {
 export const NVDF_DEFAULTS: NvdfParams = {
   coverageThreshold: 0.12, useMapHeights: false, baseDefault: 0.08, topFraction: 0.6, domeExponent: 2, billowAmp: 0.35, billowCellMeters: 320,
   baseLift: 0.1, shearX: 0, shearY: 0, seed: 1, scaleBase: 0.25, scaleTop: 0.85, profileSigma: 0.64, detailBias: 0.3,
-  profiles: false, altoBase: 0, altoDepth: 0,
+  profiles: false, altoBase: 0, altoDepth: 0, edgeFade: 0,
 };
 
 /** Jump-flood step sizes (legacy helper, not used by the exact EDT any more): n/2 .. 1 (n the next power of two >= maxDim), then `refine` extra steps (JFA+1: [1], JFA+2: [2, 1]). */
@@ -258,7 +263,7 @@ export function createVolumeGenerator(device: GPUDevice, options: VolumeGenerato
     return slots.length - 1;
   };
   const common = (u: Uint32Array, f: Float32Array, dims: [number, number, number], zStart: number, zCount: number) => {
-    u[0] = dims[0]; u[1] = dims[1]; u[2] = dims[2]; u[4] = zStart; u[5] = zCount;
+    u[0] = dims[0]; u[1] = dims[1]; u[2] = dims[2]; f[3] = p.edgeFade; u[4] = zStart; u[5] = zCount;
     f[6] = margin; f[7] = maxDist; f[8] = voxelSize; f[9] = p.coverageThreshold; f[10] = p.useMapHeights ? 1 : 0; f[11] = p.baseDefault;
     f[12] = p.topFraction; f[13] = p.domeExponent; f[14] = p.billowAmp; f[15] = p.billowCellMeters;
     f[16] = p.seed; f[17] = p.scaleBase; f[18] = p.scaleTop; f[19] = p.profileSigma; f[20] = p.detailBias; f[21] = p.baseLift; f[22] = origin[0]; f[23] = origin[1];

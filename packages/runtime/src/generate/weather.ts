@@ -45,7 +45,7 @@ export interface ProceduralWeatherOptions {
     cells?: number;
     /** Patches across the map. Default 1.5. */
     patches?: number;
-    /** 0 a lattice .. 1 fully jittered. Default 0.35. */
+    /** 0 a lattice .. 1 fully jittered. Default 1 (P9-C2: lower reads as a polka-dot grid; the photos measure a spacing CV of 0.57-0.81). */
     jitter?: number;
   };
   /**
@@ -148,7 +148,7 @@ function weatherParams(options: ProceduralWeatherOptions, w: number, h: number, 
   const wind = options.wind ?? [1, 0.5], wl = Math.hypot(wind[0], wind[1]) || 1;
   f[32] = range[0]; f[33] = range[1]; f[34] = wind[0] / wl; f[35] = wind[1] / wl;
   if (options.alto && options.alto.cover > 0) {
-    f[36] = options.alto.cover; f[37] = options.alto.cells ?? 18; f[38] = options.alto.patches ?? 1.5; f[39] = options.alto.jitter ?? 0.35;
+    f[36] = options.alto.cover; f[37] = options.alto.cells ?? 18; f[38] = options.alto.patches ?? 1.5; f[39] = options.alto.jitter ?? 1;
   }
   if (options.horizon) {
     f[40] = options.horizon.start; f[41] = options.horizon.end; f[42] = options.horizon.species ?? 0.75; f[43] = options.horizon.cluster ?? 0.55;

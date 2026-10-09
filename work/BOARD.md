@@ -1471,7 +1471,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Cost: high tier ≤ 3.5 ms at 2560×1440. Generation per job ≤ +20%. No frame over 1 ms of bake.
   - `pnpm check` green; the packed consumer passes.
 
-### [~] P9-C2 Species look fixes: altocumulus lattice, cylinder towers, stratus box edge · Opus (worker: claude-opus P9-C2)
+### [x] P9-C2 Species look fixes: altocumulus lattice, cylinder towers, stratus box edge · Opus (worker: claude-opus P9-C2)
 - **Owns:** `packages/runtime/src/generate/**`, `packages/runtime/src/sky-layer.ts`, `shaders/sky-layer.wgsl.ts`, `examples/lab/species/**`.
 - **Problems** (orchestrator review of `work/captures/P9-C/species-sheet.jpg`):
   1. **Altocumulus** is a near-perfect polka-dot lattice, worst from above. That is the "cloned" look again. Real altocumulus (castellanus/floccus/stratiformis) has regular-ish cells, but they vary in size and merge into rolls, rows and patches along the wind, with thinning toward gaps. Break the lattice: jitter, size variance, merging and roll alignment, patch-level coverage. Keep the clone and acf metrics honest; add the acf peak check to the altocumulus run.
@@ -1480,7 +1480,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   4. **Mediocris and congestus "side"** views show vertical streaky textures on the near clouds. Check whether that is the profile or the detail type.
 - **Acceptance:** an updated species sheet in which the orchestrator sees no lattice, no cylinder walls and no box outline. Variety numbers hold. `pnpm check` green.
 
-### [ ] P9-C3 Cost back under budget after species · Opus (after P9-C2)
+### [ ] P9-C3 Cost back under budget after species · Opus (after P9-C2 and P13-H1)
 - **Owns:** `packages/runtime/src/{runtime.ts,dome.ts,light-grid.ts}` and `shaders/{dome,march,light-grid,composite}.wgsl.ts`, plus `sky-layer` once P9-C2 lands.
 - **Does:** P9-C content (30–40% cover, taller clouds) pushed the high tier to 4.5–5.3 ms at 2560×1440 (budget 3.5). The march went 0.56 → 0.96 ms, the dome 0.39 → 0.74 and the sky layer 1.3 → 1.9.
   - Add step/detail budgets in the sky layer and dome, and scale march detail with distance and coverage.

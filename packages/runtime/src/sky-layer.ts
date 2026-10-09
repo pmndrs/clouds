@@ -67,6 +67,12 @@ export interface SkyLayerOptions {
    */
   rimWidth?: number;
   /**
+   * P9-C2 density hand-off for sheets (stratus, stratocumulus): with the hard partition (rimWidth 0), the layer also draws this many metres into the
+   * box with its density fading out while the voxel field's fades in (generate it with NvdfParams.edgeFade the same), so a continuous sheet does not
+   * show the box outline where the two renderings meet. Default 0 (off).
+   */
+  densityFade?: number;
+  /**
    * World position (x, z, metres) of the weather map's uv origin, i.e. the world point the generator's map pixel (0, 0) corner sits at.
    * Default: the volume box's min corner, which is right for a static volume (the layer's weather is then box-relative, like the generator's).
    * A streaming cloudscape moves the box and keeps its weather anchored in the world (generate/streaming.ts: uv = xz / weatherExtent), so
@@ -251,7 +257,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   /** A baked weather window and everything that was configured with it (they switch together). */
   interface SkyWindow {
     texture: GPUTexture;
-    resolved: NvdfParams; voxelSize: number; rimWidth: number; storm: boolean;
+    resolved: NvdfParams; voxelSize: number; rimWidth: number; densityFade: number; storm: boolean;
     /** World min corner (x, z) and size (m) of the window; its resolution (texels). */
     min: [number, number]; size: number; res: number;
     /** World position of the weather map's uv origin (x, z), and the box the window was baked for (min xyz, extent xyz). */
@@ -347,6 +353,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     pending = {
       texture: bake.texture, bake, resolved: { ...NVDF_DEFAULTS, ...o.shape }, voxelSize: o.voxelSize ?? 8,
       rimWidth: o.rimWidth ?? border * Math.min(sx, sz),   // the generator fades coverage over `border` of the map (uv) at every edge
+      densityFade: Math.max(0, o.densityFade ?? 0),
       storm: !!o.weather.storm, min, size, res, wOrigin, box: boxCopy,
     };
   };
@@ -357,7 +364,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     encodeMaxMips(encoder, p.texture, timer?.passTimestampWrites('skyWeatherMips'));
     const old = live, bake = p.bake;
     retired.push(() => { bake.destroy(true); old?.texture.destroy(); });
-    live = { texture: p.texture, resolved: p.resolved, voxelSize: p.voxelSize, rimWidth: p.rimWidth, storm: p.storm, min: p.min, size: p.size, res: p.res, wOrigin: p.wOrigin, box: p.box };
+    live = { texture: p.texture, resolved: p.resolved, voxelSize: p.voxelSize, rimWidth: p.rimWidth, densityFade: p.densityFade, storm: p.storm, min: p.min, size: p.size, res: p.res, wOrigin: p.wOrigin, box: p.box };
     pending = null; bakes++;
     // No history reset (a full-resolution trace in one frame, about +2 ms): the new weather replaces the history one Bayer phase per frame instead,
     // a 16-frame dissolve at the normal trace cost. A swap that also changes the model (shaping, a moved window) still cuts (encode's model check).
@@ -420,7 +427,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       // P9-C: the species profile table and the upper (altocumulus) layer, as fractions of the shell (= the generator's volume height).
       const shellH = Math.max(win.box[4], 1);
       const alto = altoFractions(resolved, shellH);
-      p[64] = resolved.profiles ? 1 : 0; p[65] = alto[0]; p[66] = alto[1]; p[67] = 0;
+      p[64] = resolved.profiles ? 1 : 0; p[65] = alto[0]; p[66] = alto[1]; p[67] = win.rimWidth === 0 ? win.densityFade : 0;
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
       const cam = a.cameraPosition, sun = a.sunDirection;
       forwardOf(a.inverseViewProjection, fwd);

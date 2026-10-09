@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-humilis            PASS  CV 1.81 pass  ratio 127.8 pass  base 8m pass  acf 0.002 pass  clone 0.60 pass   (269 lobes in 276 footprints, cover 13%)

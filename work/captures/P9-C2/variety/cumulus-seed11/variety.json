@@ -1,0 +1,198 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T04:33:52.562Z",
+  "results": {
+    "cumulus-seed11": {
+      "measures": {
+        "footprintCv": 1.4319044396127736,
+        "footprintRatio": 107.72,
+        "baseSpreadM": 16,
+        "autocorrPeak": 0,
+        "cloneScore": 0.43875740718089873
+      },
+      "verdict": {
+        "footprintCv": "pass",
+        "footprintRatio": "pass",
+        "baseSpreadM": "pass",
+        "autocorrPeak": "pass",
+        "cloneScore": "pass"
+      },
+      "pass": true,
+      "coverage": 0.2837371826171875,
+      "footprint": {
+        "components": 128,
+        "usedComponents": 96,
+        "edgeComponents": 0,
+        "ignoredSmall": 32,
+        "cv": 1.4319044396127736,
+        "ratio": 107.72,
+        "areaColumns": {
+          "min": 50,
+          "max": 5386,
+          "mean": 767.1979166666666,
+          "median": 280.5
+        },
+        "diameterM": {
+          "min": 63.83076486422923,
+          "median": 151.18596597265778,
+          "max": 662.4883123711614
+        }
+      },
+      "connectedFootprint": {
+        "components": 84,
+        "usedComponents": 83,
+        "edgeComponents": 0,
+        "ignoredSmall": 1,
+        "cv": 2.3554293545813985,
+        "ratio": 5445.5,
+        "areaColumns": {
+          "min": 2,
+          "max": 10891,
+          "mean": 896.1325301204819,
+          "median": 112
+        },
+        "diameterM": {
+          "min": 12.766152972845846,
+          "median": 95.53314114306954,
+          "max": 942.060783829516
+        }
+      },
+      "base": {
+        "clouds": 77,
+        "coreColumns": 66526,
+        "baseSpreadM": 16,
+        "coreBaseM": {
+          "p5": 40,
+          "median": 48,
+          "p95": 56
+        },
+        "cloudBaseSpreadM": 8,
+        "cloudBaseMedianM": {
+          "min": 48,
+          "median": 56,
+          "max": 56
+        }
+      },
+      "clone": {
+        "clouds": 80,
+        "pairs": 6320,
+        "median": 0.43875740718089873,
+        "p90": 0.7072299482950285,
+        "p10": 0.09441475339736975
+      },
+      "autocorr": {
+        "coverage": 0.2837371826171875,
+        "cellSpacingM": 409.6,
+        "peak": 0,
+        "peakLagM": null,
+        "peakLagOverSpacing": null,
+        "profile": [
+          1,
+          0.91,
+          0.836,
+          0.765,
+          0.705,
+          0.648,
+          0.603,
+          0.563,
+          0.53,
+          0.498,
+          0.47,
+          0.444,
+          0.42,
+          0.398,
+          0.379,
+          0.362,
+          0.347,
+          0.332,
+          0.317,
+          0.304,
+          0.29,
+          0.277,
+          0.264,
+          0.252,
+          0.241,
+          0.231,
+          0.222,
+          0.214,
+          0.206,
+          0.2,
+          0.195,
+          0.191,
+          0.186,
+          0.182,
+          0.177,
+          0.172,
+          0.167,
+          0.161,
+          0.154,
+          0.147,
+          0.139,
+          0.131,
+          0.124,
+          0.116,
+          0.108,
+          0.1,
+          0.092,
+          0.085,
+          0.078,
+          0.071,
+          0.065,
+          0.059,
+          0.054,
+          0.048,
+          0.043,
+          0.038,
+          0.033,
+          0.028,
+          0.024,
+          0.02,
+          0.014,
+          0.01,
+          0.004,
+          -0.002,
+          -0.008,
+          -0.012,
+          -0.017,
+          -0.021,
+          -0.026,
+          -0.03,
+          -0.033,
+          -0.035,
+          -0.038,
+          -0.04,
+          -0.041,
+          -0.043,
+          -0.044,
+          -0.045,
+          -0.047,
+          -0.047,
+          -0.048,
+          -0.049,
+          -0.05,
+          -0.051,
+          -0.052,
+          -0.052
+        ]
+      },
+      "url": "cloudscape-gen/?preset=cumulus&seed=11",
+      "screenshots": []
+    }
+  }
+}

@@ -4,7 +4,8 @@
 //   ?bookmark=ground|side|above|horizon|wall   views; a species name as a bookmark regenerates that species (give it time: --settle 200)
 //   ?sky=0 turns the distant sky layer off. ?horizon=1|0 forces the HZD horizon rule (default: on for mixed and cumulus, off for one species,
 //   so an isolated capture shows that species to the horizon). ?seed=N ?jobs=N; NvdfParams fields and w_<weather option> override as on cloudscape-gen.
-//   ?fields=low|all: what the variety harness reads (default low: the columns below the altocumulus layer, so the cumulus layer is scored on its own).
+//   ?fields=low|all|alto: what the variety harness reads (default low: the columns below the altocumulus layer, so the cumulus layer is scored on its own;
+//   alto: the upper layer alone, with the acf searched at its cell spacing).
 import { ACESFilmicToneMapping, BufferAttribute, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Scene } from 'three';
 import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
 import { pass } from 'three/tsl';
@@ -22,6 +23,8 @@ const SPECIES = ['humilis', 'mediocris', 'congestus', 'stratocumulus', 'altocumu
 type Species = (typeof SPECIES)[number];
 const isSpecies = (n: string): n is Species => (SPECIES as readonly string[]).includes(n);
 const DEFAULT_VOLUME = { dims: [512, 512, 64] as [number, number, number], voxelSize: 8 };
+/** The full-sheet species: their box hands off to the sky layer by a density cross-fade, not at a wall. */
+const SHEETS: ReadonlySet<Species> = new Set(['stratus', 'valley']);
 
 /** The valley sea: stratus (a flat lid 170 m over the condensation level) pooled between hills of the terrain stub. */
 const VALLEY: CloudPreset = {
@@ -49,8 +52,8 @@ function toHalf(v: number): number {
   return sign | (exp << 10) | mant;
 }
 
-/** Per-column maps of the generated field (as examples/lab/harness readCloudColumns), limited to z < zMax so the cumulus layer is scored without the altocumulus above it. */
-async function readColumns(device: GPUDevice, nvdf: GPUTexture, dims: readonly [number, number, number], voxel: number, zMax: number, meta: Record<string, unknown>): Promise<CloudColumnFields> {
+/** Per-column maps of the generated field (as examples/lab/harness readCloudColumns), limited to zMin <= z < zMax so the cumulus layer is scored without the altocumulus above it. */
+async function readColumns(device: GPUDevice, nvdf: GPUTexture, dims: readonly [number, number, number], voxel: number, zMin: number, zMax: number, meta: Record<string, unknown>): Promise<CloudColumnFields> {
   const [nx, ny, nz] = dims;
   const bytesPerRow = Math.ceil((nx * 4) / 256) * 256;
   const buffer = device.createBuffer({ size: bytesPerRow * ny * nz, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -60,7 +63,7 @@ async function readColumns(device: GPUDevice, nvdf: GPUTexture, dims: readonly [
   await buffer.mapAsync(GPUMapMode.READ);
   const data = new Uint8Array(buffer.getMappedRange());
   const thickness = new Uint8Array(nx * ny), baseZ = new Uint8Array(nx * ny).fill(255), topZ = new Uint8Array(nx * ny).fill(255);
-  for (let z = 0; z < Math.min(nz, zMax); z++) for (let y = 0; y < ny; y++) {
+  for (let z = Math.max(0, zMin); z < Math.min(nz, zMax); z++) for (let y = 0; y < ny; y++) {
     const row = (z * ny + y) * bytesPerRow, col = y * nx;
     for (let x = 0; x < nx; x++) {
       if (data[row + x * 4] === 0) continue;
@@ -148,7 +151,10 @@ try {
     const base = species === 'valley' ? 0 : num('base', 150);
     const centre: [number, number] = [0, -(extent / 2 + 250)];
     const seed = num('seed', 7);
-    const params: Partial<NvdfParams> = { ...preset.params, seed };
+    // The sheet species hand off to the sky layer by a density cross-fade over the outer 500 m of the box (P9-C2: a sheet cut at the wall showed
+    // the box outline from above, where the voxel field's surface texture met the layer's); separate clouds keep the hard partition.
+    const fade = skyOn && SHEETS.has(species) ? num('fade', 500) : 0;
+    const params: Partial<NvdfParams> = { ...preset.params, seed, edgeFade: fade };
     for (const k of Object.keys(params).concat(['topFraction', 'domeExponent', 'billowAmp', 'billowCellMeters', 'scaleBase', 'scaleTop', 'profileSigma', 'detailBias', 'baseDefault', 'coverageThreshold', 'baseLift', 'altoBase', 'altoDepth'])) {
       const v = query.get(k); if (v !== null) (params as Record<string, number>)[k] = Number(v);
     }
@@ -190,7 +196,7 @@ try {
     if (skyOn) {
       const layer = clouds.core.skyLayer;
       const horizonOn = query.has('horizon') ? query.get('horizon') === '1' : species === 'mixed' || species === 'cumulus';
-      layer.configure({ weather, shape: params, voxelSize: voxel, horizon: horizonOn ? undefined : false, rimWidth: query.has('sky_rim') ? Number(query.get('sky_rim')) : undefined, window: { size: num('sky_window', 51200), resolution: num('sky_res', 2048) } });
+      layer.configure({ weather, shape: params, voxelSize: voxel, densityFade: fade, horizon: horizonOn ? undefined : false, rimWidth: query.has('sky_rim') ? Number(query.get('sky_rim')) : undefined, window: { size: num('sky_window', 51200), resolution: num('sky_res', 2048) } });
       for (const key of Object.keys(layer.settings)) { const v = query.get('sky_' + key); if (v !== null) (layer.settings as unknown as Record<string, number | boolean>)[key] = typeof (layer.settings as unknown as Record<string, unknown>)[key] === 'boolean' ? v === '1' : Number(v); }
       layer.settings.enabled = true;
     }
@@ -246,7 +252,10 @@ try {
   const valleyView = (): View => ({ pos: [-600, 520, 900], sunEl: 30, sunAz: 120, lookAz: 8, pitch: -9 });
   const applyView = (name: ViewName) => {
     view = name;
-    const v = field.species === 'valley' && name === 'side' ? valleyView() : views()[name];
+    const v0 = field.species === 'valley' && name === 'side' ? valleyView() : views()[name];
+    // ?pos=x,y,z&look=azimuth,pitch (degrees) override the view's camera (debugging a spot of the field).
+    const nums = (k: string) => (query.get(k) ?? '').split(',').map(Number);
+    const v: View = { ...v0, ...(query.has('pos') ? { pos: nums('pos') as [number, number, number] } : {}), ...(query.has('look') ? { lookAz: nums('look')[0], pitch: nums('look')[1] } : {}) };
     sky.setSunDirection({ elevation: num('sunel', v.sunEl), azimuth: num('sunaz', v.sunAz) });
     const az = (v.lookAz * Math.PI) / 180, pitch = (v.pitch * Math.PI) / 180;
     const d = [Math.sin(az) * Math.cos(pitch), Math.sin(pitch), -Math.cos(az) * Math.cos(pitch)];
@@ -310,8 +319,12 @@ try {
     fields: () => {
       const f = field;
       const altoZ = f.params.altoBase ? Math.floor(f.params.altoBase / f.voxel) - 2 : f.dims[2];
-      const zMax = query.get('fields') === 'all' ? f.dims[2] : altoZ;
-      return readColumns(device, shown!.volume.nvdf, f.dims, f.voxel, zMax, { preset: f.species, weather: f.weather, params: f.params, extentMeters: f.dims[0] * f.voxel, baseMeters: f.base, zMax });
+      const mode = query.get('fields') ?? 'low';
+      const zMax = mode === 'low' ? altoZ : f.dims[2];
+      // alto: only the upper layer (z from just under its base), scored against its own cell spacing (the acf lattice check, P9-C2).
+      const zMin = mode === 'alto' ? altoZ : 0;
+      const weather = mode === 'alto' && f.weather.alto ? { ...f.weather, cellScale: f.weather.alto.cells ?? 18 } : f.weather;
+      return readColumns(device, shown!.volume.nvdf, f.dims, f.voxel, zMin, zMax, { preset: f.species, weather, params: f.params, extentMeters: f.dims[0] * f.voxel, baseMeters: f.base, zMin, zMax });
     },
     report: () => ({
       gpuMs: gpuMs(), frameMs: { p50: pct(0.5), p95: pct(0.95), mean: mean(frameTimes) }, renderSize: [renderer.domElement.width, renderer.domElement.height],

@@ -1,0 +1,198 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T04:33:19.788Z",
+  "results": {
+    "species-humilis": {
+      "measures": {
+        "footprintCv": 1.809112770778577,
+        "footprintRatio": 127.76923076923077,
+        "baseSpreadM": 8,
+        "autocorrPeak": 0.0018288703182728384,
+        "cloneScore": 0.5972704530260851
+      },
+      "verdict": {
+        "footprintCv": "pass",
+        "footprintRatio": "pass",
+        "baseSpreadM": "pass",
+        "autocorrPeak": "pass",
+        "cloneScore": "pass"
+      },
+      "pass": true,
+      "coverage": 0.12592697143554688,
+      "footprint": {
+        "components": 332,
+        "usedComponents": 269,
+        "edgeComponents": 34,
+        "ignoredSmall": 29,
+        "cv": 1.809112770778577,
+        "ratio": 127.76923076923077,
+        "areaColumns": {
+          "min": 13,
+          "max": 1661,
+          "mean": 103.49442379182156,
+          "median": 42
+        },
+        "diameterM": {
+          "min": 32.54743156102575,
+          "median": 58.50186233145162,
+          "max": 367.90006328285233
+        }
+      },
+      "connectedFootprint": {
+        "components": 307,
+        "usedComponents": 276,
+        "edgeComponents": 30,
+        "ignoredSmall": 1,
+        "cv": 1.9653110103597728,
+        "ratio": 332.2,
+        "areaColumns": {
+          "min": 5,
+          "max": 1661,
+          "mean": 101.60507246376811,
+          "median": 42
+        },
+        "diameterM": {
+          "min": 20.185060176161283,
+          "median": 58.50186233145162,
+          "max": 367.90006328285233
+        }
+      },
+      "base": {
+        "clouds": 226,
+        "coreColumns": 13393,
+        "baseSpreadM": 8,
+        "coreBaseM": {
+          "p5": 48,
+          "median": 56,
+          "p95": 56
+        },
+        "cloudBaseSpreadM": 0,
+        "cloudBaseMedianM": {
+          "min": 48,
+          "median": 56,
+          "max": 56
+        }
+      },
+      "clone": {
+        "clouds": 56,
+        "pairs": 3080,
+        "median": 0.5972704530260851,
+        "p90": 0.8089614732788754,
+        "p10": 0.294856487681781
+      },
+      "autocorr": {
+        "coverage": 0.12592697143554688,
+        "cellSpacingM": 341.3333333333333,
+        "peak": 0.0018288703182728384,
+        "peakLagM": 552,
+        "peakLagOverSpacing": 1.6171875,
+        "profile": [
+          1,
+          0.776,
+          0.596,
+          0.447,
+          0.351,
+          0.283,
+          0.237,
+          0.195,
+          0.158,
+          0.124,
+          0.098,
+          0.077,
+          0.06,
+          0.047,
+          0.037,
+          0.029,
+          0.024,
+          0.021,
+          0.019,
+          0.016,
+          0.013,
+          0.011,
+          0.01,
+          0.008,
+          0.007,
+          0.005,
+          0.004,
+          0.002,
+          0.001,
+          -0.001,
+          -0.001,
+          -0.002,
+          -0.001,
+          -0.001,
+          0,
+          0,
+          0.001,
+          0.001,
+          0.002,
+          0.004,
+          0.005,
+          0.007,
+          0.008,
+          0.009,
+          0.01,
+          0.011,
+          0.012,
+          0.014,
+          0.015,
+          0.015,
+          0.016,
+          0.016,
+          0.017,
+          0.018,
+          0.018,
+          0.016,
+          0.015,
+          0.013,
+          0.011,
+          0.009,
+          0.008,
+          0.006,
+          0.005,
+          0.004,
+          0.004,
+          0.004,
+          0.004,
+          0.004,
+          0.003,
+          0.004,
+          0.003,
+          0.003,
+          0.002,
+          0.001,
+          0,
+          -0.002,
+          -0.004,
+          -0.006,
+          -0.008,
+          -0.009,
+          -0.009,
+          -0.01,
+          -0.01,
+          -0.01,
+          -0.01,
+          -0.009
+        ]
+      },
+      "url": "species/?species=humilis",
+      "screenshots": []
+    }
+  }
+}

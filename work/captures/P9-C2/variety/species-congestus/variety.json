@@ -1,0 +1,177 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T04:33:06.240Z",
+  "results": {
+    "species-congestus": {
+      "measures": {
+        "footprintCv": 1.5778322796393873,
+        "footprintRatio": 184.1,
+        "baseSpreadM": 16,
+        "autocorrPeak": 0.00005612012735708993,
+        "cloneScore": 0.5783965137160278
+      },
+      "verdict": {
+        "footprintCv": "pass",
+        "footprintRatio": "pass",
+        "baseSpreadM": "pass",
+        "autocorrPeak": "pass",
+        "cloneScore": "pass"
+      },
+      "pass": true,
+      "coverage": 0.2058376736111111,
+      "footprint": {
+        "components": 65,
+        "usedComponents": 29,
+        "edgeComponents": 20,
+        "ignoredSmall": 16,
+        "cv": 1.5778322796393873,
+        "ratio": 184.1,
+        "areaColumns": {
+          "min": 20,
+          "max": 3682,
+          "mean": 578.7586206896551,
+          "median": 153
+        },
+        "diameterM": {
+          "min": 80.74024070464513,
+          "median": 223.31647160070133,
+          "max": 1095.5114828019862
+        }
+      },
+      "connectedFootprint": {
+        "components": 45,
+        "usedComponents": 29,
+        "edgeComponents": 14,
+        "ignoredSmall": 2,
+        "cv": 1.9279400954772183,
+        "ratio": 2094,
+        "areaColumns": {
+          "min": 2,
+          "max": 4188,
+          "mean": 536.5862068965517,
+          "median": 69
+        },
+        "diameterM": {
+          "min": 25.532305945691693,
+          "median": 149.9683410530433,
+          "max": 1168.3645692239304
+        }
+      },
+      "base": {
+        "clouds": 21,
+        "coreColumns": 11558,
+        "baseSpreadM": 16,
+        "coreBaseM": {
+          "p5": 128,
+          "median": 128,
+          "p95": 144
+        },
+        "cloudBaseSpreadM": 16,
+        "cloudBaseMedianM": {
+          "min": 128,
+          "median": 144,
+          "max": 240
+        }
+      },
+      "clone": {
+        "clouds": 20,
+        "pairs": 380,
+        "median": 0.5783965137160278,
+        "p90": 0.7430515382482902,
+        "p10": 0.37169639728301457
+      },
+      "autocorr": {
+        "coverage": 0.2058376736111111,
+        "cellSpacingM": 682.6666666666666,
+        "peak": 0.00005612012735708993,
+        "peakLagM": 992,
+        "peakLagOverSpacing": 1.453125,
+        "profile": [
+          1,
+          0.904,
+          0.829,
+          0.758,
+          0.696,
+          0.633,
+          0.58,
+          0.527,
+          0.479,
+          0.431,
+          0.392,
+          0.352,
+          0.317,
+          0.282,
+          0.251,
+          0.221,
+          0.195,
+          0.168,
+          0.142,
+          0.117,
+          0.094,
+          0.074,
+          0.056,
+          0.039,
+          0.022,
+          0.008,
+          -0.004,
+          -0.012,
+          -0.017,
+          -0.021,
+          -0.027,
+          -0.032,
+          -0.033,
+          -0.029,
+          -0.029,
+          -0.03,
+          -0.031,
+          -0.029,
+          -0.027,
+          -0.025,
+          -0.024,
+          -0.023,
+          -0.021,
+          -0.022,
+          -0.022,
+          -0.023,
+          -0.025,
+          -0.026,
+          -0.027,
+          -0.029,
+          -0.03,
+          -0.034,
+          -0.034,
+          -0.037,
+          -0.037,
+          -0.039,
+          -0.04,
+          -0.045,
+          -0.046,
+          -0.045,
+          -0.044,
+          -0.044,
+          -0.047,
+          -0.05,
+          -0.049
+        ]
+      },
+      "url": "species/?species=congestus",
+      "screenshots": []
+    }
+  }
+}

@@ -1,0 +1,259 @@
+{
+  "url": "http://127.0.0.1:60145/species/?species=stratocumulus",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T04:30:29.540Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P9-C2/species/stratocumulus/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5274703333333334,
+          "lightGridReduce": 0.097786,
+          "lightGrid": 0.117876,
+          "marchNear": 0.04969231666666665,
+          "marchFar": 0.8181674333333334,
+          "shadowMap": 0.23668043333333336,
+          "composite": 0.2602182333333334,
+          "dome": 0.44121271666666667,
+          "resolveNear": 0.024531583333333336,
+          "resolveFar": 0.03896188333333334,
+          "skyWeatherMips": 0.09429,
+          "skyLayer": 1.4426502833333328,
+          "skyResolve": 0.09853045,
+          "cloudsTotal": 4.248067666666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66583333333333
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "species": "stratocumulus",
+        "frames": 276,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 2,
+            "frames": 178,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratocumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.03,
+            "scaleBase": 0.35,
+            "shearX": 0.14,
+            "shearY": 0.035,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 186.80000001192093
+        }
+      }
+    },
+    {
+      "name": "side",
+      "file": "work/captures/P9-C2/species/stratocumulus/side.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5274703333333334,
+          "lightGridReduce": 0.097786,
+          "lightGrid": 0.1075439696969697,
+          "marchNear": 0.05618460000000001,
+          "marchFar": 0.4608916666666666,
+          "shadowMap": 0.27128406666666666,
+          "composite": 0.26092728333333326,
+          "dome": 0.45054585,
+          "resolveNear": 0.03179531666666667,
+          "resolveFar": 0.049060516666666665,
+          "skyWeatherMips": 0.09429,
+          "skyLayer": 1.7523419999999996,
+          "skyResolve": 0.10532206666666669,
+          "cloudsTotal": 4.265443669696969
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.665416666666665
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "side",
+        "species": "stratocumulus",
+        "frames": 431,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 3,
+            "frames": 333,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratocumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.03,
+            "scaleBase": 0.35,
+            "shearX": 0.14,
+            "shearY": 0.035,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 186.80000001192093
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P9-C2/species/stratocumulus/above.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.5274703333333334,
+          "lightGridReduce": 0.097786,
+          "lightGrid": 0.11160138775510202,
+          "marchNear": 0.08613061666666667,
+          "marchFar": 0.5251031666666666,
+          "shadowMap": 0.3207888666666668,
+          "composite": 0.4674130166666665,
+          "dome": 0.58837655,
+          "resolveNear": 0.034918883333333345,
+          "resolveFar": 0.06749681666666668,
+          "skyWeatherMips": 0.09429,
+          "skyLayer": 1.11274205,
+          "skyResolve": 0.14007008333333335,
+          "cloudsTotal": 4.174187771088435
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "species": "stratocumulus",
+        "frames": 586,
+        "cloudsReady": true,
+        "sky": {
+          "info": {
+            "rimWidth": 0,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4346
+            ],
+            "resets": 4,
+            "frames": 488,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "genTiming": null,
+        "generation": {
+          "species": "stratocumulus",
+          "dims": [
+            512,
+            512,
+            64
+          ],
+          "voxel": 8,
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.1,
+            "billowAmp": 0.4,
+            "billowCellMeters": 400,
+            "coverageThreshold": 0.1,
+            "baseLift": 0.03,
+            "scaleBase": 0.35,
+            "shearX": 0.14,
+            "shearY": 0.035,
+            "seed": 7,
+            "edgeFade": 0
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 186.80000001192093
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

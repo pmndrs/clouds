@@ -33,8 +33,8 @@ export const SKY_TEMPORAL_PERIOD = 16;
  *
  * P3-C1 used f * depthScale, i.e. assumed a constant gradient. The billow switches on over 0.25 of f (the `near` ramp), where the
  * gradient is up to 5x the smooth field's, so one step across the surface landed 60 m "deep" and fully dense: the vertical cliffs.
- * grad f is analytic: the smooth part from the bilinear coverage gradient (one textureGather gives the four texels, so the value
- * and its gradient are exact and consistent), the billow from the Worley offset vectors (|grad F1| = 1 / cell). The profile then
+ * grad f: the smooth part from the coverage gradient (P9-C2: differences of bilinear samples one texel apart, continuous across texel
+ * edges), the billow from the Worley offset vectors (|grad F1| = 1 / cell). The profile then
  * gets the generator's own multiplicative depth noise and PACK_FIT formulas, and goes through the SAME up-rez (cloudDensityShaped)
  * and the SAME lighting chunk (LIGHTING_WGSL) as the voxel march. There is no light grid out here: the sun optical depth is two
  * in-line up-rez samples plus six cheap samples of the smooth field along the sun ray (48..470 m), the ambient 'up' term three
@@ -69,7 +69,7 @@ struct SkyParams {
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,  // previous camera position, w = 1 when the history is valid
   wOrigin: vec4<f32>,  // P7-E: world position (x, z) of the weather map's uv origin: the billow and shape noise are anchored there (default: the box min corner); zw: wind-shear lean (P9-B2)
-  species: vec4<f32>,  // P9-C: species profile table on (x > 0.5), upper (altocumulus) layer base and depth (fractions of the shell height; 0 = off), unused w
+  species: vec4<f32>,  // P9-C: species profile table on (x > 0.5), upper (altocumulus) layer base and depth (fractions of the shell height; 0 = off); w: P9-C2 density hand-off width (m, 0 = off)
 }
 const BAYER4 = array<u32, 16>(0u, 8u, 2u, 10u, 12u, 4u, 14u, 6u, 3u, 11u, 1u, 9u, 15u, 7u, 13u, 5u);
 fn bayerIndex(px: vec2<i32>) -> u32 { return BAYER4[u32(px.y & 3) * 4u + u32(px.x & 3)]; }
@@ -156,6 +156,7 @@ fn skySmooth(cov: f32, hz: f32, L: SkyRow, lift: f32) -> Smooth {
   r.s = saturate((cov - thr) / (1.0 - thr));
   r.base = L.base + lift * pow(1.0 - r.s, 1.5);
   r.p = select(L.p, edgeExp(L.p, r.s), skyProfiles());
+  if (skyProfiles()) { r.s = tallMass(r.s, r.p, (L.top - L.base) * max(SKY.shell.y - SKY.shell.x, 1.0)); }   // P9-C2 (generate/shaders.ts)
   r.h = (hz - r.base) / max(L.top - r.base, 1e-3);
   r.f = r.s - profileG(r.h, r.p, L.bottom);
   r.hcol = clamp(r.h / pow(max(r.s, 0.05), 1.0 / r.p), 0.0, 1.0);
@@ -227,11 +228,19 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   let hUnit = max(L.top - sm.base, 1e-3) * shellH;
   let gp = select(L.bottom, sm.p * pow(max(sm.h, 1e-4), sm.p - 1.0), sm.h >= 0.0);
   var grad = vec3(dfdc * dcov.x, -gp / hUnit - dfdc * dot(skyLean(), dcov), dfdc * dcov.y);
-  var f0 = sm.f;
+  // P9-C2: the tall species' flanks bulge and neck (generate/shaders.ts towerShift; same noise, coordinates and seed). The view samples only:
+  // the cheap light samples keep the smooth field. smf is the smooth field with the shift; its gradient is taken as the smooth one.
+  var smf = sm.f;
+  // Faded out over 6-12 km (times the LOD scale, as the billow octaves): further out a bulge is a few pixels and the noise is most of the cost.
+  let towerLod = 1.0 - smoothstep(6000.0 * SKY.extra.z, 12000.0 * SKY.extra.z, lodDistance);
+  if (prof && !alto && lodDistance >= 0.0 && sm.s > 0.0 && towerLod > 0.0) {
+    smf = sm.f + towerLod * towerShift(pm, u32(SKY.billow.z * 131.0) + 9u, (L.top - L.base) * shellH, length(grad.xz), gp / hUnit, sm.f, sm.h, sm.s);
+  }
+  var f0 = smf;
   // Signed distance to the surface in smooth-field units (positive inside) and the gradient of that quantity.
-  var fs = sm.f;
+  var fs = smf;
   let withBillow = lodDistance >= 0.0 && SKY.billow.x > 0.0;
-  if (withBillow && sm.f > NEAR_A && sm.f < 0.5) {
+  if (withBillow && smf > NEAR_A && smf < 0.5) {
     // NE p.102 (as the generator): thin clouds read the billow up to 40 m higher.
     let thick = pow(max(sm.s, 0.0), 1.0 / sm.p) * (L.top - sm.base) * shellH;
     let pmb = pm + vec3(0.0, 0.0, select(0.0, thinNoiseOffset(thick), prof));
@@ -243,19 +252,23 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
     // P9-C: with the profile table the ceiling is the shell's top (the generator's volume top), so congestus tops billow.
     let ceiling = select(1.0 - smoothstep(0.82, 1.0, sm.h), 1.0 - smoothstep(select(0.88, 0.9, alto), 0.99, hz), prof);
     let topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, sm.hcol)) * ceiling * wb;
-    let K = A * b.w * topW;
-    f0 = sm.f + K * nearRamp(sm.f);
+    // P9-C2: the outward billow lifts a column by at most about half its height, as the generator (generate/shaders.ts BILLOW_LIFT).
+    let ampW = A * topW;
+    let K0 = b.w * ampW;
+    let K = select(K0, min(K0, BILLOW_LIFT * sm.p * max(sm.s, 0.0)), prof);
+    let freeK = K == K0;
+    f0 = smf + K * nearRamp(smf);
     // The billow moves the surface to x_s(K) in smooth-field units; the distance is measured as f00 - x_s, whose gradient
     // is the smooth gradient plus the billow's through dx_s/db (implicit differentiation). Measuring f0 / |grad f0| instead
     // would scale the depth by the ramp's own derivative (up to 5x across the ramp): terraced rings on every lobe.
     let xs = surfaceF00(K);
-    fs = sm.f - xs;
+    fs = smf - xs;
     let Fp = max(1.0 + K * dnearRamp(xs), 0.3);
-    grad = grad + (A * nearRamp(xs) * topW / Fp) * vec3(b.x, b.z, b.y);
-  } else if (withBillow && sm.f < SKY_BILLOW_REACH) {
+    grad = grad + (nearRamp(xs) * select(0.0, ampW, freeK) / Fp) * vec3(b.x, b.z, b.y);
+  } else if (withBillow && smf < SKY_BILLOW_REACH) {
     // Far outside the billow's reach: skip by the smooth field's distance to where the billow could first surface.
     r.f = f0;
-    r.skip = max((SKY_BILLOW_REACH - sm.f) / max(1.5 * length(grad), 1e-3), 4.0);
+    r.skip = max((SKY_BILLOW_REACH - smf) / max(1.5 * length(grad), 1e-3), 4.0);
     return r;
   }
   r.f = f0;
@@ -275,8 +288,13 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   // The generator's PACK_FIT profile with its multiplicative depth noise (same noise, same coordinates and seed); the cheap
   // light samples skip the noise (it averages out along a light ray).
   var dEff = depth;
+  var patchN = 0.0;
   if (lodDistance >= 0.0) {
-    let n = clamp(profileNoise(pm, SKY.extra.x, u32(SKY.billow.z * 53.0)) * 3.4, -2.5, 2.5);
+    var n = clamp(profileNoise(pm, SKY.extra.x, u32(SKY.billow.z * 53.0)) * 3.4, -2.5, 2.5);
+    // P9-C2: the generator's surface patches (generate/shaders.ts surfacePatch): profile depth law and detail flip, with the profile table.
+    // (Near the camera only: beyond 4 km the layer's pixels are larger than the dimples the patches break up, and it saves the noise.)
+    let patchW = 1.0 - smoothstep(2500.0, 4000.0, lodDistance);
+    if (L.flip >= 0.0 && patchW > 0.0) { patchN = patchW * surfacePatch(pm, u32(SKY.billow.z * 53.0) + 31u); n = n + 1.2 * patchN; }
     dEff = depth * exp(SKY.extra.y * n);
   }
   let core = pow(clamp((dEff - 1.4) / 66.0, 0.0, 1.0), 1.05);
@@ -285,7 +303,7 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   let scale = clamp(mix(SKY.shapeB.z, SKY.shapeB.w, smoothstep(0.0, 0.6, sm.hcol)) * L.scale, 0.0, 1.0);
   let hd = sm.hcol - 0.25 * clamp(depth / 32.0, 0.0, 1.0);
   var detail = clamp(smoothstep(0.1, 0.75, hd) + (g - 0.5) * SKY.shapeC.x, 0.0, 1.0);
-  if (L.flip >= 0.0) { detail = smoothstep(L.flip - 0.1, L.flip + 0.1, hd); }   // P9-C, NE p.99: the species' wispy-to-billowy flip height
+  if (L.flip >= 0.0) { detail = detailFlip(hd, L.flip, patchN); }   // P9-C, NE p.99: the species' wispy-to-billowy flip height (P9-C2: patched)
   r.m = vec3(profile, detail, scale);
   return r;
 }
@@ -306,20 +324,24 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   let e = min(min(p.x - SKY.box.x, bmax.x - p.x), min(p.z - SKY.box.y, bmax.y - p.z));
   let rim = SKY.shapeC.y;
   var rimFade = 1.0;
+  var densW = 1.0;
   if (!light) {
     if (rim > 0.0) {
       if (e > rim) { r.skip = e - rim; return r; }
       rimFade = 1.0 - smoothstep(0.0, rim, e);
+    } else if (rim == 0.0 && e > SKY.species.w) {
+      r.skip = e - SKY.species.w; return r;   // hard partition: the voxel march renders the inside, the first sample past the wall is ours
     } else if (rim == 0.0 && e > 0.0) {
-      r.skip = e; return r;   // hard partition: the voxel march renders the inside, the first sample past the wall is ours
+      // P9-C2 density hand-off (sheets): the same field, its density fading out over species.w metres into the box while the voxel field's fades in.
+      densW = 1.0 - smoothstep(0.0, SKY.species.w, e);
     }
   }
-  // Coverage: the bilinear value from the sampler; its gradient from the four texels of the footprint in one gather
-  // (w = (i, j), z = (i+1, j), x = (i, j+1), y = (i+1, j+1)). The value is not rebuilt from the gather: the sampler's fixed-point
-  // footprint occasionally picks the neighbouring quad, which would scatter one-texel coverage errors into the clouds.
+  // Coverage: the bilinear value from the sampler. P9-C2: its gradient is the difference of two more bilinear samples one texel along x and
+  // along z (all four channels at once), so it is continuous. The gradient of the bilinear interpolant itself (P9-C, from a gather) is
+  // constant across a texel and jumps at every texel edge, and the depth below the surface (f / |grad f|) jumped with it: on the steep walls
+  // of the tall species those jumps ran up the wall as vertical streaks, and on gentle slopes they drew contour rings.
   let dims = vec2<f32>(textureDimensions(skyWeather, 0));
   let texel = SKY.window.zw / dims;
-  let st = fract(wuv * dims - 0.5);
   let w = textureSampleLevel(skyWeather, skySampler, wuv, 0.0);
   let edgeW = min(min(wuv.x, 1.0 - wuv.x), min(wuv.y, 1.0 - wuv.y));
   let fade = smoothstep(0.0, max(SKY.shapeC.w, 1e-4), edgeW) * rimFade;
@@ -332,15 +354,15 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   var out = r;
   out.skip = max((thr - cov) * 80.0, 2.0);
   var have = false;
+  let wdx = textureSampleLevel(skyWeather, skySampler, wuv + vec2(1.0 / dims.x, 0.0), 0.0) - w;
+  let wdz = textureSampleLevel(skyWeather, skySampler, wuv + vec2(0.0, 1.0 / dims.y), 0.0) - w;
   if (cov > thr) {
-    let g4 = textureGather(0, skyWeather, skySampler, wuv);
-    let dcov = vec2(mix(g4.z - g4.w, g4.y - g4.x, st.y), mix(g4.x - g4.w, g4.y - g4.z, st.x)) * fade / texel;   // per metre (x, z)
+    let dcov = vec2(wdx.r, wdz.r) * fade / texel;   // per metre (x, z)
     out = skyLayerAt(pm, r.hz, shellH, cov, dcov, skyRow(w.g, shellH), SKY.shapeA.w, select(1.0, w.b, SKY.shapeB.y > 0.5), w.g, false, lodDistance, bGiven, useGiven);
     have = true;
   }
   if (covA > thr) {
-    let g4 = textureGather(3, skyWeather, skySampler, wuv);
-    let dcov = vec2(mix(g4.z - g4.w, g4.y - g4.x, st.y), mix(g4.x - g4.w, g4.y - g4.z, st.x)) * fade / texel;
+    let dcov = vec2(wdx.a, wdz.a) * fade / texel;
     let a = skyLayerAt(pm, r.hz, shellH, covA, dcov, skyAltoRow(), 0.5 * SKY.shapeA.w, 1.0, 0.5, true, lodDistance, bGiven, useGiven);
     // The voxel belongs to the layer whose field is larger (the generator's union); empty in both, skip by the nearer one.
     let bothEmpty = !(a.m.x > 0.0) && !(out.m.x > 0.0);
@@ -349,6 +371,7 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
     if (bothEmpty) { out.skip = skip; }
   }
   out.hz = r.hz;
+  out.m.z = out.m.z * densW;
   return out;
 }
 
@@ -466,8 +489,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     t1 = -1.0;
   }
   let tEnd = min(t1, sceneEnd);
-  // Samples before the ray enters the voxel box belong to the front layer, the rest to the back layer.
-  let iv = volumeRayInterval(origin, dir);
+  // Samples before the ray enters the voxel box belong to the front layer, the rest to the back layer. P9-C2: the split is taken from the pixel's
+  // centre ray, not the jittered one. The history averages the jitter, and where the jitter moved a surface from one part to the other (along every
+  // box edge seen across a sheet) the composite of the averaged parts (front over voxel over back) let the background through: a dark line.
+  let iv = volumeRayInterval(origin, normalize(unprojectDepth((vec2<f32>(px) + 0.5) / frame.renderSize, 1.0) - origin));
   let tSplit = select(FAR_T, 0.5 * (max(iv.x, 0.0) + iv.y), iv.x <= iv.y && iv.y > 0.0);
 
   var front = partInit();
@@ -555,8 +580,11 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (T < SKY.steps.w) {
       if (inBack) { back.rad /= max(1.0 - back.T, 0.5); back.T = 0.0; } else { front.rad /= max(1.0 - front.T, 0.5); front.T = 0.0; }
     }
-    front.rad *= cloudEdgeFactor(front.depthMax, frontness);
-    back.rad *= cloudEdgeFactor(back.depthMax, frontness);
+    // One edge factor for the whole ray (P9-C2): per part, a split falling just under a surface gave the front part a small depthMax and so a
+    // different edge factor, a thin line along every box edge seen across a sheet (stratus from above).
+    let edge = cloudEdgeFactor(max(front.depthMax, back.depthMax), frontness);
+    front.rad *= edge;
+    back.rad *= edge;
     if (dbg != 0u && dbg != 4u && dbg != 6u) {
       let k = max(ambientUp.x + ambientUp.y + ambientUp.z, 1e-3);
       var c = vec3(0.0);

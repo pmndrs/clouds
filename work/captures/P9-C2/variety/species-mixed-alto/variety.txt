@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-mixed-alto         FAIL  CV 1.30 pass  ratio 49.9 pass  base 16m pass  acf 0.000 pass  clone 0.65 FAIL   (172 lobes in 208 footprints, cover 11%)

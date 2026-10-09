@@ -3,12 +3,12 @@
 
 /**
  * Shared params block (PARAM_BYTES in volume-generator.ts, 160 bytes), one dynamic-offset slot per job. zStart/zCount: the job's chunk, a z range
- * (nvdf, edt x/y, profile, sdf) or a y range (edt z). `step` is unused. The first 9 words are what the stamp rebuilder fills (stamp.ts).
+ * (nvdf, edt x/y, profile, sdf) or a y range (edt z). Word 3 (`edgeFade`) is the stamp rebuilder's step there; the EDT passes do not read it. The first 9 words are what the stamp rebuilder fills (stamp.ts).
  * The storm words (P6-C) describe one cumulonimbus in the generator's own metres (pm space: voxel * voxelSize + origin, z up from the volume base).
  */
 const PARAMS = /* wgsl */ `
 struct Params {
-  dims: vec3<u32>, step: i32,   // step: unused
+  dims: vec3<u32>, edgeFade: f32,   // P9-C2: metres over which the density fades in from the side walls (the sky layer's density fade, 0 = off)
   zStart: u32, zCount: u32, margin: f32, maxDist: f32,
   voxelSize: f32, covThreshold: f32, useHeights: f32, baseDefault: f32,
   topFrac: f32, domeExp: f32, billowAmp: f32, billowCell: f32,
@@ -175,7 +175,7 @@ const SP_STRATUS = SpeciesRow(170.0, 12.0, -70.0, 34.0, 0.1, 1.8, 0.95, 0.7);  /
 const SP_STRATOCUMULUS = SpeciesRow(360.0, 3.0, 0.0, 14.0, 0.45, 0.5, 0.6, 0.9);     // stratocumulus: flat-topped lumps on the sheet, small billows
 const SP_HUMILIS = SpeciesRow(220.0, 2.8, 0.0, 8.0, 0.55, 0.4, 0.45, 1.0);     // cumulus humilis: flat domes, wider than tall
 const SP_MEDIOCRIS = SpeciesRow(750.0, 2.1, 0.0, 8.0, 0.6, 0.85, 0.32, 1.0);     // cumulus mediocris: domes as tall as wide
-const SP_CONGESTUS = SpeciesRow(1650.0, 1.9, 0.0, 8.0, 0.45, 1.2, 0.18, 1.0);    // cumulus congestus: towers with steep sides and rounded heads, billowy almost to the base
+const SP_CONGESTUS = SpeciesRow(1650.0, 1.6, 0.0, 8.0, 0.45, 1.2, 0.18, 1.0);    // cumulus congestus: towers that taper up (P9-C2: p 1.6, column top ~ mass^0.63) with rounded heads, billowy almost to the base
 const SP_ALTOCUMULUS = SpeciesRow(0.0, 2.2, 0.0, 12.0, 0.5, 0.16, 0.5, 0.85);      // altocumulus (upper layer; depth from NvdfParams.altoDepth): small rounded cells
 // Rows by a switch over consts (no private copy of an indexed table per voxel).
 fn speciesRowAt(i: u32) -> SpeciesRow {
@@ -203,6 +203,24 @@ fn profileG(h: f32, p: f32, bottom: f32) -> f32 { return select(-h * bottom, pow
  * stratocumulus) keeps its flat top but gets rounded shoulders instead of vertical walls where its mass ramps up (column top = s^(1/p)).
  */
 fn edgeExp(p: f32, s: f32) -> f32 { return mix(min(p, 2.0), p, smoothstep(0.0, 0.3, s)); }
+/**
+ * P9-C2: the mass of a tall species' column, so a small cloud is low. Under f = s - h^p a column of mass s tops out at s^(1/p) of the row's depth,
+ * which rises with infinite slope from the footprint's rim: in a congestus region (1.65 km depth) a puff of mass 0.05 stood on a 250 m vertical
+ * drum wall (the near "marshmallows" and boxes of the side views). s (s / (s + s1))^p tops out at s^(1/p) * s / (s + s1) instead: the wall leans
+ * over the rim, a small puff is a low dome, a full column keeps 0.87 of its height. s1 = 0.15 for congestus, fading out below mediocris' depth.
+ */
+/**
+ * P9-C2: the billow's outward displacement (in f) is at most BILLOW_LIFT * p * s, which lifts a column of mass s by at most about half its height
+ * (generator and sky layer). Inward (erosion) is not capped: it cannot build a wall, and it gives the rims their raggedness.
+ */
+const BILLOW_LIFT = 0.75;
+/** P9-C2: how much of the tall-species treatment a row of this visible depth (metres) gets: 0 up to 400 m, 1 from 1.3 km (congestus). */
+fn tallWeight(depthM: f32) -> f32 { return smoothstep(400.0, 1300.0, depthM); }
+fn tallMass(s: f32, p: f32, depthM: f32) -> f32 {
+  let s1 = 0.15 * tallWeight(depthM);
+  if (s1 <= 0.0 || s <= 0.0) { return s; }
+  return s * pow(s / (s + s1), p);
+}
 /** NE p.102: thin clouds read the noise 0..40 m higher than thick ones, so a thin cloud is not a slice of a tall one. thick in metres. */
 fn thinNoiseOffset(thick: f32) -> f32 { return (1.0 - clamp(thick * 0.0125, 0.0, 1.0)) * 40.0; }
 `;
@@ -291,6 +309,49 @@ fn profileNoise(pm: vec3<f32>, voxelSize: f32, s: u32) -> f32 {
   let n1 = valueNoise3(r1 * pm / c1 + vec3<f32>(3.7, 1.3, 9.1), s + 7u) - 0.5;
   let n2 = valueNoise3(r2 * pm / c2 + vec3<f32>(5.1, 7.7, 2.3), s + 13u) - 0.5;
   return (n0 + 0.6 * n1 + 0.35 * n2) * (1.0 / 1.22);   // same spread as one octave: variances 1 + 0.36 + 0.12
+}
+/**
+ * P9-C2 surface patches: a smooth, roughly unit-spread noise of 240 m features (one rotated value-noise octave), centred. The detail-type flip and the profile's depth
+ * law read it, so the up-rez noise (a repeating 3D texture) is not shown through one uniform erosion over a whole flat surface: on the flat top of a
+ * sheet, profile and detail type are constant, and the voxel field showed the noise tile as a regular grid of dimples from above (stratus).
+ */
+fn surfacePatch(pm: vec3<f32>, s: u32) -> f32 {
+  let r0 = mat3x3<f32>(0.48, 0.0, -0.87, 0.60, 0.72, 0.33, 0.63, -0.69, 0.35);
+  return (valueNoise3(r0 * pm * (1.0 / 240.0), s) - 0.5) * 3.4;
+}
+/** P9-C2: the detail type with the species' flip height (NE p.99), the flip moved by up to +-0.2 of the column by surfacePatch. */
+fn detailFlip(hd: f32, flip: f32, patchN: f32) -> f32 {
+  let fl = flip + 0.2 * clamp(patchN, -1.0, 1.0);
+  return smoothstep(fl - 0.1, fl + 0.1, hd);
+}
+/**
+ * P9-C2 tower flanks. Under f = s - h^p the wall of a tall column is where s = h^p, and the billow moves it by (billow / |grad s|): about 10 m on a
+ * congestus wall, whose mass ramps up over a few voxels, so the towers stood on straight vertical walls (cylinders) with pockmarks. The tall species
+ * instead get a displacement in metres along the surface normal (f += |grad f| * D, D in metres, walls only): the flank bulges and necks at
+ * different heights, so a tower is a stack of lobes. D: one rotated octave of value noise, 320 m across and 0.7 of that in height, about +-1 times
+ * TOWER_AMP (std about 0.5; the billow adds the finer lobes). towerWeight: 0 up to mediocris' depth, 1 from about 1.3 km (congestus).
+ */
+const TOWER_AMP = 120.0;
+fn towerWeight(depthM: f32) -> f32 { return smoothstep(550.0, 1300.0, depthM); }
+fn towerBulge(pm: vec3<f32>, s: u32) -> f32 {
+  let r0 = mat3x3<f32>(0.80, 0.60, 0.0, -0.60, 0.80, 0.0, 0.0, 0.0, 1.0);   // 37 degrees about z: off the map axes, still a vertical squash
+  let q = r0 * (pm * vec3<f32>(1.0 / 320.0, 1.0 / 320.0, 1.0 / 225.0));
+  return (valueNoise3(q, s) - 0.5) * 3.0;
+}
+/**
+ * The f shift of the tower displacement at a column: gradXY / gradZ the smooth field's gradient per metre (horizontal, vertical), f0 the smooth field,
+ * h the height fraction, mass the column's mass s. Walls only (the horizontal share of the gradient); none at the flat base (h < 0.03) and none
+ * where the mass runs out (s < 0.12: there is no field beyond the footprint to move the wall into, so a bulge there would end on a cut). Gated in
+ * metres: evaluated within 2 TOWER_AMP of the smooth surface (f0 / |grad f0|), faded in over the outer fifth, so there is no seam where it starts.
+ */
+fn towerShift(pm: vec3<f32>, s: u32, depthM: f32, gradXY: f32, gradZ: f32, f0: f32, h: f32, mass: f32) -> f32 {
+  let tw = towerWeight(depthM) * smoothstep(0.03, 0.2, h) * smoothstep(0.0, 0.12, mass);
+  if (tw <= 0.0) { return 0.0; }
+  let gl = max(sqrt(gradXY * gradXY + gradZ * gradZ), 1e-6);
+  let reach = 2.0 * TOWER_AMP;
+  let gate = smoothstep(-reach, -0.8 * reach, f0 / gl);
+  if (gate <= 0.0) { return 0.0; }
+  return gl * TOWER_AMP * tw * gate * (gradXY / gl) * towerBulge(pm, s);
 }
 ${SPECIES_WGSL}
 `;
@@ -421,18 +482,19 @@ const SHAPE = /* wgsl */ `${BILLOW_WGSL}${STORM_WGSL}
  * (each adds amp * [0, 1] of the lobes): the occupancy pass only needs the sign, and most voxels of the band are decided after one or two octaves.
  * When it stops early the value is the middle of the remaining range (right sign, not the exact field). Same octaves, offsets and seeds as billowAt.
  */
-fn billowSigned(f0: f32, k: f32, pm: vec3<f32>, cell0: f32, s0: u32, octaves: u32) -> f32 {
+fn billowSigned(f0: f32, k: f32, pm: vec3<f32>, cell0: f32, s0: u32, octaves: u32, liftMax: f32) -> f32 {
   var wsum = 0.0; var a = 0.55;
   for (var o = 0u; o < octaves; o++) { wsum += a; a *= 0.5; }
   var acc = 0.0; var rem = wsum; var amp = 0.55; var cell = cell0;
   for (var o = 0u; o < octaves; o++) {
-    let lo = f0 + k * (acc / wsum - 0.41);
-    let hi = f0 + k * ((acc + rem) / wsum - 0.41);
+    // P9-C2: the outward (positive) displacement is capped at liftMax (BILLOW_LIFT); min is monotone, so the bounds stay bounds.
+    let lo = f0 + min(k * (acc / wsum - 0.41), liftMax);
+    let hi = f0 + min(k * ((acc + rem) / wsum - 0.41), liftMax);
     if (lo > 0.0 || hi < 0.0) { return 0.5 * (lo + hi); }
     acc += amp * worleyLobes(pm / cell + vec3<f32>(f32(o) * 7.3, f32(o) * 3.1, 0.0), s0 + o * 17u);
     rem -= amp; cell *= 0.5; amp *= 0.5;
   }
-  return f0 + k * (acc / wsum - 0.41);
+  return f0 + min(k * (acc / wsum - 0.41), liftMax);
 }
 /**
  * anvil: 0 for the cumulus field and the storm's tower, 1 in the anvil (wispier detail, thinner); the profile pass reads it.
@@ -464,7 +526,7 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
   r.base = P.baseDefault; r.top = P.topFrac;
   let H = f32(P.dims.z) * P.voxelSize;
   let prof = P.profiles > 0.5 && P.useHeights < 0.5;
-  var dexp = P.domeExp; var bottom = 24.0; var bAmp = 1.0; var bCell = 1.0;
+  var dexp = P.domeExp; var bottom = 24.0; var bAmp = 1.0; var bCell = 1.0; var rowDepth = 0.0;
   if (P.useHeights > 0.5) { r.base = w.b; r.top = w.a; }
   else if (prof) {
     // P9-C: the species row of this column (G) gives the base, the full-mass top, the top and bottom types and the billow (the SP_* species rows).
@@ -472,6 +534,7 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
     r.base = clamp(P.baseDefault + row.baseOff / H, 0.004, 0.9);
     r.top = min(r.base + row.depth / H, 0.97);
     dexp = row.topExp; bottom = (r.top - r.base) * H / row.bottom; bAmp = row.billowAmp; bCell = row.billowCell; r.flip = row.flip; r.scaleMul = row.scale;
+    rowDepth = (r.top - r.base) * H;   // the row's depth as far as the volume shows it (a congestus row in a 512 m volume is a 400 m one)
   }
   let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize + vec3<f32>(P.originX, P.originY, 0.0);
   let st = stormField(pm);
@@ -487,11 +550,21 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
   // The base is flat in the middle of a lobe and curls up toward its rim (a concave underside; also trims the thin skirts around a cloud). One
   // condensation level per layer: the presets keep baseLift at about 15 m (P9-B), the sky layer mirrors this law (sky-layer.wgsl.ts skySmooth).
   r.base = r.base + P.baseLift * pow(1.0 - r.s, 1.5);
-  if (prof) { dexp = edgeExp(dexp, r.s); }
+  if (prof) { dexp = edgeExp(dexp, r.s); r.s = tallMass(r.s, dexp, rowDepth); }
   r.h = (hz - r.base) / max(r.top - r.base, 1e-3);
   r.f0 = r.s - profileG(r.h, dexp, bottom);
   // Fraction of the way up this column's own extent (column top is where s = h^p).
   r.hcol = clamp(r.h / pow(max(r.s, 0.05), 1.0 / dexp), 0.0, 1.0);
+  // P9-C2: the tall species' flanks bulge and neck (towerShift). |grad s| by forward differences over one map texel (the map is 1:1 with the voxels).
+  if (prof && rowDepth > 550.0 && r.s > 0.0 && st.f <= -3.9) {
+    let thr = P.covThreshold;
+    let sx = tallMass(clamp((weatherAt(p + vec3<i32>(1, 0, 0)).r - thr) / (1.0 - thr), 0.0, 1.0), dexp, rowDepth);
+    let sy = tallMass(clamp((weatherAt(p + vec3<i32>(0, 1, 0)).r - thr) / (1.0 - thr), 0.0, 1.0), dexp, rowDepth);
+    let s0 = tallMass(clamp((w.r - thr) / (1.0 - thr), 0.0, 1.0), dexp, rowDepth);
+    let gxy = length(vec2<f32>(sx - s0, sy - s0)) / P.voxelSize;
+    let gz = select(bottom, dexp * pow(max(r.h, 1e-4), dexp - 1.0), r.h >= 0.0) / max((r.top - r.base) * H, 1.0);
+    r.f0 = r.f0 + towerShift(pm, u32(P.seed * 131.0) + 9u, rowDepth, gxy, gz, r.f0, r.h, r.s);
+  }
   // Billow weight: strongest on tops and near the surface, none deep inside or far outside, none near the ceiling (so towers do not hit the volume top and get cut flat).
   // P9-B: times the map's billow weight (B when the map's heights are not in use): the mass of the cloud the column belongs to, so a 100 m puff of mass
   // 0.1 is not displaced by a billow sized for a 1 km cloud of mass 1 (which made every small cell a 250 m spike), while big clouds keep ragged rims.
@@ -499,6 +572,12 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
   let ceiling = select(1.0 - smoothstep(0.82, 1.0, r.h), 1.0 - smoothstep(0.88, 0.99, hz), prof);
   var topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, r.hcol)) * ceiling * select(w.b, 1.0, P.useHeights > 0.5);
   var hasMass = r.s > 0.0;
+  // P9-C2: the billow may lift a column by at most about half its own height (its outward part; BILLOW_LIFT). Under f = s - g(h) a billow of k (in f) lifts the top of a column of
+  // mass s by about k / (p s) of its height, and the f-unit billow was sized for the 1 km clouds: on a small cloud, near any footprint's rim, and
+  // most of all on the tall rows (whose low part is nearly flat in f), it lifted the column by its own height or more, up to where the field is
+  // cut at the footprint's rim. That cut was a vertical wall: the cylinder towers and the boxes ("marshmallows") of the side views. With profiles
+  // only (the storm scene keeps its look); the sky layer bounds its billow the same way.
+  var liftCap = select(1e9, BILLOW_LIFT * dexp * max(r.s, 0.0), prof);
   var band = BAND;
   if (st.f > r.f0) {
     // The storm cell owns this voxel: its own height fraction and type, its own billow weight (stormField), a wider band so the lobes are bigger.
@@ -507,6 +586,7 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
     topW = st.amp * mix(0.75, 1.0, smoothstep(0.05, 0.4, st.hf)) * (1.0 - smoothstep(0.88, 0.98, hz));
     band = mix(vec4<f32>(0.3, 0.7, -0.65, -0.3), band, st.anvil);
     hasMass = true;
+    liftCap = 1e9;   // the storm cell's own billow is not bounded (its field is not the h^p law)
   }
   r.f = r.f0;
   // The billow is centred in about [-0.41, 0.59] (billowAt), so where |f0| exceeds what it can move, the sign of f (all the occupancy pass needs)
@@ -516,7 +596,7 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
   if (withNoise && P.billowAmp > 0.0 && r.f0 > band.z && r.f0 < band.y && hasMass && r.f0 < 0.42 * kAmp && r.f0 > -0.6 * kAmp) {
     // NE p.102: thin clouds sample the billow a little higher (their column thickness in metres).
     let thick = select(0.0, pow(max(r.s, 0.0), 1.0 / dexp) * (r.top - r.base) * H, prof);
-    r.f = billowSigned(r.f0, kAmp, pm + vec3<f32>(0.0, 0.0, select(0.0, thinNoiseOffset(thick), prof)), P.billowCell * bCell, u32(P.seed * 131.0), 3u);
+    r.f = billowSigned(r.f0, kAmp, pm + vec3<f32>(0.0, 0.0, select(0.0, thinNoiseOffset(thick), prof)), P.billowCell * bCell, u32(P.seed * 131.0), 3u, liftCap);
   }
   // P9-C upper layer (altocumulus): its own mass (weather A), base and depth, the alto row's profile and a small billow; the voxel belongs to
   // whichever layer's field is larger (the layers are apart in height, so this is a union).
@@ -534,7 +614,7 @@ fn shapeAt(p: vec3<i32>, withNoise: bool) -> Shape {
       let kA = P.billowAmp * arow.billowAmp * 3.0 * nearBand(fa0, BAND) * mix(0.45, 1.0, smoothstep(0.1, 0.7, hcolA)) * (1.0 - smoothstep(0.9, 0.99, hz));
       if (withNoise && P.billowAmp > 0.0 && fa0 > BAND.z && fa0 < BAND.y && fa0 < 0.42 * kA && fa0 > -0.6 * kA) {
         let thickA = pow(sa, 1.0 / pa) * (atop - ab) * H;
-        fa = billowSigned(fa0, kA, pm + vec3<f32>(0.0, 0.0, thinNoiseOffset(thickA)), P.billowCell * arow.billowCell, u32(P.seed * 131.0) + 5u, 2u);
+        fa = billowSigned(fa0, kA, pm + vec3<f32>(0.0, 0.0, thinNoiseOffset(thickA)), P.billowCell * arow.billowCell, u32(P.seed * 131.0) + 5u, 2u, 1e9);
       }
       if (fa > r.f) {
         r.f = fa; r.f0 = fa0; r.s = sa; r.h = ha; r.hcol = hcolA; r.base = ab; r.top = atop;
@@ -597,8 +677,11 @@ fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
   if ((raw & CAP) != CAP) { depth = max(0.0, (f32(raw & CAP) * (1.0 / 64.0) - 0.5) * P.voxelSize); }
   // Smooth unit-ish noise, lattice-free (profileNoise), 36-48 m correlation.
   let pm = vec3<f32>(f32(p.x) + 0.5, f32(p.y) + 0.5, f32(p.z) + 0.5) * P.voxelSize + vec3<f32>(P.originX, P.originY, 0.0);
-  let n = clamp(profileNoise(pm, P.voxelSize, u32(P.seed * 53.0)) * 3.4, -2.5, 2.5);
+  var n = clamp(profileNoise(pm, P.voxelSize, u32(P.seed * 53.0)) * 3.4, -2.5, 2.5);
   let hf = sh.hcol;
+  // P9-C2: with the profile table, surface patches (surfacePatch) move the profile's depth law and the detail flip regionally.
+  var patchN = 0.0;
+  if (sh.flip >= 0.0) { patchN = surfacePatch(pm, u32(P.seed * 53.0) + 31u); n = n + 1.2 * patchN; }
   // The anvil is a plate of ice a few voxels thick: as a thin shell its profile would be low everywhere and the up-rez erosion would leave only the
   // detail noise's minima (a 100 m grid of dots), so its depth counts triple and its spread is reduced (P6-C). The 0.7 density scale keeps it translucent.
   let dEff = depth * mix(1.0, 1.0 + 2.0 * sh.fade, sh.anvil) * exp(P.sigma * (1.0 - 0.7 * sh.anvil) * n);
@@ -608,9 +691,14 @@ fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
   let hd = hf - 0.25 * clamp(depth / 32.0, 0.0, 1.0);
   var detail = clamp(smoothstep(0.1, 0.75, hd) + (sh.cloudType - 0.5) * P.detailBias, 0.0, 1.0);
   // P9-C (NE p.99): the species sets the height at which the detail flips from wispy (below) to billowy (above), over +- 0.1 of the column.
-  if (sh.flip >= 0.0) { detail = smoothstep(sh.flip - 0.1, sh.flip + 0.1, hd); }
+  if (sh.flip >= 0.0) { detail = detailFlip(hd, sh.flip, patchN); }
   // The anvil is ice: thinner than the tower, fading out toward its rim (P6-C).
-  let scale = mix(P.scaleBase, P.scaleTop, smoothstep(0.0, 0.6, hf)) * sh.scaleMul * mix(1.0, 0.7 * (0.3 + 0.7 * sh.fade), sh.anvil);
+  var scale = mix(P.scaleBase, P.scaleTop, smoothstep(0.0, 0.6, hf)) * sh.scaleMul * mix(1.0, 0.7 * (0.3 + 0.7 * sh.fade), sh.anvil);
+  // P9-C2 density hand-off (sheets): the field fades in from the side walls over edgeFade metres while the sky layer fades out (sky-layer.wgsl.ts).
+  if (P.edgeFade > 0.0) {
+    let e = min(min(f32(p.x) + 0.5, f32(P.dims.x) - f32(p.x) - 0.5), min(f32(p.y) + 0.5, f32(P.dims.y) - f32(p.y) - 0.5)) * P.voxelSize;
+    scale = scale * smoothstep(0.0, P.edgeFade, e);
+  }
   textureStore(nvdf, p, vec4<f32>(p8 / 255.0, detail, clamp(scale, 0.0, 1.0), 1.0));
 }
 `;
@@ -767,7 +855,7 @@ const H_STRATUS = HRow(1.3, -0.5, 0.0, 1.8, 0.5, 1.0, 0.3, 0.3, 1.0);  // stratu
 const H_STRATOCUMULUS = HRow(1.1, 0.05, 0.6, 3.2, 1.0, 0.8, 0.9, 0.9, 1.0);  // stratocumulus: a banded sheet, its lumps stretched 3:1 along the wind
 const H_HUMILIS = HRow(0.7, -0.4, 0.2, 1.5, 0.2, 0.0, 0.15, 1.0, 1.0);  // humilis: small flat puffs, almost no big cells
 const H_MEDIOCRIS = HRow(1.2, 0.05, 0.6, 1.6, 0.2, 0.0, 1.0, 1.0, 0.85);  // mediocris
-const H_CONGESTUS = HRow(1.25, 0.5, 1.0, 1.3, 0.2, 0.0, 1.0, 0.4, 0.45);  // congestus: big cells pushed to rising towers with turrets; a flatter mass profile (emul) so a tower is a column, not a cone
+const H_CONGESTUS = HRow(1.25, 0.5, 1.0, 1.3, 0.2, 0.0, 1.0, 0.4, 1.15);  // congestus: big cells pushed to rising towers with turrets; P9-C2: a peaked mass profile (emul 0.45 made plateaus: under the tower law a plateau is a flat-topped cylinder, and its wall cannot bulge), so a tower tapers up
 fn hRowAt(i: u32) -> HRow {
   switch i {
     case 0u: { return H_STRATUS; }
@@ -863,10 +951,23 @@ fn cellLayer(uvc: vec2<f32>, across: f32, salt: u32, presence: f32, rMin: f32, r
     let a = mix(1.0, max(elong, hr.elong), h3.y);
     // A species taller than the volume (dims.y metres) is shrunk across by the square root of the height it loses (down to half), so a short volume keeps more of its aspect ratios
     // (congestus in 512 m: narrower towers, not 1 km domes clipped flat) instead of clipping its height alone.
-    let fitK = sqrt(clamp(0.85 * W.dims.y / max(speciesRow(sp).depth, 1.0), 0.25, 1.0));
+    let vr = speciesRow(sp);
+    let fitK = sqrt(clamp(0.85 * W.dims.y / max(vr.depth, 1.0), 0.25, 1.0));
+    let visDepth = min(vr.depth, W.dims.y);   // the row's depth as far as the volume shows it
     let r = min(min(mix(rMin, rMax, mix(0.5, h1.y, spread)) * mix(1.25, 0.75, pk) * mix(0.55, 1.0, g) * hr.size * fitK, rMax), reachMax / sqrt(a));
-    let peak = mix(mMin, mMax, pk);
-    let e = mix(eMin, eMax, clamp(pk * 0.75 + h2.y * 0.25, 0.0, 1.0)) * hr.emul;
+    var peak = mix(mMin, mMax, pk);
+    var e = mix(eMin, eMax, clamp(pk * 0.75 + h2.y * 0.25, 0.0, 1.0)) * hr.emul;
+    if (W.storm.x < 0.5) {
+      // P9-C2 (tall rows, tallWeight): no cloud is taller than about 0.7-2 times its width. The column top of mass m is m^(1/p) of the row's depth, so a small cell of a tall
+      // species (a 250 m cell under the congestus row's 1.65 km) was a thin tower: the "tree trunks". The peak is capped at that height.
+      let rM = r / across * W.dims.x;
+      // The aspect bound is the cell's own (height 0.7-2 times its width), so the capped cells do not all come out with one aspect ratio
+      // (congestus towers measure 0.5-1.1 width:height, median 0.8, in the owner's photos: docs/research/photo-species-specs.md).
+      let aspect = mix(1.4, 4.0, hash2S(c, s2 + 5u).x);
+      peak = mix(peak, min(peak, pow(clamp(aspect * rM / max(visDepth, 1.0), 0.05, 1.0), vr.topExp)), tallWeight(visDepth));
+      // And the tall species have no plateau cells: under the tower law a plateau is a flat-topped drum with vertical walls.
+      e = max(e, smoothstep(550.0, 1300.0, visDepth));
+    }
     let ang = h3.x * 3.14159265;
     let u0 = vec2<f32>(cos(ang), sin(ang));
     let wd = W.spec.zw * select(-1.0, 1.0, dot(u0, W.spec.zw) >= 0.0);   // the wind axis on u0's side (a footprint axis has no sign)
@@ -885,30 +986,59 @@ fn cellLayer(uvc: vec2<f32>, across: f32, salt: u32, presence: f32, rMin: f32, r
   return m;
 }
 /**
- * P9-C upper layer (altocumulus, written to A): small cells on a near-regular lattice (alto.y across the map, jitter alto.w: altocumulus is the
- * regularly spaced species), radius 0.3-0.42 of the spacing so there is sky between them, a little stretched along the wind, in patches and bands
- * (an fBm at alto.z across the map read in the wind frame). Cells shrink toward a patch's edge, so a patch thins out instead of ending on a line.
+ * Upper layer (altocumulus, written to A). P9-C placed equal round cells on a near-regular lattice, which read as a polka-dot grid (acf peak 0.21 at
+ * the cell spacing). P9-C2: altocumulus cells are regular-ish but vary in size and merge into rows, rolls and patches, so here:
+ *   lattice   cells alto.y across the map, jittered by alto.w over the cell, read through a smooth domain warp (about half a cell over ~4 cells) so
+ *             no row of cells stays straight; cells are missing toward a patch's edge and between clumps (a 3-cell fBm: dense merged zones and
+ *             thin scatters, so the spacing is irregular);
+ *   size      radius 0.18-0.5 of the spacing (skewed small: a few big cells among many small), larger in a patch's core, where neighbours overlap;
+ *   merging   cells combine as a soft union (1 - prod(1 - a)), so overlapping rims bridge: clumps and rows instead of separate dots;
+ *   rolls     (undulatus) crests across the wind about 2.6 cells apart with a wandering phase; cells are stretched along the crest and the mass
+ *             thins in the troughs. Roll strength is regional, so some patches are rolls and some are floccus clumps;
+ *   patches   an fBm at alto.z across the map read in the wind frame; cells shrink, thin out and drop out toward a patch's edge.
  */
 fn altoAt(uvc: vec2<f32>, dOff: vec2<f32>) -> f32 {
   let q = uvc * W.alto.z + vec2<f32>(W.seed * 5.3, 17.0) + dOff;
-  let patchW = smoothstep(0.42, 0.62, fbmN(windFrame(q, 1.8, 0.8), 4)) * W.alto.x;
+  let pf = fbmN(windFrame(q, 1.8, 0.8), 4);
+  let patchW = smoothstep(0.42, 0.66, pf) * W.alto.x;
   if (patchW <= 0.0) { return 0.0; }
-  let p = uvc * W.alto.y + vec2<f32>(W.seed * 2.9, 0.37);
+  let pn = patchW / max(W.alto.x, 1e-3);   // 0 at a patch's edge .. 1 in its core
+  let p0 = uvc * W.alto.y + vec2<f32>(W.seed * 2.9, 0.37);
+  let wq = p0 * 0.23;
+  let p = p0 + 1.1 * (vec2<f32>(fbmN(wq + vec2<f32>(1.7, 9.2), 2), fbmN(wq + vec2<f32>(8.3, 2.8), 2)) - 0.5);
+  // Rolls: phase along the wind (crests lie across it), 2.6 cells apart, bent by a slow fBm; strength by region.
+  let wf = windFrame(p0, 1.0, 1.0);
+  let rollStr = smoothstep(0.38, 0.62, fbmN(q * 0.8 + vec2<f32>(4.4, 1.9), 2));
+  let phase = wf.x / 2.6 + 1.4 * fbmN(vec2<f32>(wf.y * 0.12, wf.x * 0.04) + vec2<f32>(2.0, 5.0), 2);
+  let roll = 0.5 + 0.5 * cos(6.2831853 * phase);
+  let stretch = mix(1.1, 1.55, rollStr);
+  // Clumps (P9-C2, photo specs: nearest-neighbour spacing CV 0.57-0.81, cells touching and merging in dense zones): a 3-cell fBm sets how many
+  // lattice cells hold a cloud and how big they are, so dense, merged zones alternate with thin scatters.
+  let clump = smoothstep(0.4, 0.6, fbmN(p0 * 0.25 + vec2<f32>(6.1, 2.4), 2));
+  let keepP = mix(0.08, 0.97, clamp(0.3 * pn + clump, 0.0, 1.0));
   let i = vec2<i32>(floor(p));
   let f = fract(p);
-  var m = 0.0;
+  var keep = 1.0;   // prod(1 - a): the soft union
   for (var y = -1; y <= 1; y++) { for (var x = -1; x <= 1; x++) {
     let c = i + vec2<i32>(x, y);
     let h0 = hash2S(c, 61u);
     let h1 = hash2S(c, 62u);
-    if (h1.y > 0.92) { continue; }   // a few missing cells
+    let h2 = hash2S(c, 63u);
+    if (h1.y > keepP) { continue; }   // missing cells: more toward a patch's edge and between clumps
     let jit = vec2<f32>(0.5) + (h0 - 0.5) * W.alto.w;
-    let v = windFrame(vec2<f32>(f32(x), f32(y)) + jit - f, 1.25, 0.85);
-    let r = (0.3 + 0.12 * h1.x) * mix(0.55, 1.0, patchW / max(W.alto.x, 1e-3));
-    let d = length(v) / r;
-    if (d < 1.0) { m = max(m, mix(0.45, 0.8, h1.y) * cellDome(d, 0.8)); }
+    let v0 = windFrame(vec2<f32>(f32(x), f32(y)) + jit - f, 1.0, 1.0);
+    // Each cell's own stretch (1 .. the roll's) and axis (+-25 degrees off the crest), so the cells are not one stamped flake.
+    let h3 = hash2S(c, 64u);
+    let sc = mix(1.0, stretch, h3.x);
+    let ca = (h3.y - 0.5) * 0.87;
+    let v = vec2<f32>(cos(ca) * v0.x - sin(ca) * v0.y, sin(ca) * v0.x + cos(ca) * v0.y);
+    let r = min((0.15 + 0.3 * h2.x * h2.x + 0.22 * pn * pn + 0.18 * clump) * mix(1.0, mix(0.7, 1.2, roll), rollStr), 0.95 / sc);
+    let d = length(vec2<f32>(v.x * sc, v.y / sc)) / r;
+    // Peak 0.4-0.95 (skewed low) and profile exponent 0.6 (a flat floccus tuft) .. 1.6 (a castellanus turret): heights and aspects vary per cell.
+    if (d < 1.0) { keep *= 1.0 - mix(0.4, 0.95, h1.x * h1.x) * cellDome(d, mix(0.6, 1.6, h2.y)); }
   } }
-  return m * min(1.0, patchW * 1.5);
+  let m = 1.0 - keep;
+  return m * min(1.0, patchW * 1.5) * mix(1.0, mix(0.3, 1.1, roll), rollStr);
 }
 @compute @workgroup_size(8, 8, 1)
 fn weatherMain(@builtin(global_invocation_id) g: vec3<u32>) {

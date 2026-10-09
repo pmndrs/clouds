@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-mixed              PASS  CV 2.17 pass  ratio 185.0 pass  base 16m pass  acf 0.000 pass  clone 0.54 pass   (69 lobes in 64 footprints, cover 17%)

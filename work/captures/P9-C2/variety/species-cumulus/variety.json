@@ -1,0 +1,198 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T04:33:26.544Z",
+  "results": {
+    "species-cumulus": {
+      "measures": {
+        "footprintCv": 1.655410319694361,
+        "footprintRatio": 322.0769230769231,
+        "baseSpreadM": 16,
+        "autocorrPeak": 0.00004744876504382545,
+        "cloneScore": 0.4719156282140262
+      },
+      "verdict": {
+        "footprintCv": "pass",
+        "footprintRatio": "pass",
+        "baseSpreadM": "pass",
+        "autocorrPeak": "pass",
+        "cloneScore": "pass"
+      },
+      "pass": true,
+      "coverage": 0.35657501220703125,
+      "footprint": {
+        "components": 202,
+        "usedComponents": 152,
+        "edgeComponents": 38,
+        "ignoredSmall": 12,
+        "cv": 1.655410319694361,
+        "ratio": 322.0769230769231,
+        "areaColumns": {
+          "min": 13,
+          "max": 4187,
+          "mean": 450.67105263157896,
+          "median": 113
+        },
+        "diameterM": {
+          "min": 32.54743156102575,
+          "median": 95.958680626219,
+          "max": 584.1125356672223
+        }
+      },
+      "connectedFootprint": {
+        "components": 147,
+        "usedComponents": 118,
+        "edgeComponents": 29,
+        "ignoredSmall": 0,
+        "cv": 3.1212321842213826,
+        "ratio": 479.2083333333333,
+        "areaColumns": {
+          "min": 24,
+          "max": 11501,
+          "mean": 505.9830508474576,
+          "median": 105
+        },
+        "diameterM": {
+          "min": 44.223251132330944,
+          "median": 92.49956616449772,
+          "max": 968.0835667730048
+        }
+      },
+      "base": {
+        "clouds": 117,
+        "coreColumns": 51811,
+        "baseSpreadM": 16,
+        "coreBaseM": {
+          "p5": 40,
+          "median": 48,
+          "p95": 56
+        },
+        "cloudBaseSpreadM": 8,
+        "cloudBaseMedianM": {
+          "min": 48,
+          "median": 56,
+          "max": 56
+        }
+      },
+      "clone": {
+        "clouds": 80,
+        "pairs": 6320,
+        "median": 0.4719156282140262,
+        "p90": 0.7213393126882168,
+        "p10": 0.14284436295212907
+      },
+      "autocorr": {
+        "coverage": 0.35657501220703125,
+        "cellSpacingM": 409.6,
+        "peak": 0.00004744876504382545,
+        "peakLagM": 608,
+        "peakLagOverSpacing": 1.484375,
+        "profile": [
+          1,
+          0.883,
+          0.786,
+          0.694,
+          0.617,
+          0.548,
+          0.497,
+          0.453,
+          0.415,
+          0.379,
+          0.347,
+          0.316,
+          0.288,
+          0.261,
+          0.239,
+          0.22,
+          0.203,
+          0.188,
+          0.174,
+          0.162,
+          0.151,
+          0.141,
+          0.132,
+          0.124,
+          0.116,
+          0.108,
+          0.101,
+          0.094,
+          0.088,
+          0.082,
+          0.077,
+          0.072,
+          0.069,
+          0.066,
+          0.064,
+          0.062,
+          0.059,
+          0.058,
+          0.058,
+          0.058,
+          0.058,
+          0.057,
+          0.057,
+          0.057,
+          0.056,
+          0.056,
+          0.056,
+          0.055,
+          0.054,
+          0.052,
+          0.051,
+          0.05,
+          0.05,
+          0.049,
+          0.048,
+          0.048,
+          0.047,
+          0.046,
+          0.045,
+          0.043,
+          0.042,
+          0.039,
+          0.037,
+          0.034,
+          0.031,
+          0.029,
+          0.027,
+          0.023,
+          0.02,
+          0.017,
+          0.014,
+          0.011,
+          0.01,
+          0.007,
+          0.002,
+          -0.001,
+          -0.003,
+          -0.004,
+          -0.004,
+          -0.007,
+          -0.009,
+          -0.009,
+          -0.009,
+          -0.008,
+          -0.008,
+          -0.009
+        ]
+      },
+      "url": "species/?species=cumulus",
+      "screenshots": []
+    }
+  }
+}

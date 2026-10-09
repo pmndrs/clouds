@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+species-cumulus            PASS  CV 1.66 pass  ratio 322.1 pass  base 16m pass  acf 0.000 pass  clone 0.47 pass   (152 lobes in 118 footprints, cover 36%)

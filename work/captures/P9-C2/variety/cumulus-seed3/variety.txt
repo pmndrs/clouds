@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+cumulus-seed3              PASS  CV 1.76 pass  ratio 133.9 pass  base 16m pass  acf 0.000 pass  clone 0.48 pass   (131 lobes in 129 footprints, cover 34%)
