@@ -9,6 +9,17 @@ Visual reference for agents that shape and light clouds. Use it to check a rende
   - `_reference/` holds the Commons images listed in `webReferences`.
   - `manifest.json` tags each personal photo, and `index.html` is a local gallery of them. Files are prefixed with their grade (`A_` hero reference, `B_` good, `C_` weak). Each entry in `manifest.json` has `{ file, folders, types, view, time, grade, notes, captured, camera, source }`. The tag vocabularies are `viewTags` and `timeTags` in the catalog.
 
+## What makes a reference photo useful
+
+When choosing between photos of the same type, prefer:
+
+- Highlights intact: bright tops keep texture. RAW or lightly edited beats heavy HDR or filters, especially for sunset colour.
+- One clear story: a single dominant type, or layering that is the point of the shot.
+- Horizon or ground in frame, so height, distance haze and base alignment read. Overhead shots are fine for shape detail.
+- Strong light direction: backlit rims, side light that shows lobes and shadows, sunset underlighting.
+- Sequences a few minutes apart at sunset, which show each layer losing the light.
+- Each entry in `manifest.json` has a `resolution` field. `preview-1024` means only a 1024 px copy existed (iCloud-only original); prefer `original` for detail work.
+
 ## How to use it when shaping
 
 1. Find the target type's entry and read `shape` and `shaping`. They name the cues that make the type read correctly, such as a shared flat base for cumulus fields, flat inversion tops for stratocumulus decks, or billowy-to-fibrous change with height for cumulonimbus.
