@@ -1471,7 +1471,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Cost: high tier ≤ 3.5 ms at 2560×1440. Generation per job ≤ +20%. No frame over 1 ms of bake.
   - `pnpm check` green; the packed consumer passes.
 
-### [~] P9-C2 Species look fixes: altocumulus lattice, cylinder towers, stratus box edge · Opus
+### [~] P9-C2 Species look fixes: altocumulus lattice, cylinder towers, stratus box edge · Opus (worker: claude-opus P9-C2)
 - **Owns:** `packages/runtime/src/generate/**`, `packages/runtime/src/sky-layer.ts`, `shaders/sky-layer.wgsl.ts`, `examples/lab/species/**`.
 - **Problems** (orchestrator review of `work/captures/P9-C/species-sheet.jpg`):
   1. **Altocumulus** is a near-perfect polka-dot lattice, worst from above. That is the "cloned" look again. Real altocumulus (castellanus/floccus/stratiformis) has regular-ish cells, but they vary in size and merge into rolls, rows and patches along the wind, with thinning toward gaps. Break the lattice: jitter, size variance, merging and roll alignment, patch-level coverage. Keep the clone and acf metrics honest; add the acf peak check to the altocumulus run.
@@ -1489,6 +1489,22 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - High ≤ 3.5 ms on cumulus and mixed at ground, horizon and above.
   - No visible quality loss: A/B captures reviewed.
   - The wall column is gone.
+
+### [~] P13-H2 Hero converter: fine.nvdb via WebVDB · Sonnet (Opus on failure)
+- **Owns:**
+  - `scripts/vdb/**`
+  - `assets/clouds/**`: the heroes and disney rebuilds; a 2 m Disney goes in `assets/clouds/local/`, gitignored, if it is over 15 MB
+  - vendored WebVDB code under `scripts/vdb/vendor/webvdb/`, with a NOTICE
+- **Does:** spec `work/specs/P8-hero-vdb.md` §5–§7, row H2.
+  - Converter flags `--fine-voxel-size` and `--fine-shell`, coarse-from-fine reduction, `corrVox` in metres, `fine.vdb` out.
+  - `scripts/vdb/vdb-to-nvdb.mjs` using WebVDB (`/Users/dex/Developer/WebVDB`: `buildFromVdb`/`buildFromDense`, `quantize('fp8')`, `writeNvdb`).
+  - A parity check.
+  - Rebuild `disney` and `heroes/sim-*` at 4 m, plus one 2 m Disney.
+- **Acceptance** (spec §7, H2):
+  - `fine.nvdb` parity exact against the fine lattice.
+  - Disney at 4 m: `fine.nvdb` ≤ 3 MB, coarse ≤ 4 MB.
+  - Existing coarse assets unchanged unless the spec says the coarse-from-fine reduction replaces them; if they change, A/B the flagship and onsen.
+  - `pnpm check` green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
