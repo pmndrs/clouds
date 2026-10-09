@@ -6,6 +6,13 @@ import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three';
 import { CLOUD_PRESETS, type NvdfParams, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type VolumeGenerator } from '@clouds/runtime';
 import { GROUND_HEX, forwardOf, mapCoverage, type Pane, type PaneStats, type ViewState } from '../shared';
+// X1: the procedural density model (not in the core entry; imported from source). ?model=procedural [&shaper=skypro|takram].
+import { createProceduralClouds, proceduralPlaceholderVolume, type ProceduralClouds, type ProceduralShaper } from '../../../../packages/runtime/src/procedural';
+import skyproNoiseUrl from '../vendor/skypro/clouds/baseShape64.bin?url';
+import tkShapeUrl from '../../../../node_modules/@takram/three-clouds/assets/shape.bin?url';
+import tkShapeDetailUrl from '../../../../node_modules/@takram/three-clouds/assets/shape_detail.bin?url';
+import tkLocalWeatherUrl from '../../../../node_modules/@takram/three-clouds/assets/local_weather.png?url';
+import tkTurbulenceUrl from '../../../../node_modules/@takram/three-clouds/assets/turbulence.png?url';
 
 // Cloudscape: 512 x 512 x 64 voxels at 8 m = 4.1 km square, 512 m tall, centred 2.3 km north of the origin (as open-water).
 // Q2: the base is at 750 m, the bottom of Takram's first default layer (750 m / 650 m), so both panes see their fair-weather layer from the same
@@ -28,6 +35,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
   let gen: VolumeGenerator | undefined;
   let weatherOpts: Parameters<typeof encodeProceduralWeatherMap>[2] | undefined, params: Partial<NvdfParams> | undefined;
   let currentSun = '';
+  const PROCEDURAL = query.get('model') === 'procedural';
+  let proc: ProceduralClouds | undefined;
+  let procFrames = 0;
 
   const start = async () => {
     renderer = new WebGPURenderer({ canvas, antialias: false, trackTimestamp: true });
@@ -50,7 +60,26 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     const scenePass = pass(scene, camera);
     post.outputNode = state.cloudsOn ? clouds.node(scenePass.getTextureNode(), scenePass) : scenePass.getTextureNode();
     await clouds.setNoise(await loadCloudNoise('/clouds/noise/'));
-    if (state.cloudsOn) beginGeneration(Number(query.get('coverage') ?? 0.5)); else state.ready = true; // ?clouds=0: clear sky, nothing to generate
+    if (state.cloudsOn && PROCEDURAL) await beginProcedural();
+    else if (state.cloudsOn) beginGeneration(Number(query.get('coverage') ?? 0.5)); else state.ready = true; // ?clouds=0: clear sky, nothing to generate
+  };
+  // X1: ?model=procedural renders the procedural model instead of the generated field. ?shaper=skypro (default) | takram picks the shaper;
+  // ?proc_<key>=N, ?sp_<key>=N, ?tk_<key>=N override a top-level, Sky Pro or Takram setting (numbers only).
+  const beginProcedural = async () => {
+    const device = sharedBackend(renderer).device;
+    const shaper = (query.get('shaper') ?? 'skypro') as ProceduralShaper;
+    proc = createProceduralClouds(device, { shaper });
+    await proc.load(shaper === 'skypro' ? { skyproNoise: skyproNoiseUrl } : { takram: { shape: tkShapeUrl, shapeDetail: tkShapeDetailUrl, localWeather: tkLocalWeatherUrl, turbulence: tkTurbulenceUrl } });
+    const num = (o: object, k: string, v: string) => { if (typeof (o as Record<string, unknown>)[k] === 'number') (o as Record<string, number>)[k] = Number(v); };
+    for (const [k, v] of query) {
+      if (k.startsWith('proc_')) num(proc.settings, k.slice(5), v);
+      if (k.startsWith('sp_')) num(proc.settings.skypro, k.slice(3), v);
+      if (k.startsWith('tk_')) num(proc.settings.takram, k.slice(3), v);
+    }
+    await clouds.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
+    clouds.core.setProceduralModel(proc);
+    clouds.core.settings.densityModel = 'procedural';
+    state.generated = true;
   };
   const beginGeneration = (coverage: number) => {
     const device = sharedBackend(renderer).device;
@@ -102,14 +131,18 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
 
   return {
     id: 'ours',
-    label: 'ours: @clouds/three (WebGPU, TSL)',
+    label: PROCEDURAL ? `ours: @clouds/three, procedural density (${query.get('shaper') ?? 'skypro'} shaper)` : 'ours: @clouds/three (WebGPU, TSL)',
     canvas,
     init: start,
     resize(w, h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); },
     ready: () => state.ready,
     render(view: ViewState) {
       const t0 = performance.now();
-      if (view.coverage !== appliedCoverage && !gen && state.generated) { clearTimeout(coverageTimer); const c = view.coverage; coverageTimer = window.setTimeout(() => { if (!gen) beginGeneration(c); }, 400); }
+      if (proc) {
+        if (!query.has('sp_coverage')) proc.settings.skypro.coverage = mapCoverage.skypro(view.coverage);
+        if (!query.has('tk_coverage')) proc.settings.takram.coverage = mapCoverage.takram(view.coverage);
+        if (!state.ready && ++procFrames > 40) state.ready = true;
+      } else if (view.coverage !== appliedCoverage && !gen && state.generated) { clearTimeout(coverageTimer); const c = view.coverage; coverageTimer = window.setTimeout(() => { if (!gen) beginGeneration(c); }, 400); }
       stepGen();
       camera.fov = view.fov;
       camera.position.set(...view.position);
@@ -136,7 +169,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       const cloudSum = Object.values(c).reduce((x, y) => x + y, 0);
       return { gpuMs: { scene: mean(state.sceneGpu), ...c, cloudsTotal: cloudSum, total: mean(state.sceneGpu) + cloudSum }, cpuMs: mean(cpu) };
     },
-    detail: () => ({ cloudsReady: clouds?.isReady, generated: state.generated, exposure: renderer?.toneMappingExposure, coverageLo: state.weatherKey }),
+    detail: () => ({ cloudsReady: clouds?.isReady, generated: state.generated, exposure: renderer?.toneMappingExposure, coverageLo: state.weatherKey, model: proc ? `procedural/${proc.settings.shaper}` : 'nvdf' }),
   };
 }
 

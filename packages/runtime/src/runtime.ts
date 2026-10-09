@@ -15,6 +15,7 @@ import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { createLightning, type FlashOptions, type LightningSettings } from './lightning';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_BYTES, SKY_LIGHT_ENTRIES, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
+import type { ProceduralDensityModel } from './procedural/types';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, heroUniformData, volumeUniformData, volumeWgsl, HERO_UNIFORM_BYTES, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
 
@@ -180,6 +181,12 @@ export interface CloudSettings {
   compositeShadow: number;
   /** P6-B: automatic lightning (`rate` flashes per second inside `region`, see LightningSettings). Off by default (rate 0). Flashes from `flash()` work regardless. */
   lightning: LightningSettings;
+  /**
+   * X1: 'nvdf' (default) renders the voxel field (and the sky layer when enabled). 'procedural' renders the model given to `setProceduralModel`
+   * (procedural/index.ts: a per-sample HZD / Sky Pro style density) from the camera to the horizon through the sky layer's targets, resolve and
+   * composite, with the same lighting, haze and aerial perspective; the voxel march is skipped. Without a ready model it falls back to 'nvdf'.
+   */
+  densityModel: 'nvdf' | 'procedural';
 }
 
 export interface CloudUniformLighting {
@@ -275,6 +282,9 @@ export interface CloudRuntime {
    * through `cloudShadowMapWgsl()` (`shadowMap.textures`, `shadowMap.paramsBuffer`).
    */
   readonly shadowMap: CloudShadowMap;
+  /** X1: the procedural density model used while `settings.densityModel` is 'procedural' (null: none). The caller owns it. */
+  setProceduralModel(model: ProceduralDensityModel | null): void;
+  readonly proceduralModel: ProceduralDensityModel | null;
   encode(encoder: GPUCommandEncoder, frame: CloudFrame, timer?: GpuTimer): void;
   dispose(): void;
 }
@@ -411,7 +421,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
     bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
     hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
+    densityModel: 'nvdf',
   };
+  let procModel: ProceduralDensityModel | null = null;
+  let procWas = false;
 
   const volumeLayout = createVolumeBindGroupLayout(device);
   const C = GPUShaderStage.COMPUTE;
@@ -726,6 +739,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       rebuildVolumeGroup();
     },
     flash(options) { lightning.flash(options); },
+    setProceduralModel(model) { procModel = model; needReset = true; },
+    get proceduralModel() { return procModel; },
     get flashLevel() { return flashLevelNow; },
     resetTemporal() { needReset = true; },
     get temporalInfo() {
@@ -822,7 +837,12 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const flashFrame = flash !== null || flashPrev;
       flashPrev = flash !== null;
       // The distant sky layer: bakes its weather window / compiles its pipeline on first use (async), then renders.
-      const skyActive = skyLayer.settings.enabled && skyLayer.prepare(encoder, skyBox, !!uniformLighting, timer);
+      // X1: the procedural model replaces the voxel field and the layer's own field (the march passes run with no steps: clear).
+      const proc = settings.densityModel === 'procedural' && procModel?.ready ? procModel : null;
+      const skyActive = (proc ? true : skyLayer.settings.enabled) && skyLayer.prepare(encoder, skyBox, !!uniformLighting, timer, proc);
+      const procOn = !!proc && skyActive;
+      if (procOn !== procWas) { procWas = procOn; needReset = true; }
+      frameU32[33] = procOn ? 0 : settings.maxSteps >>> 0;
       f[53] = skyActive ? 1 : 0;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates = [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
@@ -944,7 +964,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
 
       if (skyActive) {
-        skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer });
+        skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null });
       }
 
       // Cloud shadow map: the sun-ray optical depth over the box and (with the layer on) out to the horizon, one slice per frame.
