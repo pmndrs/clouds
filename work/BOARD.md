@@ -1480,7 +1480,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   4. **Mediocris and congestus "side"** views show vertical streaky textures on the near clouds. Check whether that is the profile or the detail type.
 - **Acceptance:** an updated species sheet in which the orchestrator sees no lattice, no cylinder walls and no box outline. Variety numbers hold. `pnpm check` green.
 
-### [r] P9-C3 Cost back under budget after species, C1 and C2 · Opus (report: work/reports/P9-C3.md)
+### [x] P9-C3 Cost back under budget after species, C1 and C2 · Opus (report: work/reports/P9-C3.md)
 - **Owns:** `packages/runtime/src/{runtime.ts,dome.ts,light-grid.ts}` and `shaders/{dome,march,light-grid,composite}.wgsl.ts`, plus `sky-layer` once P9-C2 lands.
 - **Does:** P9-C content (30–40% cover, taller clouds) pushed the high tier to 4.5–5.3 ms at 2560×1440 (budget 3.5). The march went 0.56 → 0.96 ms, the dome 0.39 → 0.74 and the sky layer 1.3 → 1.9.
   - Add step/detail budgets in the sky layer and dome, and scale march detail with distance and coverage.
@@ -1619,7 +1619,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - Background spikes stay within 10% of the frame (GPU timestamps, per-frame series).
   - `pnpm check`, the bundle check and the packed consumer are green.
 
-### [ ] Q2 Look parity with Takram and the photos (midday) · Opus (after P9-C3 hands back)
+### [~] Q2 Look parity with Takram and the photos (midday) · Opus
 - **Owns:** the cloud shading, density detail and sky layer (march, density, lighting, sky layer, composite), coordinated with 9-D and 9-E, which may be folded in.
 - **Does:**
   1. **Gap list first.** On the compare page (`ours,takram`, `ours,skypro`, `ours,photo` with the owner's midday photos: humilis, mediocris, congestus, stratocumulus), list every visible difference that makes ours look worse:
