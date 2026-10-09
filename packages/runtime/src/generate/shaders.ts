@@ -325,6 +325,26 @@ fn detailFlip(hd: f32, flip: f32, patchN: f32) -> f32 {
   return smoothstep(fl - 0.1, fl + 0.1, hd);
 }
 /**
+ * Q2 directional detail (the owner's observations, docs/research/cloud-motion-ideas.md): the face into the wind (shear) is sharp and compact, the lee
+ * face soft with wisps trailing downwind, tops crisp, bases smooth. Returns c in about [-1, 1]: > 0 crisp, < 0 soft. hcol = height in the column,
+ * gradCov = the coverage gradient per metre (horizontal, map axes), wind = the shear lean (map axes, metres per metre; its direction is downwind).
+ * The callers use it twice: the profile's depth ramp is narrowed or widened (DIR_RAMP: a crisp face reaches full density over less depth), and the
+ * detail type leans billowy or wispy (DIR_TYPE). The generator's profile pass and the sky layer share it, so both sides of the box wall agree.
+ */
+const DIR_RAMP = 0.9;
+const DIR_TYPE = 0.5;
+fn directionalDetail(hcol: f32, gradCov: vec2<f32>, wind: vec2<f32>) -> f32 {
+  let top = smoothstep(0.55, 0.9, hcol);
+  let base = 1.0 - smoothstep(0.04, 0.3, hcol);
+  let side = (1.0 - top) * (1.0 - base);
+  let g = length(gradCov);
+  let wl = length(wind);
+  // facing: +1 on the lee (downwind) face, -1 on the face into the wind; faded out where the footprint is flat or there is no shear.
+  var facing = 0.0;
+  if (g > 1e-7 && wl > 1e-5) { facing = dot(-gradCov / g, wind / wl) * smoothstep(0.0, 0.0015, g) * smoothstep(0.0, 0.02, wl); }
+  return 0.6 * top - 0.7 * base - 0.8 * facing * (side + 0.5 * top);
+}
+/**
  * P9-C2 tower flanks. Under f = s - h^p the wall of a tall column is where s = h^p, and the billow moves it by (billow / |grad s|): about 10 m on a
  * congestus wall, whose mass ramps up over a few voxels, so the towers stood on straight vertical walls (cylinders) with pockmarks. The tall species
  * instead get a displacement in metres along the surface normal (f += |grad f| * D, D in metres, walls only): the flank bulges and necks at
@@ -685,13 +705,18 @@ fn profileMain(@builtin(global_invocation_id) g: vec3<u32>) {
   // The anvil is a plate of ice a few voxels thick: as a thin shell its profile would be low everywhere and the up-rez erosion would leave only the
   // detail noise's minima (a 100 m grid of dots), so its depth counts triple and its spread is reduced (P6-C). The 0.7 density scale keeps it translucent.
   let dEff = depth * mix(1.0, 1.0 + 2.0 * sh.fade, sh.anvil) * exp(P.sigma * (1.0 - 0.7 * sh.anvil) * n);
-  let core = pow(clamp((dEff - 1.4) / 66.0, 0.0, 1.0), 1.05);
+  // Q2 directional detail: the coverage gradient (central difference, per metre) against the shear lean.
+  let gx = weatherAt(p + vec3<i32>(1, 0, 0)).r - weatherAt(p - vec3<i32>(1, 0, 0)).r;
+  let gy = weatherAt(p + vec3<i32>(0, 1, 0)).r - weatherAt(p - vec3<i32>(0, 1, 0)).r;
+  let dirC = select(0.0, directionalDetail(hf, vec2<f32>(gx, gy) / (2.0 * P.voxelSize), vec2<f32>(P.leanX, P.leanY)), sh.anvil < 0.5);
+  let core = pow(clamp((dEff - 1.4) / (66.0 * exp(-DIR_RAMP * dirC)), 0.0, 1.0), 1.05);
   let lift = 0.1 + 0.9 * smoothstep(0.0, 0.22, hf);
   let p8 = max(round(clamp(core * lift, 0.0, 1.0) * 255.0), 1.0);
   let hd = hf - 0.25 * clamp(depth / 32.0, 0.0, 1.0);
   var detail = clamp(smoothstep(0.1, 0.75, hd) + (sh.cloudType - 0.5) * P.detailBias, 0.0, 1.0);
   // P9-C (NE p.99): the species sets the height at which the detail flips from wispy (below) to billowy (above), over +- 0.1 of the column.
   if (sh.flip >= 0.0) { detail = detailFlip(hd, sh.flip, patchN); }
+  detail = clamp(detail + DIR_TYPE * dirC, 0.0, 1.0);
   // The anvil is ice: thinner than the tower, fading out toward its rim (P6-C).
   var scale = mix(P.scaleBase, P.scaleTop, smoothstep(0.0, 0.6, hf)) * sh.scaleMul * mix(1.0, 0.7 * (0.3 + 0.7 * sh.fade), sh.anvil);
   // P9-C2 density hand-off (sheets): the field fades in from the side walls over edgeFade metres while the sky layer fades out (sky-layer.wgsl.ts).

@@ -328,13 +328,16 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
     dEff = depth * exp(SKY.extra.y * n);
     r.n = vec2(n, patchN);
   }
-  let core = pow(clamp((dEff - 1.4) / 66.0, 0.0, 1.0), 1.05);
+  // Q2 directional detail (generate/shaders.ts directionalDetail): the same law as the generator's profile pass, from the coverage gradient and the lean.
+  let dirC = select(0.0, directionalDetail(sm.hcol, dcov, skyLean()), prof);
+  let core = pow(clamp((dEff - 1.4) / (66.0 * exp(-DIR_RAMP * dirC)), 0.0, 1.0), 1.05);
   let liftP = 0.1 + 0.9 * smoothstep(0.0, 0.22, sm.hcol);
   let profile = max(core * liftP, 1.0 / 255.0);
   let scale = clamp(mix(SKY.shapeB.z, SKY.shapeB.w, smoothstep(0.0, 0.6, sm.hcol)) * L.scale, 0.0, 1.0);
   let hd = sm.hcol - 0.25 * clamp(depth / 32.0, 0.0, 1.0);
   var detail = clamp(smoothstep(0.1, 0.75, hd) + (g - 0.5) * SKY.shapeC.x, 0.0, 1.0);
   if (L.flip >= 0.0) { detail = detailFlip(hd, L.flip, patchN); }   // P9-C, NE p.99: the species' wispy-to-billowy flip height (P9-C2: patched)
+  detail = clamp(detail + DIR_TYPE * dirC, 0.0, 1.0);
   r.m = vec3(profile, detail, scale);
   return r;
 }
