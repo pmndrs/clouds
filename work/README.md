@@ -1,7 +1,7 @@
 # How work gets done here
 
-The plan and the phase goals are in [`docs/AUDIT-2026-10.md`](../docs/AUDIT-2026-10.md).
-Formulas and constants are in [`docs/research/nubis-sources.md`](../docs/research/nubis-sources.md).
+The current roadmap is [`docs/PLAN-2026-10-next.md`](../docs/PLAN-2026-10-next.md). Task definitions are in [`docs/PLAN-2026-10-variety.md`](../docs/PLAN-2026-10-variety.md), and the history and early phases in [`docs/AUDIT-2026-10.md`](../docs/AUDIT-2026-10.md).
+**Research: read [`docs/research/README.md`](../docs/research/README.md) first.** It indexes every source and note: what each is good for, what is already extracted, and what is unread. Formulas and constants are in [`docs/research/nubis-sources.md`](../docs/research/nubis-sources.md). When you scan a new source, add a row to the index.
 This folder is the working surface:
 
 - `BOARD.md` is the task list.
