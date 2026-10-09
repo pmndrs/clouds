@@ -7,8 +7,11 @@ import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three';
 import { CLOUD_PRESETS, type NvdfParams, createVolumeGenerator, encodeProceduralWeatherMap, loadCloudNoise, type VolumeGenerator } from '@clouds/runtime';
 import { GROUND_HEX, forwardOf, mapCoverage, type Pane, type PaneStats, type ViewState } from '../shared';
 
-// Cloudscape: 512 x 512 x 64 voxels at 8 m = 4.1 km square, 512 m tall, base 150 m, centred 2.3 km north of the origin (as open-water).
-const FIELD = { dims: [512, 512, 64] as [number, number, number], voxel: 8, base: 150, centre: [0, -2300] as const };
+// Cloudscape: 512 x 512 x 64 voxels at 8 m = 4.1 km square, 512 m tall, centred 2.3 km north of the origin (as open-water).
+// Q2: the base is at 750 m, the bottom of Takram's first default layer (750 m / 650 m), so both panes see their fair-weather layer from the same
+// height. At 150 m (open-water's) the whole field sat within a few degrees of the horizon as one row of tall blobs, with nothing overhead, while
+// Takram's (and every midday photo's) flat bases recede overhead in perspective. ?base=<m> overrides it.
+const FIELD = { dims: [512, 512, 64] as [number, number, number], voxel: 8, base: 750, centre: [0, -2300] as const };
 /** Exposure calibration: our own default (physical sun, ACES at 0.35); the other panes are matched to this one. */
 export const OURS_EXPOSURE = 0.35;
 
@@ -68,7 +71,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       if (g.done) {
         const volume = g.volume;
         gen = undefined;
-        void clouds.setVolume(volume, { position: [FIELD.centre[0], FIELD.base, FIELD.centre[1]] }).then(() => {
+        void clouds.setVolume(volume, { position: [FIELD.centre[0], Number(query.get('base') ?? FIELD.base), FIELD.centre[1]] }).then(() => {
           if (SKY_LAYER && weatherOpts) { const l = clouds.core.skyLayer; l.configure({ weather: weatherOpts, shape: params, voxelSize: FIELD.voxel, rimWidth: 0 }); l.settings.enabled = true; }
           state.generated = true;
           state.skyWait = SKY_LAYER && clouds.core.skyLayer.settings.enabled;
