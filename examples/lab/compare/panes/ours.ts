@@ -63,11 +63,12 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     if (state.cloudsOn && PROCEDURAL) await beginProcedural();
     else if (state.cloudsOn) beginGeneration(Number(query.get('coverage') ?? 0.5)); else state.ready = true; // ?clouds=0: clear sky, nothing to generate
   };
-  // X1: ?model=procedural renders the procedural model instead of the generated field. ?shaper=skypro (default) | takram picks the shaper;
+  // X1: ?model=procedural renders the procedural model instead of the generated field. ?shaper=takram (default) | skypro picks the shaper,
+  // ?proc_lighting=1 Takram's lighting function instead of ours (the X1 lighting A/B);
   // ?proc_<key>=N, ?sp_<key>=N, ?tk_<key>=N override a top-level, Sky Pro or Takram setting (numbers only).
   const beginProcedural = async () => {
     const device = sharedBackend(renderer).device;
-    const shaper = (query.get('shaper') ?? 'skypro') as ProceduralShaper;
+    const shaper = (query.get('shaper') ?? 'takram') as ProceduralShaper;
     proc = createProceduralClouds(device, { shaper });
     await proc.load(shaper === 'skypro' ? { skyproNoise: skyproNoiseUrl } : { takram: { shape: tkShapeUrl, shapeDetail: tkShapeDetailUrl, localWeather: tkLocalWeatherUrl, turbulence: tkTurbulenceUrl } });
     const num = (o: object, k: string, v: string) => { if (typeof (o as Record<string, unknown>)[k] === 'number') (o as Record<string, number>)[k] = Number(v); };
@@ -79,6 +80,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     await clouds.setVolume(proceduralPlaceholderVolume(), { position: [0, -500, 0] });
     clouds.core.setProceduralModel(proc);
     clouds.core.settings.densityModel = 'procedural';
+    // ?sky_<setting>=N overrides a sky-layer setting here too (the procedural trace runs in the layer: resolutionScale, temporalBlend, transmittanceCutoff).
+    const l = clouds.core.skyLayer.settings as unknown as Record<string, number | boolean>;
+    for (const [k, v] of query) if (k.startsWith('sky_') && k.slice(4) in l) l[k.slice(4)] = typeof l[k.slice(4)] === 'boolean' ? v === '1' : Number(v);
     state.generated = true;
   };
   const beginGeneration = (coverage: number) => {
@@ -131,7 +135,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
 
   return {
     id: 'ours',
-    label: PROCEDURAL ? `ours: @clouds/three, procedural density (${query.get('shaper') ?? 'skypro'} shaper)` : 'ours: @clouds/three (WebGPU, TSL)',
+    label: PROCEDURAL ? `ours: @clouds/three, procedural density (${query.get('shaper') ?? 'takram'} shaper, ${query.get('proc_lighting') === '1' ? 'Takram' : 'our'} lighting)` : 'ours: @clouds/three (WebGPU, TSL)',
     canvas,
     init: start,
     resize(w, h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); },

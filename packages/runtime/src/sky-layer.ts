@@ -143,6 +143,8 @@ export interface SkyEncodeArgs {
    * (no box partition) and writes the same targets, so the resolve, the composite and the haze are shared. Needs `prepare(..., procedural)` first.
    */
   procedural?: ProceduralDensityModel | null;
+  /** Seconds (CloudFrame.time): drives the procedural model's evolution. */
+  time?: number;
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
@@ -453,7 +455,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     const w = a.color.width, h = a.color.height;
     ensureTemporal(w, h);
     const tmp = temporal!;
-    const { version } = model.update(performance.now() * 0.001);
+    const { version } = model.update(a.time ?? 0);
     const p = params;
     p.fill(0);
     // The procedural trace reads only the cutoff (steps.w) and the temporal fields; the resolve reads the temporal fields, the blend and the reprojection.

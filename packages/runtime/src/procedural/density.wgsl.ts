@@ -15,7 +15,7 @@
  *   - flat bases: below baseWeatherHeightEnd a column needs weather >= baseWeatherStrength (HZD s36: the base gradient);
  *   - edge erosion by the same noise at 0.13 of the scale, strength rising from base to top (HZD s37, "always an erosion from the edge", s76),
  *     and the wind-shear lean of the tops (N17 p.45: p += h * wind * 500; here windSkew metres per shell height).
- * The 'takram' shaper is ported from @takram/three-clouds 0.7.6 clouds.glsl (MIT, Copyright (c) 2024 Shota Matsuda): HZD 2015's density
+ * The 'takram' shaper is ported from @takram/three-clouds 0.7.6 clouds.glsl (MIT, Shota Matsuda / Takram): HZD 2015's density
  * build in its layered form (one weather channel per layer):
  *   - height gradient per layer: a semicircle on pow(h, bias) (HZD s34 cumulus gradient, "soft at both ends");
  *   - coverage remap (HZD s35-36 SetRange, N17 p.40-44): factor = 1 - coverage * gradient, density = remap(weather, factor, factor + width);

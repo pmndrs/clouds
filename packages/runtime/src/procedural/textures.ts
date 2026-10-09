@@ -2,7 +2,7 @@
 //   Sky Pro: baseShape64.bin (gzip, 'NZZ1' header, 64^3 RGBA8 Perlin-Worley with mips; tidewater/public/clouds, MIT, DRG Software Solutions LLC),
 //            and the weather map baked here with Sky Pro's own kernels (periodic Perlin fbm, then the 64^2 maxima for the empty-cell skip).
 //   Takram:  shape.bin (128^3 R8), shape_detail.bin (32^3 R8), local_weather.png (512^2 RGBA), turbulence.png (128^2 RGBA) from
-//            @takram/three-clouds/assets (MIT, Copyright (c) 2024 Shota Matsuda).
+//            @takram/three-clouds/assets (MIT, Shota Matsuda / Takram).
 import type { SkyProShape } from './settings';
 
 async function fetchOk(url: string): Promise<Response> {
