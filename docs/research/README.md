@@ -22,6 +22,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 | [photo-species-specs.md](photo-species-specs.md) | shape sunset scene | **Measured from the owner's photos:** per-species silhouettes and ratios, altocumulus spacing CV, congestus taper, **sunset sRGB ranges**, picks for T1–T7, and the misfiled-photo list |
 | [approximate-mie.md](approximate-mie.md) | light sunset | Jendersie & d'Eon 2023 HG+Draine: fits valid for d of 5–50 µm, a WGSL port (read-checked only, not yet compiled), and a comparison with our HG lobes (ours is 25–40× too bright at 90°). **Not the sunset fix by itself**: the culprit is probably the phase-less, sun-tinted `ms` term in `cloudInScatterMicro`. Adopt as an optional `phaseModel` in C1, after re-tuning colour |
 | [rdr2-atmosphere.md](rdr2-atmosphere.md) | horizon sunset cirrus shadow perf | RDR2 (Bauer, SIGGRAPH 2019). The 2.5D map is coarse and gives little on shape. **Strongest ideas:** aerial perspective applied once at the transmittance-weighted depth with one shared frustum LUT (C2); a sun-weighted reduced-sky ambient and a back-scatter floor (C1); ESM cloud shadows with 1/16 texel updates and free god rays from the march (10); 1 ray per 2×2 half-res tile with reprojection (perf) |
+| [frostbite-yusov-hogfeldt.md](frostbite-yusov-hogfeldt.md) | sunset light horizon perf shadow | Hillaire 2016 (Frostbite), Yusov 2014 deck, Högfeldt 2016 thesis, Bouthors 2008. **Sunset fix candidate (from Bouthors' order analysis, our port):** the isotropic body terms (`ms`, deep octaves) must scale with sun elevation (about `mu_L`) and hand over to the sky/ground environment pair at low sun, keeping the low-order edges warm. Also: eq. 21-22 weighted-depth aerial perspective plus the cloud-attenuates-haze coupling, per-altitude sun transmittance table, ambient controls (scale, desaturate, [a,1] bias), energy-conserving integral, history-based empty-sky skip. No cirrus, no shadow-map format |
 
 ### Pre-reset (2026-09 and earlier; may be stale; read critically)
 
@@ -44,6 +45,10 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 | `nubis/nubis-cubed-2023.pdf` | all | ✅ (same as the pptx) | |
 | `Nubis - Authoring Realtime Volumetric Cloudscapes ... Final .pdf` (2017) | authoring horizon | ✅ legacy-and-survey | Weather scheduler, the half-opaque haze depth, silver lobe |
 | `COMPREHENSIVE SURVEY OF CLOUDS 2021.pdf` | survey | ✅ legacy-and-survey | Nothing new on our five questions |
+| `s2016-pbs-frostbite-sky-clouds-new.pdf` (Hillaire 2016, Frostbite course notes) | sunset horizon light shadow perf | ✅ frostbite-yusov-hogfeldt | Octave MS with no numeric a/b/c, sun and atmosphere constants, eq. 21-22 aerial perspective, ambient controls |
+| `Yusov-Clouds.pdf` (HPG 2014, **slides only**) | perf light | ✅ same | Precomputed particle lighting; its sunset frames are uniformly orange (a counter-example). Nothing on ambient, cirrus, shadow |
+| `hogfelt.pdf` (Högfeldt 2016 thesis) | perf light | ✅ same | Compact Frostbite shader, early exits, temporal alpha 5%, dusk render p.39. AP and ground shadows are future work |
+| `bouthors08.pdf` (Bouthors et al. 2008) | sunset light | ✅ same | Scattering-order regimes and the `mu_L` dependence of the diffuse body; "blue above, brown below" environment pair. Full model not portable |
 | `jendersie/` (approximate Mie paper, supplemental, `draine.hlsl`) | light sunset | ✅ approximate-mie | Phase function for droplets |
 | `slides_public_release.pptx` (238 MB): RDR2, Bauer, SIGGRAPH 2019 | horizon sunset shadow perf | ✅ rdr2-atmosphere | 78 slides |
 | `cloud-photos/` (about 500 photos, 15 types, `manifest.json`) | shape sunset scene | ✅ photo-species-specs | Many misfiles (see that doc). Empty: stratus/fog valley, lenticular, mammatus, shelf, nimbostratus, cirrocumulus |
@@ -55,7 +60,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 
 | Link | Tags | Status / use |
 | --- | --- | --- |
-| [zenglb sky/cloud reading list (gist)](https://gist.github.com/zenglb/7e285db54d3e193398d7914a87dcabd2) | all | Index of about 40 classic papers and talks. **Worth reading next:** Hillaire 2016 "Physically Based Sky, Atmosphere and Cloud Rendering in Frostbite" (course notes PDF): sunset multi-scatter, cloud/atmosphere coupling. Bouthors 2008 "Interactive multiple anisotropic scattering in clouds": what gives low-sun bodies their colour. Yusov 2014 "High-Performance Rendering of Realistic Cumulus Clouds Using Pre-Computed Lighting". Högfeldt 2016 thesis (Frostbite clouds). The rest are pre-2010 sky models or covered elsewhere |
+| [zenglb sky/cloud reading list (gist)](https://gist.github.com/zenglb/7e285db54d3e193398d7914a87dcabd2) | all | Index of about 40 classic papers and talks. Hillaire 2016, Bouthors 2008, Yusov 2014 and Högfeldt 2016 are now scanned (see the source table). The rest are pre-2010 sky models or covered elsewhere |
 | [Ghost of Yōtei tech deep dive (PS Blog, 2025-10)](https://blog.playstation.com/2025/10/23/ghost-of-yotei-tech-deep-dive/) | horizon shadow | A 2.5D cloud map storing **mean and mean-squared depth** per texel, giving parallax while scrolling and an opacity distribution for occluding mountains. Clouds in front of terrain. A light-space cloud shadow map drives **god rays in volumetric fog**. Artist "god ray targets". Ideas for our sky-layer depth (add variance) and P10 (fog shafts). No slides yet; talks promised in 2026 |
 | [Witcher 3 B&W cirrus (astralcode blog)](https://astralcode.blogspot.com/2019/05/reverse-engineering-rendering-of.html) | cirrus | A cheap textured dome cirrus with a normal map, sun-proximity front/back colour and a horizon bias. Our **low-tier cirrus fallback** (see legacy-and-survey) |
 | [Unity cloud shadows video (YouTube kMiilElp3Js)](https://www.youtube.com/watch?v=kMiilElp3Js) | shadow | Not reviewable (no transcript). From the title, a projected mobile cookie. P10 already covers it |
@@ -64,9 +69,9 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 
 | Gap | Read |
 | --- | --- |
-| Sunset colour (bodies should be mauve/slate with warm fringes) | photo-species-specs (targets), rdr2-atmosphere (sun-weighted ambient, S36), approximate-mie, Hillaire 2016, Bouthors 2008 |
-| Horizon haze and distance | rdr2-atmosphere (transmittance-weighted depth, S62), legacy-and-survey (half-opaque depth), Ghost of Yōtei (depth variance) |
+| Sunset colour (bodies should be mauve/slate with warm fringes) | **frostbite-yusov-hogfeldt sec. 1b (Bouthors order analysis: elevation-dependent body light, cheap port with constants)**, photo-species-specs (targets), rdr2-atmosphere (sun-weighted ambient, S36), approximate-mie. Still unread: nothing, but no source gives colour numbers; photos remain the target |
+| Horizon haze and distance | frostbite-yusov-hogfeldt (eq. 21-22: weighted depth, and clouds attenuate the haze under them), rdr2-atmosphere (transmittance-weighted depth, S62), legacy-and-survey (half-opaque depth), Ghost of Yōtei (depth variance) |
 | Cirrus | hzd-nubis-evolved (NE p.65), legacy-and-survey (Witcher fallback) |
 | Species shapes | hzd-nubis-evolved (profile tables), photo-species-specs (numbers), deck-scenes (vocabulary) |
 | Ground shadows and god rays | P10 reports; rdr2-atmosphere (ESM, free god rays, S35/S62); Ghost of Yōtei (fog shafts) |
-| Cost (high tier over budget) | rdr2-atmosphere (1 ray per 2×2 tile, S51–57) |
+| Cost (high tier over budget) | rdr2-atmosphere (1 ray per 2×2 tile, S51–57); frostbite-yusov-hogfeldt (empty-sky skip from history, half-res, 5% EMA) |
