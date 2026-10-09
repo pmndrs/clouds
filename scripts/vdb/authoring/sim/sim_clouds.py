@@ -59,20 +59,24 @@ float t = frame * 0.02;
 vector so = %(seedvec)s;                                               // seed: shifts every noise lookup
 float n1 = noise(p * %(noisefreq)g * 1.7 + {3.1, 1.7, 9.2} + so);          // breaks the disc outline into lobes
 float n2 = noise(p * %(cellfreq)g + {7.3, 2.1, 0.4} + so + t * {0.5, 0.2, 0.3});  // thermal cells
-// emitters: (x, z, rx, rz, weight, start frame) in sim units; each is a noisy elliptical disc, the source is their max
+// emitters: (x, z, rx, rz, weight, start frame, heat) in sim units; each is a noisy elliptical disc, the source is their max.
+// weight scales density and temperature; heat scales temperature only (L1: a hot core tower on a warm, lazier pedestal)
 float E[] = array(%(emitters)s);
-float mask = 0;
-for (int i = 0; i < len(E); i += 6) {
+float mask = 0, tmask = 0;
+for (int i = 0; i < len(E); i += 7) {
     float dx = (p.x - E[i]) / E[i + 2], dz = (p.z - E[i + 1]) / E[i + 3];
     float rr = sqrt(dx * dx + dz * dz) + (n1 - 0.5) * 0.9 * %(noiseamp)g;
     float on = smooth(E[i + 5], E[i + 5] + 10.0, frame);
-    mask = max(mask, (1 - smooth(1 - %(edge)g, 1.0, rr)) * E[i + 4] * on);
+    float m = (1 - smooth(1 - %(edge)g, 1.0, rr)) * E[i + 4] * on;
+    mask = max(mask, m);
+    tmask = max(tmask, m * E[i + 6]);
 }
-mask *= 1 - smooth(0.0, H, p.y);
+float slab = 1 - smooth(0.0, H, p.y);
+mask *= slab; tmask *= slab;
 float emit = 1 - smooth(%(emit_frames)g - 10.0, %(emit_frames)g * 1.0, frame);
 float cell = %(floor)g + (1 - %(floor)g) * smooth(%(cell0)g, %(cell1)g, n2);   // hot spots = rising thermals
 @density = mask * emit * %(rate)g * cell;
-@temperature = mask * emit * %(temp)g * cell;
+@temperature = tmask * emit * %(temp)g * cell;
 '''
 
 # Inversion lid: a cold slab added to temperature every step (pyro source 3, operation Add). Thermals that reach it lose
@@ -91,11 +95,18 @@ if (%(basefade)g > 0) @density *= smooth(%(base)g, %(base)g + %(basefade)g, @P.y
 # Post warp of the finished density: vertical stretch k (a free plume is a cone about as tall as wide), a lean (x shifts by
 # `shear` per unit of height, along +x; the library page yaws instances so the direction varies) and an optional flattening of
 # everything above `flat` (squashed by `flatk`).  Output point P samples the remapped cloud at the inverse map.
+# L1 additions: `stretch_from` (output height below which there is no stretch, so a pedestal keeps its aspect while the tower
+# above it is stretched) and `taper` (horizontal scale 1 - taper * smooth(taper_y0, taper_y1, y) about the axis (taper_x, taper_z):
+# a tower that narrows toward its crown, as congestus does).
 WARP_VEX = '''
-float k = %(stretch)g, sh = %(shear)g, fy = %(flat)g, fk = %(flatk)g;
+float k = %(stretch)g, s0 = %(stretch_from)g, sh = %(shear)g, fy = %(flat)g, fk = %(flatk)g;
 float y = @P.y;
 if (fy > 0 && y > fy) y = fy + (y - fy) * fk;
-vector q = set(@P.x - sh * max(y, 0.0), y / k, @P.z);
+float ys = y > s0 ? s0 + (y - s0) / k : y;
+float sc = 1 - %(taper)g * smooth(%(taper_y0)g, %(taper_y1)g, y);
+float cx = %(taper_x)g, cz = %(taper_z)g;
+float xu = @P.x - sh * max(y, 0.0);
+vector q = set(cx + (xu - cx) / sc, ys, cz + (@P.z - cz) / sc);
 @density = volumesample(1, "density", q);
 '''
 
@@ -116,7 +127,7 @@ def source_params(rcp):
     """The SOURCE_VEX substitutions: the recipe's source block plus the emitter list and the seed offset."""
     src = dict(rcp['source'])
     ems = src.get('emitters') or [[0.0, 0.0, src['radius'], src['radius'], 1.0, 0.0]]
-    ems = [list(e) + [1.0, 0.0][len(e) - 4:] if len(e) < 6 else list(e) for e in ems]
+    ems = [list(e) + [1.0, 0.0, 1.0][len(e) - 4:] for e in ems]   # weight, start frame, heat default to 1, 0, 1
     src['emitters'] = ', '.join('%g' % v for e in ems for v in e)
     seed = int(rcp.get('seed', 0))
     src['seedvec'] = '{%g, %g, %g}' % ((seed * 17.31) % 97.0, (seed * 7.77) % 89.0, (seed * 3.13) % 83.0) if seed else '{0, 0, 0}'
@@ -224,12 +235,19 @@ def build(name, rcp, hip=None):
 
 def warp_params(rcp):
     r = rcp['remap']
-    return dict(stretch=r.get('stretch', 1.0), shear=r.get('shear', 0.0), flat=r.get('flat', 0.0), flatk=r.get('flatk', 1.0))
+    return dict(stretch=r.get('stretch', 1.0), stretch_from=r.get('stretch_from', 0.0), shear=r.get('shear', 0.0), flat=r.get('flat', 0.0), flatk=r.get('flatk', 1.0),
+                taper=r.get('taper', 0.0), taper_y0=r.get('taper_y0', 0.0), taper_y1=r.get('taper_y1', 1.0), taper_x=r.get('taper_x', 0.0), taper_z=r.get('taper_z', 0.0))
+
+
+def warp_y(w, y):
+    """Forward map of a sim height to the output height (inverse of WARP_VEX's y mapping, before flattening)."""
+    s0 = w['stretch_from']
+    return y if y <= s0 else s0 + (y - s0) * w['stretch']
 
 
 def needs_warp(rcp):
     w = warp_params(rcp)
-    return w['stretch'] != 1.0 or w['shear'] != 0.0 or w['flat'] > 0 or bool(rcp.get('pileus'))
+    return w['stretch'] != 1.0 or w['shear'] != 0.0 or w['flat'] > 0 or w['taper'] != 0.0 or bool(rcp.get('pileus'))
 
 
 def grow_region(geo, rcp):
@@ -242,7 +260,7 @@ def grow_region(geo, rcp):
     mx = [max(c0[i], c1[i]) for i in range(3)]
     w = warp_params(rcp)
     k = w['stretch']
-    top = max(mx[1], 0.0) * k
+    top = warp_y(w, max(mx[1], 0.0))
     if w['flat'] > 0 and top > w['flat']:
         top = w['flat'] + (top - w['flat']) / max(w['flatk'], 1e-3)
     mx[1] = top + (mx[1] - max(mx[1], 0.0))
@@ -267,7 +285,7 @@ def grow_region(geo, rcp):
         ci = [float((xx * wgt).sum() / wgt.sum()) + lo[0], ytop + lo[1], float((zz * wgt).sum() / wgt.sum()) + lo[2]]
         cw = pr.indexToPos(tuple(int(round(v)) for v in ci))
         ys = max(cw[1], 0.0)
-        cx, cy, cz = cw[0] + w['shear'] * ys * k, ys * k, cw[2]
+        cx, cy, cz = cw[0] + w['shear'] * warp_y(w, ys), warp_y(w, ys), cw[2]
         if w['flat'] > 0 and cy > w['flat']:
             cy = w['flat'] + (cy - w['flat']) / max(w['flatk'], 1e-3)
         # the shell's centre sits below the dome apex: apex = top + gap

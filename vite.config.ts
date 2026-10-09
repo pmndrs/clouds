@@ -43,6 +43,7 @@ export default defineConfig({
     testHeroStamp: fileURLToPath(new URL('./examples/lab/runtime-tests/hero-stamp/index.html', import.meta.url)),
     onsen: fileURLToPath(new URL('./examples/lab/onsen/index.html', import.meta.url)),
     library: fileURLToPath(new URL('./examples/lab/library/index.html', import.meta.url)),
+    target: fileURLToPath(new URL('./examples/lab/target/index.html', import.meta.url)),
     species: fileURLToPath(new URL('./examples/lab/species/index.html', import.meta.url)),
     sunset: fileURLToPath(new URL('./examples/lab/sunset/index.html', import.meta.url)),
     vdbDrop: fileURLToPath(new URL('./examples/lab/vdb-drop/index.html', import.meta.url)),
