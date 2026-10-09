@@ -1770,7 +1770,30 @@ Owner direction:
   - `pnpm check`, bundle and packed consumer green.
   - Checkpoint-commit often.
 
-### [r] P9-E High layer: cirrus and cirrostratus · Opus (report: work/reports/P9-E.md)
+### [ ] P9-E2 Cirrus look pass: brush strokes, not wood grain · Opus
+- **Owns:**
+  - `packages/runtime/src/cirrus/**`
+  - the haze code in `shaders/march.wgsl.ts` and the sky-layer shader (only for item 3)
+  - `packages/runtime/src/dome.ts` and `shaders/dome.wgsl.ts` (only for item 4)
+- **Orchestrator review of P9-E:**
+  - Accepted as the first pass. Low-sun colour is right: it stays orange after the low clouds go dark.
+  - But up close the streaky type reads as fine, evenly spaced parallel lines, like wood grain or a fingerprint (`work/captures/P9-E/nvdf/afterglow.jpg`). That is a visible pattern, which is never acceptable.
+  - The owner's photos (`work/captures/scratch/p9e/sbs-photos.jpg`, local only) show broad, soft brush-stroke bands: a few large sweeps with feathered edges, uneven spacing, gaps of open sky, and fibres only inside the bright sweeps.
+- **Does:**
+  1. **Brush strokes, not grain.** Rework the streaky and wispy shapes so the large-scale structure dominates: a few broad sweeps of different widths and curvature, large gaps, feathered edges, and fine fibres only inside the bands at low contrast.
+     - Check at the ground, looking up at 55°, at sunset and at afterglow.
+     - Compare with the sunset-cirrus and Texas-veil photos in the compare page's photo pane.
+  2. **Real hooks.** Hooked ends that read as commas (uncinus): a dense head that tails off. If that isn't possible, say so.
+  3. **Pale blue patches under a thick veil:** distant, hazed-out low clouds should show sky plus cirrus behind them, not plain sky (P9-E open issue).
+  4. **Water reflections:** the dome includes the cirrus layer, so open water reflects it.
+- **Acceptance:**
+  - Side by side with 3+ of the owner's cirrus photos. A person should not see regular lines or a tiling pattern at any zoom on the compare page.
+  - Default (cirrus off) unchanged.
+  - Cost reported; not a gate.
+  - `pnpm check` and the packed consumer green.
+  - Checkpoint-commit often.
+
+### [x] P9-E High layer: cirrus and cirrostratus · Opus (report: work/reports/P9-E.md)
 - **Owns:**
   - `packages/runtime/src/cirrus/**` (new)
   - `packages/runtime/src/shaders/composite.wgsl.ts` and `runtime.ts`: only the hook that draws the layer behind the low clouds
