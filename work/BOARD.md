@@ -1867,7 +1867,7 @@ Owner direction:
   - Outputs go to `work/captures/scratch/`, never committed.
 - **Acceptance:** a ranked recommendation with links, prices, the pilot sheet (local) and an honest note on 3D consistency for soft, translucent subjects.
 
-### [ ] L2 Regrow the authored library with working buoyancy · Opus
+### [~] L2 Regrow the authored library with working buoyancy · Opus (claimed: L2 implementer)
 - **Owns:**
   - `scripts/vdb/authoring/sim/**`
   - `assets/clouds/library/**` (regrown in place; keep names and `index.json` shape)
