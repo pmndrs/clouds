@@ -11,7 +11,10 @@ import { GROUND_HEX, forwardOf, mapCoverage, type Pane, type PaneStats, type Vie
 // Q2: the base is at 750 m, the bottom of Takram's first default layer (750 m / 650 m), so both panes see their fair-weather layer from the same
 // height. At 150 m (open-water's) the whole field sat within a few degrees of the horizon as one row of tall blobs, with nothing overhead, while
 // Takram's (and every midday photo's) flat bases recede overhead in perspective. ?base=<m> overrides it.
-const FIELD = { dims: [512, 512, 64] as [number, number, number], voxel: 8, base: 750, centre: [0, -2300] as const };
+const FIELD: { dims: [number, number, number]; voxel: number; base: number; centre: readonly [number, number] } = { dims: [512, 512, 64], voxel: 8, base: 750, centre: [0, -2300] as const };
+// ?vol=WxHxD@voxel overrides the volume (e.g. 512x512x128@8: a 1 km tall field); weather cell sizes keep their metres (as the species page).
+const volQuery = new URLSearchParams(location.search).get('vol')?.match(/^(\d+)x(\d+)x(\d+)@(\d+(?:\.\d+)?)$/);
+if (volQuery) { FIELD.dims = [Number(volQuery[1]), Number(volQuery[2]), Number(volQuery[3])]; FIELD.voxel = Number(volQuery[4]); }
 /** Exposure calibration: our own default (physical sun, ACES at 0.35); the other panes are matched to this one. */
 export const OURS_EXPOSURE = 0.35;
 
@@ -55,7 +58,13 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     const seed = Number(query.get('seed') ?? 7);
     const cov = mapCoverage.ours(coverage);
     const encoder = device.createCommandEncoder();
-    weatherOpts = { ...preset.weather, coverageLo: cov.lo, coverageHi: cov.hi, size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}) };
+    const k = (FIELD.dims[0] * FIELD.voxel) / 4096;
+    const w = preset.weather;
+    weatherOpts = {
+      ...w, coverageLo: cov.lo, coverageHi: cov.hi, size: [FIELD.dims[0], FIELD.dims[1]] as [number, number], seed, ...(SKY_LAYER ? { border: 0 } : {}),
+      extentMeters: FIELD.dims[0] * FIELD.voxel, heightMeters: FIELD.dims[2] * FIELD.voxel,
+      ...(w.cellScale ? { cellScale: w.cellScale * k } : {}), ...(w.scale ? { scale: w.scale * k } : {}),
+    };
     params = { ...preset.params, seed };
     // ?w_<key>=N / ?p_<key>=N override a weather option / generator parameter of the preset (look experiments, as on the species page).
     for (const [k, v] of query) {
