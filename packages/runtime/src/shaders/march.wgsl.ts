@@ -160,7 +160,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   if (interval.x <= interval.y && t < tEnd && !hidden) {
     let jitterAnimated = ign(vec2<f32>(pxu), frame.frameIndex);
-    let jitterStatic = ign(vec2<f32>(pxu), 0u);
     let cosSun = dot(dir, frame.sunDir);
     let phase = cloudPhase(cosSun);
     let sunRelax = valueRemap(cosSun, 0.0, 0.9, 0.0, 1.0);
@@ -210,8 +209,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       }
       if (i > STEP_GROWTH_FROM) { step *= 1.0 + 0.02 * f32(i - STEP_GROWTH_FROM); }
       if (sdf < 0.0) {
-        // Jitter moves the sample, not the advance. Animated near the camera, static far away.
-        let ts = t + select(jitterStatic, jitterAnimated, t < 250.0) * step;
+        // Jitter moves the sample, not the advance. Q2: animated at every distance. The static far jitter (one interleaved-gradient value per
+        // pixel, fixed) printed IGN's diagonal structure into every dense cloud past 250 m as a fixed 'pebbly' hatch, since the temporal
+        // resolve only averages what changes between frames.
+        let ts = t + jitterAnimated * step;
         let ds = min(step, tEnd - t);
         if (ts < tEnd) {
           inputs.hfDetails = select(0u, 1u, ts < frame.misc.x);
