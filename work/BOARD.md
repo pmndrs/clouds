@@ -1770,7 +1770,7 @@ Owner direction:
   - `pnpm check`, bundle and packed consumer green.
   - Checkpoint-commit often.
 
-### [ ] P9-E2 Cirrus look pass: brush strokes, not wood grain · Opus
+### [~] P9-E2 Cirrus look pass: brush strokes, not wood grain · Opus (claimed: implementer)
 - **Owns:**
   - `packages/runtime/src/cirrus/**`
   - the haze code in `shaders/march.wgsl.ts` and the sky-layer shader (only for item 3)
@@ -1867,7 +1867,25 @@ Owner direction:
   - Outputs go to `work/captures/scratch/`, never committed.
 - **Acceptance:** a ranked recommendation with links, prices, the pilot sheet (local) and an honest note on 3D consistency for soft, translucent subjects.
 
-### [r] L1 Target loop, first target: the hero tower from "Texas afternoon" · Opus (report: work/reports/L1.md)
+### [ ] L2 Regrow the authored library with working buoyancy · Opus
+- **Owns:**
+  - `scripts/vdb/authoring/sim/**`
+  - `assets/clouds/library/**` (regrown in place; keep names and `index.json` shape)
+  - `work/captures/L2/`
+- **Not:** runtime code, the `texas-tower` targets (L1's picks wait for the owner)
+- **Why:** L1 found Pyro buoyancy was silently off in every P4-F/P9-F recipe: `temperature0 = 0` divides the lift by zero. The inversion lids (0.08–0.3) also act as hard ceilings. So the library is turbulence-spread and stretched rather than rising, which matches the owner's "shapes and connection is off". See `work/reports/L1.md` and `scripts/vdb/authoring/sim/README.md`.
+- **Does:**
+  1. Fix every library recipe: `T0 = 1`, a correct `T1`, lift in L1's working range, lid strength 0.005–0.025. Re-tune the vertical stretch down where real buoyancy now gives the height.
+  2. Regrow all 17 library clouds, species by species. Each must still read as its species, against the owner's photo sheets for that species (`artifacts/research/cloud-photos/`, local only).
+  3. Before/after contact sheet per species, rendered in our runtime (the library page or the gallery harness), plus the variety metrics (`scripts/variety.mjs`) before and after.
+  4. Keep the old assets recoverable: they are in git history; note the old commit in the report.
+- **Acceptance:**
+  - Before/after sheets; every species reads at least as well as before by eye, with towers that rise rather than stretch.
+  - Variety metrics no worse.
+  - `pnpm check` green; library-using demos (onsen, open water, sky library) still load.
+  - Checkpoint-commit often (per species is fine).
+
+### [x] L1 Target loop, first target: the hero tower from "Texas afternoon" · Opus (report: work/reports/L1.md)
 - **Owns:**
   - a new `scripts/targets/**` (target-card extraction, matching and scoring)
   - `scripts/vdb/authoring/sim/**` (recipe extensions)
