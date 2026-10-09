@@ -24,7 +24,9 @@ Supersedes the ordering in `docs/PLAN-2026-10-variety.md`. That plan's task defi
 ## Never acceptable (all phases)
 
 - A pattern a person can see: clones, lattices, cylinders or box outlines.
-- A frame stall: more than 1 ms of bake or regeneration work in one frame.
+- A frame stall: background work (bake, regeneration, light grid, shadow map) over **10% of the frame budget** at the app's target rate in any single frame. That is 1.7 ms at 60 fps and 3.3 ms at 30 fps. (Before 2026-10-09 this was a flat 1 ms; the owner asked for it to be relative.)
+
+**Budget model (owner, 2026-10-09):** steady cloud cost on high is about **20% of the frame at the app's target rate**: about 3.3–3.5 ms at 60 fps on 1440p, about 6.7 ms at 30 fps. A showcase tier may use more, as an opt-in. Never trade visible quality to hit the number; report the honest cost instead.
 - Judging by numbers alone. Every task ends with captures the orchestrator looks at, and species work is also compared with photos.
 - Committing slide images or the owner's photos. They stay local; only our renders are committed.
 - Work left uncommitted.
@@ -75,7 +77,7 @@ These are tasks H1–H7 from `work/specs/P8-hero-vdb.md`: a 4 m sparse profile l
 
 | Task | Pass | Fail | Can defer |
 | --- | --- | --- | --- |
-| **E1 Real devices.** A phone with WebGPU (iPhone 17 / Pixel) and an iGPU laptop, using your hardware | Demo ≥ 30 fps with clouds ≤ 5 ms on low on the phone; ≤ 4 ms at 1080p medium on the iGPU | Not able to run at all | Older Android |
+| **E1 Devices.** The owner's laptop (this Mac) is the device target; all desktop numbers are measured on it. Phones are deferred by the owner (2026-10-09); the iOS Simulator has no WebGPU adapter | Laptop budgets above | n/a | Phones (deferred) |
 | **E2 Publish.** npm names and scope, repo URL, docs site live, gallery and thumbnails refreshed | `npm publish --dry-run` green; docs site deployed; gallery current | n/a | n/a |
 
 E1 and E2 **need you**: the devices, the names and the repo URL.

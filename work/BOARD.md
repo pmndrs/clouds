@@ -1574,7 +1574,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The minified build passes the packed consumer, and a dist-built page renders identically (capture A/B).
   - `pnpm check` green.
 
-### [~] T4 Layered sunset scene · Opus
+### [~] T4 Layered sunset scene · Opus (worker: claude-opus T4)
 - **Owns:**
   - a new `examples/lab/sunset/` page and its vite input line
   - a gallery card in `examples/lab/gallery/cards.json`
@@ -1598,6 +1598,22 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - It never commits photos; it only references local paths.
   - Pane labels show the sun elevation and the bookmark.
 - **Acceptance:** usable with `?impls=ours,photo&photo=...`, and captured with the harness (`capture.mjs` can pass the photo path). `pnpm check` green.
+
+### [ ] S1 Scheduler: background jobs at their own rates · Opus (after P9-C3)
+- **Owns:**
+  - `packages/runtime/src/runtime.ts`, to split amortized subsystems into separately encodable jobs
+  - `packages/three/src/**` (the adapter drives jobs through `@pmndrs/scheduler`) and `packages/react/src/**`
+  - docs for the API
+- **Does:** use `@pmndrs/scheduler` 0.2.0 (standalone, the engine behind r3f v10 `useFrame`; already a root dependency).
+  - **Rates:** per-pixel passes (march, resolve, composite) run at render rate. The sky-layer refresh, light grid, shadow map, weather bake and evolution regeneration each become a throttled job with its own fps.
+  - **App controls:** the app sets a target frame rate and a budget share; per-frame background work must stay ≤ 10% of the frame.
+  - **Freeze until observed:** pause evolution and regeneration when the clouds aren't on screen or the camera is moving fast. This is an owner idea; see `docs/research/cloud-motion-ideas.md`.
+  - **Renderer-agnostic core:** the core exposes jobs; it does not depend on the scheduler. The adapter, or the app, schedules them.
+- **Acceptance:**
+  - Default behaviour is visually unchanged.
+  - A 30 fps app profile and a 60 fps profile both meet the budget model in `docs/PLAN-2026-10-next.md`.
+  - Background spikes stay within 10% of the frame (GPU timestamps, per-frame series).
+  - `pnpm check`, the bundle check and the packed consumer are green.
 
 ## Ahead of phase (parallel, no file overlap with P1)
 
