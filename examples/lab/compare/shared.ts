@@ -58,7 +58,7 @@ export const GROUND_HEX = 0x3d4a2e;
 
 export interface PaneStats { gpuMs: Record<string, number> | null; cpuMs: number }
 export interface Pane {
-  readonly id: 'ours' | 'skypro' | 'takram';
+  readonly id: 'ours' | 'skypro' | 'takram' | 'photo';
   readonly label: string;
   readonly canvas: HTMLCanvasElement;
   init(): Promise<void>;
@@ -68,4 +68,6 @@ export interface Pane {
   stats(): PaneStats;
   /** Per-pane exposure calibration applied on top of the shared exposure (see README in this folder / the P8-A report). */
   detail(): Record<string, unknown>;
+  /** Optional extra label text (the photo pane shows its file name). */
+  describe?(): string;
 }

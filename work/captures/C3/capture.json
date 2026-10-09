@@ -1,0 +1,236 @@
+{
+  "url": "http://127.0.0.1:5199/compare/?impls=ours,photo&photo=/Users/dex/Developer/WebGPUClouds/artifacts/research/cloud-photos/sunset-layers/A_20200906-211212_F78067DA.jpg&layout=cols&clean=1",
+  "size": [
+    1920,
+    720
+  ],
+  "startedAt": "2026-10-09T07:53:17.405Z",
+  "shots": [
+    {
+      "name": "sunset",
+      "file": "work/captures/C3/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.2115224166666666,
+          "ours.lightGridReduce": 0.187495,
+          "ours.lightGrid": 0.3682567575757575,
+          "ours.marchNear": 0.07570776666666663,
+          "ours.marchFar": 0.7716653,
+          "ours.shadowMap": 0.7767873666666663,
+          "ours.composite": 0.22466538333333333,
+          "ours.dome": 0.7489372000000002,
+          "ours.skyWeather": 1.0848307000000004,
+          "ours.resolveNear": 0.034110783333333325,
+          "ours.resolveFar": 0.034641133333333345,
+          "ours.skyWeatherMips": 0.231246,
+          "ours.skyLayer": 2.0820787333333333,
+          "ours.skyResolve": 0.09752756666666669,
+          "ours.cloudsTotal": 6.717949690909091,
+          "ours.total": 6.929472107575758
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          [
+            959,
+            720
+          ],
+          [
+            959,
+            720
+          ]
+        ],
+        "bookmark": "sunset",
+        "layout": "cols",
+        "impls": [
+          "ours",
+          "photo"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 355,
+          "pitch": 4,
+          "fov": 50,
+          "sunAz": 355,
+          "sunEl": 4,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three (WebGPU, TSL)",
+            "gpuMs": {
+              "scene": 0.2115224166666666,
+              "lightGridReduce": 0.187495,
+              "lightGrid": 0.3682567575757575,
+              "marchNear": 0.07570776666666663,
+              "marchFar": 0.7716653,
+              "shadowMap": 0.7767873666666663,
+              "composite": 0.22466538333333333,
+              "dome": 0.7489372000000002,
+              "skyWeather": 1.0848307000000004,
+              "resolveNear": 0.034110783333333325,
+              "resolveFar": 0.034641133333333345,
+              "skyWeatherMips": 0.231246,
+              "skyLayer": 2.0820787333333333,
+              "skyResolve": 0.09752756666666669,
+              "cloudsTotal": 6.717949690909091,
+              "total": 6.929472107575758
+            },
+            "cpuMs": 0.5899999996026357,
+            "renderSize": [
+              959,
+              720
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "0.560"
+            }
+          },
+          "photo": {
+            "label": "Photo",
+            "gpuMs": null,
+            "cpuMs": 0,
+            "renderSize": [
+              959,
+              720
+            ],
+            "detail": {
+              "photo": "A_20200906-211212_F78067DA.jpg",
+              "size": [
+                1920,
+                2560
+              ],
+              "fit": "contain"
+            }
+          }
+        },
+        "frames": 226
+      }
+    },
+    {
+      "name": "afterglow",
+      "file": "work/captures/C3/afterglow.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.19154623333333332,
+          "ours.lightGridReduce": 0.187495,
+          "ours.lightGrid": 0.4076883673469387,
+          "ours.marchNear": 0.04535551666666667,
+          "ours.marchFar": 0.5991485666666666,
+          "ours.shadowMap": 0.7767873666666663,
+          "ours.composite": 0.17124036666666673,
+          "ours.dome": 0.6532080833333332,
+          "ours.skyWeather": 1.0848307000000004,
+          "ours.resolveNear": 0.02202116666666666,
+          "ours.resolveFar": 0.029548816666666665,
+          "ours.skyWeatherMips": 0.231246,
+          "ours.skyLayer": 2.6638789333333333,
+          "ours.skyResolve": 0.08235361666666667,
+          "ours.cloudsTotal": 6.954802500680272,
+          "ours.total": 7.146348734013605
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            959,
+            720
+          ],
+          [
+            959,
+            720
+          ]
+        ],
+        "bookmark": "afterglow",
+        "layout": "cols",
+        "impls": [
+          "ours",
+          "photo"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 320,
+          "pitch": 6,
+          "fov": 50,
+          "sunAz": 290,
+          "sunEl": -1,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three (WebGPU, TSL)",
+            "gpuMs": {
+              "scene": 0.19154623333333332,
+              "lightGridReduce": 0.187495,
+              "lightGrid": 0.4076883673469387,
+              "marchNear": 0.04535551666666667,
+              "marchFar": 0.5991485666666666,
+              "shadowMap": 0.7767873666666663,
+              "composite": 0.17124036666666673,
+              "dome": 0.6532080833333332,
+              "skyWeather": 1.0848307000000004,
+              "resolveNear": 0.02202116666666666,
+              "resolveFar": 0.029548816666666665,
+              "skyWeatherMips": 0.231246,
+              "skyLayer": 2.6638789333333333,
+              "skyResolve": 0.08235361666666667,
+              "cloudsTotal": 6.954802500680272,
+              "total": 7.146348734013605
+            },
+            "cpuMs": 0.42500000099341073,
+            "renderSize": [
+              959,
+              720
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "0.560"
+            }
+          },
+          "photo": {
+            "label": "Photo",
+            "gpuMs": null,
+            "cpuMs": 0,
+            "renderSize": [
+              959,
+              720
+            ],
+            "detail": {
+              "photo": "A_20200906-211212_F78067DA.jpg",
+              "size": [
+                1920,
+                2560
+              ],
+              "fit": "contain"
+            }
+          }
+        },
+        "frames": 322
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

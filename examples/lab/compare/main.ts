@@ -1,5 +1,5 @@
 // Side-by-side comparison of cloud implementations over the same wide scene. Each pane has its own canvas and renderer; one shared camera, sun and exposure drive them.
-//   ?impls=ours,skypro,takram   which panes (default ours,takram)       ?layout=rows|cols (default rows)
+//   ?impls=ours,skypro,takram,photo   which panes (default ours,takram)   photo: ?photo=<path|url> ?photofit=cover|contain, or drop an image / use the bar's "photo file" (see panes/photo.ts)       ?layout=rows|cols (default rows)
 //   ?bookmark=ground|horizon|sunset|dusk|afterglow|above   ?coverage=0..1   ?exposure=  ?fov=   ?hud=0 / ?clean=1 hide the labels / all UI
 //   ?sunel= ?sunaz= ?lookaz= ?pitch= override the bookmark; ours: ?c_<setting>=<number> overrides a runtime setting (c_lightDebug=1..5 splits the light terms), ?phase=mie
 // Other query keys pass through to the panes (ours: quality, seed, sky=0; Takram: takram_quality, stbn=<url>; every pane: clouds=0 for a clear sky).
@@ -8,6 +8,7 @@ import { BOOKMARKS, BOOKMARK_NAMES, DEFAULT_COVERAGE, GROUND_HEX, mapCoverage, f
 import { Rig } from './rig';
 import { createOursPane } from './panes/ours';
 import { createTakramPane } from './panes/takram';
+import { createPhotoPane, type PhotoPane } from './panes/photo';
 import { createSkyProPane } from './vendor/skypro/skypro-pane.js';
 import { Color } from 'three';
 
@@ -20,7 +21,7 @@ const query = new URLSearchParams(location.search);
 const msg = document.getElementById('msg')!;
 const SHOW_LABELS = query.get('hud') !== '0';
 const SHOW_UI = query.get('clean') !== '1';
-const IMPLS = (query.get('impls') ?? 'ours,takram').split(',').filter(s => ['ours', 'skypro', 'takram'].includes(s)) as Pane['id'][];
+const IMPLS = (query.get('impls') ?? 'ours,takram').split(',').filter(s => ['ours', 'skypro', 'takram', 'photo'].includes(s)) as Pane['id'][];
 const LAYOUT = query.get('layout') === 'cols' ? 'cols' : 'rows';
 msg.classList.toggle('hidden', !SHOW_UI);
 
@@ -52,7 +53,8 @@ try {
     stack.appendChild(host);
     msg.textContent = `starting ${id}...`;
     let pane: Pane;
-    if (id === 'ours') pane = createOursPane(canvas, query);
+    if (id === 'photo') pane = createPhotoPane(canvas, query);
+    else if (id === 'ours') pane = createOursPane(canvas, query);
     else if (id === 'takram') pane = createTakramPane(canvas, query, GROUND_GAIN);
     else {
       const sp = await createSkyProPane(canvas, { groundAlbedo: [groundLinear.r * GROUND_GAIN, groundLinear.g * GROUND_GAIN, groundLinear.b * GROUND_GAIN], groundShadows: query.get('shadows') === '1' });
@@ -96,6 +98,29 @@ try {
   slider('coverage', 0, 1, 0.01, () => view.coverage, v => { view.coverage = v; });
   slider('exposure', 0.25, 4, 0.05, () => view.exposure, v => { view.exposure = v; });
   slider('fov', 20, 100, 1, () => view.fov, v => { view.fov = v; });
+  const photo = panes.find((p): p is PhotoPane => p.id === 'photo');
+  if (photo) {
+    const photoHost = photo.canvas.parentElement!;
+    const mk = (text: string, fn: () => void) => { const b = document.createElement('button'); b.textContent = text; b.onclick = fn; bar.appendChild(b); return b; };
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.hidden = true;
+    input.onchange = () => { const f = input.files?.[0]; if (f) void photo.setFile(f); };
+    mk('photo file', () => input.click());
+    const fitBtn = mk(`photo: ${photo.fit}`, () => { photo.fit = photo.fit === 'cover' ? 'contain' : 'cover'; fitBtn.textContent = `photo: ${photo.fit}`; photo.redraw(); });
+    // Overlay: the photo covers the whole stack at an adjustable opacity over the renders (key P flips it fully on/off).
+    let overlay = false, opacity = 0.5;
+    const applyOverlay = () => {
+      photoHost.style.cssText = overlay ? `position:fixed;inset:0;z-index:5;opacity:${opacity};pointer-events:none` : '';
+      requestAnimationFrame(resizeAll);
+    };
+    const ovBtn = mk('photo overlay: off', () => { overlay = !overlay; ovBtn.textContent = `photo overlay: ${overlay ? 'on' : 'off'}`; applyOverlay(); });
+    const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'range'; i.min = '0'; i.max = '1'; i.step = '0.01'; i.value = String(opacity);
+    l.append('photo opacity', i); bar.appendChild(l);
+    i.oninput = () => { opacity = Number(i.value); if (overlay) applyOverlay(); };
+    addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') { opacity = opacity > 0.5 ? 0 : 1; i.value = String(opacity); if (!overlay) { overlay = true; ovBtn.textContent = 'photo overlay: on'; } applyOverlay(); } });
+    addEventListener('dragover', e => e.preventDefault());
+    addEventListener('drop', e => { e.preventDefault(); const f = [...(e.dataTransfer?.files ?? [])].find(x => x.type.startsWith('image/')); if (f) void photo.setFile(f); });
+    if (query.get('photooverlay') === '1') { overlay = true; opacity = Number(query.get('photoopacity') ?? 0.5); i.value = String(opacity); ovBtn.textContent = 'photo overlay: on'; applyOverlay(); }
+  }
   syncUi();
 
   // ---- loop
@@ -117,7 +142,9 @@ try {
       for (const p of panes) {
         const s = p.stats();
         const gpu = s.gpuMs?.total ?? s.gpuMs?.cloudsTotal;
-        labels.get(p)!.innerHTML = `<b>${p.label}</b>\n${p.ready() ? '' : 'loading... '}${gpu != null ? `gpu ${f1(gpu)} ms  ` : ''}cpu ${f1(s.cpuMs)} ms  ${p.canvas.width}x${p.canvas.height}`;
+        const ctx = `sun ${view.sunEl.toFixed(1)}\u00b0  ${bookmark}`;
+        if (p.describe) { labels.get(p)!.innerHTML = `<b>${p.label}</b>\n${p.describe()}\n${ctx}`; continue; }
+        labels.get(p)!.innerHTML = `<b>${p.label}</b>\n${ctx}\n${p.ready() ? '' : 'loading... '}${gpu != null ? `gpu ${f1(gpu)} ms  ` : ''}cpu ${f1(s.cpuMs)} ms  ${p.canvas.width}x${p.canvas.height}`;
       }
       msg.textContent = `${bookmark}  pos ${view.position.map(v => Math.round(v)).join(',')}  az ${Math.round(view.lookAz)} pitch ${Math.round(view.pitch)}  sun ${Math.round(view.sunAz)}/${Math.round(view.sunEl)}  ${rig.mode}${rig.mode === 'fly' ? ` ${Math.round(rig.speed)} m/s (WASD QE, wheel)` : ''}  frame p50 ${f1(pct(0.5))} ms`;
     }

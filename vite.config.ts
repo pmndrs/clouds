@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 export default defineConfig({
   root: 'examples/lab',
   resolve: { alias: {
@@ -21,7 +22,7 @@ export default defineConfig({
   // Runtime assets are served at /clouds/<name>/... and /nubis-voxel-clouds/... in dev and build.
   publicDir: fileURLToPath(new URL('./assets', import.meta.url)),
   // CLOUDS_NO_WATCH: capture runs (scripts/gpu/capture.mjs --serve) must not hot-reload when parallel agents save files.
-  server: { port: 5173, strictPort: true, fs: { allow: ['../..'] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
+  server: { port: 5173, strictPort: true, fs: { allow: ['../..', ...researchDirs()] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
   build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
     testDensity: fileURLToPath(new URL('./examples/lab/runtime-tests/density/index.html', import.meta.url)),
@@ -64,3 +65,12 @@ export default defineConfig({
     layer: fileURLToPath(new URL('./examples/lab/legacy/layer-only/index.html', import.meta.url)),
   } } },
 });
+
+// Local reference material (the owner's photos and decks) lives in the main checkout's artifacts/research, which is never
+// committed. Allow the dev server to serve it (compare page photo pane) from the main checkout or from any worktree of it.
+// CLOUDS_RESEARCH_DIR overrides.
+function researchDirs(): string[] {
+  const root = fileURLToPath(new URL('.', import.meta.url));
+  const candidates = [process.env.CLOUDS_RESEARCH_DIR, `${root}artifacts/research`, `${root}../../../artifacts/research`].filter(Boolean) as string[];
+  return candidates.filter(d => existsSync(d));
+}

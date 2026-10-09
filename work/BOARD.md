@@ -1590,7 +1590,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - 60 fps at 2560×1440 on high.
   - The owner signs off on T4 to set the bar for later targets.
 
-### [~] C3 Photo comparison pane · Sonnet
+### [x] C3 Photo comparison pane · Sonnet
 - **Owns:** `examples/lab/compare/**`.
 - **Does:** a `photo` pane type for the compare page.
   - It loads a local reference image by URL or file picker, e.g. `?photo=/@fs/...`, or drag-and-drop. It fits the image to the pane with crop or letterbox and shows the filename.
@@ -1609,6 +1609,10 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - **App controls:** the app sets a target frame rate and a budget share; per-frame background work must stay ≤ 10% of the frame.
   - **Freeze until observed:** pause evolution and regeneration when the clouds aren't on screen or the camera is moving fast. This is an owner idea; see `docs/research/cloud-motion-ideas.md`.
   - **Renderer-agnostic core:** the core exposes jobs; it does not depend on the scheduler. The adapter, or the app, schedules them.
+  - **Upstream:** the owner maintains `@pmndrs/scheduler` and wants it to support spreading work.
+    - Prototype the job shape we need in the adapter: a time-sliced job that runs N slices per frame within a ms budget, resumable, ideally GPU-time-aware via timestamp feedback.
+    - Write `work/specs/scheduler-amortized-jobs.md` proposing the API: e.g. `budgetMs` and `fps` per job, generator- or step-based slices, priority under pressure, and an observed/visible gate.
+    - The owner may implement it upstream.
 - **Acceptance:**
   - Default behaviour is visually unchanged.
   - A 30 fps app profile and a 60 fps profile both meet the budget model in `docs/PLAN-2026-10-next.md`.
