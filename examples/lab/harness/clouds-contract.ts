@@ -6,7 +6,45 @@
 export interface CloudsHarnessOptions {
   report?: () => unknown;
   bookmark?: (name: string) => void | Promise<void>;
+  /** Optional read-back of the generated field as per-column maps, for scripts/variety.mjs (see `readCloudColumns`). */
+  fields?: () => Promise<CloudColumnFields>;
 }
+/**
+ * The generated field reduced to per-column maps (nx * ny bytes each, base64, row-major with x fastest), so a script can measure
+ * cloud footprints, base altitudes and silhouettes without image heuristics. Index z counts voxels up from the field's base.
+ */
+export interface CloudColumnFields {
+  size: [number, number, number]; voxel: number;
+  /** Occupied voxels in the column (0 = clear sky). */ thickness: string;
+  /** Lowest occupied z, 255 where the column is clear. */ baseZ: string;
+  /** Highest occupied z, 255 where the column is clear. */ topZ: string;
+  /** Free-form generator facts (weather recipe, seed, ...). */ meta?: Record<string, unknown>;
+}
+/** Reads an rgba8unorm 3D NVDF texture (COPY_SRC) with dims (x, map row, up) back and reduces it per column; occupied means R > 0. */
+export async function readCloudColumns(device: GPUDevice, nvdf: GPUTexture, dims: readonly [number, number, number], voxel: number, meta?: Record<string, unknown>): Promise<CloudColumnFields> {
+  const [nx, ny, nz] = dims;
+  const bytesPerRow = Math.ceil((nx * 4) / 256) * 256;
+  const buffer = device.createBuffer({ size: bytesPerRow * ny * nz, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+  const encoder = device.createCommandEncoder();
+  encoder.copyTextureToBuffer({ texture: nvdf }, { buffer, bytesPerRow, rowsPerImage: ny }, [nx, ny, nz]);
+  device.queue.submit([encoder.finish()]);
+  await buffer.mapAsync(GPUMapMode.READ);
+  const data = new Uint8Array(buffer.getMappedRange());
+  const thickness = new Uint8Array(nx * ny), baseZ = new Uint8Array(nx * ny).fill(255), topZ = new Uint8Array(nx * ny).fill(255);
+  for (let z = 0; z < nz; z++) for (let y = 0; y < ny; y++) {
+    const row = (z * ny + y) * bytesPerRow, col = y * nx;
+    for (let x = 0; x < nx; x++) {
+      if (data[row + x * 4] === 0) continue;
+      thickness[col + x]++;
+      if (baseZ[col + x] === 255) baseZ[col + x] = z;
+      topZ[col + x] = z;
+    }
+  }
+  buffer.unmap(); buffer.destroy();
+  const b64 = (a: Uint8Array) => { let s = ''; for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode(...a.subarray(i, i + 0x8000)); return btoa(s); };
+  return { size: [nx, ny, nz], voxel, thickness: b64(thickness), baseZ: b64(baseZ), topZ: b64(topZ), meta };
+}
+
 export interface CloudsHarness {
   ready(options?: CloudsHarnessOptions): void;
   fail(message: string): void;
@@ -86,6 +124,7 @@ export function installCloudsHarness(): CloudsHarness {
     ready(options = {}) {
       state.report = options.report;
       state.bookmark = options.bookmark;
+      state.fields = options.fields;
       state.settle = (n: number) => new Promise<void>(resolve => waiters.push({ target: frames + n, resolve }));
       state.ready = true;
       beacon('READY');

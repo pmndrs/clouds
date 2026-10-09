@@ -1,0 +1,5 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+cumulus                    FAIL  CV 0.47 FAIL  ratio 20.1 pass  base 48m FAIL  acf 0.022 pass  clone 0.73 FAIL   (71 lobes in 30 footprints, cover 45%)
+congestus                  FAIL  CV 0.59 FAIL  ratio 27.9 pass  base 64m FAIL  acf 0.005 pass  clone 0.72 FAIL   (27 lobes in 15 footprints, cover 35%)
+stratocumulus              FAIL  CV 0.96 pass  ratio 264.9 pass  base 24m pass  acf 0.012 pass  clone 0.77 FAIL   (58 lobes in 13 footprints, cover 64%)
+open-water                 FAIL  CV 0.64 FAIL  ratio 29.3 pass  base 56m FAIL  acf 0.011 pass  clone 0.61 FAIL   (65 lobes in 54 footprints, cover 21%)

@@ -1,0 +1,10 @@
+Direction checks, cloudscape-gen cumulus with one override each (node scripts/variety.mjs --serve --name N --page cloudscape-gen/ --query "preset=cumulus&..."):
+cumulus (baseline)          CV 0.47  ratio 20.1  base 48m  acf 0.022  clone 0.73
+baseLift=0                  CV 0.46  ratio 20.6  base  8m  acf 0.022  clone 0.74   base spread falls 48 -> 8 m
+w_cellular=0 (plain fBm)    CV 0.77  ratio 129   base 56m  acf 0.000  clone 0.68   no lattice peak
+w_cellular=1 (pure cells)   CV 0.47  ratio 66    base 56m  acf 0.069  clone 0.73   lattice peak appears (fails)
+billowAmp=0                 CV 0.48  ratio 49.5  base 48m  acf 0.019  clone 0.77   smoother silhouettes: more alike
+w_cellScale=4 / 16 / 24     CV 0.66 / 0.44 / 0.72   clone 0.74 / 0.61 / 0.54   (24: 300 small lobes, see report)
+w_coverageLo/Hi=.55/.9      cover 22%  CV 0.65  clone 0.61     sparse
+w_coverageLo/Hi=.3/.6       cover 75%  CV 0.64  clone 0.69     dense
+seed=3                      CV 0.43  clone 0.73   same verdict as seed 7

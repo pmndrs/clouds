@@ -1341,7 +1341,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
 
 ## Phase 9–13: variety, shadows, deck scenes (plan: `docs/PLAN-2026-10-variety.md`)
 
-### [~] P9-A Variety metrics · Sonnet
+### [x] P9-A Variety metrics · Sonnet
 - **Owns:** `scripts/variety.mjs` (new) and its tests; a small read-only hook in `examples/lab/harness/clouds-contract.ts` if a page must expose data (additive).
 - **Does:** score a cloudscape's variety from the capture harness. Measures are defined in the plan's 9-A row:
   - footprint statistics from a top-down coverage view (connected components, size CV, largest/smallest ratio);
