@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:52744/flagship/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T00:24:42.141Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P8-D/chrome/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6281590666666668,
+          "skyCompute": 0.178914,
+          "lightGridReduce": 0.041496,
+          "lightGrid": 0.057994,
+          "marchNear": 0.09955870000000001,
+          "marchFar": 0.3455137666666666,
+          "composite": 0.17488528333333336,
+          "dome": 0.10762536666666664,
+          "resolveNear": 0.049840899999999994,
+          "resolveFar": 0.06454069999999998
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.041496,
+          "lightGrid": 0.057994,
+          "marchNear": 0.093957,
+          "marchFar": 0.330203,
+          "composite": 0.166745,
+          "dome": 0.085664,
+          "resolveNear": 0.040124,
+          "resolveFar": 0.063041
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 3110400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1819584,
+          "total": 19258124
+        },
+        "cloud": "parkouring",
+        "frames": 92,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 92,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 41.69999998807907,
+        "firstCloudFrameMs": 1836.0999999940395
+      }
+    },
+    {
+      "name": "edge",
+      "file": "work/captures/P8-D/chrome/edge.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7396275500000002,
+          "skyCompute": 0.105581,
+          "lightGridReduce": 0.041496,
+          "lightGrid": 0.057994,
+          "marchNear": 0.09419654999999996,
+          "marchFar": 0.46662003333333335,
+          "composite": 0.23076178333333336,
+          "dome": 0.09285625,
+          "resolveNear": 0.04393881666666666,
+          "resolveFar": 0.06578726666666669
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.041496,
+          "lightGrid": 0.057994,
+          "marchNear": 0.092291,
+          "marchFar": 0.437743,
+          "composite": 0.223371,
+          "dome": 0.084874,
+          "resolveNear": 0.039834,
+          "resolveFar": 0.062666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.599999999999454
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "edge",
+        "timeOfDay": 14,
+        "sunElevation": 60.052850376767566,
+        "sunAzimuth": 245.43520726886217,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 3110400,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1819584,
+          "total": 19258124
+        },
+        "cloud": "parkouring",
+        "frames": 187,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 187,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 41.69999998807907,
+        "firstCloudFrameMs": 1836.0999999940395
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
