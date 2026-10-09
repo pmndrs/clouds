@@ -59,32 +59,41 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 
 | id | Source (local path) | Tags | Priority | Status | Note |
 | --- | --- | --- | --- | --- | --- |
-| n3 | `nubis/Nubis Cubed - 4k.pptx` + `nubis/Nubis Cubed.pdf` (speaker notes) | all | **P0, the primary source** | ⬜ (older partial notes: `nubis-sources.md`, `deck-scenes.md`, `nubis-src/notes-nubis3-*.md`) | |
-| gp7 | `papers/GPU_PRO_7-clouds.pdf` | shape weather perf | P1 | ⬜ | Settles the "recalled" constants in `procedural-shape.md` |
-| hfw | `papers/TheReal-timeVolumetricSuperstormsOfHorizonForbiddenWest_Schneider_Andrew.pdf` | shape storm detail | P1 | ⬜ (partial in `hzd-nubis-evolved.md`) | Updated methods, as code in slide images |
-| ne22 | `nubis/nubis-evolved-2022.pdf` | shape weather cirrus | P1 | 🟦 partial (`hzd-nubis-evolved.md`) | Re-check slide code |
-| nut | `nubis/Nubis+-+Realtime+Volumetric+Cloudscapes+In+A+Nutshell+(1).pptx` | shape weather | P1 | ⬜ | Older talk; pptx has slide text and code |
-| n17 | `papers/Nubis - Authoring Realtime Volumetric Cloudscapes ... Final .pdf` | authoring shape | P1 | 🟦 partial (`legacy-and-survey.md`, `procedural-shape.md`) | |
-| hzd15 | `papers/The Real-time Volumetric Cloudscapes of Horizon - Zero Dawn - ARTR.pdf` | shape weather perf | P1 | 🟦 partial (`hzd-nubis-evolved.md`) | |
-| syn | `nubis/Schneider - Synthesizing Realistic Clouds for Video Games.pptx` | shape light | P1 | 🟦 partial (`nubis-src/notes-synthesizing.md`) | 800 MB; skip video |
-| noise | `nubis/nubis_noise_generator/` | noise authoring | P1 | ⬜ | Guerrilla's Houdini Perlin-Worley generator |
-| hag | `papers/Haggstrom.pdf` | shape light perf | P1 | ⬜ | Full maths of an HZD-style implementation (owner) |
-| web18 | `papers/Procedural-Cloudscapes-EG2018-article.pdf` | shape layering | P1 | ⬜ | Per-type shape functions |
-| bou08 | `papers/bouthors08.pdf` | light detail | P2 | 🟦 (`frostbite-yusov-hogfeldt.md`) | Hypertexture section for detail |
+| n3 | `nubis/Nubis Cubed - 4k.pptx` + `nubis/Nubis Cubed.pdf` (speaker notes) | all | **P0, the primary source** | ✅ `sources/n3.md` + `n3/slides-*.md`; code 🟩 (local); spot-check 10/10 | |
+| gp7 | `papers/GPU_PRO_7-clouds.pdf` | shape weather perf | P1 | ✅ `sources/gp7.md`; 12 listings | Settles the "recalled" constants in `procedural-shape.md` |
+| hfw | `papers/TheReal-timeVolumetricSuperstormsOfHorizonForbiddenWest_Schneider_Andrew.pdf` | shape storm detail | P1 | ✅ `sources/hfw.md`; 14 listings | Updated methods, as code in slide images |
+| ne22 | `nubis/nubis-evolved-2022.pdf` | shape weather cirrus | P1 | ✅ `sources/ne22.md`; 26 listings | Re-check slide code |
+| nut | `nubis/Nubis+-+Realtime+Volumetric+Cloudscapes+In+A+Nutshell+(1).pptx` | shape weather | P1 | ✅ `sources/nut.md`; gradient stops from slide XML | Older talk; pptx has slide text and code |
+| n17 | `papers/Nubis - Authoring Realtime Volumetric Cloudscapes ... Final .pdf` | authoring shape | P1 | ✅ `sources/n17.md`; formulas only (no code in PDF) | |
+| hzd15 | `papers/The Real-time Volumetric Cloudscapes of Horizon - Zero Dawn - ARTR.pdf` | shape weather perf | P1 | ✅ `sources/hzd15.md`; formula slides only | |
+| syn | `nubis/Schneider - Synthesizing Realistic Clouds for Video Games.pptx` | shape light | P1 | ✅ `sources/syn.md`; 6 listings | 800 MB; skip video |
+| noise | `nubis/nubis_noise_generator/` | noise authoring | P1 | 🟩 `sources/noise.md`; network dumped, cooked in Houdini 21 (not spot-checked) | Guerrilla's Houdini Perlin-Worley generator |
+| hag | `papers/Haggstrom.pdf` | shape light perf | P1 | ✅ `sources/hag.md`; all 61 equations, B.1–B.7 | Full maths of an HZD-style implementation (owner) |
+| web18 | `papers/Procedural-Cloudscapes-EG2018-article.pdf` | shape layering | P1 | ✅ `sources/web18.md`; supplementary (8 type functions) not available | Per-type shape functions |
+| bou08 | `papers/bouthors08.pdf` | light detail | P2 | ✅ `sources/bou08.md` (shape/detail side) | Hypertexture section for detail |
 | fb16 | `papers/s2016-pbs-frostbite-sky-clouds-new.pdf` | light weather | P2 | 🟦 (`frostbite-yusov-hogfeldt.md`) | Type LUT (5.3) for layering |
 | hog16 | `papers/hogfelt.pdf` | perf weather | P2 | 🟦 (same) | Weather channels |
-| survey | `papers/COMPREHENSIVE SURVEY OF CLOUDS 2021.pdf` | survey | P2 | 🟦 (`legacy-and-survey.md`) | Bibliography for the fetch list |
+| survey | `papers/COMPREHENSIVE SURVEY OF CLOUDS 2021.pdf` | survey | P2 | ✅ `sources/survey.md`; fetch list of 17 | Bibliography for the fetch list |
 | hil20 | `papers/s2020_pbs_hillaire_slides.pdf` | light atmosphere | P3 (lighting parked) | ⬜ | |
 | yus14 | `papers/Yusov-Clouds.pdf` | perf | P3 | 🟦 | |
 | rdr2 | `papers/slides_public_release.pptx` | horizon light perf | P3 | 🟦 (`rdr2-atmosphere.md`) | |
 | mie | `jendersie/` | light | P3 | 🟦 (`approximate-mie.md`) | |
 | pack | `nubis-pack/` (voxel cloud pack) | authoring | P2 | 🟦 (P0 work) | Re-read its docs for authoring conventions |
 
+| tvn | sebh/TileableVolumeNoise (web, MIT) | noise | P1 | 🟦 `sources/tvn.md` | Owner-supplied 2026-10-10 |
+| psrd | stegu/psrdnoise (web, MIT) | noise motion | P1 | 🟦 `sources/psrd.md` | Owner-supplied 2026-10-10 |
+| cloudpack | `vdbs/CloudPack/` (EmberGen, 10 VDBs + `.ember`) | authoring | P1 | 🟦 `cloudpack-embergen.md` | Z-up; seeding vs our Pyro |
+| santa | `cloud-photos/santasSleigh/` + annotations pptx | shape detail scene | P0 | 🟦 `targets/santa-sleigh.md` | Owner's hero: multi-body merging line |
+| frog | `cloud-photos/Frog Cloud/` | detail | P1 | 🟦 `targets/frog.md` | Surface-detail catalogue |
+| native | web survey | comparison | P2 | 🟦 `native-implementations.md` | Comparison only; target stays HZD + photos |
+
 **Not yet fetched** (from `procedural-shape.md`):
-- Hillaire's TileableVolumeNoise repo (code);
+- ~~Hillaire's TileableVolumeNoise repo~~ (read 2026-10-10, `sources/tvn.md`);
 - Bouthors and Neyret 2004, "Modeling Clouds Shape";
 - Goswami and Neyret 2017 and 2018;
-- Ebert, *Texturing & Modeling*, cloud chapter.
+- Ebert, *Texturing & Modeling*, cloud chapter;
+- Webanck 2018 supplementary material (the other 8 per-type shape functions);
+- the ranked list of 17 in `sources/survey.md` (top: Bouthors & Neyret 2004, Neyret 2000 phenomenological shader, Goswami & Neyret 2017 + Goswami 2019 evolving cumulus, Neyret 2003 advected textures). **Downloads need the owner's OK.**
 
 ## Tasks (board ids RS-*)
 

@@ -1991,14 +1991,14 @@ Owner direction:
 Plan and tracker: [docs/research/TRACKING.md](../docs/research/TRACKING.md). Agent brief: [specs/RS-brief.md](specs/RS-brief.md).
 
 - [x] RS-0 Extraction scripts `scripts/research/extract-pptx.py`, `extract-pdf.sh`; raw dumps for every tracked source in `artifacts/research/extracted/` (local) · orchestrator
-- [~] RS-1 `n3` Nubis Cubed, split by section: s1–46 history/HZD procedural, s47–74 prototype + voxel modelling, s75–109 sampling density, s110–155 lighting + march, s156–194 rendering/production/Stormbird → `docs/research/sources/n3/`; then an Opus synthesis into `sources/n3.md` with the deck-vs-runtime diff · Opus ×5 + Opus lead
-- [~] RS-2 Nubis family, one agent per source: gp7 [~], hfw [x], ne22, nut, n17, hzd15, syn, noise (Houdini HDA) · Sonnet, Opus spot-check
-- [ ] RS-3 Academic shape: hag, web18, bou08 (detail), survey · Sonnet
+- [x] RS-1 `n3` Nubis Cubed, split by section: s1–46 history/HZD procedural, s47–74 prototype + voxel modelling, s75–109 sampling density, s110–155 lighting + march, s156–194 rendering/production/Stormbird → `docs/research/sources/n3/`; then an Opus synthesis into `sources/n3.md` with the deck-vs-runtime diff · Opus ×5 + Opus lead
+- [x] RS-2 Nubis family: gp7, hfw, ne22, nut, n17, hzd15, syn, noise (Houdini HDA), plus tvn and psrd (owner-supplied) · Sonnet, Opus spot-check
+- [x] RS-3 Academic shape: hag, web18, bou08 (detail), survey · Sonnet
 - [ ] RS-4 Lighting/atmosphere top-ups (lowest priority) · Sonnet
-- [~] RS-T Owner target studies: `docs/research/targets/santa-sleigh.md` (multi-body merging line, not one tower) and `frog.md` (surface-detail catalogue from zoomed shots) · Opus
-- [ ] RS-V EmberGen CloudPack VDB inventory (`artifacts/research/vdbs/CloudPack/`, 10 clouds + `.ember` setup): grids, sizes, thumbnails, shape notes; doubles as a VDB-loader test list · Sonnet
-- [ ] RS-N Native implementations that claim HZD-equivalent clouds (engine plugins, open-source ports): what they implement from the papers, code availability, licence, whether captures exist; for optional comparison, never as the target (owner 2026-10-10: the target is HZD and the photos, not Takram) · Sonnet
-- [ ] RS-5 Topic guides (shape, layering, surface-detail, weather, authoring) with a ranked try-next list · Opus
+- [x] RS-T Owner target studies: `docs/research/targets/santa-sleigh.md` (multi-body merging line, not one tower) and `frog.md` (surface-detail catalogue from zoomed shots) · Opus
+- [x] RS-V EmberGen CloudPack VDB inventory (`artifacts/research/vdbs/CloudPack/`, 10 clouds + `.ember` setup): grids, sizes, thumbnails, shape notes; doubles as a VDB-loader test list · Sonnet
+- [x] RS-N Native implementations that claim HZD-equivalent clouds (engine plugins, open-source ports): what they implement from the papers, code availability, licence, whether captures exist; for optional comparison, never as the target (owner 2026-10-10: the target is HZD and the photos, not Takram) · Sonnet
+- [~] RS-5 Topic guides (shape, layering, surface-detail, weather, authoring) with a ranked try-next list · Opus
 - [ ] RS-6 Index refresh; older overlapping notes get "superseded by" lines · Sonnet
 - [ ] RS-H (later, owner ask) Save the L1/L2 Houdini rigs as `.hip` files the owner can open and fix; survey Houdini's cloud tools beyond Pyro (Cloud FX, cloud shape/noise SOPs, VDB tools) for the authoring topic guide
 
