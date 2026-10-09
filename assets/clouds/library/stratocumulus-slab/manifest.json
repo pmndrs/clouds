@@ -1,0 +1,109 @@
+{
+  "name": "stratocumulus-slab",
+  "species": "stratocumulus (slab)",
+  "note": "flat-topped lumpy deck",
+  "seed": 61,
+  "frame": 150,
+  "simSeconds": 37.8,
+  "bytes": 510842,
+  "dims": [
+    73,
+    55,
+    21
+  ],
+  "voxelSizeMeters": 12.0,
+  "sizeMeters": [
+    876.0,
+    660.0,
+    252.0
+  ],
+  "baseMeters": 12.0,
+  "lowestMeters": 12.0,
+  "topMeters": 240.0,
+  "footprintMeters": [
+    876.0,
+    660.0
+  ],
+  "occupiedVoxels": 22910,
+  "stamp": {
+    "scale": [
+      0.9,
+      1.2
+    ]
+  },
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 150,
+    "out_frames": [],
+    "source": {
+      "radius": 3.0,
+      "height": 0.3,
+      "rate": 1.2,
+      "temp": 0.7,
+      "noisefreq": 0.9,
+      "noiseamp": 0.6,
+      "edge": 0.35,
+      "cellfreq": 3.0,
+      "cell0": 0.42,
+      "cell1": 0.6,
+      "floor": 0.05,
+      "emit_frames": 200,
+      "emitters": [
+        [
+          0,
+          0,
+          4.0,
+          2.6,
+          1.0,
+          0
+        ]
+      ]
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 4.0,
+      "tempcooling": 0.05,
+      "dissipation": 0.01,
+      "enable_turbulence": 1,
+      "turbulence": 0.5,
+      "turbulence_swirlsize": 0.4,
+      "enable_disturbance": 1,
+      "disturbance": 0.4,
+      "disturbance_blocksize": 0.3
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 0.9
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "stratocumulus (slab)",
+    "seed": 61,
+    "cap": {
+      "height": 0.9,
+      "thick": 0.5,
+      "strength": 0.12,
+      "reach": 1.5
+    },
+    "voxel": 12,
+    "stamp": {
+      "scale": [
+        0.9,
+        1.2
+      ]
+    },
+    "note": "flat-topped lumpy deck",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

@@ -1,0 +1,89 @@
+{
+  "name": "cumulus-flattop",
+  "species": "cumulus under an inversion (flat top)",
+  "note": "spreads under a lid into an overhanging flat top",
+  "seed": 51,
+  "frame": 240,
+  "simSeconds": 33.8,
+  "bytes": 1416568,
+  "dims": [
+    76,
+    86,
+    36
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    608.0,
+    688.0,
+    288.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 280.0,
+  "footprintMeters": [
+    608.0,
+    688.0
+  ],
+  "occupiedVoxels": 69934,
+  "stamp": {},
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 240,
+    "out_frames": [],
+    "source": {
+      "radius": 1.3,
+      "height": 0.35,
+      "rate": 1.8,
+      "temp": 0.95,
+      "noisefreq": 1.1,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 1.6,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 200
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 8.0,
+      "tempcooling": 0.05,
+      "dissipation": 0.01,
+      "enable_turbulence": 1,
+      "turbulence": 0.6,
+      "turbulence_swirlsize": 0.6,
+      "enable_disturbance": 1,
+      "disturbance": 0.5,
+      "disturbance_blocksize": 0.5
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 1.4,
+      "flat": 2.6,
+      "flatk": 5.0
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus under an inversion (flat top)",
+    "seed": 51,
+    "cap": {
+      "height": 1.6,
+      "thick": 0.6,
+      "strength": 0.3,
+      "reach": 3.0
+    },
+    "note": "spreads under a lid into an overhanging flat top",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

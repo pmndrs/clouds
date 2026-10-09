@@ -1420,7 +1420,7 @@ Spec: [specs/P2-api.md](specs/P2-api.md).
   - The `runtime-tests/generate` page passes.
   - `pnpm check` green; the packed consumer passes.
 
-### [~] P9-F Authored cloud library (Houdini Pyro batch) · Opus
+### [x] P9-F Authored cloud library (Houdini Pyro batch) · Opus
 - **Owns:**
   - `scripts/vdb/authoring/sim/**`
   - `assets/clouds/library/**` (new; each cloud < 4 MB, committed)

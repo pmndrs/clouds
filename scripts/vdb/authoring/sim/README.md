@@ -64,3 +64,35 @@ Render with the flagship: `?cloud=heroes/sim-cumulus` / `heroes/sim-congestus`.
 
 `nvdf.bin` + `sdf.bin` are dense, 6 bytes per 8 m voxel; 4 MB is about 650 k voxels. sim-cumulus 85x92x62 = 2.7 MiB;
 sim-congestus 82x76x101 = 3.6 MiB. A taller or wider cloud needs `--voxel-size 12` or a lower `world_scale`.
+
+## The library (P9-F): `library.py`
+
+One unattended run grows the whole authored library into `assets/clouds/library/<name>/` (cloud.json, nvdf.bin, sdf.bin,
+manifest.json) plus `index.json`, about 6 min for 17 clouds, logged to `work/captures/scratch/p9f/library.log` (or `--log`).
+The run is deterministic (same seeds, byte-identical output).
+
+```bash
+$HYTHON scripts/vdb/authoring/sim/library.py                     # everything
+$HYTHON scripts/vdb/authoring/sim/library.py fractus pileus-tower   # some
+$HYTHON scripts/vdb/authoring/sim/library.py --list | --reindex     # list entries | refresh stamp hints + index.json, no sims
+python3 scripts/vdb/authoring/sim/contact_sheet.py DIR OUT.jpg     # tile the library page's sheet-mode captures
+```
+
+Each `LIBRARY` entry names a template (`cumulus`/`congestus`: the P4-F recipes with a 20 m base fade; `strato`: wide, low,
+capped) and overrides it per section. Levers added to `sim_clouds.py` for it:
+
+| Key | Effect |
+| --- | --- |
+| `seed` | shifts every emitter noise lookup and Pyro's `turbulence_seed` |
+| `source.emitters` | list of `[x, z, rx, rz, weight, start_frame]` noisy elliptical discs (count, shape, size, age) |
+| `solver.enable_wind`, `wind_strength`, `wind_directionx` | Pyro wind during the sim: the plume bends downwind (lean) |
+| `cap` (`height`, `thick`, `strength`, `reach`) | inversion lid: a cold slab added to temperature (Pyro source 3, Add) so thermals stall and spread; flat tops, stratocumulus |
+| `remap.shear` | post lean: x shifts by `shear` per unit height |
+| `remap.flat`, `flatk` | post flattening: everything above `flat` is squashed by `flatk` |
+| `pileus` (`gap`, `rx`, `ry`, `thick`, `density`) | a smooth dome shell placed over the tower top (T6 cap) |
+| `prune` | drop detached blobs smaller than this fraction of the main body (numpy labelling, default 0.04 in the library) |
+| `voxel` | converter voxel size (12 m for the wide slabs) |
+| `stamp` | page hints: `detailType`, `densityScale`, `scale` range, deal `weight` |
+
+The manifest records species, size, base/top (metres above the asset box floor), seed, frame, sim seconds, bytes and the full
+recipe. `examples/lab/library/` stamps the library (see its header for query options; `?sheet=1` is the isolated contact-sheet mode).

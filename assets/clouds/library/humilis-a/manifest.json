@@ -1,0 +1,98 @@
+{
+  "name": "humilis-a",
+  "species": "cumulus humilis",
+  "note": "small flat puff",
+  "seed": 11,
+  "frame": 110,
+  "simSeconds": 3.6,
+  "bytes": 272395,
+  "dims": [
+    59,
+    42,
+    18
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    472.0,
+    336.0,
+    144.0
+  ],
+  "baseMeters": 16.0,
+  "lowestMeters": 8.0,
+  "topMeters": 136.0,
+  "footprintMeters": [
+    472.0,
+    336.0
+  ],
+  "occupiedVoxels": 5787,
+  "stamp": {
+    "scale": [
+      0.6,
+      1.2
+    ]
+  },
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 110,
+    "out_frames": [],
+    "source": {
+      "radius": 1.0,
+      "height": 0.35,
+      "rate": 1.2,
+      "temp": 0.7,
+      "noisefreq": 1.1,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 2.2,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 200
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 4.5,
+      "tempcooling": 0.05,
+      "dissipation": 0.01,
+      "enable_turbulence": 1,
+      "turbulence": 0.6,
+      "turbulence_swirlsize": 0.6,
+      "enable_disturbance": 1,
+      "disturbance": 0.5,
+      "disturbance_blocksize": 0.5
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 0.6
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus humilis",
+    "seed": 11,
+    "cap": {
+      "height": 1.1,
+      "thick": 0.5,
+      "strength": 0.08,
+      "reach": 1.5
+    },
+    "stamp": {
+      "scale": [
+        0.6,
+        1.2
+      ]
+    },
+    "note": "small flat puff",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

@@ -1,0 +1,2 @@
+thresholds: {"footprintCv":{"min":0.7},"footprintRatio":{"min":10},"baseSpreadM":{"max":30},"autocorrPeak":{"max":0.05},"cloneScore":{"max":0.6}}
+library                    FAIL  CV 0.56 FAIL  ratio 14.5 pass  base 108m FAIL  acf NaN n/a  clone 0.47 pass   (44 lobes in 32 footprints, cover 20%)

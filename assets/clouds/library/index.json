@@ -1,0 +1,281 @@
+{
+  "note": "P9-F authored cloud library; regenerate with scripts/vdb/authoring/sim/library.py",
+  "clouds": [
+    {
+      "name": "humilis-a",
+      "species": "cumulus humilis",
+      "sizeMeters": [
+        472.0,
+        336.0,
+        144.0
+      ],
+      "baseMeters": 16.0,
+      "topMeters": 136.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 272395,
+      "stamp": {
+        "scale": [
+          0.6,
+          1.2
+        ]
+      }
+    },
+    {
+      "name": "humilis-b",
+      "species": "cumulus humilis (pair)",
+      "sizeMeters": [
+        368.0,
+        368.0,
+        136.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 128.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 220791,
+      "stamp": {
+        "scale": [
+          0.6,
+          1.2
+        ]
+      }
+    },
+    {
+      "name": "mediocris-a",
+      "species": "cumulus mediocris",
+      "sizeMeters": [
+        608.0,
+        584.0,
+        384.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 376.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 1602372,
+      "stamp": {}
+    },
+    {
+      "name": "mediocris-oblong",
+      "species": "cumulus mediocris (oblong)",
+      "sizeMeters": [
+        744.0,
+        496.0,
+        392.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 384.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 1699915,
+      "stamp": {}
+    },
+    {
+      "name": "mediocris-cluster",
+      "species": "cumulus mediocris (cluster)",
+      "sizeMeters": [
+        632.0,
+        488.0,
+        376.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 368.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 1363927,
+      "stamp": {}
+    },
+    {
+      "name": "congestus-a",
+      "species": "cumulus congestus",
+      "sizeMeters": [
+        568.0,
+        560.0,
+        792.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 784.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 2956788,
+      "stamp": {
+        "weight": 3
+      }
+    },
+    {
+      "name": "congestus-turrets",
+      "species": "cumulus congestus (turrets)",
+      "sizeMeters": [
+        648.0,
+        528.0,
+        584.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 576.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 2346515,
+      "stamp": {}
+    },
+    {
+      "name": "congestus-broad",
+      "species": "cumulus congestus (broad)",
+      "sizeMeters": [
+        810.0,
+        770.0,
+        720.0
+      ],
+      "baseMeters": 10.0,
+      "topMeters": 710.0,
+      "voxelSizeMeters": 10.0,
+      "bytes": 2699293,
+      "stamp": {
+        "weight": 2
+      }
+    },
+    {
+      "name": "congestus-lean",
+      "species": "cumulus congestus (sheared)",
+      "sizeMeters": [
+        744.0,
+        552.0,
+        560.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 552.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 2699934,
+      "stamp": {
+        "weight": 2
+      }
+    },
+    {
+      "name": "mediocris-sheared",
+      "species": "cumulus mediocris (sheared)",
+      "sizeMeters": [
+        712.0,
+        520.0,
+        400.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 392.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 1740265,
+      "stamp": {}
+    },
+    {
+      "name": "cumulus-flattop",
+      "species": "cumulus under an inversion (flat top)",
+      "sizeMeters": [
+        608.0,
+        688.0,
+        288.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 280.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 1416568,
+      "stamp": {}
+    },
+    {
+      "name": "stratocumulus-slab",
+      "species": "stratocumulus (slab)",
+      "sizeMeters": [
+        876.0,
+        660.0,
+        252.0
+      ],
+      "baseMeters": 12.0,
+      "topMeters": 240.0,
+      "voxelSizeMeters": 12.0,
+      "bytes": 510842,
+      "stamp": {
+        "scale": [
+          0.9,
+          1.2
+        ]
+      }
+    },
+    {
+      "name": "stratocumulus-band",
+      "species": "stratocumulus (band)",
+      "sizeMeters": [
+        1104.0,
+        516.0,
+        216.0
+      ],
+      "baseMeters": 12.0,
+      "topMeters": 204.0,
+      "voxelSizeMeters": 12.0,
+      "bytes": 432205,
+      "stamp": {
+        "scale": [
+          0.9,
+          1.2
+        ]
+      }
+    },
+    {
+      "name": "decaying-wisp",
+      "species": "decaying cumulus (wispy)",
+      "sizeMeters": [
+        432.0,
+        440.0,
+        192.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 184.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 432670,
+      "stamp": {
+        "detailType": 0.1,
+        "densityScale": 0.45
+      }
+    },
+    {
+      "name": "fractus",
+      "species": "cumulus fractus",
+      "sizeMeters": [
+        520.0,
+        320.0,
+        112.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 104.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 223728,
+      "stamp": {
+        "detailType": 0.25,
+        "densityScale": 0.8,
+        "scale": [
+          0.6,
+          1.2
+        ]
+      }
+    },
+    {
+      "name": "pileus-tower",
+      "species": "cumulus congestus with pileus",
+      "sizeMeters": [
+        584.0,
+        600.0,
+        840.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 832.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 3453957,
+      "stamp": {}
+    },
+    {
+      "name": "rising-young",
+      "species": "young towering cumulus",
+      "sizeMeters": [
+        368.0,
+        408.0,
+        552.0
+      ],
+      "baseMeters": 8.0,
+      "topMeters": 544.0,
+      "voxelSizeMeters": 8.0,
+      "bytes": 975863,
+      "stamp": {
+        "weight": 2
+      }
+    }
+  ]
+}

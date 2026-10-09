@@ -1,0 +1,190 @@
+{
+  "url": "http://127.0.0.1:58837/library/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T02:09:53.055Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/P9-F/scape/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.173364,
+          "lightGrid": 1.795474,
+          "marchNear": 0.10235618333333334,
+          "marchFar": 0.9826864499999999,
+          "shadowMap": 0.044833260869565225,
+          "composite": 0.2997564833333334,
+          "dome": 0.16973621666666666,
+          "resolveNear": 0.04303883333333333,
+          "resolveFar": 0.08126276666666667,
+          "cloudsTotal": 3.6925081942028988
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000045,
+          "mean": 16.665714285714287
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 101,
+        "cloudsReady": true,
+        "library": {
+          "clouds": 17,
+          "megabytes": 23.88752841949463
+        },
+        "build": {
+          "ms": 112.90000000596046,
+          "instances": 36,
+          "perCloud": {
+            "humilis-a": 2,
+            "humilis-b": 2,
+            "mediocris-a": 2,
+            "mediocris-oblong": 1,
+            "mediocris-cluster": 2,
+            "congestus-a": 4,
+            "congestus-turrets": 2,
+            "congestus-broad": 4,
+            "congestus-lean": 4,
+            "mediocris-sheared": 2,
+            "cumulus-flattop": 1,
+            "stratocumulus-slab": 2,
+            "stratocumulus-band": 1,
+            "decaying-wisp": 1,
+            "fractus": 1,
+            "pileus-tower": 2,
+            "rising-young": 3
+          },
+          "current": ""
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/P9-F/scape/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.173364,
+          "lightGrid": 0.2642459696969697,
+          "marchNear": 0.11125866666666663,
+          "marchFar": 1.1254668000000003,
+          "shadowMap": 0.026066816666666666,
+          "composite": 0.2695076333333334,
+          "dome": 0.17166538333333334,
+          "resolveNear": 0.04558955,
+          "resolveFar": 0.0735731833333333,
+          "cloudsTotal": 2.2607380030303035
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "mean": 16.666060606060604
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 196,
+        "cloudsReady": true,
+        "library": {
+          "clouds": 17,
+          "megabytes": 23.88752841949463
+        },
+        "build": {
+          "ms": 112.90000000596046,
+          "instances": 36,
+          "perCloud": {
+            "humilis-a": 2,
+            "humilis-b": 2,
+            "mediocris-a": 2,
+            "mediocris-oblong": 1,
+            "mediocris-cluster": 2,
+            "congestus-a": 4,
+            "congestus-turrets": 2,
+            "congestus-broad": 4,
+            "congestus-lean": 4,
+            "mediocris-sheared": 2,
+            "cumulus-flattop": 1,
+            "stratocumulus-slab": 2,
+            "stratocumulus-band": 1,
+            "decaying-wisp": 1,
+            "fractus": 1,
+            "pileus-tower": 2,
+            "rising-young": 3
+          },
+          "current": ""
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/P9-F/scape/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.173364,
+          "lightGrid": 0.3353705166666667,
+          "marchNear": 0.10645243333333328,
+          "marchFar": 0.9224067666666668,
+          "shadowMap": 0.039043150000000006,
+          "composite": 0.4077778499999999,
+          "dome": 0.19208309999999992,
+          "resolveNear": 0.04325705,
+          "resolveFar": 0.07100315,
+          "cloudsTotal": 2.2907580166666666
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.666249999999998
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "above",
+        "frames": 290,
+        "cloudsReady": true,
+        "library": {
+          "clouds": 17,
+          "megabytes": 23.88752841949463
+        },
+        "build": {
+          "ms": 112.90000000596046,
+          "instances": 36,
+          "perCloud": {
+            "humilis-a": 2,
+            "humilis-b": 2,
+            "mediocris-a": 2,
+            "mediocris-oblong": 1,
+            "mediocris-cluster": 2,
+            "congestus-a": 4,
+            "congestus-turrets": 2,
+            "congestus-broad": 4,
+            "congestus-lean": 4,
+            "mediocris-sheared": 2,
+            "cumulus-flattop": 1,
+            "stratocumulus-slab": 2,
+            "stratocumulus-band": 1,
+            "decaying-wisp": 1,
+            "fractus": 1,
+            "pileus-tower": 2,
+            "rising-young": 3
+          },
+          "current": ""
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

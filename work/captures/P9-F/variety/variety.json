@@ -1,0 +1,201 @@
+{
+  "thresholds": {
+    "footprintCv": {
+      "min": 0.7
+    },
+    "footprintRatio": {
+      "min": 10
+    },
+    "baseSpreadM": {
+      "max": 30
+    },
+    "autocorrPeak": {
+      "max": 0.05
+    },
+    "cloneScore": {
+      "max": 0.6
+    }
+  },
+  "generatedAt": "2026-10-09T02:09:46.773Z",
+  "results": {
+    "library": {
+      "measures": {
+        "footprintCv": 0.561122690803185,
+        "footprintRatio": 14.497109826589595,
+        "baseSpreadM": 108,
+        "autocorrPeak": null,
+        "cloneScore": 0.4723333137509918
+      },
+      "verdict": {
+        "footprintCv": "FAIL",
+        "footprintRatio": "pass",
+        "baseSpreadM": "FAIL",
+        "autocorrPeak": "n/a",
+        "cloneScore": "pass"
+      },
+      "pass": false,
+      "coverage": 0.19570541381835938,
+      "footprint": {
+        "components": 76,
+        "usedComponents": 44,
+        "edgeComponents": 0,
+        "ignoredSmall": 32,
+        "cv": 0.561122690803185,
+        "ratio": 14.497109826589595,
+        "areaColumns": {
+          "min": 173,
+          "max": 2508,
+          "mean": 1160.4545454545455,
+          "median": 1039.5
+        },
+        "diameterM": {
+          "min": 178.09812895828628,
+          "median": 436.56463550351515,
+          "max": 678.1098790463043
+        }
+      },
+      "connectedFootprint": {
+        "components": 37,
+        "usedComponents": 32,
+        "edgeComponents": 0,
+        "ignoredSmall": 5,
+        "cv": 0.8777696695072004,
+        "ratio": 2800,
+        "areaColumns": {
+          "min": 2,
+          "max": 5600,
+          "mean": 1603.0625,
+          "median": 1210.5
+        },
+        "diameterM": {
+          "min": 19.149229459268767,
+          "median": 471.1060724739978,
+          "max": 1013.2819789547406
+        }
+      },
+      "base": {
+        "clouds": 29,
+        "coreColumns": 37443,
+        "baseSpreadM": 108,
+        "coreBaseM": {
+          "p5": 72,
+          "median": 84,
+          "p95": 180
+        },
+        "cloudBaseSpreadM": 12,
+        "cloudBaseMedianM": {
+          "min": 72,
+          "median": 84,
+          "max": 96
+        }
+      },
+      "clone": {
+        "clouds": 44,
+        "pairs": 1892,
+        "median": 0.4723333137509918,
+        "p90": 0.7675665573903477,
+        "p10": 0.1854681292489399
+      },
+      "autocorr": {
+        "coverage": 0.19570541381835938,
+        "cellSpacingM": null,
+        "peak": null,
+        "peakLagM": null,
+        "peakLagOverSpacing": null,
+        "profile": [
+          1,
+          0.902,
+          0.838,
+          0.776,
+          0.719,
+          0.659,
+          0.606,
+          0.552,
+          0.502,
+          0.451,
+          0.406,
+          0.363,
+          0.324,
+          0.286,
+          0.254,
+          0.223,
+          0.195,
+          0.171,
+          0.149,
+          0.132,
+          0.117,
+          0.104,
+          0.093,
+          0.084,
+          0.079,
+          0.074,
+          0.071,
+          0.068,
+          0.064,
+          0.062,
+          0.061,
+          0.06,
+          0.056,
+          0.052,
+          0.048,
+          0.045,
+          0.043,
+          0.041,
+          0.039,
+          0.037,
+          0.037,
+          0.037,
+          0.036,
+          0.037,
+          0.037,
+          0.038,
+          0.038,
+          0.038,
+          0.038,
+          0.038,
+          0.036,
+          0.035,
+          0.032,
+          0.03,
+          0.027,
+          0.024,
+          0.021,
+          0.02,
+          0.017,
+          0.014,
+          0.012,
+          0.009,
+          0.008,
+          0.008,
+          0.006,
+          0.005,
+          0.004,
+          0.004,
+          0.006,
+          0.008,
+          0.009,
+          0.011,
+          0.014,
+          0.018,
+          0.021,
+          0.024,
+          0.027,
+          0.031,
+          0.034,
+          0.037,
+          0.038,
+          0.041,
+          0.043,
+          0.045,
+          0.046,
+          0.047
+        ]
+      },
+      "url": "library/?clean=1",
+      "screenshots": [
+        "library-horizon.jpg",
+        "library-above.jpg"
+      ]
+    }
+  }
+}

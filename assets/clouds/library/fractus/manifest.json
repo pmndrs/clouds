@@ -1,0 +1,136 @@
+{
+  "name": "fractus",
+  "species": "cumulus fractus",
+  "note": "ragged broken pieces",
+  "seed": 72,
+  "frame": 120,
+  "simSeconds": 6.4,
+  "bytes": 223728,
+  "dims": [
+    65,
+    40,
+    14
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    520.0,
+    320.0,
+    112.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 104.0,
+  "footprintMeters": [
+    520.0,
+    320.0
+  ],
+  "occupiedVoxels": 6696,
+  "stamp": {
+    "detailType": 0.25,
+    "densityScale": 0.8,
+    "scale": [
+      0.6,
+      1.2
+    ]
+  },
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 120,
+    "out_frames": [],
+    "source": {
+      "radius": 2.0,
+      "height": 0.35,
+      "rate": 1.0,
+      "temp": 0.85,
+      "noisefreq": 1.1,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 2.5,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 80,
+      "emitters": [
+        [
+          -1.4,
+          0.3,
+          0.45,
+          0.35,
+          1.0,
+          0
+        ],
+        [
+          0.2,
+          -0.6,
+          0.5,
+          0.3,
+          0.8,
+          10
+        ],
+        [
+          1.5,
+          0.5,
+          0.35,
+          0.3,
+          0.9,
+          20
+        ],
+        [
+          0.0,
+          1.2,
+          0.3,
+          0.3,
+          0.7,
+          5
+        ]
+      ]
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 4.0,
+      "tempcooling": 0.05,
+      "dissipation": 0.01,
+      "enable_turbulence": 1,
+      "turbulence": 1.0,
+      "turbulence_swirlsize": 0.3,
+      "enable_disturbance": 1,
+      "disturbance": 0.9,
+      "disturbance_blocksize": 0.2
+    },
+    "remap": {
+      "lo": 0.03,
+      "hi": 0.3,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 0.75
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus fractus",
+    "seed": 72,
+    "cap": {
+      "height": 1.2,
+      "thick": 0.5,
+      "strength": 0.06,
+      "reach": 1.5
+    },
+    "stamp": {
+      "detailType": 0.25,
+      "densityScale": 0.8,
+      "scale": [
+        0.6,
+        1.2
+      ]
+    },
+    "prune": 0,
+    "note": "ragged broken pieces"
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

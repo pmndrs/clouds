@@ -1,0 +1,86 @@
+{
+  "name": "rising-young",
+  "species": "young towering cumulus",
+  "note": "young thermal, bulbous head",
+  "seed": 91,
+  "frame": 140,
+  "simSeconds": 9.6,
+  "bytes": 975863,
+  "dims": [
+    46,
+    51,
+    69
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    368.0,
+    408.0,
+    552.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 544.0,
+  "footprintMeters": [
+    368.0,
+    408.0
+  ],
+  "occupiedVoxels": 29919,
+  "stamp": {
+    "weight": 2
+  },
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 140,
+    "out_frames": [],
+    "source": {
+      "radius": 0.6,
+      "height": 0.4,
+      "rate": 2.4,
+      "temp": 1.0,
+      "noisefreq": 1.0,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 1.4,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 260
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 14.0,
+      "tempcooling": 0.03,
+      "dissipation": 0.005,
+      "enable_turbulence": 1,
+      "turbulence": 0.3,
+      "turbulence_swirlsize": 0.4,
+      "enable_disturbance": 1,
+      "disturbance": 0.1,
+      "disturbance_blocksize": 0.5
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 3.0
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "young towering cumulus",
+    "seed": 91,
+    "stamp": {
+      "weight": 2
+    },
+    "note": "young thermal, bulbous head",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

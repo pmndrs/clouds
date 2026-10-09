@@ -1,0 +1,92 @@
+{
+  "name": "congestus-lean",
+  "species": "cumulus congestus (sheared)",
+  "note": "tower leaning downwind",
+  "seed": 41,
+  "frame": 240,
+  "simSeconds": 14.8,
+  "bytes": 2699934,
+  "dims": [
+    93,
+    69,
+    70
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    744.0,
+    552.0,
+    560.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 552.0,
+  "footprintMeters": [
+    744.0,
+    552.0
+  ],
+  "occupiedVoxels": 94894,
+  "stamp": {
+    "weight": 2
+  },
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 240,
+    "out_frames": [],
+    "source": {
+      "radius": 1.0,
+      "height": 0.4,
+      "rate": 2.0,
+      "temp": 1.0,
+      "noisefreq": 1.0,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 1.4,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 260
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 12.0,
+      "tempcooling": 0.03,
+      "dissipation": 0.005,
+      "enable_turbulence": 1,
+      "turbulence": 0.4,
+      "turbulence_swirlsize": 0.4,
+      "enable_disturbance": 1,
+      "disturbance": 0.15,
+      "disturbance_blocksize": 0.5,
+      "enable_wind": 1,
+      "wind_strength": 0.5,
+      "wind_directionx": 1.0,
+      "wind_directiony": 0.0,
+      "wind_directionz": 0.0
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 2.4,
+      "shear": 0.7
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus congestus (sheared)",
+    "seed": 41,
+    "stamp": {
+      "weight": 2
+    },
+    "note": "tower leaning downwind",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

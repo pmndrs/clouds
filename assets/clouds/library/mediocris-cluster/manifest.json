@@ -1,0 +1,107 @@
+{
+  "name": "mediocris-cluster",
+  "species": "cumulus mediocris (cluster)",
+  "note": "three cells of different ages",
+  "seed": 23,
+  "frame": 170,
+  "simSeconds": 7.8,
+  "bytes": 1363927,
+  "dims": [
+    79,
+    61,
+    47
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    632.0,
+    488.0,
+    376.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 368.0,
+  "footprintMeters": [
+    632.0,
+    488.0
+  ],
+  "occupiedVoxels": 37490,
+  "stamp": {},
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 170,
+    "out_frames": [],
+    "source": {
+      "radius": 2.0,
+      "height": 0.35,
+      "rate": 1.5,
+      "temp": 0.85,
+      "noisefreq": 1.1,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 1.9,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 200,
+      "emitters": [
+        [
+          -1.6,
+          0.3,
+          0.7,
+          0.7,
+          1.0,
+          0
+        ],
+        [
+          0.3,
+          -0.5,
+          0.8,
+          0.6,
+          1.0,
+          40
+        ],
+        [
+          1.7,
+          0.6,
+          0.5,
+          0.5,
+          0.9,
+          80
+        ]
+      ]
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 6.5,
+      "tempcooling": 0.05,
+      "dissipation": 0.01,
+      "enable_turbulence": 1,
+      "turbulence": 0.6,
+      "turbulence_swirlsize": 0.6,
+      "enable_disturbance": 1,
+      "disturbance": 0.5,
+      "disturbance_blocksize": 0.5
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 1.8
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus mediocris (cluster)",
+    "seed": 23,
+    "note": "three cells of different ages",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

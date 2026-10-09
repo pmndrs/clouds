@@ -1,0 +1,86 @@
+{
+  "name": "congestus-a",
+  "species": "cumulus congestus",
+  "note": "tall tower, narrow crown",
+  "seed": 31,
+  "frame": 240,
+  "simSeconds": 9.3,
+  "bytes": 2956788,
+  "dims": [
+    71,
+    70,
+    99
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    568.0,
+    560.0,
+    792.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 784.0,
+  "footprintMeters": [
+    568.0,
+    560.0
+  ],
+  "occupiedVoxels": 155339,
+  "stamp": {
+    "weight": 3
+  },
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 240,
+    "out_frames": [],
+    "source": {
+      "radius": 1.0,
+      "height": 0.4,
+      "rate": 2.0,
+      "temp": 1.0,
+      "noisefreq": 1.0,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 1.4,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 260
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 12.0,
+      "tempcooling": 0.03,
+      "dissipation": 0.005,
+      "enable_turbulence": 1,
+      "turbulence": 0.4,
+      "turbulence_swirlsize": 0.4,
+      "enable_disturbance": 1,
+      "disturbance": 0.15,
+      "disturbance_blocksize": 0.5
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 3.0
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus congestus",
+    "seed": 31,
+    "stamp": {
+      "weight": 3
+    },
+    "note": "tall tower, narrow crown",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}

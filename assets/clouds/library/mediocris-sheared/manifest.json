@@ -1,0 +1,87 @@
+{
+  "name": "mediocris-sheared",
+  "species": "cumulus mediocris (sheared)",
+  "note": "wind-blown, tail downwind",
+  "seed": 42,
+  "frame": 170,
+  "simSeconds": 15.4,
+  "bytes": 1740265,
+  "dims": [
+    89,
+    65,
+    50
+  ],
+  "voxelSizeMeters": 8.0,
+  "sizeMeters": [
+    712.0,
+    520.0,
+    400.0
+  ],
+  "baseMeters": 8.0,
+  "lowestMeters": 8.0,
+  "topMeters": 392.0,
+  "footprintMeters": [
+    712.0,
+    520.0
+  ],
+  "occupiedVoxels": 48265,
+  "stamp": {},
+  "recipe": {
+    "world_scale": 100.0,
+    "divsize": 0.08,
+    "frames": 170,
+    "out_frames": [],
+    "source": {
+      "radius": 1.2,
+      "height": 0.35,
+      "rate": 1.5,
+      "temp": 0.85,
+      "noisefreq": 1.1,
+      "noiseamp": 0.9,
+      "edge": 0.5,
+      "cellfreq": 1.6,
+      "cell0": 0.45,
+      "cell1": 0.65,
+      "floor": 0.0,
+      "emit_frames": 200
+    },
+    "solver": {
+      "temperature0": 0.0,
+      "temperature1": 1.0,
+      "buoyancylift": 6.0,
+      "tempcooling": 0.05,
+      "dissipation": 0.01,
+      "enable_turbulence": 1,
+      "turbulence": 0.7,
+      "turbulence_swirlsize": 0.6,
+      "enable_disturbance": 1,
+      "disturbance": 0.5,
+      "disturbance_blocksize": 0.5,
+      "enable_wind": 1,
+      "wind_strength": 0.5,
+      "wind_directionx": 1.0,
+      "wind_directiony": 0.0,
+      "wind_directionz": 0.0
+    },
+    "remap": {
+      "lo": 0.05,
+      "hi": 1.0,
+      "base": 0.05,
+      "basefade": 0.2,
+      "stretch": 1.6,
+      "shear": 1.0
+    },
+    "smooth": 1,
+    "convert": [
+      "--iso",
+      "0.3",
+      "--margin",
+      "1"
+    ],
+    "species": "cumulus mediocris (sheared)",
+    "seed": 42,
+    "note": "wind-blown, tail downwind",
+    "prune": 0.04
+  },
+  "generator": "scripts/vdb/authoring/sim/library.py (Houdini Pyro Solver SOP) -> scripts/vdb/vdb_to_nvdf.py --mode fog"
+}
