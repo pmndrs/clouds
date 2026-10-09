@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LightGridScheduler, lightGridDims } from './light-grid';
-import { lightGridWgsl } from './shaders/light-grid.wgsl';
+import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_PROC_STUB_WGSL, LIGHT_GRID_PROC_WGSL, lightGridWgsl } from './shaders/light-grid.wgsl';
 
 const sunA: [number, number, number] = [0.3, 0.8, 0.2];
 const rot = (deg: number): [number, number, number] => { const a = deg * Math.PI / 180; return [Math.sin(a) * 0.8 + 0.3, 0.8, 0.2]; };
@@ -80,5 +80,16 @@ describe('lightGridWgsl', () => {
     expect(w).toContain('@group(2) @binding(5) var lightGridTex');
     expect(w).toContain('@group(2) @binding(6) var lightGridSampler');
     expect(w).toContain('fn lightGridSample(p: vec3<f32>) -> vec2<f32>');
+  });
+});
+
+describe('light grid build: procedural clouds (X4)', () => {
+  it('calls lgProcedural behind procScale, which both the stub and the model variant define with one signature', () => {
+    expect(LIGHT_GRID_BUILD_WGSL).toContain('procScale: f32');
+    expect(LIGHT_GRID_BUILD_WGSL).toContain('if (lgParams.procScale > 0.0) { outside += lgProcedural(p, d, minStep) * lgParams.procScale; }');
+    const sig = 'fn lgProcedural(p: vec3<f32>, d: vec3<f32>, minStep: f32) -> f32';
+    expect(LIGHT_GRID_PROC_STUB_WGSL).toContain(sig);
+    expect(LIGHT_GRID_PROC_WGSL).toContain(sig);
+    expect(LIGHT_GRID_PROC_WGSL).toContain('procSample(');   // needs the model's densityWgsl before it
   });
 });

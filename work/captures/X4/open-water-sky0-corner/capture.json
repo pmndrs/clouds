@@ -1,0 +1,58 @@
+{
+  "url": "http://127.0.0.1:62039/open-water/?hud=0&sky_densityScale=0&pos=3000,350,700&az=315&pitch=2",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:41:06.133Z",
+  "shots": [
+    {
+      "name": "cruise",
+      "file": "work/captures/scratch/x4/ow_corner_sky0/cruise.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 18.376727099999997,
+          "lightGridReduce": 0.115665,
+          "lightGrid": 0.9114425238095238,
+          "marchNear": 0.9843592333333333,
+          "marchFar": 1.4129055333333338,
+          "shadowMap": 1.1397787818181817,
+          "composite": 1.3514931833333335,
+          "dome": 1.7351804666666661,
+          "skyWeather": 0.6763389666666666,
+          "resolveNear": 0.7265362000000001,
+          "resolveFar": 1.3121058333333335,
+          "skyWeatherMips": 0.077832,
+          "skyLayer": 9.317233516666668,
+          "skyResolve": 2.242108883333334,
+          "cloudsTotal": 22.002980122294375,
+          "total": 40.37970722229437
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 50
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "cruise",
+        "frames": 251,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 973.9000000059605,
+          "encodeSubmitMsTotal": 4.500000089406967
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -17,4 +17,13 @@ describe('procedural settings (X1)', () => {
     expect(packProceduralParams(s, out)).toEqual([4000, 4000 + 5200 * 1.3]);
     expect(out[16 + 2]).toBeCloseTo(0.019);
   });
+  it('packs the hybrid words: box carve, voxel shadow, hero shadow (X4, P.hybrid.z)', () => {
+    const s = defaultProceduralSettings('takram');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    expect(Array.from(out.subarray(116, 120))).toEqual([0, 1, 1, 0]);   // defaults: union, voxels in the light taps, full hero shadow
+    Object.assign(s, { boxCarve: 400, voxelShadow: false, heroShadow: 0.5 });
+    packProceduralParams(s, out);
+    expect(Array.from(out.subarray(116, 120))).toEqual([400, 0, 0.5, 0]);
+  });
 });

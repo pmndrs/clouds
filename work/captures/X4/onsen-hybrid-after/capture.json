@@ -1,0 +1,151 @@
+{
+  "url": "http://127.0.0.1:51118/onsen/?model=hybrid&drift=0&fogdrift=0&hud=0&proc_heroShadow=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:50:31.264Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/X4/onsen-hybrid-after/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 24.256011,
+          "lightGridReduce": 0.309621,
+          "lightGrid": 1.3405992708333334,
+          "marchNear": 0.6982109500000001,
+          "marchFar": 1.413077033333333,
+          "shadowMap": 0.9120998125,
+          "composite": 1.0820433333333335,
+          "dome": 1.0813633666666667,
+          "resolveNear": 0.7681965333333334,
+          "resolveFar": 1.5880077499999996,
+          "skyLayer": 5.360621500000001,
+          "skyResolve": 1.978866413793104,
+          "cloudsTotal": 16.532706963793103,
+          "total": 40.788717963793104
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 66.69999999999982
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "vantage",
+        "frames": 116,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 1394.199999988079,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "valley",
+      "file": "work/captures/X4/onsen-hybrid-after/valley.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 33.9315411111111,
+          "lightGridReduce": 0.309621,
+          "lightGrid": 1.53472655,
+          "marchNear": 0.9785843166666669,
+          "marchFar": 2.2042108166666665,
+          "shadowMap": 0.864665283333333,
+          "composite": 1.4183694500000001,
+          "dome": 0.8112612333333337,
+          "resolveNear": 0.5585629000000001,
+          "resolveFar": 1.5854543333333337,
+          "skyLayer": 4.496841333333333,
+          "skyResolve": 2.222296766666667,
+          "cloudsTotal": 16.984593983333333,
+          "total": 50.916135094444435
+        },
+        "frameMs": {
+          "p50": 33.29999999999927,
+          "p95": 50.100000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "valley",
+        "frames": 222,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 1394.199999988079,
+          "stamps": 16
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/X4/onsen-hybrid-after/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 31.89614664999999,
+          "lightGridReduce": 0.309621,
+          "lightGrid": 1.0971380999999998,
+          "marchNear": 1.082479266666667,
+          "marchFar": 1.7778972000000004,
+          "shadowMap": 0.864665283333333,
+          "composite": 1.3011717999999999,
+          "dome": 1.0219871333333335,
+          "resolveNear": 0.7684833666666668,
+          "resolveFar": 1.4701026,
+          "skyLayer": 5.16794885,
+          "skyResolve": 1.8693437333333327,
+          "cloudsTotal": 16.730838333333335,
+          "total": 48.62698498333333
+        },
+        "frameMs": {
+          "p50": 33.29999999999927,
+          "p95": 50
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 327,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 1.0022379786087328,
+          "azimuth": 295.1077878552597
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 1394.199999988079,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

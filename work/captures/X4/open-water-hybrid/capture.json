@@ -1,0 +1,56 @@
+{
+  "url": "http://127.0.0.1:61876/open-water/?hud=0&model=hybrid",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:40:46.726Z",
+  "shots": [
+    {
+      "name": "cruise",
+      "file": "work/captures/scratch/x4/ow_hyb_fade/cruise.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 12.310494117647057,
+          "lightGridReduce": 0.096332,
+          "lightGrid": 1.4156061612903224,
+          "marchNear": 0.7372962586206896,
+          "marchFar": 0.4736034137931036,
+          "shadowMap": 0.6756114117647062,
+          "composite": 1.9723341551724136,
+          "dome": 0.8754765517241382,
+          "resolveNear": 0.6254503454545454,
+          "resolveFar": 1.2549815999999998,
+          "skyLayer": 3.9410184615384614,
+          "skyResolve": 1.804724846153846,
+          "cloudsTotal": 13.872435205512225,
+          "total": 26.182929323159282
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 50
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "cruise",
+        "frames": 148,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 979,
+          "encodeSubmitMsTotal": 4.300000011920929
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "url": "http://127.0.0.1:52518/open-water/?hud=0&uniform=1&model=procedural",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:52:50.908Z",
+  "shots": [
+    {
+      "name": "shore",
+      "file": "work/captures/X4/open-water-uniform-procedural/shore.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7494421166666666,
+          "lightGridReduce": 0.075332,
+          "lightGrid": 0.901236,
+          "marchNear": 0.07418983333333333,
+          "marchFar": 0.07335504999999999,
+          "shadowMap": 0.20677081578947368,
+          "composite": 0.3580660500000001,
+          "dome": 0.23918879999999998,
+          "resolveNear": 0.027889249999999994,
+          "resolveFar": 0.043340966666666675,
+          "skyLayer": 1.6188142166666666,
+          "skyResolve": 0.12148078333333334,
+          "cloudsTotal": 3.739663765789474,
+          "total": 4.4891058824561405
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "shore",
+        "frames": 140,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 847.8000000119209,
+          "encodeSubmitMsTotal": 2.5999999940395355
+        }
+      }
+    },
+    {
+      "name": "cruise",
+      "file": "work/captures/X4/open-water-uniform-procedural/cruise.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.0523076166666667,
+          "lightGridReduce": 0.075332,
+          "lightGrid": 0.32838464705882364,
+          "marchNear": 0.06589838333333332,
+          "marchFar": 0.06430661666666668,
+          "shadowMap": 0.18537224999999996,
+          "composite": 0.27454084999999995,
+          "dome": 0.2263132833333333,
+          "resolveNear": 0.02556971666666667,
+          "resolveFar": 0.03934230000000001,
+          "skyLayer": 1.3622626166666663,
+          "skyResolve": 0.10641211666666664,
+          "cloudsTotal": 2.7537347803921564,
+          "total": 3.806042397058823
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "cruise",
+        "frames": 237,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 847.8000000119209,
+          "encodeSubmitMsTotal": 2.5999999940395355
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

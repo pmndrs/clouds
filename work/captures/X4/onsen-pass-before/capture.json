@@ -1,0 +1,61 @@
+{
+  "url": "http://127.0.0.1:50964/onsen/?model=hybrid&drift=0&fogdrift=0&hud=0&time=15&hx=-300&proc_heroShadow=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-09T11:50:16.614Z",
+  "shots": [
+    {
+      "name": "vantage",
+      "file": "work/captures/X4/onsen-pass-before/vantage.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 14.08394040909091,
+          "lightGridReduce": 3.767276,
+          "lightGrid": 0.9276547948717945,
+          "marchNear": 1.0403382166666668,
+          "marchFar": 1.6425303833333336,
+          "shadowMap": 0.84207626,
+          "composite": 1.5504118499999997,
+          "dome": 0.9053868666666666,
+          "resolveNear": 0.4771568000000001,
+          "resolveFar": 1.2690590833333333,
+          "skyLayer": 4.077798714285714,
+          "skyResolve": 0.9840244999999995,
+          "cloudsTotal": 17.48371346915751,
+          "total": 31.56765387824842
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 50.00000000000091
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "vantage",
+        "frames": 148,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 49.520534254172134,
+          "azimuth": 261.5405001933043
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 1755.300000011921,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
