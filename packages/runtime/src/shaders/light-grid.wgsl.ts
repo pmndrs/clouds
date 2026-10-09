@@ -6,7 +6,7 @@
  *
  * Storage format: rgba16float. rg16float is NOT a core write-only storage format (it needs the
  * `texture-formats-tier1` feature, which Chrome/Metal does not expose by default); rgba16float is core, filterable,
- * and only costs 2x the memory of a 54x54x26 texture (< 0.2 MB). Only .rg is used: x = sun density sum, y = up sum.
+ * and only costs 2x the memory of a 54x54x26 texture (< 0.2 MB). x = sun density sum to the box exit, y = up sum, z (P9-C3) = the sun sum beyond the box through the sky layer's field.
  */
 export const LIGHT_GRID_BINDINGS = { uniforms: 0, storage: 1, reduced: 2, reducedSampler: 3 } as const;
 /** Iteration cap of the sun march through the reduced volume (the step grows geometrically, so ~35 are typical). */
@@ -26,7 +26,7 @@ export const LIGHT_GRID_PARAM_BYTES = 32;
 export const LIGHT_GRID_BUILD_WGSL = /* wgsl */ `
 struct LightGridParams {
   sunDir: vec3<f32>, densityScale: f32,
-  zOffset: u32, maxSteps: u32, _p0: u32, _p1: u32,
+  zOffset: u32, maxSteps: u32, skyOn: u32, _p1: u32,   // skyOn: 1 when the sky layer's field is bound (LIGHT_GRID_SKY_WGSL)
 }
 @group(1) @binding(0) var<uniform> lgParams: LightGridParams;
 @group(1) @binding(1) var lgDst: texture_storage_3d<rgba16float, write>;
@@ -92,9 +92,15 @@ fn buildLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) {
   let p = cloudVolume.minCorner + vec3(uvw.x * cloudVolume.extent.x, uvw.z * cloudVolume.extent.y, uvw.y * cloudVolume.extent.z);
   let cell = vec3(cloudVolume.extent.x / f32(dims.x), cloudVolume.extent.z / f32(dims.y), cloudVolume.extent.y / f32(dims.z));
   let minStep = min(cell.x, min(cell.y, cell.z));
-  let sun = lgMarch(p, normalize(lgParams.sunDir), minStep);
+  let d = normalize(lgParams.sunDir);
+  let sun = lgMarch(p, d, minStep);
+  // P9-C3: past the box the sun ray continues through the sky layer's field (the wall column: a voxel cloud next to the wall was lit as if
+  // the sky had no cloud beyond it, so a bright column ran up the voxel side of every wall the sun shines through). Kept in .b: the cloud
+  // shadow map marches the field outside the box itself and reads only the in-box part (.r).
+  var outside = 0.0;
+  if (lgParams.skyOn != 0u) { outside = lgOutside(p + d * lgExitDistance(p, d), d); }
   let up = textureLoad(lgReduced, vec3<i32>(id), 0).g;
-  textureStore(lgDst, vec3<i32>(id), vec4(sun, up, 0.0, 0.0) * lgParams.densityScale);
+  textureStore(lgDst, vec3<i32>(id), vec4(sun, up, outside, 0.0) * lgParams.densityScale);
 }
 `;
 
@@ -111,5 +117,42 @@ fn lightGridSample(p: vec3<f32>) -> vec2<f32> {
   if (!insideVolume(p)) { return vec2(0.0); }
   return textureSampleLevel(lightGridTex, lightGridSampler, volumeUvw(p), 0.0).rg;
 }
+// P9-C3: the full sun optical depth (in the box plus, with the sky layer on, beyond it: .r + .b) and the up sum. A point just past a face
+// reads the face (the march's grid tap 48 m toward the sun from a voxel near the wall), where the part beyond the box is held.
+fn lightGridSampleClamped(p: vec3<f32>) -> vec2<f32> {
+  let g = textureSampleLevel(lightGridTex, lightGridSampler, volumeUvw(p), 0.0);
+  return vec2(g.r + g.b, g.g);
+}
 `;
 }
+
+/** Group 1 bindings of the build pass for the sky layer's field (its weather window, sampler and params; dummies while the layer is off). */
+export const LIGHT_GRID_SKY_BINDINGS = { weather: 4, sampler: 5, params: 6 } as const;
+/**
+ * P9-C3: the build's sun march past the box exit, through the distant layer's cheap field (profile * scale, the units of the reduced volume),
+ * times the layer's extinction multiplier. Needs SKY_STRUCT_WGSL, BILLOW_WGSL and SKY_FIELD_WGSL after it (light-grid.ts composes them).
+ */
+export const LIGHT_GRID_SKY_WGSL = /* wgsl */ `
+@group(1) @binding(4) var skyWeather: texture_2d<f32>;
+@group(1) @binding(5) var skySampler: sampler;
+@group(1) @binding(6) var<uniform> SKY: SkyParams;
+// The reach matches the sky layer's own sun samples (sky-layer.wgsl.ts SKY_SUN_T: out to 470 m, stretched by 1 / sin(elevation) up to 4x below
+// 45 degrees), so cloud on both sides of a wall sees about as much of the field toward the sun. A longer reach here (8 km) turned the voxel half
+// of a tower standing across the wall grey while the layer's half stayed white: the same split as the wall column, the other way round.
+const LG_OUT_REACH = 470.0;
+const LG_OUT_STEPS = 24u;
+fn lgOutside(o: vec3<f32>, d: vec3<f32>) -> f32 {
+  var tEnd = LG_OUT_REACH * clamp(0.7071 / max(d.y, 0.01), 1.0, 4.0);
+  if (d.y > 1e-4) { tEnd = min(tEnd, (SKY.shell.y - o.y) / d.y); } else if (d.y < -1e-4) { tEnd = min(tEnd, (SKY.shell.x - o.y) / d.y); }
+  var t = 0.0;
+  var acc = 0.0;
+  for (var i = 0u; i < LG_OUT_STEPS; i++) {
+    if (t >= tEnd) { break; }
+    let s = min(max(32.0, t * LG_STEP_GROWTH), tEnd - t);
+    let sp = skyModel(o + d * (t + 0.5 * s), -1.0, false);   // light = false: the box interior is the grid's
+    let v = sp.m.x * sp.m.z;
+    if (v > 0.0) { acc += v * s; t += s; } else { t += max(s, sp.skip); }
+  }
+  return acc * SKY.shapeC.z;
+}
+`;

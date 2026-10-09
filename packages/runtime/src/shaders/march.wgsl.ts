@@ -238,7 +238,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               var tauMicro = d.x * frame.microDist * frame.extinction;
               if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * frame.extinction; }
               let microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
-              let grid = lightGridSample(ps + sunGrid);
+              let grid = lightGridSampleClamped(ps + sunGrid);
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               let lit = cloudInScatterMicro(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc);

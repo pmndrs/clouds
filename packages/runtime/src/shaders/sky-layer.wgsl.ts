@@ -167,13 +167,20 @@ fn skySmooth(cov: f32, hz: f32, L: SkyRow, lift: f32) -> Smooth {
 fn worleyF1v(q: vec3<f32>, s: u32) -> vec4<f32> {
   let i = vec3<i32>(floor(q));
   let f = fract(q);
-  var m = 4.0;
-  var best = vec3(0.0);
+  // P9-C3: the own cell first, then a neighbour only if its cell box is nearer than the best point so far (squared distances per axis to the
+  // lower / upper neighbour slab): the same F1 and offset as the full 27-cell search, with fewer hashes.
+  let dn = f * f;
+  let dp = (1.0 - f) * (1.0 - f);
+  var best = hash3f(i, s) - f;
+  var m = dot(best, best);
   for (var z = -1; z <= 1; z++) { for (var y = -1; y <= 1; y++) { for (var x = -1; x <= 1; x++) {
-    let o = vec3<i32>(x, y, z);
-    let d = vec3<f32>(o) + hash3f(i + o, s) - f;
-    let dd = dot(d, d);
-    if (dd < m) { m = dd; best = d; }
+    let box = select(select(0.0, dp.x, x > 0), dn.x, x < 0) + select(select(0.0, dp.y, y > 0), dn.y, y < 0) + select(select(0.0, dp.z, z > 0), dn.z, z < 0);
+    if (box < m && (x != 0 || y != 0 || z != 0)) {
+      let o = vec3<i32>(x, y, z);
+      let d = vec3<f32>(o) + hash3f(i + o, s) - f;
+      let dd = dot(d, d);
+      if (dd < m) { m = dd; best = d; }
+    }
   } } }
   return vec4(best, sqrt(m));
 }
@@ -206,21 +213,24 @@ fn billowGrad(pm: vec3<f32>, cell0: f32, s0: u32, dist: f32, octaves: u32) -> ve
 // cheap light samples, debug). light = true: the box is never masked (light samples see the cloud inside the box too).
 // bGiven / useGiven: reuse this billow evaluation (gradient, value) instead of evaluating the Worley octaves: the in-line sun
 // samples sit 8-32 m from the view sample, well under the finest octave's cell, so its billow stands in for theirs.
-struct SkyModel { m: vec3<f32>, depth: f32, hz: f32, skip: f32, f: f32, b: vec4<f32>, empty2d: bool }
+struct SkyModel { m: vec3<f32>, depth: f32, hz: f32, skip: f32, f: f32, b: vec4<f32>, n: vec2<f32>, empty2d: bool }
+// P9-C3: what a light sample reuses from its view sample: the billow (b, as before) and the profile's depth noise and surface patch (n: the
+// noise exponent and patchN). Both vary over 36 m and more; the in-line sun samples sit 8-32 m away. valid = false: evaluate everything.
+struct SkyGiven { b: vec4<f32>, n: vec2<f32>, valid: bool }
 
 // The generator's wind-shear lean (P9-B, shaders.ts weatherAt): a column reads the weather lean metres upwind per metre above the shell
 // base, so every cloud's top is displaced downwind by lean * height and clouds straddling the box wall continue across it.
 fn skyLean() -> vec2<f32> { return SKY.wOrigin.zw; }
 
 fn skyModel(p0: vec3<f32>, lodDistance: f32, light: bool) -> SkyModel {
-  return skyModelB(p0, lodDistance, light, vec4(0.0), false);
+  return skyModelB(p0, lodDistance, light, SkyGiven(vec4(0.0), vec2(0.0), false));
 }
 // One layer of the field at a point (P9-C: the low species layer or the upper altocumulus one): cov and its gradient dcov (per metre, x and z),
 // the layer's row L, its base rim lift, the billow weight wb (the weather's B for the low layer, 1 for the upper one), the species g (old detail law).
 fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L: SkyRow, lift: f32, wb: f32, g: f32, alto: bool, lodDistance: f32,
-    bGiven: vec4<f32>, useGiven: bool) -> SkyModel {
+    given: SkyGiven) -> SkyModel {
   var r: SkyModel;
-  r.m = vec3(0.0); r.depth = 0.0; r.skip = 0.0; r.f = -1.0; r.b = vec4(0.0); r.empty2d = false; r.hz = hz;
+  r.m = vec3(0.0); r.depth = 0.0; r.skip = 0.0; r.f = -1.0; r.b = vec4(0.0); r.n = vec2(0.0); r.empty2d = false; r.hz = hz;
   let prof = skyProfiles();
   let sm = skySmooth(cov, hz, L, lift);
   // Gradient of the smooth field: xz through the coverage gradient, y analytic (plus the coverage change along the lean).
@@ -245,8 +255,6 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
     let thick = pow(max(sm.s, 0.0), 1.0 / sm.p) * (L.top - sm.base) * shellH;
     let pmb = pm + vec3(0.0, 0.0, select(0.0, thinNoiseOffset(thick), prof));
     let seed = u32(SKY.billow.z * 131.0) + select(0u, 5u, alto);
-    let b = select(billowGrad(pmb, SKY.billow.y * L.bCell, seed, lodDistance, select(3u, 2u, alto)), bGiven, useGiven);
-    r.b = b;
     let A = SKY.billow.x * 3.0 * L.bAmp;
     // P9-B: times the owning cloud's billow weight (B), as the generator does: a small puff keeps a billow sized for it, not for a 1 km cloud.
     // P9-C: with the profile table the ceiling is the shell's top (the generator's volume top), so congestus tops billow.
@@ -254,6 +262,20 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
     let topW = mix(0.45, 1.0, smoothstep(0.1, 0.7, sm.hcol)) * ceiling * wb;
     // P9-C2: the outward billow lifts a column by at most about half its height, as the generator (generate/shaders.ts BILLOW_LIFT).
     let ampW = A * topW;
+    // P9-C3: the billow value is at most 0.64 (billowGrad: a - 0.36, a <= 1), so K <= kMax and the surface sits no higher than x_s(kMax) in
+    // smooth-field units (x_s falls as K grows). Below it the sample is empty whatever the Worley octaves say: skip them, and step by the smooth
+    // field's distance to that level (the global SKY_BILLOW_REACH below assumes the largest billow anywhere; a small puff's is much smaller).
+    let kMax = select(0.64 * ampW, min(0.64 * ampW, BILLOW_LIFT * sm.p * max(sm.s, 0.0)), prof);
+    let reach = surfaceF00(kMax);
+    if (smf < reach - 0.005) {
+      r.f = smf + kMax * nearRamp(smf);   // an upper bound of f0 (< 0): the layer union still prefers the other layer's cloud
+      r.skip = max((reach - smf) / max(1.5 * length(grad), 1e-3), 2.0);
+      return r;
+    }
+    // P9-C3: a branch, not select(): select() evaluates both operands, so every in-line sun sample also ran the Worley octaves it meant to reuse.
+    var b = given.b;
+    if (!given.valid) { b = billowGrad(pmb, SKY.billow.y * L.bCell, seed, lodDistance, select(3u, 2u, alto)); }
+    r.b = b;
     let K0 = b.w * ampW;
     let K = select(K0, min(K0, BILLOW_LIFT * sm.p * max(sm.s, 0.0)), prof);
     let freeK = K == K0;
@@ -286,16 +308,20 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   let depth = max(min(fs / gl, min(hBase, hTop) * hUnit), 0.0);
   r.depth = depth;
   // The generator's PACK_FIT profile with its multiplicative depth noise (same noise, same coordinates and seed); the cheap
-  // light samples skip the noise (it averages out along a light ray).
+  // light samples skip the noise (it averages out along a light ray), the in-line ones reuse their view sample's (P9-C3).
   var dEff = depth;
   var patchN = 0.0;
-  if (lodDistance >= 0.0) {
+  if (given.valid) {
+    patchN = given.n.y;
+    dEff = depth * exp(SKY.extra.y * given.n.x);
+  } else if (lodDistance >= 0.0) {
     var n = clamp(profileNoise(pm, SKY.extra.x, u32(SKY.billow.z * 53.0)) * 3.4, -2.5, 2.5);
     // P9-C2: the generator's surface patches (generate/shaders.ts surfacePatch): profile depth law and detail flip, with the profile table.
     // (Near the camera only: beyond 4 km the layer's pixels are larger than the dimples the patches break up, and it saves the noise.)
     let patchW = 1.0 - smoothstep(2500.0, 4000.0, lodDistance);
     if (L.flip >= 0.0 && patchW > 0.0) { patchN = patchW * surfacePatch(pm, u32(SKY.billow.z * 53.0) + 31u); n = n + 1.2 * patchN; }
     dEff = depth * exp(SKY.extra.y * n);
+    r.n = vec2(n, patchN);
   }
   let core = pow(clamp((dEff - 1.4) / 66.0, 0.0, 1.0), 1.05);
   let liftP = 0.1 + 0.9 * smoothstep(0.0, 0.22, sm.hcol);
@@ -308,9 +334,9 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   return r;
 }
 
-fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, useGiven: bool) -> SkyModel {
+fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, given: SkyGiven) -> SkyModel {
   var r: SkyModel;
-  r.m = vec3(0.0); r.depth = 0.0; r.skip = 0.0; r.f = -1.0; r.b = vec4(0.0); r.empty2d = false;
+  r.m = vec3(0.0); r.depth = 0.0; r.skip = 0.0; r.f = -1.0; r.b = vec4(0.0); r.n = vec2(0.0); r.empty2d = false;
   let shellH = max(SKY.shell.y - SKY.shell.x, 1.0);
   // Planet curvature: the shell drops away from the box centre.
   let c = p0.xz - (SKY.box.xy + SKY.box.zw * 0.5);
@@ -358,12 +384,12 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, bGiven: vec4<f32>, us
   let wdz = textureSampleLevel(skyWeather, skySampler, wuv + vec2(0.0, 1.0 / dims.y), 0.0) - w;
   if (cov > thr) {
     let dcov = vec2(wdx.r, wdz.r) * fade / texel;   // per metre (x, z)
-    out = skyLayerAt(pm, r.hz, shellH, cov, dcov, skyRow(w.g, shellH), SKY.shapeA.w, select(1.0, w.b, SKY.shapeB.y > 0.5), w.g, false, lodDistance, bGiven, useGiven);
+    out = skyLayerAt(pm, r.hz, shellH, cov, dcov, skyRow(w.g, shellH), SKY.shapeA.w, select(1.0, w.b, SKY.shapeB.y > 0.5), w.g, false, lodDistance, given);
     have = true;
   }
   if (covA > thr) {
     let dcov = vec2(wdx.a, wdz.a) * fade / texel;
-    let a = skyLayerAt(pm, r.hz, shellH, covA, dcov, skyAltoRow(), 0.5 * SKY.shapeA.w, 1.0, 0.5, true, lodDistance, bGiven, useGiven);
+    let a = skyLayerAt(pm, r.hz, shellH, covA, dcov, skyAltoRow(), 0.5 * SKY.shapeA.w, 1.0, 0.5, true, lodDistance, given);
     // The voxel belongs to the layer whose field is larger (the generator's union); empty in both, skip by the nearer one.
     let bothEmpty = !(a.m.x > 0.0) && !(out.m.x > 0.0);
     let skip = min(a.skip, out.skip);
@@ -450,8 +476,8 @@ const SKY_LIGHT_REFRESH_M = 24.0;      // lighting varies slowly along the ray: 
 const SKY_LIGHT_REFRESH_REL = 0.03;
 ${SKY_FIELD_WGSL}
 // Full up-rez density at a light-sample point (the in-line sun samples: the surface detail matters there).
-fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, b: vec4<f32>) -> f32 {
-  let sm = skyModelB(p, rayDistance, true, b, true);
+fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, view: SkyModel) -> f32 {
+  let sm = skyModelB(p, rayDistance, true, SkyGiven(view.b, view.n, true));
   if (!(sm.m.x > 0.0)) { return 0.0; }
   return cloudDensityShaped(p, rayDistance, inputs, sm.m, saturate(sm.hz)).x;
 }
@@ -550,8 +576,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (sigma * ds > SKY_LIGHT_MIN_OPTICAL_DEPTH) {
               if (ts - litT > SKY_LIGHT_REFRESH_M + SKY_LIGHT_REFRESH_REL * ts) {
                 litT = ts;
-                let d0 = skyDensityLight(ps + sunInline0, ts, inputs, sp.b);
-                let d1 = skyDensityLight(ps + sunInline1, ts, inputs, sp.b);
+                let d0 = skyDensityLight(ps + sunInline0, ts, inputs, sp);
+                let d1 = skyDensityLight(ps + sunInline1, ts, inputs, sp);
                 let tauInline = (d0 * INLINE_NEAR + d1 * (INLINE_FAR - INLINE_NEAR)) * ext;
                 var sunFar = 0.0;
                 for (var k = 0; k < 6; k++) { sunFar += skyModelCheap(ps + frame.sunDir * (SKY_SUN_T[k] * sunReach)) * (SKY_SUN_L[k] * sunReach); }

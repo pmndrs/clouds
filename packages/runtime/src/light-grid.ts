@@ -1,5 +1,8 @@
-import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_MAX_STEPS, LIGHT_GRID_PARAM_BYTES } from './shaders/light-grid.wgsl';
+import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_MAX_STEPS, LIGHT_GRID_PARAM_BYTES, LIGHT_GRID_SKY_BINDINGS, LIGHT_GRID_SKY_WGSL } from './shaders/light-grid.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
+import { COMMON_WGSL } from './shaders/common.wgsl';
+import { BILLOW_WGSL } from './generate/shaders';
+import { SKY_FIELD_WGSL, SKY_PARAM_BYTES, SKY_STRUCT_WGSL } from './shaders/sky-layer.wgsl';
 import type { GpuTimer } from './gpu-timer';
 
 export { lightGridWgsl, LIGHT_GRID_MAX_STEPS } from './shaders/light-grid.wgsl';
@@ -19,6 +22,7 @@ const PARAM_RING = 8;
 
 // Numeric flags so the module loads where the GPU* globals do not exist (unit tests).
 const TEXTURE_BINDING = 0x04, STORAGE_BINDING = 0x08, COPY_SRC = 0x01, COMPUTE = 0x4, BUF_UNIFORM = 0x40, BUF_COPY_DST = 0x08;
+const SKY = LIGHT_GRID_SKY_BINDINGS;
 
 /** Grid dims in texture axes (x, map row, up): ceil(volume dims / 2), at least 16 per axis. */
 export function lightGridDims(volumeDims: readonly [number, number, number]): [number, number, number] {
@@ -31,6 +35,11 @@ export interface LightGridFrameParams {
   /** Multiplier on the summed profile*density (raw 0..1 units). */
   densityScale: number;
   frameIndex: number;
+  /**
+   * P9-C3: the sky layer's weather window, sampler and params while it renders (SkyLayer.domeResources), else null. The build continues each sun
+   * ray past the box through that field, so voxel cloud next to a wall is shadowed by the cloud beyond it. A change of identity rebuilds the grid.
+   */
+  sky?: { weather: GPUTexture; sampler: GPUSampler; params: GPUBuffer } | null;
 }
 
 export interface SliceDispatch { z0: number; z1: number; sun: [number, number, number]; densityScale: number; target: 0 | 1 }
@@ -169,6 +178,9 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       { binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } },
       { binding: 2, visibility: COMPUTE, texture: { sampleType: 'float', viewDimension: '3d' } },
       { binding: 3, visibility: COMPUTE, sampler: { type: 'filtering' } },
+      { binding: SKY.weather, visibility: COMPUTE, texture: { sampleType: 'float' } },
+      { binding: SKY.sampler, visibility: COMPUTE, sampler: { type: 'filtering' } },
+      { binding: SKY.params, visibility: COMPUTE, buffer: { type: 'uniform' } },
     ],
   });
   // The reduce pass writes the reduced volume, so it cannot share a bind group with the build (which samples it).
@@ -176,7 +188,7 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     label: 'light grid reduce',
     entries: [{ binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } }],
   });
-  const module = device.createShaderModule({ label: 'light grid build', code: volumeWgsl(0) + LIGHT_GRID_BUILD_WGSL });
+  const module = device.createShaderModule({ label: 'light grid build', code: COMMON_WGSL + volumeWgsl(0) + LIGHT_GRID_BUILD_WGSL + LIGHT_GRID_SKY_WGSL + SKY_STRUCT_WGSL + BILLOW_WGSL + SKY_FIELD_WGSL });
   const pipeline = device.createComputePipeline({
     label: 'light grid build',
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, passLayout] }),
@@ -190,10 +202,24 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
   const reduceGroup = device.createBindGroup({ label: 'light grid reduce', layout: reduceLayout, entries: [{ binding: 1, resource: reducedView }] });
   let reducedValid = false;
   const paramBuffers = Array.from({ length: PARAM_RING }, (_, i) => device.createBuffer({ label: `light grid params ${i}`, size: LIGHT_GRID_PARAM_BYTES, usage: BUF_UNIFORM | BUF_COPY_DST }));
-  const passBindGroups = [0, 1].map(t => paramBuffers.map((b, i) => device.createBindGroup({
-    label: `light grid pass ${t}/${i}`, layout: passLayout,
-    entries: [{ binding: 0, resource: { buffer: b } }, { binding: 1, resource: views[t] }, { binding: 2, resource: reducedView }, { binding: 3, resource: sampler }],
-  })));
+  // Stand-ins for the sky layer's resources while it is off (skyOn = 0 skips the field).
+  const dummyWeather = device.createTexture({ label: 'light grid dummy weather', size: [1, 1], format: 'rgba8unorm', usage: TEXTURE_BINDING });
+  const dummyParams = device.createBuffer({ label: 'light grid dummy sky params', size: SKY_PARAM_BYTES, usage: BUF_UNIFORM });
+  let skyKey: GPUTexture | null = null;
+  let skyParamsKey: GPUBuffer | null = null;
+  let passBindGroups: GPUBindGroup[][] = [];
+  const makeGroups = (sky: LightGridFrameParams['sky']) => {
+    passBindGroups = [0, 1].map(t => paramBuffers.map((b, i) => device.createBindGroup({
+      label: `light grid pass ${t}/${i}`, layout: passLayout,
+      entries: [
+        { binding: 0, resource: { buffer: b } }, { binding: 1, resource: views[t] }, { binding: 2, resource: reducedView }, { binding: 3, resource: sampler },
+        { binding: SKY.weather, resource: (sky?.weather ?? dummyWeather).createView() },
+        { binding: SKY.sampler, resource: sky?.sampler ?? sampler },
+        { binding: SKY.params, resource: { buffer: sky?.params ?? dummyParams } },
+      ],
+    })));
+  };
+  makeGroups(null);
   const scheduler = new LightGridScheduler(dims[2], lightGridPasses(dims));
   const paramData = new ArrayBuffer(LIGHT_GRID_PARAM_BYTES);
   const f32 = new Float32Array(paramData), u32 = new Uint32Array(paramData);
@@ -214,6 +240,13 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       return [{ binding, resource: views[textureIndex] }, { binding: binding + 1, resource: sampler }];
     },
     encode(encoder, volumeBindGroup, params, timer) {
+      const sky = params.sky ?? null;
+      if ((sky?.weather ?? null) !== skyKey || (sky?.params ?? null) !== skyParamsKey) {
+        // The field beyond the box changed (the layer was turned on or off, or a new weather window swapped in): rebuild.
+        skyKey = sky?.weather ?? null; skyParamsKey = sky?.params ?? null;
+        makeGroups(sky);
+        scheduler.invalidate();
+      }
       const result = scheduler.step(params.sunDirection, params.densityScale, params.frameIndex);
       const d = result.dispatch;
       if (!d) return result;
@@ -228,7 +261,7 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       }
       const slot = ring++ % PARAM_RING;
       f32[0] = d.sun[0]; f32[1] = d.sun[1]; f32[2] = d.sun[2]; f32[3] = d.densityScale;
-      u32[4] = d.z0; u32[5] = LIGHT_GRID_MAX_STEPS; u32[6] = 0; u32[7] = 0;
+      u32[4] = d.z0; u32[5] = LIGHT_GRID_MAX_STEPS; u32[6] = skyKey ? 1 : 0; u32[7] = 0;
       device.queue.writeBuffer(paramBuffers[slot], 0, paramData);
       const pass = encoder.beginComputePass({ label: 'light grid', timestampWrites: timer?.passTimestampWrites('lightGrid') });
       pass.setPipeline(pipeline);
@@ -239,6 +272,6 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       return result;
     },
     invalidate() { reducedValid = false; scheduler.invalidate(); },
-    destroy() { textures[0].destroy(); textures[1].destroy(); reduced.destroy(); paramBuffers.forEach(b => b.destroy()); },
+    destroy() { textures[0].destroy(); textures[1].destroy(); reduced.destroy(); paramBuffers.forEach(b => b.destroy()); dummyWeather.destroy(); dummyParams.destroy(); },
   };
 }

@@ -101,10 +101,10 @@ const SDF_SKIP_MARGIN = 6.0;
 const SDF_SKIP_RANGE = 48.0;
 const LIGHT_MIN_OPTICAL_DEPTH = 2.0e-3;
 
-const SKY_SUN_T = array<f32, 6>(64.0, 100.0, 145.0, 205.0, 285.0, 400.0);
-const SKY_SUN_L = array<f32, 6>(32.0, 40.0, 50.0, 70.0, 90.0, 140.0);
-const SKY_UP_T = array<f32, 3>(24.0, 80.0, 192.0);
-const SKY_UP_L = array<f32, 3>(48.0, 64.0, 160.0);
+const DOME_LIGHT_REFRESH_M = 24.0;
+const DOME_LIGHT_REFRESH_REL = 0.03;
+const DOME_SUN_T = array<f32, 3>(84.0, 180.0, 355.0);
+const DOME_SUN_L = array<f32, 3>(72.0, 120.0, 230.0);
 
 fn shade(texel: vec2<u32>) {
   let dir = domeOctDecode((vec2<f32>(texel) + 0.5) / f32(dome.size));
@@ -147,6 +147,7 @@ fn shade(texel: vec2<u32>) {
     var sdfBound = 0.0;
     var sdfFetchT = -1.0e9;
     var capped = true;
+    var litT = -1.0e9; var litTau = 0.0; var litUp = 0.0;   // the sky field's last light evaluation (P9-C3)
     for (var i = 0u; i < dome.maxSteps; i++) {
       if (t >= tEnd || T < frame.tCutoff) { capped = false; break; }
       let inBox = boxHit && t >= interval.x && t < interval.y;
@@ -173,7 +174,7 @@ fn shade(texel: vec2<u32>) {
                 let m0 = sampleModeling(ps + sunInline0, 0.0);
                 let m1 = sampleModeling(ps + sunInline1, 0.0);
                 let tauInline = (m0.x * m0.z * INLINE_NEAR + m1.x * m1.z * (INLINE_FAR - INLINE_NEAR)) * ext;
-                let grid = lightGridSample(ps + sunGrid);
+                let grid = lightGridSampleClamped(ps + sunGrid);
                 let tau = tauInline + grid.x * frame.lightDensityScale;
                 let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
                 let lit = cloudInScatter(ps0, sdf, h, tau, grid.y, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
@@ -195,14 +196,21 @@ fn shade(texel: vec2<u32>) {
           let sigma = ps0 * ext;
           let stepT = exp(-sigma * ds);
           if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
-            // The layer's light: two in-line cheap samples, six farther along the sun ray, three straight up (the voxel light grid, analytically).
-            let c0 = skyModelCheap(ps + sunInline0);
-            let c1 = skyModelCheap(ps + sunInline1);
-            var sunFar = 0.0;
-            for (var k = 0; k < 6; k++) { sunFar += skyModelCheap(ps + frame.sunDir * SKY_SUN_T[k]) * SKY_SUN_L[k]; }
-            var gridUp = 0.0;
-            for (var k = 0; k < 3; k++) { gridUp += skyModelCheap(ps + vec3(0.0, SKY_UP_T[k], 0.0)) * SKY_UP_L[k]; }
-            let tau = (c0 * INLINE_NEAR + c1 * (INLINE_FAR - INLINE_NEAR)) * ext + sunFar * ext * frame.lightDensityScale;
+            // The layer's light (the voxel light grid, analytically): two in-line cheap samples, three farther along the sun ray, two straight up.
+            // P9-C3: the sky layer's six far and three up samples merged pairwise (same segments: 48-120, 120-240, 240-470 m toward the sun; 0-112,
+            // 112-272 m up), and re-evaluated only every 24 m + 3% of the distance, as the layer does (the dome is a 256^2 reflection; a texel is
+            // 12 m at 1 km). About a third less dome time on the mixed sky.
+            if (ts - litT > DOME_LIGHT_REFRESH_M + DOME_LIGHT_REFRESH_REL * ts) {
+              litT = ts;
+              let c0 = skyModelCheap(ps + sunInline0);
+              let c1 = skyModelCheap(ps + sunInline1);
+              var sunFar = 0.0;
+              for (var k = 0; k < 3; k++) { sunFar += skyModelCheap(ps + frame.sunDir * DOME_SUN_T[k]) * DOME_SUN_L[k]; }
+              litUp = skyModelCheap(ps + vec3(0.0, 56.0, 0.0)) * 112.0 + skyModelCheap(ps + vec3(0.0, 192.0, 0.0)) * 160.0;
+              litTau = (c0 * INLINE_NEAR + c1 * (INLINE_FAR - INLINE_NEAR)) * ext + sunFar * ext * frame.lightDensityScale;
+            }
+            let tau = litTau;
+            let gridUp = litUp;
             let lit = cloudInScatter(ps0, -sp.depth, saturate(sp.hz), tau, gridUp * ext, phase, sunRelax, sunRadiance, ambientUp, ambientDown);
             depthMax = max(depthMax, sp.depth);
             radiance += lit * (T * (1.0 - stepT));

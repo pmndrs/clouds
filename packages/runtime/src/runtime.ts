@@ -873,7 +873,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
 
       // The grid holds extinction-scaled optical depth; it re-slices over 8 frames when the sun or the scale moves.
-      const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: settings.densityScale, frameIndex: frame.frameIndex }, timer);
+      const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: settings.densityScale, frameIndex: frame.frameIndex, sky: skyActive ? skyLayer.domeResources : null }, timer);
 
       if (uniformLighting) {
         // One sun for every height ([3] = [4] = log sun, heights 0 and 1 m, no earth shadow), the environment pair = the ambient pair (see SKY_LIGHT_ENTRIES).
