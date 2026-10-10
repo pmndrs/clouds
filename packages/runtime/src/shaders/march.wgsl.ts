@@ -246,8 +246,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               var lit: vec3<f32>;
+              // H3: the ambient's up sum is read at the sample itself. The sun tap (48 m toward the sun) landed inside the neighbouring
+              // tower on shaded walls and under dense cores, so the ambient darkened by that column, not the cloud above the sample.
               if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
-              else { lit = cloudInScatterMicro(d.y, sdf, h, tau, grid.y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc); }
+              else { lit = cloudInScatterMicro(d.y, sdf, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc); }
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);

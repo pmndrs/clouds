@@ -1,0 +1,184 @@
+{
+  "url": "http://127.0.0.1:62484/open-water/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T03:50:14.369Z",
+  "shots": [
+    {
+      "name": "shore",
+      "file": "work/captures/H3/ow-after/shore.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5339516166666666,
+          "lightGridReduce": 0.192581,
+          "lightGrid": 0.37353099999999995,
+          "marchNear": 0.06028943333333334,
+          "marchFar": 1.3563280666666666,
+          "shadowMap": 0.2353165333333334,
+          "composite": 0.2623216833333334,
+          "dome": 0.2889685166666666,
+          "skyWeather": 0.5309738333333334,
+          "resolveNear": 0.025801650000000006,
+          "resolveFar": 0.037408466666666675,
+          "skyWeatherMips": 0.095916,
+          "skyLayer": 1.5617825166666666,
+          "skyResolve": 0.08513678333333334,
+          "cloudsTotal": 5.106355483333334,
+          "total": 5.6403071
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "shore",
+        "frames": 285,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 873.8000000119209,
+          "encodeSubmitMsTotal": 3.100000023841858
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/H3/ow-after/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6347012666666667,
+          "lightGridReduce": 0.192581,
+          "lightGrid": 0.30886766666666665,
+          "marchNear": 0.05570053333333332,
+          "marchFar": 1.65965805,
+          "shadowMap": 0.32559435,
+          "composite": 0.22896123333333332,
+          "dome": 0.29521488333333334,
+          "skyWeather": 0.5309738333333334,
+          "resolveNear": 0.021272000000000003,
+          "resolveFar": 0.037837566666666676,
+          "skyWeatherMips": 0.095916,
+          "skyLayer": 1.3946648333333336,
+          "skyResolve": 0.07734343333333332,
+          "cloudsTotal": 5.224585383333333,
+          "total": 5.85928665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 383,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 873.8000000119209,
+          "encodeSubmitMsTotal": 3.100000023841858
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/H3/ow-after/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.5377085500000001,
+          "lightGridReduce": 0.192581,
+          "lightGrid": 0.3278103877551021,
+          "marchNear": 0.051504749999999995,
+          "marchFar": 1.6601379,
+          "shadowMap": 0.3345532,
+          "composite": 0.23264714999999997,
+          "dome": 0.26077730000000005,
+          "skyWeather": 0.5309738333333334,
+          "resolveNear": 0.02025455,
+          "resolveFar": 0.035127266666666664,
+          "skyWeatherMips": 0.095916,
+          "skyLayer": 1.372491633333333,
+          "skyResolve": 0.08150221666666661,
+          "cloudsTotal": 5.1962771877551015,
+          "total": 5.733985737755102
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "sunset",
+        "frames": 481,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 873.8000000119209,
+          "encodeSubmitMsTotal": 3.100000023841858
+        }
+      }
+    },
+    {
+      "name": "flight",
+      "file": "work/captures/H3/ow-after/flight.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7505392000000002,
+          "lightGridReduce": 0.192581,
+          "lightGrid": 0.25319405,
+          "marchNear": 0.060500500000000026,
+          "marchFar": 1.2605397333333337,
+          "shadowMap": 0.32198180000000004,
+          "composite": 0.30603966666666665,
+          "dome": 0.39174055,
+          "skyWeather": 0.5309738333333334,
+          "resolveNear": 0.023380150000000002,
+          "resolveFar": 0.03664125000000001,
+          "skyWeatherMips": 0.095916,
+          "skyLayer": 1.5426096833333331,
+          "skyResolve": 0.08855211666666664,
+          "cloudsTotal": 5.104650333333333,
+          "total": 5.855189533333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "flight",
+        "frames": 580,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 873.8000000119209,
+          "encodeSubmitMsTotal": 3.100000023841858
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

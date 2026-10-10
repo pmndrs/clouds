@@ -2021,7 +2021,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Does:** for each existing hython builder (`build_heroes.py`, `sim/sim_clouds.py`, `sim/library.py`, `sim/targets.py`), save the network it builds as a `.hip` with a `CONTROLS` null exposing the key parameters, sticky notes explaining each stage, and no cooked caches. One command regenerates all rigs. Plan in `docs/research/topics/authoring.md` ("Rigs the owner can open").
 - **Acceptance:** each `.hip` opens in Houdini 21 (verify by loading in hython and cooking the first stage), small file sizes listed, README section for the owner.
 
-### [~] H3 Dark smudges on the flagship ground view (bug) · Opus
+### [r] H3 Dark smudges on the flagship ground view (bug) · Opus (ambient falloff exp → diffuse + up-sum tap at the sample)
 - **Owns:** whatever files the cause is in (declare them in the report before editing; not `procedural/` or `examples/lab/compare/`, which H1 owns), `work/reports/H3.md`, `work/captures/H3/`.
 - **Does:** `work/captures/H2/bias-sheet-fl-ground.jpg` shows soft, round, dark grey blotches inside a lit cumulus seen from the ground (left lobe, centre). They are present before and after H2. Find the cause (light grid resolution or filtering, shadow/ambient term, temporal history, the inner-glow/dark-edge term, or the asset) and fix it if the fix is small; otherwise report the cause and options.
 - **Acceptance:** before/after captures of flagship ground/edge/above; no regression elsewhere.

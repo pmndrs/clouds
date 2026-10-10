@@ -89,7 +89,7 @@ export interface CloudSettings {
   /** Anisotropy of the base lobe (Nubis: about 0.2) and of the forward lobe. */
   phaseG: number;
   silverG: number;
-  /** Scales the optical depth the ambient light sees on its way down (exp(-k * tauUp)). */
+  /** Scales the optical depth the ambient light sees on its way down (diffuse falloff 1 / (1 + k * tauUp), H3). */
   ambientExtinction: number;
   /** 0..1: front-lit (sun behind the viewer) darkening of low in-scatter-probability regions (the edges): the direct light is modulated by the profile. 0 = off. */
   edgeDarkening: number;

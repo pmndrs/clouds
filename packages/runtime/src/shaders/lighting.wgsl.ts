@@ -61,7 +61,10 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
   let tauUp = gridUp * frame.lightDensityScale * frame.ambientExtinction;
   // P3-F: sky light diffuses through thick cloud instead of dying: the attenuation saturates at ambientFloor, and so does the
   // profile occlusion (a thick base is lit by what scatters in from the sides and below, not just by what comes straight down).
-  let above = mix(frame.ambientFloor, 1.0, exp(-tauUp));
+  // H3: diffuse (two-stream) falloff 1 / (1 + tauUp) instead of exp(-tauUp). Sky light reaches a base by multiple scattering, which
+  // falls off about linearly in optical depth; the exponential sent only the few densest columns (the asset's dense cores) to the
+  // floor while the rest stayed white, so each core printed a round, soft dark blotch on the lit base seen from below.
+  let above = mix(frame.ambientFloor, 1.0, 1.0 / (1.0 + tauUp));
   let occlusion = mix(frame.ambientFloor, 1.0, sqrt(1.0 - saturate(profile)));
   let skyWeight = frame.ambientSkyBias + (1.0 - frame.ambientSkyBias) * h;
   let ambient = AMBIENT_GAIN * frame.ambientStrength * occlusion * mix(ambientDown, ambientUp * above, skyWeight);
