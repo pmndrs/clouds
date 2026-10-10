@@ -63,6 +63,8 @@ try {
   sun.attach(scene);
   await sky.compileAsync();
   const clouds = new Clouds(renderer, { sky, quality: (query.get('quality') as CloudQuality) ?? 'high' });
+  // P1: ?s.<key>=<value> overrides runtime settings (same form as the flagship), e.g. ?s.noiseInvert=1&s.detailTypeOverride=1
+  for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in clouds.settings) (clouds.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
   const post = new RenderPipeline(renderer);
   const scenePass = pass(scene, camera);
   post.outputNode = clouds.node(scenePass.getTextureNode(), scenePass);

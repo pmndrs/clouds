@@ -801,7 +801,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunReach = clamp(0.7071 / max(dot(frame.sunDir, vec3(0.0, 1.0, 0.0)), 0.01), 1.0, 4.0);
     // Same up-rez inputs as the voxel march (Q2: with its erosion bias, which the layer had left at 0: softer, rounder clouds than the voxel field
     // next to them); the high-frequency fold is a near-camera detail (rayDistance < 150 m only).
-    let inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
+    let inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
     let maxSteps = u32(SKY.steps.z);
     var capped = true;
     var t = t0;

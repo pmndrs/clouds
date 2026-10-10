@@ -155,6 +155,19 @@ export interface CloudSettings {
   hazeBase: number;
   /** P13-H1: scales the erosion noise inside fine bricks (1 = Nubis; 0.6-1 if fine heroes read double-detailed). */
   fineErosion: number;
+  /**
+   * P1 (pits vs billows) up-rez noise convention. Bit flags: 1 = billowy channels (B/A, Alligator) read as 1 - n, 2 = wispy channels
+   * (R/G, Curly-Alligator) read as 1 - n. 0 = the pack's texture as shipped (assets/nubis-voxel-clouds/Noise), the source-correct default.
+   */
+  noiseInvert: number;
+  /** P1 diagnostic: < 0 = the NVDF's detail type (default); 0..1 = that constant type everywhere (0 wispy, 1 billowy). */
+  detailTypeOverride: number;
+  /**
+   * P1: 0..1, how far the detail type is lifted to the density scale, type = mix(T, max(T, S), typeFromScale). 0 = Nubis (raw NVDF type).
+   * Reading of the s98/s100 comment "blend to wispy as the density scale decreases": dense regions stay billowy, so the wispy
+   * Curly-Alligator channels (isolated bright blobs that erode into round holes) cannot pit an opaque surface.
+   */
+  typeFromScale: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
   windOffset: [number, number, number];
   windVelocity: [number, number, number];
@@ -437,7 +450,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     temporalNear: startPreset.temporalNear, temporalFar: startPreset.temporalFar, temporalBlend: 0.3,
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,
     shadowStrength: 0.6, compositeShadow: 1, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
-    microDist: startPreset.microDist, microShadow: 1, detailBias: 0, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
+    noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0, microDist: startPreset.microDist, microShadow: 1, detailBias: 0, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
     fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
     bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
     hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
@@ -882,6 +895,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       lowSun = 1 - sunUp;
       f[84] = settings.bodySunFloor + (1 - settings.bodySunFloor) * sunUp; f[85] = settings.bodyEnv;
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
+      f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for

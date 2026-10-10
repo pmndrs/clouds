@@ -55,7 +55,7 @@ struct PointIn { p: vec4<f32>, w: vec4<f32> }   // p.xyz position, p.w ray dista
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
   if (id.x >= arrayLength(&pts)) { return; }
   let pt = pts[id.x];
-  let inputs = DensityInputs(pt.w.xyz, 0.0, 0.0, bitcast<u32>(pt.w.w), 0.0, 0.0);
+  let inputs = DensityInputs(pt.w.xyz, 0.0, 0.0, bitcast<u32>(pt.w.w), 0.0, 0.0, vec4(0.0, -1.0, 0.0, 0.0));
   outDensity[id.x] = cloudDensity(pt.p.xyz, pt.p.w, inputs);
   outModel[id.x] = vec4(sampleModeling(pt.p.xyz, 0.0), 0.0);
   outNoise[id.x] = textureSampleLevel(cloudNoise, repeatSampler, (pt.p.xyz - pt.w.xyz) * cloudVolume.noiseScale, 0.0);

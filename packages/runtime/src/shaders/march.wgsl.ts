@@ -177,9 +177,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
     let sunGrid = frame.sunDir * INLINE_FAR;
     let invExtentY = 1.0 / cloudVolume.extent.y;
-    var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
+    var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
-    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias);
+    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
     let flashOn = frame.flash.w > 0.0;   // uniform: the whole glow below is skipped (never evaluated) when no flash is active
     let flashRef = dot(sunRadiance + ambientUp, vec3(0.2126, 0.7152, 0.0722));   // exposure reference: the scene's own light, no literal brightness
     let sunMicro = frame.sunDir * (0.5 * frame.microDist);

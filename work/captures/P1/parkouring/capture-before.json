@@ -1,0 +1,182 @@
+{
+  "url": "http://127.0.0.1:63240/flagship/?cloud=parkouring&quality=ultra&clean=1&base=1300&time=15.9",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T06:45:22.556Z",
+  "shots": [
+    {
+      "name": "photo",
+      "file": "work/captures/scratch/P1/parkouring-base/photo.jpg",
+      "report": {
+        "camera": [
+          460.80821784824775,
+          2,
+          1235.3349411320555
+        ],
+        "hfovDeg": 47.99999999999998,
+        "focusBox": {
+          "min": [
+            -368,
+            1364,
+            -368
+          ],
+          "max": [
+            368,
+            1660,
+            368
+          ]
+        },
+        "gpuMs": {
+          "scene": 0.7495143500000001,
+          "skyCompute": 0.250912,
+          "lightGridReduce": 0.042664,
+          "lightGrid": 0.09037,
+          "marchNear": 0.12301468333333333,
+          "marchFar": 3.0510763166666663,
+          "shadowMap": 0.020059,
+          "composite": 0.2903823833333333,
+          "dome": 0.10250884999999998
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.042664,
+          "lightGrid": 0.09037,
+          "marchNear": 0.114331,
+          "marchFar": 2.951538,
+          "shadowMap": 0.016167,
+          "composite": 0.258496,
+          "dome": 0.056291
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.59999999999991
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "photo",
+        "timeOfDay": 15.899999999999999,
+        "sunElevation": 38.79809624658686,
+        "sunAzimuth": 269.54333297645786,
+        "animateTime": false,
+        "quality": "ultra",
+        "qualityOption": "ultra",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 40435200,
+          "trace": 0,
+          "sky": 27993600,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1819584,
+          "shadow": 8388608,
+          "total": 79161280
+        },
+        "cloud": "parkouring",
+        "frames": 93,
+        "temporal": {
+          "near": 1,
+          "far": 1,
+          "resets": 2,
+          "frames": 93,
+          "bytes": 40435200
+        },
+        "assetLoadMs": 148,
+        "firstCloudFrameMs": 99.20000004768372
+      }
+    },
+    {
+      "name": "detail",
+      "file": "work/captures/scratch/P1/parkouring-base/detail.jpg",
+      "report": {
+        "camera": [
+          563.0074569808248,
+          2,
+          1509.310721440642
+        ],
+        "hfovDeg": 20,
+        "focusBox": {
+          "min": [
+            -368,
+            1364,
+            -368
+          ],
+          "max": [
+            368,
+            1660,
+            368
+          ]
+        },
+        "gpuMs": {
+          "scene": 0.4503125666666667,
+          "skyCompute": 0.083331,
+          "lightGridReduce": 0.042664,
+          "lightGrid": 0.09037,
+          "marchNear": 0.06891143333333333,
+          "marchFar": 3.547864633333334,
+          "shadowMap": 0.020059,
+          "composite": 0.21804729999999994,
+          "dome": 0.040046616666666666
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.042664,
+          "lightGrid": 0.09037,
+          "marchNear": 0.076957,
+          "marchFar": 3.323116,
+          "shadowMap": 0.016167,
+          "composite": 0.208122,
+          "dome": 0.043915
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "detail",
+        "timeOfDay": 15.899999999999999,
+        "sunElevation": 38.79809624658686,
+        "sunAzimuth": 269.54333297645786,
+        "animateTime": false,
+        "quality": "ultra",
+        "qualityOption": "ultra",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 40435200,
+          "trace": 0,
+          "sky": 27993600,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 1819584,
+          "shadow": 8388608,
+          "total": 79161280
+        },
+        "cloud": "parkouring",
+        "frames": 188,
+        "temporal": {
+          "near": 1,
+          "far": 1,
+          "resets": 3,
+          "frames": 188,
+          "bytes": 40435200
+        },
+        "assetLoadMs": 148,
+        "firstCloudFrameMs": 99.20000004768372
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

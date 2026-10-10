@@ -14,7 +14,9 @@
  */
 export const DENSITY_WGSL = /* wgsl */ `
 // wispyBias and detailBias are art knobs; 0 = the Nubis sampler (the parity page passes 0).
-struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, wispyBias: f32, detailBias: f32 }
+// uprez (P1): x = noise inversion bit flags (1 = billowy B/A read as 1 - n, 2 = wispy R/G read as 1 - n; 0 = the pack as shipped),
+// y = detail type override (< 0 = the modeling field's type, 0..1 = that constant), z = typeFromScale (0..1), w unused. vec4(0, -1, 0, 0) = the Nubis sampler.
+struct DensityInputs { wind: vec3<f32>, mipDistanceScale: f32, baseMip: f32, hfDetails: u32, wispyBias: f32, detailBias: f32, uprez: vec4<f32> }
 
 // x = full up-rezzed density (0..1, before extinction scaling), y = profile * density scale (cheap).
 fn cloudDensity(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
@@ -39,14 +41,23 @@ fn cloudDensityFine(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> ve
 fn cloudDensityShaped(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, modeling: vec3<f32>, hFrac: f32) -> vec2<f32> {
   let profile = modeling.x;
   // Art bias (0 = Nubis): the detail type goes wispy toward the cloud base (Schneider SY s37).
-  let type_ = modeling.y * (1.0 - inputs.wispyBias * (1.0 - hFrac) * (1.0 - hFrac));
   let densityScale = modeling.z;
+  // P1 typeFromScale (uprez.z, 0 = Nubis): the s98/s100 comment's reading, "blend to wispy as the density scale decreases":
+  // dense regions (high density scale) cannot go wispy, so the Curly-Alligator holes (pits) only open where the cloud is thin.
+  var fieldType = select(modeling.y, inputs.uprez.y, inputs.uprez.y >= 0.0);
+  fieldType = mix(fieldType, max(fieldType, saturate(densityScale)), saturate(inputs.uprez.z));
+  let type_ = fieldType * (1.0 - inputs.wispyBias * (1.0 - hFrac) * (1.0 - hFrac));
   if (!(profile > 0.0)) { return vec2(0.0); }
   let hf = inputs.hfDetails != 0u;
 
   // GetUprezzedVoxelCloudDensity
   let mip = log2(1.0 + abs(rayDistance * inputs.mipDistanceScale)) + inputs.baseMip;
-  let n = textureSampleLevel(cloudNoise, repeatSampler, (p - inputs.wind) * cloudVolume.noiseScale, mip);
+  let nRaw = textureSampleLevel(cloudNoise, repeatSampler, (p - inputs.wind) * cloudVolume.noiseScale, mip);
+  // P1 noise convention switch (0 = as shipped): flip the billowy (bit 1) and/or the wispy (bit 2) pair.
+  let inv = u32(max(inputs.uprez.x, 0.0));
+  let flipB = f32((inv & 1u) != 0u);
+  let flipW = f32((inv & 2u) != 0u);
+  let n = vec4(mix(nRaw.rg, 1.0 - nRaw.rg, flipW), mix(nRaw.ba, 1.0 - nRaw.ba, flipB));
 
   let wispy = mix(n.r, n.g, profile);
   let billowy = mix(n.b * 0.3, n.a * 0.3, sqrt(sqrt(profile)));

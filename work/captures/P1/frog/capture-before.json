@@ -1,0 +1,63 @@
+{
+  "url": "http://127.0.0.1:62173/frog/?clean=1&quality=ultra",
+  "size": [
+    1600,
+    1392
+  ],
+  "startedAt": "2026-10-10T06:42:57.497Z",
+  "shots": [
+    {
+      "name": "photo",
+      "file": "work/captures/scratch/P1/frog-base/photo.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.58663,
+          "lightGrid": 5.369297,
+          "marchNear": 0.07119888333333331,
+          "marchFar": 3.7214599166666664,
+          "shadowMap": 0.028213047619047617,
+          "composite": 0.2191756833333334,
+          "dome": 0.06204276666666665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          1600,
+          1392
+        ],
+        "cloudsReady": true,
+        "frog": {
+          "src": "local/frog/",
+          "dims": [
+            454,
+            498,
+            340
+          ],
+          "voxel": 8,
+          "minCorner": [
+            -1340,
+            236,
+            -6700
+          ],
+          "view": "photo",
+          "camera": {
+            "width": 1600,
+            "height": 1392,
+            "f": 1800,
+            "pitch": 23.1,
+            "photo": "Frog Cloud/DSC00589-Pano.jpg",
+            "vfov": 42.27964961731532
+          }
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
