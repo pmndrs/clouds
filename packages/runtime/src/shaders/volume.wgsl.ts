@@ -8,6 +8,12 @@
  * unused bindings), so one bind group serves all passes.
  */
 export const VOLUME_UNIFORM_BYTES = 48;
+/**
+ * V2: a direct volume's density (r16float 3D, the VDB's density / densityRef; GpuCloudVolume.direct) is bound at the fine hero pool's binding (7):
+ * a direct volume has no fine overlay, and only the fine march variant reads the pool, so no other pass sees it. (A separate binding would
+ * take the composite past the 16 sampled textures per stage of the default limits.) Read by shaders/direct.wgsl.ts.
+ */
+export const VOLUME_DIRECT_BINDING = 7;
 /** HeroParams: cells (u32 x3), fine voxel (m), 1 / pool size in texels (x3), fineDistance (m), fineErosion, 3 pad. */
 export const HERO_UNIFORM_BYTES = 48;
 
@@ -102,6 +108,8 @@ export interface VolumeBindingResources {
   repeatSampler: GPUSampler;
   /** Omitted: empty placeholders with fineDistance 0, so the shaders take the coarse path only. */
   hero?: HeroBindingResources;
+  /** V2: the direct-density texture, bound in place of the hero pool (VOLUME_DIRECT_BINDING); not together with `hero`. */
+  direct?: GPUTexture;
 }
 
 /** HeroParams for a fine overlay (`cells` indirection size, `poolSize` brick pool size in texels). fineDistance 0 turns it off. */
@@ -158,7 +166,7 @@ export function createVolumeBindGroup(device: GPUDevice, layout: GPUBindGroupLay
       { binding: 4, resource: r.clampSampler },
       { binding: 5, resource: r.repeatSampler },
       { binding: 6, resource: h.indir.createView() },
-      { binding: 7, resource: h.pool.createView() },
+      { binding: 7, resource: (r.direct ?? h.pool).createView() },
       { binding: 8, resource: { buffer: h.uniforms } },
     ],
   });

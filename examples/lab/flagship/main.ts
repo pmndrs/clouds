@@ -15,7 +15,7 @@ const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['auto', 'mobile', 'low', 'medium', 'high', 'ultra'] as const;   // ?quality=auto&budget=2: tier from the adapter, render scale from the GPU timer toward a 2 ms budget
 const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus', 'disney', 'disney-fine', 'heroes/sim-cumulus-fine', 'heroes/sim-congestus-fine', 'local/bunny-cloud', 'local/cloud-0001', 'local/cloudpack-02', 'local/cloudpack-03', 'local/cloudpack-08', 'local/cloudpack-09', 'local/cloudpack-10', 'local/a2/base', 'local/a2/wide'] as const;
-const R1_LOCAL = /^local\/r1\/[\w-]+$/; // R1: local experiment assets (gitignored)
+const R1_LOCAL = /^local\/(r1|direct)\/[\w-]+$/; // R1: local experiment assets; V2: direct assets (scripts/vdb/vdb_to_direct.py); both gitignored
 const cloudName = CLOUDS.includes(query.get('cloud') as never) || R1_LOCAL.test(query.get('cloud') ?? '') ? (query.get('cloud') as string) : 'parkouring';
 const state = {
   bookmark: (isBookmarkName(query.get('bookmark') ?? '') ? query.get('bookmark') : 'ground') as BookmarkName,

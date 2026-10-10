@@ -3,7 +3,7 @@
 //   @clouds/runtime/import    .vdb import (bundles the vendored Apache-2.0 parser)
 export { GpuTimer } from './gpu-timer';
 export type { GpuTimerOptions } from './gpu-timer';
-export { loadCloudVolume, loadCloudNoise, decodeSdf, type CloudVolumeAsset, type CloudNoiseAsset } from './assets';
+export { loadCloudVolume, loadCloudNoise, decodeSdf, type CloudVolumeAsset, type CloudNoiseAsset, type CloudDirectAsset } from './assets';
 export { uploadCloudVolume, uploadCloudNoise, type GpuCloudVolume } from './resources';
 export { uploadFineBricks, type GpuFineOverlay } from './hero/overlay';
 export type { FineBricks } from './hero/bricks';

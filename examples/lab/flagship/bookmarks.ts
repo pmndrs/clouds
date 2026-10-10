@@ -26,8 +26,10 @@ export function placeCloud(asset: CloudVolumeAsset, baseHeight: number = CLOUD_B
   const max: Vector3Tuple = [min[0] + w * v, min[1] + d * v, min[2] + h * v];
   CLOUD_BOX.min = min; CLOUD_BOX.max = max;
   const lo = [w, h, d], hi = [-1, -1, -1];
+  // V2: a direct asset's R is its raw density (non-zero far into the thin fringe); its A holds the framing mask (the fog asset's occupancy).
+  const occ = asset.direct ? 3 : 0;
   for (let i = 0; i < w * h * d; i++) {
-    if (asset.nvdf[i * 4] === 0) continue;
+    if (asset.nvdf[i * 4 + occ] === 0) continue;
     const c = [i % w, Math.floor(i / w) % h, Math.floor(i / (w * h))];
     for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], c[a]); hi[a] = Math.max(hi[a], c[a] + 1); }
   }

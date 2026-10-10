@@ -13,6 +13,19 @@ export interface CloudVolumeAsset {
   sdfMeters: Float32Array;
   /** P13-H3: the fine hero profile (cloud.json `fine`, `fine.nvdb`), decoded and brick-packed; uploadCloudVolume attaches it as `.fine`. */
   fine?: CloudFineAsset;
+  /**
+   * V2: a direct asset (scripts/vdb/vdb_to_direct.py, cloud.json `direct`): the VDB's density, rendered as-is instead of through the Nubis
+   * up-rez. Half-float bits of density / densityRef, same layout as `nvdf`. The runtime marches it whenever it is present (CloudSettings.directDensity).
+   */
+  direct?: CloudDirectAsset;
+}
+
+/** V2: raw density of a direct asset. */
+export interface CloudDirectAsset {
+  /** r16float bits (IEEE half), density / densityRef, x fastest. */
+  density: Uint16Array<ArrayBuffer>;
+  /** VDB density that the stored value 1 stands for. */
+  densityRef: number;
 }
 
 /** A hero's fine profile (work/specs/P8-hero-vdb.md section 5.1): a lattice nested in the coarse one, same min corner. */
@@ -47,6 +60,7 @@ interface CloudJson {
   nvdf: { file: string; bytes: number };
   sdf: { file: string; bytes: number; encoding: { minMeters: number; maxMeters: number } };
   fine?: { file: string; voxelSizeMeters: number; dims: [number, number, number]; offsetFineVoxels?: [number, number, number] };
+  direct?: { file: string; densityRef: number };
 }
 interface NoiseJson { dims: [number, number, number]; mips: { dims: [number, number, number]; byteOffset: number; bytes: number }[]; tilingMeters: number }
 
@@ -72,10 +86,11 @@ export function decodeSdf(raw: Uint16Array, minMeters: number, maxMeters: number
 export async function loadCloudVolume(baseUrl: string, options: LoadCloudVolumeOptions = {}): Promise<CloudVolumeAsset> {
   const meta: CloudJson = await (await fetchOk(join(baseUrl, 'cloud.json'))).json();
   const f = options.fine !== false ? meta.fine : undefined;
-  const [nvdfBuffer, sdfBuffer, fineBuffer] = await Promise.all([
+  const [nvdfBuffer, sdfBuffer, fineBuffer, directBuffer] = await Promise.all([
     fetchOk(join(baseUrl, meta.nvdf.file)).then(r => r.arrayBuffer()),
     fetchOk(join(baseUrl, meta.sdf.file)).then(r => r.arrayBuffer()),
     f && fetchOk(join(baseUrl, f.file)).then(r => r.arrayBuffer()),
+    meta.direct && fetchOk(join(baseUrl, meta.direct.file)).then(r => r.arrayBuffer()),
   ]);
   const count = meta.dims[0] * meta.dims[1] * meta.dims[2];
   if (nvdfBuffer.byteLength !== count * 4 || sdfBuffer.byteLength !== count * 2) throw new Error(`Cloud ${meta.name}: payload size does not match dims.`);
@@ -86,6 +101,10 @@ export async function loadCloudVolume(baseUrl: string, options: LoadCloudVolumeO
     nvdf: new Uint8Array(nvdfBuffer),
     sdfMeters: decodeSdf(new Uint16Array(sdfBuffer), meta.sdf.encoding.minMeters, meta.sdf.encoding.maxMeters),
   };
+  if (meta.direct && directBuffer) {
+    if (directBuffer.byteLength !== count * 2) throw new Error(`Cloud ${meta.name}: direct density size does not match dims.`);
+    asset.direct = { density: new Uint16Array(directBuffer), densityRef: meta.direct.densityRef };
+  }
   if (f && fineBuffer) {
     const ratio = meta.voxelSizeMeters / f.voxelSizeMeters;
     const t0 = performance.now();

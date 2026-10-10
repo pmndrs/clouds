@@ -10,6 +10,7 @@ import { COMPOSITE_CIRRUS_BINDING, COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPL
 import { createCloudShadowMap, type CloudShadowMap } from './shadow-map';
 import { controlledCost, describeDevice, DynamicScale, selectTier, type AutoQualityInfo, type AutoQualityOptions } from './auto-quality';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
+import { DIRECT_DENSITY_WGSL } from './shaders/direct.wgsl';
 import { TEMPORAL_BINDINGS, TEMPORAL_PARAM_BYTES, TEMPORAL_WGSL } from './shaders/temporal.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { createLightning, type FlashOptions, type LightningSettings } from './lightning';
@@ -197,6 +198,13 @@ export interface CloudSettings {
    * along a height gradient, powder; LIGHTING_WGSL cloudOctaveLight). The procedural model has its own (ProceduralSettings.lightingModel).
    */
   lightingModel: 'nubis' | 'octave';
+  /**
+   * V2: extinction (1/m) per unit of VDB density for a direct volume (GpuCloudVolume.direct, scripts/vdb/vdb_to_direct.py), which is marched
+   * as-is (native resolution, trilinear, no profile / erosion / up-rez) with the same lighting; it replaces `densityScale` while such a volume
+   * is set (the light grid, shadow map and dome follow). VDB density units are arbitrary: 0.6 matches the V1 Karma reference rig. The grid's
+   * fudge `lightDensityScale` (for the up-rez the grid does not see) should be 1 for a direct volume, which the grid sees exactly.
+   */
+  directDensity: number;
 }
 
 export interface CloudUniformLighting {
@@ -434,6 +442,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
     hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
     densityModel: 'nvdf', lightingModel: 'nubis',
+    directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
   };
   let procModel: ProceduralDensityModel | null = null;
   let procWas: CloudSettings['densityModel'] = 'nvdf';
@@ -493,19 +502,20 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     layout: device.createPipelineLayout({ bindGroupLayouts: group2 ? [volumeLayout, group1, group2] : [volumeLayout, group1] }),
     compute: { module: device.createShaderModule({ label, code }), entryPoint: 'main' },
   });
-  const marchCode = (mode: 'atmosphere' | 'uniform', direct: boolean, fine: boolean) => COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + marchWgsl(mode, direct, fine);
-  // Pipelines by [fine][uniform lighting][direct]; the plain atmosphere ones are built now, the fine ones (P13-H1, a volume with a fine overlay)
-  // when such a volume is set, the uniform-lighting ones (no sky library) on first use.
-  const marchPipelines: (GPUComputePipeline | undefined)[] = new Array(8).fill(undefined);
-  const marchDesc = (uniform: boolean, direct: boolean, fine: boolean): GPUComputePipelineDescriptor => {
-    const label = `cloud march ${fine ? 'fine ' : ''}${uniform ? 'uniform ' : ''}${direct ? 'direct' : 'trace'}`;
+  // V2 `dd`: the direct-density variant (a volume with `direct`: its density marched as-is, DIRECT_DENSITY_WGSL); it never reads a fine overlay.
+  const marchCode = (mode: 'atmosphere' | 'uniform', direct: boolean, fine: boolean, dd = false) => COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + (dd ? DIRECT_DENSITY_WGSL : '') + marchWgsl(mode, direct, fine && !dd, dd);
+  // Pipelines by [direct density][fine][uniform lighting][direct]; the plain atmosphere ones are built now, the fine ones (P13-H1, a volume with a fine overlay)
+  // and the direct-density ones (V2) when such a volume is set, the uniform-lighting ones (no sky library) on first use.
+  const marchPipelines: (GPUComputePipeline | undefined)[] = new Array(16).fill(undefined);
+  const marchDesc = (uniform: boolean, direct: boolean, fine: boolean, dd = false): GPUComputePipelineDescriptor => {
+    const label = `cloud march ${dd ? 'direct-density ' : fine ? 'fine ' : ''}${uniform ? 'uniform ' : ''}${direct ? 'direct' : 'trace'}`;
     return {
       label, layout: device.createPipelineLayout({ bindGroupLayouts: uniform ? [volumeLayout, marchLayouts[+direct]] : [volumeLayout, marchLayouts[+direct], atmosphereLayout] }),
-      compute: { module: device.createShaderModule({ label, code: marchCode(uniform ? 'uniform' : 'atmosphere', direct, fine) }), entryPoint: 'main' },
+      compute: { module: device.createShaderModule({ label, code: marchCode(uniform ? 'uniform' : 'atmosphere', direct, fine, dd) }), entryPoint: 'main' },
     };
   };
-  const marchSlot = (uniform: boolean, direct: boolean, fine: boolean) => (fine ? 4 : 0) + (uniform ? 2 : 0) + (direct ? 1 : 0);
-  const getMarchPipeline = (uniform: boolean, direct: boolean, fine: boolean) => marchPipelines[marchSlot(uniform, direct, fine)] ??= device.createComputePipeline(marchDesc(uniform, direct, fine));
+  const marchSlot = (uniform: boolean, direct: boolean, fine: boolean, dd = false) => (dd ? 12 : fine ? 4 : 0) + (uniform ? 2 : 0) + (direct ? 1 : 0);
+  const getMarchPipeline = (uniform: boolean, direct: boolean, fine: boolean, dd = false) => marchPipelines[marchSlot(uniform, direct, fine, dd)] ??= device.createComputePipeline(marchDesc(uniform, direct, fine, dd));
   getMarchPipeline(false, true, false); getMarchPipeline(false, false, false);
   const skyLightPipeline = pipeline('cloud sky light', COMMON_WGSL + volumeWgsl(0) + SKY_LIGHT_WGSL, skyLightLayout, atmosphereLayout);
   const resolvePipeline = pipeline('cloud temporal resolve', COMMON_WGSL + volumeWgsl(0) + TEMPORAL_WGSL, resolveLayout);
@@ -638,10 +648,12 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const rebuildVolumeGroup = () => {
     const fine = volume?.fine;
     volumeGroup = volume && noise
-      ? createVolumeBindGroup(device, volumeLayout, { uniforms: volumeUniforms, nvdf: volume.nvdf, sdf: volume.sdf, noise, ...samplers, hero: fine && { indir: fine.indir, pool: fine.pool, uniforms: heroUniforms } })
+      ? createVolumeBindGroup(device, volumeLayout, { uniforms: volumeUniforms, nvdf: volume.nvdf, sdf: volume.sdf, noise, ...samplers, hero: fine && { indir: fine.indir, pool: fine.pool, uniforms: heroUniforms }, direct: volume.direct?.density })
       : null;
     heroKey = '';
   };
+  /** Extinction (1/m) at stored density 1: CloudSettings.densityScale, or for a direct volume (V2) directDensity * densityRef (the texture holds density / densityRef). */
+  const extinction = () => (volume?.direct ? settings.directDensity * volume.direct.densityRef : settings.densityScale);
   const releaseTrace = (t: PassTarget) => { t.trace?.color.destroy(); t.trace?.depth.destroy(); t.trace = null; };
   const releaseTargets = () => {
     for (const t of targets ?? []) { t.hist.forEach(h => { h.color.destroy(); h.depth.destroy(); }); releaseTrace(t); }
@@ -736,6 +748,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         // A fine hero overlay: compile the fine march variants off the frame path first (P13-H1).
         await Promise.all([true, false].map(async direct => {
           marchPipelines[marchSlot(false, direct, true)] ??= await device.createComputePipelineAsync(marchDesc(false, direct, true));
+        }));
+        if (disposed) return;
+      }
+      if (asset.direct) {
+        // V2: a direct volume: compile its march variants off the frame path.
+        await Promise.all([true, false].map(async direct => {
+          marchPipelines[marchSlot(false, direct, false, true)] ??= await device.createComputePipelineAsync(marchDesc(false, direct, false, true));
         }));
         if (disposed) return;
       }
@@ -839,7 +858,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const f = frameF32;
       f.set(frame.inverseViewProjection, 0);
       f[16] = frame.cameraPosition[0]; f[17] = frame.cameraPosition[1]; f[18] = frame.cameraPosition[2]; f[19] = frame.time;
-      f[20] = frame.sunDirection[0]; f[21] = frame.sunDirection[1]; f[22] = frame.sunDirection[2]; f[23] = settings.densityScale;
+      f[20] = frame.sunDirection[0]; f[21] = frame.sunDirection[1]; f[22] = frame.sunDirection[2]; f[23] = extinction();
       f[24] = settings.windOffset[0]; f[25] = settings.windOffset[1]; f[26] = settings.windOffset[2]; f[27] = settings.mipDistanceScale;
       f[30] = outW; f[31] = outH;
       f[32] = settings.baseMip; frameU32[33] = settings.maxSteps >>> 0; frameU32[34] = frame.frameIndex >>> 0; f[35] = settings.lightDensityScale;
@@ -933,7 +952,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // The grid holds extinction-scaled optical depth; it re-slices over 8 frames when the sun or the scale moves.
       // X4: in 'hybrid' it also holds the procedural clouds' sun optical depth (heroes in their shadow); it rebuilds as they or the box move by ~8 m.
       const gridProc = procMode === 'hybrid' ? proc : null;
-      const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: settings.densityScale, frameIndex: frame.frameIndex, sky: skyActive ? skyLayer.domeResources : null,
+      const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: extinction(), frameIndex: frame.frameIndex, sky: skyActive ? skyLayer.domeResources : null,
         procedural: gridProc, lightDensityScale: settings.lightDensityScale,
         procKey: gridProc ? [gridProc.version, Math.round((settings.windOffset[0] - skyBox.minCorner[0]) / 8), Math.round((settings.windOffset[2] - skyBox.minCorner[2]) / 8), Math.round(skyBox.minCorner[1] / 8)] : undefined }, timer);
 
@@ -965,7 +984,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         const direct = k === 1 || passFull[pass];
         const marchIndex = ((pass * 2 + gridStep.front) * 2 + cur) * 2 + (direct ? 1 : 0);
         const march = encoder.beginComputePass({ label: pass ? 'cloud march far' : 'cloud march near', timestampWrites: timer?.passTimestampWrites(pass ? 'marchFar' : 'marchNear') });
-        march.setPipeline(getMarchPipeline(!!uniformLighting, direct, !!fine && settings.fineDistance > 0));
+        march.setPipeline(getMarchPipeline(!!uniformLighting, direct, !!fine && settings.fineDistance > 0, !!volume?.direct));
         march.setBindGroup(0, volumeGroup);
         march.setBindGroup(1, marchGroups[marchIndex] ??= device.createBindGroup({ label: `cloud march ${t.name}`, layout: marchLayouts[direct ? 1 : 0], entries: [
           { binding: 0, resource: { buffer: frameUniforms[pass] } },
@@ -1014,7 +1033,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         const ss = skyLayer.settings;
         shadowMap.encode(encoder, {
           volumeGroup, lightGrid: grid, gridFront: gridStep.front, gridSwapped: gridStep.swapped, sunDirection: frame.sunDirection, cameraPosition: frame.cameraPosition,
-          box: skyBox, extinction: settings.densityScale, lightDensityScale: settings.lightDensityScale, shadowStrength: settings.shadowStrength,
+          box: skyBox, extinction: extinction(), lightDensityScale: settings.lightDensityScale, shadowStrength: settings.shadowStrength,
           sky: skyRes ? { ...skyRes, key: [ss.densityScale, ss.curvature] } : null, timer,
           // X3: the procedural model's clouds move with the wind offset: a refresh once they have moved by about a near-cascade texel.
           procedural: procOn ? proc : null,
@@ -1054,8 +1073,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         domeRef[0] = ref ? ref[0] : frame.cameraPosition[0]; domeRef[1] = ref ? ref[1] : domeSettings.groundHeight; domeRef[2] = ref ? ref[2] : frame.cameraPosition[2];
         // A sun or density change makes the old texels stale until every slot has been redone.
         const sd = frame.sunDirection;
-        if (domeSun[0] * sd[0] + domeSun[1] * sd[1] + domeSun[2] * sd[2] < 0.99999 || domeScaleSeen !== settings.densityScale * domeSettings.densityScale) {
-          domeSun[0] = sd[0]; domeSun[1] = sd[1]; domeSun[2] = sd[2]; domeScaleSeen = settings.densityScale * domeSettings.densityScale;
+        if (domeSun[0] * sd[0] + domeSun[1] * sd[1] + domeSun[2] * sd[2] < 0.99999 || domeScaleSeen !== extinction() * domeSettings.densityScale) {
+          domeSun[0] = sd[0]; domeSun[1] = sd[1]; domeSun[2] = sd[2]; domeScaleSeen = extinction() * domeSettings.densityScale;
           domeRefreshFrames = 0;
         }
         // The grid the dome lights from is replaced when a bake completes (8 frames after a sun change): shade two slots per

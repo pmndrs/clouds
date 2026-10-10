@@ -90,9 +90,10 @@ export type MarchLightingMode = 'atmosphere' | 'uniform';
  * 'uniform' drops the atmosphere group (no sky library): sun radiance and ambient come only from the skyLight buffer, and the
  * cloud gets no aerial perspective. Pipeline layout is then [volume, pass] only.
  */
-export function marchWgsl(mode: MarchLightingMode, direct = true, fine = false): string {
+/** V2 `directDensity`: every density sample reads the volume's direct density (cloudDensityDirect, shaders/direct.wgsl.ts, concatenated before). */
+export function marchWgsl(mode: MarchLightingMode, direct = true, fine = false, directDensity = false): string {
   const atm = mode === 'atmosphere';
-  const density = fine ? 'cloudDensityFine' : 'cloudDensity';
+  const density = directDensity ? 'cloudDensityDirect' : fine ? 'cloudDensityFine' : 'cloudDensity';
   return /* wgsl */ `
 ${FRAME_WGSL}
 @group(1) @binding(2) var marchColor: texture_storage_2d<rgba16float, write>;

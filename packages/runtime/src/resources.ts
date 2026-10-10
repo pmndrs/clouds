@@ -17,6 +17,8 @@ export interface GpuCloudVolume {
    * attach overlays the volume's `destroy()` releases; an overlay from uploadFineBricks attached by hand stays the caller's.
    */
   fine?: GpuFineOverlay;
+  /** V2: the direct density (r16float 3D, density / densityRef, same lattice as `nvdf`); present = the runtime marches it as-is (no up-rez). Released by `destroy()`. */
+  direct?: { density: GPUTexture; densityRef: number };
   destroy(): void;
 }
 
@@ -33,11 +35,18 @@ export function uploadCloudVolume(device: GPUDevice, asset: CloudVolumeAsset): G
   const v = asset.voxelSizeMeters;
   // P13-H3: the fine hero layer's bricks (owned by this volume).
   const fine = asset.fine && uploadFineBricks(device, asset.fine.bricks, asset.name);
+  let direct: GpuCloudVolume['direct'];
+  if (asset.direct) {
+    const density = device.createTexture({ label: `${asset.name} direct density`, dimension: '3d', format: 'r16float', size, usage });
+    device.queue.writeTexture({ texture: density }, asset.direct.density, { bytesPerRow: w * 2, rowsPerImage: h }, size);
+    direct = { density, densityRef: asset.direct.densityRef };
+  }
   return {
     nvdf, sdf, dims: [w, h, d], voxelSize: v,
     extentMeters: [w * v, d * v, h * v],
     ...(fine ? { fine } : {}),
-    destroy() { nvdf.destroy(); sdf.destroy(); fine?.destroy(); },
+    ...(direct ? { direct } : {}),
+    destroy() { nvdf.destroy(); sdf.destroy(); fine?.destroy(); direct?.density.destroy(); },
   };
 }
 
