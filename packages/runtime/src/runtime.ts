@@ -168,6 +168,11 @@ export interface CloudSettings {
    * Curly-Alligator channels (isolated bright blobs that erode into round holes) cannot pit an opaque surface.
    */
   typeFromScale: number;
+  /**
+   * D0: how the sky ambient falls off with the summed density above a sample (tauUp). 0 (default) = the H3 diffuse law 1 / (1 + tauUp);
+   * 1 = the deck's exp(-tauUp) (N3 s128). Both are mixed with ambientFloor.
+   */
+  ambientLaw: number;
   /** Noise scroll position in metres (integrated from windVelocity). */
   windOffset: [number, number, number];
   windVelocity: [number, number, number];
@@ -424,7 +429,7 @@ const FLASH_BLEND = 0.85;
 const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
-const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95];
+const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99];
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
@@ -466,6 +471,61 @@ export function estimateCloudMemory(width: number, height: number, quality: Clou
   return { history, trace, sky, output, dome, lightGrid, shadow, total: history + trace + sky + output + dome + lightGrid + shadow };
 }
 
+/** The look knobs of `CloudSettings` that the 'art' and 'deck' looks set (see `cloudLookSettings`). */
+export type CloudLookSettings = Pick<CloudSettings, 'densityScale' | 'lightDensityScale' | 'msStrength' | 'ambientStrength' | 'silverStrength' | 'phaseG' | 'silverG'
+  | 'ambientExtinction' | 'edgeDarkening' | 'glowBoost' | 'ambientSkyBias' | 'wispyBias' | 'glowFront' | 'deepScatter' | 'deepAttenuation' | 'ambientFloor'
+  | 'microShadow' | 'detailBias' | 'noiseInvert' | 'detailTypeOverride' | 'typeFromScale' | 'ambientLaw' | 'bodySunFloor' | 'bodySunKnee' | 'bodyEnv'
+  | 'bodyDepth' | 'envSunWeight' | 'ambientLowSun' | 'groundAlbedo' | 'phaseModel' | 'dropletDiameter' | 'hazeDensity' | 'hazeHeight' | 'hazeBase' | 'fineErosion'>;
+
+/** Our art-directed defaults (what `createCloudRuntime` starts with). */
+export const CLOUD_ART_SETTINGS: Readonly<CloudLookSettings> = {
+  // Q2: extinction 0.2 -> 0.3 with the sun's optical-depth scale 1.5 -> 1.2: next to Takram and the photos the clouds read as soft, translucent
+  // 'potatoes' with little self-shadow between lobes. Denser view rays give crisper edges and sculpted lobes; the lower light scale keeps bodies bright.
+  densityScale: 0.3, lightDensityScale: 1.2, msStrength: 1.4, ambientStrength: 1, // P1-09 art defaults (Nubis neutral: 1, 1)
+  silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.08, // 0.3 left bases charcoal; tuned by orchestrator sweep (P1-09)
+  edgeDarkening: 0.5, glowBoost: 12, ambientSkyBias: 0.9, wispyBias: 0, glowFront: 1, deepScatter: 1.2, deepAttenuation: 0.35, ambientFloor: 0.15,
+  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1, // P1, judged 2026-10-10 (Opus + Fable prefer it in 5 of 6 pairs): dense regions never go wispy; 0 = shipped Nubis sampler
+  microShadow: 1, detailBias: 0, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0)
+  ambientLaw: 0, // H3 diffuse ambient falloff
+  bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
+  hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
+  fineErosion: 1,
+};
+
+/**
+ * D0 'deck' look: the Nubis Cubed (SIGGRAPH 2023) model with every term the deck states and nothing it does not (work/reports/D0.md):
+ * raw NVDF detail type (s100/s109, typeFromScale 0), no erosion bias; inner glow relaxed only toward the sun (s123: glowFront 0, no glowBoost),
+ * ambient sqrt(1 - P) * exp(-tauUp) with no floor and no ground term (s126/s128), the sky ambient only (no ground light), none of our
+ * additions (edge darkening, deep octaves, billow micro-shadow, C1 low-sun handoff, C2 haze). The march step is the deck's on high/ultra
+ * already (s150). Not in the deck, so fitted to Guerrilla's own frames of Parkouring and Stormbird (s78, s129, s181, s191; D0.md):
+ * - densityScale 0.6: view-ray extinction (the s78 silhouette fits 0.3-0.6; 0.6 gives the frames' edge sharpness);
+ * - lightDensityScale 0.1: the light grid's optical depth. The deck's light sums are of density *samples* (s123
+ *   'inSunLightSummedDensitySamples', s128 'summed_ambient_density'), not density * metres * extinction; at 1 the shaded body goes
+ *   blue-black where every deck frame is lit through. The two in-line taps keep the full extinction (surface relief, s113);
+ * - ambientExtinction 0.2: the up sum's scale (s129's pair does not pin it: see the report);
+ * - the phase lobes (s28: 'several HG', g about 0.2 [SY s51]; weights unpublished) and the ms / ambient gains are ours.
+ */
+export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
+  densityScale: 0.6, lightDensityScale: 0.1, msStrength: 1, ambientStrength: 1,
+  silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.2,
+  edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 1, wispyBias: 0, glowFront: 0, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0,
+  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0,
+  microShadow: 0, detailBias: 0,
+  ambientLaw: 1,
+  bodySunFloor: 1, bodySunKnee: 0.4, bodyEnv: 0, bodyDepth: 0, envSunWeight: 0, ambientLowSun: 0, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
+  hazeDensity: 0, hazeHeight: 1000, hazeBase: 0,
+  fineErosion: 1,
+};
+
+export type CloudLook = 'art' | 'deck';
+/**
+ * Settings for a look: assign the result to `runtime.settings` (Object.assign). 'deck' also turns the billow micro-shadow sample off
+ * (microDist 0; not in the deck); 'art' restores the tier's. Switching looks resets nothing else (quality, wind, temporal knobs).
+ */
+export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Partial<CloudSettings> {
+  return look === 'deck' ? { ...CLOUD_DECK_SETTINGS, microDist: 0 } : { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
+}
+
 export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptions = {}): CloudRuntime {
   const wantAuto = options.quality === 'auto';
   const autoPick = wantAuto ? selectTier(describeDevice(device as never, { adapter: options.adapter as never, pixels: options.expectedPixels ?? 1920 * 1080, mobile: options.mobile })) : null;
@@ -475,22 +535,15 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const lightning = createLightning();
   const settings: CloudSettings = {
     lightning: lightning.settings,
-    // Q2: extinction 0.2 -> 0.3 with the sun's optical-depth scale 1.5 -> 1.2: next to Takram and the photos the clouds read as soft, translucent
-    // 'potatoes' with little self-shadow between lobes. Denser view rays give crisper edges and sculpted lobes; the lower light scale keeps bodies bright.
-    densityScale: 0.3, lightDensityScale: 1.2, msStrength: 1.4, ambientStrength: 1, // P1-09 art defaults (Nubis neutral: 1, 1)
-    silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.08, // 0.3 left bases charcoal; tuned by orchestrator sweep (P1-09)
-    edgeDarkening: 0.5, glowBoost: 12, ambientSkyBias: 0.9, wispyBias: 0, glowFront: 1, deepScatter: 1.2, deepAttenuation: 0.35, ambientFloor: 0.15,
+    ...CLOUD_ART_SETTINGS,   // the look knobs (art defaults; CLOUD_DECK_SETTINGS / cloudLookSettings for the deck's)
     windOffset: [0, 0, 0], windVelocity: [3, 0, 1.5], animSpeed: 1,
     mipDistanceScale: 0.002, baseMip: 0, maxSteps: startPreset.maxSteps,
     transmittanceCutoff: startPreset.transmittanceCutoff, splitDistance: startPreset.splitDistance,
     temporalNear: startPreset.temporalNear, temporalFar: startPreset.temporalFar, temporalBlend: 0.3,
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,
     shadowStrength: 0.6, compositeShadow: 1, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
-    noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1, // P1, judged 2026-10-10 (Opus + Fable prefer it in 5 of 6 pairs): dense regions never go wispy; 0 = shipped Nubis sampler
-    microDist: startPreset.microDist, microShadow: 1, detailBias: 0, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
-    fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
-    bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
-    hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
+    microDist: startPreset.microDist, stepScale: startPreset.stepScale, // Q-1 (Nubis neutral: microDist 0, stepScale 1)
+    fineDistance: startPreset.fineDistance, lightDebug: 0,
     densityModel: 'nvdf', lightingModel: 'nubis',
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
@@ -945,7 +998,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       lowSun = 1 - sunUp;
       f[84] = settings.bodySunFloor + (1 - settings.bodySunFloor) * sunUp; f[85] = settings.bodyEnv;
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
-      f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale;
+      f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale; f[99] = settings.ambientLaw;
       f[100] = settings.diffuseSun; f[101] = settings.ambientSaturation; f[102] = settings.ambientWarmth; f[103] = settings.directInScatterFlat; f[104] = settings.diffuseFalloff;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }

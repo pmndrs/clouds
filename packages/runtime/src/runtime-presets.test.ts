@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { CLOUD_QUALITY_ORDER, CLOUD_QUALITY_PRESETS, estimateCloudMemory } from './runtime';
+import { CLOUD_ART_SETTINGS, CLOUD_DECK_SETTINGS, CLOUD_QUALITY_ORDER, CLOUD_QUALITY_PRESETS, cloudLookSettings, estimateCloudMemory } from './runtime';
+
+describe('looks (D0)', () => {
+  it('art and deck set the same knobs', () => {
+    expect(Object.keys(CLOUD_DECK_SETTINGS).sort()).toEqual(Object.keys(CLOUD_ART_SETTINGS).sort());
+  });
+  it('deck drops every term the Nubis Cubed deck does not state', () => {
+    const d = CLOUD_DECK_SETTINGS;
+    expect([d.edgeDarkening, d.glowBoost, d.glowFront, d.deepScatter, d.ambientFloor, d.microShadow, d.detailBias, d.wispyBias, d.typeFromScale, d.bodyEnv, d.hazeDensity]).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(d.ambientLaw).toBe(1);   // exp(-tauUp), N3 s128
+    expect(d.ambientSkyBias).toBe(1);   // sky ambient only
+    expect(d.bodySunFloor).toBe(1);   // no low-sun handoff
+    expect(cloudLookSettings('deck', 'ultra').microDist).toBe(0);
+  });
+  it('art restores the tier micro-shadow and keeps the H3 ambient law', () => {
+    expect(cloudLookSettings('art', 'high').microDist).toBe(CLOUD_QUALITY_PRESETS.high.microDist);
+    expect(cloudLookSettings('art', 'low').microDist).toBe(CLOUD_QUALITY_PRESETS.low.microDist);
+    expect(CLOUD_ART_SETTINGS.ambientLaw).toBe(0);
+  });
+});
 
 describe('quality tiers', () => {
   it('are ordered from the cheapest: resolution, steps and cost levers only rise', () => {
