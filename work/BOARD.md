@@ -2065,7 +2065,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Does:** Guerrilla/EmberGen-style seeding (`sources/n3/slides-047-074.md` s64, `docs/research/cloudpack-embergen.md`): one wide flat lens of heat/density at the cloud base, a single burst, working buoyancy, raised temperature diffusion and cooling so the plume stops itself, vorticity, no lid. Grow 3–4 variants; convert with our converter; render in the lab.
 - **Acceptance:** flat base at seed height, width ≈ seed width, turrets growing upward, no chimney; compared against EmberGen CloudPack 03/02/09 and the owner's cumulus photos. Captures + contact sheet.
 
-### [~] A3 Frog with Houdini cloud nodes [AU1, SD5] · Opus
+### [r] A3 Frog with Houdini cloud nodes [AU1, SD5] · Opus
 - **Owns:** new `scripts/vdb/authoring/frog.py`, `houdini/rigs/frog.hip`, scratch output under `artifacts/` (local), `work/reports/A3.md`, `work/captures/A3/`.
 - **Does:** build the Frog cloud (`docs/research/targets/frog.md`, owner's `FrogFace.png`: twin upper domes with the notch, long smooth shaded belly, satellites trailing down-right) with Houdini 21 cloud nodes (`cloudshapegenerate`/`replicate`/`fromline`, `cloudbillowynoise` with the ~3.5× lobe ladder, `cloudclip` base), three lobe levels in geometry (≈300/70/20 m scaled to the Frog), no baked fine noise (the runtime up-rez supplies it), NVDF type/scale from the surface normal (crisp lit tops, soft belly). Convert and render.
 - **Acceptance:** side-by-side with the Frog photo from a matching camera; silhouette features (two domes + notch, belly, satellites) present; report what the nodes could and couldn't do. Captures.

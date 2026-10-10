@@ -1,0 +1,212 @@
+{
+  "url": "http://127.0.0.1:58234/frog/?clean=1",
+  "size": [
+    1600,
+    1392
+  ],
+  "startedAt": "2026-10-10T06:33:31.379Z",
+  "shots": [
+    {
+      "name": "photo",
+      "file": "work/captures/A3/photo.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.500636,
+          "lightGrid": 7.472669,
+          "marchNear": 0.1354402166666667,
+          "marchFar": 2.6745988833333327,
+          "shadowMap": 0.017138238095238095,
+          "composite": 0.3875378499999999,
+          "dome": 0.10405816666666667,
+          "resolveNear": 0.06006375000000002,
+          "resolveFar": 0.09667765000000002
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1600,
+          1392
+        ],
+        "cloudsReady": true,
+        "frog": {
+          "src": "local/frog/",
+          "dims": [
+            454,
+            498,
+            340
+          ],
+          "voxel": 8,
+          "minCorner": [
+            -1340,
+            236,
+            -6700
+          ],
+          "view": "photo",
+          "camera": {
+            "width": 1600,
+            "height": 1392,
+            "f": 1800,
+            "pitch": 23.1,
+            "photo": "Frog Cloud/DSC00589-Pano.jpg",
+            "vfov": 42.27964961731532
+          }
+        }
+      }
+    },
+    {
+      "name": "far",
+      "file": "work/captures/A3/far.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.500636,
+          "lightGrid": 7.472669,
+          "marchNear": 0.17631535,
+          "marchFar": 1.491311183333333,
+          "shadowMap": 0.019799555555555556,
+          "composite": 0.33424203333333335,
+          "dome": 0.11844893333333334,
+          "resolveNear": 0.07486269999999999,
+          "resolveFar": 0.12897436666666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1600,
+          1392
+        ],
+        "cloudsReady": true,
+        "frog": {
+          "src": "local/frog/",
+          "dims": [
+            454,
+            498,
+            340
+          ],
+          "voxel": 8,
+          "minCorner": [
+            -1340,
+            236,
+            -6700
+          ],
+          "view": "far",
+          "camera": {
+            "width": 1600,
+            "height": 1392,
+            "f": 1800,
+            "pitch": 23.1,
+            "photo": "Frog Cloud/DSC00589-Pano.jpg",
+            "vfov": 42.27964961731532
+          }
+        }
+      }
+    },
+    {
+      "name": "right",
+      "file": "work/captures/A3/right.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.500636,
+          "lightGrid": 7.472669,
+          "marchNear": 0.13894856666666663,
+          "marchFar": 2.616034399999999,
+          "shadowMap": 0.031512016666666656,
+          "composite": 0.38432600000000006,
+          "dome": 0.1399965,
+          "resolveNear": 0.05693601666666665,
+          "resolveFar": 0.09953260000000003
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1600,
+          1392
+        ],
+        "cloudsReady": true,
+        "frog": {
+          "src": "local/frog/",
+          "dims": [
+            454,
+            498,
+            340
+          ],
+          "voxel": 8,
+          "minCorner": [
+            -1340,
+            236,
+            -6700
+          ],
+          "view": "right",
+          "camera": {
+            "width": 1600,
+            "height": 1392,
+            "f": 1800,
+            "pitch": 23.1,
+            "photo": "Frog Cloud/DSC00589-Pano.jpg",
+            "vfov": 42.27964961731532
+          }
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/A3/above.jpg",
+      "report": {
+        "gpuMs": {
+          "lightGridReduce": 0.500636,
+          "lightGrid": 7.472669,
+          "marchNear": 0.16197531666666667,
+          "marchFar": 2.0019117166666667,
+          "shadowMap": 0.033438333333333334,
+          "composite": 0.36977214999999997,
+          "dome": 0.13460353333333336,
+          "resolveNear": 0.06655598333333335,
+          "resolveFar": 0.1139586
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1600,
+          1392
+        ],
+        "cloudsReady": true,
+        "frog": {
+          "src": "local/frog/",
+          "dims": [
+            454,
+            498,
+            340
+          ],
+          "voxel": 8,
+          "minCorner": [
+            -1340,
+            236,
+            -6700
+          ],
+          "view": "above",
+          "camera": {
+            "width": 1600,
+            "height": 1392,
+            "f": 1800,
+            "pitch": 23.1,
+            "photo": "Frog Cloud/DSC00589-Pano.jpg",
+            "vfov": 42.27964961731532
+          }
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
