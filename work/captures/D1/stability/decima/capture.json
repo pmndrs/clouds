@@ -1,0 +1,796 @@
+{
+  "url": "http://127.0.0.1:51717/decima/?cloud=parkouring&bookmark=p101&clean=1&look=decima",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T13:28:43.113Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/D1/stability/decima/view.jpg",
+      "report": {
+        "bookmark": "p101",
+        "look": "decima",
+        "cloud": "parkouring",
+        "camera": [
+          -297.70000000000005,
+          500.00000000000006,
+          -628.5
+        ],
+        "vfov": 38.97,
+        "sunElevation": 40,
+        "sunAzimuth": 210,
+        "quality": "ultra",
+        "gpuMs": {
+          "lightGridReduce": 0.131486,
+          "lightGrid": 0.102407,
+          "marchNear": 0.173077875,
+          "marchFar": 9.526575125,
+          "shadowMap": 0.07687837500000001,
+          "composite": 0.510838875,
+          "dome": 0.17533824999999997
+        },
+        "frameMs": {},
+        "renderSize": [
+          1440,
+          810
+        ],
+        "settings": {
+          "lightning": {
+            "rate": 0,
+            "region": null,
+            "radiusRange": [
+              450,
+              900
+            ],
+            "intensityRange": [
+              0.6,
+              1.6
+            ],
+            "durationRange": [
+              0.22,
+              0.45
+            ],
+            "color": [
+              0.78,
+              0.88,
+              1
+            ]
+          },
+          "densityScale": 1,
+          "lightDensityScale": 0.09,
+          "msStrength": 1,
+          "ambientStrength": 1,
+          "silverStrength": 0.4,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "ambientExtinction": 0.5,
+          "edgeDarkening": 0,
+          "glowBoost": 0,
+          "ambientSkyBias": 1,
+          "wispyBias": 0,
+          "glowFront": 0,
+          "deepScatter": 0,
+          "deepAttenuation": 0.35,
+          "ambientFloor": 0,
+          "noiseInvert": 0,
+          "detailTypeOverride": -1,
+          "typeFromScale": 0,
+          "microShadow": 0,
+          "detailBias": 0,
+          "ambientLaw": 1,
+          "bodySunFloor": 1,
+          "bodySunKnee": 0.4,
+          "bodyEnv": 0,
+          "bodyDepth": 0,
+          "envSunWeight": 0,
+          "ambientLowSun": 0,
+          "groundAlbedo": 0.2,
+          "phaseModel": "hg",
+          "dropletDiameter": 10,
+          "hazeDensity": 0,
+          "hazeHeight": 1000,
+          "hazeBase": 0,
+          "fineErosion": 1,
+          "inlineLightScale": 0.06,
+          "inlineProfile": 0,
+          "lightMipBias": 0,
+          "diffuseSun": 0.15,
+          "diffuseFalloff": 0.11,
+          "ambientSaturation": 0.4,
+          "ambientWarmth": 0,
+          "windOffset": [
+            0.4997999999999997,
+            0,
+            0.24989999999999984
+          ],
+          "windVelocity": [
+            3,
+            0,
+            1.5
+          ],
+          "animSpeed": 1,
+          "mipDistanceScale": 0.002,
+          "baseMip": 0,
+          "maxSteps": 1024,
+          "transmittanceCutoff": 0.005,
+          "splitDistance": 240,
+          "temporalNear": 1,
+          "temporalFar": 1,
+          "temporalBlend": 0.3,
+          "renderScale": 1,
+          "detailDistance": 150,
+          "farLimit": 1000000,
+          "shadowStrength": 0.6,
+          "compositeShadow": 1,
+          "microDist": 0,
+          "stepScale": 1,
+          "fineDistance": 3000,
+          "lightDebug": 0,
+          "densityModel": "nvdf",
+          "lightingModel": "nubis",
+          "directDensity": 0.6,
+          "directInScatterFlat": 0,
+          "jitterStatic": 0
+        }
+      }
+    },
+    {
+      "name": "view-2",
+      "file": "work/captures/D1/stability/decima/view-2.jpg",
+      "report": {
+        "bookmark": "p101",
+        "look": "decima",
+        "cloud": "parkouring",
+        "camera": [
+          -297.70000000000005,
+          500.00000000000006,
+          -628.5
+        ],
+        "vfov": 38.97,
+        "sunElevation": 40,
+        "sunAzimuth": 210,
+        "quality": "ultra",
+        "gpuMs": {
+          "lightGridReduce": 0.131486,
+          "lightGrid": 0.102407,
+          "marchNear": 0.24733383333333336,
+          "marchFar": 9.419180944444443,
+          "shadowMap": 0.06806927777777777,
+          "composite": 0.5529211111111112,
+          "dome": 0.14437149999999999
+        },
+        "frameMs": {},
+        "renderSize": [
+          1440,
+          810
+        ],
+        "settings": {
+          "lightning": {
+            "rate": 0,
+            "region": null,
+            "radiusRange": [
+              450,
+              900
+            ],
+            "intensityRange": [
+              0.6,
+              1.6
+            ],
+            "durationRange": [
+              0.22,
+              0.45
+            ],
+            "color": [
+              0.78,
+              0.88,
+              1
+            ]
+          },
+          "densityScale": 1,
+          "lightDensityScale": 0.09,
+          "msStrength": 1,
+          "ambientStrength": 1,
+          "silverStrength": 0.4,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "ambientExtinction": 0.5,
+          "edgeDarkening": 0,
+          "glowBoost": 0,
+          "ambientSkyBias": 1,
+          "wispyBias": 0,
+          "glowFront": 0,
+          "deepScatter": 0,
+          "deepAttenuation": 0.35,
+          "ambientFloor": 0,
+          "noiseInvert": 0,
+          "detailTypeOverride": -1,
+          "typeFromScale": 0,
+          "microShadow": 0,
+          "detailBias": 0,
+          "ambientLaw": 1,
+          "bodySunFloor": 1,
+          "bodySunKnee": 0.4,
+          "bodyEnv": 0,
+          "bodyDepth": 0,
+          "envSunWeight": 0,
+          "ambientLowSun": 0,
+          "groundAlbedo": 0.2,
+          "phaseModel": "hg",
+          "dropletDiameter": 10,
+          "hazeDensity": 0,
+          "hazeHeight": 1000,
+          "hazeBase": 0,
+          "fineErosion": 1,
+          "inlineLightScale": 0.06,
+          "inlineProfile": 0,
+          "lightMipBias": 0,
+          "diffuseSun": 0.15,
+          "diffuseFalloff": 0.11,
+          "ambientSaturation": 0.4,
+          "ambientWarmth": 0,
+          "windOffset": [
+            0.9500999999999997,
+            0,
+            0.47504999999999986
+          ],
+          "windVelocity": [
+            3,
+            0,
+            1.5
+          ],
+          "animSpeed": 1,
+          "mipDistanceScale": 0.002,
+          "baseMip": 0,
+          "maxSteps": 1024,
+          "transmittanceCutoff": 0.005,
+          "splitDistance": 240,
+          "temporalNear": 1,
+          "temporalFar": 1,
+          "temporalBlend": 0.3,
+          "renderScale": 1,
+          "detailDistance": 150,
+          "farLimit": 1000000,
+          "shadowStrength": 0.6,
+          "compositeShadow": 1,
+          "microDist": 0,
+          "stepScale": 1,
+          "fineDistance": 3000,
+          "lightDebug": 0,
+          "densityModel": "nvdf",
+          "lightingModel": "nubis",
+          "directDensity": 0.6,
+          "directInScatterFlat": 0,
+          "jitterStatic": 0
+        }
+      }
+    },
+    {
+      "name": "view-3",
+      "file": "work/captures/D1/stability/decima/view-3.jpg",
+      "report": {
+        "bookmark": "p101",
+        "look": "decima",
+        "cloud": "parkouring",
+        "camera": [
+          -297.70000000000005,
+          500.00000000000006,
+          -628.5
+        ],
+        "vfov": 38.97,
+        "sunElevation": 40,
+        "sunAzimuth": 210,
+        "quality": "ultra",
+        "gpuMs": {
+          "lightGridReduce": 0.131486,
+          "lightGrid": 0.102407,
+          "marchNear": 0.2634594,
+          "marchFar": 9.31783044,
+          "shadowMap": 0.06537454545454545,
+          "composite": 0.5433034800000001,
+          "dome": 0.13614964
+        },
+        "frameMs": {},
+        "renderSize": [
+          1440,
+          810
+        ],
+        "settings": {
+          "lightning": {
+            "rate": 0,
+            "region": null,
+            "radiusRange": [
+              450,
+              900
+            ],
+            "intensityRange": [
+              0.6,
+              1.6
+            ],
+            "durationRange": [
+              0.22,
+              0.45
+            ],
+            "color": [
+              0.78,
+              0.88,
+              1
+            ]
+          },
+          "densityScale": 1,
+          "lightDensityScale": 0.09,
+          "msStrength": 1,
+          "ambientStrength": 1,
+          "silverStrength": 0.4,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "ambientExtinction": 0.5,
+          "edgeDarkening": 0,
+          "glowBoost": 0,
+          "ambientSkyBias": 1,
+          "wispyBias": 0,
+          "glowFront": 0,
+          "deepScatter": 0,
+          "deepAttenuation": 0.35,
+          "ambientFloor": 0,
+          "noiseInvert": 0,
+          "detailTypeOverride": -1,
+          "typeFromScale": 0,
+          "microShadow": 0,
+          "detailBias": 0,
+          "ambientLaw": 1,
+          "bodySunFloor": 1,
+          "bodySunKnee": 0.4,
+          "bodyEnv": 0,
+          "bodyDepth": 0,
+          "envSunWeight": 0,
+          "ambientLowSun": 0,
+          "groundAlbedo": 0.2,
+          "phaseModel": "hg",
+          "dropletDiameter": 10,
+          "hazeDensity": 0,
+          "hazeHeight": 1000,
+          "hazeBase": 0,
+          "fineErosion": 1,
+          "inlineLightScale": 0.06,
+          "inlineProfile": 0,
+          "lightMipBias": 0,
+          "diffuseSun": 0.15,
+          "diffuseFalloff": 0.11,
+          "ambientSaturation": 0.4,
+          "ambientWarmth": 0,
+          "windOffset": [
+            1.2497999999999996,
+            0,
+            0.6248999999999998
+          ],
+          "windVelocity": [
+            3,
+            0,
+            1.5
+          ],
+          "animSpeed": 1,
+          "mipDistanceScale": 0.002,
+          "baseMip": 0,
+          "maxSteps": 1024,
+          "transmittanceCutoff": 0.005,
+          "splitDistance": 240,
+          "temporalNear": 1,
+          "temporalFar": 1,
+          "temporalBlend": 0.3,
+          "renderScale": 1,
+          "detailDistance": 150,
+          "farLimit": 1000000,
+          "shadowStrength": 0.6,
+          "compositeShadow": 1,
+          "microDist": 0,
+          "stepScale": 1,
+          "fineDistance": 3000,
+          "lightDebug": 0,
+          "densityModel": "nvdf",
+          "lightingModel": "nubis",
+          "directDensity": 0.6,
+          "directInScatterFlat": 0,
+          "jitterStatic": 0
+        }
+      }
+    },
+    {
+      "name": "view-4",
+      "file": "work/captures/D1/stability/decima/view-4.jpg",
+      "report": {
+        "bookmark": "p101",
+        "look": "decima",
+        "cloud": "parkouring",
+        "camera": [
+          -297.70000000000005,
+          500.00000000000006,
+          -628.5
+        ],
+        "vfov": 38.97,
+        "sunElevation": 40,
+        "sunAzimuth": 210,
+        "quality": "ultra",
+        "gpuMs": {
+          "lightGridReduce": 0.131486,
+          "lightGrid": 0.102407,
+          "marchNear": 0.26690784375000004,
+          "marchFar": 9.218100000000002,
+          "shadowMap": 0.06537454545454545,
+          "composite": 0.5797063125,
+          "dome": 0.1337853125
+        },
+        "frameMs": {},
+        "renderSize": [
+          1440,
+          810
+        ],
+        "settings": {
+          "lightning": {
+            "rate": 0,
+            "region": null,
+            "radiusRange": [
+              450,
+              900
+            ],
+            "intensityRange": [
+              0.6,
+              1.6
+            ],
+            "durationRange": [
+              0.22,
+              0.45
+            ],
+            "color": [
+              0.78,
+              0.88,
+              1
+            ]
+          },
+          "densityScale": 1,
+          "lightDensityScale": 0.09,
+          "msStrength": 1,
+          "ambientStrength": 1,
+          "silverStrength": 0.4,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "ambientExtinction": 0.5,
+          "edgeDarkening": 0,
+          "glowBoost": 0,
+          "ambientSkyBias": 1,
+          "wispyBias": 0,
+          "glowFront": 0,
+          "deepScatter": 0,
+          "deepAttenuation": 0.35,
+          "ambientFloor": 0,
+          "noiseInvert": 0,
+          "detailTypeOverride": -1,
+          "typeFromScale": 0,
+          "microShadow": 0,
+          "detailBias": 0,
+          "ambientLaw": 1,
+          "bodySunFloor": 1,
+          "bodySunKnee": 0.4,
+          "bodyEnv": 0,
+          "bodyDepth": 0,
+          "envSunWeight": 0,
+          "ambientLowSun": 0,
+          "groundAlbedo": 0.2,
+          "phaseModel": "hg",
+          "dropletDiameter": 10,
+          "hazeDensity": 0,
+          "hazeHeight": 1000,
+          "hazeBase": 0,
+          "fineErosion": 1,
+          "inlineLightScale": 0.06,
+          "inlineProfile": 0,
+          "lightMipBias": 0,
+          "diffuseSun": 0.15,
+          "diffuseFalloff": 0.11,
+          "ambientSaturation": 0.4,
+          "ambientWarmth": 0,
+          "windOffset": [
+            1.5998999999999999,
+            0,
+            0.7999499999999999
+          ],
+          "windVelocity": [
+            3,
+            0,
+            1.5
+          ],
+          "animSpeed": 1,
+          "mipDistanceScale": 0.002,
+          "baseMip": 0,
+          "maxSteps": 1024,
+          "transmittanceCutoff": 0.005,
+          "splitDistance": 240,
+          "temporalNear": 1,
+          "temporalFar": 1,
+          "temporalBlend": 0.3,
+          "renderScale": 1,
+          "detailDistance": 150,
+          "farLimit": 1000000,
+          "shadowStrength": 0.6,
+          "compositeShadow": 1,
+          "microDist": 0,
+          "stepScale": 1,
+          "fineDistance": 3000,
+          "lightDebug": 0,
+          "densityModel": "nvdf",
+          "lightingModel": "nubis",
+          "directDensity": 0.6,
+          "directInScatterFlat": 0,
+          "jitterStatic": 0
+        }
+      }
+    },
+    {
+      "name": "view-5",
+      "file": "work/captures/D1/stability/decima/view-5.jpg",
+      "report": {
+        "bookmark": "p101",
+        "look": "decima",
+        "cloud": "parkouring",
+        "camera": [
+          -297.70000000000005,
+          500.00000000000006,
+          -628.5
+        ],
+        "vfov": 38.97,
+        "sunElevation": 40,
+        "sunAzimuth": 210,
+        "quality": "ultra",
+        "gpuMs": {
+          "lightGridReduce": 0.131486,
+          "lightGrid": 0.102407,
+          "marchNear": 0.2492836410256411,
+          "marchFar": 9.125715282051283,
+          "shadowMap": 0.06537454545454545,
+          "composite": 0.5629245128205128,
+          "dome": 0.1263063333333333
+        },
+        "frameMs": {},
+        "renderSize": [
+          1440,
+          810
+        ],
+        "settings": {
+          "lightning": {
+            "rate": 0,
+            "region": null,
+            "radiusRange": [
+              450,
+              900
+            ],
+            "intensityRange": [
+              0.6,
+              1.6
+            ],
+            "durationRange": [
+              0.22,
+              0.45
+            ],
+            "color": [
+              0.78,
+              0.88,
+              1
+            ]
+          },
+          "densityScale": 1,
+          "lightDensityScale": 0.09,
+          "msStrength": 1,
+          "ambientStrength": 1,
+          "silverStrength": 0.4,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "ambientExtinction": 0.5,
+          "edgeDarkening": 0,
+          "glowBoost": 0,
+          "ambientSkyBias": 1,
+          "wispyBias": 0,
+          "glowFront": 0,
+          "deepScatter": 0,
+          "deepAttenuation": 0.35,
+          "ambientFloor": 0,
+          "noiseInvert": 0,
+          "detailTypeOverride": -1,
+          "typeFromScale": 0,
+          "microShadow": 0,
+          "detailBias": 0,
+          "ambientLaw": 1,
+          "bodySunFloor": 1,
+          "bodySunKnee": 0.4,
+          "bodyEnv": 0,
+          "bodyDepth": 0,
+          "envSunWeight": 0,
+          "ambientLowSun": 0,
+          "groundAlbedo": 0.2,
+          "phaseModel": "hg",
+          "dropletDiameter": 10,
+          "hazeDensity": 0,
+          "hazeHeight": 1000,
+          "hazeBase": 0,
+          "fineErosion": 1,
+          "inlineLightScale": 0.06,
+          "inlineProfile": 0,
+          "lightMipBias": 0,
+          "diffuseSun": 0.15,
+          "diffuseFalloff": 0.11,
+          "ambientSaturation": 0.4,
+          "ambientWarmth": 0,
+          "windOffset": [
+            1.9499999999999993,
+            0,
+            0.9749999999999996
+          ],
+          "windVelocity": [
+            3,
+            0,
+            1.5
+          ],
+          "animSpeed": 1,
+          "mipDistanceScale": 0.002,
+          "baseMip": 0,
+          "maxSteps": 1024,
+          "transmittanceCutoff": 0.005,
+          "splitDistance": 240,
+          "temporalNear": 1,
+          "temporalFar": 1,
+          "temporalBlend": 0.3,
+          "renderScale": 1,
+          "detailDistance": 150,
+          "farLimit": 1000000,
+          "shadowStrength": 0.6,
+          "compositeShadow": 1,
+          "microDist": 0,
+          "stepScale": 1,
+          "fineDistance": 3000,
+          "lightDebug": 0,
+          "densityModel": "nvdf",
+          "lightingModel": "nubis",
+          "directDensity": 0.6,
+          "directInScatterFlat": 0,
+          "jitterStatic": 0
+        }
+      }
+    },
+    {
+      "name": "view-6",
+      "file": "work/captures/D1/stability/decima/view-6.jpg",
+      "report": {
+        "bookmark": "p101",
+        "look": "decima",
+        "cloud": "parkouring",
+        "camera": [
+          -297.70000000000005,
+          500.00000000000006,
+          -628.5
+        ],
+        "vfov": 38.97,
+        "sunElevation": 40,
+        "sunAzimuth": 210,
+        "quality": "ultra",
+        "gpuMs": {
+          "lightGridReduce": 0.131486,
+          "lightGrid": 0.102407,
+          "marchNear": 0.24279793478260875,
+          "marchFar": 9.083059630434784,
+          "shadowMap": 0.06537454545454545,
+          "composite": 0.5464783913043479,
+          "dome": 0.12148686956521734
+        },
+        "frameMs": {},
+        "renderSize": [
+          1440,
+          810
+        ],
+        "settings": {
+          "lightning": {
+            "rate": 0,
+            "region": null,
+            "radiusRange": [
+              450,
+              900
+            ],
+            "intensityRange": [
+              0.6,
+              1.6
+            ],
+            "durationRange": [
+              0.22,
+              0.45
+            ],
+            "color": [
+              0.78,
+              0.88,
+              1
+            ]
+          },
+          "densityScale": 1,
+          "lightDensityScale": 0.09,
+          "msStrength": 1,
+          "ambientStrength": 1,
+          "silverStrength": 0.4,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "ambientExtinction": 0.5,
+          "edgeDarkening": 0,
+          "glowBoost": 0,
+          "ambientSkyBias": 1,
+          "wispyBias": 0,
+          "glowFront": 0,
+          "deepScatter": 0,
+          "deepAttenuation": 0.35,
+          "ambientFloor": 0,
+          "noiseInvert": 0,
+          "detailTypeOverride": -1,
+          "typeFromScale": 0,
+          "microShadow": 0,
+          "detailBias": 0,
+          "ambientLaw": 1,
+          "bodySunFloor": 1,
+          "bodySunKnee": 0.4,
+          "bodyEnv": 0,
+          "bodyDepth": 0,
+          "envSunWeight": 0,
+          "ambientLowSun": 0,
+          "groundAlbedo": 0.2,
+          "phaseModel": "hg",
+          "dropletDiameter": 10,
+          "hazeDensity": 0,
+          "hazeHeight": 1000,
+          "hazeBase": 0,
+          "fineErosion": 1,
+          "inlineLightScale": 0.06,
+          "inlineProfile": 0,
+          "lightMipBias": 0,
+          "diffuseSun": 0.15,
+          "diffuseFalloff": 0.11,
+          "ambientSaturation": 0.4,
+          "ambientWarmth": 0,
+          "windOffset": [
+            2.2997999999999985,
+            0,
+            1.1498999999999993
+          ],
+          "windVelocity": [
+            3,
+            0,
+            1.5
+          ],
+          "animSpeed": 1,
+          "mipDistanceScale": 0.002,
+          "baseMip": 0,
+          "maxSteps": 1024,
+          "transmittanceCutoff": 0.005,
+          "splitDistance": 240,
+          "temporalNear": 1,
+          "temporalFar": 1,
+          "temporalBlend": 0.3,
+          "renderScale": 1,
+          "detailDistance": 150,
+          "farLimit": 1000000,
+          "shadowStrength": 0.6,
+          "compositeShadow": 1,
+          "microDist": 0,
+          "stepScale": 1,
+          "fineDistance": 3000,
+          "lightDebug": 0,
+          "densityModel": "nvdf",
+          "lightingModel": "nubis",
+          "directDensity": 0.6,
+          "directInScatterFlat": 0,
+          "jitterStatic": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

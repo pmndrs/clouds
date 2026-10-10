@@ -32,8 +32,8 @@ export const DECIMA_REFS: Record<string, DecimaRef> = {
   // s101 image125-127 (wispy only / billowy only / blended) and s107 image133-136 (build steps): the same camera as s78, a little wider.
   p125: { cloud: 'parkouring', source: 's101 image125', eye: [-297.7, 0, -628.5], target: [-89.3, 197.5, -7.6], vfov: 40.69, sun: { elevation: 40, azimuth: 210 }, turbidity: 3, exposure: 0.17, sunColor: [1, 0.96, 0.9] },
   // s129 image161 (ambient without directionality) / image162 (with, N3 s128): Parkouring from the west-south-west, looking up.
-  // D1: sun not re-fitted (the s129 pair is an ambient demonstration); D0's estimate kept, turbidity 3 like s78.
-  p161: { cloud: 'parkouring', source: 's129 image161/162', eye: [-1028.5, -244.6, -207.3], target: [-138.5, 209.0, 26.7], vfov: 34.55, sun: { elevation: 15, azimuth: 270 }, turbidity: 3, exposure: 0.2, sunColor: [1, 0.96, 0.9] },
+  // D1: front-lit from behind the camera (el 30, az 240; the sweep's best corr 0.62), under a hazier, brighter sky than s78 (B/R 1.64).
+  p161: { cloud: 'parkouring', source: 's129 image161/162', eye: [-1028.5, -244.6, -207.3], target: [-138.5, 209.0, 26.7], vfov: 34.55, sun: { elevation: 30, azimuth: 240 }, turbidity: 10, exposure: 0.26, sunColor: [1, 0.96, 0.9] },
   // s191 image213: the pack's own render of Parkouring (close to the s78 view).
   p213: { cloud: 'parkouring', source: 's191 image213', eye: [-261.5, 29.2, -644.2], target: [-72.4, 210.4, -12.3], vfov: 42.87, sun: { elevation: 30, azimuth: 120 }, turbidity: 6, exposure: 0.22, sunColor: [1, 0.96, 0.9] },
   // Stormbird: s181 image206 (the final model's still, also the media33 turntable), s191 image214 (the pack's render, from the other side).
