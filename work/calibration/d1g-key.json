@@ -1,0 +1,293 @@
+{
+ "d10.png": {
+  "frame": "p101",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d11.png": {
+  "frame": "p101",
+  "source": "decima-r6",
+  "kind": "full"
+ },
+ "d07.png": {
+  "frame": "p101",
+  "source": "decima-r7",
+  "kind": "full"
+ },
+ "d09.png": {
+  "frame": "p213",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d06.png": {
+  "frame": "p213",
+  "source": "decima-r6",
+  "kind": "full"
+ },
+ "d12.png": {
+  "frame": "p213",
+  "source": "decima-r7",
+  "kind": "full"
+ },
+ "d04.png": {
+  "frame": "s206",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d02.png": {
+  "frame": "s206",
+  "source": "decima-r6",
+  "kind": "full"
+ },
+ "d03.png": {
+  "frame": "s206",
+  "source": "decima-r7",
+  "kind": "full"
+ },
+ "d08.png": {
+  "frame": "s33t3",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d01.png": {
+  "frame": "s33t3",
+  "source": "decima-r6",
+  "kind": "full"
+ },
+ "d05.png": {
+  "frame": "s33t3",
+  "source": "decima-r7",
+  "kind": "full"
+ },
+ "c16.png": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c29.png": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c08.png": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c20.png": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c14.png": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c10.png": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c04.png": {
+  "frame": "p101",
+  "region": "towershade",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c33.png": {
+  "frame": "p101",
+  "region": "towershade",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c22.png": {
+  "frame": "p101",
+  "region": "towershade",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c07.png": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c12.png": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c17.png": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c13.png": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c02.png": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c24.png": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c21.png": {
+  "frame": "p213",
+  "region": "crease",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c25.png": {
+  "frame": "p213",
+  "region": "crease",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c27.png": {
+  "frame": "p213",
+  "region": "crease",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c01.png": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c05.png": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c30.png": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c15.png": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c11.png": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c09.png": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c32.png": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c28.png": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c23.png": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c06.png": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c03.png": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c19.png": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c18.png": {
+  "frame": "s33t3",
+  "region": "trunk",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c26.png": {
+  "frame": "s33t3",
+  "region": "trunk",
+  "source": "decima-r6",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c31.png": {
+  "frame": "s33t3",
+  "region": "trunk",
+  "source": "decima-r7",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ }
+}
