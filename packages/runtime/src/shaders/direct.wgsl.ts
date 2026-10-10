@@ -14,6 +14,6 @@ export const DIRECT_DENSITY_WGSL = /* wgsl */ `
 fn cloudDensityDirect(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs) -> vec2<f32> {
   if (!insideVolume(p)) { return vec2(0.0); }
   let d = max(textureSampleLevel(heroPool, clampSampler, volumeUvw(p), 0.0).r, 0.0);
-  return vec2(d, min(d, 1.0));
+  return vec2(d, mix(min(d, 1.0), 1.0, frame.material.w));
 }
 `;

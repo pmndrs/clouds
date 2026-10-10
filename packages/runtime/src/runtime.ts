@@ -218,7 +218,38 @@ export interface CloudSettings {
    * fudge `lightDensityScale` (for the up-rez the grid does not see) should be 1 for a direct volume, which the grid sees exactly.
    */
   directDensity: number;
+  /**
+   * M1 (Nubis lighting): weight of the diffuse sun term, the high scattering orders as an isotropic diffusion with the two-stream falloff
+   * 1 / (1 + 0.11 tau) in the optical depth toward the sun. Fills shaded creases with warm diffused sunlight instead of leaving them to the sky
+   * ambient (Karma, V1). 0 = off (the N3 model).
+   */
+  diffuseSun: number;
+  /** M1: k of the diffuse sun's falloff 1 / (1 + k tau). Two-stream theory along the straight sun ray: 0.75 (1 - g) = 0.11 at g 0.85; light also diffuses around a lobe, so the effective k is lower. */
+  diffuseFalloff: number;
+  /** M1 tone shift of the sky light the cloud sees (Nubis lighting): 1 = the sky's own colour, 0 = grey at the same luminance. */
+  ambientSaturation: number;
+  /** M1 hue shift of the sky light the cloud sees (Nubis lighting): 0..1 toward the sun's chromaticity at the same luminance. 0 = off. */
+  ambientWarmth: number;
+  /** M1 direct volumes: in-scatter weight ('profile' of the Nubis lighting) = mix(saturate(density / densityRef), 1, directInScatterFlat). */
+  directInScatterFlat: number;
 }
+
+/**
+ * M1: the material balance for a direct volume (an imported VDB marched as-is, V2), fitted against the Karma references (V1: brute-force
+ * bounces, albedo 0.99, sigma = 0.6 / m per unit of EmberGen density; work/reports/M1.md). setVolume applies it when the asset is direct
+ * (option material 'auto', the default) and restores the previous values when a non-direct asset is set again; 'keep' leaves the settings alone.
+ * - lightDensityScale 1: the grid integrates the exact density (the 1.2 compensates the NVDF up-rez the grid does not see).
+ * - directInScatterFlat 1, microShadow 0, glowBoost 0: radiance is a property of the light field, not of the local density; weighting the
+ *   in-scatter by the voxel's density and shadowing it per 4 m billow printed the sim's 4 m texture into the shading ('foam').
+ * - diffuseSun 0.5 / diffuseFalloff 0.06 with msStrength / deepScatter 0.2: the shaded body is lit by sunlight diffused through the cloud
+ *   (a warm grey) rather than by the sky alone (blue).
+ * - ambientStrength 0.5, ambientSaturation 0.5, ambientWarmth 0.7: less and greyer sky light (the tone/hue shift toward Karma's neutral shade).
+ */
+export const DIRECT_VOLUME_SETTINGS = {
+  lightDensityScale: 1, directInScatterFlat: 1, microShadow: 0, glowBoost: 0, msStrength: 0.2, deepScatter: 0.2,
+  diffuseSun: 0.5, diffuseFalloff: 0.06, ambientStrength: 0.5, ambientSaturation: 0.5, ambientWarmth: 0.7,
+} satisfies Partial<CloudSettings>;
+type MaterialKey = keyof typeof DIRECT_VOLUME_SETTINGS;
 
 export interface CloudUniformLighting {
   kind: 'uniform';
@@ -262,7 +293,7 @@ export interface CloudRuntime {
    * A CloudVolumeAsset is uploaded (and owned) by the runtime. A GpuCloudVolume (e.g. from the generator) is used as is and is
    * never destroyed by the runtime.
    */
-  setVolume(asset: CloudVolumeAsset | GpuCloudVolume, options: { position: [number, number, number] }): Promise<void>;
+  setVolume(asset: CloudVolumeAsset | GpuCloudVolume, options: { position: [number, number, number]; material?: 'auto' | 'keep' }): Promise<void>;
   /**
    * Replace the volume by another caller-owned GpuCloudVolume of the same dims, voxel size and extent without touching anything else
    * (P6-A, for time-evolving fields): the temporal history is kept, the light grid is kept and rebuilt in its amortized slices from the new
@@ -457,7 +488,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
     densityModel: 'nvdf', lightingModel: 'nubis',
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
+    diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
   };
+  let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
   let procWas: CloudSettings['densityModel'] = 'nvdf';
 
@@ -772,6 +805,17 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         }));
         if (disposed) return;
       }
+      if (opts.material !== 'keep') {
+        // M1: a direct volume gets the Karma-fitted material balance; the caller's values come back with the next non-direct volume.
+        if (asset.direct && !materialStash) {
+          materialStash = {};
+          for (const k of Object.keys(DIRECT_VOLUME_SETTINGS) as MaterialKey[]) materialStash[k] = settings[k];
+          Object.assign(settings, DIRECT_VOLUME_SETTINGS);
+        } else if (!asset.direct && materialStash) {
+          Object.assign(settings, materialStash);
+          materialStash = null;
+        }
+      }
       if (ownsVolume) volume?.destroy();
       lightGrid?.destroy();
       const external = 'extentMeters' in asset;   // a GpuCloudVolume: caller-owned
@@ -897,6 +941,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[84] = settings.bodySunFloor + (1 - settings.bodySunFloor) * sunUp; f[85] = settings.bodyEnv;
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
       f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale;
+      f[100] = settings.diffuseSun; f[101] = settings.ambientSaturation; f[102] = settings.ambientWarmth; f[103] = settings.directInScatterFlat; f[104] = settings.diffuseFalloff;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for

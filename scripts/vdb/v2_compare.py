@@ -15,6 +15,11 @@ Metrics (all relative to the clear sky of the same frame, so a different sky mod
   lit      95th percentile cloud luma / sky luma;  shade  10th percentile / sky;  mean  mean / sky
   shadeBR  blue / red of the darkest 10% of cloud pixels (1 = neutral grey, > 1 = blue shade)
   edge     mean |gradient| of luma on the silhouette band / (lit - shade): crispness of the outline
+  luma50   M1: median cloud luma, absolute (display sRGB 0..1, as V1's "median 0.90 vs Karma 0.64-0.76")
+  midBR    M1: blue / red of the cloud pixels between the 10th and 50th luma percentile (the shaded body, not only the darkest creases)
+
+M1: --variants picks the columns (`id` or `id:label`, comma separated; default the V2 set) and --tag names the sheets
+(<root>/sheets/<tag>-<cloud>.jpg) and the metrics file (<root>/metrics-<tag>.json; the V2 defaults keep v2 / metrics.json).
 """
 import argparse
 import json
@@ -75,7 +80,9 @@ def metrics(img, mask, ref_mask=None):
     gy, gx = np.gradient(luma)
     band = (mask ^ np.roll(mask, 1, 0)) | (mask ^ np.roll(mask, 1, 1))
     band[0, :] = band[:, 0] = False
-    m.update({'lit': lit, 'shade': shade, 'mean': float(v.mean() / sky_l),
+    mid = mask & (luma > lo) & (luma <= np.percentile(v, 50))
+    m.update({'lit': lit, 'shade': shade, 'mean': float(v.mean() / sky_l), 'luma50': float(np.median(v)),
+              'midBR': float(img[mid][:, 2].mean() / max(img[mid][:, 0].mean(), 1e-4)) if mid.any() else 0.0,
               'shadeBR': float(img[dark][:, 2].mean() / max(img[dark][:, 0].mean(), 1e-4)),
               'edge': float(np.hypot(gx, gy)[band].mean() * 100 / max((lit - shade) * sky_l, 1e-3))})
     if ref_mask is not None:
@@ -108,7 +115,10 @@ def main():
     p.add_argument('--root', default=os.path.join(MAIN, 'artifacts', 'research', 'v2-direct'))
     p.add_argument('--karma', help='folder of V1 tone-mapped Karma frames (cloudpack-<cloud>-<view>.jpg)')
     p.add_argument('--clouds', default='02,09')
+    p.add_argument('--variants', help='M1: columns, `id` or `id:label`, comma separated (default: the V2 set)')
+    p.add_argument('--tag', default='v2', help='M1: sheet / metrics name (default v2)')
     a = p.parse_args()
+    variants = [tuple((x.split(':', 1) + [x])[:2]) for x in a.variants.split(',')] if a.variants else VARIANTS
     os.makedirs(os.path.join(a.root, 'sheets'), exist_ok=True)
     allm = {}
     for c in a.clouds.split(','):
@@ -117,7 +127,7 @@ def main():
             plate = load(os.path.join(a.root, f'sky-{c}', f'{view}.jpg'))
             ours = {}
             row = []
-            for v, label in VARIANTS:
+            for v, label in variants:
                 path = os.path.join(a.root, f'{v}-{c}', f'{view}.jpg')
                 row.append((label, path))
                 if os.path.exists(path):
@@ -137,13 +147,13 @@ def main():
                 allm[f'{c}/{view}/{v}'] = metrics(img, m, kmask)[0]
             row.append(('Karma (V1)', kp))
             rows.append(row)
-        sheet(rows, os.path.join(a.root, 'sheets', f'v2-{c}.jpg'))
-    with open(os.path.join(a.root, 'metrics.json'), 'w') as f:
+        sheet(rows, os.path.join(a.root, 'sheets', f'{a.tag}-{c}.jpg'))
+    with open(os.path.join(a.root, 'metrics.json' if a.tag == 'v2' else f'metrics-{a.tag}.json'), 'w') as f:
         json.dump(allm, f, indent=1)
-    keys = ['cover', 'iou', 'lit', 'shade', 'mean', 'shadeBR', 'edge']
-    print('frame'.ljust(18) + ''.join(k.rjust(9) for k in keys))
+    keys = ['cover', 'iou', 'lit', 'shade', 'mean', 'luma50', 'shadeBR', 'midBR', 'edge']
+    print('frame'.ljust(22) + ''.join(k.rjust(9) for k in keys))
     for k, m in allm.items():
-        print(k.ljust(18) + ''.join((f'{m[x]:9.3f}' if x in m else ' ' * 9) for x in keys))
+        print(k.ljust(22) + ''.join((f'{m[x]:9.3f}' if x in m else ' ' * 9) for x in keys))
 
 
 if __name__ == '__main__':

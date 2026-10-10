@@ -16,7 +16,8 @@ const DEEP_C = 0.5;
 const ISO_PHASE = 1.0 / (4.0 * PI);
 const EDGE_DEPTH = 70.0;   // metres below the surface a ray must reach to count as 'thick' (front-lit edge darkening is released by then)
 const EDGE_FLOOR = 0.08;   // radiance share left at a silhouette with edgeDarkening = 1
-const MIE_PHASE_MAX = 25.0; // C1: clamp of the Mie fit's sub-degree forward peak (stands in for the sun-disc average, approximate-mie.md sec. 3)
+const MIE_PHASE_MAX = 25.0;
+const DIFFUSE_K = 0.11;    // M1: two-stream diffuse falloff 1 / (1 + 0.75 (1 - g) tau), g ~ 0.85 (the octave model's diffusion tail uses the same) // C1: clamp of the Mie fit's sub-degree forward peak (stands in for the sun-disc average, approximate-mie.md sec. 3)
 
 fn henyeyGreenstein(cosTheta: f32, g: f32) -> f32 {
   let g2 = g * g;
@@ -53,7 +54,20 @@ fn cloudInScatter(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, phase: 
 // high scattering orders, the diffuse body. Their sun-fed part scales with the sun's cosine to the surface (frame.body.x, 1 at high sun,
 // MU_FLOOR at the horizon), and the environment pair takes it over as the sun drops (frame.body.y, 0 at high sun): envUp = the sky
 // reduced with a weight toward the sun (RDR2 S36), envDown = ground bounce. The direct term (low orders: rims, silver lining) is untouched.
-fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, phase: f32, sunRelax: f32, sunRadiance: vec3<f32>, ambientUp: vec3<f32>, ambientDown: vec3<f32>, envUp: vec3<f32>, envDown: vec3<f32>, microOcc: f32) -> vec3<f32> {
+// M1 tone/hue shift of the sky light a cloud body sees (frame.material.yz): desaturate it (y = 1: the sky's own colour) and pull its chromaticity toward
+// the sun's (z), both at the same luminance. Karma's shade under its Physical Sky is a neutral warm grey (B/R 1.07) where ours is sky-blue (1.6):
+// part sky model (Hosek-Wilkie at turbidity 3 is greyer than the pmndrs sky), part the share of diffused sunlight in the shade.
+fn materialTint(c: vec3<f32>, sun: vec3<f32>) -> vec3<f32> {
+  let w = vec3(0.2126, 0.7152, 0.0722);
+  let l = dot(c, w);
+  let sunChroma = sun / max(dot(sun, w), 1e-6);
+  return mix(mix(vec3(l), c, frame.material.y), l * sunChroma, frame.material.z);
+}
+fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, phase: f32, sunRelax: f32, sunRadiance: vec3<f32>, ambientUpIn: vec3<f32>, ambientDownIn: vec3<f32>, envUpIn: vec3<f32>, envDownIn: vec3<f32>, microOcc: f32) -> vec3<f32> {
+  let ambientUp = materialTint(ambientUpIn, sunRadiance);
+  let ambientDown = materialTint(ambientDownIn, sunRadiance);
+  let envUp = materialTint(envUpIn, sunRadiance);
+  let envDown = materialTint(envDownIn, sunRadiance);
   // Inner glow: the profile is an in-scatter probability; extinction relaxes deep inside and toward the sun.
   let relax = mix(0.25, valueRemap(sdf, -128.0, 0.0, 0.05, 0.25), max(sunRelax, frame.glowFront));
   let ms = profile * exp(-tau * relax) * (1.0 + frame.glowBoost * sunRelax) * microOcc;
@@ -85,11 +99,16 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
   // The environment-fed body: isotropic (no forward glow boost, no sun-ward occlusion), irradiance = pi * mean radiance.
   let envLight = mix(envDown, envUp * above, skyWeight) * (PI * envShare * profile * (frame.msStrength * MS_NORMALISATION + frame.deepScatter * ISO_PHASE));
   let deepLight = sunRadiance * (frame.deepScatter * deep * microOcc * sunShare);
+  // M1 diffuse sun (frame.material.x): the high scattering orders as a diffusion, isotropic with the two-stream falloff in the optical depth toward
+  // the sun. The deep octaves die as exp(-a^n tau), so a crease behind a lobe (tau 20-50) keeps almost no sunlight and is lit by the blue sky alone;
+  // in the Karma references (brute-force bounces, albedo 0.99) the same crease is lit mostly by sunlight that diffused through the lobe: a warm grey.
+  // No profile weight (the diffuse radiance is a property of the light field, not of the local density) and no billow occlusion: it fills creases.
+  let diffuseLight = sunRadiance * (frame.material.x * ISO_PHASE * sunShare / (1.0 + frame.material2.x * tau));
   if (frame.lightDebug > 0.5 && frame.lightDebug < 5.5) {
     let k = u32(frame.lightDebug);
-    return select(select(select(select(envLight, ambient, k == 4u), deepLight, k == 3u), msLight, k == 2u), direct, k == 1u);
+    return select(select(select(select(envLight, ambient, k == 4u), deepLight + diffuseLight, k == 3u), msLight, k == 2u), direct, k == 1u);
   }
-  return direct + msLight + deepLight + envLight + ambient;
+  return direct + msLight + deepLight + diffuseLight + envLight + ambient;
 }
 // X3 'octave' lighting model (CloudSettings.lightingModel / ProceduralSettings.lightingModel): the per-sample model of Frostbite and Takram,
 // for density without an SDF or an in-scatter profile (Hillaire 2016 eq. 19-20 after Wrenninge 2013 "Oz"; Takram three-clouds clouds.frag).

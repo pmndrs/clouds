@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 400;
+export const FRAME_UNIFORM_BYTES = 432;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -40,6 +40,11 @@ struct Frame {
   haze: vec4<f32>,
   // P1 up-rez noise convention: x = noiseInvert bit flags (1 billowy B/A as 1 - n, 2 wispy R/G as 1 - n), y = detail type override (< 0 = the NVDF's), z = typeFromScale, w = 0.
   uprez: vec4<f32>,
+  // M1 material balance (Nubis lighting): x = diffuseSun (weight of the two-stream diffuse sun term), y = ambientSaturation (1 = the sky's own colour),
+  // z = ambientWarmth (0..1 toward the sun's chromaticity at the same luminance), w = directInScatterFlat (direct volumes: 0 = in-scatter weight saturate(density), 1 = 1).
+  material: vec4<f32>,
+  // M1: x = diffuseFalloff (k of the diffuse sun's 1 / (1 + k tau)), yzw = 0.
+  material2: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

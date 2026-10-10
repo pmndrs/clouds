@@ -109,9 +109,18 @@ def convert(args):
         hi = [ahi[i] + pad for i in range(3)]
     dens = read_range(prim, lo, hi, args.up == 'z')
     dens = np.maximum(dens * args.scale, 0.0).astype(np.float32)
+    crop_min = [0, 0, 0]   # texture order (x, row, up) within the read range
     if not like:
         b = nm.occupied_bounds((dens > args.empty).astype(np.uint8), args.margin)
         dens = nm.crop(dens, b['cropMin'], b['cropDims'])
+        crop_min = b['cropMin']
+    # M1: world position (hou axes, metres) of the crop's min corner, as vdb_to_nvdf.py writes it (the Frog page places a volume from it).
+    # Y-up only: texture (x, row, up) = (hou x, hou z, hou y), so the min corner is source index lo + crop_min, less half a voxel.
+    centre0 = [float(c) * args.world_scale for c in prim.indexToPos([0, 0, 0])]
+    hou_min = None
+    if args.up == 'y':
+        idx = [lo[0] + crop_min[0], lo[1] + crop_min[2], lo[2] + crop_min[1]]
+        hou_min = [centre0[i] + (idx[i] - 0.5) * sv for i in range(3)]
     t_read = time.perf_counter() - t0
     dims = [dens.shape[2], dens.shape[1], dens.shape[0]]   # texture (x, row, up)
 
@@ -172,6 +181,8 @@ def convert(args):
                    'encoding': 'value = VDB density * scale / densityRef (unclamped); extinction = value * densityRef * CloudSettings.directDensity',
                    'scale': args.scale, 'empty': args.empty,
                    'stats': {'max': float(pos.max()), 'p50': float(np.percentile(pos, 50)), 'p99': float(np.percentile(pos, 99)), 'occupied': int(pos.size)}},
+        'houdini': {'note': 'world position (hou axes x, y-up, z, metres after --world-scale) of the crop min corner (Y-up sources only)',
+                    'cropMinWorld': hou_min, 'sourceVoxelSizeMeters': sv, 'worldScale': args.world_scale} if hou_min else None,
         'converter': {'script': 'scripts/vdb/vdb_to_direct.py', 'up': args.up, 'worldScale': args.world_scale, 'grid': args.density_grid, 'alignIoU': align_iou},
     }
     (out / 'cloud.json').write_text(json.dumps(meta, indent=2) + '\n')
