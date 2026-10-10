@@ -215,7 +215,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         let ts = t + jitterAnimated * step;
         let ds = min(step, tEnd - t);
         if (ts < tEnd) {
-          inputs.hfDetails = select(0u, 1u, ts < frame.misc.x);
+          inputs.hfDetails = select(0u, 1u, ts < max(frame.misc.x, 150.0));
           let ps = origin + dir * ts;
           let d = ${density}(ps, ts, inputs);
           sparseRun = select(0.0, min(sparseRun + 1.0, SPARSE_MAX), d.x * frame.extinction * step < SPARSE_THIN);
