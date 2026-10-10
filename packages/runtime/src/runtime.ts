@@ -719,7 +719,9 @@ export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Parti
   // D1 round 8: glowDepth 12 (the glow's profile read 12 m past the sample along the view ray: the profile's lobes no longer print discs on the shade side).
   // D1 round 9 (the floret investigation's T2): a 4 m sun tap at a quarter of the view extinction shades the florets (the deck's first in-line sample
   // 'preserves detail near the surfaces', s113); microShadow stays 0, so it joins the direct term's optical depth only.
-  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 4, microLightScale: 0.25, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1, glowDepth: 12 };
+  // D1 round 10: microShadowMode 1 at microShadow 2: the glow occluded by the florets' own relief toward the sun (the up-rez residual over the profile
+  // along the 4 m tap), the floret-scale shading the glow lacked (H2; the s78 tower's lit-half 4-12 px energy 0.72 -> 1.01 of the frame's 1.46 at round 9's sky).
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 4, microLightScale: 0.25, microShadow: 2, microShadowMode: 1, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1, glowDepth: 12 };
   return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 
