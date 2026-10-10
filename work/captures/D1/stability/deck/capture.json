@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:57880/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
+  "url": "http://127.0.0.1:58984/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T18:09:16.176Z",
+  "startedAt": "2026-10-10T18:57:58.319Z",
   "shots": [
     {
       "name": "view",
@@ -23,18 +23,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.02658,
-          "lightGrid": 0.037537,
-          "marchNear": 1.705015558139535,
-          "marchFar": 24.87751844186047,
-          "shadowMap": 0.37007685714285715,
-          "composite": 3.5620185116279073,
-          "dome": 0.1859733488372093
+          "lightGridReduce": 0.050747,
+          "lightGrid": 2.076332,
+          "marchNear": 1.4781781666666667,
+          "marchFar": 17.91777342857143,
+          "shadowMap": 0.6159147058823529,
+          "composite": 3.2103031904761896,
+          "dome": 0.37884190476190477
         },
         "frameMs": {},
         "renderSize": [
-          1920,
-          1080
+          1440,
+          810
         ],
         "settings": {
           "lightning": {
@@ -103,16 +103,16 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            6.749699999999999,
             0,
-            3.3748499999999995
+            0,
+            0
           ],
           "windVelocity": [
             3,
             0,
             1.5
           ],
-          "animSpeed": 1,
+          "animSpeed": 0,
           "mipDistanceScale": 0.002,
           "baseMip": 0,
           "maxSteps": 1024,
@@ -142,7 +142,11 @@
           "lightGridFilter": 0,
           "inlineReuse": 4,
           "profileFilter": 0,
-          "historyDither": 0
+          "historyDither": 0,
+          "glowDepth": 0,
+          "glowDepthMode": 0,
+          "noiseScale": 0.01,
+          "windCompensate": 0
         }
       }
     },
@@ -163,18 +167,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.02658,
-          "lightGrid": 0.037537,
-          "marchNear": 1.4262795499999998,
-          "marchFar": 22.929950833333343,
-          "shadowMap": 0.37007685714285715,
-          "composite": 3.166817666666666,
-          "dome": 0.23290688333333331
+          "lightGridReduce": 0.050747,
+          "lightGrid": 2.076332,
+          "marchNear": 1.2191522833333333,
+          "marchFar": 15.981316433333332,
+          "shadowMap": 0.6159147058823529,
+          "composite": 4.043084166666668,
+          "dome": 0.3166347666666667
         },
         "frameMs": {},
         "renderSize": [
-          1920,
-          1080
+          1440,
+          810
         ],
         "settings": {
           "lightning": {
@@ -243,16 +247,16 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            13.249499999999983,
             0,
-            6.624749999999992
+            0,
+            0
           ],
           "windVelocity": [
             3,
             0,
             1.5
           ],
-          "animSpeed": 1,
+          "animSpeed": 0,
           "mipDistanceScale": 0.002,
           "baseMip": 0,
           "maxSteps": 1024,
@@ -282,7 +286,11 @@
           "lightGridFilter": 0,
           "inlineReuse": 4,
           "profileFilter": 0,
-          "historyDither": 0
+          "historyDither": 0,
+          "glowDepth": 0,
+          "glowDepthMode": 0,
+          "noiseScale": 0.01,
+          "windCompensate": 0
         }
       }
     },
@@ -303,18 +311,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.02658,
-          "lightGrid": 0.037537,
-          "marchNear": 1.45580205,
-          "marchFar": 22.94889708333333,
-          "shadowMap": 0.37007685714285715,
-          "composite": 2.405050116666667,
-          "dome": 0.16576000000000005
+          "lightGridReduce": 0.050747,
+          "lightGrid": 2.076332,
+          "marchNear": 1.1946325166666665,
+          "marchFar": 14.99080106666667,
+          "shadowMap": 0.6159147058823529,
+          "composite": 4.484470566666665,
+          "dome": 0.27071263333333334
         },
         "frameMs": {},
         "renderSize": [
-          1920,
-          1080
+          1440,
+          810
         ],
         "settings": {
           "lightning": {
@@ -383,16 +391,16 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            19.84919999999995,
             0,
-            9.924599999999975
+            0,
+            0
           ],
           "windVelocity": [
             3,
             0,
             1.5
           ],
-          "animSpeed": 1,
+          "animSpeed": 0,
           "mipDistanceScale": 0.002,
           "baseMip": 0,
           "maxSteps": 1024,
@@ -422,7 +430,11 @@
           "lightGridFilter": 0,
           "inlineReuse": 4,
           "profileFilter": 0,
-          "historyDither": 0
+          "historyDither": 0,
+          "glowDepth": 0,
+          "glowDepthMode": 0,
+          "noiseScale": 0.01,
+          "windCompensate": 0
         }
       }
     },
@@ -443,18 +455,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.02658,
-          "lightGrid": 0.037537,
-          "marchNear": 1.1081858499999997,
-          "marchFar": 23.97748063333334,
-          "shadowMap": 0.37007685714285715,
-          "composite": 2.789539283333333,
-          "dome": 0.16781971666666665
+          "lightGridReduce": 0.050747,
+          "lightGrid": 2.076332,
+          "marchNear": 1.1599358833333333,
+          "marchFar": 16.646076549999997,
+          "shadowMap": 0.6159147058823529,
+          "composite": 3.4835565999999996,
+          "dome": 0.27460549999999995
         },
         "frameMs": {},
         "renderSize": [
-          1920,
-          1080
+          1440,
+          810
         ],
         "settings": {
           "lightning": {
@@ -523,16 +535,16 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            26.59889999999993,
             0,
-            13.299449999999965
+            0,
+            0
           ],
           "windVelocity": [
             3,
             0,
             1.5
           ],
-          "animSpeed": 1,
+          "animSpeed": 0,
           "mipDistanceScale": 0.002,
           "baseMip": 0,
           "maxSteps": 1024,
@@ -562,7 +574,11 @@
           "lightGridFilter": 0,
           "inlineReuse": 4,
           "profileFilter": 0,
-          "historyDither": 0
+          "historyDither": 0,
+          "glowDepth": 0,
+          "glowDepthMode": 0,
+          "noiseScale": 0.01,
+          "windCompensate": 0
         }
       }
     },
@@ -583,18 +599,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.02658,
-          "lightGrid": 0.037537,
-          "marchNear": 1.2607925333333336,
-          "marchFar": 23.24208555,
-          "shadowMap": 0.37007685714285715,
-          "composite": 2.806222499999999,
-          "dome": 0.16894733333333342
+          "lightGridReduce": 0.050747,
+          "lightGrid": 2.076332,
+          "marchNear": 1.2004191499999999,
+          "marchFar": 17.21081165,
+          "shadowMap": 0.6159147058823529,
+          "composite": 3.7413796,
+          "dome": 0.22196738333333343
         },
         "frameMs": {},
         "renderSize": [
-          1920,
-          1080
+          1440,
+          810
         ],
         "settings": {
           "lightning": {
@@ -663,16 +679,16 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            33.198599999999935,
             0,
-            16.599299999999968
+            0,
+            0
           ],
           "windVelocity": [
             3,
             0,
             1.5
           ],
-          "animSpeed": 1,
+          "animSpeed": 0,
           "mipDistanceScale": 0.002,
           "baseMip": 0,
           "maxSteps": 1024,
@@ -702,7 +718,11 @@
           "lightGridFilter": 0,
           "inlineReuse": 4,
           "profileFilter": 0,
-          "historyDither": 0
+          "historyDither": 0,
+          "glowDepth": 0,
+          "glowDepthMode": 0,
+          "noiseScale": 0.01,
+          "windCompensate": 0
         }
       }
     },
@@ -723,18 +743,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.02658,
-          "lightGrid": 0.037537,
-          "marchNear": 1.2984280666666663,
-          "marchFar": 22.750213933333328,
-          "shadowMap": 0.37007685714285715,
-          "composite": 2.8786997333333337,
-          "dome": 0.15238804999999997
+          "lightGridReduce": 0.050747,
+          "lightGrid": 2.076332,
+          "marchNear": 1.1189509333333336,
+          "marchFar": 17.270742716666664,
+          "shadowMap": 0.6159147058823529,
+          "composite": 4.139986933333335,
+          "dome": 0.29223443333333327
         },
         "frameMs": {},
         "renderSize": [
-          1920,
-          1080
+          1440,
+          810
         ],
         "settings": {
           "lightning": {
@@ -803,16 +823,16 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            39.64829999999994,
             0,
-            19.82414999999997
+            0,
+            0
           ],
           "windVelocity": [
             3,
             0,
             1.5
           ],
-          "animSpeed": 1,
+          "animSpeed": 0,
           "mipDistanceScale": 0.002,
           "baseMip": 0,
           "maxSteps": 1024,
@@ -842,7 +862,11 @@
           "lightGridFilter": 0,
           "inlineReuse": 4,
           "profileFilter": 0,
-          "historyDither": 0
+          "historyDither": 0,
+          "glowDepth": 0,
+          "glowDepthMode": 0,
+          "noiseScale": 0.01,
+          "windCompensate": 0
         }
       }
     }
