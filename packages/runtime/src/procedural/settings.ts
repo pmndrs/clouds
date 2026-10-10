@@ -130,7 +130,7 @@ export interface HzdShape {
   /** How the three Nutshell gradients (nut s7-8) blend by type; the law is unpublished. 'points' lerps the four stops (n17.md's reading, one
    *  flat core); 'curves' is GP7 p.103's "weighted sum" with tent weights. H5: 'curves' by default (it is what GP7 p.103 writes): between the
    *  types the profile is a sum of two humps, which separates the bodies and rounds their tops (H5 step 2 captures). */
-  typeBlend: 'points' | 'curves';
+  typeBlend: 'points' | 'curves' | 'hybrid';
   /** World size of one tile of the shape (128^3), detail (32^3) and curl (128^2) textures, and the curl displacement (none published; ours).
    *  H5: shape tile 4 -> 6 km: lobes 1.5x larger and rounder (lobe/body band energy 0.21 -> 0.15; GP7 Fig 4.16 0.09); needs the cubic read. */
   shapeTile: number;
@@ -253,6 +253,20 @@ export interface HzdShape {
   /** H7 wispy bottoms: a second erosion below wispyHeight in gp7's order (after the coverage remap, so it frays the thin base ramp into wisps
    *  while the hfw order keeps flanks and tops intact), strength at h = 0 falling to 0 at wispyHeight. 0 = off. Ours. */
   bottomErosion: number;
+  /** H7 lobe rung (the missing middle step between the body and the grain; santa D1, frog F1 ~3.5x per level): a billowy erosion of the
+   *  low-frequency noise by the detail texture's coarsest channel read with its own tile `lobeTile` (cells of lobeTile / 4 m), strength
+   *  `lobeStrength` (0 = off), fading in from wispyHeight to `lobeFull` (h: textured tops, smooth bellies), tricubic within
+   *  detailCubicDistance when `lobeCubic`. Ours. */
+  lobeTile: number;
+  lobeStrength: number;
+  lobeFull: number;
+  lobeCubic: boolean;
+  /** H7: the lobe strength scales with sat(coverage / lobeCoverage)^2, so small thin-coverage clouds are not shattered into pellets (0 = no scaling). */
+  lobeCoverage: number;
+  /** H7 base lumps (santa D3, frog F10: lobes hanging below the base; against H6's flat stratus slab and base shelves): the base ramp of the
+   *  height gradient is read up to 2 x baseLump (h) higher where the shape's 600 m Worley fBM (G) is above its mean, so the underside follows
+   *  the lobes. 0 = off (one base plane per gradient, as HZD). Ours. */
+  baseLump: number;
   bottomCurlDown: number;
   wispyStrength: number;
   ndf: HzdNdfSettings;
@@ -348,7 +362,7 @@ export const HZD_DEFAULTS: HzdShape = {
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.07, veilDensity: 0.08, veilHeight: 0.18, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'skirt', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 2.5, bottomErosion: 0.5, bottomCurlDown: 0.5, wispyStrength: 0.3, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'skirt', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 2.5, lobeTile: 1050, lobeStrength: 0.6, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0.5, bottomCurlDown: 0.5, wispyStrength: 0.3, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -365,8 +379,8 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
   };
 }
 
-/** ProcParams uniform: 45 vec4 (the last fifteen are the HZD shaper's). */
-export const PROC_PARAM_FLOATS = 180;
+/** ProcParams uniform: 47 vec4 (the last seventeen are the HZD shaper's). */
+export const PROC_PARAM_FLOATS = 188;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -418,7 +432,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.baseFadeMin, Math.max(hz.baseFadeHeight, 1e-3), hz.detailDistance, hz.mipBias], 132);
   const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
   out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
-  out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : 0], 140);
+  out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : hz.typeBlend === 'hybrid' ? 2 : 0], 140);
   out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, hz.detailCubicDistance], 144);
   out.set([hz.ringStart, Math.max(hz.ringEnd, hz.ringStart + 1), hz.ringCoverage, hz.ringType], 148);
   out.set([hz.shapeContrast, hz.erosionStrength, Math.max(hz.wispyHeight, 1e-3), hz.erosionOrder === 'hfw' ? 1 : 0], 152);
@@ -428,6 +442,8 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.veilNoise === 'shape' ? 1 : 0, hz.skirtMode === 'skirt' ? 1 : 0, hz.skirtTrail, Math.max(hz.skirtStretch, 1)], 168);
   out.set([Math.max(hz.skirtPeak, 1e-3), Math.max(hz.bottomCurl, 0), hz.bottomCurlDown, hz.wispyStrength], 172);
   out.set([Math.max(hz.skirtScale, 1e-3), Math.max(hz.skirtTrailWidth, 1e-3), hz.bottomErosion, Math.min(Math.max(hz.skirtGap, 0), 0.95)], 176);
+  out.set([Math.max(hz.lobeTile, 1), Math.max(hz.lobeStrength, 0), hz.lobeFull, hz.lobeCubic ? 1 : 0], 180);
+  out.set([Math.max(hz.baseLump, 0), 0, 0, hz.lobeCoverage], 184);
   return [minY, maxY];
 }
 

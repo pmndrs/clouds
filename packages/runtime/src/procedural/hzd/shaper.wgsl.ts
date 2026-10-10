@@ -32,20 +32,19 @@ export const HZD_GRADIENTS = {
 const v4 = (a: readonly number[]) => `vec4(${a.map(x => x.toFixed(2)).join(', ')})`;
 
 /** CPU mirror of `hzdHeightGradient` (tests and plots). */
-export function hzdHeightGradient(type: number, h: number, blend: 'points' | 'curves' = 'points', opts: { topRound?: number; smooth?: boolean } = {}): number {
+export function hzdHeightGradient(type: number, h: number, blend: 'points' | 'curves' | 'hybrid' = 'points', opts: { topRound?: number; smooth?: boolean } = {}): number {
   const ramp = (x: number) => { const t = Math.min(1, Math.max(0, x)); return opts.smooth ? t * t * (3 - 2 * t) : t; };
-  const trap = (s: readonly number[]) => {
-    const c = s[2] + (s[1] - s[2]) * (opts.topRound ?? 0);
-    return ramp((h - s[0]) / (s[1] - s[0])) * ramp((s[3] - h) / Math.max(s[3] - c, 1e-3));
-  };
+  const rise = (s: readonly number[]) => ramp((h - s[0]) / (s[1] - s[0]));
+  const fall = (s: readonly number[]) => { const c = s[2] + (s[1] - s[2]) * (opts.topRound ?? 0); return ramp((s[3] - h) / Math.max(s[3] - c, 1e-3)); };
+  const trap = (s: readonly number[]) => rise(s) * fall(s);
   const { stratus: S, stratocumulus: M, cumulus: C } = HZD_GRADIENTS;
   const t = Math.min(1, Math.max(0, type));
-  if (blend === 'points') {
-    const [a, b, k] = t < 0.5 ? [S, M, t * 2] : [M, C, t * 2 - 1];
-    return trap(a.map((x, i) => x + (b[i] - x) * k));
-  }
+  const [a, b, k] = t < 0.5 ? [S, M, t * 2] : [M, C, t * 2 - 1];
+  const lerped = a.map((x, i) => x + (b[i] - x) * k);
+  if (blend === 'points') return trap(lerped);
   const ws = Math.max(0, 1 - 2 * t), wc = Math.max(0, 2 * t - 1);
-  return ws * trap(S) + (1 - ws - wc) * trap(M) + wc * trap(C);
+  if (blend === 'curves') return ws * trap(S) + (1 - ws - wc) * trap(M) + wc * trap(C);
+  return rise(lerped) * (ws * fall(S) + (1 - ws - wc) * fall(M) + wc * fall(C));
 }
 
 /** The bindings of the HZD shaper: as procBindingsWgsl, but the weather slot is the NDF's 2D array. */
@@ -72,21 +71,25 @@ fn hzdRemap(v: f32, a: f32, b: f32, c: f32, d: f32) -> f32 { return c + (v - a) 
 // H6: topRound moves the fall's start from the stop c toward b (a wider, rounder top ramp; hag eq 6 falls over 0.2 wh..wh), and
 // profileSmooth makes both ramps smoothstep (C1 at the stops). Both 0 = the Nutshell trapezoid.
 fn hzdRamp(x: f32) -> f32 { let t = saturate(x); return select(t, t * t * (3.0 - 2.0 * t), P.hzProf.y > 0.5); }
-fn hzdTrapezoid(s: vec4<f32>, h: f32) -> f32 {
-  let c = mix(s.z, s.y, P.hzProf.x);
-  return hzdRamp((h - s.x) / (s.y - s.x)) * hzdRamp((s.w - h) / max(s.w - c, 1e-3));
-}
-fn hzdHeightGradient(cloudType: f32, h: f32) -> f32 {
+fn hzdFall(s: vec4<f32>, h: f32) -> f32 { let c = mix(s.z, s.y, P.hzProf.x); return hzdRamp((s.w - h) / max(s.w - c, 1e-3)); }
+fn hzdTrapezoid(s: vec4<f32>, h: f32, hr: f32) -> f32 { return hzdRamp((hr - s.x) / (s.y - s.x)) * hzdFall(s, h); }
+fn hzdHeightGradient(cloudType: f32, h: f32) -> f32 { return hzdHeightGradientR(cloudType, h, h); }
+// H7: hr is the height the rise (base) ramps are read at (h + the base-lump offset); the falls read h.
+fn hzdHeightGradientR(cloudType: f32, h: f32, hr: f32) -> f32 {
   let t = saturate(cloudType);
-  if (P.hzSpeed.w < 0.5) {
-    // 'points': lerp the stops stratus -> stratocumulus (type 0..0.5) -> cumulus (0.5..1).
-    let s = select(mix(HZD_STRATOCUMULUS, HZD_CUMULUS, t * 2.0 - 1.0), mix(HZD_STRATUS, HZD_STRATOCUMULUS, t * 2.0), t < 0.5);
-    return hzdTrapezoid(s, h);
-  }
+  // 'points': lerp the stops stratus -> stratocumulus (type 0..0.5) -> cumulus (0.5..1).
+  let s = select(mix(HZD_STRATOCUMULUS, HZD_CUMULUS, t * 2.0 - 1.0), mix(HZD_STRATUS, HZD_STRATOCUMULUS, t * 2.0), t < 0.5);
+  if (P.hzSpeed.w < 0.5) { return hzdTrapezoid(s, h, hr); }
   // 'curves': GP7 p.103's weighted sum of the three, tent weights.
   let ws = saturate(1.0 - 2.0 * t);
   let wc = saturate(2.0 * t - 1.0);
-  return ws * hzdTrapezoid(HZD_STRATUS, h) + (1.0 - ws - wc) * hzdTrapezoid(HZD_STRATOCUMULUS, h) + wc * hzdTrapezoid(HZD_CUMULUS, h);
+  if (P.hzSpeed.w < 1.5) {
+    return ws * hzdTrapezoid(HZD_STRATUS, h, hr) + (1.0 - ws - wc) * hzdTrapezoid(HZD_STRATOCUMULUS, h, hr) + wc * hzdTrapezoid(HZD_CUMULUS, h, hr);
+  }
+  // H7 'hybrid': one rise from the lerped stops times the weighted sum of the falls. The summed rises (cumulus full at 0.09, stratocumulus at
+  // 0.16) put two base heights under every mixed-type body, which the coverage threshold cut into a base shelf; the summed falls keep
+  // 'curves'' separate, rounded bodies (ours).
+  return hzdRamp((hr - s.x) / (s.y - s.x)) * (ws * hzdFall(HZD_STRATUS, h) + (1.0 - ws - wc) * hzdFall(HZD_STRATOCUMULUS, h) + wc * hzdFall(HZD_CUMULUS, h));
 }
 // S7 hook: N17's anvil exponent pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias))) goes here. Unchanged for now.
 fn hzdAnvil(coverage: f32, h: f32, n: NdfSample) -> f32 { return coverage; }
@@ -162,7 +165,9 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   let h = (alt - bottom) / (top - bottom);
   let cov = hzdAnvil(cov0, h, n);
   if (cov <= 0.0) { return o; }
-  let gradient = hzdHeightGradient(n.topType + P.hzCov.y, h);
+  // H7 base lumps: the rise is read up to baseLump (h) higher where the shape's Worley fBM is high (below); the early-out takes the largest offset.
+  let lumpMax = 2.0 * P.hzShelf.x;
+  var gradient = hzdHeightGradientR(n.topType + P.hzCov.y, h, h + lumpMax);
   if (gradient <= 0.0) { return o; }
   let stage = P.hzMisc.x;
 
@@ -179,6 +184,13 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   var A: vec4<f32>;
   if (cubic) { A = hzdCubic3(procNoiseA, qShape / P.hzScale.x); } else { A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, shapeLod); }
   let lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
+  // H7 base lumps (santa D3 / frog F10 "lit chin lobes hanging below a flat base"; the flat stratus slab and base shelves of H6): the base
+  // ramp is read baseLump x (G - 0.69) / 0.10 higher in the column (G = the 600 m Worley fBM, mean 0.69, std 0.10), clamped to 0..2 baseLump,
+  // so each Worley lobe hangs its own rounded underside instead of one plane per body (ours; HZD has one base per gradient).
+  if (P.hzShelf.x > 0.0) {
+    gradient = hzdHeightGradientR(n.topType + P.hzCov.y, h, h + clamp(P.hzShelf.x * (A.g - 0.69) / 0.1, 0.0, lumpMax));
+    if (gradient <= 0.0) { return o; }
+  } else { gradient = hzdHeightGradient(n.topType + P.hzCov.y, h); }
   let pw = select(saturate(0.5 + (A.r - 0.5) * P.hzExtra.x), A.r, P.hzExtra.x == 1.0);   // H5 shapeContrast (1 = off)
   let base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
   let baseCloud = base * gradient;   // 3 height gradient (gp7 p.106: hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient)
@@ -248,12 +260,30 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
     // H7: the erosion strength rises from P.hzSkirt.w at the base to erosionStrength at the wispy switch (wispy bottoms erode deeper; gp7 one value).
     let strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
+    // H7 lobe rung: the step between the body (shape noise, 0.6-1.2 km) and the detail grain (75 m cells) that the photos have and we lacked
+    // (santa D1 / frog F1: ~3.5x per level; topics/surface-detail.md "a lobe field at ~70-250 m in the profile stage"). One billowy octave:
+    // the detail texture's coarsest channel (inverted Worley, 4 cells per tile) read with its own tile (lobeTile; 4 cells = lobeTile / 4 m),
+    // curl-displaced like the detail, its cell borders eroding the low-frequency noise so each body grows ~3.5x-smaller domes. It fades in from
+    // the wispy switch to lobeFull (h): textured tops, smooth bellies (santa D2, frog F3). Constants ours.
+    var lobe = 0.0;
+    if (P.hzLobe.y > 0.0) {
+      let lcurl = textureSampleLevel(procAux, procRepeat, qDetail.xz / P.hzScale.z, 0.0).xy;
+      let ql = (qDetail + vec3(lcurl.x, 0.0, lcurl.y) * P.hzScale.w) / P.hzLobe.x;
+      let lodL = hzdLod(footprint, P.hzLobe.x, 32.0);
+      var L: f32;
+      if (lodL <= 0.0 && t < P.hzMisc.w && P.hzLobe.w > 0.5) { L = hzdCubic3(procNoiseB, ql).r; }
+      else { L = textureSampleLevel(procNoiseB, procRepeat, ql, lodL).r; }
+      // Scaled by sat(coverage / lobeCoverage)^2: small, thin-coverage clouds keep one lobe level instead of shattering into pellets
+      // (world-anchored lobes: a small body shows fewer of them, frog F1).
+      let lc = saturate(cov / max(P.hzShelf.w, 1e-3));
+      lobe = (1.0 - L) * P.hzLobe.y * smoothstep(P.hzExtra.z, max(P.hzLobe.z, P.hzExtra.z + 1e-3), h) * fade * lc * lc;
+    }
     if (P.hzExtra.w > 0.5) {
       // H6 'hfw' order (HFW p.15-17): erode the low-frequency noise, then apply the profile and the coverage remap.
-      let be = hzdRemap(base, modifier * strength * fade, 1.0, 0.0, 1.0);
+      let be = hzdRemap(base, modifier * strength * fade + lobe, 1.0, 0.0, 1.0);
       density = max(hzdRemap(be * gradient, 1.0 - cov, 1.0, 0.0, 1.0), 0.0) * covK * fadeK;
     } else {
-      density = hzdRemap(d, modifier * strength * fade, 1.0, 0.0, 1.0);
+      density = hzdRemap(d, modifier * strength * fade + lobe, 1.0, 0.0, 1.0);
     }
     // H7 wispy bottoms: below the wispy switch, a second erosion in gp7's order (p.109: after the coverage remap, on the density itself), so it
     // bites the thin ramp at the base and frays it into curl-distorted wisps, while the 'hfw' order above keeps the flanks and tops intact.

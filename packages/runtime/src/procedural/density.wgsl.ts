@@ -77,6 +77,8 @@ struct ProcParams {
   hzVeil: vec4<f32>,     // H6: veil noise (0 detail fBM, 1 shape A.a); H7: skirt mode (0 H6 veil, 1 skirt), skirt trail (m upwind), skirt stretch (along the wind, >= 1)
   hzSkirt: vec4<f32>,    // H7: skirt peak (h), bottom curl gain at h = 0, bottom curl downward share, erosion strength at h = 0 (wispy bottoms)
   hzSkirt2: vec4<f32>,   // H7: skirt noise scale (x the detail tile), trail footprint width (x veil width), bottom erosion (gp7 order, at h = 0; 0 = off), skirt gap threshold (0..1)
+  hzLobe: vec4<f32>,     // H7 lobe rung: tile (m), strength (0 = off), full height (h), cubic read (0/1)
+  hzShelf: vec4<f32>,    // H7: base lump (h), 0, 0, lobe coverage reference
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
 const PROC_EARTH_M = 6371000.0;

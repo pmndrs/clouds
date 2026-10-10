@@ -47,7 +47,7 @@ describe('HZD shaper (H1)', () => {
     packProceduralParams(s, out);
     expect(out[155]).toBe(0);
     expect(out[168]).toBe(1);
-    expect(PROC_HZD_WGSL).toContain('let be = hzdRemap(base, modifier * strength * fade, 1.0, 0.0, 1.0);');   // HFW p.15 order
+    expect(PROC_HZD_WGSL).toContain('let be = hzdRemap(base, modifier * strength * fade + lobe, 1.0, 0.0, 1.0);');   // HFW p.15 order
   });
   it('H7: packs the skirt and wispy-bottom words; the H6 veil is one switch away', () => {
     const s = defaultProceduralSettings('hzd');
@@ -60,6 +60,23 @@ describe('HZD shaper (H1)', () => {
     packProceduralParams(s, out);
     expect(out[169]).toBe(0);
     expect(PROC_HZD_WGSL).toContain('let skirtOn = P.hzVeil.y > 0.5;');
+  });
+  it('H7: packs the lobe rung and the shelf words', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    expect(Array.from(out.subarray(180, 184))).toEqual([1050, 0.6, 0.45, 1].map(Math.fround));    // lobe tile, strength, full height, cubic
+    expect(out[187]).toBeCloseTo(0.5);                                                           // lobe coverage reference
+    s.hzd.lobeStrength = 0;
+    packProceduralParams(s, out);
+    expect(out[181]).toBe(0);
+    expect(PROC_HZD_WGSL).toContain('if (P.hzLobe.y > 0.0) {');
+  });
+  it('H7: the hybrid blend takes one lerped rise and the summed falls', () => {
+    // Type 0.75: the lerped rise (stratocumulus..cumulus stops) is full above 0.125; below it the hybrid follows one ramp, not two.
+    expect(hzdHeightGradient(0.75, 0.2, 'hybrid')).toBeCloseTo(hzdHeightGradient(0.75, 0.2, 'curves'));
+    expect(hzdHeightGradient(0.75, 0.02, 'hybrid')).toBeCloseTo(0);   // below the lerped rise start (0.025 .. 0.125)
+    expect(hzdHeightGradient(0.75, 0.02, 'curves')).toBeGreaterThan(0.05);   // the cumulus rise alone already shows: a second base
   });
   it('packs the HZD words and spans the shell over the layer', () => {
     const s = defaultProceduralSettings('hzd');
