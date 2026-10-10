@@ -1,7 +1,7 @@
 // Side-by-side comparison of cloud implementations over the same wide scene. Each pane has its own canvas and renderer; one shared camera, sun and exposure drive them.
 //   ?impls=ours,hzd,skypro,takram,photo   which panes (default ours,takram); hzd = ours with the HZD reference shaper (H1; = ours?model=procedural&shaper=hzd)   photo: ?photo=<path|url> ?photofit=cover|contain, or drop an image / use the bar's "photo file" (see panes/photo.ts)       ?layout=rows|cols (default rows)
 //   ?bookmark=ground|horizon|sunset|dusk|afterglow|above   ?coverage=0..1   ?exposure=  ?fov=   ?hud=0 / ?clean=1 hide the labels / all UI
-//   ?sunel= ?sunaz= ?lookaz= ?pitch= override the bookmark; ours: ?c_<setting>=<number> overrides a runtime setting (c_lightDebug=1..5 splits the light terms), ?phase=mie
+//   ?sunel= ?sunaz= ?lookaz= ?pitch= ?posy= override the bookmark; ours: ?c_<setting>=<number> overrides a runtime setting (c_lightDebug=1..5 splits the light terms), ?phase=mie
 //   ?vibe=1 ours,takram,photo in cols. Sun el: slider (0.1 deg steps -6..15) + number field, keys [ ] 0.1 deg, { } 1 deg. Photo drawer: O, step with , and .
 // Other query keys pass through to the panes (ours: quality, seed, sky=0; Takram: takram_quality, stbn=<url>; every pane: clouds=0 for a clear sky).
 import { installCloudsHarness } from '../harness/clouds-contract';
@@ -43,6 +43,8 @@ try {
     // ?sunel= ?sunaz= ?lookaz= ?pitch= override every bookmark's values (C1: low-sun A/B at other sun angles).
     const num = (k: string, d: number) => (query.has(k) ? Number(query.get(k)) : d);
     view.sunEl = num('sunel', view.sunEl); view.sunAz = num('sunaz', view.sunAz); view.lookAz = num('lookaz', view.lookAz); view.pitch = num('pitch', view.pitch);
+    // H6: ?posy= overrides the camera altitude (m), e.g. the 'above' view from over the layer.
+    view.position[1] = num('posy', view.position[1]);
     syncUi();
   };
 
