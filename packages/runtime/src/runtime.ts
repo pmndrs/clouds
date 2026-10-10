@@ -319,6 +319,13 @@ export interface CloudSettings {
    */
   microLightScale: number;
   /**
+   * D1 round 10 (the floret investigation's H2): how `microShadow` occludes the glow terms. 0 = by the micro tap's whole optical depth (Q-1), which
+   * also darkens every shaded and deep part (the mean occlusion is already in the relaxed tau). 1 = by the residual of the up-rezzed density over
+   * the profile density along the same tap (full - profile, the florets' own relief toward the sun): a dome's sunlit side brightens, the gap
+   * beside it darkens, and the glow's mean over a face is unchanged.
+   */
+  microShadowMode: number;
+  /**
    * D1 round 8: 1 = the temporal resolve reprojects the history through the wind's displacement of the up-rez noise since the previous frame
    * (the noise scrolls at windVelocity; uncompensated, the exponential resolve smeared the florets along the wind by 2-4 px at 4k and halved
    * the lit crests' 4-12 px energy). Measured: the bilinear history read at a sub-pixel wind shift blurs as much as the drift did, so this
@@ -740,7 +747,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
-    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, microShadowMode: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1212,7 +1219,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic; f[107] = settings.profileFilter;
       f[108] = settings.inlineProfile; f[109] = settings.lightMipBias; f[110] = settings.ambientTap; f[111] = settings.inScatterProfile;
       f[112] = settings.jitterNoise; f[113] = settings.stepJitter; f[114] = settings.lightGridFilter; f[115] = Math.max(0, settings.inlineReuse);
-      f[116] = Math.max(0, settings.glowDepth); f[117] = settings.glowDepthMode; f[118] = Math.max(0, settings.microLightScale);
+      f[116] = Math.max(0, settings.glowDepth); f[117] = settings.glowDepthMode; f[118] = Math.max(0, settings.microLightScale); f[119] = settings.microShadowMode;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for

@@ -2,11 +2,11 @@
 // own frames of it (refs.ts), rendered with the D1 parity settings ('decima' look, default), the deck's settings (?look=deck) or our art
 // defaults (?look=art). Flagship shell (three WebGPURenderer + @pmndrs/sky, the window.__clouds contract); no ground, as the deck frames show only sky.
 //   ?cloud=parkouring|stormbird   ?bookmark=<ref>   ?look=decima|deck|art   ?quality=ultra   ?exposure=0.35
-//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
+//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
 import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
-import { Sky } from '@pmndrs/sky';
+import { EARTH, Sky } from '@pmndrs/sky';
 import { cloudLookSettings, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudLook, type CloudQuality } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
@@ -83,6 +83,7 @@ try {
   let skyFactorNow = '1,1,1';
   let sunColorNow = '1,1,1';
   let miePhaseNow = 0.8;
+  let atmNow = '1.2,1,1';
   let mirrorNow = false;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
@@ -118,6 +119,15 @@ try {
     // mieg:g = the haze's forward-scatter phase (@pmndrs/sky miePhaseG, 0.8 default): lower spreads the sun halo that Decima's gradient skies lack.
     const mieg = v.has('mieg') ? Number(v.get('mieg')![0]) : (ref.miePhaseG ?? 0.8);
     if (mieg !== miePhaseNow) { sky.setAtmosphere({ miePhaseG: mieg }); miePhaseNow = mieg; }
+    // D1 round 10 (atm:h:m:r = the haze band): the frames' skies are flat above and rise to a pale band (0.88-0.94) in the lowest quarter; the
+    // Earth atmosphere at any turbidity rises evenly (ours 0.64-0.67 at the horizon). h = the Mie layer's scale height in km (Earth 1.2; a thin,
+    // dense layer makes a band near the horizon), m = the multiple-scattering factor (Unreal's; lifts and whitens the whole sky), r = a Rayleigh
+    // multiplier. Turbidity still scales the Mie coefficients (setTurbidity after setAtmosphere, which resets it).
+    const atm = v.has('atm') ? v.get('atm')!.map(Number) : (ref.atmosphere ?? [1.2, 1, 1]);
+    if (atm.join() !== atmNow) {
+      sky.setAtmosphere({ mieDensityExpScale: -1 / atm[0], multiScatteringFactor: atm[1], rayleighScattering: [EARTH.rayleighScattering.x * atm[2], EARTH.rayleighScattering.y * atm[2], EARTH.rayleighScattering.z * atm[2]] });
+      sky.setTurbidity(turbidity); atmNow = atm.join();
+    }
     // mirror:1 = the sky mirrored below the horizon (D1 round 3): the deck frames have no ground, their sky gradient continues below the horizon
     // near white, so Decima's undersides are lit from below; our lower hemisphere was the dark sea.
     const mirror = v.has('mirror') ? v.get('mirror')![0] === '1' : (ref.mirrorBelowHorizon ?? false);

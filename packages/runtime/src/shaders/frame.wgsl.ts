@@ -57,7 +57,7 @@ struct Frame {
   d2: vec4<f32>,
   // D1 round 8: x = glowDepth (m: the glow's profile P is read this far along the view ray past the sample, inside the volume; 0 = at the
   // sample), y = glowDepthMode (0 = the deeper read, 1 = max of the sample's and the deeper read, 2 = inward along the SDF gradient),
-  // z = microLightScale (D1 round 9: the micro tap's optical depth as a fraction of the view extinction; 0 = the in-line taps' units), w = 0.
+  // z = microLightScale (D1 round 9: the micro tap's optical depth as a fraction of the view extinction; 0 = the in-line taps' units), w = microShadowMode (D1 round 10: 1 = the glow's micro occlusion by the up-rez residual over the profile).
   d3: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

@@ -31,6 +31,8 @@ export interface DecimaRef {
   skyFactor?: [number, number, number];
   /** D1: sun colour (linear) reconstructed for this frame; 1,1,1 otherwise. */
   sunColor?: [number, number, number];
+  /** D1 round 10: the sky's haze band [Mie scale height km, multiple-scattering factor, Rayleigh multiplier] (main.ts @atm; Earth 1.2, 1, 1). */
+  atmosphere?: [number, number, number];
   /** D1 round 2: the haze's forward-scatter phase (@pmndrs/sky miePhaseG, default 0.8); lower for the hazy frames so the sun halo spreads. */
   miePhaseG?: number;
   /** D1 round 3: mirror the sky below the horizon (the deck frames have no ground; their sky gradient continues below the horizon). */
