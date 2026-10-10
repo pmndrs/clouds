@@ -83,6 +83,7 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 | gos17 | `papers/Goswami-Neyret2017-LandscapeConvectiveClouds.pdf` (VRIPHYS 2017) | shape evolve multi-body | P1 | ⬜ fetched 2026-10-10 | Parcels + hypertexture amplification; evolving cumulus at landscape scale |
 | gos19 | `papers/Goswami2019-CumulusCloudMap.pdf` (STAG 2019) | shape evolve multi-body | P1 | ⬜ fetched 2026-10-10 | Parcel physics + 2D cloud maps, ~200 fps; closest published work to the Santa's Sleigh merge |
 | ney03 | `papers/Neyret2003-AdvectedTextures.pdf` (SCA 2003) | detail motion | P2 | ⬜ fetched 2026-10-10 | Detail that travels with the flow without stretching (`cloud-motion-ideas.md`) |
+| jfig17 | `papers/Webanck2017-NuagesMultigenre-jFIG.pdf` (Cortial, Webanck, Guérin, Peytavie, Galin; j.FIG 2017, French, 6 pp) | shape layering | P2 | ⬜ fetched 2026-10-10 | Precursor of web18. Also omits the per-type formulas ("assez longue"); adds a cumulonimbus built from an implicit one-sheet hyperboloid with domain distortion, and complemented-Worley turbulence (lacunarity 3, persistence 0.33) |
 | tvn | sebh/TileableVolumeNoise (web, MIT) | noise | P1 | 🟦 `sources/tvn.md` | Owner-supplied 2026-10-10 |
 | psrd | stegu/psrdnoise (web, MIT) | noise motion | P1 | 🟦 `sources/psrd.md` | Owner-supplied 2026-10-10 |
 | cloudpack | `vdbs/CloudPack/` (EmberGen, 10 VDBs + `.ember`) | authoring | P1 | 🟦 `cloudpack-embergen.md` | Z-up; seeding vs our Pyro |
@@ -95,7 +96,7 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 - Bouthors and Neyret 2004, "Modeling Clouds Shape";
 - Goswami and Neyret 2017 and 2018;
 - Ebert, *Texturing & Modeling*, cloud chapter;
-- Webanck 2018 supplementary material (the other 8 per-type shape functions): **not found online** (HAL lists only the article and a video). Candidates: Webanck et al., j.FIG 2017, "Modélisation procédurale de nuages multigenre" (hal-01813228), and Webanck's 2019 thesis "La génération procédurale d'effets atmosphériques" (no PDF found);
+- Webanck 2018 supplementary material (the other 8 per-type shape functions): **not found online** (HAL lists only the article and a video). The paper's Appendix B (p.13) says the other types are "in the supplementary material" (Wiley Supporting Information for CGF 37(2), doi 10.1111/cgf.13373; owner is looking). The j.FIG 2017 precursor (fetched, `jfig17`) does not have them either. Other candidate: Webanck's 2019 thesis "La génération procédurale d'effets atmosphériques" (no PDF found);
 - the ranked list of 17 in `sources/survey.md` (top: Bouthors & Neyret 2004, Neyret 2000 phenomenological shader, Goswami & Neyret 2017 + Goswami 2019 evolving cumulus, Neyret 2003 advected textures). **Downloads need the owner's OK.**
 
 ## Tasks (board ids RS-*)
