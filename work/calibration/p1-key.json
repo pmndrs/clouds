@@ -1,0 +1,75 @@
+{
+ "p01": {
+  "source": "frog",
+  "view": "photo",
+  "variant": "after (s.typeFromScale=1)",
+  "file": "work/captures/P1/frog/after-typeFromScale1.jpg"
+ },
+ "p02": {
+  "source": "cloudpack-02",
+  "view": "detail",
+  "variant": "after (s.typeFromScale=1)",
+  "file": "work/captures/P1/cloudpack-02/detail-after.jpg"
+ },
+ "p03": {
+  "source": "cloudpack-02",
+  "view": "photo",
+  "variant": "before (defaults, Nubis sampler)",
+  "file": "work/captures/P1/cloudpack-02/photo-before.jpg"
+ },
+ "p04": {
+  "source": "cloudpack-02",
+  "view": "detail",
+  "variant": "before (defaults, Nubis sampler)",
+  "file": "work/captures/P1/cloudpack-02/detail-before.jpg"
+ },
+ "p05": {
+  "source": "cloudpack-02",
+  "view": "photo",
+  "variant": "after (s.typeFromScale=1)",
+  "file": "work/captures/P1/cloudpack-02/photo-after.jpg"
+ },
+ "p06": {
+  "source": "parkouring",
+  "view": "photo",
+  "variant": "before (defaults, Nubis sampler)",
+  "file": "work/captures/P1/parkouring/photo-before.jpg"
+ },
+ "p07": {
+  "source": "r1-c39-close32-hc1",
+  "view": "detail",
+  "variant": "before (defaults, Nubis sampler)",
+  "file": "work/captures/P1/r1-c39-close32-hc1/detail-before.jpg"
+ },
+ "p08": {
+  "source": "r1-c39-close32-hc1",
+  "view": "detail",
+  "variant": "after (s.typeFromScale=1)",
+  "file": "work/captures/P1/r1-c39-close32-hc1/detail-after.jpg"
+ },
+ "p09": {
+  "source": "parkouring",
+  "view": "detail",
+  "variant": "before (defaults, Nubis sampler)",
+  "file": "work/captures/P1/parkouring/detail-before.jpg"
+ },
+ "p10": {
+  "source": "frog",
+  "view": "photo",
+  "variant": "before (defaults, Nubis sampler)",
+  "file": "work/captures/P1/frog/before.jpg"
+ },
+ "p11": {
+  "source": "parkouring",
+  "view": "photo",
+  "variant": "after (s.typeFromScale=1)",
+  "file": "work/captures/P1/parkouring/photo-after.jpg"
+ },
+ "p12": {
+  "source": "parkouring",
+  "view": "detail",
+  "variant": "after (s.typeFromScale=1)",
+  "file": "work/captures/P1/parkouring/detail-after.jpg"
+ },
+ "_pairs": "same source+view = one before/after pair; quality=ultra; frog at 1600x1392 matched camera, others flagship C1 photo/detail bookmarks base=1300 time=15.9"
+}

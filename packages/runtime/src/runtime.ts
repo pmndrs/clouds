@@ -450,7 +450,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     temporalNear: startPreset.temporalNear, temporalFar: startPreset.temporalFar, temporalBlend: 0.3,
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,
     shadowStrength: 0.6, compositeShadow: 1, // shadowed ground keeps sky ambient; 0.85+ reads near-black (orchestrator review)
-    noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0, microDist: startPreset.microDist, microShadow: 1, detailBias: 0, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
+    noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1, // P1, judged 2026-10-10 (Opus + Fable prefer it in 5 of 6 pairs): dense regions never go wispy; 0 = shipped Nubis sampler
+    microDist: startPreset.microDist, microShadow: 1, detailBias: 0, stepScale: startPreset.stepScale, // Q-1 billow self-shadowing defaults (Nubis neutral: 0, 0, 0, 1)
     fineDistance: startPreset.fineDistance, fineErosion: 1, lightDebug: 0,
     bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
     hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
