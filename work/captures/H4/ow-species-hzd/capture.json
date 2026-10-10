@@ -1,0 +1,100 @@
+{
+  "url": "http://127.0.0.1:61735/open-water/?clean=1&sky_erosionLaw=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T04:19:13.379Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/H4/ow-species-hzd/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.63395545,
+          "lightGridReduce": 0.216371,
+          "lightGrid": 0.37040969696969694,
+          "marchNear": 0.06006439999999999,
+          "marchFar": 1.6232927000000001,
+          "shadowMap": 0.41863028333333335,
+          "composite": 0.2425386833333333,
+          "dome": 0.38680585,
+          "skyWeather": 0.7741402833333332,
+          "resolveNear": 0.022091183333333334,
+          "resolveFar": 0.036186883333333336,
+          "skyWeatherMips": 0.094416,
+          "skyLayer": 1.5656400499999998,
+          "skyResolve": 0.08118555000000001,
+          "cloudsTotal": 5.891772563636363,
+          "total": 6.525728013636363
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 248,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 854.5,
+          "encodeSubmitMsTotal": 2.3000003695487976
+        }
+      }
+    },
+    {
+      "name": "flight",
+      "file": "work/captures/H4/ow-species-hzd/flight.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.7646495166666669,
+          "lightGridReduce": 0.216371,
+          "lightGrid": 0.3591066938775511,
+          "marchNear": 0.06763301666666668,
+          "marchFar": 1.3281207499999999,
+          "shadowMap": 0.42534268333333336,
+          "composite": 0.3253678666666668,
+          "dome": 0.6101801333333334,
+          "skyWeather": 0.7741402833333332,
+          "resolveNear": 0.024465483333333333,
+          "resolveFar": 0.037040366666666664,
+          "skyWeatherMips": 0.094416,
+          "skyLayer": 1.7142501666666672,
+          "skyResolve": 0.0939755666666667,
+          "cloudsTotal": 6.070410010544219,
+          "total": 6.835059527210886
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "flight",
+        "frames": 345,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 854.5,
+          "encodeSubmitMsTotal": 2.3000003695487976
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

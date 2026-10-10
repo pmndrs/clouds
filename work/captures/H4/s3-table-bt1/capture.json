@@ -1,0 +1,204 @@
+{
+  "url": "http://127.0.0.1:60849/cloudscape-gen/?sky=1&c_densityScale=0.0001&sky_densityScale=10000&sky_rim=-1&sky_profileMode=1&sky_bottomType=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T04:17:49.007Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/H4/s3-table-bt1/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.256362,
+          "lightGridReduce": 0.115119,
+          "lightGrid": 0.11906945454545453,
+          "marchNear": 0.04828828333333332,
+          "marchFar": 1.2444476833333333,
+          "shadowMap": 0.5117074666666668,
+          "composite": 0.2183778666666666,
+          "dome": 0.9521243166666662,
+          "resolveNear": 0.02063851666666666,
+          "resolveFar": 0.031842533333333325,
+          "skyWeatherMips": 0.108041,
+          "skyLayer": 1.9272928499999995,
+          "skyResolve": 0.0747301166666667,
+          "cloudsTotal": 5.6280410878787865
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955,
+          "mean": 16.666298342541435
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 212,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 10000,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.5,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "bakeRows": 24,
+          "profileMode": 1,
+          "topType": -1,
+          "bottomType": 1,
+          "bottomTypeLo": 0,
+          "bottomTypeHi": 0.7,
+          "bottomTypeCell": 6000,
+          "tableFloor": 1,
+          "tableThreshold": 0.1,
+          "erosionLaw": 0,
+          "info": {
+            "rimWidth": -1,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 2,
+            "frames": 114,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 215.39999997615814
+        }
+      }
+    },
+    {
+      "name": "ground",
+      "file": "work/captures/H4/s3-table-bt1/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "skyWeather": 0.256362,
+          "lightGridReduce": 0.115119,
+          "lightGrid": 0.11291618367346937,
+          "marchNear": 0.05003673333333333,
+          "marchFar": 3.285458133333333,
+          "shadowMap": 0.5453049166666664,
+          "composite": 0.25784333333333337,
+          "dome": 0.7721479499999997,
+          "resolveNear": 0.03219321666666666,
+          "resolveFar": 0.037163483333333344,
+          "skyWeatherMips": 0.108041,
+          "skyLayer": 2.3196484666666657,
+          "skyResolve": 0.08529241666666666,
+          "cloudsTotal": 7.977526833673467
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728,
+          "mean": 16.66625
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "ground",
+        "frames": 308,
+        "cloudsReady": true,
+        "sky": {
+          "enabled": true,
+          "densityScale": 10000,
+          "maxDistance": 30000,
+          "maxSteps": 256,
+          "transmittanceCutoff": 0.05,
+          "stepMin": 8,
+          "stepRel": 0.006,
+          "lodScale": 0.7,
+          "curvature": 0,
+          "resolutionScale": 0.5,
+          "temporal": true,
+          "temporalBlend": 0.3,
+          "debug": 0,
+          "bakeRows": 24,
+          "profileMode": 1,
+          "topType": -1,
+          "bottomType": 1,
+          "bottomTypeLo": 0,
+          "bottomTypeHi": 0.7,
+          "bottomTypeCell": 6000,
+          "tableFloor": 1,
+          "tableThreshold": 0.1,
+          "erosionLaw": 0,
+          "info": {
+            "rimWidth": -1,
+            "windowSize": 51200,
+            "windowResolution": 2048,
+            "shell": [
+              150,
+              662
+            ],
+            "weatherOrigin": [
+              -2048,
+              -4348
+            ],
+            "resets": 3,
+            "frames": 210,
+            "bakes": 1,
+            "bakesAbandoned": 0,
+            "baking": null
+          }
+        },
+        "generation": {
+          "preset": "cumulus",
+          "params": {
+            "profiles": true,
+            "baseDefault": 0.08,
+            "billowAmp": 0.4,
+            "billowCellMeters": 450,
+            "coverageThreshold": 0.15,
+            "baseLift": 0.03,
+            "shearX": 0.08,
+            "shearY": 0.04,
+            "seed": 7
+          },
+          "jobsPerFrame": 8,
+          "frames": 12,
+          "wallMs": 215.39999997615814
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
