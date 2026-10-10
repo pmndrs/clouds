@@ -310,6 +310,13 @@ export interface CloudSettings {
    */
   glowDepth: number;
   glowDepthMode: number;
+  /**
+   * D1 round 8: 1 = the temporal resolve reprojects the history through the wind's displacement of the up-rez noise since the previous frame
+   * (the noise scrolls at windVelocity; uncompensated, the exponential resolve smeared the florets along the wind by 2-4 px at 4k and halved
+   * the lit crests' 4-12 px energy). Measured: the bilinear history read at a sub-pixel wind shift blurs as much as the drift did, so this
+   * needs a sharper history filter (Catmull-Rom) before it helps; off until then. The parity page stops the wind instead (refs.ts settings).
+   */
+  windCompensate: number;
   /** D1 round 8: the up-rez noise's world scale (1 / tiling period in metres; the pack's sampler uses 0.01 = 100 m). Investigation knob for the floret scale. */
   noiseScale: number;
   /**
@@ -721,7 +728,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
-    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, noiseScale: 0.01,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, noiseScale: 0.01, windCompensate: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -813,6 +820,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   // D1 round 8: the volume uniform carries the noise scale; rewritten when the setting changes.
   let volumePos: [number, number, number] = [0, 0, 0];
   let noiseScaleNow = 0.01;
+  const windDelta: [number, number] = [0, 0];   // D1 round 8: the wind offset's change (x, z) this encode, for the resolve's compensation
   // One frame uniform per march pass (render size and pass mode differ); the composite reads the near one.
   const frameUniforms = [0, 1, 2].map(i => device.createBuffer({ label: `cloud frame uniforms ${['near', 'far', 'sky'][i]}`, size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }));
   const dummyNear = device.createTexture({ label: 'cloud dummy near', size: [1, 1], format: 'rgba16float', usage: GPUTextureUsage.TEXTURE_BINDING });
@@ -1153,6 +1161,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, frame.time - lastTime));
       lastTime = frame.time;
       // Wind integrates velocity * animSpeed, so changing animSpeed changes the rate and never teleports the noise.
+      windDelta[0] = settings.windVelocity[0] * settings.animSpeed * dt; windDelta[1] = settings.windVelocity[2] * settings.animSpeed * dt;
       for (let i = 0; i < 3; i++) settings.windOffset[i] += settings.windVelocity[i] * settings.animSpeed * dt;
 
       // Dynamic resolution: the passes render into the top-left rectangle of their (tier-sized) textures.
@@ -1247,7 +1256,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         resolveF32.set(prevViewProj, 0);
         resolveF32[16] = prevCam[0]; resolveF32[17] = prevCam[1]; resolveF32[18] = prevCam[2]; resolveF32[19] = prevValid && !cut ? 1 : 0;
         resolveF32[20] = Math.min(1, Math.max(0.02, flashFrame ? Math.max(settings.temporalBlend, FLASH_BLEND) : settings.temporalBlend)); resolveF32[21] = TEMPORAL_CLIP_SIGMA; resolveF32[22] = TEMPORAL_CLIP_MARGIN; resolveF32[23] = settings.historyDither;
-        resolveF32[24] = t.prw; resolveF32[25] = t.prh; resolveF32[26] = 0; resolveF32[27] = 0;
+        resolveF32[24] = t.prw; resolveF32[25] = t.prh;
+        resolveF32[26] = settings.windCompensate > 0.5 ? windDelta[0] : 0; resolveF32[27] = settings.windCompensate > 0.5 ? windDelta[1] : 0;
         device.queue.writeBuffer(resolveParams[pass], 0, resolveF32);
       }
       f[60] = 0; f[61] = 0; f[62] = 0; frameU32[34] = frame.frameIndex >>> 0;

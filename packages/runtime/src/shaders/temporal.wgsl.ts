@@ -22,7 +22,7 @@ export const TEMPORAL_PARAM_BYTES = TEMPORAL_PARAM_FLOATS * 4;
  *  - a fresh pixel blends in at `temporalBlend` (more when it moved), the others keep the clipped history; a rejected pixel takes
  *    the nearest fresh sample.
  * On a cut the march traces every pixel straight into the history and this pass is skipped (P5-C: no full-size trace target). The fresh samples
- * are kept compactly (traceIndex). Wind is not compensated: the noise scrolls centimetres a frame.
+ * are kept compactly (traceIndex). The wind's scroll of the noise is compensated (D1 round 8, windCompensate: prevRect.zw).
  * Needs COMMON_WGSL + volumeWgsl(0). Output: colour = premultiplied radiance, a = transmittance; depth = packDepth(mean cloud distance or 0,
  * the distance the pixel's ray is marched to, scene distance), the march's direct format (r32uint).
  */
@@ -32,7 +32,7 @@ struct TemporalParams {
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,    // xyz = previous camera position, w = 1 when the previous frame is a valid history
   settings: vec4<f32>,   // x = blend of a fresh sample, y = clip gamma (sigmas), z = relative margin, w = historyDither (D1 round 7, see main)
-  prevRect: vec4<f32>,   // xy = this pass's rendered size last frame (dynamic resolution moves the grid), zw = 0
+  prevRect: vec4<f32>,   // xy = this pass's rendered size last frame (dynamic resolution moves the grid), zw = the wind's world displacement (x, z) since the previous frame (D1 round 8, windCompensate)
 }
 @group(1) @binding(${TEMPORAL_BINDINGS.trace}) var traceColor: texture_2d<f32>;
 @group(1) @binding(${TEMPORAL_BINDINGS.traceDepth}) var traceDepth: texture_2d<f32>;
@@ -93,13 +93,24 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let own = select(0.0, traceDistAt(px), fresh);
   let h0d = depthWordX(textureLoad(histDepth, clamp(vec2<i32>(uv * prevSize), vec2<i32>(0), prevHi), 0).x);
   if (own > 0.0) { rd = own; } else if (h0d > 0.0) { rd = h0d; }
-  let clip = TP.prevViewProj * vec4(origin + dir * rd, 1.0);
-  var valid = TP.prevCam.w > 0.5 && clip.w > 1e-3;
+  // D1 round 8 (windCompensate): the up-rez noise scrolls with the wind (density.wgsl.ts samples it at p - wind), so the detail this pixel sees now
+  // was, last frame, at p - (wind_now - wind_prev); reprojecting there keeps the exponential resolve from smearing the florets along the wind
+  // (at 3.4 m/s the 10-20 frame window moved them 2-4 px at 4k, which halved the 4-12 px energy of the lit crests). The profile does not move,
+  // so the lobe shading is read 2-4 px off, well under its 30-80 px scale.
+  // The camera-only reprojection decides validity and how far the pixel moved; the wind shift (a fraction of a pixel per frame) only moves where
+  // the history is read, so that it is not taken for camera motion (which would clip and partly reset the history every frame).
+  let world = origin + dir * rd;
+  let clip = TP.prevViewProj * vec4(world, 1.0);
+  let clipW = TP.prevViewProj * vec4(world - vec3(TP.prevRect.z, 0.0, TP.prevRect.w), 1.0);
+  var valid = TP.prevCam.w > 0.5 && clip.w > 1e-3 && clipW.w > 1e-3;
   var puv = vec2(0.0);
+  var puvW = vec2(0.0);
   if (valid) {
     let ndc = clip.xy / clip.w;
     puv = vec2(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
-    valid = all(puv >= vec2(0.0)) && all(puv <= vec2(1.0));
+    let ndcW = clipW.xy / clipW.w;
+    puvW = vec2(ndcW.x * 0.5 + 0.5, 0.5 - ndcW.y * 0.5);
+    valid = all(puv >= vec2(0.0)) && all(puv <= vec2(1.0)) && all(puvW >= vec2(0.0)) && all(puvW <= vec2(1.0));
   }
   var hdx = 0.0;
   if (valid) {
@@ -116,7 +127,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
   }
   // Bilinear history at the reprojected position, kept inside the previous frame's rectangle of the (possibly larger) texture.
-  let histUv = clamp(puv * prevSize, vec2(0.5), prevSize - vec2(0.5)) / texDims;
+  let histUv = clamp(puvW * prevSize, vec2(0.5), prevSize - vec2(0.5)) / texDims;
   // The clip guards against reprojection error; a still view keeps its converged history (it only bites as much as the pixel moved).
   let moved = select(0.0, smoothstep(0.1, 0.6, length((puv - uv) * frame.renderSize)), valid);
 
