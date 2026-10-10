@@ -19,7 +19,8 @@ const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['mobile', 'low', 'medium', 'high', 'ultra'] as const;
 const quality = (QUALITIES.includes(query.get('quality') as never) ? query.get('quality') : 'ultra') as CloudQuality;
-let look: CloudLook = query.get('look') === 'art' ? 'art' : 'deck';
+const pageLook: CloudLook = query.get('look') === 'art' ? 'art' : 'deck';
+let look: CloudLook = pageLook;
 const firstRef = DECIMA_REFS[query.get('bookmark') ?? ''] ?? Object.values(DECIMA_REFS).find(r => r.cloud === query.get('cloud')) ?? DECIMA_REFS[DECIMA_REF_NAMES[0]];
 const cloudName = (query.get('cloud') === 'stormbird' || query.get('cloud') === 'parkouring') ? query.get('cloud')! : firstRef.cloud;
 const nums = (key: string) => (query.get(key) ?? '').split(',').filter(Boolean).map(Number);
@@ -68,9 +69,10 @@ try {
   resize();
 
   let current = '';
+  let turbidityNow = 1;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
-  //   p101@sun:45:335@look:art@exp:0.3@matte@s.densityScale:0.2@cam:ex:ey:ez:tx:ty:tz:vfov
+  //   p101@sun:45:335@look:art@exp:0.3@turb:4@matte@s.densityScale:0.2@cam:ex:ey:ez:tx:ty:tz:vfov
   const applyRef = (bookmark: string) => {
     const [name, ...variants] = bookmark.split('@');
     const ref: DecimaRef | undefined = DECIMA_REFS[name];
@@ -78,7 +80,7 @@ try {
     if (ref.cloud !== cloudName) throw new Error(`${name} shows ${ref.cloud}; load the page with ?cloud=${ref.cloud}`);
     current = bookmark;
     const v = new Map(variants.map(x => { const [k, ...rest] = x.split(':'); return [k, rest] as const; }));
-    if (v.has('look')) look = v.get('look')![0] === 'art' ? 'art' : 'deck';
+    look = v.has('look') ? (v.get('look')![0] === 'art' ? 'art' : 'deck') : pageLook;   // each bookmark starts from the page's look
     applyLook();
     for (const [k, val] of v) if (k.startsWith('s.') && k.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[k.slice(2)] = Number.isNaN(Number(val[0])) ? val[0] : Number(val[0]);
     const cam = v.has('cam') ? v.get('cam')!.map(Number) : nums('cam');
@@ -89,6 +91,8 @@ try {
     rig.set(eye, target);
     const s = v.has('sun') ? v.get('sun')!.map(Number) : nums('sun');
     sky.setSunDirection(s.length === 2 ? { elevation: s[0], azimuth: s[1] } : ref.sun);
+    const turbidity = v.has('turb') ? Number(v.get('turb')![0]) : (ref.turbidity ?? 1);
+    if (turbidity !== turbidityNow) { sky.setTurbidity(turbidity); turbidityNow = turbidity; }
     bridge.matte = matte || v.has('matte');
     renderer.toneMapping = bridge.matte ? NoToneMapping : ACESFilmicToneMapping;
     renderer.toneMappingExposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);

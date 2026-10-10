@@ -13,22 +13,29 @@ export interface DecimaRef {
   vfov: number;
   /** Sun elevation and compass azimuth (degrees; north = -Z, east = +X). */
   sun: { elevation: number; azimuth: number };
+  /** Sky haze (@pmndrs/sky turbidity, 1 = earth default) reconstructed for this frame. */
+  turbidity?: number;
   /** Optional exposure for this frame (the page's default otherwise). */
   exposure?: number;
 }
 
 export const DECIMA_REFS: Record<string, DecimaRef> = {
   // s78 image101 (up-rezzed; image102 is the same camera with the cheap profile), also s59/s77 image92 on black, s80 NVDF channel views.
-  p101: { cloud: 'parkouring', source: 's78 image101', eye: [-297.7, 0, -628.5], target: [-95.6, 201.6, -6.8], vfov: 38.97, sun: { elevation: 30, azimuth: 245 } },
+  p101: { cloud: 'parkouring', source: 's78 image101', eye: [-297.7, 0, -628.5], target: [-95.6, 201.6, -6.8], vfov: 38.97, sun: { elevation: 30, azimuth: 245 }, exposure: 0.28 },
   // s101 image125-127 (wispy only / billowy only / blended) and s107 image133-136 (build steps): the same camera as s78, a little wider.
-  p125: { cloud: 'parkouring', source: 's101 image125', eye: [-297.7, 0, -628.5], target: [-89.3, 197.5, -7.6], vfov: 40.69, sun: { elevation: 30, azimuth: 245 } },
+  p125: { cloud: 'parkouring', source: 's101 image125', eye: [-297.7, 0, -628.5], target: [-89.3, 197.5, -7.6], vfov: 40.69, sun: { elevation: 30, azimuth: 245 }, exposure: 0.28 },
   // s129 image161 (ambient without directionality) / image162 (with, N3 s128): Parkouring from the west-south-west, looking up.
-  p161: { cloud: 'parkouring', source: 's129 image161/162', eye: [-1028.5, -244.6, -207.3], target: [-138.5, 209.0, 26.7], vfov: 34.55, sun: { elevation: 30, azimuth: 245 } },
+  p161: { cloud: 'parkouring', source: 's129 image161/162', eye: [-1028.5, -244.6, -207.3], target: [-138.5, 209.0, 26.7], vfov: 34.55, sun: { elevation: 15, azimuth: 270 }, exposure: 0.28 },
   // s191 image213: the pack's own render of Parkouring (close to the s78 view).
-  p213: { cloud: 'parkouring', source: 's191 image213', eye: [-261.5, 29.2, -644.2], target: [-72.4, 210.4, -12.3], vfov: 42.87, sun: { elevation: 20, azimuth: 75 } },
+  p213: { cloud: 'parkouring', source: 's191 image213', eye: [-261.5, 29.2, -644.2], target: [-72.4, 210.4, -12.3], vfov: 42.87, sun: { elevation: 20, azimuth: 75 }, exposure: 0.28 },
   // Stormbird: s181 image206 (the final model's still, also the media33 turntable), s191 image214 (the pack's render, from the other side).
-  s206: { cloud: 'stormbird', source: 's181 image206', eye: [-655.3, -180.5, 23.4], target: [-23.6, 212.3, 37.9], vfov: 50.54, sun: { elevation: 30, azimuth: 270 } },
-  s214: { cloud: 'stormbird', source: 's191 image214', eye: [627.9, -180.5, 60.8], target: [-3.4, 210.4, 13.2], vfov: 43.45, sun: { elevation: 30, azimuth: 90 } },
+  s206: { cloud: 'stormbird', source: 's181 image206', eye: [-655.3, -180.5, 23.4], target: [-23.6, 212.3, 37.9], vfov: 50.54, sun: { elevation: 35, azimuth: 0 }, exposure: 0.28 },
+  // s181 media33 (37.6 s turntable, the cloud turns about -90 degrees every 3 s under a fixed camera and sun; t0 = s206). The sun keeps its
+  // place relative to the camera, so here it turns with the camera around the cloud (90 degrees clockwise of the camera's compass bearing).
+  s33t3: { cloud: 'stormbird', source: 's181 media33 t=3 s', eye: [-12.1, -180.5, -658.3], target: [-12.1, 221.6, -32.3], vfov: 51.42, sun: { elevation: 35, azimuth: 90 }, exposure: 0.28 },
+  s33t6: { cloud: 'stormbird', source: 's181 media33 t=6 s', eye: [952.8, -366.5, -70.2], target: [17.2, 240.7, -30.2], vfov: 35.76, sun: { elevation: 35, azimuth: 180 }, exposure: 0.28 },
+  s33t9: { cloud: 'stormbird', source: 's181 media33 t=9 s', eye: [62.7, -180.5, 626.0], target: [51.4, 240.7, 12.7], vfov: 52.15, sun: { elevation: 35, azimuth: 270 }, exposure: 0.28 },
+  s214: { cloud: 'stormbird', source: 's191 image214', eye: [627.9, -180.5, 60.8], target: [-3.4, 210.4, 13.2], vfov: 43.45, sun: { elevation: 35, azimuth: 180 }, exposure: 0.28 },
 };
 
 export const DECIMA_REF_NAMES = Object.keys(DECIMA_REFS);

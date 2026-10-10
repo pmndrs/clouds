@@ -24,6 +24,14 @@ MATTE_ALPHA = 0.2
 
 # ---------------------------------------------------------------------------------------------------------------- images
 
+def srgb_to_lin(c):
+    return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+
+
+def lin_to_srgb(c):
+    return np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(np.maximum(c, 0), 1 / 2.4) - 0.055)
+
+
 def load_rgb(path, width=480):
     im = Image.open(path).convert('RGB')
     if width and im.width != width:
@@ -102,7 +110,7 @@ def border_flood(free):
     return seen
 
 
-SHAPE_KEYS = ('s.densityScale', 's.mipDistanceScale', 's.baseMip', 's.typeFromScale', 's.detailBias', 's.wispyBias', 'cam', 's.noiseInvert', 's.detailTypeOverride')
+SHAPE_KEYS = ('look', 's.densityScale', 's.mipDistanceScale', 's.baseMip', 's.typeFromScale', 's.detailBias', 's.wispyBias', 'cam', 's.noiseInvert', 's.detailTypeOverride')
 
 
 def find_matte(path):
@@ -243,6 +251,8 @@ def splat(world, sigma, eye, target, vfov_deg, W, H, step=4.0, mirror=False):
     pixel_m = 2 * z[inb] * th / H   # metres per pixel at that depth
     tau = np.bincount(py[inb] * W + px[inb], weights=s[inb] * step ** 3 / pixel_m ** 2, minlength=W * H).reshape(H, W)
     # points coarser than the pixels leave holes: blur by about one point footprint
+    if not inb.any():
+        return tau
     rad = max(1, int(round(step / float(np.median(pixel_m)))))
     return box_blur(tau, rad)
 
@@ -378,11 +388,11 @@ def cmd_fit(a):
 
 
 def edge_sharpness(res, mask):
-    """Mean residual gradient on the mask boundary over the median residual inside: how abruptly the cloud meets the sky."""
+    """Mean residual gradient on the mask boundary over the cloud's contrast (90th percentile residual inside): how abruptly it meets the sky."""
     gy, gx = np.gradient(res)
     g = np.hypot(gx, gy)
     edge = mask & ~(np.roll(mask, 1, 0) & np.roll(mask, -1, 0) & np.roll(mask, 1, 1) & np.roll(mask, -1, 1))
-    inner = np.median(res[mask]) if mask.any() else 1
+    inner = np.percentile(res[mask], 90) if mask.any() else 1   # the cloud's contrast against the sky (its lit crust)
     return float(g[edge].mean() / max(inner, 1e-6)) if edge.any() else 0.0
 
 
@@ -397,9 +407,12 @@ def frame_stats(rgb, mask, res, sky):
     bright = mask & (lum >= np.percentile(l, 80))
     lc = rgb[bright].mean(0)
     skyl = float((sky @ LUMA)[~mask].mean()) if (~mask).any() and sky.any() else 0.0
+    top = np.zeros_like(mask); top[: mask.shape[0] // 3] = True   # sky colour from the top third, off the cloud (the deck frames have no ground)
+    skc = rgb[top & ~mask].mean(0) if (top & ~mask).any() else np.ones(3)
     return {'coverage': round(float(mask.mean()), 4), 'lit_p90': round(lit, 3), 'median': round(med, 3), 'shade_p10': round(shade, 3),
             'contrast': round(lit - shade, 3), 'shade_rgb': [round(float(x), 3) for x in sc], 'shade_BR': round(float(sc[2] / max(sc[0], 1e-6)), 3),
-            'lit_rgb': [round(float(x), 3) for x in lc], 'lit_BR': round(float(lc[2] / max(lc[0], 1e-6)), 3), 'sky_mean': round(skyl, 3),
+            'lit_rgb': [round(float(x), 3) for x in lc], 'lit_BR': round(float(lc[2] / max(lc[0], 1e-6)), 3), 'sky_mean': round(skyl, 3), 'sky_BR': round(float(skc[2] / max(skc[0], 1e-6)), 3),
+            'cloud_sky': round(float(np.median(srgb_to_lin(rgb[mask]) @ LUMA) / max(float(srgb_to_lin(skc) @ LUMA), 1e-6)), 3),
             'edge': round(edge_sharpness(res, mask), 3)}
 
 
@@ -411,6 +424,15 @@ def cmd_stats(a):
         out[key] = frame_stats(rgb, mask, res, sky)
         m[key] = mask; L[key] = box_blur(rgb @ LUMA, 2)
     out['iou'] = round(iou(m['ref'], m['ours']), 3)
+    # Sky-balanced: our frame scaled per channel (in linear light) so its sky (top third, off the cloud) has the reference's colour and level.
+    # What remains in the cloud after this is the cloud's own lighting, not the sky model, white balance or exposure.
+    def sky_lin(rgb, mask):
+        top = np.zeros_like(mask); top[: mask.shape[0] // 3] = True
+        return srgb_to_lin(rgb[top & ~mask]).mean(0)
+    rr, mr, _, _ = ref_mask(a.ref, a.width, a.thresh); ro, mo, reso, skyo = ref_mask(a.ours, a.width, a.thresh)
+    gain = sky_lin(rr, mr) / np.maximum(sky_lin(ro, mo), 1e-6)
+    bal = lin_to_srgb(np.clip(srgb_to_lin(ro) * gain, 0, 1))
+    out['ours_skybal'] = frame_stats(bal, mo, reso, skyo)
     both = m['ref'] & m['ours']
     if both.sum() > 50:
         # shading-pattern agreement inside the shared silhouette (exposure-free): where the lit and shaded regions are
