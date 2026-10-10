@@ -13,7 +13,7 @@ describe('HZD shaper (H1)', () => {
     expect(PROC_HZD_WGSL).toContain('hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0)');    // gp7 p.106 dilation (pw = R, H5 contrast off by default)
     expect(PROC_HZD_WGSL).toContain('hzdRemap(baseCloud, 1.0 - cov, 1.0, 0.0, 1.0)');   // hfw p.17 coverage sign
     expect(PROC_HZD_WGSL).toContain('saturate(h / select(P.hzExtra.z, 0.2, hag))');      // gp7 p.108 h*10 switch (wispyHeight 0.1; hag: h*5)
-    expect(PROC_HZD_WGSL).toContain('select(P.hzExtra.y, 0.35 * exp(-0.75 * cov), hag)'); // gp7 p.109 *0.2 = erosionStrength (hag eq 16)
+    expect(PROC_HZD_WGSL).toContain('select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag)'); // gp7 p.109 *0.2 = erosionStrength (hag eq 16)
   });
   it('evaluates the gradients as linear trapezoids, lerping the stops by type', () => {
     // Pure types: stratus is full only between 0.07 and 0.11, cumulus between 0.09 and 0.65 and gone at 0.80.
@@ -41,13 +41,25 @@ describe('HZD shaper (H1)', () => {
     packProceduralParams(s, out);
     expect(Array.from(out.subarray(152, 156))).toEqual([1, 0.3, 0.2, 1].map(Math.fround));           // contrast, erosion 0.3, wispy 0.2, 'hfw'
     expect(Array.from(out.subarray(156, 160))).toEqual([0.7, 1, 0.4, 0.4].map(Math.fround));         // topRound, smooth, height from coverage
-    expect(Array.from(out.subarray(160, 164))).toEqual([0, 0.5, 0.08, 0.04].map(Math.fround));       // density from coverage off, veil
-    expect(Array.from(out.subarray(164, 172))).toEqual([0.25, 0.5, 3, 15000, 0, 0, 0, 0].map(Math.fround));
+    expect(Array.from(out.subarray(160, 164))).toEqual([0, 0.5, 0.07, 0.08].map(Math.fround));       // density from coverage off, skirt width/density
+    expect(Array.from(out.subarray(164, 168))).toEqual([0.18, 0.5, 3, 15000].map(Math.fround));
     s.hzd.erosionOrder = 'gp7'; s.hzd.veilNoise = 'shape';
     packProceduralParams(s, out);
     expect(out[155]).toBe(0);
     expect(out[168]).toBe(1);
     expect(PROC_HZD_WGSL).toContain('let be = hzdRemap(base, modifier * strength * fade, 1.0, 0.0, 1.0);');   // HFW p.15 order
+  });
+  it('H7: packs the skirt and wispy-bottom words; the H6 veil is one switch away', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    expect(Array.from(out.subarray(168, 172))).toEqual([0, 1, 500, 2.5].map(Math.fround));      // veil noise, skirt mode, trail (m), stretch
+    expect(Array.from(out.subarray(172, 176))).toEqual([0.08, 2.5, 0.5, 0.3].map(Math.fround));  // peak, bottom curl, its downward share, wispy strength
+    expect(Array.from(out.subarray(176, 180))).toEqual([3, 2, 0.5, 0.25].map(Math.fround));      // skirt scale, trail width, bottom erosion, gap
+    s.hzd.skirtMode = 'veil';
+    packProceduralParams(s, out);
+    expect(out[169]).toBe(0);
+    expect(PROC_HZD_WGSL).toContain('let skirtOn = P.hzVeil.y > 0.5;');
   });
   it('packs the HZD words and spans the shell over the layer', () => {
     const s = defaultProceduralSettings('hzd');

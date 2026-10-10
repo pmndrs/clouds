@@ -1,0 +1,344 @@
+{
+  "url": "http://127.0.0.1:5397/compare/?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T12:48:48.161Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/H7/before/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 0.15881223333333327,
+          "hzd.lightGridReduce": 0.007708,
+          "hzd.lightGrid": 0.007749,
+          "hzd.marchNear": 0.03968558333333331,
+          "hzd.marchFar": 0.10354206666666665,
+          "hzd.shadowMap": 0.431466619047619,
+          "hzd.composite": 0.2554717333333333,
+          "hzd.dome": 0.1570553166666667,
+          "hzd.skyLayer": 5.204225433333332,
+          "hzd.skyResolve": 0.18136045000000003,
+          "hzd.cloudsTotal": 6.388264202380951,
+          "hzd.total": 6.547076435714284
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 7,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 0.15881223333333327,
+              "lightGridReduce": 0.007708,
+              "lightGrid": 0.007749,
+              "marchNear": 0.03968558333333331,
+              "marchFar": 0.10354206666666665,
+              "shadowMap": 0.431466619047619,
+              "composite": 0.2554717333333333,
+              "dome": 0.1570553166666667,
+              "skyLayer": 5.204225433333332,
+              "skyResolve": 0.18136045000000003,
+              "cloudsTotal": 6.388264202380951,
+              "total": 6.547076435714284
+            },
+            "cpuMs": 0.5049999972184499,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 348
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/H7/before/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 0.17130585,
+          "hzd.lightGridReduce": 0.007708,
+          "hzd.lightGrid": 0.043457555555555555,
+          "hzd.marchNear": 0.043537549999999994,
+          "hzd.marchFar": 0.10335963333333331,
+          "hzd.shadowMap": 0.34593411538461544,
+          "hzd.composite": 0.26406471666666664,
+          "hzd.dome": 0.15140803333333333,
+          "hzd.skyLayer": 5.038993916666667,
+          "hzd.skyResolve": 0.18163461666666672,
+          "hzd.cloudsTotal": 6.180098137606838,
+          "hzd.total": 6.351403987606838
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "horizon",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            40,
+            0
+          ],
+          "lookAz": 15,
+          "pitch": 1.5,
+          "fov": 50,
+          "sunAz": 70,
+          "sunEl": 25,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 0.17130585,
+              "lightGridReduce": 0.007708,
+              "lightGrid": 0.043457555555555555,
+              "marchNear": 0.043537549999999994,
+              "marchFar": 0.10335963333333331,
+              "shadowMap": 0.34593411538461544,
+              "composite": 0.26406471666666664,
+              "dome": 0.15140803333333333,
+              "skyLayer": 5.038993916666667,
+              "skyResolve": 0.18163461666666672,
+              "cloudsTotal": 6.180098137606838,
+              "total": 6.351403987606838
+            },
+            "cpuMs": 0.8599999994039536,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 654
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/H7/before/above.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 0.2212882333333333,
+          "hzd.lightGridReduce": 0.007708,
+          "hzd.lightGrid": 0.02733035294117647,
+          "hzd.marchNear": 0.04011246666666667,
+          "hzd.marchFar": 0.10353186666666667,
+          "hzd.shadowMap": 0.30908126666666663,
+          "hzd.composite": 0.28415120000000005,
+          "hzd.dome": 0.14674146666666668,
+          "hzd.skyLayer": 4.395091966666667,
+          "hzd.skyResolve": 0.19034720000000005,
+          "hzd.cloudsTotal": 5.50409578627451,
+          "hzd.total": 5.725384019607843
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "above",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            3000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -9,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 50,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 0.2212882333333333,
+              "lightGridReduce": 0.007708,
+              "lightGrid": 0.02733035294117647,
+              "marchNear": 0.04011246666666667,
+              "marchFar": 0.10353186666666667,
+              "shadowMap": 0.30908126666666663,
+              "composite": 0.28415120000000005,
+              "dome": 0.14674146666666668,
+              "skyLayer": 4.395091966666667,
+              "skyResolve": 0.19034720000000005,
+              "cloudsTotal": 5.50409578627451,
+              "total": 5.725384019607843
+            },
+            "cpuMs": 0.47999999622503914,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 960
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/H7/before/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 0.2998252666666668,
+          "hzd.lightGridReduce": 0.007708,
+          "hzd.lightGrid": 0.025624599999999997,
+          "hzd.marchNear": 0.04474445000000002,
+          "hzd.marchFar": 0.10381371666666665,
+          "hzd.shadowMap": 0.26865978333333335,
+          "hzd.composite": 0.25528853333333335,
+          "hzd.dome": 0.19166646666666667,
+          "hzd.skyLayer": 5.739919916666667,
+          "hzd.skyResolve": 0.17802704999999996,
+          "hzd.cloudsTotal": 6.815452516666666,
+          "hzd.total": 7.115277783333333
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "sunset",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 355,
+          "pitch": 4,
+          "fov": 50,
+          "sunAz": 355,
+          "sunEl": 4,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 0.2998252666666668,
+              "lightGridReduce": 0.007708,
+              "lightGrid": 0.025624599999999997,
+              "marchNear": 0.04474445000000002,
+              "marchFar": 0.10381371666666665,
+              "shadowMap": 0.26865978333333335,
+              "composite": 0.25528853333333335,
+              "dome": 0.19166646666666667,
+              "skyLayer": 5.739919916666667,
+              "skyResolve": 0.17802704999999996,
+              "cloudsTotal": 6.815452516666666,
+              "total": 7.115277783333333
+            },
+            "cpuMs": 0.36333333551883695,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 1266
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

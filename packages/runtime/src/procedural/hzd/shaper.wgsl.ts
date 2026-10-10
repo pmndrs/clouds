@@ -118,9 +118,13 @@ fn hzdCubic3(tex: texture_3d<f32>, uvw: vec3<f32>) -> vec4<f32> {
 }
 fn hzdLod(footprint: f32, tile: f32, texels: f32) -> f32 { return max(0.0, log2(max(footprint * texels / tile, 1e-6)) + P.hzFade.w); }
 // gp7 p.108: the curl displaces the detail lookup by (1 - h); the 32^3 fBM .625 R + .25 G + .125 B. 'cubic' = the H5 B-spline read when magnified.
+// H7 (wispy bottoms, gp7 p.108 / hzd15 s37): below the wispy switch the curl displacement grows by up to P.hzSkirt.y (1 = gp7's (1 - h) only) and a
+// share P.hzSkirt.z of it goes vertical (the curl's third component), so the eroded bottoms swirl and hang in shreds instead of cutting flat.
 fn hzdDetailFbm(q0: vec3<f32>, h: f32, footprint: f32, cubic: bool) -> f32 {
-  let curl = textureSampleLevel(procAux, procRepeat, q0.xz / P.hzScale.z, 0.0).xy;
-  let qd = q0 + vec3(curl.x, 0.0, curl.y) * (P.hzScale.w * (1.0 - h));
+  let curl = textureSampleLevel(procAux, procRepeat, q0.xz / P.hzScale.z, 0.0).xyz;
+  let low = 1.0 - saturate(h / P.hzExtra.z);
+  let gain = P.hzScale.w * (1.0 - h) * (1.0 + (P.hzSkirt.y - 1.0) * low);
+  let qd = q0 + vec3(curl.x, curl.z * P.hzSkirt.z * low, curl.y) * gain;
   let detailLod = hzdLod(footprint, P.hzScale.y, 32.0);
   var B: vec3<f32>;
   if (cubic && detailLod <= 0.0) { B = hzdCubic3(procNoiseB, qd / P.hzScale.y).rgb; }
@@ -183,16 +187,44 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   var d = hzdRemap(baseCloud, 1.0 - cov, 1.0, 0.0, 1.0);
   // H6 veil: how far below the coverage threshold this sample is, in base x gradient units (0..1 over veilWidth), low in the column only.
   let veilOn = P.hzConn.z > 0.0 && P.hzConn.w > 0.0 && stage >= 2.5;
+  let skirtOn = P.hzVeil.y > 0.5;
   var veil = 0.0;
-  if (veilOn) { veil = saturate(1.0 + (baseCloud - (1.0 - cov)) / P.hzConn.z) * saturate(1.0 - h / P.hzH6.x) * (1.0 - smoothstep(0.5, 1.0, t / P.hzH6.w)); }
+  if (veilOn) {
+    let far = 1.0 - smoothstep(0.5, 1.0, t / P.hzH6.w);
+    if (!skirtOn) { veil = saturate(1.0 + (baseCloud - (1.0 - cov)) / P.hzConn.z) * saturate(1.0 - h / P.hzH6.x) * far; }
+    else if (h < P.hzH6.x && far > 0.0) {
+      // H7 skirt (n3 s162: a flat, wispy, horizontally spread skirt around each formation's base; hzd15 s26 "wispy shapes at the bottoms"):
+      // H6's footprint (how far below the coverage threshold, in base x gradient units, over veilWidth) and the same footprint of the body
+      // skirtTrail metres upwind, so the skirt trails downwind of each body instead of lying round it as a haze. It lives in a thin band of the
+      // column that rises to full at skirtPeak and is gone at veilHeight (ours).
+      var foot = saturate(1.0 + (baseCloud - (1.0 - cov)) / P.hzConn.z);
+      if (P.hzVeil.z != 0.0) {
+        let off = windDir * P.hzVeil.z;
+        let AU = textureSampleLevel(procNoiseA, procRepeat, (qShape - off) / P.hzScale.x, shapeLod + 1.0);
+        let baseU = hzdRemap(AU.r, -(1.0 - (AU.g * 0.625 + AU.b * 0.25 + AU.a * 0.125)), 1.0, 0.0, 1.0);
+        let covU = saturate(ndfSample(p.xz - off.xz).coverage + P.hzCov.x);
+        foot = max(foot, saturate(1.0 + (baseU * gradient - (1.0 - covU)) / (P.hzConn.z * P.hzSkirt2.y)));
+      }
+      let prof = smoothstep(0.0, P.hzSkirt.x, h) * (1.0 - smoothstep(P.hzSkirt.x, P.hzH6.x, h));
+      veil = foot * prof * far;
+    }
+  }
   if (d <= 0.0 && veil <= 0.0) { return o; }
   let qDetail = q - scroll * P.hzSpeed.z;
+  // H7: the skirt's wisps are stretched along the wind (skirtStretch : 1), streaks rather than blobs.
+  var qVeil = qDetail;
+  // The skirt's noise is read skirtScale x coarser than the detail (large, soft wisps instead of the 75 m cells: the cells read as foam).
+  if (skirtOn) {
+    let wd = vec3(P.hzWind.x, 0.0, P.hzWind.y);
+    qVeil = (qDetail - wd * dot(qDetail, wd) * (1.0 - 1.0 / max(P.hzVeil.w, 1.0))) / max(P.hzSkirt2.x, 1e-3);
+  }
   // H6: a veil-only sample (below the threshold) is streaked either by the detail fBM, read trilinear (veilNoise 'detail'), or by the shape
   // texture's finest Worley octave A.a (veilNoise 'shape', no extra read; softer, smudgier streaks).
   if (d <= 0.0) {
     let fadeV = select(1.0, hzdRemap(saturate(h / P.hzFade.y), 0.0, 1.0, P.hzFade.x, 1.0), stage >= 1.5);
     var w = A.a;
-    if (P.hzVeil.x < 0.5) { w = hzdDetailFbm(qDetail, h, footprint, false); }
+    if (P.hzVeil.x < 0.5) { w = hzdDetailFbm(qVeil, h, footprint, false); }
+    if (skirtOn) { w = saturate((w - P.hzSkirt2.w) / (1.0 - P.hzSkirt2.w)); }   // H7: gaps in the skirt (true zeros: sky between wisps, and cheaper)
     let vd = P.hzConn.w * veil * pow(w, P.hzH6.z) * fadeV;
     if (vd <= 0.0) { return o; }
     o.sigma = vd * P.hzLayer.w; o.coarse = 0.0; o.h = h; o.depth = 0.0;
@@ -210,11 +242,12 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   var veilW = A.a;
   if (full && stage >= 2.5 && fade > 0.0) {
     let hfFbm = hzdDetailFbm(qDetail, h, footprint, t < P.hzMisc.w);
-    if (P.hzVeil.x < 0.5) { veilW = hfFbm; }
+    if (P.hzVeil.x < 0.5) { veilW = hfFbm; if (skirtOn && veil > 0.0) { veilW = hzdDetailFbm(qVeil, h, footprint, false); } }
     let hag = P.hzCov.w > 0.5;
     // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
     let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
-    let strength = select(P.hzExtra.y, 0.35 * exp(-0.75 * cov), hag);
+    // H7: the erosion strength rises from P.hzSkirt.w at the base to erosionStrength at the wispy switch (wispy bottoms erode deeper; gp7 one value).
+    let strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
     if (P.hzExtra.w > 0.5) {
       // H6 'hfw' order (HFW p.15-17): erode the low-frequency noise, then apply the profile and the coverage remap.
       let be = hzdRemap(base, modifier * strength * fade, 1.0, 0.0, 1.0);
@@ -222,12 +255,22 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     } else {
       density = hzdRemap(d, modifier * strength * fade, 1.0, 0.0, 1.0);
     }
+    // H7 wispy bottoms: below the wispy switch, a second erosion in gp7's order (p.109: after the coverage remap, on the density itself), so it
+    // bites the thin ramp at the base and frays it into curl-distorted wisps, while the 'hfw' order above keeps the flanks and tops intact.
+    // P.hzSkirt2.z = its strength at h = 0 (0 = off), falling to 0 at the switch height (ours; gp7 has one order everywhere).
+    if (P.hzSkirt2.z > 0.0) {
+      let lowB = 1.0 - saturate(h / select(P.hzExtra.z, 0.2, hag));
+      density = hzdRemap(max(density, 0.0), modifier * P.hzSkirt2.z * lowB * fade, 1.0, 0.0, 1.0);
+    }
   }
   density = saturate(density);
   // H6 density from coverage (gp7 p.107's "small clouds lighter" at hag eq 16's DA position: after the erosion, so it cannot eat them).
   if (P.hzConn.x > 0.0) { density *= pow(saturate(cov / P.hzConn.y), P.hzConn.x); }
   // H6 veil: a thin low skirt continuing each body below the threshold, streaked by the detail fBM or A.a (n3 s162's connective skirt; ours).
-  if (veilOn) { density = max(density, P.hzConn.w * veil * pow(veilW, P.hzH6.z) * fadeK); }
+  if (veilOn) {
+    if (skirtOn) { veilW = saturate((veilW - P.hzSkirt2.w) / (1.0 - P.hzSkirt2.w)); }
+    density = max(density, P.hzConn.w * veil * pow(veilW, P.hzH6.z) * fadeK);
+  }
   if (density <= 0.0) { return o; }
   // H5 (ne22 p.105's envelope sharpen, pow(.., 0.27), as a setting; 1 = GP7, no shaping): lifts the low densities of the edge ramp so a lit rim
   // reads crisp instead of a wide haze.

@@ -230,6 +230,31 @@ export interface HzdShape {
   /** H6: what streaks the veil: 'detail' = the curl-displaced detail fBM (wisps; one trilinear detail read per veil sample), 'shape' = the shape
    *  texture's finest Worley channel (no extra read; softer smudges). */
   veilNoise: 'detail' | 'shape';
+  /** H7 (connective flow as skirts; the judges read H6's veil as a uniform haze, smog from above): 'veil' = H6's dilated lower-flank shell;
+   *  'skirt' = n3 s162's flat, wispy skirt around each formation's base: the body's own column footprint (base noise against the threshold at
+   *  gradient 1) dilated by veilWidth, plus the footprint of the body `skirtTrail` metres upwind (so it trails downwind; negative = upwind),
+   *  in a thin band of the column that rises to full at `skirtPeak` (h) and is gone at veilHeight, streaked by the detail fBM stretched
+   *  `skirtStretch` : 1 along the wind. Shape and constants ours (n3 gives the skirt as an authored piece, no formula). */
+  skirtMode: 'veil' | 'skirt';
+  skirtTrail: number;
+  skirtStretch: number;
+  skirtPeak: number;
+  /** H7: the skirt's wisps read the detail texture this many times coarser than detailTile (large soft wisps; the 75 m cells read as foam),
+   *  and the trailing footprint is this many veil widths wide (ours). */
+  skirtScale: number;
+  skirtTrailWidth: number;
+  /** H7: the skirt noise below this value is cut to 0 (remapped gap..1 to 0..1): gaps of blue between the wisps, and no fine march steps there. */
+  skirtGap: number;
+  /** H7 wispy bottoms (gp7 p.108 curl at the bottoms, hzd15 s37 "invert the Worley at the base for wisps"): below wispyHeight the curl
+   *  displacement grows up to `bottomCurl` x at h = 0 (1 = gp7's (1 - h) only), `bottomCurlDown` of it vertical (the curl's third component:
+   *  hanging shreds), and the erosion strength rises from `wispyStrength` at h = 0 to erosionStrength at wispyHeight (= erosionStrength: gp7's
+   *  single value). All ours. */
+  bottomCurl: number;
+  /** H7 wispy bottoms: a second erosion below wispyHeight in gp7's order (after the coverage remap, so it frays the thin base ramp into wisps
+   *  while the hfw order keeps flanks and tops intact), strength at h = 0 falling to 0 at wispyHeight. 0 = off. Ours. */
+  bottomErosion: number;
+  bottomCurlDown: number;
+  wispyStrength: number;
   ndf: HzdNdfSettings;
 }
 
@@ -322,7 +347,8 @@ export const HZD_DEFAULTS: HzdShape = {
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
-  coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail', ndf: HZD_NDF_DEFAULTS,
+  coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.07, veilDensity: 0.08, veilHeight: 0.18, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
+  skirtMode: 'skirt', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 2.5, bottomErosion: 0.5, bottomCurlDown: 0.5, wispyStrength: 0.3, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -339,8 +365,8 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
   };
 }
 
-/** ProcParams uniform: 43 vec4 (the last thirteen are the HZD shaper's). */
-export const PROC_PARAM_FLOATS = 172;
+/** ProcParams uniform: 45 vec4 (the last fifteen are the HZD shaper's). */
+export const PROC_PARAM_FLOATS = 180;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -399,7 +425,9 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.topRound, hz.profileSmooth ? 1 : 0, hz.heightFromCoverage, Math.max(hz.heightCoverageRef, 1e-3)], 156);
   out.set([hz.coverageDensityPow, Math.max(hz.coverageDensityRef, 1e-3), hz.veilWidth, hz.veilDensity], 160);
   out.set([Math.max(hz.veilHeight, 1e-3), hz.ringFadeStart, hz.veilWisp, Math.max(hz.veilDistance, 1)], 164);
-  out.set([hz.veilNoise === 'shape' ? 1 : 0, 0, 0, 0], 168);
+  out.set([hz.veilNoise === 'shape' ? 1 : 0, hz.skirtMode === 'skirt' ? 1 : 0, hz.skirtTrail, Math.max(hz.skirtStretch, 1)], 168);
+  out.set([Math.max(hz.skirtPeak, 1e-3), Math.max(hz.bottomCurl, 0), hz.bottomCurlDown, hz.wispyStrength], 172);
+  out.set([Math.max(hz.skirtScale, 1e-3), Math.max(hz.skirtTrailWidth, 1e-3), hz.bottomErosion, Math.min(Math.max(hz.skirtGap, 0), 0.95)], 176);
   return [minY, maxY];
 }
 
