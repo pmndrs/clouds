@@ -1,0 +1,52 @@
+{
+ "r14": {
+  "source": "c94",
+  "variant": "C1 original",
+  "how": "C1 capture (unchanged)"
+ },
+ "r16": {
+  "source": "c55",
+  "variant": "C1 original",
+  "how": "C1 capture (unchanged)"
+ },
+ "r18": {
+  "source": "c39",
+  "variant": "C1 original",
+  "how": "C1 capture (unchanged)"
+ },
+ "r48": {
+  "source": "c39",
+  "variant": "B-form",
+  "how": "converter: --close 32 --scale hconst:1 --depth-shift 0 (asset local/r1/c39-close32-hc1-ds0); C1 render settings (high)"
+ },
+ "r60": {
+  "source": "c94",
+  "variant": "A-render",
+  "how": "original data; render: quality=ultra, s.mipDistanceScale=0.001, s.deepAttenuation=0.15"
+ },
+ "r62": {
+  "source": "c55",
+  "variant": "A-render",
+  "how": "original data; render: quality=ultra, s.mipDistanceScale=0.001, s.deepAttenuation=0.15"
+ },
+ "r63": {
+  "source": "c94",
+  "variant": "C-both",
+  "how": "B-form asset + A-render settings"
+ },
+ "r79": {
+  "source": "c39",
+  "variant": "A-render",
+  "how": "original data; render: quality=ultra, s.mipDistanceScale=0.001, s.deepAttenuation=0.15"
+ },
+ "r80": {
+  "source": "c94",
+  "variant": "B-form",
+  "how": "converter: --close 32 --scale hconst:1 --depth-shift 0 (asset local/r1/c94-close32-hc1-ds0); C1 render settings (high)"
+ },
+ "r81": {
+  "source": "c39",
+  "variant": "C-both",
+  "how": "B-form asset + A-render settings"
+ }
+}
