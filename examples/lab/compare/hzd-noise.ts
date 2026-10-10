@@ -91,7 +91,7 @@ try {
   const device = await adapter.requestDevice();
   const format = query.get('fmt') === 'rgba16float' ? 'rgba16float' : 'rgba8unorm';
   const t0 = performance.now();
-  const noise = bakeHzdNoise(device, { format, usage: GPUTextureUsage.COPY_SRC });
+  const noise = bakeHzdNoise(device, { format, usage: GPUTextureUsage.COPY_SRC, detailRecipe: query.get('detail') === 'gp7' ? 'gp7' : 'nubis' });
   await device.queue.onSubmittedWorkDone();
   const bakeMs = performance.now() - t0;
   const shape = await readTexture(device, noise.shape);

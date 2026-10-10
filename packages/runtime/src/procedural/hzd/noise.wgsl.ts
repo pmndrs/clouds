@@ -116,7 +116,7 @@ ${ladderWgsl('HZD_DG', HZD_DETAIL_GAINS[1])}
 ${ladderWgsl('HZD_DB', HZD_DETAIL_GAINS[2])}
 // H5: carve / fine scale the R chain's coarse (10, 20 cells) carving and fine (85, 165 cells) dilating Worley remaps (1 = the Nubis tool);
 // smooth rounds the Worley creases of R's terms (0 = hard F1, the tool); ss = sub-samples per texel edge. All ours (hzd.noise* settings).
-struct BakeParams { seed: u32, size: u32, carve: f32, fine: f32, smoothW: f32, ss: u32, _b: f32, _c: f32 }
+struct BakeParams { seed: u32, size: u32, carve: f32, fine: f32, smoothW: f32, ss: u32, _b: f32, _c: f32 }   // _b: detail recipe (0 nubis, 1 gp7)
 @group(0) @binding(0) var<uniform> B: BakeParams;
 @group(0) @binding(1) var out3d: texture_storage_3d<${format}, write>;
 
@@ -155,6 +155,13 @@ fn shape(@builtin(global_invocation_id) id: vec3<u32>) {
 fn detail(@builtin(global_invocation_id) id: vec3<u32>) {
   if (any(id >= vec3<u32>(B.size))) { return; }
   let p = (vec3<f32>(id) + 0.5) / f32(B.size);
+  if (B._b > 0.5) {
+    // H5 'gp7' recipe: gp7 p.102 ("three more Worley octaves", Fig 4.9: plain inverted Worley, R coarse to B fine): one inverted-F1 octave
+    // per channel at 4, 8 and 16 cells per tile (the 32^3 Nyquist limit). F1 = sqrt(W / 0.65) is the cell-unit distance; 1 - F1 clamped.
+    let w = vec3(hzdWorley(p, 4.0, B.seed + 400u), hzdWorley(p, 8.0, B.seed + 500u), hzdWorley(p, 16.0, B.seed + 600u));
+    textureStore(out3d, id, vec4(saturate(1.0 - sqrt(w / ${HZD_WORLEY_SCALE})), 1.0));
+    return;
+  }
   textureStore(out3d, id, vec4(hzdWorleyFbm(p, HZD_DR, B.seed + 400u), hzdWorleyFbm(p, HZD_DG, B.seed + 500u), hzdWorleyFbm(p, HZD_DB, B.seed + 600u), 1.0));
 }
 `;

@@ -57,7 +57,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     const h = settings.hzd;
     let changed = false;
     // H5: the bake options (format, R-chain carve/fine/smooth) are a key; a new key re-bakes.
-    const noiseOpts = { format: h.noiseFormat, carve: h.noiseCarve, fine: h.noiseFine, smooth: h.noiseSmooth, supersample: h.noiseSupersample };
+    const noiseOpts = { format: h.noiseFormat, carve: h.noiseCarve, fine: h.noiseFine, smooth: h.noiseSmooth, supersample: h.noiseSupersample, detailRecipe: h.detailRecipe };
     if (!hzdNoise || hzdNoise.key !== hzdNoiseKey(noiseOpts)) { retire(hzdNoise); hzdNoise = bakeHzdNoise(device, noiseOpts); changed = true; }
     if (!hzdUploaded && (!hzdNdf || hzdNdf.key !== hzdNdfKey(h.ndf))) { const old = hzdNdf?.texture ?? null; hzdNdf = generateHzdNdf(device, h.ndf); retire(old); changed = true; }
     return changed;

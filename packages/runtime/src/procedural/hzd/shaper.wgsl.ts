@@ -109,7 +109,16 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
   let alt = procAltitude(p);
   if (alt <= P.hzLayer.x || alt >= P.hzLayer.y) { return o; }
-  let n = ndfSample(p.xz);
+  var n = ndfSample(p.xz);
+  // H5 horizon ring (hzd15 s45): coverage toward the ring's target and type toward cumulus from ringStart to ringEnd; nothing beyond ringEnd.
+  if (P.hzRing.x > 0.0) {
+    let r = length(p.xz - P.origin.xz);
+    if (r >= P.hzRing.y) { return o; }
+    let w = saturate((r - P.hzRing.x) / (P.hzRing.y - P.hzRing.x));
+    // The last 20 % of the band also takes the coverage to 0, so the clouds shrink away instead of ending on a line at ringEnd (ours).
+    n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - smoothstep(0.8, 1.0, r / P.hzRing.y));
+    n.topType = mix(n.topType, P.hzRing.w, w);
+  }
   let span = P.hzLayer.y - P.hzLayer.x;
   let bottom = P.hzLayer.x + n.minHeight * span;
   let top = P.hzLayer.x + n.maxHeight * span;

@@ -16,6 +16,9 @@ export interface HzdNoiseOptions {
   smooth?: number;
   /** H5 (ours): sub-samples per texel edge of the shape bake (1 = point sampled as the tool; 2 = a 2x2x2 box prefilter against aliasing). */
   supersample?: number;
+  /** H5: the 32^3 detail recipe. 'nubis' (H1): the shape texture's multi-octave Worley sampler at lower gains (ours: no source gives one);
+   *  'gp7': one inverted Worley octave per channel at 4 / 8 / 16 cells per tile, as gp7 p.102 and Fig 4.9 show. */
+  detailRecipe?: 'nubis' | 'gp7';
   /** Extra usage (e.g. COPY_SRC for a debug read-back). */
   usage?: number;
 }
@@ -33,7 +36,7 @@ export interface HzdNoise {
 }
 
 /** The re-bake key of a set of options. */
-export const hzdNoiseKey = (o: HzdNoiseOptions) => [o.format ?? 'rgba8unorm', o.seed ?? 1, o.carve ?? 1, o.fine ?? 1, o.smooth ?? 0, o.supersample ?? 1].join(',');
+export const hzdNoiseKey = (o: HzdNoiseOptions) => [o.format ?? 'rgba8unorm', o.seed ?? 1, o.carve ?? 1, o.fine ?? 1, o.smooth ?? 0, o.supersample ?? 1, o.detailRecipe ?? 'nubis'].join(',');
 
 const mipCount = (n: number) => Math.floor(Math.log2(n)) + 1;
 
@@ -61,6 +64,7 @@ export function bakeHzdNoise(device: GPUDevice, o: HzdNoiseOptions = {}): HzdNoi
     new Uint32Array(data, 0, 2).set([seed, size]);
     new Float32Array(data, 8, 3).set([o.carve ?? 1, o.fine ?? 1, o.smooth ?? 0]);
     new Uint32Array(data, 20, 1).set([Math.max(1, Math.round(o.supersample ?? 1))]);
+    new Float32Array(data, 24, 1).set([o.detailRecipe === 'gp7' ? 1 : 0]);
     device.queue.writeBuffer(b, 0, data);
     buffers.push(b);
     return b;
