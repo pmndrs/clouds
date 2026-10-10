@@ -68,8 +68,9 @@ struct ProcParams {
   hzFade: vec4<f32>,     // base fade min, base fade height (h), detail distance (m), mip bias
   hzWind: vec4<f32>,     // wind direction x, z, cloud top offset (m), upward bias
   hzSpeed: vec4<f32>,    // NDF drift (fraction of the wind offset, 0 = static), shape speed, detail speed, type blend (0 points, 1 curves)
-  hzMisc: vec4<f32>,     // build stage (1..3), H5 cubic shape-read distance (m), H5 density exponent, 0
+  hzMisc: vec4<f32>,     // build stage (1..3), H5 cubic shape-read distance (m), H5 density exponent, H5 cubic detail-read distance (m)
   hzRing: vec4<f32>,     // H5 hzd15 s45 horizon ring: start (m; 0 = off), end (m), coverage target, type target
+  hzExtra: vec4<f32>,    // H5: shape (R) contrast about 0.5 (1 = off), 0, 0, 0
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
 const PROC_EARTH_M = 6371000.0;

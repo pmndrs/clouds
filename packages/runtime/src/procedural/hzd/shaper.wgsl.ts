@@ -143,7 +143,8 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   var A: vec4<f32>;
   if (cubic) { A = hzdCubic3(procNoiseA, qShape / P.hzScale.x); } else { A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, shapeLod); }
   let lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
-  let baseCloud = hzdRemap(A.r, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient;   // 3 height gradient
+  let pw = select(saturate(0.5 + (A.r - 0.5) * P.hzExtra.x), A.r, P.hzExtra.x == 1.0);   // H5 shapeContrast (1 = off)
+  let baseCloud = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient;   // 3 height gradient
 
   // 4 Coverage: threshold 1 - coverage (HFW p.17), then the gp7 multiply; 5 base fade before erosion (stage 2 and up).
   var d = hzdRemap(baseCloud, 1.0 - cov, 1.0, 0.0, 1.0);
@@ -163,7 +164,7 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     qd = qd + vec3(curl.x, 0.0, curl.y) * (P.hzScale.w * (1.0 - h));
     let detailLod = hzdLod(footprint, P.hzScale.y, 32.0);
     var B: vec3<f32>;
-    if (detailLod <= 0.0 && t < P.hzMisc.y) { B = hzdCubic3(procNoiseB, qd / P.hzScale.y).rgb; }
+    if (detailLod <= 0.0 && t < P.hzMisc.w) { B = hzdCubic3(procNoiseB, qd / P.hzScale.y).rgb; }
     else { B = textureSampleLevel(procNoiseB, procRepeat, qd / P.hzScale.y, detailLod).rgb; }
     let hfFbm = B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
     let hag = P.hzCov.w > 0.5;

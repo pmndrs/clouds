@@ -10,7 +10,7 @@ describe('HZD shaper (H1)', () => {
     expect(HZD_GRADIENTS.cumulus).toEqual([0.01, 0.09, 0.65, 0.8]);
     expect(PROC_HZD_WGSL).toContain('vec4(0.04, 0.16, 0.32, 0.48)');
     expect(PROC_HZD_WGSL).toContain('A.g * 0.625 + A.b * 0.25 + A.a * 0.125');          // gp7 p.106
-    expect(PROC_HZD_WGSL).toContain('hzdRemap(A.r, -(1.0 - lowFbm), 1.0, 0.0, 1.0)');   // gp7 p.106 dilation
+    expect(PROC_HZD_WGSL).toContain('hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0)');    // gp7 p.106 dilation (pw = R, H5 contrast off by default)
     expect(PROC_HZD_WGSL).toContain('hzdRemap(baseCloud, 1.0 - cov, 1.0, 0.0, 1.0)');   // hfw p.17 coverage sign
     expect(PROC_HZD_WGSL).toContain('saturate(h * select(10.0, 5.0, hag))');            // gp7 p.108 h*10 switch (hag: h*5)
     expect(PROC_HZD_WGSL).toContain('select(0.2, 0.35 * exp(-0.75 * cov), hag)');      // gp7 p.109 *0.2 (hag eq 16)

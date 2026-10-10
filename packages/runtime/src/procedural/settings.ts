@@ -165,13 +165,19 @@ export interface HzdShape {
   /** H5 (ours): sub-samples per texel edge of the shape bake: 1 point-samples as the tool, 2 box-filters 2x2x2 (the tool's finest terms alias). */
   noiseSupersample: number;
   /** H5: the 32^3 detail texture's recipe (procedural/hzd/noise.ts): 'nubis' = H1's multi-octave Worley (ours), 'gp7' = one inverted Worley
-   *  octave per channel at 4 / 8 / 16 cells per tile (gp7 p.102 "three more Worley octaves", Fig 4.9). Changing it re-bakes. */
+   *  octave per channel at 4 / 8 / 16 cells per tile (gp7 p.102 "three more Worley octaves", Fig 4.9). Changing it re-bakes. H5 default 'gp7':
+   *  its channels have std 0.17 (nubis 0.10) and coarser cells, so the 0.2 erosion cuts visible billows at the edges (GP7 Fig 4.14 -> 4.16). */
   detailRecipe: 'nubis' | 'gp7';
-  /** H5 (ours; default 30 km, +0.25 ms at ultra): the shape and detail textures are read with a tricubic B-spline (8 trilinear taps) on full samples nearer than this (m) while
+  /** H5 (ours): the same B-spline read for the 32^3 detail texture, nearer than this (m); 0 = trilinear. */
+  detailCubicDistance: number;
+  /** H5 (ours; default 30 km, +0.25 ms at ultra): the shape (and, see detailCubicDistance, detail) textures are read with a tricubic B-spline (8 trilinear taps) on full samples nearer than this (m) while
    *  magnified; trilinear beyond, and everywhere at 0. Removes the terraces trilinear filtering leaves on flanks and bases (H1 "faceted flanks"). */
   shapeCubicDistance: number;
   /** H5: exponent on the final density (1 = GP7: none; ne22 p.105 sharpens its envelope with 0.27). Below 1 lifts the edge ramp: crisper rims. */
   densityPow: number;
+  /** H5 (ours): contrast of the Perlin-Worley (R) about 0.5 before the dilation, R' = 0.5 + (R - 0.5) * shapeContrast (1 = the Nubis tool's
+   *  R, std 0.105). The tool keeps R in [0.083, 0.917] "because of Nubis' density model" (noise.md); HZD's own range is not published. */
+  shapeContrast: number;
   /** H5, hzd15 s45 (p047 diagram, s43 note): the horizon ring. From `ringStart` to `ringEnd` metres (horizontal distance from the camera) the
    *  NDF's coverage is pulled toward `ringCoverage` and its type toward `ringType` ("about 50 %", "toward cumulus": horizon clouds poke above the
    *  mountains), and nothing is drawn beyond `ringEnd` (HZD's 35 km radius). ringStart 0 = off. The pull is linear over the band (the slide
@@ -271,7 +277,7 @@ export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves',
   shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
-  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'nubis', shapeCubicDistance: 30000, densityPow: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.4, ringType: 1, ndf: HZD_NDF_DEFAULTS,
+  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.4, ringType: 1, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -289,7 +295,7 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
 }
 
 /** ProcParams uniform: 37 vec4 (the last seven are the HZD shaper's). */
-export const PROC_PARAM_FLOATS = 152;
+export const PROC_PARAM_FLOATS = 156;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -342,8 +348,9 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
   out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
   out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : 0], 140);
-  out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, 0], 144);
+  out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, hz.detailCubicDistance], 144);
   out.set([hz.ringStart, Math.max(hz.ringEnd, hz.ringStart + 1), hz.ringCoverage, hz.ringType], 148);
+  out.set([hz.shapeContrast, 0, 0, 0], 152);
   return [minY, maxY];
 }
 
