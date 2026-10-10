@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:51354/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
+  "url": "http://127.0.0.1:53806/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T16:17:14.214Z",
+  "startedAt": "2026-10-10T17:11:11.284Z",
   "shots": [
     {
       "name": "view",
@@ -19,17 +19,17 @@
           -628.5
         ],
         "vfov": 38.97,
-        "sunElevation": 40,
+        "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.053661,
-          "lightGrid": 0.038163,
-          "marchNear": 0.07568091666666668,
-          "marchFar": 6.199181433333335,
-          "shadowMap": 0.05298060869565218,
-          "composite": 0.1521506,
-          "dome": 0.06857073333333334
+          "lightGridReduce": 0.023873,
+          "lightGrid": 0.031871,
+          "marchNear": 0.09442368333333331,
+          "marchFar": 7.100759550000001,
+          "shadowMap": 0.03305877272727273,
+          "composite": 0.17743723333333333,
+          "dome": 0.060848049999999994
         },
         "frameMs": {},
         "renderSize": [
@@ -103,9 +103,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            3.0998999999999985,
+            3.099899999999999,
             0,
-            1.5499499999999993
+            1.5499499999999995
           ],
           "windVelocity": [
             3,
@@ -140,7 +140,8 @@
           "jitterNoise": 1,
           "stepJitter": 0,
           "lightGridFilter": 0,
-          "inlineReuse": 4
+          "inlineReuse": 4,
+          "profileFilter": 0
         }
       }
     },
@@ -157,17 +158,17 @@
           -628.5
         ],
         "vfov": 38.97,
-        "sunElevation": 40,
+        "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.053661,
-          "lightGrid": 0.038163,
-          "marchNear": 0.08788056666666665,
-          "marchFar": 7.718020333333334,
-          "shadowMap": 0.05298060869565218,
-          "composite": 0.35750431666666665,
-          "dome": 0.07941898333333333
+          "lightGridReduce": 0.023873,
+          "lightGrid": 0.031871,
+          "marchNear": 0.09356808333333332,
+          "marchFar": 7.540322433333333,
+          "shadowMap": 0.03305877272727273,
+          "composite": 0.18182839999999997,
+          "dome": 0.06584066666666667
         },
         "frameMs": {},
         "renderSize": [
@@ -241,9 +242,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            6.3494999999999955,
+            6.299699999999998,
             0,
-            3.1747499999999977
+            3.149849999999999
           ],
           "windVelocity": [
             3,
@@ -278,7 +279,8 @@
           "jitterNoise": 1,
           "stepJitter": 0,
           "lightGridFilter": 0,
-          "inlineReuse": 4
+          "inlineReuse": 4,
+          "profileFilter": 0
         }
       }
     },
@@ -295,17 +297,17 @@
           -628.5
         ],
         "vfov": 38.97,
-        "sunElevation": 40,
+        "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.053661,
-          "lightGrid": 0.038163,
-          "marchNear": 0.07840376666666664,
-          "marchFar": 7.205680333333333,
-          "shadowMap": 0.05298060869565218,
-          "composite": 0.33372191666666673,
-          "dome": 0.08802014999999999
+          "lightGridReduce": 0.023873,
+          "lightGrid": 0.031871,
+          "marchNear": 0.09841446666666667,
+          "marchFar": 7.484671166666664,
+          "shadowMap": 0.03305877272727273,
+          "composite": 0.17098836666666659,
+          "dome": 0.066874
         },
         "frameMs": {},
         "renderSize": [
@@ -379,9 +381,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            9.59969999999998,
+            9.549899999999981,
             0,
-            4.79984999999999
+            4.774949999999991
           ],
           "windVelocity": [
             3,
@@ -416,7 +418,8 @@
           "jitterNoise": 1,
           "stepJitter": 0,
           "lightGridFilter": 0,
-          "inlineReuse": 4
+          "inlineReuse": 4,
+          "profileFilter": 0
         }
       }
     },
@@ -433,17 +436,17 @@
           -628.5
         ],
         "vfov": 38.97,
-        "sunElevation": 40,
+        "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.053661,
-          "lightGrid": 0.038163,
-          "marchNear": 0.0874326333333333,
-          "marchFar": 7.715875199999999,
-          "shadowMap": 0.05298060869565218,
-          "composite": 0.38440735,
-          "dome": 0.11171768333333332
+          "lightGridReduce": 0.023873,
+          "lightGrid": 0.031871,
+          "marchNear": 0.1101073,
+          "marchFar": 7.666374650000003,
+          "shadowMap": 0.03305877272727273,
+          "composite": 0.18256168333333342,
+          "dome": 0.06978366666666666
         },
         "frameMs": {},
         "renderSize": [
@@ -517,9 +520,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            12.849599999999963,
+            12.749399999999977,
             0,
-            6.424799999999982
+            6.374699999999988
           ],
           "windVelocity": [
             3,
@@ -554,7 +557,8 @@
           "jitterNoise": 1,
           "stepJitter": 0,
           "lightGridFilter": 0,
-          "inlineReuse": 4
+          "inlineReuse": 4,
+          "profileFilter": 0
         }
       }
     },
@@ -571,17 +575,17 @@
           -628.5
         ],
         "vfov": 38.97,
-        "sunElevation": 40,
+        "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.053661,
-          "lightGrid": 0.038163,
-          "marchNear": 0.0837542666666667,
-          "marchFar": 7.988035016666671,
-          "shadowMap": 0.05298060869565218,
-          "composite": 0.34493155000000003,
-          "dome": 0.08879595000000001
+          "lightGridReduce": 0.023873,
+          "lightGrid": 0.031871,
+          "marchNear": 0.09671025000000001,
+          "marchFar": 7.713623999999999,
+          "shadowMap": 0.03305877272727273,
+          "composite": 0.16174404999999997,
+          "dome": 0.07226753333333334
         },
         "frameMs": {},
         "renderSize": [
@@ -655,9 +659,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            16.09949999999995,
+            15.949499999999961,
             0,
-            8.049749999999975
+            7.974749999999981
           ],
           "windVelocity": [
             3,
@@ -692,7 +696,8 @@
           "jitterNoise": 1,
           "stepJitter": 0,
           "lightGridFilter": 0,
-          "inlineReuse": 4
+          "inlineReuse": 4,
+          "profileFilter": 0
         }
       }
     },
@@ -709,17 +714,17 @@
           -628.5
         ],
         "vfov": 38.97,
-        "sunElevation": 40,
+        "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.053661,
-          "lightGrid": 0.038163,
-          "marchNear": 0.07817868333333332,
-          "marchFar": 6.859183733333333,
-          "shadowMap": 0.05298060869565218,
-          "composite": 0.3163811833333335,
-          "dome": 0.08166348333333334
+          "lightGridReduce": 0.023873,
+          "lightGrid": 0.031871,
+          "marchNear": 0.10034366666666669,
+          "marchFar": 7.662747700000001,
+          "shadowMap": 0.03305877272727273,
+          "composite": 0.18998809999999994,
+          "dome": 0.06381434999999999
         },
         "frameMs": {},
         "renderSize": [
@@ -793,9 +798,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            19.349399999999935,
+            19.149299999999947,
             0,
-            9.674699999999968
+            9.574649999999973
           ],
           "windVelocity": [
             3,
@@ -830,7 +835,8 @@
           "jitterNoise": 1,
           "stepJitter": 0,
           "lightGridFilter": 0,
-          "inlineReuse": 4
+          "inlineReuse": 4,
+          "profileFilter": 0
         }
       }
     }
