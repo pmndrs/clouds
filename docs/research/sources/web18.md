@@ -115,3 +115,19 @@ Complements HZD/Nubis (explicit height gradients per type, which this paper lack
 - "about 43 percent of noise values / space clear" (inference) → ✘ fixed: the cut is at noise value 0.43; the cleared fraction depends on the unstated noise distribution
 - runtime `settings.ts:12-16` `SkyProShape.thickness` → ✔; `settings.ts:52-64` "layer list" → ✘ fixed: it is the `TakramLayer` interface (fields), not a preset list
 
+
+## Supplementary material (fetched 2026-10-10, owner)
+Local: `artifacts/research/papers/Webanck2018-supplementary_material.pdf` (2 pp) · transcription `extracted/web18/code/web18-supp-cumulus.txt`.
+
+**It covers only Cumulus, plus Altostratus/Altocumulus again** (the latter with full octave parameters). The other seven types (Cirrus, Cirrostratus, Cirrocumulus, Stratus, Stratocumulus, Nimbostratus, Cumulonimbus) are not in it, so they were never published; the j.FIG 2017 precursor (`jfig17`) also omits them. Earlier lines in this note that say "the rest are in the supplementary material" are superseded by this section.
+
+General definitions [supp p.1]: G3/G2 = octave sums of 3D/2D gradient (simplex) noise with (octaves, persistence, lacunarity, base frequency); W3 = octave sum of **complemented** Worley (1-w per octave); H(a,b,t) = smoothstep (Hermite). **One modelling unit = 100 m**, and positions are scaled by `p/1080` (the main paper prints `/1000`; the supplement is more specific). Time τ is in hours and offsets along +x, so `p` must be rotated into the local wind frame first.
+
+**Cumulus** [supp eq 1-19]:
+- Shape `phi = 2·k2·n3·H(0.45, 0.65, n2)`: a thresholded 8-octave simplex field `n2` (base freq 15, x squashed to 0.65 → cloud streets along the wind), multiplied by a coarse 2-octave complemented-Worley `n3` (freq 30: the cauliflower cells), and by `k2 = (1-k1) + k1·n5`, where `k1 = H(0.1,0.9,n4)^2` is a 2D 10-octave field that switches regions between plain and modulated (n5, freq 36) cover. The factor 2 lets cores exceed 1 before the layer squash.
+- Detail `delta = 0.77·((1-n6) + 0.5(1-n7) + 0.25·n8 + 0.5·n9)`: two complemented-Worley bands (freq 160 at lacunarity 3 / persistence 0.33, and 240) inverted, plus two fine simplex bands (288, 384). In metres (×100/1080 per unit): Worley cells near 6 m and 4 m spacing at base frequency, simplex finer. All detail scrolls faster than the shape (q6 = 4τ, q8/q9 = 8τ vs q2/q3 = τ), i.e. **detail travels and churns relative to the body**, while n7 drifts slower (0.8τ).
+- Combined as in the paper: `s = max(phi - delta, 0)`, then the type's fade/shrink α (Cumulus α = 0.1).
+
+**Altostratus/Altocumulus** [supp eq 20-28]: as the paper's Appendix B, now with parameters: n1 = G3(8, 0.52, 2.02, 36) on x×0.35; n2 = G3(8, 0.52, 2.02, 96); n3 = W3(4, 0.33, 3, 400); shape scrolls 2τ, detail 8τ.
+
+**For us:** the Cumulus recipe is a compact, sourced cumulus-field function: streets from anisotropic x scaling, cells from a coarse complemented-Worley multiply, regional variety from a 2D switch field, and detail that scrolls faster than the shape (a cheap "travelling detail" rule, cf. W1/SD7 in the topic guides). Treat it as a reference alongside the HZD chain, not a replacement (owner, 2026-10-10: newer Guerrilla work generally supersedes).

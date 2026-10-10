@@ -96,7 +96,7 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 - Bouthors and Neyret 2004, "Modeling Clouds Shape";
 - Goswami and Neyret 2017 and 2018;
 - Ebert, *Texturing & Modeling*, cloud chapter;
-- Webanck 2018 supplementary material (the other 8 per-type shape functions): **not found online** (HAL lists only the article and a video). The paper's Appendix B (p.13) says the other types are "in the supplementary material" (Wiley Supporting Information for CGF 37(2), doi 10.1111/cgf.13373; owner is looking). The j.FIG 2017 precursor (fetched, `jfig17`) does not have them either. Other candidate: Webanck's 2019 thesis "La génération procédurale d'effets atmosphériques" (no PDF found);
+- Webanck 2018 supplementary material (the other 8 per-type shape functions): **not found online** (HAL lists only the article and a video). **Fetched by the owner** (`papers/Webanck2018-supplementary_material.pdf`): it adds only Cumulus (plus Altostratus/Altocumulus parameters); the other seven types were never published. See `sources/web18.md` § Supplementary material. The j.FIG 2017 precursor (fetched, `jfig17`) does not have them either. Other candidate: Webanck's 2019 thesis "La génération procédurale d'effets atmosphériques" (no PDF found);
 - the ranked list of 17 in `sources/survey.md` (top: Bouthors & Neyret 2004, Neyret 2000 phenomenological shader, Goswami & Neyret 2017 + Goswami 2019 evolving cumulus, Neyret 2003 advected textures). **Downloads need the owner's OK.**
 
 ## Tasks (board ids RS-*)
