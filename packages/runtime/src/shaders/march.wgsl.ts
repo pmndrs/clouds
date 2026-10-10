@@ -107,8 +107,10 @@ ${LIGHTING_WGSL}
 ${FLASH_WGSL}
 
 const STEP_GROWTH_FROM = 256u;
-const STEP_MIN = 3.0;
+const STEP_MIN = 3.0;     // low/medium path (stepScale > 1)
 const STEP_SQRT = 0.2;
+const DECK_STEP_MIN = 1.0;   // SD2: N3 s150 max(1, 0.08*sqrt(t)), used on high/ultra (stepScale <= 1)
+const DECK_STEP_SQRT = 0.08;
 const SDF_SKIP_MARGIN = 6.0;     // metres: closer than this to the surface, fetch the real distance
 const SDF_SKIP_RANGE = 24.0;     // metres: refetch at least this often so the inner-glow remap stays accurate
 const DENSE_STEP_GAIN = 3.0;     // P3-E: step *= 1 + gain * (1 - T)^2: samples deep in thick media carry little weight (T * (1 - stepT)), so they are spaced wider
@@ -199,7 +201,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         sdf = cloudDistance(p);
         sdfBound = sdf; sdfFetchT = t;
       }
-      var step = max(sdf, max(STEP_MIN, sqrt(t) * STEP_SQRT) * frame.stepScale);
+      let deckStep = frame.stepScale <= 1.0;
+      var step = max(sdf, select(max(STEP_MIN, sqrt(t) * STEP_SQRT) * frame.stepScale, max(DECK_STEP_MIN, sqrt(t) * DECK_STEP_SQRT), deckStep));
       // Never silently truncate a long ray at the step cap: coarsen the step once a ray has used a lot of them.
       {
         // P3-E: widen the step in thin or dark-deep media, but never by more than half the depth below the surface (the SDF is a bound,
