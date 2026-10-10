@@ -41,8 +41,8 @@ describe('HZD shaper (H1)', () => {
     packProceduralParams(s, out);
     expect(Array.from(out.subarray(152, 156))).toEqual([1, 0.3, 0.2, 1].map(Math.fround));           // contrast, erosion 0.3, wispy 0.2, 'hfw'
     expect(Array.from(out.subarray(156, 160))).toEqual([0.7, 1, 0.4, 0.4].map(Math.fround));         // topRound, smooth, height from coverage
-    expect(Array.from(out.subarray(160, 164))).toEqual([0, 0.5, 0.07, 0.08].map(Math.fround));       // density from coverage off, skirt width/density
-    expect(Array.from(out.subarray(164, 168))).toEqual([0.18, 0.5, 3, 15000].map(Math.fround));
+    expect(Array.from(out.subarray(160, 164))).toEqual([0, 0.5, 0.08, 0.04].map(Math.fround));       // density from coverage off, veil width/density (H6 defaults)
+    expect(Array.from(out.subarray(164, 168))).toEqual([0.25, 0.5, 3, 15000].map(Math.fround));
     s.hzd.erosionOrder = 'gp7'; s.hzd.veilNoise = 'shape';
     packProceduralParams(s, out);
     expect(out[155]).toBe(0);
@@ -51,6 +51,8 @@ describe('HZD shaper (H1)', () => {
   });
   it('H7: packs the skirt and wispy-bottom words; the H6 veil is one switch away', () => {
     const s = defaultProceduralSettings('hzd');
+    // H7's look is an option, not the default (judged 2026-10-10): apply it explicitly.
+    Object.assign(s.hzd, { skirtMode: 'skirt', bottomCurl: 2.5, bottomCurlDown: 0.5, bottomErosion: 0.5, lobeStrength: 0.6, baseLump: 0.04, typeBlend: 'hybrid' });
     const out = new Float32Array(PROC_PARAM_FLOATS);
     packProceduralParams(s, out);
     expect(Array.from(out.subarray(168, 172))).toEqual([0, 1, 500, 2.5].map(Math.fround));      // veil noise, skirt mode, trail (m), stretch
@@ -63,6 +65,8 @@ describe('HZD shaper (H1)', () => {
   });
   it('H7: packs the lobe rung and the shelf words', () => {
     const s = defaultProceduralSettings('hzd');
+    // H7's look is an option, not the default (judged 2026-10-10): apply it explicitly.
+    Object.assign(s.hzd, { skirtMode: 'skirt', bottomCurl: 2.5, bottomCurlDown: 0.5, bottomErosion: 0.5, lobeStrength: 0.6, baseLump: 0.04, typeBlend: 'hybrid' });
     const out = new Float32Array(PROC_PARAM_FLOATS);
     packProceduralParams(s, out);
     expect(Array.from(out.subarray(180, 184))).toEqual([1050, 0.6, 0.45, 1].map(Math.fround));    // lobe tile, strength, full height, cubic

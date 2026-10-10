@@ -1,0 +1,46 @@
+{
+ "note": "H7 blind set: H6 defaults (rendered on the H7 code by overrides) vs H7 defaults; compare ?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&c_compositeShadow=0 (no cloud shadows on the ground, so the ground plane is pixel-identical between versions), settle 300",
+ "h6Overrides": "hz_skirtMode=veil&hz_veilWidth=0.08&hz_veilDensity=0.04&hz_veilHeight=0.25&hz_bottomCurl=1&hz_bottomCurlDown=0&hz_bottomErosion=0&hz_lobeStrength=0&hz_typeBlend=curves&hz_baseLump=0",
+ "items": {
+  "h66": {
+   "view": "sunset",
+   "version": "H6",
+   "source": "work/captures/H7/final-h6/sunset.jpg"
+  },
+  "h42": {
+   "view": "sunset",
+   "version": "H7",
+   "source": "work/captures/H7/final-h7/sunset.jpg"
+  },
+  "h69": {
+   "view": "horizon",
+   "version": "H6",
+   "source": "work/captures/H7/final-h6/horizon.jpg"
+  },
+  "h59": {
+   "view": "ground",
+   "version": "H7",
+   "source": "work/captures/H7/final-h7/ground.jpg"
+  },
+  "h88": {
+   "view": "above",
+   "version": "H6",
+   "source": "work/captures/H7/final-h6/above.jpg"
+  },
+  "h39": {
+   "view": "ground",
+   "version": "H6",
+   "source": "work/captures/H7/final-h6/ground.jpg"
+  },
+  "h35": {
+   "view": "horizon",
+   "version": "H7",
+   "source": "work/captures/H7/final-h7/horizon.jpg"
+  },
+  "h31": {
+   "view": "above",
+   "version": "H7",
+   "source": "work/captures/H7/final-h7/above.jpg"
+  }
+ }
+}
