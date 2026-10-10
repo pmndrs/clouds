@@ -24,7 +24,9 @@ RS-5, 2026-10-10. How the sources put stratus, cumulus, cumulonimbus, alto and c
 
 **The G-channel disagreement.** HZD 2015 and GP7 say G is precipitation; N17 and the Nutshell say G is a second coverage footprint and there is no rain channel; Häggström uses G as fill coverage; we use it for species. These are different talks, not transcription errors (gp7.md review). Nobody else's G matches ours.
 
-**Recommendation (needs owner input).** Follow NE, which is where HZD ended up, and keep HZD's rain as a field:
+**Decision (owner, 2026-10-10): follow Nubis Evolved / Nubis Cubed, not the HZD 2015-2017 weather map.** The R/G/B weather map (and the G-channel question) is retired. The sky reads one **NDF** with NE's five per-column fields: **coverage, top type, bottom type, min height, max height** [ne22 p.20; n3 s18]. No precipitation channel: storms come later as NE-style influence NDFs and a superstorm mask [ne22 p.69-78, p.139]. The high 2.5D layer gets NE's two-field NDF (coverage, type) [ne22 p.64]. Storage is an implementation detail (five fields need two textures, e.g. RGBA8 coverage/top/bottom/spare + RG8 min/max height); the shaders must address fields by name so packing can change.
+
+Superseded recommendation, kept for history: follow NE, which is where HZD ended up, and keep HZD's rain as a field:
 - NDF texture A, RGBA8: R coverage, G top type, B bottom type, A precipitation.
 - NDF texture B, RG8: min height, max height (or base + depth). Häggström's density (A) can go here as B's third channel.
 - N17's "Perlin vs Perlin-Worley footprint" becomes a choice made when the map is generated (weather.md W2), not a runtime channel.
