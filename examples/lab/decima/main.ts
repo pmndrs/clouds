@@ -2,7 +2,7 @@
 // own frames of it (refs.ts), rendered with the D1 parity settings ('decima' look, default), the deck's settings (?look=deck) or our art
 // defaults (?look=art). Flagship shell (three WebGPURenderer + @pmndrs/sky, the window.__clouds contract); no ground, as the deck frames show only sky.
 //   ?cloud=parkouring|stormbird   ?bookmark=<ref>   ?look=decima|deck|art   ?quality=ultra   ?exposure=0.35
-//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2[:ambientWeight]  @skytint:0|1  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
+//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2[:ambientWeight]  @skytint:0|1  @ambtint:r:g:b  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
 import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
@@ -151,6 +151,9 @@ try {
       rampNow = rampKey;
     }
     skyBridge.skyTintToAmbient = !(v.has('skytint') && v.get('skytint')![0] === '0');   // D1 round 11 A/B: skytint:0 = the round-9 plumbing
+    // D1 round 11 (ambtint:r:g:b, refs.ambientTint): a per-scene tint of the sky radiance the clouds see (on top of the luminance factor); the sky mesh untouched.
+    const ambtint = v.has('ambtint') ? v.get('ambtint')!.map(Number) : (ref.ambientTint ?? [1, 1, 1]);
+    skyBridge.ambientTint = [ambtint[0], ambtint[1], ambtint[2]];
     bridge.matte = matte || v.has('matte');
     // D1 round 5 post variants: @post:aces|none|fit (?post= for the page), @dither:0|1 (?dither=; default 1).
     bridge.post.mode = POST_MODES[v.has('post') ? v.get('post')![0] : (query.get('post') ?? 'aces')] ?? 0;

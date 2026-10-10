@@ -95,7 +95,9 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
   // the sun away before it reaches the body, which is then lit only by its surroundings. The environment takes over what the sun lost.
   let sunShare = frame.body.x * exp(-tau * frame.body.w);
   let envShare = frame.body.y * (1.0 - sunShare);
-  let direct = sunRadiance * (exp(-tau) * phase);
+  // D1 round 11 (directProfile, frame.d4.z): the direct term weighted by the in-scatter probability too (the deck's profile as the scattering
+  // probability of thin material: dark edges), so a thin rim, a base skirt or a detached wisp is not lit white by the sun over the sky.
+  let direct = sunRadiance * (exp(-tau) * phase) * mix(1.0, saturate(profile), frame.d4.z);
   let msLight = sunRadiance * (frame.msStrength * ms * MS_NORMALISATION * sunShare);
   // The environment-fed body: isotropic (no forward glow boost, no sun-ward occlusion), irradiance = pi * mean radiance.
   let envLight = mix(envDown, envUp * above, skyWeight) * (PI * envShare * profile * (frame.msStrength * MS_NORMALISATION + frame.deepScatter * ISO_PHASE));

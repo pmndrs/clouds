@@ -116,8 +116,8 @@ export function createCloudBridge(renderer: WebGPURenderer, runtime: CloudRuntim
 export const POST_FIT = {
   // scripts/d1/postfit.py on the nine frames (sky-anchored, ridge 0.05): a nearly linear curve with a gentle shoulder and a 0.07 lift, and a
   // warm matrix (R gains 1.26 and 0.16 of G; B 1.17). Cloud luminance-quantile residual 0.228 (ACES) -> 0.165, sky 0.28 -> 0.20.
-  curve: [0.97562, 2.15726, 1.79074, 0.06686] as [number, number, number, number],
-  matrix: [1.25537, 0.08323, 0.03259, 0.15657, 1.08145, 0.07587, -0.04060, 0.08143, 1.17027] as [number, number, number, number, number, number, number, number, number],
+  curve: [1.71181, 0.53868, 1.22388, 0.10256] as [number, number, number, number],   // D1 round 11: refitted on the cloud alone (postfit.py --erode 6, round-11 linear captures); round 5's [0.97562, 2.15726, 1.79074, 0.06686]
+  matrix: [1.09510, 0.02209, 0.05579, 0.06710, 1.03225, 0.03359, -0.03817, 0.02637, 1.03210] as [number, number, number, number, number, number, number, number, number],
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function postFitCurve(x: any, c: any): any {
