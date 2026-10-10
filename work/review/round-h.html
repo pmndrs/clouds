@@ -1,0 +1,199 @@
+<title>Round H Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: decisions first (what the owner must answer), then the story of the round as numbered findings with images. */
+:root {
+  --bg: #eef2f6; --panel: #f8fafc; --ink: #18222f; --muted: #566476; --line: #cfd8e3;
+  --sky: #34587f; --sun: #b7791f; --sun-soft: #f3e3c3; --ok: #2f7a4f; --warn: #a26a12; --bad: #8a3b3b;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Serif 4", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544; --sky: #8fb0dd; --sun: #e2a94a; --sun-soft: #3a2c14; --ok: #6cc293; --warn: #e2a94a; --bad: #e08a8a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544; --sky: #8fb0dd; --sun: #e2a94a; --sun-soft: #3a2c14; --ok: #6cc293; --warn: #e2a94a; --bad: #e08a8a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); }
+.wrap { max-width: 1000px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 80px; display: grid; gap: 52px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.5rem; font-weight: 700; }
+h3 { font-size: 1.1rem; font-weight: 700; }
+p { margin: 0; max-width: 70ch; }
+code { font-family: var(--mono); font-size: 0.82em; }
+.eyebrow { font: 500 0.74rem var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.lede { font-size: 1.12rem; }
+section { display: grid; gap: 18px; }
+.rule { display: flex; align-items: baseline; gap: 14px; border-top: 2px solid var(--ink); padding-top: 10px; }
+.rule .alt { font: 0.74rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; }
+.q { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--sun); border-radius: 3px; padding: 16px 18px; display: grid; gap: 10px; }
+.q .num { font: 700 0.8rem var(--mono); color: var(--sun); }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices button { font: 500 0.88rem var(--display); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px; cursor: pointer; }
+.choices button[aria-pressed="true"] { background: var(--sky); color: var(--bg); border-color: var(--sky); }
+textarea { font: 0.93rem/1.45 var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 3px; padding: 7px 10px; width: 100%; box-sizing: border-box; min-height: 2.8em; resize: vertical; }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+.saved { font: 0.68rem var(--mono); color: var(--muted); min-height: 1em; }
+.status { font: 0.76rem var(--mono); color: var(--muted); }
+.status.live { color: var(--ok); }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; border-radius: 2px; cursor: zoom-in; }
+figcaption { font: 0.74rem var(--mono); color: var(--muted); }
+.finding { display: grid; gap: 12px; padding-block: 6px; }
+.finding .head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.finding .n { font: 800 1.15rem var(--display); color: var(--muted); font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.pill { font: 500 0.7rem var(--mono); padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.part { color: var(--warn); }
+.zoom { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: grid; place-items: center; padding: 16px; z-index: 10; cursor: zoom-out; }
+.zoom img { max-width: 100%; max-height: 100%; }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">WebGPU Clouds · round H · 2026-10-10</span>
+  <h1>Round H Review</h1>
+  <p class="lede">This round built the HZD foundation and the Houdini authoring track, and found out why our clouds read as foam. Three questions need you. They come first; the findings that led to them follow.</p>
+  <p class="status" id="dbstatus">Answers save as you click once the page connects.</p>
+</header>
+
+<section>
+  <div class="rule"><h2>Your three decisions</h2><span class="alt">answers save here</span></div>
+
+  <div class="q" id="q-h5">
+    <span class="num">1 · HZD SKY</span>
+    <h3>Which of these two skies reads closer to a real sky?</h3>
+    <p>Our HZD-chain procedural sky, same camera. The two judges split: Opus prefers B (rounder, separate domes, grey bases), Fable prefers A (B's bodies show stacked horizontal shelves). Your pick sets the direction for the next HZD pass and which judge to weight on skies.</p>
+    <div class="pair">
+      <figure><img src="img/h5-before.jpg" alt="Sky A, before"><figcaption>A · H1 (before)</figcaption></figure>
+      <figure><img src="img/h5-after.jpg" alt="Sky B, after"><figcaption>B · H5 (after)</figcaption></figure>
+    </div>
+    <div class="choices" data-q="h5"><button type="button" data-v="A">A is closer</button><button type="button" data-v="B">B is closer</button><button type="button" data-v="neither">Neither, both wrong</button></div>
+    <textarea id="note-h5" data-q="h5" aria-label="Note on the HZD sky" placeholder="What reads wrong in each (optional)"></textarea><span class="saved"></span>
+  </div>
+
+  <div class="q" id="q-direct">
+    <span class="num">2 · IMPORTED VDBS</span>
+    <h3>Render imported VDBs directly by default?</h3>
+    <p>Rendered directly (their own density, our lighting), EmberGen clouds read as one vapour body and match Karma's outline closely. Through the Nubis detail chain they turn into foam, even with your shape closing. The Nubis chain stays for Nubis-style smooth shapes and our procedural sky either way.</p>
+    <figure><img src="img/direct-02.jpg" alt="EmberGen 02: NVDF chain vs direct render variants vs Karma"><figcaption>EmberGen 02 · left: Nubis chain · middle: direct render, several lighting variants · right: Karma reference</figcaption></figure>
+    <div class="choices" data-q="direct"><button type="button" data-v="direct">Yes, direct by default</button><button type="button" data-v="chain">No, Nubis chain + closing by default</button><button type="button" data-v="per-asset">Choose per asset</button></div>
+    <textarea id="note-direct" data-q="direct" aria-label="Note on imported VDBs" placeholder="Note (optional)"></textarea><span class="saved"></span>
+  </div>
+
+  <div class="q" id="q-m1">
+    <span class="num">3 · MATERIAL TASK</span>
+    <h3>Start the material task (M1)? It touches lighting.</h3>
+    <p>Every judge, and Karma, says the same thing: our shaded sides are lit almost white (median 0.90 vs Karma's 0.64–0.76), creases are sky-blue instead of warm grey, the thin connective material is dropped by the converter (Karma's clouds cover 1.7–2.9× more of the frame), and there's no crisp lit crust over a darker interior. M1 would fix these against Karma's measured light numbers and your photos.</p>
+    <figure><img src="img/karma-vs-ours.jpg" alt="Karma reference vs ours for five EmberGen clouds"><figcaption>Left: Karma path-traced reference · right: ours · same scale, camera and sun</figcaption></figure>
+    <div class="choices" data-q="m1"><button type="button" data-v="go">Go</button><button type="button" data-v="later">Later</button><button type="button" data-v="no">No</button></div>
+    <textarea id="note-m1" data-q="m1" aria-label="Note on M1" placeholder="Note (optional)"></textarea><span class="saved"></span>
+  </div>
+</section>
+
+<section>
+  <div class="rule"><h2>What we found</h2><span class="alt">in the order it happened</span></div>
+
+  <div class="finding">
+    <div class="head"><span class="n">1</span><h3>Calibration: who judges like you</h3></div>
+    <p>You and two AI judges scored nine renders blind. Fable tracked you far better than Opus (rank agreement 0.38 vs 0.04; 0.74 vs 0.30 without one outlier). Both missed your main axis, material and cohesion, so the rubric now scores realism of form, vapour vs foam, and connective tissue. You preferred the harsher scale; both judges now score every look change, with you as final judge.</p>
+    <figure><img src="img/calibration.jpg" alt="The nine calibration renders"><figcaption>The calibration set (photo framing)</figcaption></figure>
+  </div>
+
+  <div class="finding">
+    <div class="head"><span class="n">2</span><h3>Foam is half rendering, half form</h3></div>
+    <p>Our high preset traced distant clouds at 41% resolution, blurring every edge; and imported sims are already puffy, so each puff got its own density ramp and the gaps eroded to sky. Closing the shape at 32 m (your call: now standard for imported sims) plus the sharper render gave the best version of every cloud: +1 to +2 points from both judges.</p>
+    <figure><img src="img/r1-c94.jpg" alt="EmberGen 02: original, render fix, shape fix, both"><figcaption>EmberGen 02 · original · render fix · shape closing · both (best)</figcaption></figure>
+  </div>
+
+  <div class="finding">
+    <div class="head"><span class="n">3</span><h3>Pits instead of cauliflower: found and fixed</h3></div>
+    <p>Our noise is byte-identical to Guerrilla's. The craters came from Nubis's wispy noise landing on dense surfaces, which their clouds never have. A new default keeps dense regions billowy; both judges preferred it in 5 of 6 pairs. Without pits the surface is smooth rather than cauliflower, which the material work has to solve.</p>
+    <div class="pair">
+      <figure><img src="img/frog-before.jpg" alt="Frog before the fix, pitted"><figcaption>Frog · before (pits)</figcaption></figure>
+      <figure><img src="img/frog-after.jpg" alt="Frog after the fix"><figcaption>Frog · after</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="head"><span class="n">4</span><h3>The Frog from Houdini's cloud nodes</h3></div>
+    <p>Twin domes with the notch, the long darker belly, terrace and satellites, matched to your photo's outline at 0.82 overlap. Rig: <code>houdini/rigs/frog.hip</code>. The satellites are faked with perspective until we support several volumes.</p>
+    <figure style="max-width:560px"><img src="img/frog-a3.jpg" alt="The Frog built in Houdini, rendered in our renderer"><figcaption>Frog · Houdini cloud nodes · our renderer</figcaption></figure>
+  </div>
+
+  <div class="finding">
+    <div class="head"><span class="n">5</span><h3>Karma ground truth and direct rendering</h3></div>
+    <p>Path-traced in Karma, the EmberGen forms read as vapour: one body, thin material joining the lobes, warm-grey shade. Rendered directly in our renderer they come close in shape. So the remaining gap is lighting and the converter dropping thin material — question 3.</p>
+  </div>
+</section>
+
+<section>
+  <div class="rule"><h2>Every task this round</h2><span class="alt">reports in work/reports/</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Task</th><th>What</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>H1</td><td>HZD reference path: noise bake, five-field NDF, <code>hzd</code> shaper</td><td><span class="pill ok">foundation</span> look not HZD yet</td></tr>
+      <tr><td>H2</td><td>Noise blur 0.01→0.002, Nubis biases, near-detail gate, finer step</td><td><span class="pill ok">accepted</span></td></tr>
+      <tr><td>H3</td><td>Dark blotches on Parkouring (sky-ambient falloff)</td><td><span class="pill ok">fixed</span> deviates from deck; revisit with lighting</td></tr>
+      <tr><td>H4</td><td>Nubis top/bottom profile tables, erosion-law switch (sky layer)</td><td><span class="pill part">tooling only</span> sky layer reads as stacked pancakes</td></tr>
+      <tr><td>H5</td><td>HZD look-match: erosion, edges, facets, horizon ring</td><td><span class="pill part">judges split</span> question 1</td></tr>
+      <tr><td>A1</td><td>Eight existing builders saved as openable <code>.hip</code> rigs</td><td><span class="pill ok">accepted</span> <code>houdini/rigs/</code></td></tr>
+      <tr><td>A2</td><td>Lens-seeded Pyro (Guerrilla/EmberGen style)</td><td><span class="pill ok">no chimneys</span> too many equal turrets</td></tr>
+      <tr><td>A3</td><td>Frog from Houdini cloud nodes</td><td><span class="pill ok">silhouette</span> surface needs the material work</td></tr>
+      <tr><td>C1</td><td>Calibration set: EmberGen rendered properly, matched framings</td><td><span class="pill ok">accepted</span></td></tr>
+      <tr><td>R1</td><td>Foam vs vapour: rendering or form</td><td><span class="pill ok">both</span> fixes identified</td></tr>
+      <tr><td>P1</td><td>Pits instead of billows</td><td><span class="pill ok">fixed</span> default on</td></tr>
+      <tr><td>C2</td><td>Shape closing + fields outside, standard for imported sims</td><td><span class="pill ok">accepted</span></td></tr>
+      <tr><td>V1</td><td>Karma path-traced references of the EmberGen clouds</td><td><span class="pill ok">ground truth</span> 960×540</td></tr>
+      <tr><td>V2</td><td>Direct VDB render mode</td><td><span class="pill ok">accepted</span> question 2</td></tr>
+    </tbody>
+  </table></div>
+  <p>Already decided by you this round: weather follows the Nubis Evolved five-field data field; shape closing for imported sims; look work at ultra quality with a hard performance pass later (spread work over frames, slower lighting cadence, render small and upscale with your FSR3 port).</p>
+</section>
+
+<section>
+  <div class="rule"><h2>Anything else</h2></div>
+  <textarea id="note-free" data-q="free" aria-label="Free notes" placeholder="Anything I should know before the next round."></textarea><span class="saved"></span>
+</section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let db = null; const state = {}; const timers = {};
+function save(id, savedEl) {
+  if (!db) { if (savedEl) savedEl.textContent = "not saved: page not connected"; return; }
+  clearTimeout(timers[id]);
+  timers[id] = setTimeout(async () => {
+    try { await db.collection("answers").doc(id).set(Object.assign({ at: new Date().toISOString() }, state[id])); if (savedEl) savedEl.textContent = "saved"; }
+    catch (e) { if (savedEl) savedEl.textContent = "not saved: " + (e && e.code || "error"); }
+  }, 500);
+}
+function savedFor(el) { const s = el.closest(".q, section").querySelector(".saved"); return s; }
+function paint() {
+  document.querySelectorAll(".choices").forEach(c => { const q = c.dataset.q; c.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String((state[q] || {}).choice === b.dataset.v))); });
+  document.querySelectorAll("textarea[data-q]").forEach(t => { t.value = (state[t.dataset.q] || {}).note || ""; });
+}
+document.querySelectorAll(".choices").forEach(c => c.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return; const q = c.dataset.q; state[q] = state[q] || {};
+  state[q].choice = state[q].choice === b.dataset.v ? null : b.dataset.v; paint(); save(q, savedFor(c));
+}));
+document.querySelectorAll("textarea[data-q]").forEach(t => t.addEventListener("input", () => { const q = t.dataset.q; state[q] = state[q] || {}; state[q].note = t.value; save(q, savedFor(t)); }));
+document.querySelectorAll("figure img").forEach(im => im.addEventListener("click", () => { const z = document.createElement("div"); z.className = "zoom"; const i = new Image(); i.src = im.src; i.alt = ""; z.append(i); z.addEventListener("click", () => z.remove()); document.body.append(z); }));
+(async () => {
+  try {
+    db = await (window.claude && window.claude.use ? window.claude.use("db") : null);
+    if (!db) { $("#dbstatus").textContent = "Not connected: answers won't be saved. Open this page in claude.ai while signed in."; return; }
+    const snap = await db.collection("answers").get();
+    snap.docs.forEach(d => { state[d.id] = Object.assign({}, d.data()); });
+    paint();
+    $("#dbstatus").textContent = "Connected: answers save as you click."; $("#dbstatus").classList.add("live");
+  } catch (e) { $("#dbstatus").textContent = "Not connected: answers won't be saved."; }
+})();
+</script>
