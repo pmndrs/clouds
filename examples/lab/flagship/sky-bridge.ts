@@ -40,6 +40,8 @@ export interface SkyBridge {
    * update() converts them to LUT units (divides by luminanceScale, sunColor and the luminance factor). null = the physical LUT.
    */
   skyRamp: { strength: number; stops: { at: number; color: [number, number, number] }[] } | null;
+  /** D1 round 11: false = the clouds' sky radiance ignores the sky's luminance factor (the round-9 plumbing, for A/B). Default true. */
+  skyTintToAmbient: boolean;
   dispose(): void;
 }
 
@@ -84,6 +86,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
   const bridge: SkyBridge = {
     device, layout, sampler, uniformBuffer, data, values,
     skyRamp: null,
+    skyTintToAmbient: true,
     transmittance: undefined as unknown as GPUTextureView, skyView: undefined as unknown as GPUTextureView, aerialPerspective: undefined as unknown as GPUTextureView,
     bindGroup: undefined as unknown as GPUBindGroup,
     update(camera) {
@@ -97,7 +100,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
       values.luminanceScale = baker.sky.luminanceScale.value;
       // D1 round 10: the sky's luminance factor tints the sky radiance the clouds see (the sky mesh applies it after the look); the ramp in LUT units.
       const skyf: Vector3 = baker.sky.skyLuminanceFactor.value;
-      skyTint[0] = skyf.x; skyTint[1] = skyf.y; skyTint[2] = skyf.z;
+      if (bridge.skyTintToAmbient) { skyTint[0] = skyf.x; skyTint[1] = skyf.y; skyTint[2] = skyf.z; } else { skyTint[0] = 1; skyTint[1] = 1; skyTint[2] = 1; }
       const ramp = bridge.skyRamp;
       values.skyRamp = ramp ? { strength: ramp.strength, stops: ramp.stops.map(st => ({ at: st.at, color: [0, 1, 2].map(i => st.color[i] / Math.max(values.luminanceScale * sunColor[i] * skyTint[i], 1e-6)) })) } : null;
       values.bottomRadiusKm = params.bottomRadius;
