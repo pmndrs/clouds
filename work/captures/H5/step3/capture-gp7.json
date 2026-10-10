@@ -1,0 +1,98 @@
+{
+  "url": "http://127.0.0.1:5391/compare/?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&pitch=25",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T06:42:16.123Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/H5/step3/.g/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 0.12760431666666663,
+          "hzd.lightGridReduce": 0.008209,
+          "hzd.lightGrid": 0.008165,
+          "hzd.marchNear": 0.04478820000000001,
+          "hzd.marchFar": 0.11309765000000002,
+          "hzd.shadowMap": 0.24274355999999997,
+          "hzd.composite": 0.27347984999999997,
+          "hzd.dome": 0.14865878333333335,
+          "hzd.skyLayer": 3.1945282333333327,
+          "hzd.skyResolve": 0.19882328333333332,
+          "hzd.cloudsTotal": 4.23249356,
+          "hzd.total": 4.360097876666667
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 25,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 0.12760431666666663,
+              "lightGridReduce": 0.008209,
+              "lightGrid": 0.008165,
+              "marchNear": 0.04478820000000001,
+              "marchFar": 0.11309765000000002,
+              "shadowMap": 0.24274355999999997,
+              "composite": 0.27347984999999997,
+              "dome": 0.14865878333333335,
+              "skyLayer": 3.1945282333333327,
+              "skyResolve": 0.19882328333333332,
+              "cloudsTotal": 4.23249356,
+              "total": 4.360097876666667
+            },
+            "cpuMs": 1.0366666674613954,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 137
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

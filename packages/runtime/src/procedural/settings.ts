@@ -164,8 +164,8 @@ export interface HzdShape {
   noiseSmooth: number;
   /** H5 (ours): sub-samples per texel edge of the shape bake: 1 point-samples as the tool, 2 box-filters 2x2x2 (the tool's finest terms alias). */
   noiseSupersample: number;
-  /** H5 (ours): the shape texture is read with a tricubic B-spline (8 trilinear taps) on full samples nearer than this (m) while it is
-   *  magnified; trilinear beyond, and everywhere at 0. Removes the terraces trilinear filtering leaves on flanks and bases. */
+  /** H5 (ours; default 30 km, +0.25 ms at ultra): the shape and detail textures are read with a tricubic B-spline (8 trilinear taps) on full samples nearer than this (m) while
+   *  magnified; trilinear beyond, and everywhere at 0. Removes the terraces trilinear filtering leaves on flanks and bases (H1 "faceted flanks"). */
   shapeCubicDistance: number;
   /** H5: exponent on the final density (1 = GP7: none; ne22 p.105 sharpens its envelope with 0.27). Below 1 lifts the edge ramp: crisper rims. */
   densityPow: number;
@@ -259,7 +259,7 @@ export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves',
   shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
-  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, shapeCubicDistance: 0, densityPow: 1, ndf: HZD_NDF_DEFAULTS,
+  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, shapeCubicDistance: 30000, densityPow: 1, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
