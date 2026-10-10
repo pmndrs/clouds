@@ -315,7 +315,7 @@ export const HZD_DEFAULTS: HzdShape = {
   shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.4, ringType: 1, ringFadeStart: 0.8,
-  erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0, profileSmooth: false, heightFromCoverage: 0, heightCoverageRef: 0.5,
+  erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0, heightCoverageRef: 0.5,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.15, veilDensity: 0.03, veilHeight: 0.3, veilWisp: 3, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
