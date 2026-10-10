@@ -55,7 +55,7 @@ a { color: var(--sky); }
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">WebGPU Clouds · living overview · updated 2026-10-10 afternoon</span>
+  <span class="eyebrow">WebGPU Clouds · living overview · updated 2026-10-11</span>
   <h1>Clouds Rounds Overview</h1>
   <p class="lede">Where the work stands, round by round. The aim: master Horizon Zero Dawn's procedural clouds first, built on the Nubis-era structures we already know, with Houdini authoring in parallel, judged against HZD and your photos. Calibrated blind judges (Opus and Fable) score every look change; you have the final word.</p>
 </header>
@@ -106,7 +106,21 @@ a { color: var(--sky); }
     </div>
 
     <div class="round run">
-      <div class="top"><h3>Round M · material and the sky, pass 2</h3><span class="state">running</span></div>
+      <div class="top"><h3>D1 · parity with Decima on Guerrilla's own clouds</h3><span class="state">running · round 10 next</span></div>
+      <ul>
+        <li>Everything else paused (your call) until our render of Parkouring and Stormbird matches Decima's frames. Fable leads; both judges score every round blind, with zoom crops.</li>
+        <li><b>Rounds 1–6:</b> the shading rebuilt from the deck's units (in-line taps were 10× too strong, the light grid 1.44×); suns refit from the frames; blue noise; PNG captures. Parkouring shade now within 0.02–0.04 of the frames.</li>
+        <li><b>Round 7:</b> a regression; the disc blotches were hidden under haze. Reverted.</li>
+        <li><b>Round 8:</b> the wind was smearing detail through the temporal resolve; stills now stop it. Parkouring won outright.</li>
+        <li><b>Floret study (Opus):</b> the cauliflower geometry is there; it lacks short-range sun shadowing at the 4–13 m floret scale, and the glow and ambient cancel what relief remains.</li>
+        <li><b>Round 9:</b> the Stormbird slit, ring, pits and chip were the glow lighting thin material as if dense (now weighted by density); a 4 m sun tap added. A small step; scores still 3–4.</li>
+        <li><b>Open:</b> crest florets (about half the frames' mid-scale energy), blown lit tops, warm colour, the sky's haze band, wind-on detail (florets change shape with the wind, so reprojection can't hold them).</li>
+      </ul>
+      <div class="chips"><span class="chip">work/reports/D1.md</span><span class="chip">work/reports/D1-florets.md</span><span class="chip">work/calibration/d1*-results.md</span></div>
+    </div>
+
+    <div class="round plan">
+      <div class="top"><h3>Round M · material and the sky, pass 2</h3><span class="state">paused for D1</span></div>
       <ul>
         <li><b>M1 material:</b> imported VDBs render directly by default; keep thin connective vapour; shaded-side values and crease colour toward Karma; Frog and EmberGen re-rendered.</li>
         <li><b>H6 HZD sky pass 2:</b> low-density connective flow between bodies, real surface detail, terraces, flat-cut tops, coverage thinning.</li>
@@ -156,7 +170,11 @@ a { color: var(--sky); }
       <tr><td>R1</td><td>render vs form fixes</td><td class="num">Fable 6 · Opus 5</td><td>both fixes together best; material caps at ~5</td></tr>
       <tr><td>P1</td><td>pits fix</td><td class="num">Fable 5 · Opus 4</td><td>fix preferred in 5 of 6 pairs</td></tr>
       <tr><td>H5</td><td>HZD sky</td><td class="num">Opus 5 (HZD 6) · Fable 4</td><td>judges split; you chose H5</td></tr>
-      <tr><td>Round M</td><td>material, sky pass 2</td><td class="num">pending</td><td></td></tr>
+      <tr><td>D1 r1–r6</td><td>our render vs Decima frames</td><td class="num">both 4</td><td>"same cloud, different engine"; reference spotted instantly</td></tr>
+      <tr><td>D1 r7</td><td>disc fix by haze</td><td class="num">both 4 (r6 preferred)</td><td>regression, reverted</td></tr>
+      <tr><td>D1 r8</td><td>wind stopped, discs broken up</td><td class="num">both 4</td><td>Parkouring won outright; Stormbird flaws exposed</td></tr>
+      <tr><td>D1 r9</td><td>Stormbird flaws, 4 m sun tap</td><td class="num">both 4</td><td>9 of 16 calls; florets still the top gap</td></tr>
+      <tr><td>Round M</td><td>material, sky pass 2</td><td class="num">paused</td><td></td></tr>
     </tbody>
   </table></div>
 </section>
@@ -171,6 +189,7 @@ a { color: var(--sky); }
     <li>Lit ridges crisp; only thin parts and undersides go soft; cohesion and vapour matter as much as detail.</li>
     <li>Look work at ultra; a hard performance pass comes later.</li>
     <li>Both Opus and Fable judge every look change; you're final.</li>
+    <li>Parity first: match Decima on Guerrilla's own clouds before tuning our own; your eye over the statistics.</li>
   </ul>
   <p class="eyebrow">Repo: work/BOARD.md (tasks) · work/HANDOFF.md (session start) · docs/research/topics/ (guides)</p>
 </section>
