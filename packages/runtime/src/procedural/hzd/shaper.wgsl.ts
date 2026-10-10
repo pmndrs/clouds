@@ -13,7 +13,11 @@
  *      mix(fbm, 1 - fbm, sat(h * 10)) (wispy below 10 % of the column, billowy above); final = remap(d, modifier * 0.2, 1, 0, 1)
  *   anvil: `hzdAnvil` is the hook for S7 (N17's coverage exponent); it returns the coverage unchanged.
  * GP7 reads the detail texture at `p * 0.1` relative to the shape texture, which would make the 32^3 "high frequency" texture ten times
- * coarser than the 128^3 one; we read it with its own tile (`detailTile`) instead (see work/reports/H1.md).
+ * coarser than the 128^3 one; we read it with its own tile (`detailTile`) instead (see work/reports/H1.md). H5 re-tested the literal reading
+ * (detail tile = 10 x the shape tile = 60 km): the erosion turns into a near-constant offset and the edge billows of Fig 4.16 vanish, so the
+ * separate 400 m tile stays (work/captures/H5/step6/).
+ * H5 defaults (work/reports/H5.md): no `* coverage` (HFW p.17), GP7's weighted-sum type blend, a 6 km shape tile with a tricubic read,
+ * the GP7 Fig 4.9 detail recipe, and HZD 2015's 15-35 km horizon ring.
  */
 import { PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, PROC_BINDING_OFFSETS, procBindingsWgsl } from '../density.wgsl';
 import type { ProceduralShaper } from '../settings';
