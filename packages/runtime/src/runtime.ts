@@ -435,6 +435,11 @@ export interface CloudRuntime {
 }
 
 export interface CloudRuntimeOptions {
+  /**
+   * D1 round 7: multiplies the tier's near / far pass render scales (each clamped to 1). The parity page uses 4/3 so the ultra far pass renders at
+   * the output resolution: the depth-aware upsample of a 0.75-scale pass prints stair steps on opaque silhouettes (the judges' serrated edge).
+   */
+  passScale?: number;
   /** A tier, or 'auto' (tier from the adapter, render scale from the GPU timer). Default 'high'. */
   quality?: CloudQualityOption;
   /** Layout the atmosphere bind group was created with. Omit to use the runtime's own (group-equivalent) layout. */
@@ -649,13 +654,13 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
  * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
  */
 export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
-  densityScale: 2, lightDensityScale: 0.031, msStrength: 0.7, ambientStrength: 0.7,
+  densityScale: 2, lightDensityScale: 0.031, msStrength: 0.5, ambientStrength: 1.0,
   silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
   edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.7, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
   noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1,
   microShadow: 0, detailBias: 0,
   ambientLaw: 1,
-  bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
+  bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'mie', dropletDiameter: 10,
   hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0,
   fineErosion: 1,
   inlineLightScale: 0.03, inlineProfile: 0, lightMipBias: 0,
@@ -942,7 +947,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const pair = (i: number) => ({ color: device.createTexture({ label: `cloud ${name} colour ${i}`, size: [w, h], format: 'rgba16float', usage: hUsage }), depth: device.createTexture({ label: `cloud ${name} depth ${i}`, size: [w, h], format: 'r32uint', usage: hUsage }) });
       return { name, w, h, rw: w, rh: h, prw: w, prh: h, hist: [pair(0), pair(1)], trace: null };
     };
-    const near = makePass('near', preset.nearScale), far = makePass('far', preset.farScale);
+    const passScale = Math.max(0.25, options.passScale ?? 1);
+    const near = makePass('near', Math.min(1, preset.nearScale * passScale)), far = makePass('far', Math.min(1, preset.farScale * passScale));
     nearW = near.w; nearH = near.h; farW = far.w; farH = far.h;
     targets = [near, far];
     needReset = true;

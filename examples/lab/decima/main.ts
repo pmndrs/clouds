@@ -49,7 +49,8 @@ try {
   sun.attach(scene);
   await sky.compileAsync();
   const skyBridge = createSkyBridge(renderer, sky);
-  const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout });
+  // D1 round 7: ?passScale=1.3333 renders the ultra far pass at the output resolution (the 0.75-scale upsample serrates opaque silhouettes).
+  const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout, passScale: query.has('passScale') ? Number(query.get('passScale')) : 1 });
   const matte = query.get('matte') === '1';   // ?matte=1: present the cloud opacity (no tone mapping) for the parity masks
   const bridge = createCloudBridge(renderer, runtime, { matte });
   const POST_MODES: Record<string, 0 | 1 | 2> = { aces: 0, none: 1, fit: 2 };
@@ -94,6 +95,8 @@ try {
     const v = new Map(variants.map(x => { const [k, ...rest] = x.split(':'); return [k, rest] as const; }));
     look = v.has('look') ? asLook(v.get('look')![0], pageLook) : pageLook;   // each bookmark starts from the page's look
     applyLook();
+    // D1 round 7: the frame's scene settings (refs.ts `settings`), after the look and before the bookmark's own @s. variants.
+    for (const [k, val] of Object.entries(ref.settings ?? {})) if (k in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[k] = val;
     for (const [k, val] of v) if (k.startsWith('s.') && k.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[k.slice(2)] = Number.isNaN(Number(val[0])) ? val[0] : Number(val[0]);
     const cam = v.has('cam') ? v.get('cam')!.map(Number) : nums('cam');
     const eye = cam.length === 7 ? base(cam.slice(0, 3)) : base(ref.eye);
