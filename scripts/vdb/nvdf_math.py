@@ -84,6 +84,54 @@ def signed_distance(mask: np.ndarray, voxel: float, max_dist: float = SDF_MAX) -
     return out.astype(np.float32)
 
 
+# ---------------------------------------------------------------- shape closing / field extension (C2)
+
+def close_mask(mask: np.ndarray, voxel: float, radius_m: float) -> np.ndarray:
+    """Morphological closing of a boolean mask with a ball of `radius_m` metres (dilate, then erode), on voxel centres.
+
+    Fills gaps and concavities narrower than 2 * radius and keeps convex silhouette bumps; never removes a voxel and never grows
+    the mask past its bounding box. R1 (work/reports/R1-foam.md): imported sims are puffy at 8-20 m, every puff gets its own
+    profile ramp and the cloud reads as a spatter of blobs; closing at 32 m makes one body (Nubis does the same with a low-pass envelope).
+    radius_m <= 0 returns the mask unchanged.
+
+    The array is padded with empty voxels for the operation: a cloud whose bounding box is close to the array face (a flat sim base with
+    a thin margin) would otherwise have its dilation reach the face, find no empty voxel to erode from, and keep a slab of filled voxels there."""
+    mask = mask.astype(bool)
+    if radius_m <= 0 or not mask.any():
+        return mask
+    pad = int(np.ceil(radius_m / voxel)) + 1
+    inner = tuple(slice(pad, -pad) for _ in range(3))
+    m = np.pad(mask, pad)
+    dil = np.sqrt(squared_distance_to_mask(m, voxel, True)) <= radius_m
+    d_in = np.sqrt(squared_distance_to_mask(dil, voxel, False))
+    return np.ascontiguousarray((dil & (d_in > radius_m))[inner])
+
+
+def extend_fields(values: np.ndarray, valid: np.ndarray, iters: int) -> np.ndarray:
+    """Copy `values` from the valid set outward by `iters` voxels (nearest valid value; where several 6-neighbours are
+    equally near, their mean). Valid voxels are returned unchanged; voxels further than `iters` stay 0.
+
+    The Guerrilla pack carries detail type and density scale 1-2 voxels past the profile edge; writing 0 there pulls the
+    trilinear fetch at the surface (the erosion band) toward wispy and thin, which makes pits (work/reports/P1.md)."""
+    v = np.where(valid, values, 0.0).astype(np.float32)
+    ok = valid.astype(bool).copy()
+    for _ in range(max(0, int(iters))):
+        pv = np.pad(np.where(ok, v, 0.0), 1)
+        po = np.pad(ok, 1).astype(np.float32)
+        acc = np.zeros_like(v)
+        cnt = np.zeros(v.shape, np.float32)
+        for axis in range(3):
+            for sh in (-1, 1):
+                sl = [slice(1, -1)] * 3
+                sl[axis] = slice(1 + sh, v.shape[axis] + 1 + sh)
+                acc += pv[tuple(sl)]
+                cnt += po[tuple(sl)]
+        new = (~ok) & (cnt > 0)
+        v = np.where(new, acc / np.maximum(cnt, 1.0), v)
+        ok = ok | new
+    return v.astype(np.float32)
+
+
 # ---------------------------------------------------------------- encoding
 
 def encode_sdf_r16(sdf: np.ndarray) -> np.ndarray:
@@ -249,10 +297,11 @@ def pack_profile(depth_m, hfrac, noise, prm=None):
     return (core * lift).astype(np.float32)
 
 
-def pack_detail(depth_m, hfrac, prm=None):
-    """Detail type: wispy at the cloud base, billowy at the top; deeper voxels read a little more wispy."""
+def pack_detail(depth_m, hfrac, prm=None, depth_shift=None):
+    """Detail type: wispy at the cloud base, billowy at the top; deeper voxels read a little more wispy.
+    depth_shift overrides the fitted 0.25 (0 = height-only type; used for closed sim envelopes, which are deep everywhere)."""
     q = (prm or PACK_FIT)['detail']
-    h = hfrac - q['depthShift'] * np.clip(depth_m / q['depthRef'], 0.0, 1.0)
+    h = hfrac - (q['depthShift'] if depth_shift is None else depth_shift) * np.clip(depth_m / q['depthRef'], 0.0, 1.0)
     return smoothstep(q['lo'], q['hi'], h).astype(np.float32)
 
 
@@ -260,6 +309,14 @@ def pack_scale(hfrac, prm=None):
     """Density scale rising with height: thin sheets at the base, dense towers at the top."""
     q = (prm or PACK_FIT)['scale']
     return (q['s0'] + (q['s1'] - q['s0']) * smoothstep(0.0, q['h1'], hfrac)).astype(np.float32)
+
+
+def pack_scale_top(hfrac, top):
+    """Sim-import density scale: the pack height trend (thin base, dense top) rescaled so the top is `top` (R1 'hconst:1').
+    The pack fit tops out at 0.75 and is further multiplied by (0.5 + 0.5 density/p99), which lifts every eroded fringe into haze;
+    a sim's density is not the pack's, so only the height trend is kept."""
+    q = PACK_FIT['scale']
+    return (top * (q['s0'] + (q['s1'] - q['s0']) * smoothstep(0.0, q['h1'], hfrac)) / q['s1']).astype(np.float32)
 
 
 # ---------------------------------------------------------------- fine (hero) lattice: coarse-from-fine reduction (P8 spec 4.3)

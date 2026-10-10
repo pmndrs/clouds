@@ -19,8 +19,28 @@ hython takes about 3 s to start; the conversion itself is 0.5 to 15 s. A JSON re
 | Mode | Input grids | How the three channels and the SDF are made |
 | --- | --- | --- |
 | `pack` | `dimensional_profile`, `detail_type`, `density_scale`, (`sdf`) | Read as is, quantised to 8 bit (round to nearest). SDF recomputed from `profile > 0` (default `--sdf-source edt`, matches the TGA converter exactly) or resampled from the pack `sdf` grid (`--sdf-source vdb`). |
-| `fog` | one density grid (`--density-grid`, default `density`) | Surface = `density >= --iso` (default 0.05). SDF = exact EDT of that mask. **Profile = saturate(-sdf / depth)^gamma** (`--depth` 96 m, `--gamma` 1), so it is 0 outside, a small positive value at the surface and 1 at `depth` metres inside; the SDF is lightly smoothed (`--smooth` 1 voxel) first. Inside voxels never drop below 1/255 so `profile > 0` stays equal to the occupancy mask the SDF was built from. **Detail type** from `--detail-grid` if given, else a height heuristic: `--detail-bottom` 0.15 (wispy) rising smoothly to `--detail-top` 0.85 (billowy) over the cloud's height. **Density scale** = density / `--density-ref` (default the 99th percentile), optionally lifted by `--scale-floor`; or `--scale-grid`. |
+| `fog` | one density grid (`--density-grid`, default `density`) | Surface = `density >= --iso` (default 0.05), closed by `--close` (see Sim imports below). SDF = exact EDT of that mask. **Profile = saturate(-sdf / depth)^gamma** (`--depth` 96 m, `--gamma` 1), so it is 0 outside, a small positive value at the surface and 1 at `depth` metres inside; the SDF is lightly smoothed (`--smooth` 1 voxel) first. Inside voxels never drop below 1/255 so `profile > 0` stays equal to the occupancy mask the SDF was built from. **Detail type** from `--detail-grid` if given, else a height heuristic: `--detail-bottom` 0.15 (wispy) rising smoothly to `--detail-top` 0.85 (billowy) over the cloud's height. **Density scale** = density / `--density-ref` (default the 99th percentile), optionally lifted by `--scale-floor`; or `--scale-grid`. |
 | `sdf` | a level-set grid (`--sdf-grid`, default the first level set) | Surface = `sdf == --sdf-offset` (default 0). Mask = sdf < offset. Profile from the VDB's own (sub-voxel) SDF with the same `depth`/`gamma` mapping; SDF output is the EDT of the mask. Detail/scale as in fog (constant `--density-scale` 1 when no scale grid). |
+
+### Sim imports (fog mode defaults, C2) and fields outside the profile
+
+Fog mode is the import path for simulated clouds (EmberGen, Pyro). Those fields are puffy at 8-20 m; mapping each puff through its own
+66 m pack-fit ramp gives a spatter of blobs with blue crevices ("shaving foam", `work/reports/R1-foam.md`). So fog mode now defaults to:
+
+| Default | Option | What it does |
+| --- | --- | --- |
+| `--close 32` | `--close METRES` (0 = off) | Morphological closing of the `density >= iso` mask with a ball of this radius before the SDF and profile. Fills gaps and concavities narrower than 2 R, keeps the silhouette; R 64+ loses satellites. Done on the lattice the mask lives on (the fine lattice for heroes). |
+| `--scale-top 1` | `--scale-top T` (0 = old) | Density scale = the pack height trend rescaled to top T, no density modulation (the old `pack_scale x (0.5 + 0.5 density/p99)` tops out near 0.75 and lifts eroded fringes into haze). Only without `--scale-grid`. |
+| `--depth-shift 0` | `--depth-shift S` | Detail type from height only; the pack fit (0.25) makes deep voxels wispy and a closed body is deep everywhere (round pits). |
+
+`--no-sim-defaults` restores the pre-C2 fog behaviour (no closing, old scale, depth shift 0.25); an explicit option still wins. Pack and sdf
+modes keep their old defaults (`--close` is refused there). For an already smooth artist fog (Parkouring-style) use `--no-sim-defaults`.
+
+For fog and sdf modes (all of them, not only sims) `--fields-outside N` (default 2) carries the detail type and density scale N voxels
+past the profile edge with the nearest inside value, as the Guerrilla pack does (Parkouring's shell has T 0.645, S 0.628). Writing 0
+there pulled trilinear fetches in the erosion band toward wispy and thin and made pits (`work/reports/P1.md`). The profile stays 0 outside,
+so occupancy and the SDF are unchanged. Pack mode copies the pack's own grids and is unaffected. `0` writes zeros as before.
+`cloud.json` records `converter.shaping`.
 
 Common options: `--voxel-size` (target metres; default 8, or the VDB's own in pack mode), `--world-scale` (VDB
 world units to metres), `--margin` (crop margin in target voxels, default 8), `--name`.

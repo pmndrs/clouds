@@ -30,6 +30,9 @@ import numpy as np  # noqa: E402
 
 import nvdf_math as nm  # noqa: E402
 
+SIM_CLOSE_M = 32.0       # default closing ball for sim imports (fog mode), metres
+SIM_DEPTH_SHIFT = 0.0    # default detail-type depth shift for sim imports (the pack fit is 0.25)
+FIELDS_OUTSIDE = 2       # default voxels of detail type / density scale carried past the profile edge
 MAX_VOXELS = 400_000_000  # refuse absurd dense reads (about 1.6 GB per float grid)
 
 
@@ -254,8 +257,24 @@ def write_fine(out, r8_fine, depth_fine, cmin, cdims, ratio, fv, tv, corner0, t0
 
 # ---------------------------------------------------------------- conversion
 
+def resolve_sim_defaults(args):
+    """Fog mode is the sim import (EmberGen, Pyro): shape closing, the height-only density scale and a height-only detail type are
+    its defaults (R1, work/reports/R1-foam.md). Everything else (pack, sdf) keeps the old behaviour. Explicit options win;
+    --no-sim-defaults restores the pre-C2 fog behaviour."""
+    sim = args.mode == 'fog' and not getattr(args, 'no_sim_defaults', False)
+    if args.close is None:
+        args.close = SIM_CLOSE_M if sim else 0.0
+    if args.scale_top is None:
+        args.scale_top = 1.0 if sim else 0.0
+    if args.depth_shift is None:
+        args.depth_shift = SIM_DEPTH_SHIFT if sim else nm.PACK_FIT['detail']['depthShift']
+    if args.close > 0 and args.mode != 'fog':
+        fail('--close is only supported with --mode fog (pack and sdf inputs carry their own envelope)')
+
+
 def convert(args):
     global UP_Z
+    resolve_sim_defaults(args)
     UP_Z = getattr(args, 'up', 'y') == 'z'
     if UP_Z and args.fine_voxel_size:
         fail('--up z is not supported with --fine-voxel-size')
@@ -372,6 +391,12 @@ def convert(args):
         density, detail, scale = padf(density), padf(detail), padf(scale)
         mask = density >= args.iso
         t0 = t0n
+    if args.close > 0:
+        # Sim imports: close the iso mask with a ball before SDF / profile (one body instead of a spatter of puffs). The ball is in metres
+        # at the lattice the mask lives on (the fine lattice for heroes); closing never leaves the mask's bounding box, so the crop is unchanged.
+        n_before = int(mask.sum())
+        mask = nm.close_mask(mask, rtv, args.close)
+        report['closing'] = {'radiusMeters': args.close, 'voxelsBefore': n_before, 'voxelsAfter': int(mask.sum())}
     if args.rotate_y:
         # Quarter turns about the up axis (texture arrays are [up, row, x]); lets an elongated cloud face the flagship's side-on bookmarks.
         k = (args.rotate_y // 90) % 4
@@ -437,13 +462,17 @@ def convert(args):
             r8_c = np.where(mask_c, np.maximum(r8_c, 1), 0).astype(np.uint8)
         if detail_c is None:
             detail_c = (nm.detail_from_height(mask_c, args.detail_bottom, args.detail_top) if legacy
-                        else nm.pack_detail(depth_c, hfrac))
+                        else nm.pack_detail(depth_c, hfrac, depth_shift=args.depth_shift))
         if scale_c is None:
             if density_c is not None:
                 dn, ref = nm.scale_from_density(density_c, args.density_ref)
                 extra['densityRef'] = ref
                 if legacy:
                     scale_c = args.scale_floor + (1.0 - args.scale_floor) * dn
+                elif args.scale_top > 0:
+                    # sim imports (R1 hconst): the pack height trend rescaled to top = --scale-top, no density modulation
+                    scale_c = np.clip(nm.pack_scale_top(hfrac, args.scale_top) * args.scale_gain, 0.0, 1.0)
+                    scale_c = np.maximum(scale_c, args.scale_floor)
                 else:
                     # pack height trend, modulated by the artist's density (half weight so a thin density does not zero it)
                     scale_c = np.clip(nm.pack_scale(hfrac) * (0.5 + 0.5 * dn) * args.scale_gain, 0.0, 1.0)
@@ -451,8 +480,12 @@ def convert(args):
             else:
                 scale_c = (np.full(mask_c.shape, args.density_scale, np.float32) if legacy
                            else np.clip(nm.pack_scale(hfrac) * args.scale_gain, 0.0, 1.0))
-        g8 = nm.quantize_unorm8(np.where(mask_c, detail_c, 0.0))
-        b8 = nm.quantize_unorm8(np.where(mask_c, scale_c, 0.0))
+        # Detail type and density scale are carried a few voxels past the profile edge (nearest inside value), as the pack does;
+        # zeros there would drag the trilinear fetch in the erosion band toward wispy and thin (P1). Profile stays 0 outside.
+        g8 = nm.quantize_unorm8(nm.extend_fields(detail_c, mask_c, args.fields_outside))
+        b8 = nm.quantize_unorm8(nm.extend_fields(scale_c, mask_c, args.fields_outside))
+        extra['shaping'] = {'closeMeters': args.close, 'scaleTop': args.scale_top if (density_c is not None and not legacy and args.scale_grid is None) else None,
+                            'depthShift': args.depth_shift, 'fieldsOutsideVoxels': args.fields_outside}
         extra['profileMapping'] = {'mapping': args.mapping, 'packFit': (nm.PACK_FIT if args.mapping == 'pack' else None), 'depthMeters': args.depth, 'gamma': args.gamma, 'smoothVoxels': args.smooth if mode == 'fog' else 0,
                                    'detail': args.detail_grid or f'height heuristic {args.detail_bottom}->{args.detail_top}',
                                    'densityScale': args.scale_grid or ('density / p99' if density_c is not None else args.density_scale)}
@@ -550,6 +583,15 @@ def parser():
     f.add_argument('--drop-fine-vdb', action='store_true', help='delete fine.vdb after fine.nvdb is built and verified (the shipped assets keep only the .nvdb; fine.vdb is reproducible)')
     f.add_argument('--fine-smooth', type=float, default=1.0, help='gaussian sigma (fine voxels) applied to the fine SDF that drives the profile (default 1)')
     g = p.add_argument_group('fog / sdf modes: deriving the Nubis fields')
+    g.add_argument('--close', type=float, default=None, metavar='METRES',
+                   help=f'fog: close the iso mask with a ball of this radius (metres) before SDF/profile, so a puffy sim becomes one body. Default {SIM_CLOSE_M:g} for fog (sim imports), 0 = off')
+    g.add_argument('--scale-top', type=float, default=None,
+                   help='fog, pack mapping, no --scale-grid: density scale = pack height trend rescaled to this top value, no density modulation (default 1 for fog; 0 = old pack scale x (0.5 + 0.5 density/p99))')
+    g.add_argument('--depth-shift', type=float, default=None,
+                   help=f'pack mapping: deeper voxels read this much more wispy (pack fit {nm.PACK_FIT["detail"]["depthShift"]}; default {SIM_DEPTH_SHIFT:g} for fog, since a closed body is deep everywhere)')
+    g.add_argument('--fields-outside', type=int, default=FIELDS_OUTSIDE,
+                   help=f'fog/sdf: voxels of detail type and density scale carried past the profile edge, nearest inside value, like the pack (default {FIELDS_OUTSIDE}, 0 = write 0 there)')
+    g.add_argument('--no-sim-defaults', action='store_true', help='fog: restore the pre-C2 behaviour (no closing, pack density scale, depth shift 0.25); individual options still win')
     g.add_argument('--density-grid', default='density')
     g.add_argument('--iso', type=float, default=0.05, help='fog: density threshold that defines the cloud surface (default 0.05)')
     g.add_argument('--sdf-offset', type=float, default=0.0, help='sdf: surface is at sdf == offset metres (default 0; positive grows the cloud)')

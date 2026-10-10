@@ -77,6 +77,63 @@ class T(unittest.TestCase):
         self.assertEqual(m.PACK_FIT['profile']['corrMeters'], m.PACK_FIT['profile']['corrVox'] * 8.0)
         self.assertEqual(m.PACK_FIT['profile']['corrMeters'] / 8.0, 3.0)   # unchanged 8 m output
 
+    def test_close_mask(self):
+        mask = np.zeros((9, 9, 31), bool); mask[:, :, :14] = True; mask[:, :, 17:] = True   # a 3-voxel slot (24 m at 8 m voxels)
+        c = m.close_mask(mask, 8.0, 16.0)
+        self.assertTrue(c[mask].all())                                  # never removes a voxel
+        self.assertTrue(c[4, 4, 14:17].all())                           # slot narrower than 2 R (32 m) is filled
+        self.assertEqual(int(c.sum() - mask.sum()), int(c[:, :, 14:17].sum()))
+        c2 = m.close_mask(mask, 8.0, 8.0)                               # 2 R = 16 m < 24 m: slot stays open
+        self.assertFalse(c2[4, 4, 15])
+        self.assertTrue(np.array_equal(m.close_mask(mask, 8.0, 0.0), mask))
+        self.assertTrue(np.array_equal(m.close_mask(c, 8.0, 16.0), c))  # idempotent
+        lo, hi = np.argwhere(c).min(0), np.argwhere(c).max(0)
+        self.assertTrue((lo >= np.argwhere(mask).min(0)).all() and (hi <= np.argwhere(mask).max(0)).all())   # stays in the bounding box
+
+    def test_close_mask_flat_base_near_array_face(self):
+        # a slab one voxel from the array's bottom face must keep its flat base (no filled slab down to the face)
+        mask = np.zeros((12, 16, 16), bool); mask[1:9, 4:12, 4:12] = True
+        c = m.close_mask(mask, 8.0, 32.0)
+        self.assertFalse(c[0].any())
+        self.assertTrue(np.array_equal(c, mask))
+
+    def test_extend_fields_nearest(self):
+        valid = np.zeros((5, 7, 7), bool); valid[2, 3, 2:5] = True
+        v = np.zeros(valid.shape, np.float32); v[2, 3, 2], v[2, 3, 3], v[2, 3, 4] = 0.2, 0.5, 0.9
+        for iters, reach in ((0, 0), (1, 1), (2, 2)):
+            e = m.extend_fields(v, valid, iters)
+            self.assertTrue(np.array_equal(e[valid], v[valid]))         # valid voxels unchanged
+            filled = (e != 0) & ~valid
+            idx = np.argwhere(filled)
+            if iters == 0:
+                self.assertFalse(filled.any())
+            else:
+                d = np.abs(idx[:, None, :] - np.argwhere(valid)[None]).sum(-1).min(1)
+                self.assertTrue(d.max() == reach)                       # exactly `iters` shells, 6-connected
+        e1 = m.extend_fields(v, valid, 1)
+        self.assertAlmostEqual(float(e1[2, 3, 1]), 0.2, places=6)       # one inside neighbour: its value
+        self.assertAlmostEqual(float(e1[2, 3, 5]), 0.9, places=6)
+        self.assertAlmostEqual(float(e1[2, 2, 3]), 0.5, places=6)
+        self.assertEqual(float(e1[0, 0, 0]), 0.0)                       # beyond reach stays 0
+
+    def test_extend_fields_pack_roundtrip_unaffected(self):
+        # A pack already carries its fields past the profile edge: extending the valid set (profile > 0) never rewrites inside values,
+        # and the converter does not extend in pack mode at all (it quantises the pack grids as they are).
+        rng = np.random.default_rng(5)
+        prof = rng.random((6, 8, 8)) > 0.6
+        t = rng.random(prof.shape).astype(np.float32)
+        e = m.extend_fields(t, prof, 2)
+        self.assertTrue(np.array_equal(m.quantize_unorm8(e[prof]), m.quantize_unorm8(t[prof])))
+
+    def test_pack_scale_top_and_detail_shift(self):
+        h = np.linspace(0, 1, 11).astype(np.float32)
+        self.assertAlmostEqual(float(m.pack_scale_top(h, 1.0)[-1]), 1.0, places=6)
+        self.assertTrue(np.all(np.diff(m.pack_scale_top(h, 1.0)) >= 0))
+        self.assertTrue(np.allclose(m.pack_scale_top(h, 0.75), m.pack_scale(h), atol=1e-6))      # top 0.75 is the fitted trend
+        d = np.full(h.shape, 64.0, np.float32)
+        self.assertTrue(np.array_equal(m.pack_detail(d, h), m.pack_detail(d, h, depth_shift=0.25)))
+        self.assertTrue(np.all(m.pack_detail(d, h, depth_shift=0.0) >= m.pack_detail(d, h)))
+
     def test_bounds_crop(self):
         p = np.zeros((6, 8, 10), np.uint8); p[2, 3, 4] = 9
         b = m.occupied_bounds(p, 2)
