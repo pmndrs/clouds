@@ -2002,6 +2002,35 @@ Plan and tracker: [docs/research/TRACKING.md](../docs/research/TRACKING.md). Age
 - [x] RS-6 Index refresh; older overlapping notes get "superseded by" lines · Sonnet
 - [ ] RS-H (later, owner ask) Save the L1/L2 Houdini rigs as `.hip` files the owner can open and fix; survey Houdini's cloud tools beyond Pyro (Cloud FX, cloud shape/noise SOPs, VDB tools) for the authoring topic guide
 
+## Round H: HZD foundation + authoring (owner-approved 2026-10-10)
+
+Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in brackets) and the guide it links. Owner direction: master the HZD procedural chain first, built on the Nubis-era structures we already know (the five-field NDF, `work/specs/ndf.md`). Judge against HZD/Nubis reference frames and the owner's photos, **never Takram/Sky Pro**. Lit ridges crisp; only thin/wispy parts and undersides go soft (`memory: cloud-edge-crispness`). World-view distance first.
+
+### [~] H1 HZD reference path: noise set + `hzd` shaper [S2, S1, S6, L1] · Opus
+- **Owns:** new `packages/runtime/src/procedural/hzd/` (noise bake, NDF, shaper WGSL), `procedural/index.ts`, `procedural/settings.ts`, `procedural/types.ts`, `procedural/textures.ts`, `procedural/density.wgsl.ts` (S6 only: curl on detail in the Takram baseline), `procedural/trace.wgsl.ts` if needed, `examples/lab/compare/` (add an `hzd` impl), tests next to the new code, `work/reports/H1.md`, `work/captures/H1/`.
+- **Does:** (1) GPU compute bake of the HZD noise set: 128³ RGBA (R = Perlin-Worley, GBA = Worley fBm ladder; Nubis generator recipe `sources/noise.md`, exact periodic tiling via psrdnoise-style periodic Perlin and wrapped Worley, `sources/tvn.md`/`psrd.md`), 32³ RGB Worley detail, 128² curl; mips. (2) NDF per `work/specs/ndf.md`, with a simple generated map and the drift/static setting. (3) A third shaper `'hzd'` following GPU Pro 7 exactly (`sources/gp7.md`): type-blended height gradients using the shipped Nutshell stops (`sources/nut.md`), coverage remap with the HFW sign, all four shape channels (fbm dilation), base fade before erosion, detail with the `h*10` wispy/billowy switch and `*0.2` erosion, curl on detail only, anvil hook left for S7. Min/max height from the NDF. (4) S6 in the existing Takram path.
+- **Acceptance:** `pnpm typecheck`, `pnpm test` green. Captures on the compare page (`?impls=ours,photo`, hzd shaper) at ground, horizon, above and sunset views, side by side with GPU Pro 7 Fig 4.13→4.16 and hzd15 p037–039 stages and N3 s37 `image55/56` (reference frames listed in `topics/README.md`). Report states, per stage, what matches and what doesn't. Cost reported, not gated.
+
+### [~] H2 Detail-visibility fixes [SD1, S5, SD4, SD2] · Sonnet
+- **Owns:** `packages/runtime/src/runtime.ts` (presets and default settings only), `packages/runtime/src/shaders/march.wgsl.ts` (step constants, near-detail gate), `packages/runtime/src/shaders/sky-layer.wgsl.ts` (mip constant only, if it has its own), `work/reports/H2.md`, `work/captures/H2/`.
+- **Does:** SD1 noise mip constant `mipDistanceScale` 0.01 → A/B {0.001, 0.0015, 0.002, 0.005}, pick by eye at 4–12 km and against shimmer. S5 `wispyBias` 0, `detailBias` 0 (Nubis neutral). SD4 near-detail gate: gate at `max(detailDistance, 150)` or rescale the 50/150 ramps (`sources/n3.md` §7d); trivial fix only. SD2 the deck step `max(1, 0.08·√t)` inside clouds on high/ultra (`sources/n3/slides-110-155.md`, s150); keep the old constants as the low/medium path.
+- **Acceptance:** typecheck/test green. Before/after captures (flagship or open-water, ground + horizon + a 5–10 km view) for each change; frame cost before/after on high. Report each A/B with the chosen value and why.
+
+### [~] A1 Rigs the owner can open [AU2] · Sonnet
+- **Owns:** new `scripts/vdb/authoring/rigs.py`, new `houdini/rigs/` (committed `.hip`, owner approved), `scripts/vdb/authoring/README.md`, `work/reports/A1.md`.
+- **Does:** for each existing hython builder (`build_heroes.py`, `sim/sim_clouds.py`, `sim/library.py`, `sim/targets.py`), save the network it builds as a `.hip` with a `CONTROLS` null exposing the key parameters, sticky notes explaining each stage, and no cooked caches. One command regenerates all rigs. Plan in `docs/research/topics/authoring.md` ("Rigs the owner can open").
+- **Acceptance:** each `.hip` opens in Houdini 21 (verify by loading in hython and cooking the first stage), small file sizes listed, README section for the owner.
+
+### [~] A2 Lens-seeded Pyro test [AU3] · Opus
+- **Owns:** new `scripts/vdb/authoring/sim/lens_seed.py`, `houdini/rigs/lens_seed.hip`, scratch output under `artifacts/` (local), `work/reports/A2.md`, `work/captures/A2/`.
+- **Does:** Guerrilla/EmberGen-style seeding (`sources/n3/slides-047-074.md` s64, `docs/research/cloudpack-embergen.md`): one wide flat lens of heat/density at the cloud base, a single burst, working buoyancy, raised temperature diffusion and cooling so the plume stops itself, vorticity, no lid. Grow 3–4 variants; convert with our converter; render in the lab.
+- **Acceptance:** flat base at seed height, width ≈ seed width, turrets growing upward, no chimney; compared against EmberGen CloudPack 03/02/09 and the owner's cumulus photos. Captures + contact sheet.
+
+### [~] A3 Frog with Houdini cloud nodes [AU1, SD5] · Opus
+- **Owns:** new `scripts/vdb/authoring/frog.py`, `houdini/rigs/frog.hip`, scratch output under `artifacts/` (local), `work/reports/A3.md`, `work/captures/A3/`.
+- **Does:** build the Frog cloud (`docs/research/targets/frog.md`, owner's `FrogFace.png`: twin upper domes with the notch, long smooth shaded belly, satellites trailing down-right) with Houdini 21 cloud nodes (`cloudshapegenerate`/`replicate`/`fromline`, `cloudbillowynoise` with the ~3.5× lobe ladder, `cloudclip` base), three lobe levels in geometry (≈300/70/20 m scaled to the Frog), no baked fine noise (the runtime up-rez supplies it), NVDF type/scale from the surface normal (crisp lit tops, soft belly). Convert and render.
+- **Acceptance:** side-by-side with the Frog photo from a matching camera; silhouette features (two domes + notch, belly, satellites) present; report what the nodes could and couldn't do. Captures.
+
 ## Decisions and escalations
 
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
