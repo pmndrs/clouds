@@ -20,3 +20,6 @@ Round 1 showed the owner's main axis was missing. Add, each 1–10 with a one-li
 7. **Material**: reads as water vapour (soft volume, light passing into it) vs shaving foam, liquid, cotton or plastic.
 8. **Cohesion**: low-density connective tissue binds the lobes into one body, vs a spattering of mid-density blobs with harsh falloff between them.
 Owner's notes from round 1 are the best guide to these: `results.md`.
+
+## Judging method (owner, 2026-10-10)
+Judge **zoomed detail regions**, not only whole frames: models struggle with full images and fall back to coarse pixel comparisons. For every comparison, crop the same regions at native resolution (e.g. the hero tower in Parkouring p101, the lower-left floating leg in Stormbird s206) and judge surface (lumps, creases, grain, pits), shadow transitions (smudges) and edge character there. The owner sees different winners at distance and up close; report both.
