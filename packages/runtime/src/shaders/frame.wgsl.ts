@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 432;
+export const FRAME_UNIFORM_BYTES = 448;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -43,8 +43,12 @@ struct Frame {
   // M1 material balance (Nubis lighting): x = diffuseSun (weight of the two-stream diffuse sun term), y = ambientSaturation (1 = the sky's own colour),
   // z = ambientWarmth (0..1 toward the sun's chromaticity at the same luminance), w = directInScatterFlat (direct volumes: 0 = in-scatter weight saturate(density), 1 = 1).
   material: vec4<f32>,
-  // M1: x = diffuseFalloff (k of the diffuse sun's 1 / (1 + k tau)), yzw = 0.
+  // M1: x = diffuseFalloff (k of the diffuse sun's 1 / (1 + k tau)); D1: y = inlineLightScale (scale of the in-line sun taps' optical depth,
+  // 1 = the view extinction), z = jitterStatic (1 = static march jitter beyond 250 m, N3 s150), w = 0.
   material2: vec4<f32>,
+  // D1 sun taps: x = inlineProfile (1 = the two in-line sun samples read the cheap profile P * S instead of the up-rezzed density),
+  // y = lightMipBias (mip added to the field and noise fetches of the in-line sun samples), zw = 0.
+  d1: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

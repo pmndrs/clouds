@@ -237,6 +237,27 @@ export interface CloudSettings {
   ambientWarmth: number;
   /** M1 direct volumes: in-scatter weight ('profile' of the Nubis lighting) = mix(saturate(density / densityRef), 1, directInScatterFlat). */
   directInScatterFlat: number;
+  /**
+   * D1: scale of the optical depth of the in-line sun taps (the micro sample and the two in-line samples, 0-48 m toward the sun) relative to
+   * the view ray's extinction. 1 = the taps use the full view extinction (densityScale per unit density per metre). The deck's light sums are
+   * sums of density *samples* (s113/s123: 'inSunLightSummedDensitySamples'), so one unit of summed density is one sample, not one metre at the
+   * view extinction; with a sample spacing of about 16 m that is 1/16 of the metre-integrated depth. The light grid already has its own scale
+   * (`lightDensityScale`); this one brings the in-line part to the same units (at 1 the two parts are 10x apart on the deck look).
+   */
+  inlineLightScale: number;
+  /**
+   * D1 (N3 s150): 1 = the march jitter is static (one fixed hash per pixel) beyond 250 m and animated within, as Decima ships it;
+   * 0 = animated at every distance (Q2: the static hash printed IGN's hatch into dense distant cloud under the temporal resolve).
+   */
+  jitterStatic: number;
+  /**
+   * D1: 1 = the two in-line sun samples (0-48 m toward the sun) read the cheap profile P * S (s82 `mProfile`, what the light grid is built from)
+   * instead of the up-rezzed density. The up-rezzed field has 8-20 m erosion holes (P1: the wispy noise); one sample standing for 16-48 m of
+   * it prints a 10-25 m mottle into the shading that Decima's frames do not show. 0 = the up-rezzed density (D0 and before).
+   */
+  inlineProfile: number;
+  /** D1: mip level added to the field and noise fetches of the in-line sun samples (0 = the view sample's mip). Smooths what the taps see. */
+  lightMipBias: number;
 }
 
 /**
@@ -475,7 +496,8 @@ export function estimateCloudMemory(width: number, height: number, quality: Clou
 export type CloudLookSettings = Pick<CloudSettings, 'densityScale' | 'lightDensityScale' | 'msStrength' | 'ambientStrength' | 'silverStrength' | 'phaseG' | 'silverG'
   | 'ambientExtinction' | 'edgeDarkening' | 'glowBoost' | 'ambientSkyBias' | 'wispyBias' | 'glowFront' | 'deepScatter' | 'deepAttenuation' | 'ambientFloor'
   | 'microShadow' | 'detailBias' | 'noiseInvert' | 'detailTypeOverride' | 'typeFromScale' | 'ambientLaw' | 'bodySunFloor' | 'bodySunKnee' | 'bodyEnv'
-  | 'bodyDepth' | 'envSunWeight' | 'ambientLowSun' | 'groundAlbedo' | 'phaseModel' | 'dropletDiameter' | 'hazeDensity' | 'hazeHeight' | 'hazeBase' | 'fineErosion'>;
+  | 'bodyDepth' | 'envSunWeight' | 'ambientLowSun' | 'groundAlbedo' | 'phaseModel' | 'dropletDiameter' | 'hazeDensity' | 'hazeHeight' | 'hazeBase' | 'fineErosion'
+  | 'inlineLightScale' | 'inlineProfile' | 'lightMipBias' | 'diffuseSun' | 'diffuseFalloff' | 'ambientSaturation' | 'ambientWarmth'>;
 
 /** Our art-directed defaults (what `createCloudRuntime` starts with). */
 export const CLOUD_ART_SETTINGS: Readonly<CloudLookSettings> = {
@@ -490,6 +512,8 @@ export const CLOUD_ART_SETTINGS: Readonly<CloudLookSettings> = {
   bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10, // C1 low-sun lighting
   hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0, // C2 horizon haze
   fineErosion: 1,
+  inlineLightScale: 1, inlineProfile: 0, lightMipBias: 0, // D1: in-line sun taps at the view extinction (the pre-D1 behaviour)
+  diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, // M1 material balance: neutral
 };
 
 /**
@@ -515,15 +539,55 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
   bodySunFloor: 1, bodySunKnee: 0.4, bodyEnv: 0, bodyDepth: 0, envSunWeight: 0, ambientLowSun: 0, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
   hazeDensity: 0, hazeHeight: 1000, hazeBase: 0,
   fineErosion: 1,
+  inlineLightScale: 1, inlineProfile: 0, lightMipBias: 0, // D0 kept the in-line taps at the full view extinction (D1 finds this is the pitting)
+  diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0,
 };
 
-export type CloudLook = 'art' | 'deck';
+/**
+ * D1 'decima' look (work/reports/D1.md): the deck's model with its light sums in the deck's units everywhere, fitted to Guerrilla's own frames of
+ * Parkouring and Stormbird (s78, s181, s191 and the media33 turntable) under the sun, haze and exposure reconstructed per frame. What D0 kept
+ * and what changes, with the cause each change answers:
+ * - inlineLightScale 0.06 and lightDensityScale 0.09 with densityScale 1.0: the two in-line sun taps and the light grid are in the same units,
+ *   the deck's sums of density *samples* at the grid's 16 m spacing (s113/s114/s123). D0 left the taps at the view extinction, 10x the grid's
+ *   units: every 8-20 m erosion hole of the up-rezzed field (P1: the wispy noise) then cast a hard 1-3 m shadow, which is the pitting, and the
+ *   two single samples standing for 16-48 m printed a 10-25 m mottle. In the deck's units a lobe's own 30-60 m casts the soft shading the
+ *   frames show and the holes do not resolve (p101 pit 0.013/0.023 -> 0.008 = the reference). densityScale 1.0 (from 0.6) keeps the
+ *   silhouette crisp (edge 0.13 -> 0.17; the reference 0.17-0.24) at constant light units.
+ * - msStrength 1, ambientStrength 1 (x AMBIENT_GAIN 1.5), ambientSaturation 0.4, diffuseSun 0.15: the body is lit by a near-white ambient and
+ *   a little diffused sunlight, not by the glow term. Decima's frames read as sun-lit warm white with warm-grey shade (shade B/R 1.00-1.07);
+ *   ours were sky-blue (1.6-1.75) because the sky ambient (gain 1.5 at turbidity 1) carried the body. The ms term (profile x relaxed Beer-Lambert)
+ *   is kept at the deck's weight: above about 1.5 it prints the profile's steps at the eroded surface as bright mottle (lightDebug 2).
+ * - ambientExtinction 0.5: the deck's exp(-summed_ambient_density) (s128) in the grid's units is 1.0, which prints Parkouring's two dense
+ *   S = 1 cores as dark columns no frame shows (H3's blotches); 0.5 keeps the undersides' darkening (relief 0.029 vs 0.030) without them.
+ * - The sun: D0's suns were fitted under the ambient-dominated model and were 90-170 degrees off. s78 is lit from in front and high
+ *   (el 40, az 210: the deck's own s124-125 'backlit body fills with warm glow'), s181 from behind-right and high (el 45, az 60).
+ * - The sky is per frame (refs.ts): turbidity 3 (s78), 6 (the pack renders), 20 (s181, a near-white hazy sky, B/R 1.24), warm sun (1, 0.96, 0.9).
+ * Everything the deck does not state stays off as in 'deck' (glow boost/front, deep octaves, edge darkening, micro-shadow, floors, haze, typeFromScale).
+ * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
+ */
+export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
+  densityScale: 1.0, lightDensityScale: 0.09, msStrength: 1, ambientStrength: 1,
+  silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
+  edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 1, wispyBias: 0, glowFront: 0, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0,
+  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0,
+  microShadow: 0, detailBias: 0,
+  ambientLaw: 1,
+  bodySunFloor: 1, bodySunKnee: 0.4, bodyEnv: 0, bodyDepth: 0, envSunWeight: 0, ambientLowSun: 0, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
+  hazeDensity: 0, hazeHeight: 1000, hazeBase: 0,
+  fineErosion: 1,
+  inlineLightScale: 0.06, inlineProfile: 0, lightMipBias: 0,
+  diffuseSun: 0.15, diffuseFalloff: 0.11, ambientSaturation: 0.4, ambientWarmth: 0,
+};
+
+export type CloudLook = 'art' | 'deck' | 'decima';
 /**
  * Settings for a look: assign the result to `runtime.settings` (Object.assign). 'deck' also turns the billow micro-shadow sample off
  * (microDist 0; not in the deck); 'art' restores the tier's. Switching looks resets nothing else (quality, wind, temporal knobs).
  */
 export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Partial<CloudSettings> {
-  return look === 'deck' ? { ...CLOUD_DECK_SETTINGS, microDist: 0 } : { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
+  if (look === 'deck') return { ...CLOUD_DECK_SETTINGS, microDist: 0 };
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0 };
+  return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 
 export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptions = {}): CloudRuntime {
@@ -547,6 +611,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     densityModel: 'nvdf', lightingModel: 'nubis',
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
+    inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1000,6 +1065,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
       f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale; f[99] = settings.ambientLaw;
       f[100] = settings.diffuseSun; f[101] = settings.ambientSaturation; f[102] = settings.ambientWarmth; f[103] = settings.directInScatterFlat; f[104] = settings.diffuseFalloff;
+      f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic;
+      f[108] = settings.inlineProfile; f[109] = settings.lightMipBias;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for

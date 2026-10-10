@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLOUD_ART_SETTINGS, CLOUD_DECK_SETTINGS, CLOUD_QUALITY_ORDER, CLOUD_QUALITY_PRESETS, cloudLookSettings, estimateCloudMemory } from './runtime';
+import { CLOUD_ART_SETTINGS, CLOUD_DECK_SETTINGS, CLOUD_DECIMA_SETTINGS, CLOUD_QUALITY_ORDER, CLOUD_QUALITY_PRESETS, cloudLookSettings, estimateCloudMemory } from './runtime';
 
 describe('looks (D0)', () => {
   it('art and deck set the same knobs', () => {
@@ -12,6 +12,18 @@ describe('looks (D0)', () => {
     expect(d.ambientSkyBias).toBe(1);   // sky ambient only
     expect(d.bodySunFloor).toBe(1);   // no low-sun handoff
     expect(cloudLookSettings('deck', 'ultra').microDist).toBe(0);
+  });
+  it('decima (D1) sets the same knobs, keeps the deck terms off and puts the in-line taps in the grid units', () => {
+    const d = CLOUD_DECIMA_SETTINGS;
+    expect(Object.keys(d).sort()).toEqual(Object.keys(CLOUD_ART_SETTINGS).sort());
+    expect([d.edgeDarkening, d.glowBoost, d.glowFront, d.deepScatter, d.ambientFloor, d.microShadow, d.detailBias, d.wispyBias, d.typeFromScale, d.bodyEnv, d.hazeDensity]).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(d.ambientLaw).toBe(1);
+    // the taps' optical depth per density-metre (densityScale * inlineLightScale) is within a factor 2 of the grid's (densityScale * lightDensityScale)
+    const taps = d.densityScale * d.inlineLightScale, grid = d.densityScale * d.lightDensityScale;
+    expect(taps / grid).toBeGreaterThan(0.5); expect(taps / grid).toBeLessThan(2);
+    expect(cloudLookSettings('decima', 'ultra').microDist).toBe(0);
+    // the pre-D1 looks keep the taps at the view extinction (their renders are unchanged)
+    expect(CLOUD_ART_SETTINGS.inlineLightScale).toBe(1); expect(CLOUD_DECK_SETTINGS.inlineLightScale).toBe(1);
   });
   it('art restores the tier micro-shadow and keeps the H3 ambient law', () => {
     expect(cloudLookSettings('art', 'high').microDist).toBe(CLOUD_QUALITY_PRESETS.high.microDist);

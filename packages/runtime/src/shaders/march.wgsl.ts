@@ -163,6 +163,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   if (interval.x <= interval.y && t < tEnd && !hidden) {
     let jitterAnimated = ign(vec2<f32>(pxu), frame.frameIndex);
+    // D1 (N3 s150): with jitterStatic the hash past 250 m is the pixel's fixed one; the temporal resolve then has nothing to average there.
+    let jitterStatic = ign(vec2<f32>(pxu), 0u);
+    let staticJitter = frame.material2.z > 0.5;
+    // D1: the in-line taps' optical depth in the light sums' units (inlineLightScale; 1 = the view extinction).
+    let inlineExt = frame.extinction * frame.material2.y;
     let cosSun = dot(dir, frame.sunDir);
     let phase = cloudPhase(cosSun);
     let sunRelax = valueRemap(cosSun, 0.0, 0.9, 0.0, 1.0);
@@ -179,7 +184,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let invExtentY = 1.0 / cloudVolume.extent.y;
     var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
-    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
+    // D1: lightMipBias coarsens their field and noise fetches; inlineProfile makes them read the cheap profile (.y) instead of the up-rez (.x).
+    let lightInputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip + frame.d1.y, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
+    let inlineProfile = frame.d1.x > 0.5;
     let flashOn = frame.flash.w > 0.0;   // uniform: the whole glow below is skipped (never evaluated) when no flash is active
     let flashRef = dot(sunRadiance + ambientUp, vec3(0.2126, 0.7152, 0.0722));   // exposure reference: the scene's own light, no literal brightness
     let sunMicro = frame.sunDir * (0.5 * frame.microDist);
@@ -216,7 +223,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         // Jitter moves the sample, not the advance. Q2: animated at every distance. The static far jitter (one interleaved-gradient value per
         // pixel, fixed) printed IGN's diagonal structure into every dense cloud past 250 m as a fixed 'pebbly' hatch, since the temporal
         // resolve only averages what changes between frames.
-        let ts = t + jitterAnimated * step;
+        let ts = t + select(jitterAnimated, jitterStatic, staticJitter && t >= 250.0) * step;
         let ds = min(step, tEnd - t);
         if (ts < tEnd) {
           inputs.hfDetails = select(0u, 1u, ts < max(frame.misc.x, 150.0));
@@ -229,10 +236,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
               if (ts - inlineT >= INLINE_REUSE_DIST) {
-                let d0 = ${density}(ps + sunInline0, ts, lightInputs).x;
-                let d1 = ${density}(ps + sunInline1, ts, lightInputs).x;
-                tauNear = d0 * (INLINE_NEAR - frame.microDist) * frame.extinction;
-                tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * frame.extinction;
+                let s0 = ${density}(ps + sunInline0, ts, lightInputs);
+                let s1 = ${density}(ps + sunInline1, ts, lightInputs);
+                let d0 = select(s0.x, s0.y, inlineProfile);
+                let d1 = select(s1.x, s1.y, inlineProfile);
+                tauNear = d0 * (INLINE_NEAR - frame.microDist) * inlineExt;
+                tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * inlineExt;
                 inlineT = ts;
               }
               // Q-1: one short full-density sample toward the sun from every lit step (never reused: it is what resolves the
@@ -240,8 +249,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // glow terms (microOcc): multiply-scattered light diffuses only a few metres in dense cloud, so a lobe's shadow side
               // glows less than its lit side. The relaxed, grid-fed tau in the lighting keeps the inner glow of deep interiors.
               // Deeper than the erosion shell the sample's own density stands in for it (the lobes are all within MICRO_DEPTH of the surface).
-              var tauMicro = d.x * frame.microDist * frame.extinction;
-              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * frame.extinction; }
+              var tauMicro = d.x * frame.microDist * inlineExt;
+              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * inlineExt; }
               let microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
               let grid = lightGridSampleClamped(ps + sunGrid);
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
