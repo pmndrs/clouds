@@ -110,3 +110,8 @@ Edge widths are the local 10–90% cloud/sky transition at native 105 mm, measur
 2. Are the satellites breaking off the main or growing toward it? Satellite 1's frayed edge suggests decay. Do you remember, or is there a video?
 3. Is satellite 2 a separate cloud farther away, or attached and lower?
 4. Was the pano merged at native scale (no reduction)? The scale and every metre figure depend on it.
+
+## 7. Owner answers (2026-10-10, research review page)
+- **Why "frog":** there is a face in the cloud. The owner's outline is `cloud-photos/Frog Cloud/FrogFace.png` (local): the upper twin lobes are the head with two eyes, and the smooth, darker middle belly is the wide mouth. So the defining features are the two upper domes with the notch between them, and the long smooth shaded belly under a textured top.
+- **Pano scale:** the file is named "Pano" but the owner trusts it as a single-scale image; other shots of the same cloud at the same time look identical. They can share another frame with metadata if needed.
+- Satellites breaking off or growing: unknown. Satellite 2 is probably **far behind**, not attached.

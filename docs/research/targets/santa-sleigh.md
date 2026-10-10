@@ -265,3 +265,14 @@ Place them on a line at 34° to the camera: head at (−1.45, 5.3)H, link at (0,
 6. **The early boxes.** In `early` your green box covers the middle of the left cloud (x 404–677 of 1600), and its ragged right third (677–885) is unboxed. Is that ragged end what became the link, or the arm?
 7. Is the slide-4 "trail of small blobs" the arm plus the free puffs between the link and the main?
 8. Roughly where were you, and which way were you facing? Knowing the base height would turn every distance here into metres.
+
+## 8. Owner answers (2026-10-10, research review page)
+- **Slide 4 is a plan (top-down) view.** Red = the large body, farthest away; blue = cloud formations; green and orange mark the positions of those bodies. The owner stood **at the bottom right of the sketch, closest to orange**, facing across a road and parking lot. This matches §3's reading (head nearest, main about 1.5× farther, line receding right).
+- **Location:** about 30.5207 N, 97.6715 W (north of Austin, Texas), looking roughly **310° (north-west)**. Use a summer central-Texas afternoon cumulus base for H (the 1.5 km guess is plausible; refine from a sounding for 2022-07-29 if needed).
+- **Direction of travel is uncertain.** The owner had assumed the formation was heading toward them, but now thinks the wind may be blowing the smaller bodies into the larger one. In that reading the wind pushing on the cloud makes the sharp leading-face detail, and the loose tail is blown free by the same wind. The 15% shrink may partly be the slideshow's zoom-to-fit. Treat motion direction as open; don't build on §4's drift estimate.
+- **No video** of this formation, and nothing known after `end`.
+- **`end.jpg` is not cropped** (the 40 mm scale holds).
+- **`congestus/A_20220729-173330_DSC00669` is a detail shot of the same formation** (about 5 minutes after `end`). `DSC00678` is unconfirmed.
+- The slide-4 trail of small blobs is probably the ejected arm plus the free puffs (owner: "I think so"). The early ragged right third: unknown.
+- **What the scene is for (owner):** the engine's measure is the individual bodies **and the connecting sections between them** (likely procedural), plus the background clouds and aerial views. It shows several cloud types working in one scene, not just floating main blobs. Don't over-invest in re-forming this exact hero; getting close is fine.
+- **Sculpt first** (it comes from a source photo), then finesse detail with the procedural pass.
