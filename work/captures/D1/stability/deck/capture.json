@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:58984/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
+  "url": "http://127.0.0.1:54432/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T18:57:58.319Z",
+  "startedAt": "2026-10-10T20:15:31.097Z",
   "shots": [
     {
       "name": "view",
@@ -23,13 +23,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.050747,
-          "lightGrid": 2.076332,
-          "marchNear": 1.4781781666666667,
-          "marchFar": 17.91777342857143,
-          "shadowMap": 0.6159147058823529,
-          "composite": 3.2103031904761896,
-          "dome": 0.37884190476190477
+          "lightGridReduce": 0.129194,
+          "lightGrid": 0.166357,
+          "marchNear": 1.26883735,
+          "marchFar": 19.171568575000002,
+          "shadowMap": 0.5573268571428571,
+          "composite": 3.315779725,
+          "dome": 0.23283327500000003
         },
         "frameMs": {},
         "renderSize": [
@@ -145,8 +145,10 @@
           "historyDither": 0,
           "glowDepth": 0,
           "glowDepthMode": 0,
+          "microLightScale": 0,
           "noiseScale": 0.01,
-          "windCompensate": 0
+          "windCompensate": 0,
+          "historyFilter": 0
         }
       }
     },
@@ -167,13 +169,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.050747,
-          "lightGrid": 2.076332,
-          "marchNear": 1.2191522833333333,
-          "marchFar": 15.981316433333332,
-          "shadowMap": 0.6159147058823529,
-          "composite": 4.043084166666668,
-          "dome": 0.3166347666666667
+          "lightGridReduce": 0.129194,
+          "lightGrid": 0.166357,
+          "marchNear": 1.33435115,
+          "marchFar": 16.48628383333333,
+          "shadowMap": 0.5573268571428571,
+          "composite": 5.107952683333335,
+          "dome": 0.21982088333333324
         },
         "frameMs": {},
         "renderSize": [
@@ -289,8 +291,10 @@
           "historyDither": 0,
           "glowDepth": 0,
           "glowDepthMode": 0,
+          "microLightScale": 0,
           "noiseScale": 0.01,
-          "windCompensate": 0
+          "windCompensate": 0,
+          "historyFilter": 0
         }
       }
     },
@@ -311,13 +315,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.050747,
-          "lightGrid": 2.076332,
-          "marchNear": 1.1946325166666665,
-          "marchFar": 14.99080106666667,
-          "shadowMap": 0.6159147058823529,
-          "composite": 4.484470566666665,
-          "dome": 0.27071263333333334
+          "lightGridReduce": 0.129194,
+          "lightGrid": 0.166357,
+          "marchNear": 0.9894120833333332,
+          "marchFar": 15.981029716666667,
+          "shadowMap": 0.5573268571428571,
+          "composite": 4.04165985,
+          "dome": 0.2772700833333333
         },
         "frameMs": {},
         "renderSize": [
@@ -433,8 +437,10 @@
           "historyDither": 0,
           "glowDepth": 0,
           "glowDepthMode": 0,
+          "microLightScale": 0,
           "noiseScale": 0.01,
-          "windCompensate": 0
+          "windCompensate": 0,
+          "historyFilter": 0
         }
       }
     },
@@ -455,13 +461,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.050747,
-          "lightGrid": 2.076332,
-          "marchNear": 1.1599358833333333,
-          "marchFar": 16.646076549999997,
-          "shadowMap": 0.6159147058823529,
-          "composite": 3.4835565999999996,
-          "dome": 0.27460549999999995
+          "lightGridReduce": 0.129194,
+          "lightGrid": 0.166357,
+          "marchNear": 0.9967195500000003,
+          "marchFar": 16.928217366666665,
+          "shadowMap": 0.5573268571428571,
+          "composite": 4.111728216666667,
+          "dome": 0.24398238333333333
         },
         "frameMs": {},
         "renderSize": [
@@ -577,8 +583,10 @@
           "historyDither": 0,
           "glowDepth": 0,
           "glowDepthMode": 0,
+          "microLightScale": 0,
           "noiseScale": 0.01,
-          "windCompensate": 0
+          "windCompensate": 0,
+          "historyFilter": 0
         }
       }
     },
@@ -599,13 +607,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.050747,
-          "lightGrid": 2.076332,
-          "marchNear": 1.2004191499999999,
-          "marchFar": 17.21081165,
-          "shadowMap": 0.6159147058823529,
-          "composite": 3.7413796,
-          "dome": 0.22196738333333343
+          "lightGridReduce": 0.129194,
+          "lightGrid": 0.166357,
+          "marchNear": 1.132960516666667,
+          "marchFar": 16.794859049999996,
+          "shadowMap": 0.5573268571428571,
+          "composite": 4.986693383333333,
+          "dome": 0.2582232
         },
         "frameMs": {},
         "renderSize": [
@@ -721,8 +729,10 @@
           "historyDither": 0,
           "glowDepth": 0,
           "glowDepthMode": 0,
+          "microLightScale": 0,
           "noiseScale": 0.01,
-          "windCompensate": 0
+          "windCompensate": 0,
+          "historyFilter": 0
         }
       }
     },
@@ -743,13 +753,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.050747,
-          "lightGrid": 2.076332,
-          "marchNear": 1.1189509333333336,
-          "marchFar": 17.270742716666664,
-          "shadowMap": 0.6159147058823529,
-          "composite": 4.139986933333335,
-          "dome": 0.29223443333333327
+          "lightGridReduce": 0.129194,
+          "lightGrid": 0.166357,
+          "marchNear": 1.3095576666666666,
+          "marchFar": 17.77728365,
+          "shadowMap": 0.5573268571428571,
+          "composite": 3.8313644833333336,
+          "dome": 0.23627829999999997
         },
         "frameMs": {},
         "renderSize": [
@@ -865,8 +875,10 @@
           "historyDither": 0,
           "glowDepth": 0,
           "glowDepthMode": 0,
+          "microLightScale": 0,
           "noiseScale": 0.01,
-          "windCompensate": 0
+          "windCompensate": 0,
+          "historyFilter": 0
         }
       }
     }

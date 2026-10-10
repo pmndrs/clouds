@@ -4,7 +4,9 @@
 // adds the base height). Cameras come from scripts/d0/d0.py fit (silhouette search over a splatted up-rez proxy). Suns, turbidity, exposure
 // D1 round 8: every frame is a still, so the wind is stopped (settings.animSpeed 0): with the noise scrolling, the temporal resolve smeared
 // the florets by 2-4 px at 4k. D1 round 9: the Parkouring frames have land below the cloud (ambientBelowMirror 0: the dark belly band of the
-// frames; the s181 turntable keeps the mirrored sky below). Sun, turbidity, exposure
+// frames; the s181 turntable keeps the mirrored sky below) and the s181 turntable, under its turbidity-20 sky, lights its shade with
+// ambientStrength 1.0 at exposure 0.09 (the frames' sky is 1.3-1.5x brighter than ours at the matched cloud median and skyFactor does not
+// reach the cloud's ambient; measured in round 9: shade p10 0.46 -> 0.49 against the frames' 0.52, median 0.56 -> 0.58 against 0.56). Sun, turbidity, exposure
 // and sun colour are D1's fits under the 'decima' look (work/reports/D1.md: D0's suns were fitted under an ambient-dominated model and
 // were 90-170 degrees off; s78 is lit from in front and high, s181 from behind-right and high). D1 round 6: suns re-derived from the frames'
 // shading (scripts/d1/sunsweep.py: lobe corr + lit/shade map IoU over 84 directions, then a fine grid): s78 35/210, s191 20/100; the s191 and
@@ -51,12 +53,12 @@ export const DECIMA_REFS: Record<string, DecimaRef> = {
   // s191 image213: the pack's own render of Parkouring (close to the s78 view).
   p213: { cloud: 'parkouring', source: 's191 image213', eye: [-261.5, 29.2, -654.2], target: [-52.4, 210.4, 27.7], vfov: 42.87, sun: { elevation: 20, azimuth: 100 }, turbidity: 6, exposure: 0.2, mirrorBelowHorizon: true, sunColor: [1, 0.95, 0.93], settings: { animSpeed: 0, ambientBelowMirror: 0 } },
   // Stormbird: s181 image206 (the final model's still, also the media33 turntable), s191 image214 (the pack's render, from the other side).
-  s206: { cloud: 'stormbird', source: 's181 image206', eye: [-695.3, -160.5, 23.4], target: [-13.6, 212.3, 37.9], vfov: 50.54, sun: { elevation: 45, azimuth: 60 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.096, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0 } },
+  s206: { cloud: 'stormbird', source: 's181 image206', eye: [-695.3, -160.5, 23.4], target: [-13.6, 212.3, 37.9], vfov: 50.54, sun: { elevation: 45, azimuth: 60 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.09, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0, ambientStrength: 1.0 } },
   // s181 media33 (37.6 s turntable, the cloud turns about -90 degrees every 3 s under a fixed camera and sun; t0 = s206). The sun keeps its
   // place relative to the camera, so here it turns with the camera around the cloud (D1: 30 degrees left of the view bearing, elevation 45).
-  s33t3: { cloud: 'stormbird', source: 's181 media33 t=3 s', eye: [-12.1, -180.5, -658.3], target: [-12.1, 221.6, -32.3], vfov: 51.42, sun: { elevation: 45, azimuth: 150 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.096, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0 } },
-  s33t6: { cloud: 'stormbird', source: 's181 media33 t=6 s', eye: [952.8, -366.5, -70.2], target: [17.2, 240.7, -30.2], vfov: 35.76, sun: { elevation: 45, azimuth: 240 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.096, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0 } },
-  s33t9: { cloud: 'stormbird', source: 's181 media33 t=9 s', eye: [62.7, -180.5, 626.0], target: [51.4, 240.7, 12.7], vfov: 52.15, sun: { elevation: 45, azimuth: 330 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.096, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0 } },
+  s33t3: { cloud: 'stormbird', source: 's181 media33 t=3 s', eye: [-12.1, -180.5, -658.3], target: [-12.1, 221.6, -32.3], vfov: 51.42, sun: { elevation: 45, azimuth: 150 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.09, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0, ambientStrength: 1.0 } },
+  s33t6: { cloud: 'stormbird', source: 's181 media33 t=6 s', eye: [952.8, -366.5, -70.2], target: [17.2, 240.7, -30.2], vfov: 35.76, sun: { elevation: 45, azimuth: 240 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.09, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0, ambientStrength: 1.0 } },
+  s33t9: { cloud: 'stormbird', source: 's181 media33 t=9 s', eye: [62.7, -180.5, 626.0], target: [51.4, 240.7, 12.7], vfov: 52.15, sun: { elevation: 45, azimuth: 330 }, turbidity: 20, miePhaseG: 0.5, exposure: 0.09, mirrorBelowHorizon: true, sunColor: [1, 0.92, 0.88], settings: { animSpeed: 0, ambientStrength: 1.0 } },
   s214: { cloud: 'stormbird', source: 's191 image214', eye: [627.9, -180.5, 60.8], target: [-3.4, 210.4, 13.2], vfov: 43.45, sun: { elevation: 40, azimuth: 220 }, turbidity: 6, exposure: 0.18, mirrorBelowHorizon: true, sunColor: [1, 0.95, 0.93], settings: { animSpeed: 0 } },
 };
 
