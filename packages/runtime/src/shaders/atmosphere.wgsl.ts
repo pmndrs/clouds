@@ -118,9 +118,11 @@ fn atmSkyRamp(sinEl: f32) -> vec3<f32> {
   c = mix(c, atmosphere.ramp3.xyz, saturate((sinEl - atmosphere.ramp2.w) / max(atmosphere.ramp3.w - atmosphere.ramp2.w, 1e-4)));
   return c;
 }
+// The ramp paints the sky above the horizon only: below it the LUT's own lower hemisphere (ground, or the mirrored sky) stays, so the
+// horizon band lights the undersides from the horizon, not from the whole lower hemisphere (which lifted a cloud's belly by 0.15).
 fn atmSkyShape(lut: vec3<f32>, sinEl: f32) -> vec3<f32> {
   var c = lut;
-  if (atmosphere.rampStrength > 0.0) { c = mix(lut, atmSkyRamp(sinEl), atmosphere.rampStrength); }
+  if (atmosphere.rampStrength > 0.0) { c = mix(lut, atmSkyRamp(sinEl), atmosphere.rampStrength * smoothstep(-0.04, 0.02, sinEl)); }
   return c * atmosphere.skyTint;
 }
 fn atmSkyRadiance(viewZenithCos: f32, lightViewCos: f32) -> vec3<f32> {
