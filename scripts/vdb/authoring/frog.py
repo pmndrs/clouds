@@ -69,7 +69,11 @@ BODIES = [
     # lower: the wide body. Its spheres hang below the base plane and cloudclip cuts them flat, so the flat underside reaches the near
     # edge (r ~2.9 km): seen from below at 20-27 deg it is the long smooth shaded belly (the mouth).  flatten=0 on purpose.
     dict(name='lower', kind='generate', species=0, length=2.0, width=1.0, psep=0.26, seed=3, flatten=0,
-         u=(255, 1120), r=3750, base=1250, height=560, depth=2050, stream='main', bscale=1.0, smooth_under=1, rung3=1),
+         u=(255, 1150), r=3950, base=1250, height=600, depth=1700, stream='main', bscale=1.0, smooth_under=1, rung3=1),
+    # lip: a thin wide slab whose flat cut underside reaches the near edge (r ~2.9 km); its lit front is the short band of lobes
+    # above the belly (rows 430-560) and its underside, seen at 20-27 deg, is most of the belly.
+    dict(name='lip', kind='generate', species=0, length=2.0, width=1.0, psep=0.18, seed=43, flatten=0,
+         u=(300, 1250), r=3650, base=1380, height=330, depth=1650, stream='main', bscale=1.0, smooth_under=1, rung3=1),
     dict(name='left_low', kind='generate', species=0, length=1.0, width=1.0, psep=0.35, seed=5,
          u=(250, 700), r=4000, base=1180, height=620, depth=1000, stream='free', bscale=1.0, smooth_under=1, rung3=1),
     dict(name='eye_left', kind='generate', species=1, length=1.4, width=1.0, psep=0.3, seed=11,
@@ -77,8 +81,8 @@ BODIES = [
     dict(name='eye_right', kind='generate', species=0, length=1.0, width=1.0, psep=0.3, seed=7,
          u=(645, 960), r=3550, base=1650, top_v=40, depth=1300, stream='main', bscale=1.0, smooth_under=1, rung3=1),
     # shelf: the right part of the body under the terrace, lower than the head (its near top must stay below row ~470)
-    dict(name='shelf', kind='generate', species=0, length=1.3, width=1.0, psep=0.3, seed=41, flatten=0,
-         u=(1000, 1270), r=3700, base=1300, height=560, depth=1400, stream='main', bscale=1.0, smooth_under=1, rung3=1),
+    dict(name='shelf', kind='generate', species=0, length=1.3, width=1.0, psep=0.4, seed=41, flatten=0,
+         u=(960, 1290), r=3650, base=1280, height=600, depth=1700, stream='main', bscale=1.0, smooth_under=1, rung3=1),
     dict(name='terrace', kind='line', psep=80.0, seed=2,
          line=[(1080, 1950), (1200, 1920), (1290, 1700)], r=3900, base=BASE, depth=500, stream='main', bscale=1.0, smooth_under=1, rung3=1),
     dict(name='chin', kind='generate', species=0, length=1.4, width=1.0, psep=0.35, seed=13,
@@ -115,7 +119,7 @@ CONTROLS = [
     ('Lobes', 'dirscale', 'Rung 2: up-facing size boost (dirscalemax)', 1.35, 1.0, 3.0),
     ('Volume', 'voxel', 'Voxel size (m)', 8.0, 2.0, 32.0),
     ('Volume', 'base', 'Main flat base height (m)', BASE, 0.0, 5000.0),
-    ('Volume', 'skirt', 'Belly skirt fade above the base (m)', 45.0, 0.0, 300.0),
+    ('Volume', 'skirt', 'Belly skirt fade above the base (m)', 20.0, 0.0, 300.0),
     ('Fields', 'sunx', 'Sun direction x', 0.0, -1.0, 1.0),
     ('Fields', 'suny', 'Sun direction y', 0.755, -1.0, 1.0),
     ('Fields', 'sunz', 'Sun direction z', 0.656, -1.0, 1.0),
@@ -126,7 +130,7 @@ CONTROLS = [
     ('Fields', 'type_top', 'Detail type on up/sun faces', 1.0, 0.0, 1.0),
     ('Fields', 'type_core', 'Detail type deep inside', 0.6, 0.0, 1.0),
     ('Fields', 'scale_under', 'Density scale on undersides', 0.86, 0.0, 1.0),
-    ('Fields', 'scale_skirt', 'Density scale at the base plane', 0.5, 0.0, 1.0),
+    ('Fields', 'scale_skirt', 'Density scale at the base plane', 0.75, 0.0, 1.0),
     ('Fields', 'blur', 'Normal blur radius (voxels)', 3, 1, 8),
 ]
 
@@ -265,6 +269,17 @@ if (d < -ch("../CONTROLS/bury") * f@pscale) removepoint(0, @ptnum);
 if (i@smooth_under && v@N.y < ch("../CONTROLS/r2_under")) removepoint(0, @ptnum);
 '''
 
+BASE_VEX = r'''// keep cloudclip's flat cut only where the nearest lobe belongs to the main body (stream "main"); the chin, the left
+// lobes and the satellites keep their rounded bottoms.  (cloudclip's mask input did not restrict the cut; a rasterised
+// attribute grid only exists in a narrow band around each sphere, so the owner of a voxel is looked up with nearpoint.)
+if (@P.y < ch("../CONTROLS/base") + 2 * ch("../CONTROLS/voxel")) {
+    int pt = nearpoint(2, @P);
+    float m = point(2, "ismain", pt);
+    float c = volumesample(1, "density", @P);
+    @density = lerp(@density, c, m);
+}
+'''
+
 FIELDS_VEX = r'''// Detail type and density scale from the surface normal (SD3/SD5).  n = outward normal = -grad(blurred density).
 // facing = n.y + w * dot(n, sun): up/sun faces -> billowy, crisp (scale 1); undersides -> wispy, softer; the skirt band above the
 // main base fades the scale (dissolving belly, F6); bscale = per-body density scale (satellites fray more, F7).
@@ -279,9 +294,9 @@ float ty = lerp(ch("../CONTROLS/type_under"), ch("../CONTROLS/type_top"), t);
 ty = lerp(ch("../CONTROLS/type_core"), ty, conf);
 float sc = lerp(ch("../CONTROLS/scale_under"), 1.0, t);
 sc = lerp(1.0, sc, conf);
-float bs = volumesample(2, "bscale", @P);
-if (bs <= 0) bs = 1.0;
-float ism = volumesample(2, "ismain", @P);
+int owner = nearpoint(2, @P);
+float bs = point(2, "bscale", owner);
+float ism = point(2, "ismain", owner);
 float h = @P.y - ch("../CONTROLS/base");
 float sk = lerp(ch("../CONTROLS/scale_skirt"), 1.0, smooth(0.0, max(ch("../CONTROLS/skirt"), 1e-3), h));
 sk = lerp(1.0, sk, clamp(ism, 0, 1));
@@ -306,9 +321,9 @@ NOTES = dict(
            "has no structure below ~300 m (frog.md 1: lower 60% smooth)."),
     rung3=("Rung 3 (~23 m lobes = rung 2 / 3.5). Only on up- or sun-facing rung-2 lobes: texture lives on the top fifth and the lit rims "
            "(F1, F3). Nothing finer is baked: the runtime up-rez adds the ~15 m and ~4 m levels (SD5)."),
-    volume=("vdbfromparticles -> SDF `surface`, fog `density` and the per-body attributes as grids (bscale, ismain). cloudclip cuts a flat "
-            "base at CONTROLS/base (turn on its Noise Displacement for a ragged cut); flat_base_main_only keeps that cut only where "
-            "ismain = 1 (cloudclip's own mask did not restrict it). The skirt fade is computed in the fields wrangle."),
+    volume=("vdbfromparticles -> SDF `surface` and fog `density`. cloudclip cuts a flat base at CONTROLS/base (turn on its Noise "
+            "Displacement for a ragged cut); flat_base_main_only keeps that cut only where the nearest lobe belongs to the main body "
+            "(cloudclip's own mask input did not restrict the cut). The skirt fade is computed in the fields wrangle."),
     fields=("Detail type (0 wispy..1 billowy) and density scale from the normal of the blurred fog and the sun direction: crisp, billowy "
             "lit tops; wispy, thinner undersides and a fading skirt at the base (F5, F6); satellites carry a lower density scale so "
             "the same erosion frays them (F7). These two grids go to the converter (--detail-grid detail_type --scale-grid density_scale)."),
@@ -408,8 +423,8 @@ def build(ctl_vals=None, bodies=None):
     rep2.parm('dirscalemin').set(1.0)
     expr(rep2.parm('dirscalemax'), 'ch("../CONTROLS/dirscale")')
     rep2.parm('donoisescale').set(1)
-    rep2.parm('scalemin').set(0.65)
-    rep2.parm('scalemax').set(1.35)
+    rep2.parm('scalemin').set(0.6)
+    rep2.parm('scalemax').set(1.6)
     rep2.parm('elementsize').set(1.0)
     m_r2 = rescale(geo, 'to_m_r2', rep2, '1 / ch("../to_unit_r2/k")')
     c2 = geo.createNode('attribwrangle', 'cull2')
@@ -456,7 +471,6 @@ def build(ctl_vals=None, bodies=None):
     expr(vp.parm('voxelsize'), 'ch("../CONTROLS/voxel")')
     vp.parm('buildfog').set(1)
     vp.parm('bandwidthvoxels').set(6)
-    set_attr_transfer(vp, ['bscale', 'ismain'])
     cut = geo.createNode('cloudclip', 'flat_base')
     cut.setInput(0, vp)
     cut.parm('usemask').set(0)
@@ -467,8 +481,9 @@ def build(ctl_vals=None, bodies=None):
     clip = geo.createNode('volumewrangle', 'flat_base_main_only')
     clip.setInput(0, vp)
     clip.setInput(1, cut)
+    clip.setInput(2, spheres_out)
     clip.parm('group').set('@name=density')
-    clip.parm('snippet').set('float c = volumesample(1, "density", @P);\nfloat m = clamp(volumesample(0, "ismain", @P), 0, 1);\n@density = lerp(@density, c, m);')
+    clip.parm('snippet').set(BASE_VEX)
 
     # fields: copy density twice -> detail_type / density_scale; normal from the gradient of a blurred copy
     dens = geo.createNode('blast', 'density_only')
@@ -492,14 +507,10 @@ def build(ctl_vals=None, bodies=None):
     grad.parm('operator').set(0)
     grad.parm('outputname').set('custom')
     grad.parm('customname').set('gradient')
-    attrs = geo.createNode('blast', 'attr_grids')
-    attrs.setInput(0, clip)
-    attrs.parm('group').set('@name=bscale @name=ismain')
-    attrs.parm('negate').set(1)
     fields = geo.createNode('volumewrangle', 'type_scale_from_normal')
     fields.setInput(0, ren)
     fields.setInput(1, grad)
-    fields.setInput(2, attrs)
+    fields.setInput(2, spheres_out)
     fields.parm('group').set('@name=detail_type @name=density_scale')
     fields.parm('snippet').set(FIELDS_VEX)
     out = geo.createNode('null', 'OUT')
@@ -516,7 +527,7 @@ def build(ctl_vals=None, bodies=None):
     stage(geo, '2 Rung 2 lobes (r1 / 3.5)', NOTES['rung2'], [s1, ex1, seeds2, km1, rep2, m_r2, c2, m12])
     stage(geo, '3 Rung 3 lobes (r2 / 3.5), up/sun faces only', NOTES['rung3'], [s12, ex2, seeds3, km2, rep3, m_r3, c3, spheres, spheres_out])
     stage(geo, '4 Volume + flat base', NOTES['volume'], [vp, cut, clip])
-    stage(geo, '5 Detail type + density scale from the normal', NOTES['fields'], [dens, trip, ren, blur, grad, attrs, fields, out, ex])
+    stage(geo, '5 Detail type + density scale from the normal', NOTES['fields'], [dens, trip, ren, blur, grad, fields, out, ex])
     out.setDisplayFlag(True)
     out.setRenderFlag(True)
     nodes.update(spheres=spheres_out, out=out, rung1=m1, rung2=c2, rung3=c3, vdb=vp, export=ex, geo=geo)

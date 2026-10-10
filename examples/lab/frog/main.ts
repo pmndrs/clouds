@@ -4,7 +4,7 @@
 //   ?src=local/frog/        the converted cloud under /clouds/ (frog.py writes assets/clouds/local/frog/, gitignored)
 //   ?photo=1                side by side with the owner's photo (local only, via the compare page's /__photos dev middleware)
 //   ?sunel=49&sunaz=180     sun elevation / azimuth (deg, the sky's convention; the camera looks north (-z), 180 = straight behind)
-//   ?exposure=  ?quality=high  ?clean=1 (no HUD)
+//   ?exposure=  ?quality=high  ?clean=1 (no HUD)  ?empty=1 (sky plate: the cloud parked out of view)
 //   bookmarks: photo (the matched camera), right (from the right, 90 deg around the main body), far (pulled back 2x), above
 //
 // MATCHING CAMERA (frog.py CAMERA): the photo is 1600 x 1392 at 0.0304 deg/px, a pinhole with f = 1800 px, its bottom edge ~2 deg
@@ -34,7 +34,10 @@ const ASPECT = CAM.width / CAM.height;
 interface CloudMeta { dims: [number, number, number]; voxelSizeMeters: number; houdini: { cropMinWorld: [number, number, number] } }
 
 try {
-  const renderer = new WebGPURenderer({ antialias: false, trackTimestamp: true });
+  // The 8 m Frog volume (~450 x 490 x 340 voxels) is a ~300 MB rgba8 upload: ask for the adapter's larger buffer limit.
+  const adapter = await navigator.gpu.requestAdapter();
+  const big = adapter ? Math.min(adapter.limits.maxBufferSize, 2 ** 31) : 2 ** 28;
+  const renderer = new WebGPURenderer({ antialias: false, trackTimestamp: true, requiredLimits: { maxBufferSize: big } } as ConstructorParameters<typeof WebGPURenderer>[0]);
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = num('exposure', 0.5);
   const wrap = document.createElement('div');
@@ -74,7 +77,9 @@ try {
   const [ex, ez, ey] = [meta.dims[0] * vs, meta.dims[1] * vs, meta.dims[2] * vs];
   const min = meta.houdini.cropMinWorld;
   // Clouds.setVolume takes the base centre; the VDB lives in the camera's world, so its crop min corner is the volume's min corner.
-  await clouds.setVolume(asset, { position: [min[0] + ex / 2, min[1], min[2] + ez / 2] });
+  // ?empty=1: same sky and camera with the cloud parked far away (the plate a render is differenced against to measure its silhouette)
+  const EMPTY = query.get('empty') === '1';
+  await clouds.setVolume(asset, { position: EMPTY ? [0, 20000, 300000] : [min[0] + ex / 2, min[1], min[2] + ez / 2] });
   const centre = new Vector3(min[0] + ex / 2, min[1] + ey / 2, min[2] + ez / 2);
 
   let view = 'photo';
