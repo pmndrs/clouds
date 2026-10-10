@@ -272,8 +272,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // glow terms (microOcc): multiply-scattered light diffuses only a few metres in dense cloud, so a lobe's shadow side
               // glows less than its lit side. The relaxed, grid-fed tau in the lighting keeps the inner glow of deep interiors.
               // Deeper than the erosion shell the sample's own density stands in for it (the lobes are all within MICRO_DEPTH of the surface).
-              var tauMicro = d.x * frame.microDist * inlineExt;
-              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * inlineExt; }
+              // D1 round 9 (microLightScale, the floret investigation's T2): the short tap's optical depth in its own units, a fraction of the view
+              // extinction (the deck's first in-line sample "preserves detail near the surfaces", s113); 0 = the in-line taps' units as before.
+              let microExt = select(inlineExt, frame.extinction * frame.d3.z, frame.d3.z > 0.0);
+              var tauMicro = d.x * frame.microDist * microExt;
+              if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * microExt; }
               let microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
               // D1 round 3: lobe-scale ambient occlusion, one upward sample of the full density (ambientTap metres) in the in-line light units.
               var ambOcc = 1.0;

@@ -28,7 +28,7 @@ describe('looks (D0)', () => {
     expect(taps / grid).toBeGreaterThan(0.5); expect(taps / grid).toBeLessThan(2);
     // round 6: the grid's sun sum is one density sample per 16 m cell (N3 s113-114), 1/16 per density-metre within 5 percent
     expect(Math.abs(grid * 16 - 1)).toBeLessThan(0.05);
-    expect(cloudLookSettings('decima', 'ultra').microDist).toBe(0);
+    expect(cloudLookSettings('decima', 'ultra').microDist).toBe(4); expect(cloudLookSettings('decima', 'ultra').microLightScale).toBe(0.25);   // round 9: the floret tap
     // the pre-D1 looks keep the taps at the view extinction (their renders are unchanged)
     expect(CLOUD_ART_SETTINGS.inlineLightScale).toBe(1); expect(CLOUD_DECK_SETTINGS.inlineLightScale).toBe(1);
   });

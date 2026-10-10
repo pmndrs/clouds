@@ -56,7 +56,8 @@ struct Frame {
   // (1 = tricubic B-spline reads of the light grid, 0 = trilinear), w = inlineReuse (m: the in-line sun samples are reused for steps closer than this).
   d2: vec4<f32>,
   // D1 round 8: x = glowDepth (m: the glow's profile P is read this far along the view ray past the sample, inside the volume; 0 = at the
-  // sample), y = glowDepthMode (0 = the deeper read, 1 = max of the sample's and the deeper read), zw = 0.
+  // sample), y = glowDepthMode (0 = the deeper read, 1 = max of the sample's and the deeper read, 2 = inward along the SDF gradient),
+  // z = microLightScale (D1 round 9: the micro tap's optical depth as a fraction of the view extinction; 0 = the in-line taps' units), w = 0.
   d3: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
