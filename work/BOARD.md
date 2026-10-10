@@ -2021,7 +2021,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Does:** for each existing hython builder (`build_heroes.py`, `sim/sim_clouds.py`, `sim/library.py`, `sim/targets.py`), save the network it builds as a `.hip` with a `CONTROLS` null exposing the key parameters, sticky notes explaining each stage, and no cooked caches. One command regenerates all rigs. Plan in `docs/research/topics/authoring.md` ("Rigs the owner can open").
 - **Acceptance:** each `.hip` opens in Houdini 21 (verify by loading in hython and cooking the first stage), small file sizes listed, README section for the owner.
 
-### [r] H3 Dark smudges on the flagship ground view (bug) · Opus (ambient falloff exp → diffuse + up-sum tap at the sample)
+### [x] H3 Dark smudges on the flagship ground view (bug) · Opus (d50039f, accepted) (ambient falloff exp → diffuse + up-sum tap at the sample)
 - **Owns:** whatever files the cause is in (declare them in the report before editing; not `procedural/` or `examples/lab/compare/`, which H1 owns), `work/reports/H3.md`, `work/captures/H3/`.
 - **Does:** `work/captures/H2/bias-sheet-fl-ground.jpg` shows soft, round, dark grey blotches inside a lit cumulus seen from the ground (left lobe, centre). They are present before and after H2. Find the cause (light grid resolution or filtering, shadow/ambient term, temporal history, the inner-glow/dark-edge term, or the asset) and fix it if the fix is small; otherwise report the cause and options.
 - **Acceptance:** before/after captures of flagship ground/edge/above; no regression elsewhere.
@@ -2038,6 +2038,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 
 ## Decisions and escalations
 
+- 2026-10-10: H3 accepted. The dark blotches came from the directional ambient `exp(-S_up)` [N3 s128] over two very dense density-scale cores in Parkouring (96-140 density·m vs a median of 0.65), read 48 m toward the sun. Fix: read the up sum at the sample, and use the diffuse falloff `1/(1+tau)` instead of `exp(-tau)`. **This deviates from the deck's formula**; revisit in the lighting phase (keep both as a setting), together with the remaining gap: ambient has no billow-scale occlusion, so the shaded lobe still reads as smooth grey.
 - 2026-10-08: the Nubis pack is treated as MIT (owner's call). The Sky Pro author has given permission. Upgraded to sky and upscaler 0.5.0.
 - 2026-10-08: the SDF is uploaded as `r16float` metres, rounded down, because `r16unorm` is not a core WebGPU format. The 8 m voxel size is verified against the pack's SDF (P0-02).
 - 2026-10-09: Open follow-ups from P7-D:
