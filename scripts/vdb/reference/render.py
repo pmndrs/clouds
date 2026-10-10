@@ -109,7 +109,7 @@ def render_frame(c, view, args, dirs):
         parm.set(type(parm.eval())(v))
     usd = os.path.join(dirs['usd'], name + '.usd')
     rs.stage().Export(usd)
-    settings = {k: ctl.parm(k).eval() for k in ('density_mult', 'albedo', 'g_fwd', 'g_back', 'back_mix', 'samples', 'volume_limit',
+    settings = {k: ctl.parm(k).eval() for k in ('density_mult', 'albedo', 'g_fwd', 'g_back', 'back_mix', 'samples', 'secondary_max', 'oracle_variance', 'volume_limit',
                                                   'volume_step_rate', 'engine', 'resx', 'resy', 'sun_el', 'sun_az', 'turbidity', 'ground_albedo')}
     cmd = [os.path.join(HB, 'husk'), '--verbose', '1', '-o', exr]
     if args.threads:

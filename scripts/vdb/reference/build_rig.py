@@ -39,7 +39,9 @@ CONTROL_ROWS = [
     ('Light', 'turbidity', 'Sky turbidity', 3.0, 1.0, 10.0, 'Karma Physical Sky default; clear day'),
     ('Light', 'ground_albedo', 'Ground albedo', 0.2, 0.0, 1.0, 'lower hemisphere of the sky dome: lights the cloud base like grass/soil'),
     ('Render', 'engine', 'Engine (0 cpu, 1 xpu)', 0, 0, 1, 'Karma CPU or XPU'),
-    ('Render', 'samples', 'Path-traced samples per pixel', 32, 1, 4096, 'max samples (variance oracle stops early in the sky); OIDN denoise on'),
+    ('Render', 'samples', 'Camera samples per pixel', 9, 1, 4096, 'Karma CPU Variance (Automatic) convergence: primary samples; OIDN denoise on'),
+    ('Render', 'secondary_max', 'Max secondary samples', 9, 1, 256, 'adaptive secondary (indirect) samples per camera sample, 1..this'),
+    ('Render', 'oracle_variance', 'Variance threshold', 0.01, 0.0001, 1.0, 'adaptive sampling stops a pixel below this; 0.002 halves the noise at ~3.6x the time'),
     ('Render', 'volume_limit', 'Volume bounce limit', 128, 0, 1024, 'multiple scattering orders; 16 loses 33% of the body radiance, 64 -> 128 +1.4%, 128 -> 256 +0.4%'),
     ('Render', 'volume_step_rate', 'Volume step rate', 1.0, 0.01, 4.0, 'CPU ray-march step = voxel / rate; 1 = 4 m'),
     ('Render', 'resx', 'Resolution X', scene.RES[0], 16, 8192, ''),
@@ -230,7 +232,9 @@ def build(verify=False):
     rs.parm('resolutiony').lock(False)      # locked by the default autoheight mode
     set_expr(rs.parm('resolutionx'), ch('resx'))
     set_expr(rs.parm('resolutiony'), ch('resy'))
-    set_expr(rs.parm('pathtracedsamples'), ch('samples'))
+    set_expr(rs.parm('samplesperpixel'), ch('samples'))
+    set_expr(rs.parm('varianceaa_maxsamples'), ch('secondary_max'))
+    set_expr(rs.parm('oracle_variance'), ch('oracle_variance'))
     set_expr(rs.parm('volumelimit'), ch('volume_limit'))
     set_expr(rs.parm('volumesteprate'), ch('volume_step_rate'))
     rs.parm('colorlimit').set(1000.0)          # default 20 clamps the forward-scattered sun: biases a reference
@@ -254,7 +258,7 @@ def build(verify=False):
          'C1 sun: elevation 38.8, azimuth 269.5 (west; compass, north = -Z, same as bookmarks.ts). Ground albedo 0.2 on the '
          'lower hemisphere stands in for the bounce off the ground under the cloud. Exposure and tone map are applied after '
          'the render (render.py): linear EXR out.', (11, -10.1), (8, 1.2))
-    note(stage, 'Render: CONTROLS/engine, samples (32 + OIDN), volume_limit (>= 16; 128 default), step rate 1 (4 m steps). Colour limit raised '
+    note(stage, 'Render: CONTROLS/engine, samples (Karma default 9 camera x 1-9 secondary, variance 0.01, + OIDN), volume_limit (>= 16; 128 default), step rate 1 (4 m steps). Colour limit raised '
          'to 1000 so the clamp does not eat the forward-scattered sun. Run scripts/vdb/reference/render.py to render all 5 x 2 '
          'frames headless with husk; it sets CONTROLS/cloud, view and picture per frame.', (11, -12.0), (8, 1.0))
     ctl_note = note(stage, 'CONTROLS: shot (cloud, view), material, light and render settings. Every node reads its look parameters '
