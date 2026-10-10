@@ -59,7 +59,7 @@ struct Frame {
   // sample), y = glowDepthMode (0 = the deeper read, 1 = max of the sample's and the deeper read, 2 = inward along the SDF gradient),
   // z = microLightScale (D1 round 9: the micro tap's optical depth as a fraction of the view extinction; 0 = the in-line taps' units), w = microShadowMode (D1 round 10: 1 = the glow's micro occlusion by the up-rez residual over the profile).
   d3: vec4<f32>,
-  // D1 round 11: x = microDist2 (m, a second micro sun tap from microDist to microDist2; 0 = off), y = microShadow2 (its occlusion weight), z = directProfile (the direct term weighted by the in-scatter probability, 0..1), w = 0.
+  // D1 round 11: x = microDist2 (m, a second micro sun tap from microDist to microDist2; 0 = off), y = microShadow2 (its occlusion weight), z = directProfile (the direct term weighted by the in-scatter probability, 0..1), w = directRimDepth (m: that weight within this depth of the surface only; 0 = everywhere).
   d4: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

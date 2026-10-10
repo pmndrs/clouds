@@ -44,6 +44,8 @@ export interface SkyBridge {
   skyTintToAmbient: boolean;
   /** D1 round 11: a further per-channel tint of the sky radiance the clouds see (the ambient's colour). Default white. */
   ambientTint: [number, number, number];
+  /** D1 round 12: a per-channel tint of the sun radiance the clouds see, apart from the sky's (the sky mesh and the LUT untouched). Default white. */
+  sunTint: [number, number, number];
   dispose(): void;
 }
 
@@ -90,6 +92,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
     skyRamp: null,
     skyTintToAmbient: true,
     ambientTint: [1, 1, 1],
+    sunTint: [1, 1, 1],
     transmittance: undefined as unknown as GPUTextureView, skyView: undefined as unknown as GPUTextureView, aerialPerspective: undefined as unknown as GPUTextureView,
     bindGroup: undefined as unknown as GPUBindGroup,
     update(camera) {
@@ -105,6 +108,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
       const skyf: Vector3 = baker.sky.skyLuminanceFactor.value;
       if (bridge.skyTintToAmbient) { skyTint[0] = skyf.x; skyTint[1] = skyf.y; skyTint[2] = skyf.z; } else { skyTint[0] = 1; skyTint[1] = 1; skyTint[2] = 1; }
       skyTint[0] *= bridge.ambientTint[0]; skyTint[1] *= bridge.ambientTint[1]; skyTint[2] *= bridge.ambientTint[2];
+      values.sunTint = bridge.sunTint;
       const ramp = bridge.skyRamp;
       values.skyRamp = ramp ? { strength: ramp.strength, ambient: ramp.ambient, stops: ramp.stops.map(st => ({ at: st.at, color: [0, 1, 2].map(i => st.color[i] / Math.max(values.luminanceScale * sunColor[i] * skyTint[i], 1e-6)) })) } : null;
       values.bottomRadiusKm = params.bottomRadius;

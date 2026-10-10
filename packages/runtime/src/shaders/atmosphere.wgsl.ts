@@ -35,7 +35,7 @@ struct Atmosphere {
   skyTint: vec3<f32>, rampStrength: f32,
   ramp0: vec4<f32>, ramp1: vec4<f32>, ramp2: vec4<f32>, ramp3: vec4<f32>,
   ramp4: vec4<f32>, ramp5: vec4<f32>, ramp6: vec4<f32>, ramp7: vec4<f32>,   // D1 round 11: 8 stops, smoothstep between them (no kinks)
-  rampAmbient: f32, rampPad0: f32, rampPad1: f32, rampPad2: f32,           // the ramp's weight in the hemisphere means (0..1)
+  rampAmbient: f32, sunTintR: f32, sunTintG: f32, sunTintB: f32,           // the ramp's weight in the hemisphere means (0..1); D1 round 12: the clouds' sun colour apart from the sky's (sunRadianceAt only)
 }
 @group(${group}) @binding(0) var<uniform> atmosphere: Atmosphere;
 @group(${group}) @binding(1) var atmTransmittanceLut: texture_2d<f32>;
@@ -91,7 +91,8 @@ fn atmTransmittanceToSun(worldPos: vec3<f32>) -> vec3<f32> {
 }
 // Direct sun illuminance at worldPos in the sky's exposure units (matches createSun({physical:true}) colour * intensity).
 fn sunRadianceAt(worldPos: vec3<f32>) -> vec3<f32> {
-  return atmTransmittanceToSun(worldPos) * atmosphere.luminanceScale * atmosphere.sunColor;
+  // D1 round 12 (sunTint): the sun the clouds see, tinted apart from the sky (the frames' pink lit faces under a cool sky; sunColor tints both).
+  return atmTransmittanceToSun(worldPos) * atmosphere.luminanceScale * atmosphere.sunColor * vec3(atmosphere.sunTintR, atmosphere.sunTintG, atmosphere.sunTintB);
 }
 
 // ---- sky-view LUT: (viewZenithCos, lightViewCos) -> uv (SkyViewLutParamsToUv) ---------------------
@@ -311,6 +312,8 @@ export interface AtmosphereUniformValues {
    * up to 4 stops ascending in `at`, colours in LUT units (the sky's radiance before luminanceScale, sunColor and the tint). Default none.
    */
   skyRamp?: { strength: number; stops: { at: number; color: ArrayLike<number> }[]; ambient?: number } | null;
+  /** D1 round 12: per-channel tint of the sun radiance the clouds see (sunRadianceAt), apart from the sky's. Default white. */
+  sunTint?: ArrayLike<number>;
 }
 
 /** Fill `out` (length >= ATMOSPHERE_UNIFORM_FLOATS) in place. No allocation. */
@@ -328,7 +331,8 @@ export function writeAtmosphereUniforms(out: Float32Array, v: AtmosphereUniformV
     const st = stops[Math.min(i, stops.length - 1)];
     out[40 + 4 * i] = st ? st.color[0] : 0; out[41 + 4 * i] = st ? st.color[1] : 0; out[42 + 4 * i] = st ? st.color[2] : 0; out[43 + 4 * i] = st ? st.at : 0;
   }
-  out[72] = v.skyRamp && v.skyRamp.stops.length > 0 ? (v.skyRamp.ambient ?? v.skyRamp.strength) : 0; out[73] = 0; out[74] = 0; out[75] = 0;
+  out[72] = v.skyRamp && v.skyRamp.stops.length > 0 ? (v.skyRamp.ambient ?? v.skyRamp.strength) : 0;
+  const st = v.sunTint ?? [1, 1, 1]; out[73] = st[0]; out[74] = st[1]; out[75] = st[2];
   return out;
 }
 
