@@ -1,0 +1,46 @@
+{
+ "note": "H6 blind set: H5 defaults (rendered on the H6 code by overrides, 0.4-0.6/255 from the H5 frames) vs H6 defaults; compare ?impls=hzd&quality=ultra&c_animSpeed=0, settle 300",
+ "h5Overrides": "hz_veilWidth=0&hz_erosionOrder=gp7&hz_erosionStrength=0.2&hz_wispyHeight=0.1&hz_topRound=0&hz_profileSmooth=0&hz_heightFromCoverage=0&hzn_maxHeight=0.8&hzn_heightVariation=0.1&hz_detailTile=400&hz_ringCoverage=0.4&hz_ringFadeStart=0.8",
+ "items": {
+  "g24": {
+   "view": "sunset",
+   "version": "H6",
+   "source": "work/captures/H6/final-h6/sunset.jpg"
+  },
+  "g28": {
+   "view": "ground",
+   "version": "H6",
+   "source": "work/captures/H6/final-h6/ground.jpg"
+  },
+  "g37": {
+   "view": "horizon",
+   "version": "H5",
+   "source": "work/captures/H6/final-h5/horizon.jpg"
+  },
+  "g43": {
+   "view": "above",
+   "version": "H6",
+   "source": "work/captures/H6/final-h6/above.jpg"
+  },
+  "g54": {
+   "view": "ground",
+   "version": "H5",
+   "source": "work/captures/H6/final-h5/ground.jpg"
+  },
+  "g68": {
+   "view": "horizon",
+   "version": "H6",
+   "source": "work/captures/H6/final-h6/horizon.jpg"
+  },
+  "g70": {
+   "view": "sunset",
+   "version": "H5",
+   "source": "work/captures/H6/final-h5/sunset.jpg"
+  },
+  "g94": {
+   "view": "above",
+   "version": "H5",
+   "source": "work/captures/H6/final-h5/above.jpg"
+  }
+ }
+}
