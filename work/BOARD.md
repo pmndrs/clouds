@@ -2021,7 +2021,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Does:** owner, 2026-10-10: the EmberGen VDBs are first a 3D reference. Render CloudPack 02, 03, 08, 09, 10 "the typical way" in Houdini 21 (Karma, path-traced volume, multiple scattering, physically based sun + sky dome, cloud-appropriate albedo ~0.99, Henyey-Greenstein or Karma's cloud phase), at the same scale (~600 m tall, base 1300 m), camera, FOV and sun as the C1 `photo` and `detail` framings (`work/reports/C1-calibration.md`; camera distances there), so each Karma frame pairs 1:1 with our C1 render. Document the light setup so it can be matched in our renderer.
 - **Acceptance:** 5 × 2 reference frames that look like vapour (judge against the owner's photos), paired side-by-side sheets with our C1 renders, render settings and times listed. These become the ground truth for R1 and V2.
 
-### [ ] V2 Direct VDB render mode (no procedural chain) · Opus (after R1 phase 1)
+### [~] V2 Direct VDB render mode (no procedural chain) · Opus
 - **Does:** owner: a loaded VDB is meant to be rendered directly, not used as the starter of the Nubis up-rez chain. Add a density path that marches the VDB's density as-is (sparse or dense 3D texture at native resolution, trilinear, no profile/erosion/up-rez), sharing our lighting so the result can be compared with the V1 Karma frames. This isolates the renderer (lighting, material) from form. Later: use it as a third `densityModel`/asset mode for artist VDBs.
 - **Acceptance:** CloudPack 02/09 rendered directly at the C1 framings beside the V1 Karma reference; differences listed (they should be lighting only).
 
