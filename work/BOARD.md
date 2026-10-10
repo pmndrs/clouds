@@ -2033,6 +2033,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 ### [ ] C2 Shape closing as a standard converter step for imported sims · Sonnet (after A3, which uses the converter)
 - **Owns:** `scripts/vdb/vdb_to_nvdf.py`, `scripts/vdb/nvdf_math.py`, their tests, `scripts/vdb/README.md`, `work/reports/C2.md`.
 - **Does:** promote R1's experimental closing (`scripts/vdb/experiments/`, `work/reports/R1-foam.md`: close the iso mask with a 32 m ball before SDF/profile, `--scale hconst:1`, `--depth-shift 0`) into the converter as the default for sim imports (EmberGen, Pyro), with a flag to turn it off and the ball size as an option. Guerrilla pack fields are unaffected.
+- **Also (from P1):** fill detail type and density scale 1–2 voxels outside the profile, as Guerrilla's pack does; writing 0 there pulls surface samples toward wispy and thin, which makes pits.
 - **Acceptance:** tests; C1 photo/detail captures of CloudPack 02 and A2 wide at `quality=ultra` match R1's C-both renders.
 
 ### [~] H5 HZD look-match pass on the `hzd` shaper · Opus (judged by Opus + Fable, rubric v2, quality=ultra)
