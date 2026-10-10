@@ -15,7 +15,8 @@ const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['auto', 'mobile', 'low', 'medium', 'high', 'ultra'] as const;   // ?quality=auto&budget=2: tier from the adapter, render scale from the GPU timer toward a 2 ms budget
 const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus', 'disney', 'disney-fine', 'heroes/sim-cumulus-fine', 'heroes/sim-congestus-fine', 'local/bunny-cloud', 'local/cloud-0001', 'local/cloudpack-02', 'local/cloudpack-03', 'local/cloudpack-08', 'local/cloudpack-09', 'local/cloudpack-10', 'local/a2/base', 'local/a2/wide'] as const;
-const cloudName = CLOUDS.includes(query.get('cloud') as never) ? (query.get('cloud') as string) : 'parkouring';
+const R1_LOCAL = /^local\/r1\/[\w-]+$/; // R1: local experiment assets (gitignored)
+const cloudName = CLOUDS.includes(query.get('cloud') as never) || R1_LOCAL.test(query.get('cloud') ?? '') ? (query.get('cloud') as string) : 'parkouring';
 const state = {
   bookmark: (isBookmarkName(query.get('bookmark') ?? '') ? query.get('bookmark') : 'ground') as BookmarkName,
   time: query.has('time') ? Number(query.get('time')) : bookmarkTime('ground'),
@@ -63,7 +64,7 @@ try {
   let firstCloudFrameMs = -1; // ms from assets loaded to the first frame the runtime encoded clouds
   await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset, query.has('base') ? Number(query.get('base')) : undefined) });
   await runtime.setNoise(noiseAsset);
-  for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number>)[key.slice(2)] = Number(value);
+  for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
 
   // Render size follows the window times the render-scale control. Canvas CSS stays 100%.
   const renderSize = { width: 1, height: 1 };
