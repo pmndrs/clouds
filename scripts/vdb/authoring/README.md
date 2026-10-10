@@ -56,3 +56,31 @@ fog bank is thin and long, so it fits full size. To author a bigger cloud, raise
 ## Tower (P4-E2 rebuild)
 
 The first tower (one stacked column of spheres) read as a smoke plume. The congestus recipe: 5 flattened foot ellipsoids (y centre 125, ry 125, wide in x/z), then 6 layers of 4-6 domed cells (ry = 1.2 rx) on rings, a slim core, 2 crowning domes at different heights, everything leaning +x with height. Cloud SOP bands 200 m, secondary shapes 160 points at 42 m, 3 Cloud Noise passes (210 / 70 / 28 m), flat base wrangle at 15 m. The cells keep notches between them because the core is narrow; if you widen the core the silhouette fills in to a column again.
+
+## Opening the rigs in Houdini (for the owner)
+
+Every network the agents build is saved as a small `.hip` in `houdini/rigs/`. Open one with Houdini 21 (Indie is fine), go to `/obj/<rig name>`, and the whole network is there with notes.
+
+| Rig | From | What it is |
+| --- | --- | --- |
+| `hero_tower`, `hero_fairweather`, `hero_valleyfog` | `build_heroes.py` | sphere sources, Cloud SOP, Cloud Noise passes, smooth, flat base. Cooks in about a second at 8 m. |
+| `sim_cumulus`, `sim_congestus` | `sim_clouds.py` | Pyro emitter, solver, remap, warp. These two keep the old `temperature0 = 0` (buoyancy off, see sim README); the solver note says so. |
+| `library_congestus-a`, `library_mediocris-a` | `library.py` (L2 buoyant templates) | open these to fix the chimney failure |
+| `texas_tower` | `targets.py` (base recipe v00) | multi-emitter plus inversion lid; the L1 target |
+
+What is inside every rig:
+- **`CONTROLS`** null (orange). Open its parameter pane: tabs for each stage hold the key values. The real nodes read them with `ch("../CONTROLS/...")`, including inside the VEX, so change them here, not on the nodes.
+- **Network boxes and sticky notes** per stage (source, solver, post, export), each saying what the stage does and why, with the source docs.
+- **`export`** ROP Geometry Output. It writes `houdini/cache/<rig>.vdb` (the folder is gitignored). Sim rigs write the current frame only; set a range if you want more.
+- **Run converter** button on `CONTROLS` (`convert_args` holds the options). It runs `vdb_to_nvdf.py` on the exported VDB into `houdini/cache/nvdf/<rig>/`. Copy that into `assets/clouds/...` to use it.
+
+Sim rigs are saved **without simulating**: scrub the timeline from frame 1 to run the Pyro solver (about 30 s for 180 frames). Changing any control restarts it. The `grow_region` box in the post stage is a generous estimate here (the builder sets it per checkpoint from cooked bounds); widen it if the cloud is clipped.
+
+Rigs are copies, not a live link. When you find better numbers, copy them back into `RECIPES` / `LIBRARY` / `TEMPLATES` and rerun the generator, or tell the agents.
+
+Regenerate all rigs (about 30 s; waits on nothing, but needs a Houdini license seat, retry if busy):
+```bash
+$HYTHON scripts/vdb/authoring/rigs.py            # all   (--list shows the names, give names to do some)
+$HYTHON scripts/vdb/authoring/rigs.py --verify   # open each .hip, cook its first stage, print nodes and file sizes
+```
+`rigs.py` never touches `lens_seed.hip` or `frog.hip` (other tasks). Not in the rigs yet: review camera with photo plate, `cloudlight` preview, harvest back into the recipe dicts (plan in `docs/research/topics/authoring.md` section 8).

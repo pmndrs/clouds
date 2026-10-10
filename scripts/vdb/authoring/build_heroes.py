@@ -173,7 +173,9 @@ def set_parms(node, values):
         t.set(v)
 
 
-def build(name, rcp, out_dir, hip=None):
+def build_network(name, rcp):
+    """Create /obj/<name> (sphere sources -> cloud -> cloudnoise passes -> smooth -> flat base) without cooking or exporting.
+    Returns (geo, last_node, scaled_recipe).  rigs.py reuses this to save the network as a .hip."""
     rnd = random.Random(rcp['seed'])
     obj = hou.node('/obj')
     geo = obj.node(name) or obj.createNode('geo', name)
@@ -231,6 +233,12 @@ def build(name, rcp, out_dir, hip=None):
         prev = wr
     prev.setDisplayFlag(True)
     geo.layoutChildren()
+    return geo, prev, rcp
+
+
+def build(name, rcp, out_dir, hip=None):
+    geo, prev, rcp = build_network(name, rcp)
+    k = rcp.get('scale', 1.0)
     t = time.time()
     prev.cook(force=True)
     for n in geo.children():
