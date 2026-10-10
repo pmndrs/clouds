@@ -11,7 +11,7 @@
  * would cost the procedural trace a 17th sampled texture (WebGPU's default per-stage limit is 16 and the trace pass already binds 16); the
  * array costs one binding. The map tiles (repeat addressing); `P.hzLayer.z` is the world size of one tile.
  */
-import { HZD_NOISE_LIB_WGSL } from './noise.wgsl';
+import { HZD_NOISE_LIB_WGSL, HZD_WORLEY_SCALE } from './noise.wgsl';
 
 /** The sampling helper. Needs `procWeather: texture_2d_array<f32>`, `procRepeat` and `P` (ProcParams). Every HZD-era shaper reads the NDF through it. */
 export const HZD_NDF_SAMPLE_WGSL = /* wgsl */ `
@@ -34,6 +34,7 @@ struct NdfGen {
   coverage: vec4<f32>,  // island weight, coverage lo, coverage hi, seed
   types: vec4<f32>,     // type min, type max, bottom type, 0
   heights: vec4<f32>,   // min height, max height, variation, 0
+  foot: vec4<f32>,      // H6: footprint (0 Perlin .. 1 Perlin-Worley, N17 p.56-57), Worley cells, 0, 0
 }
 @group(0) @binding(0) var<uniform> G: NdfGen;
 @group(0) @binding(1) var ndfOut: texture_storage_2d_array<rgba8unorm, write>;
@@ -55,7 +56,18 @@ fn generate(@builtin(global_invocation_id) id: vec3<u32>) {
   // Coverage: footprints (4 octaves) lifted and sunk region by region by a low-frequency island gate, mapped linearly from lo..hi to 0..1.
   // A gradual field, as HZD's maps are: the coverage remap of noise x gradient (not the map's edge) shapes each cloud.
   let v = ndfFbm(uv, G.cells.x, 4u, seed + 1u) + G.coverage.x * ndfFbm(uv, G.cells.y, 2u, seed + 101u);
-  let coverage = saturate((v - G.coverage.y) / (G.coverage.z - G.coverage.y));
+  var coverage = saturate((v - G.coverage.y) / (G.coverage.z - G.coverage.y));
+  // H6, N17 p.56-57: the Perlin-Worley footprint ("isolated islands with connective tissue"). N17 p.34's Perlin-Worley in 2D:
+  // remap(perlin, 1 - worley, 1, 0, 1) with an inverted 2-octave Worley fBM (cells ours): the Perlin coverage is carved along the Worley cell
+  // borders into round islands; where the Perlin is high the borders stay partly covered (the connective tissue).
+  if (G.foot.x > 0.0) {
+    let c = max(1.0, round(G.foot.y));
+    let f1 = sqrt(hzdWorley(vec3(uv, 0.37), c, seed + 501u) / ${HZD_WORLEY_SCALE});
+    let f2 = sqrt(hzdWorley(vec3(uv, 0.37), c * 2.0, seed + 502u) / ${HZD_WORLEY_SCALE});
+    let w = saturate(1.0 - (0.7 * f1 + 0.3 * f2));
+    let pw = saturate((coverage - (1.0 - w)) / max(w, 1e-3));
+    coverage = mix(coverage, pw, G.foot.x);
+  }
   // Top type: a very-low-frequency field over typeMin..typeMax.
   let topType = mix(G.types.x, G.types.y, saturate(0.5 + 1.6 * ndfFbm(uv, G.cells.z, 2u, seed + 201u)));
   // Heights: the layer range with mild variation; the top stays at least 5 % of the layer above the base.

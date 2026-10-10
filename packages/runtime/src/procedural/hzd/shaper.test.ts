@@ -12,8 +12,8 @@ describe('HZD shaper (H1)', () => {
     expect(PROC_HZD_WGSL).toContain('A.g * 0.625 + A.b * 0.25 + A.a * 0.125');          // gp7 p.106
     expect(PROC_HZD_WGSL).toContain('hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0)');    // gp7 p.106 dilation (pw = R, H5 contrast off by default)
     expect(PROC_HZD_WGSL).toContain('hzdRemap(baseCloud, 1.0 - cov, 1.0, 0.0, 1.0)');   // hfw p.17 coverage sign
-    expect(PROC_HZD_WGSL).toContain('saturate(h * select(10.0, 5.0, hag))');            // gp7 p.108 h*10 switch (hag: h*5)
-    expect(PROC_HZD_WGSL).toContain('select(0.2, 0.35 * exp(-0.75 * cov), hag)');      // gp7 p.109 *0.2 (hag eq 16)
+    expect(PROC_HZD_WGSL).toContain('saturate(h / select(P.hzExtra.z, 0.2, hag))');      // gp7 p.108 h*10 switch (wispyHeight 0.1; hag: h*5)
+    expect(PROC_HZD_WGSL).toContain('select(P.hzExtra.y, 0.35 * exp(-0.75 * cov), hag)'); // gp7 p.109 *0.2 = erosionStrength (hag eq 16)
   });
   it('evaluates the gradients as linear trapezoids, lerping the stops by type', () => {
     // Pure types: stratus is full only between 0.07 and 0.11, cumulus between 0.09 and 0.65 and gone at 0.80.

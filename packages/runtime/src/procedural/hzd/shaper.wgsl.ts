@@ -65,7 +65,13 @@ const HZD_CUMULUS = ${v4(HZD_GRADIENTS.cumulus)};
 // gp7 p.105: Remap without a clamp.
 fn hzdRemap(v: f32, a: f32, b: f32, c: f32, d: f32) -> f32 { return c + (v - a) / (b - a) * (d - c); }
 // The N17 form remap(h, a, b, 0, 1) * remap(h, c, d, 1, 0), each factor clamped: a linear trapezoid (the Nutshell gradients are linear fills).
-fn hzdTrapezoid(s: vec4<f32>, h: f32) -> f32 { return saturate((h - s.x) / (s.y - s.x)) * saturate((s.w - h) / (s.w - s.z)); }
+// H6: topRound moves the fall's start from the stop c toward b (a wider, rounder top ramp; hag eq 6 falls over 0.2 wh..wh), and
+// profileSmooth makes both ramps smoothstep (C1 at the stops). Both 0 = the Nutshell trapezoid.
+fn hzdRamp(x: f32) -> f32 { let t = saturate(x); return select(t, t * t * (3.0 - 2.0 * t), P.hzProf.y > 0.5); }
+fn hzdTrapezoid(s: vec4<f32>, h: f32) -> f32 {
+  let c = mix(s.z, s.y, P.hzProf.x);
+  return hzdRamp((h - s.x) / (s.y - s.x)) * hzdRamp((s.w - h) / max(s.w - c, 1e-3));
+}
 fn hzdHeightGradient(cloudType: f32, h: f32) -> f32 {
   let t = saturate(cloudType);
   if (P.hzSpeed.w < 0.5) {
@@ -123,15 +129,20 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     if (r >= P.hzRing.y && ringOn >= 1.0) { return o; }
     let w = saturate((r - P.hzRing.x) / (P.hzRing.y - P.hzRing.x)) * ringOn;
     // The last 20 % of the band also takes the coverage to 0, so the clouds shrink away instead of ending on a line at ringEnd (ours).
-    n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - ringOn * smoothstep(0.8, 1.0, r / P.hzRing.y));
+    n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - ringOn * smoothstep(P.hzH6.y, 1.0, r / P.hzRing.y));
     n.topType = mix(n.topType, P.hzRing.w, w);
   }
   let span = P.hzLayer.y - P.hzLayer.x;
   let bottom = P.hzLayer.x + n.minHeight * span;
-  let top = P.hzLayer.x + n.maxHeight * span;
-  if (alt <= bottom || alt >= top) { return o; }
+  var top = P.hzLayer.x + n.maxHeight * span;
+  let cov0 = saturate(n.coverage + P.hzCov.x);
+  if (cov0 <= 0.0) { return o; }
+  // H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
+  // dome at the cloud scale instead of meeting one ceiling.
+  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(cov0 / P.hzProf.w), P.hzProf.z); }
+  if (alt <= bottom || alt >= top || top - bottom < 1.0) { return o; }
   let h = (alt - bottom) / (top - bottom);
-  let cov = hzdAnvil(saturate(n.coverage + P.hzCov.x), h, n);
+  let cov = hzdAnvil(cov0, h, n);
   if (cov <= 0.0) { return o; }
   let gradient = hzdHeightGradient(n.topType + P.hzCov.y, h);
   if (gradient <= 0.0) { return o; }
@@ -151,20 +162,26 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   if (cubic) { A = hzdCubic3(procNoiseA, qShape / P.hzScale.x); } else { A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, shapeLod); }
   let lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
   let pw = select(saturate(0.5 + (A.r - 0.5) * P.hzExtra.x), A.r, P.hzExtra.x == 1.0);   // H5 shapeContrast (1 = off)
-  let baseCloud = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient;   // 3 height gradient
+  let base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
+  let baseCloud = base * gradient;   // 3 height gradient (gp7 p.106: hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient)
 
   // 4 Coverage: threshold 1 - coverage (HFW p.17), then the gp7 multiply; 5 base fade before erosion (stage 2 and up).
   var d = hzdRemap(baseCloud, 1.0 - cov, 1.0, 0.0, 1.0);
-  if (d <= 0.0) { return o; }
-  if (stage >= 1.5) {
-    if (P.hzCov.z > 0.5) { d *= cov; }
-    d *= hzdRemap(saturate(h / P.hzFade.y), 0.0, 1.0, P.hzFade.x, 1.0);
-  }
+  // H6 veil: how far below the coverage threshold this sample is, in base x gradient units (0..1 over veilWidth), low in the column only.
+  let veilOn = P.hzConn.z > 0.0 && P.hzConn.w > 0.0 && stage >= 2.5;
+  var veil = 0.0;
+  if (veilOn) { veil = saturate(1.0 + (baseCloud - (1.0 - cov)) / P.hzConn.z) * saturate(1.0 - h / P.hzH6.x); }
+  if (d <= 0.0 && veil <= 0.0) { return o; }
+  var fadeK = 1.0;
+  if (stage >= 1.5) { fadeK = hzdRemap(saturate(h / P.hzFade.y), 0.0, 1.0, P.hzFade.x, 1.0); }
+  let covK = select(1.0, cov, stage >= 1.5 && P.hzCov.z > 0.5);
+  d = max(d, 0.0) * covK * fadeK;
   let coarse = saturate(d);
 
   // 6 Detail (stage 3, full samples, within the detail distance; the fade is dithered so its end draws no line).
   var density = d;
   let fade = 1.0 - smoothstep(0.75, 1.25, t / max(P.hzFade.z, 1.0) + (jitter - 0.5) * 0.1);
+  var wisp = 1.0;
   if (full && stage >= 2.5 && fade > 0.0) {
     var qd = q - scroll * P.hzSpeed.z;
     let curl = textureSampleLevel(procAux, procRepeat, qd.xz / P.hzScale.z, 0.0).xy;
@@ -175,11 +192,23 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     else { B = textureSampleLevel(procNoiseB, procRepeat, qd / P.hzScale.y, detailLod).rgb; }
     let hfFbm = B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
     let hag = P.hzCov.w > 0.5;
-    let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h * select(10.0, 5.0, hag)));
-    let strength = select(0.2, 0.35 * exp(-0.75 * cov), hag);
-    density = hzdRemap(d, modifier * strength * fade, 1.0, 0.0, 1.0);
+    // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
+    let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
+    let strength = select(P.hzExtra.y, 0.35 * exp(-0.75 * cov), hag);
+    if (P.hzExtra.w > 0.5) {
+      // H6 'hfw' order (HFW p.15-17): erode the low-frequency noise, then apply the profile and the coverage remap.
+      let be = hzdRemap(base, modifier * strength * fade, 1.0, 0.0, 1.0);
+      density = max(hzdRemap(be * gradient, 1.0 - cov, 1.0, 0.0, 1.0), 0.0) * covK * fadeK;
+    } else {
+      density = hzdRemap(d, modifier * strength * fade, 1.0, 0.0, 1.0);
+    }
+    wisp = mix(1.0, hfFbm, fade);
   }
   density = saturate(density);
+  // H6 density from coverage (gp7 p.107's "small clouds lighter" at hag eq 16's DA position: after the erosion, so it cannot eat them).
+  if (P.hzConn.x > 0.0) { density *= pow(saturate(cov / P.hzConn.y), P.hzConn.x); }
+  // H6 veil: a thin low skirt continuing each body below the threshold, streaked by the detail fBM (n3 s162's connective skirt; ours).
+  if (veilOn) { density = max(density, P.hzConn.w * veil * pow(wisp, P.hzH6.z) * fadeK); }
   if (density <= 0.0) { return o; }
   // H5 (ne22 p.105's envelope sharpen, pow(.., 0.27), as a setting; 1 = GP7, no shaping): lifts the low densities of the edge ramp so a lit rim
   // reads crisp instead of a wide haze.

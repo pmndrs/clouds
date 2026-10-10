@@ -106,6 +106,11 @@ export interface HzdNdfSettings {
   minHeight: number;
   maxHeight: number;
   heightVariation: number;
+  /** H6, N17 p.53-58: the coverage footprint. 0 = R, Perlin fBM ("connected formations", H1-H5); 1 = G, Perlin-Worley ("isolated islands with
+   *  connective tissue": the Perlin fBM dilated by an inverted Worley fBM, gp7 p.106's remap in 2D); between = a mix (N17: the artist picks one).
+   *  `worleyCells` = cells per tile of the footprint's first Worley octave (ours; N17 gives no frequencies). */
+  footprint: number;
+  worleyCells: number;
 }
 
 /** H1: the HZD reference shaper (GPU Pro 7 chain). Metres unless noted. */
@@ -188,6 +193,37 @@ export interface HzdShape {
   ringEnd: number;
   ringCoverage: number;
   ringType: number;
+  /** H6 (ours): the ring's coverage fade to 0 starts at this fraction of ringEnd (H5: 0.8). */
+  ringFadeStart: number;
+  /** H6, gp7 p.109: the detail erosion's maximum, `Remap(base_cov, modifier * erosionStrength, 1, 0, 1)` (GP7 0.2; the 'hag' law overrides it). */
+  erosionStrength: number;
+  /** H6: the wispy-to-billowy switch, mix(fbm, 1 - fbm, sat(h / wispyHeight)) (gp7 p.108: 0.1, i.e. h * 10; hag eq 14: 0.2). */
+  wispyHeight: number;
+  /** H6: where the detail erodes. 'gp7' = after the coverage remap (p.109); 'hfw' = HFW p.15-17's recap of HZD: the detail erodes the low-frequency
+   *  noise first, `remap(lf, strength * modifier, 1, 0, 1)`, then the coverage remap of (noise x profile), so the erosion scales with the coverage
+   *  ramp like the base noise does (no thin edge band). */
+  erosionOrder: 'gp7' | 'hfw';
+  /** H6 (ours, flat-cut tops): widen the top falloff of the type gradient: the fall starts at mix(c, b, topRound) instead of the Nutshell stop c
+   *  (0 = the shipped stops; Häggström's SA falls over 0.2 wh..wh, hag eq 6, i.e. about topRound 0.8 for cumulus). */
+  topRound: number;
+  /** H6 (ours, terraces): smoothstep ramps in the trapezoids instead of linear (C1 at the stops, so the threshold draws no crease line). */
+  profileSmooth: boolean;
+  /** H6 (flat-cut tops; hag p.13 "high wh toward a cloud's centre gives rounded clouds", ne22 p.20 per-column max height): the column top falls
+   *  with the coverage, top = min + (max - min) * mix(1, sat(cov / heightCoverageRef), heightFromCoverage). 0 = off (H5). Constants ours. */
+  heightFromCoverage: number;
+  heightCoverageRef: number;
+  /** H6 (connective material; gp7 p.107 "small clouds lighter", applied at hag eq 16's DA position, i.e. after the erosion so it cannot eat
+   *  small clouds): density x sat(cov / coverageDensityRef)^coverageDensityPow. 0 = off (H5). Constants ours. */
+  coverageDensityPow: number;
+  coverageDensityRef: number;
+  /** H6 (connective material; n3 s162's wispy "skirt" between formations, ours as a formula): below the coverage threshold a thin veil continues
+   *  each body for `veilWidth` (in base x gradient units) at most `veilDensity` (density units), only below `veilHeight` (h), eroded by the
+   *  wispy detail. 0 = off. */
+  veilWidth: number;
+  veilDensity: number;
+  veilHeight: number;
+  /** H6: the veil is multiplied by the detail fBM to this power (1 = the fBM; higher = streakier, ours). */
+  veilWisp: number;
   ndf: HzdNdfSettings;
 }
 
@@ -272,18 +308,20 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
-  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.8, heightVariation: 0.1,
+  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.8, heightVariation: 0.1, footprint: 0, worleyCells: 6,
 };
 export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves',
   shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
-  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.4, ringType: 1, ndf: HZD_NDF_DEFAULTS,
+  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.4, ringType: 1, ringFadeStart: 0.8,
+  erosionStrength: 0.2, wispyHeight: 0.1, erosionOrder: 'gp7', topRound: 0, profileSmooth: false, heightFromCoverage: 0, heightCoverageRef: 0.5,
+  coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.15, veilDensity: 0.03, veilHeight: 0.3, veilWisp: 3, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
-export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation].join(',');
+export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.footprint, n.worleyCells].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
@@ -295,8 +333,8 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
   };
 }
 
-/** ProcParams uniform: 37 vec4 (the last seven are the HZD shaper's). */
-export const PROC_PARAM_FLOATS = 156;
+/** ProcParams uniform: 42 vec4 (the last twelve are the HZD shaper's). */
+export const PROC_PARAM_FLOATS = 168;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -351,7 +389,10 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : 0], 140);
   out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, hz.detailCubicDistance], 144);
   out.set([hz.ringStart, Math.max(hz.ringEnd, hz.ringStart + 1), hz.ringCoverage, hz.ringType], 148);
-  out.set([hz.shapeContrast, 0, 0, 0], 152);
+  out.set([hz.shapeContrast, hz.erosionStrength, Math.max(hz.wispyHeight, 1e-3), hz.erosionOrder === 'hfw' ? 1 : 0], 152);
+  out.set([hz.topRound, hz.profileSmooth ? 1 : 0, hz.heightFromCoverage, Math.max(hz.heightCoverageRef, 1e-3)], 156);
+  out.set([hz.coverageDensityPow, Math.max(hz.coverageDensityRef, 1e-3), hz.veilWidth, hz.veilDensity], 160);
+  out.set([Math.max(hz.veilHeight, 1e-3), hz.ringFadeStart, hz.veilWisp, 0], 164);
   return [minY, maxY];
 }
 

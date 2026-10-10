@@ -16,12 +16,13 @@ const USAGE = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING 
 export function generateHzdNdf(device: GPUDevice, n: HzdNdfSettings): HzdNdf {
   const size = Math.max(8, Math.round(n.resolution));
   const texture = device.createTexture({ label: 'hzd ndf', size: [size, size, 2], format: 'rgba8unorm', usage: USAGE });
-  const buffer = device.createBuffer({ label: 'hzd ndf gen', size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const buffer = device.createBuffer({ label: 'hzd ndf gen', size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(buffer, 0, new Float32Array([
     n.coverageCells, n.islandCells, n.typeCells, 3,
     n.islandWeight, n.coverageLo, n.coverageHi, n.seed,
     n.typeMin, n.typeMax, n.bottomType, 0,
     n.minHeight, n.maxHeight, n.heightVariation, 0,
+    n.footprint, n.worleyCells, 0, 0,
   ]));
   const pipeline = device.createComputePipeline({ label: 'hzd ndf gen', layout: 'auto', compute: { module: device.createShaderModule({ label: 'hzd ndf gen', code: HZD_NDF_GEN_WGSL }), entryPoint: 'generate' } });
   const enc = device.createCommandEncoder({ label: 'hzd ndf gen' });
