@@ -1,0 +1,177 @@
+<title>Clouds Rounds Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a vertical timeline of rounds (done → running → planned), each a card with goal, outcome and status chips; a "where the look is" strip and a judge scoreboard up top. */
+:root {
+  --bg: #eef2f6; --panel: #f8fafc; --ink: #18222f; --muted: #566476; --line: #cfd8e3;
+  --sky: #34587f; --sun: #b7791f; --ok: #2f7a4f; --run: #a26a12; --plan: #6b7a8c;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Serif 4", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544; --sky: #8fb0dd; --sun: #e2a94a; --ok: #6cc293; --run: #e2a94a; --plan: #8c9aac; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544; --sky: #8fb0dd; --sun: #e2a94a; --ok: #6cc293; --run: #e2a94a; --plan: #8c9aac; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); }
+.wrap { max-width: 1000px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 80px; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.12rem; font-weight: 700; }
+p { margin: 0; max-width: 70ch; }
+code { font-family: var(--mono); font-size: 0.82em; }
+.eyebrow { font: 500 0.74rem var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.lede { font-size: 1.12rem; }
+section { display: grid; gap: 16px; }
+.rule { display: flex; align-items: baseline; gap: 14px; border-top: 2px solid var(--ink); padding-top: 10px; }
+.rule .alt { font: 0.74rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; }
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; border-radius: 2px; }
+figcaption { font: 0.74rem var(--mono); color: var(--muted); }
+.timeline { display: grid; gap: 14px; border-left: 2px solid var(--line); padding-left: 20px; margin-left: 6px; }
+.round { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
+.round::before { content: ""; position: absolute; left: -29px; top: 20px; width: 14px; height: 14px; border-radius: 50%; background: var(--plan); border: 3px solid var(--bg); }
+.round.done::before { background: var(--ok); }
+.round.run::before { background: var(--run); }
+.round .top { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
+.state { font: 500 0.7rem var(--mono); padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; text-transform: uppercase; letter-spacing: 0.06em; }
+.done .state { color: var(--ok); } .run .state { color: var(--run); } .plan .state { color: var(--plan); }
+.round ul { margin: 0; padding-left: 1.1em; display: grid; gap: 5px; font-size: 0.95rem; max-width: 72ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 0.72rem var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 7px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.85rem; white-space: nowrap; }
+ul.plain { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; max-width: 72ch; }
+a { color: var(--sky); }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">WebGPU Clouds · living overview · updated 2026-10-10 afternoon</span>
+  <h1>Clouds Rounds Overview</h1>
+  <p class="lede">Where the work stands, round by round. The aim: master Horizon Zero Dawn's procedural clouds first, built on the Nubis-era structures we already know, with Houdini authoring in parallel, judged against HZD and your photos. Calibrated blind judges (Opus and Fable) score every look change; you have the final word.</p>
+</header>
+
+<section>
+  <div class="rule"><h2>Where the look is now</h2><span class="alt">best current render of each kind</span></div>
+  <div class="strip">
+    <figure><img src="img/h5-after.jpg" alt="HZD-chain procedural sky after H5"><figcaption>Procedural HZD sky (H5) · you: closer, but toon, isolated</figcaption></figure>
+    <figure><img src="img/r1-c94.jpg" alt="EmberGen 02 render variants"><figcaption>Imported sim (EmberGen 02) · render + shape fixes · judges 5/10</figcaption></figure>
+    <figure><img src="img/frog-after.jpg" alt="The Frog after the pits fix"><figcaption>Frog (Houdini nodes) · right shape, reads as foam</figcaption></figure>
+  </div>
+  <p>Honest state: nothing yet passes for a real cloud. The best judged scores are about 5–6/10. The shared gap is material (density, thin connective vapour, shaded-side values, colour) and, on the procedural sky, connective flow and surface detail. Round M is on exactly those.</p>
+</section>
+
+<section>
+  <div class="rule"><h2>Rounds</h2><span class="alt">oldest first</span></div>
+  <div class="timeline">
+
+    <div class="round done">
+      <div class="top"><h3>Before today · P0–P10, Q, X, L</h3><span class="state">done</span></div>
+      <ul>
+        <li>Nubis Cubed voxel renderer in WebGPU: NVDF up-rez sampler, light grid, temporal resolve, ground shadows, three.js adapter, docs site.</li>
+        <li>Our own NVDF generator (species, weather v2, Pyro library); paused, since agents improvised shapes.</li>
+        <li>Procedural stopgap ported from Takram/Sky Pro (X1–X4); since corrected: Takram is not the target.</li>
+      </ul>
+    </div>
+
+    <div class="round done">
+      <div class="top"><h3>Research organisation · RS</h3><span class="state">done</span></div>
+      <ul>
+        <li>17 source notes with exact formulas and code (Nubis Cubed split by section, GPU Pro 7, Häggström, HZD 2015, Nubis 2017/2022, HFW, Webanck + supplement, noise generators); 11 spot-checked against sources.</li>
+        <li>5 topic guides and a ranked top 20; your Santa's Sleigh and Frog studies; EmberGen inventory; native-port survey.</li>
+        <li>Decided: the sky uses Nubis Evolved's five-field data field.</li>
+      </ul>
+      <div class="chips"><span class="chip">docs/research/topics/README.md</span><span class="chip">docs/research/sources/</span></div>
+    </div>
+
+    <div class="round done">
+      <div class="top"><h3>Round H · HZD foundation and authoring</h3><span class="state">done</span></div>
+      <ul>
+        <li>HZD reference path (noise bake, data field, <code>hzd</code> shaper) and a look-match pass; you chose H5's direction.</li>
+        <li>Detail visibility fixes; a lighting blotch bug; Nubis profile tables (tooling).</li>
+        <li>Houdini: 8 rigs you can open, lens-seeded Pyro, the Frog from cloud nodes.</li>
+        <li>Calibration: Fable tracks you best, both judges kept; rubric v2 (realism, material, cohesion).</li>
+        <li>Diagnoses: foam is half render, half form; pits came from wispy noise on dense surfaces (fixed); Karma ground truth; direct VDB rendering.</li>
+      </ul>
+      <div class="chips"><span class="chip">review: Round H Review page</span><span class="chip">work/calibration/</span></div>
+    </div>
+
+    <div class="round run">
+      <div class="top"><h3>Round M · material and the sky, pass 2</h3><span class="state">running</span></div>
+      <ul>
+        <li><b>M1 material:</b> imported VDBs render directly by default; keep thin connective vapour; shaded-side values and crease colour toward Karma; Frog and EmberGen re-rendered.</li>
+        <li><b>H6 HZD sky pass 2:</b> low-density connective flow between bodies, real surface detail, terraces, flat-cut tops, coverage thinning.</li>
+        <li>Both blind-judged against Karma / HZD frames, then you.</li>
+      </ul>
+    </div>
+
+    <div class="round plan">
+      <div class="top"><h3>Round W · weather and layering</h3><span class="state">planned</span></div>
+      <ul>
+        <li>A real data-field map (Nubis 2017 connected vs isolated footprints, type), one volumetric shell with continuous type, weather states and an HZD art panel, slow drift with the Nubis still map as an option.</li>
+        <li>A paint page in the repo for weather overrides; procedural valley/height fog.</li>
+      </ul>
+    </div>
+
+    <div class="round plan">
+      <div class="top"><h3>Round S · scenes: Santa's Sleigh and friends</h3><span class="state">planned</span></div>
+      <ul>
+        <li>Several bodies in one scene with procedural connectors between them (your measure for the engine), background clouds, high cirrus, aerial views.</li>
+        <li>Needs multi-volume support (the Frog's satellites are faked today) and the Round M material.</li>
+        <li>Sculpt first from the photos, procedural finesse after; anvils and the rim pass.</li>
+      </ul>
+    </div>
+
+    <div class="round plan">
+      <div class="top"><h3>Round A · authoring quality</h3><span class="state">planned</span></div>
+      <ul>
+        <li>The biggest shortcoming by your account: agents as artists. Fewer, larger domes in sims; Houdini cloud nodes beyond the Frog; your rigs as the review surface. Outsourcing the Houdini work stays an option.</li>
+      </ul>
+    </div>
+
+    <div class="round plan">
+      <div class="top"><h3>Round P · hard performance pass</h3><span class="state">after the look</span></div>
+      <ul>
+        <li>From ultra back to budget: spread shaping/animation over frames, slower lighting cadence (~30 fps or amortised), render clouds small and upscale with your FSR3 port. The full-res far pass is a named target.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="rule"><h2>Judge scoreboard</h2><span class="alt">best overall per round, out of 10</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Round</th><th>What was judged</th><th>Best</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Calibration</td><td>9 renders, blind</td><td class="num">you 8 · Fable 6 · Opus 5</td><td>EmberGen 02 top for all three</td></tr>
+      <tr><td>R1</td><td>render vs form fixes</td><td class="num">Fable 6 · Opus 5</td><td>both fixes together best; material caps at ~5</td></tr>
+      <tr><td>P1</td><td>pits fix</td><td class="num">Fable 5 · Opus 4</td><td>fix preferred in 5 of 6 pairs</td></tr>
+      <tr><td>H5</td><td>HZD sky</td><td class="num">Opus 5 (HZD 6) · Fable 4</td><td>judges split; you chose H5</td></tr>
+      <tr><td>Round M</td><td>material, sky pass 2</td><td class="num">pending</td><td></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="rule"><h2>Standing decisions</h2></div>
+  <ul class="plain">
+    <li>Target: HZD and your photos; Takram/Sky Pro are not the target.</li>
+    <li>Master HZD procedural first, but build the later Nubis version where it's known to be better.</li>
+    <li>Sky weather: Nubis Evolved five-field data field; no rain channel; slow drift by default.</li>
+    <li>Imported VDBs render directly by default; sims going through the Nubis chain are closed at 32 m first.</li>
+    <li>Lit ridges crisp; only thin parts and undersides go soft; cohesion and vapour matter as much as detail.</li>
+    <li>Look work at ultra; a hard performance pass comes later.</li>
+    <li>Both Opus and Fable judge every look change; you're final.</li>
+  </ul>
+  <p class="eyebrow">Repo: work/BOARD.md (tasks) · work/HANDOFF.md (session start) · docs/research/topics/ (guides)</p>
+</section>
+</div>

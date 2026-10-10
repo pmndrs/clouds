@@ -2,6 +2,8 @@
 
 For the next orchestrator session. Read this, then `docs/research/topics/README.md` (topic map, combined top-20, all owner questions), `work/README.md` (protocol) and `docs/PLAN-2026-10-next.md`.
 
+**Rounds overview (living page, keep it updated each round):** https://claude.ai/artifact/VqPT2dzg3uFNXpcvnMQRQw (source `work/review/rounds.html`). The older progress and roadmap artifacts (1XG5…, NVZp…) are stale.
+
 ## Round H (2026-10-10, afternoon)
 
 All Round H tasks are finished and accepted (board section "Round H"; reports in `work/reports/`). Owner review page with the open decisions: https://claude.ai/artifact/RPabtz6qpXTh9nS9nfGMu5 (source `work/review/round-h.html`; database collection `answers`, docs `h5`, `direct`, `m1`, `free` with `{choice, note}`). Calibration and judging: `work/calibration/` (rubric v2; both Opus and Fable judge every look change; owner is final). Open decisions: (1) H5 sky A vs B, (2) imported VDBs render directly by default, (3) start M1 material (Karma numbers in `work/reports/V1.md`).
