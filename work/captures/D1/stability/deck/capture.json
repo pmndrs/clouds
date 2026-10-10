@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:54432/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
+  "url": "http://127.0.0.1:56429/decima/?cloud=parkouring&bookmark=p101&look=deck&clean=1",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T20:15:31.097Z",
+  "startedAt": "2026-10-10T21:52:12.587Z",
   "shots": [
     {
       "name": "view",
@@ -14,22 +14,22 @@
         "look": "deck",
         "cloud": "parkouring",
         "camera": [
-          -297.70000000000005,
-          500.00000000000006,
+          -297.7,
+          499.99999999999994,
           -628.5
         ],
-        "vfov": 38.97,
+        "vfov": 39.34,
         "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.129194,
-          "lightGrid": 0.166357,
-          "marchNear": 1.26883735,
-          "marchFar": 19.171568575000002,
-          "shadowMap": 0.5573268571428571,
-          "composite": 3.315779725,
-          "dome": 0.23283327500000003
+          "lightGridReduce": 0.045247,
+          "lightGrid": 0.056621,
+          "marchNear": 1.1214765750000002,
+          "marchFar": 17.557493349999994,
+          "shadowMap": 0.3566634,
+          "composite": 5.372484024999999,
+          "dome": 0.43347215000000017
         },
         "frameMs": {},
         "renderSize": [
@@ -146,6 +146,7 @@
           "glowDepth": 0,
           "glowDepthMode": 0,
           "microLightScale": 0,
+          "microShadowMode": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -160,22 +161,22 @@
         "look": "deck",
         "cloud": "parkouring",
         "camera": [
-          -297.70000000000005,
-          500.00000000000006,
+          -297.7,
+          499.99999999999994,
           -628.5
         ],
-        "vfov": 38.97,
+        "vfov": 39.34,
         "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.129194,
-          "lightGrid": 0.166357,
-          "marchNear": 1.33435115,
-          "marchFar": 16.48628383333333,
-          "shadowMap": 0.5573268571428571,
-          "composite": 5.107952683333335,
-          "dome": 0.21982088333333324
+          "lightGridReduce": 0.045247,
+          "lightGrid": 0.056621,
+          "marchNear": 1.1328132333333332,
+          "marchFar": 16.251583183333334,
+          "shadowMap": 0.3566634,
+          "composite": 4.305527250000002,
+          "dome": 0.3763442166666666
         },
         "frameMs": {},
         "renderSize": [
@@ -292,6 +293,7 @@
           "glowDepth": 0,
           "glowDepthMode": 0,
           "microLightScale": 0,
+          "microShadowMode": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -306,22 +308,22 @@
         "look": "deck",
         "cloud": "parkouring",
         "camera": [
-          -297.70000000000005,
-          500.00000000000006,
+          -297.7,
+          499.99999999999994,
           -628.5
         ],
-        "vfov": 38.97,
+        "vfov": 39.34,
         "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.129194,
-          "lightGrid": 0.166357,
-          "marchNear": 0.9894120833333332,
-          "marchFar": 15.981029716666667,
-          "shadowMap": 0.5573268571428571,
-          "composite": 4.04165985,
-          "dome": 0.2772700833333333
+          "lightGridReduce": 0.045247,
+          "lightGrid": 0.056621,
+          "marchNear": 1.2122335833333333,
+          "marchFar": 16.79306586666667,
+          "shadowMap": 0.3566634,
+          "composite": 3.1636358000000007,
+          "dome": 0.3110654333333334
         },
         "frameMs": {},
         "renderSize": [
@@ -438,6 +440,7 @@
           "glowDepth": 0,
           "glowDepthMode": 0,
           "microLightScale": 0,
+          "microShadowMode": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -452,22 +455,22 @@
         "look": "deck",
         "cloud": "parkouring",
         "camera": [
-          -297.70000000000005,
-          500.00000000000006,
+          -297.7,
+          499.99999999999994,
           -628.5
         ],
-        "vfov": 38.97,
+        "vfov": 39.34,
         "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.129194,
-          "lightGrid": 0.166357,
-          "marchNear": 0.9967195500000003,
-          "marchFar": 16.928217366666665,
-          "shadowMap": 0.5573268571428571,
-          "composite": 4.111728216666667,
-          "dome": 0.24398238333333333
+          "lightGridReduce": 0.045247,
+          "lightGrid": 0.056621,
+          "marchNear": 1.0982908666666669,
+          "marchFar": 16.06773685,
+          "shadowMap": 0.3566634,
+          "composite": 4.192076383333333,
+          "dome": 0.26409178333333333
         },
         "frameMs": {},
         "renderSize": [
@@ -584,6 +587,7 @@
           "glowDepth": 0,
           "glowDepthMode": 0,
           "microLightScale": 0,
+          "microShadowMode": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -598,22 +602,22 @@
         "look": "deck",
         "cloud": "parkouring",
         "camera": [
-          -297.70000000000005,
-          500.00000000000006,
+          -297.7,
+          499.99999999999994,
           -628.5
         ],
-        "vfov": 38.97,
+        "vfov": 39.34,
         "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.129194,
-          "lightGrid": 0.166357,
-          "marchNear": 1.132960516666667,
-          "marchFar": 16.794859049999996,
-          "shadowMap": 0.5573268571428571,
-          "composite": 4.986693383333333,
-          "dome": 0.2582232
+          "lightGridReduce": 0.045247,
+          "lightGrid": 0.056621,
+          "marchNear": 0.7757929833333334,
+          "marchFar": 17.903044216666665,
+          "shadowMap": 0.3566634,
+          "composite": 4.438760849999999,
+          "dome": 0.30614325000000003
         },
         "frameMs": {},
         "renderSize": [
@@ -730,6 +734,7 @@
           "glowDepth": 0,
           "glowDepthMode": 0,
           "microLightScale": 0,
+          "microShadowMode": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -744,22 +749,22 @@
         "look": "deck",
         "cloud": "parkouring",
         "camera": [
-          -297.70000000000005,
-          500.00000000000006,
+          -297.7,
+          499.99999999999994,
           -628.5
         ],
-        "vfov": 38.97,
+        "vfov": 39.34,
         "sunElevation": 35,
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.129194,
-          "lightGrid": 0.166357,
-          "marchNear": 1.3095576666666666,
-          "marchFar": 17.77728365,
-          "shadowMap": 0.5573268571428571,
-          "composite": 3.8313644833333336,
-          "dome": 0.23627829999999997
+          "lightGridReduce": 0.045247,
+          "lightGrid": 0.056621,
+          "marchNear": 1.0764697166666664,
+          "marchFar": 16.7583997,
+          "shadowMap": 0.3566634,
+          "composite": 4.392987783333333,
+          "dome": 0.31382233333333326
         },
         "frameMs": {},
         "renderSize": [
@@ -876,6 +881,7 @@
           "glowDepth": 0,
           "glowDepthMode": 0,
           "microLightScale": 0,
+          "microShadowMode": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
