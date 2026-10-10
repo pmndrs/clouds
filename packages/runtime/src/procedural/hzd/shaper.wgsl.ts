@@ -115,12 +115,15 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   if (alt <= P.hzLayer.x || alt >= P.hzLayer.y) { return o; }
   var n = ndfSample(p.xz);
   // H5 horizon ring (hzd15 s45): coverage toward the ring's target and type toward cumulus from ringStart to ringEnd; nothing beyond ringEnd.
-  if (P.hzRing.x > 0.0) {
+  // The ring is HZD's ground-level far field: it fades out as the camera climbs from half the layer base to the base (ours), so a view from
+  // inside or above the layer sees the field to its horizon.
+  let ringOn = 1.0 - saturate((procAltitude(P.origin.xyz) - 0.5 * P.hzLayer.x) / max(0.5 * P.hzLayer.x, 1.0));
+  if (P.hzRing.x > 0.0 && ringOn > 0.0) {
     let r = length(p.xz - P.origin.xz);
-    if (r >= P.hzRing.y) { return o; }
-    let w = saturate((r - P.hzRing.x) / (P.hzRing.y - P.hzRing.x));
+    if (r >= P.hzRing.y && ringOn >= 1.0) { return o; }
+    let w = saturate((r - P.hzRing.x) / (P.hzRing.y - P.hzRing.x)) * ringOn;
     // The last 20 % of the band also takes the coverage to 0, so the clouds shrink away instead of ending on a line at ringEnd (ours).
-    n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - smoothstep(0.8, 1.0, r / P.hzRing.y));
+    n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - ringOn * smoothstep(0.8, 1.0, r / P.hzRing.y));
     n.topType = mix(n.topType, P.hzRing.w, w);
   }
   let span = P.hzLayer.y - P.hzLayer.x;

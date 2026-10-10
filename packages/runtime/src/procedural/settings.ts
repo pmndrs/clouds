@@ -182,7 +182,8 @@ export interface HzdShape {
    *  NDF's coverage is pulled toward `ringCoverage` and its type toward `ringType` ("about 50 %", "toward cumulus": horizon clouds poke above the
    *  mountains), and nothing is drawn beyond `ringEnd` (HZD's 35 km radius). ringStart 0 = off. The pull is linear over the band (the slide
    *  shades the disc dark to light; ours). Default on (15 / 35 km); ringCoverage 0.4 is "about 50 % cover" on our NDF scale (no *cov, base mean
-   *  0.62: cloud where base x gradient > 1 - coverage), ours. The last 20 % of the band fades the coverage to 0 (ours, no hard line at 35 km). */
+   *  0.62: cloud where base x gradient > 1 - coverage), ours. The last 20 % of the band fades the coverage to 0 (ours, no hard line at 35 km),
+   *  and the whole ring fades out as the camera climbs from half the layer base to the base (ours: HZD is a ground-level view). */
   ringStart: number;
   ringEnd: number;
   ringCoverage: number;
