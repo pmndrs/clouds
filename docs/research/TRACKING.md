@@ -80,6 +80,9 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 | mie | `jendersie/` | light | P3 | 🟦 (`approximate-mie.md`) | |
 | pack | `nubis-pack/` (voxel cloud pack) | authoring | P2 | 🟦 (P0 work) | Re-read its docs for authoring conventions |
 
+| gos17 | `papers/Goswami-Neyret2017-LandscapeConvectiveClouds.pdf` (VRIPHYS 2017) | shape evolve multi-body | P1 | ⬜ fetched 2026-10-10 | Parcels + hypertexture amplification; evolving cumulus at landscape scale |
+| gos19 | `papers/Goswami2019-CumulusCloudMap.pdf` (STAG 2019) | shape evolve multi-body | P1 | ⬜ fetched 2026-10-10 | Parcel physics + 2D cloud maps, ~200 fps; closest published work to the Santa's Sleigh merge |
+| ney03 | `papers/Neyret2003-AdvectedTextures.pdf` (SCA 2003) | detail motion | P2 | ⬜ fetched 2026-10-10 | Detail that travels with the flow without stretching (`cloud-motion-ideas.md`) |
 | tvn | sebh/TileableVolumeNoise (web, MIT) | noise | P1 | 🟦 `sources/tvn.md` | Owner-supplied 2026-10-10 |
 | psrd | stegu/psrdnoise (web, MIT) | noise motion | P1 | 🟦 `sources/psrd.md` | Owner-supplied 2026-10-10 |
 | cloudpack | `vdbs/CloudPack/` (EmberGen, 10 VDBs + `.ember`) | authoring | P1 | 🟦 `cloudpack-embergen.md` | Z-up; seeding vs our Pyro |
@@ -92,7 +95,7 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 - Bouthors and Neyret 2004, "Modeling Clouds Shape";
 - Goswami and Neyret 2017 and 2018;
 - Ebert, *Texturing & Modeling*, cloud chapter;
-- Webanck 2018 supplementary material (the other 8 per-type shape functions);
+- Webanck 2018 supplementary material (the other 8 per-type shape functions): **not found online** (HAL lists only the article and a video). Candidates: Webanck et al., j.FIG 2017, "Modélisation procédurale de nuages multigenre" (hal-01813228), and Webanck's 2019 thesis "La génération procédurale d'effets atmosphériques" (no PDF found);
 - the ranked list of 17 in `sources/survey.md` (top: Bouthors & Neyret 2004, Neyret 2000 phenomenological shader, Goswami & Neyret 2017 + Goswami 2019 evolving cumulus, Neyret 2003 advected textures). **Downloads need the owner's OK.**
 
 ## Tasks (board ids RS-*)
