@@ -57,6 +57,18 @@ Ranking principle (owner, 2026-10-10): **procedural mastery to the HZD level fir
 
 Dedup notes: SD10 is S1 + S2 + S6; SD5 is the rung-1/2 part of AU1; SD6 is S10; AU5 is the library-wide form of SD3; AU6 is L8's authoring half; AU7 is SD8.
 
+## Owner decisions (2026-10-10, research review page)
+- **Approach:** master the HZD procedural work and systems first, as the foundation for the later methods. Where later Nubis work is a known improvement, build that version from the start (e.g. the five-field NDF, L1). Papers outside the Nubis line are used when they fill a gap, otherwise as references.
+- **All 20 items approved.** S4 (erosion A/B): build the A/B, the owner judges. SD4: do it if trivial; mobile is not a focus. Items whose purpose was unclear to the owner (S3, L2, SD2, SD3) were re-explained in chat; SD3 makes undersides **softer**, not crisper.
+- **Weather movement (W1):** the owner expects slow-moving weather, as in Ghost of Tsushima's global weather texture refined by noise. Default: the map drifts slowly with the wind and evolves, with noise scrolling over it; Nubis's static map stays a switchable mode.
+- **Shear/lead direction (SD3):** take it from the weather wind by default; show options later.
+- **Surface detail distance (SD1/SD2):** judge at world-view distance first, close-ups later.
+- **Crispness:** lit ridges and crusts are much less fuzzy than renderers make them; only thinning and wispy parts, and undersides, go loose. Never blur the whole surface.
+- **Santa's Sleigh:** the measure is the individual bodies, the (likely procedural) connectors between them, background clouds and aerial views. Sculpt from the photo first, finesse with procedural detail. Don't over-invest in re-forming it exactly.
+- **Rigs:** commit `.hip` rigs. **Paint tool:** a page in the repo. **Valley fog:** wanted, no set priority, can be fully procedural (height-fog style).
+- **Biggest shortcoming per the owner:** agents acting as artists. The owner may outsource Houdini work if we can't get it right.
+- **Image generation** is for comparison only: use modest sizes to save credits.
+
 ## Questions for the owner (from the five guides, deduplicated: 12)
 Grouped by what they unblock. Source ids in brackets.
 1. ~~**Weather channel layout.**~~ **Decided 2026-10-10: follow Nubis Evolved's five-field NDF, no rain channel** (layering.md §1). Original question: which meaning for G (precipitation as in HZD/GP7, a second coverage footprint as in N17/Nutshell, fill coverage as in Häggström, or our species row)? Accept the proposal NDF A = coverage, top type, bottom type, precipitation; NDF B = min/max height? Unblocks ranks 10, 11, 12, 19 and L3, S8 [L1; layering §1; old conflict 1].
