@@ -2016,7 +2016,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Does:** SD1 noise mip constant `mipDistanceScale` 0.01 → A/B {0.001, 0.0015, 0.002, 0.005}, pick by eye at 4–12 km and against shimmer. S5 `wispyBias` 0, `detailBias` 0 (Nubis neutral). SD4 near-detail gate: gate at `max(detailDistance, 150)` or rescale the 50/150 ramps (`sources/n3.md` §7d); trivial fix only. SD2 the deck step `max(1, 0.08·√t)` inside clouds on high/ultra (`sources/n3/slides-110-155.md`, s150); keep the old constants as the low/medium path.
 - **Acceptance:** typecheck/test green. Before/after captures (flagship or open-water, ground + horizon + a 5–10 km view) for each change; frame cost before/after on high. Report each A/B with the chosen value and why.
 
-### [~] A1 Rigs the owner can open [AU2] · Sonnet
+### [x] A1 Rigs the owner can open [AU2] · Sonnet (af9d34c)
 - **Owns:** new `scripts/vdb/authoring/rigs.py`, new `houdini/rigs/` (committed `.hip`, owner approved), `scripts/vdb/authoring/README.md`, `work/reports/A1.md`.
 - **Does:** for each existing hython builder (`build_heroes.py`, `sim/sim_clouds.py`, `sim/library.py`, `sim/targets.py`), save the network it builds as a `.hip` with a `CONTROLS` null exposing the key parameters, sticky notes explaining each stage, and no cooked caches. One command regenerates all rigs. Plan in `docs/research/topics/authoring.md` ("Rigs the owner can open").
 - **Acceptance:** each `.hip` opens in Houdini 21 (verify by loading in hython and cooking the first stage), small file sizes listed, README section for the owner.
