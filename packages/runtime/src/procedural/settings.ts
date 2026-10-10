@@ -235,12 +235,12 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 };
 
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
-  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 6, islandCells: 2, islandWeight: 0.8, coverageLo: -0.45, coverageHi: 0.85,
+  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 6, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
   typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.8, heightVariation: 0.1,
 };
 export const HZD_DEFAULTS: HzdShape = {
-  layerBottom: 1500, layerTop: 5000, extinction: 0.2, coverageBias: 0, typeBias: 0, coverageMultiply: true, typeBlend: 'points',
-  shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
+  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: true, typeBlend: 'points',
+  shapeTile: 4000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', ndf: HZD_NDF_DEFAULTS,
 };

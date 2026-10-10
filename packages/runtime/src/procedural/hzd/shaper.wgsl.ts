@@ -140,7 +140,9 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
 }
 fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }
 const PROC_HAS_BOUNDS = false;
-fn procSigmaRef() -> f32 { return P.hzLayer.w; }
+// The trace re-uses a light tap while the density changes by under 8 % of this reference. The chain's densities stay under about 0.3 of the
+// extinction (coverage remap, * coverage, erosion), so the full extinction would re-use the light across whole flanks (visible terraces).
+fn procSigmaRef() -> f32 { return P.hzLayer.w * 0.25; }
 `;
 
 /** The density WGSL of a shaper (ProcParams struct not included). */
