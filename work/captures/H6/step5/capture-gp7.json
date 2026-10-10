@@ -4,29 +4,29 @@
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T12:15:19.887Z",
+  "startedAt": "2026-10-10T12:16:31.184Z",
   "shots": [
     {
       "name": "view",
       "file": "",
       "report": {
         "gpuMs": {
-          "hzd.scene": 7.5204705,
-          "hzd.lightGridReduce": 0.02733,
-          "hzd.lightGrid": 0.01954,
-          "hzd.marchNear": 0.05880399999999999,
-          "hzd.marchFar": 0.16043726666666666,
-          "hzd.shadowMap": 0.25072525000000007,
-          "hzd.composite": 0.39468131666666667,
-          "hzd.dome": 0.2561656166666667,
-          "hzd.skyLayer": 18.13203433333333,
-          "hzd.skyResolve": 0.2912371666666666,
-          "hzd.cloudsTotal": 19.590954949999993,
-          "hzd.total": 27.11142544999999
+          "hzd.scene": 12.784812983050848,
+          "hzd.lightGridReduce": 0.016956,
+          "hzd.lightGrid": 0.022663,
+          "hzd.marchNear": 0.05741986666666668,
+          "hzd.marchFar": 0.1539164666666667,
+          "hzd.shadowMap": 0.24489472222222222,
+          "hzd.composite": 0.35358844999999994,
+          "hzd.dome": 0.2091808166666667,
+          "hzd.skyLayer": 16.653867366666667,
+          "hzd.skyResolve": 0.24651988333333333,
+          "hzd.cloudsTotal": 17.959006572222222,
+          "hzd.total": 30.74381955527307
         },
         "frameMs": {
           "p50": 16.699999999999818,
-          "p95": 33.30000000000018
+          "p95": 33.40000000000009
         },
         "renderSize": [
           [
@@ -57,20 +57,20 @@
           "hzd": {
             "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
             "gpuMs": {
-              "scene": 7.5204705,
-              "lightGridReduce": 0.02733,
-              "lightGrid": 0.01954,
-              "marchNear": 0.05880399999999999,
-              "marchFar": 0.16043726666666666,
-              "shadowMap": 0.25072525000000007,
-              "composite": 0.39468131666666667,
-              "dome": 0.2561656166666667,
-              "skyLayer": 18.13203433333333,
-              "skyResolve": 0.2912371666666666,
-              "cloudsTotal": 19.590954949999993,
-              "total": 27.11142544999999
+              "scene": 12.784812983050848,
+              "lightGridReduce": 0.016956,
+              "lightGrid": 0.022663,
+              "marchNear": 0.05741986666666668,
+              "marchFar": 0.1539164666666667,
+              "shadowMap": 0.24489472222222222,
+              "composite": 0.35358844999999994,
+              "dome": 0.2091808166666667,
+              "skyLayer": 16.653867366666667,
+              "skyResolve": 0.24651988333333333,
+              "cloudsTotal": 17.959006572222222,
+              "total": 30.74381955527307
             },
-            "cpuMs": 0.7650000005960464,
+            "cpuMs": 0.5149999966224035,
             "renderSize": [
               1920,
               1080
@@ -85,7 +85,7 @@
             }
           }
         },
-        "frames": 249
+        "frames": 248
       }
     }
   ],

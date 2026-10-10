@@ -307,7 +307,7 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 };
 
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
-  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.9,
+  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
   typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
 };
 export const HZD_DEFAULTS: HzdShape = {
