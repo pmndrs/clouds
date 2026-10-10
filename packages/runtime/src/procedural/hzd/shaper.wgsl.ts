@@ -76,6 +76,32 @@ fn hzdHeightGradient(cloudType: f32, h: f32) -> f32 {
 }
 // S7 hook: N17's anvil exponent pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias))) goes here. Unchanged for now.
 fn hzdAnvil(coverage: f32, h: f32, n: NdfSample) -> f32 { return coverage; }
+// H5: tricubic B-spline read of the 128^3 shape (and 32^3 detail) texture from 8 trilinear taps (Sigg & Hadwiger, GPU Gems 2 ch. 20). Trilinear filtering leaves a
+// gradient kink on every texel face; at a 4 km tile a texel is 31 m, and the coverage threshold turns the kinks into terraced, faceted
+// flanks and flat bases ("contour lines" seen from below). The B-spline is C2, so the iso-surfaces are smooth (ours; HZD does not say).
+fn hzdCubic3(tex: texture_3d<f32>, uvw: vec3<f32>) -> vec4<f32> {
+  let n = vec3<f32>(textureDimensions(tex, 0));
+  let x = uvw * n - 0.5;
+  let i = floor(x);
+  let f = x - i;
+  let f2 = f * f; let f3 = f2 * f;
+  let w0 = (1.0 - 3.0 * f + 3.0 * f2 - f3) / 6.0;
+  let w1 = (4.0 - 6.0 * f2 + 3.0 * f3) / 6.0;
+  let w2 = (1.0 + 3.0 * f + 3.0 * f2 - 3.0 * f3) / 6.0;
+  let w3 = f3 / 6.0;
+  let g0 = w0 + w1;
+  let g1 = w2 + w3;
+  let h0 = (i - 0.5 + w1 / g0) / n;
+  let h1 = (i + 1.5 + w3 / g1) / n;
+  var r = vec4(0.0);
+  for (var k = 0u; k < 8u; k++) {
+    let sx = (k & 1u) != 0u; let sy = (k & 2u) != 0u; let sz = (k & 4u) != 0u;
+    let c = vec3(select(h0.x, h1.x, sx), select(h0.y, h1.y, sy), select(h0.z, h1.z, sz));
+    let w = select(g0.x, g1.x, sx) * select(g0.y, g1.y, sy) * select(g0.z, g1.z, sz);
+    r += w * textureSampleLevel(tex, procRepeat, c, 0.0);
+  }
+  return r;
+}
 fn hzdLod(footprint: f32, tile: f32, texels: f32) -> f32 { return max(0.0, log2(max(footprint * texels / tile, 1e-6)) + P.hzFade.w); }
 
 fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
@@ -102,7 +128,11 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   let qShape = q - scroll * P.hzSpeed.y;
 
   // 2 Base shape: the Perlin-Worley dilated by the low-frequency Worley fBM.
-  let A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, hzdLod(footprint, P.hzScale.x, 128.0));
+  let shapeLod = hzdLod(footprint, P.hzScale.x, 128.0);
+  // The cubic read where the texture is magnified (lod 0) and within P.hzMisc.y metres (0 = off), for full samples only.
+  let cubic = full && shapeLod <= 0.0 && t < P.hzMisc.y;
+  var A: vec4<f32>;
+  if (cubic) { A = hzdCubic3(procNoiseA, qShape / P.hzScale.x); } else { A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, shapeLod); }
   let lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
   let baseCloud = hzdRemap(A.r, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient;   // 3 height gradient
 
@@ -122,7 +152,10 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     var qd = q - scroll * P.hzSpeed.z;
     let curl = textureSampleLevel(procAux, procRepeat, qd.xz / P.hzScale.z, 0.0).xy;
     qd = qd + vec3(curl.x, 0.0, curl.y) * (P.hzScale.w * (1.0 - h));
-    let B = textureSampleLevel(procNoiseB, procRepeat, qd / P.hzScale.y, hzdLod(footprint, P.hzScale.y, 32.0)).rgb;
+    let detailLod = hzdLod(footprint, P.hzScale.y, 32.0);
+    var B: vec3<f32>;
+    if (detailLod <= 0.0 && t < P.hzMisc.y) { B = hzdCubic3(procNoiseB, qd / P.hzScale.y).rgb; }
+    else { B = textureSampleLevel(procNoiseB, procRepeat, qd / P.hzScale.y, detailLod).rgb; }
     let hfFbm = B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
     let hag = P.hzCov.w > 0.5;
     let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h * select(10.0, 5.0, hag)));

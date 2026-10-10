@@ -13,7 +13,7 @@ import { SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
 import { defaultProceduralSettings, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
 import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
-import { bakeHzdNoise, type HzdNoise } from './hzd/noise';
+import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
 import { generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
 import { hzdNdfKey } from './settings';
 import { bakeSkyProWeather, loadSkyProNoise, loadTakramTextures, skyProWeatherKey, type SkyProWeather, type TakramTextures, type TakramTextureUrls } from './textures';
@@ -56,7 +56,9 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   const hzdSync = (): boolean => {
     const h = settings.hzd;
     let changed = false;
-    if (!hzdNoise || hzdNoise.format !== h.noiseFormat) { retire(hzdNoise); hzdNoise = bakeHzdNoise(device, { format: h.noiseFormat }); changed = true; }
+    // H5: the bake options (format, R-chain carve/fine/smooth) are a key; a new key re-bakes.
+    const noiseOpts = { format: h.noiseFormat, carve: h.noiseCarve, fine: h.noiseFine, smooth: h.noiseSmooth, supersample: h.noiseSupersample };
+    if (!hzdNoise || hzdNoise.key !== hzdNoiseKey(noiseOpts)) { retire(hzdNoise); hzdNoise = bakeHzdNoise(device, noiseOpts); changed = true; }
     if (!hzdUploaded && (!hzdNdf || hzdNdf.key !== hzdNdfKey(h.ndf))) { const old = hzdNdf?.texture ?? null; hzdNdf = generateHzdNdf(device, h.ndf); retire(old); changed = true; }
     return changed;
   };

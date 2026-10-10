@@ -9,6 +9,13 @@ export interface HzdNoiseOptions {
   shapeSize?: number;
   detailSize?: number;
   curlSize?: number;
+  /** H5 (ours): scale of the R channel's coarse carving remaps (10, 20 cells) and fine dilating remaps (85, 165 cells), 1 = the Nubis tool;
+   *  and the smooth-min width of R's Worley terms (0 = hard F1 as the tool). */
+  carve?: number;
+  fine?: number;
+  smooth?: number;
+  /** H5 (ours): sub-samples per texel edge of the shape bake (1 = point sampled as the tool; 2 = a 2x2x2 box prefilter against aliasing). */
+  supersample?: number;
   /** Extra usage (e.g. COPY_SRC for a debug read-back). */
   usage?: number;
 }
@@ -20,8 +27,13 @@ export interface HzdNoise {
   /** 128^2 rgba16float: the curl vector (signed, about +-1), A = 1. */
   curl: GPUTexture;
   format: GPUTextureFormat;
+  /** The options the set was baked with (format, carve, fine, smooth): a different key re-bakes. */
+  key: string;
   destroy(): void;
 }
+
+/** The re-bake key of a set of options. */
+export const hzdNoiseKey = (o: HzdNoiseOptions) => [o.format ?? 'rgba8unorm', o.seed ?? 1, o.carve ?? 1, o.fine ?? 1, o.smooth ?? 0, o.supersample ?? 1].join(',');
 
 const mipCount = (n: number) => Math.floor(Math.log2(n)) + 1;
 
@@ -44,8 +56,12 @@ export function bakeHzdNoise(device: GPUDevice, o: HzdNoiseOptions = {}): HzdNoi
 
   const buffers: GPUBuffer[] = [];
   const params = (size: number) => {
-    const b = device.createBuffer({ label: 'hzd bake params', size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    device.queue.writeBuffer(b, 0, new Uint32Array([seed, size, 0, 0]));
+    const b = device.createBuffer({ label: 'hzd bake params', size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const data = new ArrayBuffer(32);
+    new Uint32Array(data, 0, 2).set([seed, size]);
+    new Float32Array(data, 8, 3).set([o.carve ?? 1, o.fine ?? 1, o.smooth ?? 0]);
+    new Uint32Array(data, 20, 1).set([Math.max(1, Math.round(o.supersample ?? 1))]);
+    device.queue.writeBuffer(b, 0, data);
     buffers.push(b);
     return b;
   };
@@ -75,5 +91,5 @@ export function bakeHzdNoise(device: GPUDevice, o: HzdNoiseOptions = {}): HzdNoi
   }
   device.queue.submit([enc.finish()]);
   void device.queue.onSubmittedWorkDone().then(() => { for (const b of buffers) b.destroy(); });
-  return { shape, detail, curl, format, destroy() { shape.destroy(); detail.destroy(); curl.destroy(); } };
+  return { shape, detail, curl, format, key: hzdNoiseKey(o), destroy() { shape.destroy(); detail.destroy(); curl.destroy(); } };
 }

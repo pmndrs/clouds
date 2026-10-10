@@ -118,7 +118,9 @@ export interface HzdShape {
   /** HZD 2015's artist override (hzd15 s38-42): coverage +-0.5 and type +-1, added to the NDF. The compare page drives coverageBias. */
   coverageBias: number;
   typeBias: number;
-  /** gp7 p.107: multiply by coverage after the remap ("small clouds lighter"). The remap itself uses HFW p.17's sign (threshold 1 - coverage). */
+  /** gp7 p.107: multiply by coverage after the remap ("small clouds lighter"). The remap itself uses HFW p.17's sign (threshold 1 - coverage).
+   *  H5: off by default, as HFW p.17 and hag eq 12 print the remap without it. With the multiply the density is base + coverage - 1, under 0.15
+   *  at our NDF's coverage (p99 0.57), so gp7's fixed 0.2 erosion cap ate small clouds and thinned bodies to popcorn (H1's stage 2 -> 3). */
   coverageMultiply: boolean;
   /** How the three Nutshell gradients (nut s7-8) blend by type; the law is unpublished. 'points' lerps the four stops (n17.md's reading, one
    *  flat core); 'curves' is GP7 p.103's "weighted sum" with tent weights. */
@@ -152,6 +154,17 @@ export interface HzdShape {
   stage: 1 | 2 | 3;
   /** Noise texture format (procedural/hzd/noise.ts): RGBA8 as HZD, or rgba16float (SD8). Changing it re-bakes the noise. */
   noiseFormat: 'rgba8unorm' | 'rgba16float';
+  /** H5 (ours, not in the Nubis tool): the R channel's coarse carving remaps (10 and 20 cells per tile, 0.5 F1 / 0.2 F1) and fine dilating
+   *  remaps (85 and 165 cells) scaled by these factors (1 = the tool), and the smooth-min width of R's Worley terms (0 = the tool's hard F1;
+   *  > 0 rounds the creases along the Voronoi faces). Changing any re-bakes the noise. */
+  noiseCarve: number;
+  noiseFine: number;
+  noiseSmooth: number;
+  /** H5 (ours): sub-samples per texel edge of the shape bake: 1 point-samples as the tool, 2 box-filters 2x2x2 (the tool's finest terms alias). */
+  noiseSupersample: number;
+  /** H5 (ours): the shape texture is read with a tricubic B-spline (8 trilinear taps) on full samples nearer than this (m) while it is
+   *  magnified; trilinear beyond, and everywhere at 0. Removes the terraces trilinear filtering leaves on flanks and bases. */
+  shapeCubicDistance: number;
   ndf: HzdNdfSettings;
 }
 
@@ -239,10 +252,10 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.8, heightVariation: 0.1,
 };
 export const HZD_DEFAULTS: HzdShape = {
-  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: true, typeBlend: 'points',
+  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'points',
   shapeTile: 4000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
-  stage: 3, noiseFormat: 'rgba8unorm', ndf: HZD_NDF_DEFAULTS,
+  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, shapeCubicDistance: 0, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -313,7 +326,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
   out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
   out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : 0], 140);
-  out.set([hz.stage, 0, 0, 0], 144);
+  out.set([hz.stage, hz.shapeCubicDistance, 0, 0], 144);
   return [minY, maxY];
 }
 

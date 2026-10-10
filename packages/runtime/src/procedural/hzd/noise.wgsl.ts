@@ -72,20 +72,27 @@ fn hzdPerlin(p: vec3<f32>, period: i32, seed: u32, quintic: bool) -> f32 {
 }
 // Worley F1^2 in cell units, scaled to Houdini's worleynoise (calibrated, see the header): p in [0,1)^3, 'cells' feature points per tile edge,
 // one jittered point per cell (three independent hashes, not tvn's diagonal-only offset), cell indices wrapped so the field tiles exactly.
-fn hzdWorley(p: vec3<f32>, cells: f32, seed: u32) -> f32 {
+fn hzdWorley(p: vec3<f32>, cells: f32, seed: u32) -> f32 { return hzdWorleyS(p, cells, seed, 0.0); }
+// H5: 'smooth' > 0 replaces the hard min by an exponential smooth-min of the 27 squared distances (width 'smooth' in squared cell units), which
+// rounds the creases a hard F1 leaves along every Voronoi face (ours, not in the Nubis tool).
+fn hzdWorleyS(p: vec3<f32>, cells: f32, seed: u32, sm: f32) -> f32 {
   let q = p * cells;
   let c = vec3<i32>(floor(q));
   let period = i32(cells);
   var best = 1.0e9;
+  var sum = 0.0;
   for (var z = -1; z <= 1; z++) {
     for (var y = -1; y <= 1; y++) {
       for (var x = -1; x <= 1; x++) {
         let n = c + vec3<i32>(x, y, z);
         let d = vec3<f32>(n) + hzdRand3(hzdWrap(n, period), seed) - q;
-        best = min(best, dot(d, d));
+        let d2 = dot(d, d);
+        best = min(best, d2);
+        if (sm > 0.0) { sum += exp(-d2 / sm); }
       }
     }
   }
+  if (sm > 0.0) { best = max(0.0, -sm * log(max(sum, 1e-30))); }
   return ${HZD_WORLEY_SCALE} * best;
 }
 fn hzdFit(v: f32, a: f32, b: f32) -> f32 { return saturate((v - a) / (b - a)); }
@@ -107,7 +114,9 @@ ${ladderWgsl('HZD_A', HZD_SHAPE_GAINS[2])}
 ${ladderWgsl('HZD_DR', HZD_DETAIL_GAINS[0])}
 ${ladderWgsl('HZD_DG', HZD_DETAIL_GAINS[1])}
 ${ladderWgsl('HZD_DB', HZD_DETAIL_GAINS[2])}
-struct BakeParams { seed: u32, size: u32, _a: u32, _b: u32 }
+// H5: carve / fine scale the R chain's coarse (10, 20 cells) carving and fine (85, 165 cells) dilating Worley remaps (1 = the Nubis tool);
+// smooth rounds the Worley creases of R's terms (0 = hard F1, the tool); ss = sub-samples per texel edge. All ours (hzd.noise* settings).
+struct BakeParams { seed: u32, size: u32, carve: f32, fine: f32, smoothW: f32, ss: u32, _b: f32, _c: f32 }
 @group(0) @binding(0) var<uniform> B: BakeParams;
 @group(0) @binding(1) var out3d: texture_storage_3d<${format}, write>;
 
@@ -120,22 +129,26 @@ fn hzdPerlinWorley(p: vec3<f32>, seed: u32) -> f32 {
     amp *= 0.54; period *= 2;
   }
   var r = hzdFit(t * ${HZD_PERLIN_SCALE}, -0.6, 0.6);
-  r = hzdFit(r, -0.1 * (1.0 - hzdWorley(p, 85.0, seed + 50u)), 1.0);
-  r = hzdFit(r, -0.1 * (1.0 - hzdWorley(p, 165.0, seed + 51u)), 1.0);
-  r = hzdFit(r, 0.5 * hzdWorley(p, 10.0, seed + 52u), 1.0);
-  r = hzdFit(r, 0.2 * hzdWorley(p, 20.0, seed + 53u), 1.0);
+  r = hzdFit(r, -0.1 * B.fine * (1.0 - hzdWorleyS(p, 85.0, seed + 50u, B.smoothW)), 1.0);
+  r = hzdFit(r, -0.1 * B.fine * (1.0 - hzdWorleyS(p, 165.0, seed + 51u, B.smoothW)), 1.0);
+  r = hzdFit(r, 0.5 * B.carve * hzdWorleyS(p, 10.0, seed + 52u, B.smoothW), 1.0);
+  r = hzdFit(r, 0.2 * B.carve * hzdWorleyS(p, 20.0, seed + 53u, B.smoothW), 1.0);
   return (r + 0.1) / 1.2;
 }
 
 @compute @workgroup_size(4, 4, 4)
 fn shape(@builtin(global_invocation_id) id: vec3<u32>) {
   if (any(id >= vec3<u32>(B.size))) { return; }
-  let p = (vec3<f32>(id) + 0.5) / f32(B.size);
-  let r = hzdPerlinWorley(p, B.seed);
-  let g = hzdWorleyFbm(p, HZD_G, B.seed + 100u);
-  let b = hzdWorleyFbm(p, HZD_B, B.seed + 200u);
-  let a = hzdWorleyFbm(p, HZD_A, B.seed + 300u);
-  textureStore(out3d, id, vec4(r, g, b, a));
+  // H5: B.ss > 1 box-filters ss^3 sub-samples per texel. The tool point-samples, and its finest terms (R's 85 and 165 cells, A's 85 cells per
+  // tile) sit above the 64-cell Nyquist limit of a 128^3 texture: aliased texel noise that reads as crumpled, faceted flanks (ours).
+  let ss = max(B.ss, 1u);
+  var acc = vec4(0.0);
+  for (var k = 0u; k < ss * ss * ss; k++) {
+    let sub = (vec3<f32>(vec3<u32>(k % ss, (k / ss) % ss, k / (ss * ss))) + 0.5) / f32(ss);
+    let p = (vec3<f32>(id) + sub) / f32(B.size);
+    acc += vec4(hzdPerlinWorley(p, B.seed), hzdWorleyFbm(p, HZD_G, B.seed + 100u), hzdWorleyFbm(p, HZD_B, B.seed + 200u), hzdWorleyFbm(p, HZD_A, B.seed + 300u));
+  }
+  textureStore(out3d, id, acc / f32(ss * ss * ss));
 }
 
 @compute @workgroup_size(4, 4, 4)
