@@ -284,6 +284,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // keep their mean and only the gaps between florets darken, as the frames' crests do.
               var microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
               if (frame.d3.w > 0.5) { microOcc = exp(-frame.microShadow * min(max(tauMicro - tauMicroP, 0.0), 4.0)); }
+              // D1 round 11 (microDist2 / microShadow2): a second, longer tap (microDist..microDist2 m) with its own weight, so the glow's
+              // occlusion carries two floret scales (the frames tile 10-30 px domes plus grain; one tap gave one bubble size).
+              if (frame.d4.x > frame.microDist && microOn && sdf > -MICRO_DEPTH) {
+                let len2 = frame.d4.x - frame.microDist;
+                let s2 = ${density}(ps + frame.sunDir * (frame.microDist + 0.5 * len2), ts, inputs);
+                let res2 = select((s2.x + tauNear * 0.0) * len2 * microExt, max(s2.x - s2.y, 0.0) * len2 * microExt, frame.d3.w > 0.5);
+                microOcc *= exp(-frame.d4.y * min(res2, 4.0));
+              }
               // D1 round 3: lobe-scale ambient occlusion, one upward sample of the full density (ambientTap metres) in the in-line light units.
               var ambOcc = 1.0;
               if (frame.d1.z > 0.0) { ambOcc = exp(-${density}(ps + vec3(0.0, 0.5 * frame.d1.z, 0.0), ts, lightInputs).x * frame.d1.z * inlineExt); }

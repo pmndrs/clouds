@@ -21,7 +21,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import d1  # noqa: E402
 d0 = d1.d0
 
-REF_EXPOSURE = {'p101': 0.17, 'p125': 0.17, 'p161': 0.24, 'p213': 0.18, 's206': 0.12, 's33t3': 0.12, 's33t6': 0.12, 's33t9': 0.12, 's214': 0.2}
+ERODE = 0   # set by --erode
+REF_EXPOSURE = {'p101': 0.17, 'p125': 0.135, 'p161': 0.19, 'p213': 0.2, 's206': 0.09, 's33t3': 0.09, 's33t6': 0.09, 's33t9': 0.09, 's214': 0.18}   # mirrors refs.ts (D1 round 11: refreshed)
 Q = np.arange(1, 100)
 
 
@@ -81,7 +82,9 @@ def load_frame(name, lin_dir, lin_exposure, matte_dir, width):
     E = d0.srgb_to_lin(ours) / float(lin_exposure) * REF_EXPOSURE[name]   # exposed linear (what the ACES path tone maps)
     cloud = 'parkouring' if name.startswith('p') else 'stormbird'
     mo = d1.matte_mask(os.path.join(matte_dir, cloud, f'{name}@look:decima@matte.jpg'), width)
-    inner_r = d1.erode(mr, 3); inner_o = d1.erode(mo, 3)
+    # D1 round 11 (--erode): both populations inside our matte eroded by N px (at `width`): the sky fit's mask of the frame leaks its haze band
+    # and thin edges into the 'cloud' population and tinted the earlier fits; our matte's core is cloud in both images (IoU 0.85-0.92).
+    inner_r = d1.erode(mo if ERODE else mr, ERODE or 3); inner_o = d1.erode(mo, ERODE or 3)
     sky_r = ~mr; sky_o = ~mo
     top = np.zeros_like(mr); top[: mr.shape[0] // 3] = True
     return {'name': name, 'E': E, 'R': d0.srgb_to_lin(rr), 'mask_o': inner_o, 'mask_r': inner_r, 'sky_o': sky_o & top, 'sky_r': sky_r & top, 'clip': float((ours >= 0.99).mean())}
@@ -116,7 +119,9 @@ def main():
     ap.add_argument('--lin', required=True); ap.add_argument('--lin-exposure', default='0.04'); ap.add_argument('--mattes', required=True)
     ap.add_argument('--frames', default='p101,p125,p161,p213,s206,s33t3,s33t6,s33t9,s214'); ap.add_argument('--width', type=int, default=960)
     ap.add_argument('--out'); ap.add_argument('--sky-weight', type=float, default=1.0); ap.add_argument('--ridge', type=float, default=0.05)
+    ap.add_argument('--erode', type=int, default=0, help='D1 round 11: both populations inside our matte eroded by this many px (at --width); 0 = the sky-fit masks')
     a = ap.parse_args()
+    global ERODE; ERODE = a.erode
     frames = [load_frame(n, a.lin, a.lin_exposure, a.mattes, a.width) for n in a.frames.split(',')]
     M = np.eye(3)
     report = {'frames': {}}

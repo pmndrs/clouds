@@ -34,6 +34,8 @@ struct Atmosphere {
   // ascending, linear between stops, clamped outside (the frames' flat upper sky and pale horizon band, which the Earth LUT cannot shape).
   skyTint: vec3<f32>, rampStrength: f32,
   ramp0: vec4<f32>, ramp1: vec4<f32>, ramp2: vec4<f32>, ramp3: vec4<f32>,
+  ramp4: vec4<f32>, ramp5: vec4<f32>, ramp6: vec4<f32>, ramp7: vec4<f32>,   // D1 round 11: 8 stops, smoothstep between them (no kinks)
+  rampAmbient: f32, rampPad0: f32, rampPad1: f32, rampPad2: f32,           // the ramp's weight in the hemisphere means (0..1)
 }
 @group(${group}) @binding(0) var<uniform> atmosphere: Atmosphere;
 @group(${group}) @binding(1) var atmTransmittanceLut: texture_2d<f32>;
@@ -110,21 +112,28 @@ fn atmSkyViewUv(viewZenithCos: f32, lightViewCos: f32, dims: vec2<f32>) -> vec2<
   // fromUnitToSubUvs
   return vec2<f32>((uvX + 0.5 / dims.x) * (dims.x / (dims.x + 1.0)), (uvY + 0.5 / dims.y) * (dims.y / (dims.y + 1.0)));
 }
-// D1 round 10: the sky ramp at sin(elevation) and the shaped sky radiance (LUT units): mix(LUT, ramp, strength) x tint.
+// D1 round 10/11: the sky ramp at sin(elevation): 8 stops ascending in w, smoothstep between neighbours (the round-10 linear stops printed
+// their kinks as a stepped band), clamped outside.
+fn atmRampSeg(c: vec3<f32>, a: vec4<f32>, b: vec4<f32>, sinEl: f32) -> vec3<f32> {
+  return mix(c, b.xyz, smoothstep(0.0, 1.0, saturate((sinEl - a.w) / max(b.w - a.w, 1e-4))));
+}
 fn atmSkyRamp(sinEl: f32) -> vec3<f32> {
   var c = atmosphere.ramp0.xyz;
-  c = mix(c, atmosphere.ramp1.xyz, saturate((sinEl - atmosphere.ramp0.w) / max(atmosphere.ramp1.w - atmosphere.ramp0.w, 1e-4)));
-  c = mix(c, atmosphere.ramp2.xyz, saturate((sinEl - atmosphere.ramp1.w) / max(atmosphere.ramp2.w - atmosphere.ramp1.w, 1e-4)));
-  c = mix(c, atmosphere.ramp3.xyz, saturate((sinEl - atmosphere.ramp2.w) / max(atmosphere.ramp3.w - atmosphere.ramp2.w, 1e-4)));
+  c = atmRampSeg(c, atmosphere.ramp0, atmosphere.ramp1, sinEl); c = atmRampSeg(c, atmosphere.ramp1, atmosphere.ramp2, sinEl);
+  c = atmRampSeg(c, atmosphere.ramp2, atmosphere.ramp3, sinEl); c = atmRampSeg(c, atmosphere.ramp3, atmosphere.ramp4, sinEl);
+  c = atmRampSeg(c, atmosphere.ramp4, atmosphere.ramp5, sinEl); c = atmRampSeg(c, atmosphere.ramp5, atmosphere.ramp6, sinEl);
+  c = atmRampSeg(c, atmosphere.ramp6, atmosphere.ramp7, sinEl);
   return c;
 }
-// The ramp paints the sky above the horizon only: below it the LUT's own lower hemisphere (ground, or the mirrored sky) stays, so the
-// horizon band lights the undersides from the horizon, not from the whole lower hemisphere (which lifted a cloud's belly by 0.15).
-fn atmSkyShape(lut: vec3<f32>, sinEl: f32) -> vec3<f32> {
+// The shaped sky radiance (LUT units): mix(LUT, ramp, strength) x tint, above the horizon only (below it the LUT's own lower hemisphere stays).
+// strength = rampStrength for the sky seen directly, rampAmbient for the hemisphere means the clouds' ambient integrates (round 11: the band
+// over-lit the bellies at full weight), 0 for the horizon haze on the clouds (round 11: the haze faded the base into the painted band).
+fn atmSkyShapeW(lut: vec3<f32>, sinEl: f32, strength: f32) -> vec3<f32> {
   var c = lut;
-  if (atmosphere.rampStrength > 0.0) { c = mix(lut, atmSkyRamp(sinEl), atmosphere.rampStrength * smoothstep(-0.04, 0.02, sinEl)); }
+  if (strength > 0.0) { c = mix(lut, atmSkyRamp(sinEl), strength * smoothstep(-0.04, 0.02, sinEl)); }
   return c * atmosphere.skyTint;
 }
+fn atmSkyShape(lut: vec3<f32>, sinEl: f32) -> vec3<f32> { return atmSkyShapeW(lut, sinEl, atmosphere.rampStrength); }
 fn atmSkyRadiance(viewZenithCos: f32, lightViewCos: f32) -> vec3<f32> {
   let dims = vec2<f32>(textureDimensions(atmSkyViewLut, 0));
   return atmSkyShape(textureSampleLevel(atmSkyViewLut, atmSampler, atmSkyViewUv(viewZenithCos, lightViewCos, dims), 0.0).rgb, viewZenithCos);
@@ -151,7 +160,7 @@ fn atmHemisphereMean(v0: f32, v1: f32, zha: f32, beta: f32, dims: vec2<f32>) -> 
     for (var j = 0; j < ATM_AMBIENT_AZIMUTHS; j++) {
       let cosPhi = cos((f32(j) + 0.5) * ATM_PI / f32(ATM_AMBIENT_AZIMUTHS));
       let uvX = (sqrt(saturate(-cosPhi * 0.5 + 0.5)) + 0.5 / dims.x) * (dims.x / (dims.x + 1.0));
-      row += atmSkyShape(textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb, cos(theta));
+      row += atmSkyShapeW(textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb, cos(theta), atmosphere.rampAmbient);
     }
     acc += row * (weight / f32(ATM_AMBIENT_AZIMUTHS));
   }
@@ -178,7 +187,7 @@ fn atmHemisphereMeanSun(v0: f32, v1: f32, zha: f32, beta: f32, dims: vec2<f32>, 
       let uvX = (sqrt(saturate(-cosPhi * 0.5 + 0.5)) + 0.5 / dims.x) * (dims.x / (dims.x + 1.0));
       let toSun = max(cos(theta) * muS + sin(theta) * sinS * cosPhi, 0.0);
       let w = weight * (1.0 + sunWeight * toSun * toSun);
-      acc += atmSkyShape(textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb, cos(theta)) * w;
+      acc += atmSkyShapeW(textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb, cos(theta), atmosphere.rampAmbient) * w;
       wPlain += weight;
       wSun += w;
     }
@@ -248,7 +257,9 @@ fn atmSkyRadianceToward(dir: vec3<f32>) -> vec3<f32> {
   let dirH = dir - up * mu;
   let sunH = atmosphere.sunDirection - up * dot(atmosphere.sunDirection, up);
   let cosPhi = dot(dirH, sunH) / max(length(dirH) * length(sunH), 1e-6);
-  return atmSkyRadiance(max(mu, horizon), cosPhi) * atmosphere.luminanceScale * atmosphere.sunColor;
+  let dims = vec2<f32>(textureDimensions(atmSkyViewLut, 0));
+  let lut = textureSampleLevel(atmSkyViewLut, atmSampler, atmSkyViewUv(max(mu, horizon), cosPhi, dims), 0.0).rgb;
+  return atmSkyShapeW(lut, mu, 0.0) * atmosphere.luminanceScale * atmosphere.sunColor;   // D1 round 11: the haze colour is the physical sky's
 }
 // Premultiplied cloud radiance in, premultiplied out: the cloud seen through the haze in front of it fades toward the sky behind it, so that at
 // full haze the composite (cloud + T * sky) is the sky. Clear-sky pixels are untouched (T = 1: nothing to fade).
@@ -269,8 +280,8 @@ fn applyAerialPerspective(color: vec3<f32>, transmittance: f32, viewDir: vec3<f3
 
 // ---- TS side: uniform layout, bind group layout (renderer-agnostic) -----------------------------------
 
-/** Floats in the Atmosphere uniform (224 bytes). Offsets match the WGSL struct. */
-export const ATMOSPHERE_UNIFORM_FLOATS = 56;
+/** Floats in the Atmosphere uniform (304 bytes). Offsets match the WGSL struct. */
+export const ATMOSPHERE_UNIFORM_FLOATS = 76;
 export const ATMOSPHERE_UNIFORM_BYTES = ATMOSPHERE_UNIFORM_FLOATS * 4;
 
 /** Plain values for the Atmosphere uniform. Units: radii in km, planetCenter in world metres. */
@@ -299,7 +310,7 @@ export interface AtmosphereUniformValues {
    * D1 round 10: a colour ramp over sin(elevation) that replaces the LUT's sky radiance (strength 1) for the sky the clouds' ambient integrates:
    * up to 4 stops ascending in `at`, colours in LUT units (the sky's radiance before luminanceScale, sunColor and the tint). Default none.
    */
-  skyRamp?: { strength: number; stops: { at: number; color: ArrayLike<number> }[] } | null;
+  skyRamp?: { strength: number; stops: { at: number; color: ArrayLike<number> }[]; ambient?: number } | null;
 }
 
 /** Fill `out` (length >= ATMOSPHERE_UNIFORM_FLOATS) in place. No allocation. */
@@ -313,10 +324,11 @@ export function writeAtmosphereUniforms(out: Float32Array, v: AtmosphereUniformV
   const tint = v.skyTint ?? [1, 1, 1];
   out[36] = tint[0]; out[37] = tint[1]; out[38] = tint[2]; out[39] = v.skyRamp && v.skyRamp.stops.length > 0 ? v.skyRamp.strength : 0;
   const stops = v.skyRamp?.stops ?? [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 8; i++) {
     const st = stops[Math.min(i, stops.length - 1)];
     out[40 + 4 * i] = st ? st.color[0] : 0; out[41 + 4 * i] = st ? st.color[1] : 0; out[42 + 4 * i] = st ? st.color[2] : 0; out[43 + 4 * i] = st ? st.at : 0;
   }
+  out[72] = v.skyRamp && v.skyRamp.stops.length > 0 ? (v.skyRamp.ambient ?? v.skyRamp.strength) : 0; out[73] = 0; out[74] = 0; out[75] = 0;
   return out;
 }
 

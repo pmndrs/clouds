@@ -2,7 +2,7 @@
 // own frames of it (refs.ts), rendered with the D1 parity settings ('decima' look, default), the deck's settings (?look=deck) or our art
 // defaults (?look=art). Flagship shell (three WebGPURenderer + @pmndrs/sky, the window.__clouds contract); no ground, as the deck frames show only sky.
 //   ?cloud=parkouring|stormbird   ?bookmark=<ref>   ?look=decima|deck|art   ?quality=ultra   ?exposure=0.35
-//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2  @skytint:0|1  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
+//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2[:ambientWeight]  @skytint:0|1  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
 import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
@@ -134,16 +134,19 @@ try {
     const mirror = v.has('mirror') ? v.get('mirror')![0] === '1' : (ref.mirrorBelowHorizon ?? false);
     if (mirror !== mirrorNow) { sky.setMirrorBelowHorizon(mirror); mirrorNow = mirror; }
     // D1 round 10 (ramp:0|1): the frame's sky ramp (refs.skyRamp) painted on the sky and integrated by the clouds' ambient; ramp:0 = the physical LUT.
-    // ramp:0 = the physical LUT; 1 = painted sky, the clouds' ambient integrates it; 2 (round 11) = painted sky only, the ambient from the LUT.
-    const rampMode = v.has('ramp') ? Number(v.get('ramp')![0]) : (ref.skyRamp ? 1 : 0);
+    // ramp:0 = the physical LUT; 1 = painted sky, the clouds' ambient integrates it; 2 (round 11) = painted sky only, the ambient from the LUT;
+    // ramp:1:a = painted sky with the ambient's ramp weight a (0..1). The look's stops ease smoothly (round 11: linear stops printed a stepped band).
+    const rampArgs = v.has('ramp') ? v.get('ramp')!.map(Number) : [];
+    const rampMode = rampArgs.length ? rampArgs[0] : (ref.skyRamp ? 1 : 0);
+    const rampAmbient = rampMode === 2 ? 0 : rampArgs.length > 1 ? rampArgs[1] : (ref.skyRampAmbient ?? 0);
     const rampOn = rampMode > 0;
-    const rampKey = rampOn && ref.skyRamp ? JSON.stringify(ref.skyRamp) + skyf.join() + rampMode : '';
+    const rampKey = rampOn && ref.skyRamp ? JSON.stringify(ref.skyRamp) + skyf.join() + rampMode + ':' + rampAmbient : '';
     if (rampKey !== rampNow) {
       if (rampKey) {
         // the sky mesh multiplies the look's ramp by the luminance factor afterwards: divide it out so the painted sky is the ref's ramp.
-        const stops = ref.skyRamp!.map(st => ({ at: st.at, color: [st.color[0] / skyf[0], st.color[1] / skyf[1], st.color[2] / skyf[2]] }));
+        const stops = ref.skyRamp!.map(st => ({ at: st.at, color: [st.color[0] / skyf[0], st.color[1] / skyf[1], st.color[2] / skyf[2]], ease: 'smooth' as const }));
         sky.setLook(resolveLook({ stops, chroma: 1, value: 1, intensity: 1 }));
-        skyBridge.skyRamp = rampMode === 2 ? null : { strength: 1, stops: ref.skyRamp!.map(st => ({ at: st.at, color: [st.color[0], st.color[1], st.color[2]] })) };
+        skyBridge.skyRamp = { strength: 1, ambient: rampAmbient, stops: ref.skyRamp!.map(st => ({ at: st.at, color: [st.color[0], st.color[1], st.color[2]] })) };
       } else { sky.setLook(null); skyBridge.skyRamp = null; }
       rampNow = rampKey;
     }

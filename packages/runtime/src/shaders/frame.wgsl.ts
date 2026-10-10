@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 480;
+export const FRAME_UNIFORM_BYTES = 496;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -59,6 +59,8 @@ struct Frame {
   // sample), y = glowDepthMode (0 = the deeper read, 1 = max of the sample's and the deeper read, 2 = inward along the SDF gradient),
   // z = microLightScale (D1 round 9: the micro tap's optical depth as a fraction of the view extinction; 0 = the in-line taps' units), w = microShadowMode (D1 round 10: 1 = the glow's micro occlusion by the up-rez residual over the profile).
   d3: vec4<f32>,
+  // D1 round 11: x = microDist2 (m, a second micro sun tap from microDist to microDist2; 0 = off), y = microShadow2 (its occlusion weight), zw = 0.
+  d4: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
