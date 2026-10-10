@@ -1,0 +1,77 @@
+{
+ "m20": {
+  "scene": "EmberGen 02 detail",
+  "variant": "before: NVDF chain (old default)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/c1-02/detail.jpg"
+ },
+ "m23": {
+  "scene": "EmberGen 09 photo",
+  "variant": "after: M1 default (direct + material)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/m1-09/photo.jpg"
+ },
+ "m28": {
+  "scene": "EmberGen 09 photo",
+  "variant": "before: NVDF chain (old default)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/c1-09/photo.jpg"
+ },
+ "m31": {
+  "scene": "EmberGen 02 detail",
+  "variant": "Karma reference (V1)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/v1-reference/final/jpg/cloudpack-02-detail.jpg"
+ },
+ "m36": {
+  "scene": "EmberGen 09 photo",
+  "variant": "before: direct, V2 lighting",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/d0-09/photo.jpg"
+ },
+ "m41": {
+  "scene": "EmberGen 02 photo",
+  "variant": "after: M1 default (direct + material)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/m1-02/photo.jpg"
+ },
+ "m55": {
+  "scene": "Frog photo",
+  "variant": "direct asset (saturated 0/1 field)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/frog/directM/photo.jpg"
+ },
+ "m62": {
+  "scene": "EmberGen 02 detail",
+  "variant": "before: direct, V2 lighting",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/d0-02/detail.jpg"
+ },
+ "m65": {
+  "scene": "EmberGen 02 detail",
+  "variant": "after: M1 default (direct + material)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/m1-02/detail.jpg"
+ },
+ "m74": {
+  "scene": "Frog photo",
+  "variant": "after: Nubis chain + M1 material",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/frog/after/photo.jpg"
+ },
+ "m75": {
+  "scene": "EmberGen 09 photo",
+  "variant": "Karma reference (V1)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/v1-reference/final/jpg/cloudpack-09-photo.jpg"
+ },
+ "m78": {
+  "scene": "EmberGen 02 photo",
+  "variant": "Karma reference (V1)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/v1-reference/final/jpg/cloudpack-02-photo.jpg"
+ },
+ "m87": {
+  "scene": "EmberGen 02 photo",
+  "variant": "before: direct, V2 lighting",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/d0-02/photo.jpg"
+ },
+ "m92": {
+  "scene": "Frog photo",
+  "variant": "before: Nubis chain, N3 art lighting",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/frog/before/photo.jpg"
+ },
+ "m95": {
+  "scene": "EmberGen 02 photo",
+  "variant": "before: NVDF chain (old default)",
+  "source": "/Users/dex/Developer/WebGPUClouds/artifacts/research/m1/c1-02/photo.jpg"
+ }
+}
