@@ -10,7 +10,7 @@ export type { FineBricks } from './hero/bricks';
 export { COMMON_WGSL } from './shaders/common.wgsl';
 export { volumeWgsl, volumeUniformData, createVolumeBindGroupLayout, createVolumeBindGroup, createVolumeSamplers, heroUniformData, VOLUME_UNIFORM_BYTES, HERO_UNIFORM_BYTES, type VolumeBindingResources, type HeroBindingResources } from './shaders/volume.wgsl';
 export { createLightGrid, lightGridDims, lightGridWgsl, LightGridScheduler, type LightGrid, type LightGridFrameParams } from './light-grid';
-export { createCloudRuntime, estimateCloudMemory, CLOUD_QUALITY_PRESETS, CLOUD_QUALITY_ORDER, type CloudQualityPreset, type CloudRuntime, type CloudFrame, type CloudSettings, type CloudQuality, type CloudQualityOption, type CloudMemory, type CloudUniformLighting, type CloudRuntimeOptions } from './runtime';
+export { createCloudRuntime, estimateCloudMemory, cloudLookSettings, CLOUD_ART_SETTINGS, CLOUD_DECK_SETTINGS, type CloudLook, type CloudLookSettings, CLOUD_QUALITY_PRESETS, CLOUD_QUALITY_ORDER, type CloudQualityPreset, type CloudRuntime, type CloudFrame, type CloudSettings, type CloudQuality, type CloudQualityOption, type CloudMemory, type CloudUniformLighting, type CloudRuntimeOptions } from './runtime';
 export { selectTier, describeDevice, controlledCost, DynamicScale, AUTO_QUALITY_DEFAULTS, AUTO_QUALITY_PASSES, type AutoQualityInfo, type AutoQualityOptions, type TierInputs, type TierPick } from './auto-quality';
 export { DENSITY_WGSL } from './shaders/density.wgsl';
 export { MARCH_WGSL, marchWgsl, type MarchLightingMode } from './shaders/march.wgsl';

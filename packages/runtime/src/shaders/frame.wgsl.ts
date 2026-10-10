@@ -38,7 +38,7 @@ struct Frame {
   mie: vec4<f32>,
   // C2 horizon haze: (extinction per metre at the base height, 1 / scale height (per metre), base altitude (m), X3 lighting model: 0 nubis, 1 octave). x = 0: off.
   haze: vec4<f32>,
-  // P1 up-rez noise convention: x = noiseInvert bit flags (1 billowy B/A as 1 - n, 2 wispy R/G as 1 - n), y = detail type override (< 0 = the NVDF's), z = typeFromScale, w = 0.
+  // P1 up-rez noise convention: x = noiseInvert bit flags (1 billowy B/A as 1 - n, 2 wispy R/G as 1 - n), y = detail type override (< 0 = the NVDF's), z = typeFromScale, w = ambientLaw (D0: 0 = 1 / (1 + tauUp), 1 = exp(-tauUp)).
   uprez: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

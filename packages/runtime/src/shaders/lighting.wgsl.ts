@@ -64,7 +64,8 @@ fn cloudInScatterMicro(profile: f32, sdf: f32, h: f32, tau: f32, gridUp: f32, ph
   // H3: diffuse (two-stream) falloff 1 / (1 + tauUp) instead of exp(-tauUp). Sky light reaches a base by multiple scattering, which
   // falls off about linearly in optical depth; the exponential sent only the few densest columns (the asset's dense cores) to the
   // floor while the rest stayed white, so each core printed a round, soft dark blotch on the lit base seen from below.
-  let above = mix(frame.ambientFloor, 1.0, 1.0 / (1.0 + tauUp));
+  // D0: uprez.w = ambientLaw: 1 = the deck's exp(-tauUp) (N3 s128).
+  let above = mix(frame.ambientFloor, 1.0, select(1.0 / (1.0 + tauUp), exp(-tauUp), frame.uprez.w > 0.5));
   let occlusion = mix(frame.ambientFloor, 1.0, sqrt(1.0 - saturate(profile)));
   let skyWeight = frame.ambientSkyBias + (1.0 - frame.ambientSkyBias) * h;
   let ambient = AMBIENT_GAIN * frame.ambientStrength * occlusion * mix(ambientDown, ambientUp * above, skyWeight);
