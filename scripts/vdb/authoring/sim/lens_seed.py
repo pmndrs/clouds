@@ -39,16 +39,16 @@ RIG = os.path.join(REPO, 'houdini', 'rigs', 'lens_seed.hip')
 # shape:  lo, hi = sim density mapped to 0..1 (smoothstep); base_fade = soft floor below the seed base (sim units; 0 = no cut)
 BASE = dict(
     world_scale=100.0, divsize=0.08, frames=160, out_frames=[60, 90, 110, 130, 160], pick=110,
-    lens=dict(rx=3.0, rz=6.5, thick=1.0, base=0.0, edge_amp=0.35, edge_freq=0.45, heat=1.0, heat_floor=0.5, heat_freq=0.6,
+    lens=dict(rx=3.0, rz=6.5, thick=1.0, base=0.0, edge_amp=0.35, edge_freq=0.45, heat=1.0, heat_floor=0.7, heat_freq=0.6,
               smoke=1.0, burst=12),
-    solver=dict(temperature0=1.0, temperature1=2.0, buoyancylift=1.2, tempcooling=0.12, tempdiffusion=0.05, dissipation=0.01,
-                enable_density_gravity=1, density_gravity_scale=0.3,
+    solver=dict(temperature0=1.0, temperature1=2.0, buoyancylift=1.2, tempcooling=0.2, tempdiffusion=0.1, dissipation=0.01,
+                enable_density_gravity=1, density_gravity_scale=0.22,
                 enable_disturbance=1, disturbance=0.25, disturbance_blocksize=0.4,
                 enable_turbulence=1, turbulence=0.15, turbulence_swirlsize=1.5,
                 enable_shredding=0, shredding=0.5, shredding_field='temperature'),
     floor=1,
     shape=dict(lo=0.04, hi=0.5, base_fade=0.12),
-    convert=['--iso', '0.25', '--margin', '1'], voxel=8,
+    convert=['--iso', '0.1', '--margin', '1', '--rotate-y', '90'], voxel=8,   # rotate: the long side faces the lab's edge/ground bookmarks
 )
 
 # Variants: what each changes from BASE (lens aspect, burst strength, cooling).
@@ -56,7 +56,7 @@ VARIANTS = {
     'base': dict(note='EmberGen-like lens (6 x 13 x 1 units = 600 x 1300 x 100 m), 12-frame burst'),
     'wide': dict(note='wider, rounder lens (9 x 13): broad mediocris', lens=dict(rx=4.5)),
     'hot': dict(note='stronger burst: 1.6x heat, 1.2x smoke, 18 frames', lens=dict(heat=1.6, burst=18, smoke=1.2)),
-    'cool': dict(note='faster cooling + more heat diffusion: stalls lower, flatter', solver=dict(tempcooling=0.3, tempdiffusion=0.2)),
+    'cool': dict(note='faster cooling + more heat diffusion: stalls lower, flatter', solver=dict(tempcooling=0.4, tempdiffusion=0.3)),
 }
 
 LENS_VEX = r'''
@@ -473,12 +473,20 @@ def main():
     r.add_argument('--set', action='append', default=[], metavar='SECTION.PARM=VALUE'); r.add_argument('--tag', default='')
     r.add_argument('--no-convert', action='store_true')
     g = sub.add_parser('rig'); g.add_argument('name', nargs='?', default='base', choices=list(VARIANTS))
+    c = sub.add_parser('convert', help='re-convert the pick frame of an earlier run (no sim)')
+    c.add_argument('names', nargs='+'); c.add_argument('--frame', type=int)
     s = sub.add_parser('sheet'); s.add_argument('out'); s.add_argument('names', nargs='+', help='variant[tag][@frame]')
     s.add_argument('--mpp', type=float, default=8.0)
     a = ap.parse_args()
     os.makedirs(SCRATCH, exist_ok=True)
     if a.cmd == 'sheet':
         return sheet(a.out, a.names, a.mpp)
+    if a.cmd == 'convert':
+        for n in a.names:
+            rcp = json.load(open(os.path.join(SCRATCH, 'metrics', n + '.json')))['recipe']
+            f = a.frame or rcp['pick']
+            convert(n, os.path.join(SCRATCH, 'vdb', f'{n}_f{f:03d}.vdb'), dict(rcp, convert=BASE['convert']), print)
+        return
     if a.cmd == 'rig':
         return save_rig(merged(a.name))
     logf = open(os.path.join(SCRATCH, 'run.log'), 'a')

@@ -2041,7 +2041,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Does:** convert EmberGen CloudPack 02, 03, 08, 09, 10 (`artifacts/research/vdbs/CloudPack/CloudPackVDB/`, Z-up; findings in `docs/research/cloudpack-embergen.md`) at a believable cumulus scale (~600 m tall), load them in the flagship (`?cloud=local/...`), and capture each from the same three framings used for the other calibration entries (ground looking up at ~30°, side view at 3–5 km, horizon at ~10 km), full resolution, current default settings. Also capture Parkouring and one open-water generated view with the same framings. These form the calibration set the owner and the judge models will score; A2/A3 Houdini results are added when they land.
 - **Acceptance:** all five convert and render without artefacts from the wrong axis; a contact sheet per framing; conversion times and sizes listed.
 
-### [~] A2 Lens-seeded Pyro test [AU3] · Opus
+### [r] A2 Lens-seeded Pyro test [AU3] · Opus (report: reports/A2.md)
 - **Owns:** new `scripts/vdb/authoring/sim/lens_seed.py`, `houdini/rigs/lens_seed.hip`, scratch output under `artifacts/` (local), `work/reports/A2.md`, `work/captures/A2/`.
 - **Does:** Guerrilla/EmberGen-style seeding (`sources/n3/slides-047-074.md` s64, `docs/research/cloudpack-embergen.md`): one wide flat lens of heat/density at the cloud base, a single burst, working buoyancy, raised temperature diffusion and cooling so the plume stops itself, vorticity, no lid. Grow 3–4 variants; convert with our converter; render in the lab.
 - **Acceptance:** flat base at seed height, width ≈ seed width, turrets growing upward, no chimney; compared against EmberGen CloudPack 03/02/09 and the owner's cumulus photos. Captures + contact sheet.
