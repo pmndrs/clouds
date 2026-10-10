@@ -235,20 +235,25 @@ export interface CloudSettings {
 }
 
 /**
- * M1: the material balance for a direct volume (an imported VDB marched as-is, V2), fitted against the Karma references (V1: brute-force
- * bounces, albedo 0.99, sigma = 0.6 / m per unit of EmberGen density; work/reports/M1.md). setVolume applies it when the asset is direct
- * (option material 'auto', the default) and restores the previous values when a non-direct asset is set again; 'keep' leaves the settings alone.
- * - lightDensityScale 1: the grid integrates the exact density (the 1.2 compensates the NVDF up-rez the grid does not see).
- * - directInScatterFlat 1, microShadow 0, glowBoost 0: radiance is a property of the light field, not of the local density; weighting the
- *   in-scatter by the voxel's density and shadowing it per 4 m billow printed the sim's 4 m texture into the shading ('foam').
+ * M1: the material balance fitted against the Karma references (V1: brute-force bounces, albedo 0.99, sigma = 0.6 / m per unit of EmberGen
+ * density; work/reports/M1.md). Lighting only, so it also applies to an NVDF (Nubis chain) volume: the Frog page opts in with it.
+ * - microShadow 0, glowBoost 0: no per-billow shadowing of the glow and no forward glow boost; both printed the 4 m texture of a sim into the
+ *   shading and made the body glow white ('foam').
  * - diffuseSun 0.5 / diffuseFalloff 0.06 with msStrength / deepScatter 0.2: the shaded body is lit by sunlight diffused through the cloud
  *   (a warm grey) rather than by the sky alone (blue).
  * - ambientStrength 0.5, ambientSaturation 0.5, ambientWarmth 0.7: less and greyer sky light (the tone/hue shift toward Karma's neutral shade).
  */
-export const DIRECT_VOLUME_SETTINGS = {
-  lightDensityScale: 1, directInScatterFlat: 1, microShadow: 0, glowBoost: 0, msStrength: 0.2, deepScatter: 0.2,
+export const MATERIAL_SETTINGS = {
+  microShadow: 0, glowBoost: 0, msStrength: 0.2, deepScatter: 0.2,
   diffuseSun: 0.5, diffuseFalloff: 0.06, ambientStrength: 0.5, ambientSaturation: 0.5, ambientWarmth: 0.7,
 } satisfies Partial<CloudSettings>;
+/**
+ * M1: what setVolume applies for a direct volume (an imported VDB marched as-is, V2) with option material 'auto' (the default), restoring the
+ * previous values when a non-direct asset is set again; 'keep' leaves the settings alone. MATERIAL_SETTINGS plus:
+ * - lightDensityScale 1: the grid integrates the exact density (the 1.2 compensates the NVDF up-rez the grid does not see).
+ * - directInScatterFlat 1: in-scatter weight 1 instead of saturate(density / p99); radiance is a property of the light field, not of the voxel.
+ */
+export const DIRECT_VOLUME_SETTINGS = { ...MATERIAL_SETTINGS, lightDensityScale: 1, directInScatterFlat: 1 } satisfies Partial<CloudSettings>;
 type MaterialKey = keyof typeof DIRECT_VOLUME_SETTINGS;
 
 export interface CloudUniformLighting {

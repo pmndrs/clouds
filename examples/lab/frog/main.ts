@@ -5,6 +5,8 @@
 //   ?photo=1                side by side with the owner's photo (local only, via the compare page's /__photos dev middleware)
 //   ?sunel=49&sunaz=180     sun elevation / azimuth (deg, the sky's convention; the camera looks north (-z), 180 = straight behind)
 //   ?exposure=  ?quality=high  ?clean=1 (no HUD)  ?empty=1 (sky plate: the cloud parked out of view)
+//   ?material=m1 (default)  the M1 material balance (MATERIAL_SETTINGS, fitted against Karma); ?material=nubis the old N3 art balance
+//   ?src=local/direct/frog/ the direct asset (scripts/vdb/vdb_to_direct.py frog.vdb --up y): setVolume applies DIRECT_VOLUME_SETTINGS
 //   bookmarks: photo (the matched camera), right (from the right, 90 deg around the main body), far (pulled back 2x), above
 //
 // MATCHING CAMERA (frog.py CAMERA): the photo is 1600 x 1392 at 0.0304 deg/px, a pinhole with f = 1800 px, its bottom edge ~2 deg
@@ -17,7 +19,7 @@ import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
 import { pass } from 'three/tsl';
 import { Sky } from '@pmndrs/sky';
 import { Clouds, sharedBackend, type CloudQuality } from '@clouds/three';
-import { loadCloudNoise, loadCloudVolume } from '@clouds/runtime';
+import { loadCloudNoise, loadCloudVolume, MATERIAL_SETTINGS } from '@clouds/runtime';
 import { installCloudsHarness } from '../harness/clouds-contract';
 
 const harness = installCloudsHarness();
@@ -82,6 +84,9 @@ try {
   // ?empty=1: same sky and camera with the cloud parked far away (the plate a render is differenced against to measure its silhouette)
   const EMPTY = query.get('empty') === '1';
   await clouds.setVolume(asset, { position: EMPTY ? [0, 20000, 300000] : [min[0] + ex / 2, min[1], min[2] + ez / 2] });
+  // M1: the Karma-fitted material balance on the Nubis chain too (a direct asset already got DIRECT_VOLUME_SETTINGS from setVolume); ?s. still wins.
+  if (query.get('material') !== 'nubis' && !asset.direct) Object.assign(clouds.settings, MATERIAL_SETTINGS);
+  for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in clouds.settings) (clouds.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
   const centre = new Vector3(min[0] + ex / 2, min[1] + ey / 2, min[2] + ez / 2);
 
   let view = 'photo';

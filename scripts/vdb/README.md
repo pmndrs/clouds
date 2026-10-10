@@ -14,6 +14,26 @@ $HYTHON scripts/vdb/vdb_to_nvdf.py --mode sdf  IN.vdb --out assets/clouds/NAME  
 
 hython takes about 3 s to start; the conversion itself is 0.5 to 15 s. A JSON report (grids, dims, timings) is printed.
 
+## Imported VDBs render directly by default (M1)
+
+Simulated and artist density VDBs (EmberGen, Pyro, Houdini cloud nodes) are **converted with `vdb_to_direct.py` and rendered as-is** by
+default: the VDB's density at its native voxel, one trilinear fetch per sample, no Nubis profile, erosion or up-rez (V2). Run through the
+Nubis up-rez chain, already-detailed sims read as foam (`work/reports/R1-foam.md`, `V2.md`); rendered directly they match the Karma
+references' silhouette and cohesion (V1/V2/M1). The Nubis chain (`vdb_to_nvdf.py --mode fog`, with C2's closing) stays available as an
+option, and is still the path for low-frequency Nubis-style envelopes and for saturated 0/1 fields (the A3 Frog, A2's lens seed), which
+have no density gradient to render.
+
+```bash
+$HYTHON scripts/vdb/vdb_to_direct.py IN.vdb --out assets/clouds/local/direct/NAME [--up z --world-scale 4] [--like assets/clouds/local/NAME]
+```
+
+- `density.bin` keeps every voxel above `--empty` (1e-4): the thin material below the old 0.05 iso (27-39 % of an EmberGen cloud,
+  optically thick at cumulus extinction) is marched, so connected bodies and bridges (CloudPack 03's tower, 10's bridge) survive.
+- The runtime marches any asset with a `direct` block in `cloud.json`; `setVolume` then applies `DIRECT_VOLUME_SETTINGS` (the Karma-fitted
+  material balance, `work/reports/M1.md`), extinction = `CloudSettings.directDensity` (0.6 / m per unit of density, V1's value).
+- Lab: the flagship's `?cloud=local/NAME` loads `local/direct/NAME` when it exists; `?chain=nubis` loads the NVDF chain instead, and
+  `?material=m1` gives an NVDF volume the same material balance. The Frog page takes `?src=local/direct/frog/`.
+
 ## Modes
 
 | Mode | Input grids | How the three channels and the SDF are made |

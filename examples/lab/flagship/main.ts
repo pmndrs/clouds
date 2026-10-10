@@ -3,7 +3,7 @@
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
-import { CLOUD_QUALITY_PRESETS, controlledCost, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQualityOption } from '@clouds/runtime';
+import { CLOUD_QUALITY_PRESETS, MATERIAL_SETTINGS, controlledCost, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQualityOption } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { BOOKMARK_HFOV, BOOKMARK_NAMES, FOCUS_BOX, INSIDE_POINT, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
@@ -77,6 +77,8 @@ try {
   let firstCloudFrameMs = -1; // ms from assets loaded to the first frame the runtime encoded clouds
   await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset, query.has('base') ? Number(query.get('base')) : undefined) });
   await runtime.setNoise(noiseAsset);
+  // M1: ?material=m1 puts the Karma-fitted material balance on an NVDF (Nubis chain) volume too; a direct volume gets it from setVolume.
+  if (query.get('material') === 'm1' && !volumeAsset.direct) Object.assign(runtime.settings, MATERIAL_SETTINGS);
   for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
 
   // Render size follows the window times the render-scale control. Canvas CSS stays 100%.

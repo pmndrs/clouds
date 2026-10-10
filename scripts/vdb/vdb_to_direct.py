@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""V2: VDB density -> a *direct* cloud asset (the VDB's density as-is, no Nubis profile / erosion / up-rez). Run with hython:
+"""V2 / M1: VDB density -> a *direct* cloud asset (the VDB's density as-is, no Nubis profile / erosion / up-rez).
+This is the default import path for simulated and artist density VDBs (scripts/vdb/README.md, "Imported VDBs"). Run with hython:
 
   HYTHON=/Applications/Houdini/Houdini21.0.671/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython
   $HYTHON scripts/vdb/vdb_to_direct.py IN.vdb --out assets/clouds/local/direct/NAME --up z --world-scale 4 [--like assets/clouds/local/NAME]
