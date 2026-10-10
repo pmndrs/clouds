@@ -11,8 +11,11 @@ export const CLOUD_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 90
 export const FOCUS_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 908, 432] as Vector3Tuple };
 export const INSIDE_POINT: Vector3Tuple = [0, 700, 0];
 
-export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow', 'frontlit', 'side', 'horizon', 'up30'] as const;
+export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow', 'frontlit', 'side', 'horizon', 'up30', 'photo', 'detail'] as const;
 export type BookmarkName = (typeof BOOKMARK_NAMES)[number];
+
+/** Horizontal field of view in degrees for the calibration framings (48 = 40 mm on full frame, 20 = 105 mm); other bookmarks keep the default lens. */
+export const BOOKMARK_HFOV: Partial<Record<BookmarkName, number>> = { photo: 48, detail: 20 };
 
 export interface Bookmark { position: Vector3Tuple; target: Vector3Tuple; timeOfDay: number }
 
@@ -91,6 +94,21 @@ export function resolveBookmark(name: BookmarkName, sun: Vector3Tuple = [0, 0.7,
     case 'side': return { position: ring(95, 4000, c[1]), target: c, timeOfDay };
     // 30 degrees of elevation from the ground to the cloud centre (distance follows the cloud altitude).
     case 'up30': return { position: ring(35, Math.max(100, (c[1] - 2) / Math.tan(Math.PI / 6)), 2), target: c, timeOfDay };
+    // C1 photo / detail: camera on the ground, sun 70 degrees to the left of the view and a little ahead (side/back-lit from upper left, like the owner's photos).
+    // photo: cloud silhouette fills ~50% of the frame (the 0.62 corrects the bounding box being wider than the silhouette); detail: frame spans ~60% of the cloud width, aimed at the sunlit upper third.
+    case 'photo': case 'detail': {
+      const hfov = (BOOKMARK_HFOV[name]! * Math.PI) / 180, a = (20 * Math.PI) / 180;
+      const v90: [number, number] = [-sunH[1], sunH[0]];
+      const vx = Math.cos(a) * v90[0] + Math.sin(a) * sunH[0], vz = Math.cos(a) * v90[1] + Math.sin(a) * sunH[1];
+      const vl = Math.hypot(vx, vz), v: [number, number] = [vx / vl, vz / vl];
+      const px = -v[1], pz = v[0]; // screen-right (horizontal)
+      let lo = Infinity, hi = -Infinity;
+      for (const x of [FOCUS_BOX.min[0], FOCUS_BOX.max[0]]) for (const z of [FOCUS_BOX.min[2], FOCUS_BOX.max[2]]) { const t = x * px + z * pz; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+      const width = hi - lo, tanH = Math.tan(hfov / 2);
+      const dist = name === 'photo' ? 0.62 * width / (2 * 0.5 * tanH) : (0.6 * width) / (2 * tanH);
+      const tgt: Vector3Tuple = name === 'photo' ? c : [c[0], FOCUS_BOX.min[1] + 0.8 * (FOCUS_BOX.max[1] - FOCUS_BOX.min[1]), c[2]];
+      return { position: [tgt[0] - v[0] * dist, 2, tgt[2] - v[1] * dist], target: tgt, timeOfDay };
+    }
     case 'horizon': return { position: ring(35, 10000, 60), target: c, timeOfDay };
     case 'frontlit': return { position: ring(0, 1.15 * r, 2), target: c, timeOfDay };
     case 'edge': return { position: ring(95, 2.1 * r, c[1] - 0.1 * r), target: c, timeOfDay };

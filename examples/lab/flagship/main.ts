@@ -6,7 +6,7 @@ import { Sky } from '@pmndrs/sky';
 import { CLOUD_QUALITY_PRESETS, controlledCost, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudQualityOption } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
-import { BOOKMARK_NAMES, INSIDE_POINT, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
+import { BOOKMARK_HFOV, BOOKMARK_NAMES, FOCUS_BOX, INSIDE_POINT, bookmarkTime, isBookmarkName, placeCloud, resolveBookmark, sunVector, type BookmarkName } from './bookmarks';
 import { createCloudBridge } from './three-bridge';
 import { CameraRig } from './controls';
 import { createSkyBridge } from './sky-bridge';
@@ -97,6 +97,8 @@ try {
     }
     if (!isBookmarkName(name)) throw new Error(`unknown bookmark: ${name}`);
     state.bookmark = name;
+    // calibration framings use a photographic lens (horizontal FOV); everything else the default 70 degree vertical
+    { const h = BOOKMARK_HFOV[name]; camera.fov = h ? (2 * Math.atan(Math.tan((h * Math.PI) / 360) / camera.aspect) * 180) / Math.PI : 70; camera.updateProjectionMatrix(); }
     setTime(query.has('time') && !state.animateTime ? Number(query.get('time')) : bookmarkTime(name));
     const b = resolveBookmark(name, sunNow());
     rig.set(b.position, b.target);
@@ -219,7 +221,7 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
+    report: () => ({ camera: camera.position.toArray(), hfovDeg: (2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * camera.aspect) * 180) / Math.PI, focusBox: FOCUS_BOX, gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

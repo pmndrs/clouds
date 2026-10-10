@@ -108,7 +108,7 @@ try {
     }
   };
 
-  const resize = () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); };
+  const resize = () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; if (query.has('hfov')) camera.fov = (2 * Math.atan(Math.tan((Number(query.get('hfov')) * Math.PI) / 360) / camera.aspect) * 180) / Math.PI; camera.updateProjectionMatrix(); }; // ?hfov=48: photographic lens (C1 calibration)
   addEventListener('resize', resize);
   resize();
 
