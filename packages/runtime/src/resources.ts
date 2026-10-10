@@ -4,7 +4,7 @@ import { uploadFineBricks, type GpuFineOverlay } from './hero/overlay';
 
 /** A cloud volume on the GPU. Texture axes are source axes (x, map row, up); see work/specs/P1-runtime.md. */
 export interface GpuCloudVolume {
-  nvdf: GPUTexture;      // rgba8unorm 3D
+  nvdf: GPUTexture;      // rgba8unorm 3D (rgba16float when the asset carries nvdf16)
   sdf: GPUTexture;       // r16float 3D, metres, rounded down
   dims: [number, number, number];
   voxelSize: number;
@@ -26,8 +26,10 @@ export function uploadCloudVolume(device: GPUDevice, asset: CloudVolumeAsset): G
   const [w, h, d] = asset.dims;
   const size: GPUExtent3D = { width: w, height: h, depthOrArrayLayers: d };
   const usage = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
-  const nvdf = device.createTexture({ label: `${asset.name} nvdf`, dimension: '3d', format: 'rgba8unorm', size, usage });
-  device.queue.writeTexture({ texture: nvdf }, asset.nvdf, { bytesPerRow: w * 4, rowsPerImage: h }, size);
+  // D1: a 16-bit NVDF (the profile un-quantised) when the asset carries one; the shaders read texture_3d<f32> either way.
+  const nvdf = device.createTexture({ label: `${asset.name} nvdf`, dimension: '3d', format: asset.nvdf16 ? 'rgba16float' : 'rgba8unorm', size, usage });
+  if (asset.nvdf16) device.queue.writeTexture({ texture: nvdf }, asset.nvdf16, { bytesPerRow: w * 8, rowsPerImage: h }, size);
+  else device.queue.writeTexture({ texture: nvdf }, asset.nvdf, { bytesPerRow: w * 4, rowsPerImage: h }, size);
   const halfs = new Uint16Array(asset.sdfMeters.length);
   for (let i = 0; i < halfs.length; i++) halfs[i] = toHalfBitsRoundDown(asset.sdfMeters[i]);
   const sdf = device.createTexture({ label: `${asset.name} sdf`, dimension: '3d', format: 'r16float', size, usage });
@@ -52,13 +54,15 @@ export function uploadCloudVolume(device: GPUDevice, asset: CloudVolumeAsset): G
 
 export function uploadCloudNoise(device: GPUDevice, asset: CloudNoiseAsset): GPUTexture {
   const n = asset.size;
+  // D1: the 16-bit noise when the asset carries it (the 8-bit one's 1/255 steps print contour bands into the fringe at a high view extinction).
+  const wide = asset.mips16 && asset.mips16.length === asset.mips.length ? asset.mips16 : null;
   const texture = device.createTexture({
-    label: 'cloud noise', dimension: '3d', format: 'rgba8unorm', mipLevelCount: asset.mips.length,
+    label: 'cloud noise', dimension: '3d', format: wide ? 'rgba16float' : 'rgba8unorm', mipLevelCount: asset.mips.length,
     size: { width: n, height: n, depthOrArrayLayers: n }, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
   });
-  asset.mips.forEach((data, level) => {
+  (wide ?? asset.mips).forEach((data, level) => {
     const s = Math.max(1, n >> level);
-    device.queue.writeTexture({ texture, mipLevel: level }, data, { bytesPerRow: s * 4, rowsPerImage: s }, { width: s, height: s, depthOrArrayLayers: s });
+    device.queue.writeTexture({ texture, mipLevel: level }, data, { bytesPerRow: s * (wide ? 8 : 4), rowsPerImage: s }, { width: s, height: s, depthOrArrayLayers: s });
   });
   return texture;
 }

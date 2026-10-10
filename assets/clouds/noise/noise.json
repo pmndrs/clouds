@@ -90,5 +90,83 @@
     "g": "high-frequency Curly-Alligator",
     "b": "low-frequency Alligator (billowy)",
     "a": "high-frequency Alligator"
-  }
+  },
+  "file16": "noise16.bin",
+  "format16": "rgba16float",
+  "mips16": [
+    {
+      "dims": [
+        128,
+        128,
+        128
+      ],
+      "byteOffset": 0,
+      "bytes": 16777216
+    },
+    {
+      "dims": [
+        64,
+        64,
+        64
+      ],
+      "byteOffset": 16777216,
+      "bytes": 2097152
+    },
+    {
+      "dims": [
+        32,
+        32,
+        32
+      ],
+      "byteOffset": 18874368,
+      "bytes": 262144
+    },
+    {
+      "dims": [
+        16,
+        16,
+        16
+      ],
+      "byteOffset": 19136512,
+      "bytes": 32768
+    },
+    {
+      "dims": [
+        8,
+        8,
+        8
+      ],
+      "byteOffset": 19169280,
+      "bytes": 4096
+    },
+    {
+      "dims": [
+        4,
+        4,
+        4
+      ],
+      "byteOffset": 19173376,
+      "bytes": 512
+    },
+    {
+      "dims": [
+        2,
+        2,
+        2
+      ],
+      "byteOffset": 19173888,
+      "bytes": 64
+    },
+    {
+      "dims": [
+        1,
+        1,
+        1
+      ],
+      "byteOffset": 19173952,
+      "bytes": 8
+    }
+  ],
+  "bytes16": 19173960,
+  "source16": "NubisVoxelCloudNoise.vdb (pack), scripts/vdb/noise_vdb_to_16.py; same layout as noise.bin, mips are 2x2x2 means"
 }

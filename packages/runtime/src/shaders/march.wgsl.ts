@@ -266,7 +266,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               else {
                 // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.
                 let pLight = select(d.y, sampleModeling(ps, frame.baseMip).x, frame.d1.w > 0.5);
-                lit = cloudInScatterMicro(pLight, sdf, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp * ambOcc, ambientDown * ambOcc, envUp, envDown, microOcc);
+                // D1 round 4: the glow's depth relaxation reads the true distance at the sample (s123 GetVoxelCloudDistance), not the stepping
+                // bound sdf (the last fetch minus the distance travelled, refetched every 24 m): the bound's error followed the per-pixel
+                // jitter and printed speckle into the ms term wherever the relaxation is steep.
+                let sdfLit = cloudDistance(ps);
+                lit = cloudInScatterMicro(pLight, sdfLit, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp * ambOcc, ambientDown * ambOcc, envUp, envDown, microOcc);
               }
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).

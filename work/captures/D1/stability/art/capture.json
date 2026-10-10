@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:52402/decima/?cloud=parkouring&bookmark=p101&clean=1&look=art",
+  "url": "http://127.0.0.1:50244/decima/?cloud=parkouring&bookmark=p101&clean=1&look=art",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T14:50:58.330Z",
+  "startedAt": "2026-10-10T15:29:08.605Z",
   "shots": [
     {
       "name": "view",
@@ -23,13 +23,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.096573,
-          "lightGrid": 0.115654,
-          "marchNear": 0.22329466666666664,
-          "marchFar": 14.323522833333334,
-          "shadowMap": 0.062278999999999994,
-          "composite": 0.6569388333333334,
-          "dome": 0.15993800000000002
+          "lightGridReduce": 0.064951,
+          "lightGrid": 0.027497,
+          "marchNear": 0.05575766666666667,
+          "marchFar": 8.670768666666666,
+          "shadowMap": 0.017345,
+          "composite": 0.12365366666666666,
+          "dome": 0.10632199999999999
         },
         "frameMs": {},
         "renderSize": [
@@ -103,9 +103,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            0.6,
+            0.19980000000000003,
             0,
-            0.3
+            0.09990000000000002
           ],
           "windVelocity": [
             3,
@@ -157,13 +157,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.096573,
-          "lightGrid": 0.115654,
-          "marchNear": 0.22765953846153847,
-          "marchFar": 13.577707153846156,
-          "shadowMap": 0.07831253846153846,
-          "composite": 0.5743063076923076,
-          "dome": 0.14409353846153847
+          "lightGridReduce": 0.064951,
+          "lightGrid": 0.027497,
+          "marchNear": 0.062491090909090906,
+          "marchFar": 8.394619363636364,
+          "shadowMap": 0.014506545454545454,
+          "composite": 0.11744445454545455,
+          "dome": 0.07184236363636363
         },
         "frameMs": {},
         "renderSize": [
@@ -237,9 +237,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            1.2497999999999996,
+            0.5499,
             0,
-            0.6248999999999998
+            0.27495
           ],
           "windVelocity": [
             3,
@@ -291,13 +291,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.096573,
-          "lightGrid": 0.115654,
-          "marchNear": 0.22964070000000003,
-          "marchFar": 13.20375735,
-          "shadowMap": 0.0729152,
-          "composite": 0.6119711,
-          "dome": 0.12758275
+          "lightGridReduce": 0.064951,
+          "lightGrid": 0.027497,
+          "marchNear": 0.0616855,
+          "marchFar": 8.30842061111111,
+          "shadowMap": 0.032975111111111115,
+          "composite": 0.115214,
+          "dome": 0.06204166666666665
         },
         "frameMs": {},
         "renderSize": [
@@ -371,9 +371,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            1.8497999999999992,
+            0.8999999999999999,
             0,
-            0.9248999999999996
+            0.44999999999999996
           ],
           "windVelocity": [
             3,
@@ -425,13 +425,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.096573,
-          "lightGrid": 0.115654,
-          "marchNear": 0.21905120689655175,
-          "marchFar": 12.792489620689654,
-          "shadowMap": 0.0729152,
-          "composite": 0.5605617586206897,
-          "dome": 0.12336100000000001
+          "lightGridReduce": 0.064951,
+          "lightGrid": 0.027497,
+          "marchNear": 0.06291956,
+          "marchFar": 8.266199760000001,
+          "shadowMap": 0.034954681818181815,
+          "composite": 0.11421144,
+          "dome": 0.05811787999999998
         },
         "frameMs": {},
         "renderSize": [
@@ -505,9 +505,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            2.3997,
+            1.2498,
             0,
-            1.19985
+            0.6249
           ],
           "windVelocity": [
             3,
@@ -559,13 +559,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.096573,
-          "lightGrid": 0.115654,
-          "marchNear": 0.19636402702702702,
-          "marchFar": 12.500094918918917,
-          "shadowMap": 0.0729152,
-          "composite": 0.5524025135135135,
-          "dome": 0.11594264864864864
+          "lightGridReduce": 0.064951,
+          "lightGrid": 0.027497,
+          "marchNear": 0.063948375,
+          "marchFar": 8.256129875000001,
+          "shadowMap": 0.034954681818181815,
+          "composite": 0.113766,
+          "dome": 0.056533187499999984
         },
         "frameMs": {},
         "renderSize": [
@@ -639,9 +639,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            2.8998,
+            1.5998999999999999,
             0,
-            1.4499
+            0.7999499999999999
           ],
           "windVelocity": [
             3,
@@ -693,13 +693,13 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.096573,
-          "lightGrid": 0.115654,
-          "marchNear": 0.18861195555555557,
-          "marchFar": 12.313397844444443,
-          "shadowMap": 0.0729152,
-          "composite": 0.5811966222222221,
-          "dome": 0.11061931111111108
+          "lightGridReduce": 0.064951,
+          "lightGrid": 0.027497,
+          "marchNear": 0.06276400000000001,
+          "marchFar": 8.265053897435896,
+          "shadowMap": 0.034954681818181815,
+          "composite": 0.11368789743589744,
+          "dome": 0.061076051282051264
         },
         "frameMs": {},
         "renderSize": [
@@ -773,9 +773,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            3.3498000000000006,
+            1.9496999999999998,
             0,
-            1.6749000000000003
+            0.9748499999999999
           ],
           "windVelocity": [
             3,

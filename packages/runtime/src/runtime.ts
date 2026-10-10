@@ -609,6 +609,19 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
  *   undersides are lit from below; the scene mirrors the sky below the horizon for the camera too (refs.ts mirrorBelowHorizon).
  * - Tested and rejected: a density cutoff for the skirt (cut-paper edges), noise mips 0.005-0.02 (soften the silhouette, do not touch the fibre),
  *   profile / mip-biased sun taps, an upward ambient occlusion tap (`ambientTap`, +15 percent at 4-8 px only; kept as a setting, off).
+ * Round 4 (after blind judging round 3: first look preferred at both scales; new hard artefacts: glitter, flat lit sheets, contour / wood-grain
+ * banding, a seam, a plateau):
+ * - temporalBlend 0.1 (applied with the look): the contour / wood-grain and the fibre were the interleaved-gradient jitter's diagonal structure
+ *   surviving the exponential resolve, whose newest frame always keeps `temporalBlend` of the pattern (30 percent at 0.3); at 4x the direct
+ *   term's penumbra showed it at every step size, with the grid off and with smooth sun taps, and it is gone at 0.1 (band energy unchanged).
+ * - The glow's depth relaxation reads the true SDF at the sample, not the stepping bound (speckle wherever the relaxation is steep).
+ * - 16-bit data: the pack VDB stores the dimensional profile continuously (48k distinct values; the TGAs have 256) and the noise at full float
+ *   (1.7-1.9 M distinct values); `nvdf16.bin` / `noise16.bin` (rgba16float, vdb_to_nvdf.py --nvdf16 and noise_vdb_to_16.py) replace the
+ *   8-bit textures when present. Decima shipped these as BC6H / 2 B per texel. The density scale is 8-bit in the pack VDB itself (exact k/255).
+ * - ambientSaturation 0.5 (from 0.4): the shaded flanks read brown under the pink sun with the stronger glow; 0.5 keeps them mauve
+ *   (p213 shade B/R 1.09 vs the frame's 1.07, s33t3 1.03 vs 0.99).
+ * - Remaining, post chain: the flat lit sheets at the sun-side silhouette and the blown tops are the lit thin lobes at the tonemapper's
+ *   shoulder (lit RGB .92/.90/.89 where the frames keep .92/.85/.82); lowering exposure darkens the body below the frames' instead.
  * Kept from art: typeFromScale 1, the C1 low-sun handoff, the C2 haze, the phase lobes.
  * Kept from deck: everything it states and nothing it does not (no glow boost, no deep octaves, no edge darkening, no micro-shadow, exp ambient).
  * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
@@ -624,7 +637,7 @@ export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
   hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0,
   fineErosion: 1,
   inlineLightScale: 0.03, inlineProfile: 0, lightMipBias: 0,
-  diffuseSun: 0.15, diffuseFalloff: 0.11, ambientSaturation: 0.4, ambientWarmth: 0,
+  diffuseSun: 0.15, diffuseFalloff: 0.11, ambientSaturation: 0.5, ambientWarmth: 0,
   inScatterProfile: 1, ambientBelowMirror: 1,
 };
 
@@ -635,7 +648,7 @@ export type CloudLook = 'art' | 'deck' | 'decima';
  */
 export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Partial<CloudSettings> {
   if (look === 'deck') return { ...CLOUD_DECK_SETTINGS, microDist: 0 };
-  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1 };
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1, temporalBlend: 0.1 };
   return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 

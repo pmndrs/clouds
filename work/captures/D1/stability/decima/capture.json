@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:52345/decima/?cloud=parkouring&bookmark=p101&clean=1&look=decima",
+  "url": "http://127.0.0.1:50191/decima/?cloud=parkouring&bookmark=p101&clean=1&look=decima",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T14:50:54.864Z",
+  "startedAt": "2026-10-10T15:29:05.999Z",
   "shots": [
     {
       "name": "view",
@@ -23,15 +23,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.356212,
-          "lightGrid": 0.195687,
-          "marchNear": 0.167914,
-          "marchFar": 8.219788666666668,
-          "composite": 0.5437436666666667,
-          "dome": 0.212731,
-          "resolveNear": 0.13865349999999999,
-          "resolveFar": 0.3112665,
-          "shadowMap": 0.055789
+          "lightGridReduce": 0.058618,
+          "lightGrid": 0.029164,
+          "marchNear": 0.07302375,
+          "marchFar": 5.47983125,
+          "shadowMap": 0.34835875000000005,
+          "composite": 0.12499724999999999,
+          "dome": 0.07925175000000001,
+          "resolveNear": 0.04485633333333333,
+          "resolveFar": 0.08288033333333333
         },
         "frameMs": {},
         "renderSize": [
@@ -100,14 +100,14 @@
           "lightMipBias": 0,
           "diffuseSun": 0.15,
           "diffuseFalloff": 0.11,
-          "ambientSaturation": 0.4,
+          "ambientSaturation": 0.5,
           "ambientWarmth": 0,
           "inScatterProfile": 1,
           "ambientBelowMirror": 1,
           "windOffset": [
-            0.35010000000000013,
+            0.15000000000000002,
             0,
-            0.17505000000000007
+            0.07500000000000001
           ],
           "windVelocity": [
             3,
@@ -122,7 +122,7 @@
           "splitDistance": 240,
           "temporalNear": 1,
           "temporalFar": 1,
-          "temporalBlend": 0.3,
+          "temporalBlend": 0.1,
           "renderScale": 1,
           "detailDistance": 150,
           "farLimit": 1000000,
@@ -159,15 +159,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.356212,
-          "lightGrid": 0.195687,
-          "marchNear": 0.201562,
-          "marchFar": 8.243246545454546,
-          "composite": 0.5687355454545455,
-          "dome": 0.13944499999999999,
-          "resolveNear": 0.16327699999999998,
-          "resolveFar": 0.2994234,
-          "shadowMap": 0.05629322222222223
+          "lightGridReduce": 0.058618,
+          "lightGrid": 0.029164,
+          "marchNear": 0.05879772727272727,
+          "marchFar": 5.102813090909091,
+          "shadowMap": 0.13389863636363641,
+          "composite": 0.1157509090909091,
+          "dome": 0.05643763636363637,
+          "resolveNear": 0.0397883,
+          "resolveFar": 0.07883470000000001
         },
         "frameMs": {},
         "renderSize": [
@@ -236,14 +236,14 @@
           "lightMipBias": 0,
           "diffuseSun": 0.15,
           "diffuseFalloff": 0.11,
-          "ambientSaturation": 0.4,
+          "ambientSaturation": 0.5,
           "ambientWarmth": 0,
           "inScatterProfile": 1,
           "ambientBelowMirror": 1,
           "windOffset": [
-            0.7499999999999999,
+            0.49979999999999986,
             0,
-            0.37499999999999994
+            0.24989999999999993
           ],
           "windVelocity": [
             3,
@@ -258,7 +258,7 @@
           "splitDistance": 240,
           "temporalNear": 1,
           "temporalFar": 1,
-          "temporalBlend": 0.3,
+          "temporalBlend": 0.1,
           "renderScale": 1,
           "detailDistance": 150,
           "farLimit": 1000000,
@@ -295,15 +295,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.356212,
-          "lightGrid": 0.195687,
-          "marchNear": 0.19216694736842105,
-          "marchFar": 8.219830947368422,
-          "composite": 0.5721335263157894,
-          "dome": 0.11819257894736841,
-          "resolveNear": 0.1914117777777778,
-          "resolveFar": 0.32865483333333334,
-          "shadowMap": 0.07347958823529412
+          "lightGridReduce": 0.058618,
+          "lightGrid": 0.029164,
+          "marchNear": 0.06090994736842106,
+          "marchFar": 5.033211684210526,
+          "shadowMap": 0.08712489473684214,
+          "composite": 0.11349826315789474,
+          "dome": 0.05388173684210526,
+          "resolveNear": 0.03958522222222222,
+          "resolveFar": 0.07823055555555555
         },
         "frameMs": {},
         "renderSize": [
@@ -372,14 +372,14 @@
           "lightMipBias": 0,
           "diffuseSun": 0.15,
           "diffuseFalloff": 0.11,
-          "ambientSaturation": 0.4,
+          "ambientSaturation": 0.5,
           "ambientWarmth": 0,
           "inScatterProfile": 1,
           "ambientBelowMirror": 1,
           "windOffset": [
-            1.0998,
+            0.8997000000000002,
             0,
-            0.5499
+            0.4498500000000001
           ],
           "windVelocity": [
             3,
@@ -394,7 +394,7 @@
           "splitDistance": 240,
           "temporalNear": 1,
           "temporalFar": 1,
-          "temporalBlend": 0.3,
+          "temporalBlend": 0.1,
           "renderScale": 1,
           "detailDistance": 150,
           "farLimit": 1000000,
@@ -431,15 +431,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.356212,
-          "lightGrid": 0.195687,
-          "marchNear": 0.20033311111111107,
-          "marchFar": 8.208939814814816,
-          "composite": 0.5525091851851851,
-          "dome": 0.11423796296296296,
-          "resolveNear": 0.1845078076923077,
-          "resolveFar": 0.31896657692307695,
-          "shadowMap": 0.07377540909090909
+          "lightGridReduce": 0.058618,
+          "lightGrid": 0.029164,
+          "marchNear": 0.06248229629629628,
+          "marchFar": 5.007940703703704,
+          "shadowMap": 0.08023459090909092,
+          "composite": 0.11259974074074074,
+          "dome": 0.05225433333333331,
+          "resolveNear": 0.03994161538461538,
+          "resolveFar": 0.0780835
         },
         "frameMs": {},
         "renderSize": [
@@ -508,14 +508,14 @@
           "lightMipBias": 0,
           "diffuseSun": 0.15,
           "diffuseFalloff": 0.11,
-          "ambientSaturation": 0.4,
+          "ambientSaturation": 0.5,
           "ambientWarmth": 0,
           "inScatterProfile": 1,
           "ambientBelowMirror": 1,
           "windOffset": [
-            1.4997,
+            1.3002000000000002,
             0,
-            0.74985
+            0.6501000000000001
           ],
           "windVelocity": [
             3,
@@ -530,7 +530,7 @@
           "splitDistance": 240,
           "temporalNear": 1,
           "temporalFar": 1,
-          "temporalBlend": 0.3,
+          "temporalBlend": 0.1,
           "renderScale": 1,
           "detailDistance": 150,
           "farLimit": 1000000,
@@ -567,15 +567,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.356212,
-          "lightGrid": 0.195687,
-          "marchNear": 0.2128819705882353,
-          "marchFar": 8.169315911764707,
-          "composite": 0.5565614705882351,
-          "dome": 0.10755491176470588,
-          "resolveNear": 0.19093539393939396,
-          "resolveFar": 0.30743796969696974,
-          "shadowMap": 0.07377540909090909
+          "lightGridReduce": 0.058618,
+          "lightGrid": 0.029164,
+          "marchNear": 0.06385251428571427,
+          "marchFar": 4.996279257142858,
+          "shadowMap": 0.08023459090909092,
+          "composite": 0.11212860000000001,
+          "dome": 0.052144685714285696,
+          "resolveNear": 0.04090726470588236,
+          "resolveFar": 0.07791747058823531
         },
         "frameMs": {},
         "renderSize": [
@@ -644,14 +644,14 @@
           "lightMipBias": 0,
           "diffuseSun": 0.15,
           "diffuseFalloff": 0.11,
-          "ambientSaturation": 0.4,
+          "ambientSaturation": 0.5,
           "ambientWarmth": 0,
           "inScatterProfile": 1,
           "ambientBelowMirror": 1,
           "windOffset": [
-            1.8498,
+            1.6998000000000002,
             0,
-            0.9249
+            0.8499000000000001
           ],
           "windVelocity": [
             3,
@@ -666,7 +666,7 @@
           "splitDistance": 240,
           "temporalNear": 1,
           "temporalFar": 1,
-          "temporalBlend": 0.3,
+          "temporalBlend": 0.1,
           "renderScale": 1,
           "detailDistance": 150,
           "farLimit": 1000000,
@@ -703,15 +703,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.356212,
-          "lightGrid": 0.195687,
-          "marchNear": 0.20979595121951222,
-          "marchFar": 8.13248312195122,
-          "composite": 0.554480463414634,
-          "dome": 0.12077068292682928,
-          "resolveNear": 0.1922034,
-          "resolveFar": 0.33346424999999996,
-          "shadowMap": 0.07377540909090909
+          "lightGridReduce": 0.058618,
+          "lightGrid": 0.029164,
+          "marchNear": 0.0652607857142857,
+          "marchFar": 5.007496071428572,
+          "shadowMap": 0.08023459090909092,
+          "composite": 0.11210380952380952,
+          "dome": 0.053951785714285695,
+          "resolveNear": 0.041232951219512204,
+          "resolveFar": 0.07808985365853659
         },
         "frameMs": {},
         "renderSize": [
@@ -780,14 +780,14 @@
           "lightMipBias": 0,
           "diffuseSun": 0.15,
           "diffuseFalloff": 0.11,
-          "ambientSaturation": 0.4,
+          "ambientSaturation": 0.5,
           "ambientWarmth": 0,
           "inScatterProfile": 1,
           "ambientBelowMirror": 1,
           "windOffset": [
-            2.1998999999999995,
+            2.0499,
             0,
-            1.0999499999999998
+            1.02495
           ],
           "windVelocity": [
             3,
@@ -802,7 +802,7 @@
           "splitDistance": 240,
           "temporalNear": 1,
           "temporalFar": 1,
-          "temporalBlend": 0.3,
+          "temporalBlend": 0.1,
           "renderScale": 1,
           "detailDistance": 150,
           "farLimit": 1000000,

@@ -1,18 +1,13 @@
 {
   "name": "parkouring",
-  "source": "assets/nubis-voxel-clouds/NVDFs/Examples/ParkouringCloud/TGA/modeling_data.*.tga",
+  "source": "ParkouringCloud.vdb (pack mode, via scripts/vdb/vdb_to_nvdf.py)",
   "dims": [
     108,
     108,
     51
   ],
-  "voxelSizeMeters": 8,
+  "voxelSizeMeters": 8.0,
   "layout": "x fastest, then y (map row, +Y = up in the source image), then z (slice, up); texel (x,y,z) at ((z*dims[1]+y)*dims[0]+x)",
-  "sourceGrid": [
-    512,
-    512,
-    64
-  ],
   "cropOffset": [
     167,
     103,
@@ -30,22 +25,37 @@
   ],
   "margin": 8,
   "boundsMeters": {
-    "note": "source axes: x = map column, y = map row, z = up; origin = corner of source grid voxel (0,0,0)",
+    "note": "source axes: x = map column, y = map row, z = up; origin = corner of source-lattice voxel (0,0,0). VDB mapping: x = hou X, row = hou Z, up = hou Y.",
     "min": [
-      1336,
-      824,
-      104
+      1336.0,
+      824.0,
+      104.0
     ],
     "max": [
-      2200,
-      1688,
-      512
+      2200.0,
+      1688.0,
+      512.0
     ],
     "size": [
-      864,
-      864,
-      408
+      864.0,
+      864.0,
+      408.0
     ]
+  },
+  "houdini": {
+    "note": "world position (hou axes x, y-up, z, metres after --world-scale) of the crop min corner and of source voxel (0,0,0) corner",
+    "cropMinWorld": [
+      -712.0,
+      424.0,
+      -1224.0
+    ],
+    "sourceOriginCornerWorld": [
+      -2048.0,
+      320.0,
+      -2048.0
+    ],
+    "sourceVoxelSizeMeters": 8.0,
+    "worldScale": 1.0
   },
   "nvdf": {
     "file": "nvdf.bin",
@@ -58,17 +68,40 @@
       "a": "unused"
     }
   },
+  "nvdf16": {
+    "file": "nvdf16.bin",
+    "format": "rgba16float",
+    "bytes": 4758912,
+    "channels": {
+      "r": "dimensional profile, un-quantised float",
+      "g": "detail type",
+      "b": "density scale",
+      "a": "unused"
+    },
+    "note": "same lattice and layout as nvdf.bin; loaders that know it use it for the NVDF texture, nvdf.bin stays for the fine hero bricks and older loaders"
+  },
   "sdf": {
     "file": "sdf.bin",
     "format": "r16unorm little-endian",
     "bytes": 1189728,
     "encoding": {
-      "minMeters": -256,
-      "maxMeters": 4096,
+      "minMeters": -256.0,
+      "maxMeters": 4096.0,
       "decode": "meters = minMeters + v * (maxMeters - minMeters)",
       "rounding": "down"
     },
-    "source": "exact 3D EDT of (profile > 0), full 512x512x64 grid, signed (negative inside), surface at half a voxel from the nearest centres",
-    "outsideCrop": "treat as far / empty (distance >= margin*voxel from the occupied bounds, except at the grid floor/ceiling where the grid ends)"
+    "source": "exact 3D EDT of (profile > 0) on the cropped lattice, signed (negative inside), surface at half a voxel from the nearest centres",
+    "outsideCrop": "treat as far / empty (distance >= margin*voxel from the occupied bounds, except where the crop is clamped to the grid)"
+  },
+  "converter": {
+    "script": "scripts/vdb/vdb_to_nvdf.py",
+    "mode": "pack",
+    "grid": "dimensional_profile",
+    "clampedToGrid": true,
+    "channels": {
+      "r": "dimensional_profile",
+      "g": "detail_type",
+      "b": "density_scale"
+    }
   }
 }

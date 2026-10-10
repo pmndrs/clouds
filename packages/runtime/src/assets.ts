@@ -9,6 +9,11 @@ export interface CloudVolumeAsset {
   voxelSizeMeters: number;
   /** rgba8: R profile, G detail type, B density scale. x fastest, then y, then z. */
   nvdf: Uint8Array<ArrayBuffer>;
+  /**
+   * D1: the same fields as rgba16float bits (IEEE half), the profile un-quantised (cloud.json `nvdf16`, written by vdb_to_nvdf.py --nvdf16 from the
+   * pack VDBs). When present, uploadCloudVolume binds it as the NVDF texture; `nvdf` stays for the fine hero bricks and the CPU paths.
+   */
+  nvdf16?: Uint16Array<ArrayBuffer>;
   /** Signed distance in metres (negative inside), never larger than the true distance. */
   sdfMeters: Float32Array;
   /** P13-H3: the fine hero profile (cloud.json `fine`, `fine.nvdb`), decoded and brick-packed; uploadCloudVolume attaches it as `.fine`. */
@@ -50,6 +55,8 @@ export interface CloudNoiseAsset {
   size: number;
   /** rgba8 mips, largest first. */
   mips: Uint8Array<ArrayBuffer>[];
+  /** D1: rgba16float mips (IEEE half bits), largest first, from the pack's float VDB (noise.json `mips16`); uploadCloudNoise prefers them. */
+  mips16?: Uint16Array<ArrayBuffer>[];
   tilingMeters: number;
 }
 
@@ -58,11 +65,12 @@ interface CloudJson {
   dims: [number, number, number];
   voxelSizeMeters: number;
   nvdf: { file: string; bytes: number };
+  nvdf16?: { file: string; bytes: number };
   sdf: { file: string; bytes: number; encoding: { minMeters: number; maxMeters: number } };
   fine?: { file: string; voxelSizeMeters: number; dims: [number, number, number]; offsetFineVoxels?: [number, number, number] };
   direct?: { file: string; densityRef: number };
 }
-interface NoiseJson { dims: [number, number, number]; mips: { dims: [number, number, number]; byteOffset: number; bytes: number }[]; tilingMeters: number }
+interface NoiseJson { dims: [number, number, number]; mips: { dims: [number, number, number]; byteOffset: number; bytes: number }[]; tilingMeters: number; file16?: string; mips16?: { dims: [number, number, number]; byteOffset: number; bytes: number }[] }
 
 const join = (base: string, file: string) => base.replace(/\/?$/, '/') + file;
 async function fetchOk(url: string): Promise<Response> {
@@ -86,11 +94,12 @@ export function decodeSdf(raw: Uint16Array, minMeters: number, maxMeters: number
 export async function loadCloudVolume(baseUrl: string, options: LoadCloudVolumeOptions = {}): Promise<CloudVolumeAsset> {
   const meta: CloudJson = await (await fetchOk(join(baseUrl, 'cloud.json'))).json();
   const f = options.fine !== false ? meta.fine : undefined;
-  const [nvdfBuffer, sdfBuffer, fineBuffer, directBuffer] = await Promise.all([
+  const [nvdfBuffer, sdfBuffer, fineBuffer, directBuffer, nvdf16Buffer] = await Promise.all([
     fetchOk(join(baseUrl, meta.nvdf.file)).then(r => r.arrayBuffer()),
     fetchOk(join(baseUrl, meta.sdf.file)).then(r => r.arrayBuffer()),
     f && fetchOk(join(baseUrl, f.file)).then(r => r.arrayBuffer()),
     meta.direct && fetchOk(join(baseUrl, meta.direct.file)).then(r => r.arrayBuffer()),
+    meta.nvdf16 && fetchOk(join(baseUrl, meta.nvdf16.file)).then(r => r.arrayBuffer()),
   ]);
   const count = meta.dims[0] * meta.dims[1] * meta.dims[2];
   if (nvdfBuffer.byteLength !== count * 4 || sdfBuffer.byteLength !== count * 2) throw new Error(`Cloud ${meta.name}: payload size does not match dims.`);
@@ -101,6 +110,10 @@ export async function loadCloudVolume(baseUrl: string, options: LoadCloudVolumeO
     nvdf: new Uint8Array(nvdfBuffer),
     sdfMeters: decodeSdf(new Uint16Array(sdfBuffer), meta.sdf.encoding.minMeters, meta.sdf.encoding.maxMeters),
   };
+  if (meta.nvdf16 && nvdf16Buffer) {
+    if (nvdf16Buffer.byteLength !== count * 8) throw new Error(`Cloud ${meta.name}: nvdf16 size does not match dims.`);
+    asset.nvdf16 = new Uint16Array(nvdf16Buffer);
+  }
   if (meta.direct && directBuffer) {
     if (directBuffer.byteLength !== count * 2) throw new Error(`Cloud ${meta.name}: direct density size does not match dims.`);
     asset.direct = { density: new Uint16Array(directBuffer), densityRef: meta.direct.densityRef };
@@ -118,10 +131,14 @@ export async function loadCloudVolume(baseUrl: string, options: LoadCloudVolumeO
 /** Load `<base>/noise.json` and its mip chain. */
 export async function loadCloudNoise(baseUrl: string): Promise<CloudNoiseAsset> {
   const meta: NoiseJson = await (await fetchOk(join(baseUrl, 'noise.json'))).json();
-  const buffer = await (await fetchOk(join(baseUrl, 'noise.bin'))).arrayBuffer();
+  const [buffer, buffer16] = await Promise.all([
+    (await fetchOk(join(baseUrl, 'noise.bin'))).arrayBuffer(),
+    meta.file16 && meta.mips16 ? (await fetchOk(join(baseUrl, meta.file16))).arrayBuffer() : undefined,
+  ]);
   return {
     size: meta.dims[0],
     tilingMeters: meta.tilingMeters,
     mips: meta.mips.map(m => new Uint8Array(buffer, m.byteOffset, m.bytes)),
+    ...(buffer16 && meta.mips16 ? { mips16: meta.mips16.map(m => new Uint16Array(buffer16, m.byteOffset, m.bytes / 2)) } : {}),
   };
 }

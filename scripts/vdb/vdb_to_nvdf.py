@@ -367,6 +367,7 @@ def convert(args):
         r8 = nm.quantize_unorm8(prof)
         mask = r8 > 0
         density = None
+        prof_f = np.clip(prof, 0.0, 1.0).astype(np.float32)   # D1 round 4: the un-quantised profile for nvdf16 (the pack VDB stores it continuously)
     elif mode == 'fog':
         density, t0 = fetch_resampled(args.density_grid)
         mask = density >= args.iso
@@ -405,6 +406,7 @@ def convert(args):
         density, detail, scale, given_sdf = rot(density), rot(detail), rot(scale), rot(given_sdf)
         if mode == 'pack':
             r8 = rot(r8)
+            prof_f = rot(prof_f)
         t0 = [0, 0, 0]   # placement metadata is not tracked through the rotation (the runtime centres the cloud itself)
     timer.lap('read+resample')
 
@@ -428,6 +430,7 @@ def convert(args):
     detail_c, scale_c, density_c, given_c = cropf(detail), cropf(scale), cropf(density), cropf(given_sdf)
     if mode == 'pack':
         r8_c = nm.crop(r8, cmin, cdims)
+        prof_fc = nm.crop(prof_f, cmin, cdims)
     timer.lap('crop')
 
     # --- SDF
@@ -498,6 +501,20 @@ def convert(args):
     out.mkdir(parents=True, exist_ok=True)
     (out / 'nvdf.bin').write_bytes(nvdf.tobytes())
     (out / 'sdf.bin').write_bytes(sdf16.astype('<u2').tobytes())
+    nvdf16_meta = None
+    if mode == 'pack' and args.nvdf16:
+        # D1 round 4: the same three fields as half floats (rgba16float, alpha 0), the profile un-quantised. The 8-bit profile's 1/255 steps,
+        # lifted by the sampler's sharpening pow, print contour bands into the fringe at the view extinction Decima's frames need; Decima
+        # shipped these fields as BC6H (half float). detail / scale are 8-bit multiples in the pack VDB itself and are stored as they are.
+        g16 = (detail_c if detail_c is not None else np.full(r8_c.shape, 0.5, np.float32))
+        b16 = (scale_c if scale_c is not None else np.full(r8_c.shape, 1.0, np.float32))
+        prof16 = np.where(mask_c, np.maximum(prof_fc, 1.0 / 255.0), 0.0)   # inside the mask the profile stays > 0, as the 8-bit field does
+        n16 = np.zeros(r8_c.shape + (4,), dtype=np.float16)
+        n16[..., 0] = prof16; n16[..., 1] = np.clip(g16, 0, 1); n16[..., 2] = np.clip(b16, 0, 1)
+        (out / 'nvdf16.bin').write_bytes(n16.astype('<f2').tobytes())
+        nvdf16_meta = {'file': 'nvdf16.bin', 'format': 'rgba16float', 'bytes': int(n16.nbytes),
+                       'channels': {'r': 'dimensional profile, un-quantised float', 'g': 'detail type', 'b': 'density scale', 'a': 'unused'},
+                       'note': 'same lattice and layout as nvdf.bin; loaders that know it use it for the NVDF texture, nvdf.bin stays for the fine hero bricks and older loaders'}
     fine_meta = None
     if fv:
         fine_meta = write_fine(out, r8_fine, depth_fine, cmin, cdims, ratio, fv, tv, corner0, t0, args)
@@ -536,6 +553,7 @@ def convert(args):
             'file': 'nvdf.bin', 'format': 'rgba8unorm', 'bytes': int(nvdf.nbytes),
             'channels': {'r': 'dimensional profile (0 none, 1 full cloud)', 'g': 'detail type (0 wispy, 1 billowy)', 'b': 'density scale', 'a': 'unused'},
         },
+        **({'nvdf16': nvdf16_meta} if nvdf16_meta else {}),
         'sdf': {
             'file': 'sdf.bin', 'format': 'r16unorm little-endian', 'bytes': int(sdf16.nbytes),
             'encoding': {'minMeters': nm.SDF_MIN, 'maxMeters': nm.SDF_MAX, 'decode': 'meters = minMeters + v * (maxMeters - minMeters)', 'rounding': 'down'},
@@ -576,6 +594,7 @@ def parser():
     p.add_argument('--detail-grid', help='detail-type grid (0 wispy .. 1 billowy). pack default: detail_type; fog/sdf: optional')
     p.add_argument('--scale-grid', help='density-scale grid (0..1). pack default: density_scale; fog/sdf: optional')
     p.add_argument('--sdf-grid', help='level-set grid. pack default: sdf; sdf mode default: first level set')
+    p.add_argument('--nvdf16', action='store_true', help='pack mode: also write nvdf16.bin (rgba16float, the profile un-quantised) and its cloud.json entry')
     p.add_argument('--sdf-source', choices=['edt', 'vdb'], default='edt', help='pack mode: recompute the SDF from profile > 0 (edt, matches convert.mjs) or resample the VDB sdf grid (vdb)')
     f = p.add_argument_group('hero clouds (fog mode): fine lattice -> fine.vdb / fine.nvdb, coarse field by reduction')
     f.add_argument('--fine-voxel-size', type=float, help='fine voxel size in metres (4 or 2); must divide --voxel-size (default 8) into an integer ratio. Writes fine.vdb and fine.nvdb next to nvdf.bin')
