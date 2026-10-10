@@ -79,6 +79,7 @@ try {
   let turbidityNow = 1;
   let skyFactorNow = '1,1,1';
   let sunColorNow = '1,1,1';
+  let miePhaseNow = 0.8;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
   //   p101@sun:45:335@look:art@exp:0.3@turb:4@matte@s.densityScale:0.2@cam:ex:ey:ez:tx:ty:tz:vfov
@@ -108,6 +109,9 @@ try {
     if (skyf.join() !== skyFactorNow) { sky.setSkyLuminanceFactor(skyf); skyFactorNow = skyf.join(); }
     const sunc = v.has('sunc') ? v.get('sunc')!.map(Number) : (ref.sunColor ?? [1, 1, 1]);
     if (sunc.join() !== sunColorNow) { sky.setSunColor(sunc); sunColorNow = sunc.join(); }
+    // mieg:g = the haze's forward-scatter phase (@pmndrs/sky miePhaseG, 0.8 default): lower spreads the sun halo that Decima's gradient skies lack.
+    const mieg = v.has('mieg') ? Number(v.get('mieg')![0]) : (ref.miePhaseG ?? 0.8);
+    if (mieg !== miePhaseNow) { sky.setAtmosphere({ miePhaseG: mieg }); miePhaseNow = mieg; }
     bridge.matte = matte || v.has('matte');
     renderer.toneMapping = bridge.matte ? NoToneMapping : ACESFilmicToneMapping;
     renderer.toneMappingExposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);

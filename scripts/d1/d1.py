@@ -12,7 +12,7 @@ Subcommands
 Surface measures (960 px wide frames, luminance in sRGB 0..1, inside the cloud mask eroded by 6 px):
   pit    mean black-hat (closing with a 15 px square minus the image): depth of dark pockets smaller than ~15 px. Pitting.
   pit95  its 95th percentile (the worst pockets).
-  grain  std of (L - 5x5 box blur of L): texture energy at 1-2 px.
+  grain  std of (L - 5x5 box blur of L): texture energy at 1-2 px; grainSh the same over the darker half of the body (sparkle in shadow).
   relief std of (5x5 blur of L - 25x25 blur of L): shading energy at the lobe scale (what makes billows read).
 """
 import argparse, json, os, sys
@@ -72,8 +72,10 @@ def surface_measures(rgb, mask):
     closing = rank_filter(rank_filter(L, 7, np.maximum), 7, np.minimum)
     bh = (closing - L)[inner]
     b5 = d0.box_blur(L, 2); b25 = d0.box_blur(L, 12)
+    shade = inner & (b25 < np.median(b25[inner]))   # the darker half of the body at the lobe scale: where sparkle shows
     return {'pit': round(float(bh.mean()), 4), 'pit95': round(float(np.percentile(bh, 95)), 4),
-            'grain': round(float((L - b5)[inner].std()), 4), 'relief': round(float((b5 - b25)[inner].std()), 4)}
+            'grain': round(float((L - b5)[inner].std()), 4), 'grainSh': round(float((L - b5)[shade].std()), 4) if shade.sum() > 100 else 0.0,
+            'relief': round(float((b5 - b25)[inner].std()), 4)}
 
 
 def matte_mask(path, width):
@@ -96,7 +98,7 @@ def one_stats(ref, ours, width=960, matte=None):
     return out
 
 
-COLS = ['median', 'lit_p90', 'shade_p10', 'sky_mean', 'cloud_sky', 'shade_BR', 'lit_BR', 'sky_BR', 'edge', 'pit', 'pit95', 'grain', 'relief']
+COLS = ['median', 'lit_p90', 'shade_p10', 'sky_mean', 'cloud_sky', 'shade_BR', 'lit_BR', 'sky_BR', 'edge', 'pit', 'pit95', 'grain', 'grainSh', 'relief']
 
 
 def cmd_stats(a):
@@ -110,7 +112,8 @@ def cmd_stats(a):
     w = max(len(r[0]) for r in rows)
     print(' ' * w, '  iou  corr ', ' '.join(f'{c:>9}' for c in COLS))
     for name, st, iou_, corr in rows:
-        print(name.ljust(w), f'{iou_ if iou_ is not None else "":>5}', f'{corr if corr is not None else "":>5}', ' '.join(f'{st.get(c, float("nan")):9.3f}' for c in COLS))
+        rgb = ' shade(%s) lit(%s)' % (','.join(f'{v:.2f}' for v in st.get('shade_rgb', [])), ','.join(f'{v:.2f}' for v in st.get('lit_rgb', []))) if a.rgb else ''
+        print(name.ljust(w), f'{iou_ if iou_ is not None else "":>5}', f'{corr if corr is not None else "":>5}', ' '.join(f'{st.get(c, float("nan")):9.3f}' for c in COLS) + rgb)
     if a.json:
         json.dump({os.path.basename(p): one_stats(ref, p, a.width, a.matte) for p in a.ours}, open(a.json, 'w'), indent=1)
 
@@ -151,7 +154,7 @@ def cmd_flicker(a):
 
 def main():
     p = argparse.ArgumentParser(); sub = p.add_subparsers(dest='cmd', required=True)
-    s = sub.add_parser('stats'); s.add_argument('ref'); s.add_argument('ours', nargs='+'); s.add_argument('--width', type=int, default=960); s.add_argument('--json'); s.add_argument('--matte', help='our matte shot of the same bookmark: exact silhouette instead of the sky fit')
+    s = sub.add_parser('stats'); s.add_argument('ref'); s.add_argument('ours', nargs='+'); s.add_argument('--width', type=int, default=960); s.add_argument('--json'); s.add_argument('--matte', help='our matte shot of the same bookmark: exact silhouette instead of the sky fit'); s.add_argument('--rgb', action='store_true', help='append shade / lit RGB')
     s = sub.add_parser('crops'); s.add_argument('out'); s.add_argument('ref'); s.add_argument('ours', nargs='+'); s.add_argument('--box', default='560,180,700,500'); s.add_argument('--scale', type=int, default=1); s.add_argument('--cols', type=int, default=3)
     s = sub.add_parser('flicker'); s.add_argument('imgs', nargs='+'); s.add_argument('--width', type=int, default=960)
     s = sub.add_parser('refof'); s.add_argument('bookmark')

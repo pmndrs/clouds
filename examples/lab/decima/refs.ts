@@ -24,6 +24,8 @@ export interface DecimaRef {
   skyFactor?: [number, number, number];
   /** D1: sun colour (linear) reconstructed for this frame; 1,1,1 otherwise. */
   sunColor?: [number, number, number];
+  /** D1 round 2: the haze's forward-scatter phase (@pmndrs/sky miePhaseG, default 0.8); lower for the hazy frames so the sun halo spreads. */
+  miePhaseG?: number;
 }
 
 export const DECIMA_REFS: Record<string, DecimaRef> = {
