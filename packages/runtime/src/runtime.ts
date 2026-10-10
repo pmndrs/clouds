@@ -304,6 +304,15 @@ export interface CloudSettings {
   /** D1 round 5: distance (m) within which the two in-line sun samples are reused by the following steps (P3-E; 4 before). 0 = fresh taps at every lit step. */
   inlineReuse: number;
   /**
+   * D1 round 8: metres along the view ray past the sample at which the glow's in-scatter profile P is read (0 = at the sample). The deck's
+   * glow is light scattered deeper inside shining through the surface (s116-119); read at the sample, a profile lobe protruding toward the
+   * camera has a small P at its front and prints a dark disc on the shade side (round 7's finding). `glowDepthMode` 1 takes the max of both reads.
+   */
+  glowDepth: number;
+  glowDepthMode: number;
+  /** D1 round 8: the up-rez noise's world scale (1 / tiling period in metres; the pack's sampler uses 0.01 = 100 m). Investigation knob for the floret scale. */
+  noiseScale: number;
+  /**
    * D1 round 7: 1 = stochastic rounding of the temporal history (rgba16float): at `temporalBlend` 0.1 the exponential update stalls below
    * 5 ulp, which on bright faces is over half an 8-bit step, so converged gradients print concentric contour rings (the judges' whorls on
    * the lit faces). 0 = round to nearest (before round 7).
@@ -660,13 +669,13 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
  * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
  */
 export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
-  densityScale: 2, lightDensityScale: 0.031, msStrength: 0.5, ambientStrength: 1.0,
+  densityScale: 2, lightDensityScale: 0.031, msStrength: 0.7, ambientStrength: 0.7,
   silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
   edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.7, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
   noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0,   // D1 round 7: the shipped sampler's type (the NVDF's); typeFromScale 1 printed wispy fibre whorls on the lit faces
   microShadow: 0, detailBias: 0,
   ambientLaw: 1,
-  bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'mie', dropletDiameter: 10,
+  bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
   hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0,
   fineErosion: 1,
   inlineLightScale: 0.03, inlineProfile: 0, lightMipBias: 0,
@@ -683,7 +692,8 @@ export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Parti
   if (look === 'deck') return { ...CLOUD_DECK_SETTINGS, microDist: 0 };
   // D1 round 5: the step phase randomised at the cloud entry goes with the look (the blue-noise jitter mask is the runtime default; the tricubic
   // light grid read made no visible difference at 16 m cells and stays off).
-  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1 };
+  // D1 round 8: glowDepth 12 (the glow's profile read 12 m past the sample along the view ray: the profile's lobes no longer print discs on the shade side).
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1, glowDepth: 12 };
   return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 
@@ -711,7 +721,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
-    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, noiseScale: 0.01,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -800,6 +810,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   // P13-H1: HeroParams of the bound volume's fine overlay (unused, and the placeholders bound, when it has none).
   const heroUniforms = device.createBuffer({ label: 'cloud hero params', size: HERO_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   let heroKey = '';
+  // D1 round 8: the volume uniform carries the noise scale; rewritten when the setting changes.
+  let volumePos: [number, number, number] = [0, 0, 0];
+  let noiseScaleNow = 0.01;
   // One frame uniform per march pass (render size and pass mode differ); the composite reads the near one.
   const frameUniforms = [0, 1, 2].map(i => device.createBuffer({ label: `cloud frame uniforms ${['near', 'far', 'sky'][i]}`, size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }));
   const dummyNear = device.createTexture({ label: 'cloud dummy near', size: [1, 1], format: 'rgba16float', usage: GPUTextureUsage.TEXTURE_BINDING });
@@ -1053,7 +1066,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       ownsVolume = !external;
       lightGrid = makeLightGrid();
       forgetGroups(); domeGroups = null; needReset = true;
-      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, volume.extentMeters, volume.voxelSize)));
+      volumePos = [opts.position[0], opts.position[1], opts.position[2]]; noiseScaleNow = settings.noiseScale;
+      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, volume.extentMeters, volume.voxelSize, settings.noiseScale)));
       for (let i = 0; i < 3; i++) { skyBox.minCorner[i] = opts.position[i]; skyBox.extent[i] = volume.extentMeters[i]; }
       rebuildVolumeGroup();
     },
@@ -1064,13 +1078,15 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       volume = next;
       rebuildVolumeGroup();
       lightGrid.invalidate();
-      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, next.extentMeters, next.voxelSize)));
+      volumePos = [opts.position[0], opts.position[1], opts.position[2]]; noiseScaleNow = settings.noiseScale;
+      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(opts.position, next.extentMeters, next.voxelSize, settings.noiseScale)));
       for (let i = 0; i < 3; i++) skyBox.minCorner[i] = opts.position[i];
       return true;
     },
     setVolumePosition(position) {
       if (disposed || !volume) return;
-      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(position, volume.extentMeters, volume.voxelSize)));
+      volumePos = [position[0], position[1], position[2]]; noiseScaleNow = settings.noiseScale;
+      device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(position, volume.extentMeters, volume.voxelSize, settings.noiseScale)));
       for (let i = 0; i < 3; i++) skyBox.minCorner[i] = position[i];
     },
     async setNoise(asset) {
@@ -1175,6 +1191,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic; f[107] = settings.profileFilter;
       f[108] = settings.inlineProfile; f[109] = settings.lightMipBias; f[110] = settings.ambientTap; f[111] = settings.inScatterProfile;
       f[112] = settings.jitterNoise; f[113] = settings.stepJitter; f[114] = settings.lightGridFilter; f[115] = Math.max(0, settings.inlineReuse);
+      f[116] = Math.max(0, settings.glowDepth); f[117] = settings.glowDepthMode;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
@@ -1248,6 +1265,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // The grid holds extinction-scaled optical depth; it re-slices over 8 frames when the sun or the scale moves.
       // X4: in 'hybrid' it also holds the procedural clouds' sun optical depth (heroes in their shadow); it rebuilds as they or the box move by ~8 m.
       const gridProc = procMode === 'hybrid' ? proc : null;
+      if (settings.noiseScale !== noiseScaleNow && volume) {
+        noiseScaleNow = settings.noiseScale;
+        device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(volumePos, volume.extentMeters, volume.voxelSize, settings.noiseScale)));
+      }
       const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: extinction(), frameIndex: frame.frameIndex, sky: skyActive ? skyLayer.domeResources : null,
         procedural: gridProc, lightDensityScale: settings.lightDensityScale,
         procKey: gridProc ? [gridProc.version, Math.round((settings.windOffset[0] - skyBox.minCorner[0]) / 8), Math.round((settings.windOffset[2] - skyBox.minCorner[2]) / 8), Math.round(skyBox.minCorner[1] / 8)] : undefined }, timer);

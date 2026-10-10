@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 464;
+export const FRAME_UNIFORM_BYTES = 480;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -55,6 +55,9 @@ struct Frame {
   // y = stepJitter (1 = the step sequence's phase is also randomised per pixel and frame where the ray enters the cloud), z = lightGridFilter
   // (1 = tricubic B-spline reads of the light grid, 0 = trilinear), w = inlineReuse (m: the in-line sun samples are reused for steps closer than this).
   d2: vec4<f32>,
+  // D1 round 8: x = glowDepth (m: the glow's profile P is read this far along the view ray past the sample, inside the volume; 0 = at the
+  // sample), y = glowDepthMode (0 = the deeper read, 1 = max of the sample's and the deeper read), zw = 0.
+  d3: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

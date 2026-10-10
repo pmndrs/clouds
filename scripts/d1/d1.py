@@ -8,6 +8,9 @@ Subcommands
   crops <out> <ref> <ours...> [--box x,y,w,h]   1:1 crops of the reference and the renders side by side (1920-wide frame coordinates)
   flicker <imgs...>                        temporal stability: per-pixel std of luminance across repeated shots of one view (inside the cloud)
   refof <bookmark>                         print the reference image path of a bookmark
+  bands3 <imgs...> [--box x,y,w,h] [--mask-of ref]   D1 round 8, the judges' texture measure: std (8-bit luminance units) of the 1-3, 4-12 and
+                                           12-32 px band-passes (differences of box blurs) over the crop at its own scale, inside the cloud (pixels
+                                           above a luminance threshold against the sky are kept; a 40 px border is dropped). Use it on the judged crops.
   plateau <imgs...> [--box x,y,w,h]        8-bit quantisation visibility at native resolution: the fraction of pixels whose green value equals both
                                            the right and the lower neighbour's (a noise-free gradient shows its 8-bit steps as contour lines; grain or dither breaks them)
 
@@ -174,6 +177,23 @@ def cmd_bands(a):
         print(os.path.basename(path)[:70].ljust(70), ' '.join(f'{k}={v}' for k, v in out.items()), f'(mask {inner.mean():.2f})')
 
 
+def bands3_of(a):
+    """a: luminance 0..255 at the crop's own scale. Bands: (a - box1), (box2 - box6), (box6 - box16): about 1-3, 4-12, 12-32 px."""
+    inner = (slice(40, -40), slice(40, -40))
+    b1 = (a - d0.box_blur(a, 1))[inner]; b2 = (d0.box_blur(a, 2) - d0.box_blur(a, 6))[inner]; b3 = (d0.box_blur(a, 6) - d0.box_blur(a, 16))[inner]
+    return [round(float(x.std()), 2) for x in (b1, b2, b3)]
+
+
+def cmd_bands3(a):
+    for p in a.imgs:
+        im = Image.open(p).convert('L')
+        if a.box:
+            x, y, w, h = [int(v) for v in a.box.split(',')]
+            im = im.crop((x, y, x + w, y + h))
+        arr = np.asarray(im).astype(float)
+        print(f'{os.path.basename(p)[:70]:70} b1-3={bands3_of(arr)[0]:.2f} b4-12={bands3_of(arr)[1]:.2f} b12-32={bands3_of(arr)[2]:.2f} ({im.width}x{im.height})')
+
+
 def cmd_plateau(a):
     for p in a.imgs:
         im = Image.open(p).convert('RGB')
@@ -204,10 +224,11 @@ def main():
     s = sub.add_parser('bands'); s.add_argument('imgs', nargs='+'); s.add_argument('--width', type=int, default=0); s.add_argument('--box'); s.add_argument('--matte')
     s = sub.add_parser('refof'); s.add_argument('bookmark')
     s = sub.add_parser('plateau'); s.add_argument('imgs', nargs='+'); s.add_argument('--box')
+    s = sub.add_parser('bands3'); s.add_argument('imgs', nargs='+'); s.add_argument('--box')
     a = p.parse_args()
     if a.cmd == 'refof':
         print(ref_of(a.bookmark)); return
-    {'stats': cmd_stats, 'crops': cmd_crops, 'flicker': cmd_flicker, 'bands': cmd_bands, 'plateau': cmd_plateau}[a.cmd](a)
+    {'stats': cmd_stats, 'crops': cmd_crops, 'flicker': cmd_flicker, 'bands': cmd_bands, 'plateau': cmd_plateau, 'bands3': cmd_bands3}[a.cmd](a)
 
 
 if __name__ == '__main__':

@@ -292,6 +292,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 let cubicP = (u32(frame.material2.w) & 1u) != 0u;
                 var pLight = select(d.y, sampleModeling(ps, frame.baseMip).x, frame.d1.w > 0.5);
                 if (cubicP && frame.d1.w > 0.5) { pLight = sampleModelingCubic(ps, frame.baseMip).x; }
+                // D1 round 8 (glowDepth): the deck's glow is the light scattered deeper inside shining through the surface (s116-119); read P
+                // where that light comes from, glowDepth metres along the view ray past the sample, instead of at the lobe's own front, where
+                // the profile is small and a protruding profile lobe prints a dark disc.
+                if (frame.d3.x > 0.0 && frame.d1.w > 0.5) {
+                  let pDeep = sampleModeling(ps + dir * frame.d3.x, frame.baseMip).x;
+                  pLight = select(pDeep, max(pLight, pDeep), frame.d3.y > 0.5);
+                }
                 // D1 round 4: the glow's depth relaxation reads the true distance at the sample (s123 GetVoxelCloudDistance), not the stepping
                 // bound sdf (the last fetch minus the distance travelled, refetched every 24 m): the bound's error followed the per-pixel
                 // jitter and printed speckle into the ms term wherever the relaxation is steep.
