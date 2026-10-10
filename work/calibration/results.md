@@ -24,4 +24,6 @@ Findings:
 - **Both judges missed the owner's main axis:** material and cohesion. The owner reads most renders as shaving foam or liquid: lobes don't blend into each other, falloff between blobs is harsh, and there is no low-density connective tissue binding the forms. The judges' rubric rewarded lobe hierarchy and penalised the smooth generated cloud (c51), which the owner rated 7 for its cohesive, soft material.
 - **Owner's hypothesis to test:** the foam look may come from how we render (density-to-opacity mapping, extinction, the N3 sharpening pow, the converter's plateau density), not only from the forms.
 
+Owner's response: their own scores were forgiving (judged against what they had seen, no fixed idea of a 10); they prefer the harsher judging and find both judges useful, Opus more technical and Fable more polished. **Both judges score every look acceptance for now**, with the owner as final judge.
+
 Next: rubric v2 adds Realism (does it read as a real cloud form at all), Material (vapour vs foam/liquid/cotton) and Cohesion (connective low density binding the lobes). Fable judges look acceptance; Opus builds.
