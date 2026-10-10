@@ -1,0 +1,45 @@
+{
+ "note": "H5 blind set: same view pairs, before = H1 defaults reproduced by overrides (verified < 0.6/255 vs the H1-code captures), after = H5 defaults; compare page ?impls=hzd&quality=ultra&c_animSpeed=0&hud=0, settle 300 frames",
+ "ids": {
+  "h37": {
+   "view": "ground",
+   "variant": "H1 (before)",
+   "source": "work/captures/H5/final-before/ground.jpg"
+  },
+  "h35": {
+   "view": "ground",
+   "variant": "H5 (after)",
+   "source": "work/captures/H5/final-after/ground.jpg"
+  },
+  "h66": {
+   "view": "horizon",
+   "variant": "H1 (before)",
+   "source": "work/captures/H5/final-before/horizon.jpg"
+  },
+  "h71": {
+   "view": "horizon",
+   "variant": "H5 (after)",
+   "source": "work/captures/H5/final-after/horizon.jpg"
+  },
+  "h11": {
+   "view": "above",
+   "variant": "H1 (before)",
+   "source": "work/captures/H5/final-before/above.jpg"
+  },
+  "h15": {
+   "view": "above",
+   "variant": "H5 (after)",
+   "source": "work/captures/H5/final-after/above.jpg"
+  },
+  "h13": {
+   "view": "sunset",
+   "variant": "H1 (before)",
+   "source": "work/captures/H5/final-before/sunset.jpg"
+  },
+  "h88": {
+   "view": "sunset",
+   "variant": "H5 (after)",
+   "source": "work/captures/H5/final-after/sunset.jpg"
+  }
+ }
+}
