@@ -424,7 +424,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.08, // 0.3 left bases charcoal; tuned by orchestrator sweep (P1-09)
     edgeDarkening: 0.5, glowBoost: 12, ambientSkyBias: 0.9, wispyBias: 1, glowFront: 1, deepScatter: 1.2, deepAttenuation: 0.35, ambientFloor: 0.15,
     windOffset: [0, 0, 0], windVelocity: [3, 0, 1.5], animSpeed: 1,
-    mipDistanceScale: 0.01, baseMip: 0, maxSteps: startPreset.maxSteps,
+    mipDistanceScale: 0.002, baseMip: 0, maxSteps: startPreset.maxSteps,
     transmittanceCutoff: startPreset.transmittanceCutoff, splitDistance: startPreset.splitDistance,
     temporalNear: startPreset.temporalNear, temporalFar: startPreset.temporalFar, temporalBlend: 0.3,
     renderScale: dynamic ? dynamic.scale : 1, detailDistance: startPreset.detailDistance, farLimit: startPreset.farLimit,

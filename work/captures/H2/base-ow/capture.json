@@ -1,0 +1,142 @@
+{
+  "url": "http://127.0.0.1:52392/open-water/",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T03:34:52.695Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/H2/base-ow/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8687487666666666,
+          "lightGridReduce": 0.185956,
+          "lightGrid": 0.4863763333333333,
+          "marchNear": 0.06797039999999997,
+          "marchFar": 0.5223392500000001,
+          "shadowMap": 0.5791681666666666,
+          "composite": 0.29491353333333326,
+          "dome": 0.4909368166666667,
+          "skyWeather": 0.9110674166666667,
+          "resolveNear": 0.027258733333333323,
+          "resolveFar": 0.03996604999999999,
+          "skyWeatherMips": 0.115873,
+          "skyLayer": 1.8070800833333343,
+          "skyResolve": 0.09977278333333332,
+          "cloudsTotal": 5.628678566666667,
+          "total": 6.497427333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 250,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 828.3000000119209,
+          "encodeSubmitMsTotal": 2.8999997973442078
+        }
+      }
+    },
+    {
+      "name": "cruise",
+      "file": "work/captures/H2/base-ow/cruise.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 1.14077925,
+          "lightGridReduce": 0.185956,
+          "lightGrid": 0.46124546938775507,
+          "marchNear": 0.07818218333333335,
+          "marchFar": 0.12775566666666666,
+          "shadowMap": 0.5769537833333334,
+          "composite": 0.28064161666666665,
+          "dome": 0.5733822500000001,
+          "skyWeather": 0.9110674166666667,
+          "resolveNear": 0.028890550000000004,
+          "resolveFar": 0.045316633333333356,
+          "skyWeatherMips": 0.115873,
+          "skyLayer": 2.1729675666666677,
+          "skyResolve": 0.11817530000000001,
+          "cloudsTotal": 5.676407436054423,
+          "total": 6.8171866860544235
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999727
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "cruise",
+        "frames": 345,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 828.3000000119209,
+          "encodeSubmitMsTotal": 2.8999997973442078
+        }
+      }
+    },
+    {
+      "name": "flight",
+      "file": "work/captures/H2/base-ow/flight.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.8626160333333331,
+          "lightGridReduce": 0.185956,
+          "lightGrid": 0.46124546938775507,
+          "marchNear": 0.07621136666666666,
+          "marchFar": 0.5245266833333334,
+          "shadowMap": 0.5845528666666666,
+          "composite": 0.3419455333333335,
+          "dome": 0.46566238333333343,
+          "skyWeather": 0.9110674166666667,
+          "resolveNear": 0.03127653333333333,
+          "resolveFar": 0.04412085000000001,
+          "skyWeatherMips": 0.115873,
+          "skyLayer": 1.7696369166666666,
+          "skyResolve": 0.09975480000000002,
+          "cloudsTotal": 5.611829819387756,
+          "total": 6.4744458527210895
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "flight",
+        "frames": 441,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 828.3000000119209,
+          "encodeSubmitMsTotal": 2.8999997973442078
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
