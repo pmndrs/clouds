@@ -126,6 +126,35 @@ fn lightGridSampleClamped(p: vec3<f32>) -> vec2<f32> {
   let g = textureSampleLevel(lightGridTex, lightGridSampler, volumeUvw(p), 0.0);
   return vec2(g.r + g.b, g.g);
 }
+// D1 round 5: tricubic B-spline read (Sigg & Hadwiger 2005: eight trilinear taps at the weighted offsets), C2 across the 16 m cells where
+// trilinear is C0: the trilinear sun sum has creases at every cell plane, which exp(-tau) turns into a faceted shading on smooth lobes.
+fn lightGridSampleCubic(p: vec3<f32>) -> vec2<f32> {
+  let dims = vec3<f32>(textureDimensions(lightGridTex));
+  let c = volumeUvw(p) * dims - 0.5;
+  let i = floor(c);
+  let f = c - i;
+  let f2 = f * f;
+  let f3 = f2 * f;
+  let omf = 1.0 - f;
+  let w0 = omf * omf * omf / 6.0;
+  let w1 = (4.0 - 6.0 * f2 + 3.0 * f3) / 6.0;
+  let w2 = (4.0 - 6.0 * omf * omf + 3.0 * omf * omf * omf) / 6.0;
+  let w3 = f3 / 6.0;
+  let g0 = w0 + w1;
+  let g1 = w2 + w3;
+  let h0 = (i + w1 / g0 - 1.0 + 0.5) / dims;
+  let h1 = (i + w3 / g1 + 1.0 + 0.5) / dims;
+  var acc = vec4(0.0);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h0.x, h0.y, h0.z), 0.0) * (g0.x * g0.y * g0.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h1.x, h0.y, h0.z), 0.0) * (g1.x * g0.y * g0.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h0.x, h1.y, h0.z), 0.0) * (g0.x * g1.y * g0.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h1.x, h1.y, h0.z), 0.0) * (g1.x * g1.y * g0.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h0.x, h0.y, h1.z), 0.0) * (g0.x * g0.y * g1.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h1.x, h0.y, h1.z), 0.0) * (g1.x * g0.y * g1.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h0.x, h1.y, h1.z), 0.0) * (g0.x * g1.y * g1.z);
+  acc += textureSampleLevel(lightGridTex, lightGridSampler, vec3(h1.x, h1.y, h1.z), 0.0) * (g1.x * g1.y * g1.z);
+  return vec2(acc.r + acc.b, acc.g);
+}
 `;
 }
 

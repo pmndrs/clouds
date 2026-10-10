@@ -23,7 +23,8 @@ if (flag('help')) {
 --size WxH          viewport in CSS px at DPR 1 (default 1920x1080)
 --settle <frames>   frames to wait after load/bookmark (default 90)
 --out <dir>         output directory (default work/captures/scratch)
---format jpeg|png   screenshot format (default jpeg, quality 88)
+--format jpeg|png   screenshot format (default jpeg)
+--quality <n>       jpeg quality (default 88; 100 for judged crops: q88's 8x8 blocking reads as contour banding at 1:1)
 --serve             start the vite dev server for the run
 --headed            show the browser window
 --timeout <s>       ready timeout in seconds (default 60)`);
@@ -34,6 +35,7 @@ const out = resolve(root, opt('out', 'work/captures/scratch'));
 const [width, height] = opt('size', '1920x1080').split('x').map(Number);
 const settleFrames = Number(opt('settle', 90));
 const format = opt('format', 'jpeg');
+const quality = Number(opt('quality', 88));
 const timeoutMs = Number(opt('timeout', 60)) * 1000;
 const shots = (opt('shots', '') || '').split(',').filter(Boolean);
 const chrome = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -96,7 +98,8 @@ try {
     if (shot !== 'view') await eval_(`window.__clouds.bookmark ? window.__clouds.bookmark(${JSON.stringify(shot)}) : Promise.reject(new Error('page has no bookmark()'))`);
     await eval_(settle);
     const pageReport = await eval_(`(() => { const c = window.__clouds; return c.report ? c.report() : null; })()`);
-    const { data } = await cdp.send('Page.captureScreenshot', { format, ...(format === 'jpeg' ? { quality: 88 } : {}) });
+    // PNG at 4k (a dithered frame compresses slowly) can take well over the default 45 s.
+    const { data } = await cdp.send('Page.captureScreenshot', { format, ...(format === 'jpeg' ? { quality } : {}) }, format === 'png' ? 240000 : 45000);
     const file = join(out, `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`);
     writeFileSync(file, Buffer.from(data, 'base64'));
     report.shots.push({ name: fileName, file: file.slice(root.length + 1), report: pageReport });

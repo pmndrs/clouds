@@ -8,6 +8,8 @@ Subcommands
   crops <out> <ref> <ours...> [--box x,y,w,h]   1:1 crops of the reference and the renders side by side (1920-wide frame coordinates)
   flicker <imgs...>                        temporal stability: per-pixel std of luminance across repeated shots of one view (inside the cloud)
   refof <bookmark>                         print the reference image path of a bookmark
+  plateau <imgs...> [--box x,y,w,h]        8-bit quantisation visibility at native resolution: the fraction of pixels whose green value equals both
+                                           the right and the lower neighbour's (a noise-free gradient shows its 8-bit steps as contour lines; grain or dither breaks them)
 
 Surface measures (960 px wide frames, luminance in sRGB 0..1, inside the cloud mask eroded by 6 px):
   pit    mean black-hat (closing with a 15 px square minus the image): depth of dark pockets smaller than ~15 px. Pitting.
@@ -172,6 +174,17 @@ def cmd_bands(a):
         print(os.path.basename(path)[:70].ljust(70), ' '.join(f'{k}={v}' for k, v in out.items()), f'(mask {inner.mean():.2f})')
 
 
+def cmd_plateau(a):
+    for p in a.imgs:
+        im = Image.open(p).convert('RGB')
+        if a.box:
+            x, y, w, h = [int(v) for v in a.box.split(',')]
+            im = im.crop((x, y, x + w, y + h))
+        g = np.asarray(im)[..., 1].astype(int)
+        eq = (g[:-1, :-1] == g[:-1, 1:]) & (g[:-1, :-1] == g[1:, :-1])
+        print(f'{os.path.basename(p)[:70]:70} plateau={eq.mean():.3f} ({im.width}x{im.height}, {p.rsplit(".", 1)[-1]})')
+
+
 def cmd_flicker(a):
     frames = [d0.load_rgb(p, a.width) for p in a.imgs]
     rgb, mask, _, _ = d0.ref_mask(a.imgs[0], a.width)
@@ -190,10 +203,11 @@ def main():
     s = sub.add_parser('flicker'); s.add_argument('imgs', nargs='+'); s.add_argument('--width', type=int, default=960)
     s = sub.add_parser('bands'); s.add_argument('imgs', nargs='+'); s.add_argument('--width', type=int, default=0); s.add_argument('--box'); s.add_argument('--matte')
     s = sub.add_parser('refof'); s.add_argument('bookmark')
+    s = sub.add_parser('plateau'); s.add_argument('imgs', nargs='+'); s.add_argument('--box')
     a = p.parse_args()
     if a.cmd == 'refof':
         print(ref_of(a.bookmark)); return
-    {'stats': cmd_stats, 'crops': cmd_crops, 'flicker': cmd_flicker, 'bands': cmd_bands}[a.cmd](a)
+    {'stats': cmd_stats, 'crops': cmd_crops, 'flicker': cmd_flicker, 'bands': cmd_bands, 'plateau': cmd_plateau}[a.cmd](a)
 
 
 if __name__ == '__main__':

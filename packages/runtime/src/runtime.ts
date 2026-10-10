@@ -14,7 +14,8 @@ import { DIRECT_DENSITY_WGSL } from './shaders/direct.wgsl';
 import { TEMPORAL_BINDINGS, TEMPORAL_PARAM_BYTES, TEMPORAL_WGSL } from './shaders/temporal.wgsl';
 import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { createLightning, type FlashOptions, type LightningSettings } from './lightning';
-import { MARCH_ATMOSPHERE_GROUP, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_BYTES, SKY_LIGHT_ENTRIES, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
+import { blueNoiseBytes, BLUE_NOISE_SIZE } from './blue-noise';
+import { MARCH_ATMOSPHERE_GROUP, MARCH_BLUE_NOISE_BINDING, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_BYTES, SKY_LIGHT_ENTRIES, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
 import { createCirrusLayer, type CirrusLayer } from './cirrus';
 import type { ProceduralDensityModel } from './procedural/types';
@@ -286,6 +287,22 @@ export interface CloudSettings {
    * the ambient occlusion deeper than with P x S, and the two S = 1 cores no longer stand apart (one 8-bit NVDF fetch per lit step).
    */
   inScatterProfile: number;
+  /**
+   * D1 round 5: 1 = the march jitter is a blue-noise mask per pixel plus the golden-ratio sequence per frame; 0 = interleaved gradient noise
+   * (Jimenez 2014). Under the temporal resolve the residual of IGN is its diagonal whorl structure (contour / fingerprint rings on every smooth
+   * face); the residual of blue noise is a fine grain below the eye's contrast threshold.
+   */
+  jitterNoise: number;
+  /**
+   * D1 round 5: 1 = the march's step sequence starts at a random phase (per pixel and frame) where the ray enters the cloud. With the sample
+   * jitter alone the segment boundaries are fixed per ray and the one-density-per-segment estimator is biased by the segment's phase against
+   * the surface, so rays with different entry phases shade differently: arcs at the step period along the entry-depth contours.
+   */
+  stepJitter: number;
+  /** D1 round 5: 1 = tricubic B-spline reads of the light grid's sun sum in the march (C2 across the 16 m cells; 8 trilinear taps), 0 = trilinear. */
+  lightGridFilter: number;
+  /** D1 round 5: distance (m) within which the two in-line sun samples are reused by the following steps (P3-E; 4 before). 0 = fresh taps at every lit step. */
+  inlineReuse: number;
 }
 
 /**
@@ -648,7 +665,9 @@ export type CloudLook = 'art' | 'deck' | 'decima';
  */
 export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Partial<CloudSettings> {
   if (look === 'deck') return { ...CLOUD_DECK_SETTINGS, microDist: 0 };
-  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1, temporalBlend: 0.1 };
+  // D1 round 5: the step phase randomised at the cloud entry goes with the look (the blue-noise jitter mask is the runtime default; the tricubic
+  // light grid read made no visible difference at 16 m cells and stays off).
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1 };
   return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 
@@ -676,6 +695,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -693,6 +713,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: MARCH_LIGHT_GRID_BINDING + 1, visibility: C, sampler: { type: 'filtering' } },
     { binding: MARCH_SKY_LIGHT_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
     { binding: MARCH_NEAR_BINDING, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: MARCH_BLUE_NOISE_BINDING, visibility: C, texture: { sampleType: 'float' } },
   ] });
   const marchLayouts = [marchLayout(false), marchLayout(true)];   // [trace, direct]
   const resolveLayout = device.createBindGroupLayout({ label: 'cloud temporal resolve', entries: [
@@ -766,6 +787,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   // One frame uniform per march pass (render size and pass mode differ); the composite reads the near one.
   const frameUniforms = [0, 1, 2].map(i => device.createBuffer({ label: `cloud frame uniforms ${['near', 'far', 'sky'][i]}`, size: FRAME_UNIFORM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }));
   const dummyNear = device.createTexture({ label: 'cloud dummy near', size: [1, 1], format: 'rgba16float', usage: GPUTextureUsage.TEXTURE_BINDING });
+  // D1 round 5: the blue-noise mask of the march jitter (jitterNoise).
+  const blueNoise = device.createTexture({ label: 'cloud blue noise', size: [BLUE_NOISE_SIZE, BLUE_NOISE_SIZE], format: 'r8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+  device.queue.writeTexture({ texture: blueNoise }, blueNoiseBytes(), { bytesPerRow: BLUE_NOISE_SIZE }, [BLUE_NOISE_SIZE, BLUE_NOISE_SIZE]);
   const resolveParams = [0, 1].map(i => device.createBuffer({ label: `cloud temporal params ${i}`, size: TEMPORAL_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }));
   const resolveSampler = device.createSampler({ label: 'cloud temporal history', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
   const compositeLinear = device.createSampler({ label: 'cloud composite linear', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
@@ -1133,6 +1157,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[100] = settings.diffuseSun; f[101] = settings.ambientSaturation; f[102] = settings.ambientWarmth; f[103] = settings.directInScatterFlat; f[104] = settings.diffuseFalloff;
       f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic;
       f[108] = settings.inlineProfile; f[109] = settings.lightMipBias; f[110] = settings.ambientTap; f[111] = settings.inScatterProfile;
+      f[112] = settings.jitterNoise; f[113] = settings.stepJitter; f[114] = settings.lightGridFilter; f[115] = Math.max(0, settings.inlineReuse);
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
@@ -1248,6 +1273,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           ...lightGrid.bindGroupEntries(MARCH_LIGHT_GRID_BINDING, gridStep.front),
           { binding: MARCH_SKY_LIGHT_BINDING, resource: { buffer: skyLightBuffer } },
           { binding: MARCH_NEAR_BINDING, resource: pass ? targets[0].hist[cur].color.createView() : dummyNear.createView() },
+          { binding: MARCH_BLUE_NOISE_BINDING, resource: blueNoise.createView() },
         ] }));
         if (!uniformLighting) march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere!);
         const w = t.rw, h = t.rh;
@@ -1380,7 +1406,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       disposed = true;
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
-      volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); skyLightBuffer.destroy();
+      volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); blueNoise.destroy(); skyLightBuffer.destroy();
       skyLayer.dispose(); cirrus.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };

@@ -2,9 +2,9 @@
 // own frames of it (refs.ts), rendered with the D1 parity settings ('decima' look, default), the deck's settings (?look=deck) or our art
 // defaults (?look=art). Flagship shell (three WebGPURenderer + @pmndrs/sky, the window.__clouds contract); no ground, as the deck frames show only sky.
 //   ?cloud=parkouring|stormbird   ?bookmark=<ref>   ?look=decima|deck|art   ?quality=ultra   ?exposure=0.35
-//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @matte  @look:x  @s.<setting>:v
+//   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
-import { ACESFilmicToneMapping, NoToneMapping, PerspectiveCamera, Scene } from 'three';
+import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
 import { cloudLookSettings, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume, type CloudFrame, type CloudLook, type CloudQuality } from '@clouds/runtime';
@@ -31,9 +31,10 @@ const nums = (key: string) => (query.get(key) ?? '').split(',').filter(Boolean).
 try {
   const app = document.getElementById('app')!;
   const renderer = new WebGPURenderer({ antialias: true, trackTimestamp: true });
-  renderer.toneMapping = ACESFilmicToneMapping;
+  // D1 round 5: the bridge's present pass does the tone mapping, sRGB encoding and dither itself (bridge.post); three only passes the values through.
+  renderer.toneMapping = NoToneMapping;
+  renderer.outputColorSpace = LinearSRGBColorSpace;
   const baseExposure = query.has('exposure') ? Number(query.get('exposure')) : 0.35;
-  renderer.toneMappingExposure = baseExposure;
   app.appendChild(renderer.domElement);
   await renderer.init();
   const { device } = sharedBackend(renderer);
@@ -50,8 +51,8 @@ try {
   const skyBridge = createSkyBridge(renderer, sky);
   const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout });
   const matte = query.get('matte') === '1';   // ?matte=1: present the cloud opacity (no tone mapping) for the parity masks
-  if (matte) renderer.toneMapping = NoToneMapping;
   const bridge = createCloudBridge(renderer, runtime, { matte });
+  const POST_MODES: Record<string, 0 | 1 | 2> = { aces: 0, none: 1, fit: 2 };
   const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume(`/clouds/${cloudName}/`), loadCloudNoise('/clouds/noise/')]);
   await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset, CLOUD_BASE_HEIGHT) });
   await runtime.setNoise(noiseAsset);
@@ -118,8 +119,10 @@ try {
     const mirror = v.has('mirror') ? v.get('mirror')![0] === '1' : (ref.mirrorBelowHorizon ?? false);
     if (mirror !== mirrorNow) { sky.setMirrorBelowHorizon(mirror); mirrorNow = mirror; }
     bridge.matte = matte || v.has('matte');
-    renderer.toneMapping = bridge.matte ? NoToneMapping : ACESFilmicToneMapping;
-    renderer.toneMappingExposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);
+    // D1 round 5 post variants: @post:aces|none|fit (?post= for the page), @dither:0|1 (?dither=; default 1).
+    bridge.post.mode = POST_MODES[v.has('post') ? v.get('post')![0] : (query.get('post') ?? 'aces')] ?? 0;
+    bridge.post.dither = v.has('dither') ? Number(v.get('dither')![0]) : query.has('dither') ? Number(query.get('dither')) : 1;
+    bridge.post.exposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);
     runtime.resetTemporal();
     syncLook();
   };

@@ -8,6 +8,8 @@ export const MARCH_LIGHT_GRID_BINDING = 4;
 export const MARCH_SKY_LIGHT_BINDING = 6;
 /** Near-pass colour, read by the far pass to skip pixels hidden behind opaque near cloud (a dummy texture for the near pass). */
 export const MARCH_NEAR_BINDING = 7;
+/** D1 round 5: the blue-noise mask (r8unorm, BLUE_NOISE_SIZE square) the march jitter reads with jitterNoise. */
+export const MARCH_BLUE_NOISE_BINDING = 8;
 export const MARCH_ATMOSPHERE_GROUP = 2;
 /** Radiance written to the half-float targets never exceeds this (f16 max is 65504). */
 export const MARCH_RADIANCE_LIMIT = 60000;
@@ -104,6 +106,21 @@ ${lightGridWgsl(1, MARCH_LIGHT_GRID_BINDING)}
 @group(1) @binding(${MARCH_SKY_LIGHT_BINDING}) var<storage, read> skyLight: array<vec4<f32>, ${SKY_LIGHT_ENTRIES}>;
 ${SUN_HEIGHT_WGSL}
 @group(1) @binding(${MARCH_NEAR_BINDING}) var nearColor: texture_2d<f32>;
+@group(1) @binding(${MARCH_BLUE_NOISE_BINDING}) var blueNoiseTex: texture_2d<f32>;
+// D1 round 5 (jitterNoise): a blue-noise mask per pixel plus the golden-ratio sequence per frame (fract(b + phi * n), exact in u32), so each
+// pixel's jitter over frames is a 1D low-discrepancy sequence and its phase relative to its neighbours is blue noise. The exponential temporal
+// resolve never converges fully (its newest frame keeps temporalBlend of the weight); what it leaves behind is a function of the per-pixel phase,
+// which with the interleaved gradient noise is IGN's diagonal whorl structure (the judges' fingerprint contours), with blue noise a fine
+// high-frequency grain below the eye's contrast threshold.
+fn marchJitter(px: vec2<u32>, frameIndex: u32) -> f32 {
+  if (frame.d2.x > 0.5) {
+    let dims = textureDimensions(blueNoiseTex);
+    let b = textureLoad(blueNoiseTex, vec2<i32>(px % dims), 0).r + 0.5 / 256.0;
+    let g = f32((frameIndex * 2654435769u) >> 8u) * (1.0 / 16777216.0);
+    return fract(b + g);
+  }
+  return ign(vec2<f32>(px), frameIndex);
+}
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
 ${FLASH_WGSL}
@@ -116,7 +133,6 @@ const DECK_STEP_SQRT = 0.08;
 const SDF_SKIP_MARGIN = 6.0;     // metres: closer than this to the surface, fetch the real distance
 const SDF_SKIP_RANGE = 24.0;     // metres: refetch at least this often so the inner-glow remap stays accurate
 const DENSE_STEP_GAIN = 3.0;     // P3-E: step *= 1 + gain * (1 - T)^2: samples deep in thick media carry little weight (T * (1 - stepT)), so they are spaced wider
-const INLINE_REUSE_DIST = 4.0;   // P3-E: the two in-line sun samples are reused for steps closer than this to where they were taken
 const DEPTH_CAP = 0.5;        // fraction of the depth below the surface a widened step may cover
 const SPARSE_GAIN = 1.0;   // P3-E: inside the SDF but with almost no density (eroded haze) the step grows by this per consecutive thin sample...
 const SPARSE_MAX = 6.0;     // ...up to this many
@@ -163,9 +179,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var weightSum = 0.0;
 
   if (interval.x <= interval.y && t < tEnd && !hidden) {
-    let jitterAnimated = ign(vec2<f32>(pxu), frame.frameIndex);
+    let jitterAnimated = marchJitter(pxu, frame.frameIndex);
     // D1 (N3 s150): with jitterStatic the hash past 250 m is the pixel's fixed one; the temporal resolve then has nothing to average there.
-    let jitterStatic = ign(vec2<f32>(pxu), 0u);
+    let jitterStatic = marchJitter(pxu, 0u);
+    // D1 round 5 (stepJitter): the step sequence itself starts at a random phase where the ray enters the cloud. The sample jitter alone leaves the
+    // segment boundaries fixed per ray, and the segment estimator (one density for the whole segment) is biased by the segment's phase against the
+    // surface, so neighbouring rays with different entry phases shade differently: arcs at the step period following the entry-depth contours.
+    var entryJitter = select(0.0, fract(jitterAnimated + 0.618034), frame.d2.y > 0.5);
+    let inlineReuse = frame.d2.w;
     let staticJitter = frame.material2.z > 0.5;
     // D1: the in-line taps' optical depth in the light sums' units (inlineLightScale; 1 = the view extinction).
     let inlineExt = frame.extinction * frame.material2.y;
@@ -220,6 +241,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         step = min(wide, max(step, -sdf * DEPTH_CAP));
       }
       if (i > STEP_GROWTH_FROM) { step *= 1.0 + 0.02 * f32(i - STEP_GROWTH_FROM); }
+      if (sdf < 0.0 && entryJitter > 0.0) { step *= entryJitter; entryJitter = 0.0; }
       if (sdf < 0.0) {
         // Jitter moves the sample, not the advance. Q2: animated at every distance. The static far jitter (one interleaved-gradient value per
         // pixel, fixed) printed IGN's diagonal structure into every dense cloud past 250 m as a fixed 'pebbly' hatch, since the temporal
@@ -236,7 +258,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             let stepT = exp(-sigma * ds);
             if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
-              if (ts - inlineT >= INLINE_REUSE_DIST) {
+              if (ts - inlineT >= inlineReuse) {
                 let s0 = ${density}(ps + sunInline0, ts, lightInputs);
                 let s1 = ${density}(ps + sunInline1, ts, lightInputs);
                 let d0 = select(s0.x, s0.y, inlineProfile);
@@ -256,7 +278,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // D1 round 3: lobe-scale ambient occlusion, one upward sample of the full density (ambientTap metres) in the in-line light units.
               var ambOcc = 1.0;
               if (frame.d1.z > 0.0) { ambOcc = exp(-${density}(ps + vec3(0.0, 0.5 * frame.d1.z, 0.0), ts, lightInputs).x * frame.d1.z * inlineExt); }
-              let grid = lightGridSampleClamped(ps + sunGrid);
+              var grid: vec2<f32>;
+              if (frame.d2.z > 0.5) { grid = lightGridSampleCubic(ps + sunGrid); } else { grid = lightGridSampleClamped(ps + sunGrid); }
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               var lit: vec3<f32>;

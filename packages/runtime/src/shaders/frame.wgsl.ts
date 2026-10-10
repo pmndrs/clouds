@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 448;
+export const FRAME_UNIFORM_BYTES = 464;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -50,6 +50,10 @@ struct Frame {
   // y = lightMipBias (mip added to the field and noise fetches of the in-line sun samples), z = ambientTap (m, upward occlusion sample of the
   // ambient; 0 = off), w = inScatterProfile (1 = the lighting's profile is the deck's dimensional profile P, 0 = P x density scale).
   d1: vec4<f32>,
+  // D1 round 5: x = jitterNoise (1 = blue-noise mask + golden-ratio frame sequence for the march jitter, 0 = interleaved gradient noise),
+  // y = stepJitter (1 = the step sequence's phase is also randomised per pixel and frame where the ray enters the cloud), z = lightGridFilter
+  // (1 = tricubic B-spline reads of the light grid, 0 = trilinear), w = inlineReuse (m: the in-line sun samples are reused for steps closer than this).
+  d2: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
