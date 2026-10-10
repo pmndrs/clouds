@@ -356,13 +356,13 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
 };
 export const HZD_DEFAULTS: HzdShape = {
-  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves',
+  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'hybrid',
   shapeTile: 6000, detailTile: 300, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.07, veilDensity: 0.08, veilHeight: 0.18, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'skirt', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 2.5, lobeTile: 1050, lobeStrength: 0.6, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0.5, bottomCurlDown: 0.5, wispyStrength: 0.3, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'skirt', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 2.5, lobeTile: 1050, lobeStrength: 0.6, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0.04, bottomErosion: 0.5, bottomCurlDown: 0.5, wispyStrength: 0.3, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
