@@ -1,0 +1,363 @@
+{
+ "d12.png": {
+  "frame": "p101",
+  "source": "decima-reference",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d06.png": {
+  "frame": "p101",
+  "source": "decima-r9",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d05.png": {
+  "frame": "p101",
+  "source": "decima-r11",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d08.png": {
+  "frame": "p213",
+  "source": "decima-reference",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d02.png": {
+  "frame": "p213",
+  "source": "decima-r9",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d03.png": {
+  "frame": "p213",
+  "source": "decima-r11",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d04.png": {
+  "frame": "s206",
+  "source": "decima-reference",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d11.png": {
+  "frame": "s206",
+  "source": "decima-r9",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d01.png": {
+  "frame": "s206",
+  "source": "decima-r11",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d10.png": {
+  "frame": "s33t3",
+  "source": "decima-reference",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d07.png": {
+  "frame": "s33t3",
+  "source": "decima-r9",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "d09.png": {
+  "frame": "s33t3",
+  "source": "decima-r11",
+  "kind": "full",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c07.png": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c17.png": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c08.png": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c16.png": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c11.png": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c29.png": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c13.png": {
+  "frame": "p101",
+  "region": "towershade",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c30.png": {
+  "frame": "p101",
+  "region": "towershade",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c23.png": {
+  "frame": "p101",
+  "region": "towershade",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c26.png": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c36.png": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c24.png": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c28.png": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c20.png": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c12.png": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c18.png": {
+  "frame": "p213",
+  "region": "crease",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c19.png": {
+  "frame": "p213",
+  "region": "crease",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c34.png": {
+  "frame": "p213",
+  "region": "crease",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "native 4k",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c27.png": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c21.png": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c05.png": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c06.png": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c09.png": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c22.png": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c25.png": {
+  "frame": "s206",
+  "region": "chip",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c10.png": {
+  "frame": "s206",
+  "region": "chip",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c31.png": {
+  "frame": "s206",
+  "region": "chip",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c03.png": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c14.png": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c35.png": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c32.png": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c33.png": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c04.png": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c02.png": {
+  "frame": "s33t3",
+  "region": "trunk",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c15.png": {
+  "frame": "s33t3",
+  "region": "trunk",
+  "source": "decima-r9",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "c01.png": {
+  "frame": "s33t3",
+  "region": "trunk",
+  "source": "decima-r11",
+  "kind": "crop",
+  "scale": "2x of 1080p",
+  "treatment": "JPEG q90 round-trip (all sources)"
+ },
+ "_note": "Every image (Decima frame, round 9, round 11; full frames and crops) went through the same JPEG q90 round-trip before saving as PNG, so the judges compare looks rather than encoders (the renders dither, the frames carry 8x8 blocking)."
+}
