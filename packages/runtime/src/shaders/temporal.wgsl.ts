@@ -58,8 +58,11 @@ fn sceneEndCorners(px: vec2<u32>, uv: vec2<f32>) -> f32 {
 }
 
 // The trace holds only the traced pixels, compactly: k = 2 packs each row's every second pixel, k = 4 one pixel per 2x2 block.
+// D1 (temporalAccumulate): at k = 1 the trace is full size (every pixel fresh every frame) and the resolve is an exponential average over
+// the still view's jitter, the TAA Decima's frames have; without it a k = 1 frame is one jittered sample set (the IGN whorls in every surface).
 fn traceIndex(q: vec2<i32>) -> vec2<i32> {
   let k = u32(frame.temporal.x);
+  if (k <= 1u) { return q; }
   return select(vec2<i32>(q.x >> 1u, q.y >> 1u), vec2<i32>(q.x >> 1u, q.y), k == 2u);
 }
 fn traceColorAt(q: vec2<i32>) -> vec4<f32> { return textureLoad(traceColor, traceIndex(q), 0); }

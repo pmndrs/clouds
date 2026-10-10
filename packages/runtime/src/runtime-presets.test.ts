@@ -13,11 +13,12 @@ describe('looks (D0)', () => {
     expect(d.bodySunFloor).toBe(1);   // no low-sun handoff
     expect(cloudLookSettings('deck', 'ultra').microDist).toBe(0);
   });
-  it('decima (D1) sets the same knobs, keeps the deck terms off and puts the in-line taps in the grid units', () => {
+  it('decima (D1) sets the same knobs, drops the glow terms, keeps the deck ambient law bounded and puts the in-line taps in the grid units', () => {
     const d = CLOUD_DECIMA_SETTINGS;
     expect(Object.keys(d).sort()).toEqual(Object.keys(CLOUD_ART_SETTINGS).sort());
-    expect([d.edgeDarkening, d.glowBoost, d.glowFront, d.deepScatter, d.ambientFloor, d.microShadow, d.detailBias, d.wispyBias, d.typeFromScale, d.bodyEnv, d.hazeDensity]).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    expect(d.ambientLaw).toBe(1);
+    expect([d.edgeDarkening, d.glowBoost, d.deepScatter, d.microShadow, d.detailBias, d.wispyBias]).toEqual([0, 0, 0, 0, 0, 0]);
+    expect(d.ambientLaw).toBe(1); expect(d.ambientFloor).toBeGreaterThan(0);   // exp(-tauUp) (N3 s128) bounded by the art floor (round 2: no dark core columns)
+    expect(cloudLookSettings('decima', 'ultra').temporalAccumulate).toBe(1);
     // the taps' optical depth per density-metre (densityScale * inlineLightScale) is within a factor 2 of the grid's (densityScale * lightDensityScale)
     const taps = d.densityScale * d.inlineLightScale, grid = d.densityScale * d.lightDensityScale;
     expect(taps / grid).toBeGreaterThan(0.5); expect(taps / grid).toBeLessThan(2);

@@ -258,6 +258,14 @@ export interface CloudSettings {
   inlineProfile: number;
   /** D1: mip level added to the field and noise fetches of the in-line sun samples (0 = the view sample's mip). Smooths what the taps see. */
   lightMipBias: number;
+  /**
+   * D1 round 2: 1 = at temporal rate 1 (every pixel every frame: ultra) the march writes a full-size trace and the resolve blends it into the
+   * history at `temporalBlend`, so a still or slow view averages its jitter over frames (the TAA Decima's frames have). 0 = the march writes the
+   * history directly and every frame is one jittered sample set: the interleaved-gradient jitter prints a fixed fingerprint-like whorl texture into
+   * every surface (the judges' 'fibre') and changes it frame to frame (the owner's instability). Costs the resolve pass (~0.3-0.6 ms at 1080p
+   * ultra) and a full-size trace target per pass.
+   */
+  temporalAccumulate: number;
 }
 
 /**
@@ -544,38 +552,42 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
 };
 
 /**
- * D1 'decima' look (work/reports/D1.md): the deck's model with its light sums in the deck's units everywhere, fitted to Guerrilla's own frames of
- * Parkouring and Stormbird (s78, s181, s191 and the media33 turntable) under the sun, haze and exposure reconstructed per frame. What D0 kept
- * and what changes, with the cause each change answers:
- * - inlineLightScale 0.06 and lightDensityScale 0.09 with densityScale 1.0: the two in-line sun taps and the light grid are in the same units,
- *   the deck's sums of density *samples* at the grid's 16 m spacing (s113/s114/s123). D0 left the taps at the view extinction, 10x the grid's
- *   units: every 8-20 m erosion hole of the up-rezzed field (P1: the wispy noise) then cast a hard 1-3 m shadow, which is the pitting, and the
- *   two single samples standing for 16-48 m printed a 10-25 m mottle. In the deck's units a lobe's own 30-60 m casts the soft shading the
- *   frames show and the holes do not resolve (p101 pit 0.013/0.023 -> 0.008 = the reference). densityScale 1.0 (from 0.6) keeps the
- *   silhouette crisp (edge 0.13 -> 0.17; the reference 0.17-0.24) at constant light units.
- * - msStrength 1, ambientStrength 1 (x AMBIENT_GAIN 1.5), ambientSaturation 0.4, diffuseSun 0.15: the body is lit by a near-white ambient and
- *   a little diffused sunlight, not by the glow term. Decima's frames read as sun-lit warm white with warm-grey shade (shade B/R 1.00-1.07);
- *   ours were sky-blue (1.6-1.75) because the sky ambient (gain 1.5 at turbidity 1) carried the body. The ms term (profile x relaxed Beer-Lambert)
- *   is kept at the deck's weight: above about 1.5 it prints the profile's steps at the eroded surface as bright mottle (lightDebug 2).
- * - ambientExtinction 0.5: the deck's exp(-summed_ambient_density) (s128) in the grid's units is 1.0, which prints Parkouring's two dense
- *   S = 1 cores as dark columns no frame shows (H3's blotches); 0.5 keeps the undersides' darkening (relief 0.029 vs 0.030) without them.
- * - The sun: D0's suns were fitted under the ambient-dominated model and were 90-170 degrees off. s78 is lit from in front and high
- *   (el 40, az 210: the deck's own s124-125 'backlit body fills with warm glow'), s181 from behind-right and high (el 45, az 60).
- * - The sky is per frame (refs.ts): turbidity 3 (s78), 6 (the pack renders), 20 (s181, a near-white hazy sky, B/R 1.24), warm sun (1, 0.96, 0.9).
- * Everything the deck does not state stays off as in 'deck' (glow boost/front, deep octaves, edge darkening, micro-shadow, floors, haze, typeFromScale).
+ * D1 'decima' look (work/reports/D1.md, round 2): the art look with the deck's light units and Decima's colour, fitted to Guerrilla's own frames
+ * of Parkouring and Stormbird (s78, s181, s191, the media33 turntable) under the sun, haze and exposure reconstructed per frame (refs.ts).
+ * Round 1 built the look from the deck preset and reached the colour and the lobe contrast, but the blind judges found dirt: brown smudges and
+ * sepia sparkle in the shadow mass. Round 2 starts from the art look (clean, judged closest in 7 of 8 verdicts) and adds only what helps:
+ * - inlineLightScale 0.086 and lightDensityScale 0.13 with densityScale 0.7: the two in-line sun taps and the light grid in the same units, the
+ *   deck's sums of density *samples* at the grid's 16 m spacing (s113/s114/s123; 0.086 x 0.7 = 0.06 and 0.13 x 0.7 = 0.09 per density-metre).
+ *   The art look had the taps at the view extinction and the grid at 1.2 x 0.3 = 0.36: every 8-20 m erosion hole of the up-rezzed field cast a hard
+ *   shadow (the pitting) and the sun-fed terms died within a lobe. In these units a lobe's own 30-60 m casts the soft shading the frames show.
+ * - glowBoost 0, deepScatter 0, microShadow 0 (microDist 0), msStrength 1: the art's glow and deep octaves lit the body white and flat, and every
+ *   sun-fed term sampled at jittered positions sparkles once the taps are soft (round 1's flecks came from msStrength 2.5 and diffuseSun fill
+ *   dying under the dense cores). The body is lit by the ambient; the glow stays at the deck's weight with the art's depth relaxation (glowFront 1).
+ * - ambientLaw 1 (the deck's exp(-summed density), s128) with the art's ambientFloor 0.15: the directional ambient gives the undersides and the lobe
+ *   pockets; the floor bounds it so Parkouring's two S = 1 cores (H3) cannot print the dark columns round 1 had with floor 0. ambientExtinction 0.5.
+ * - ambientStrength 0.7, ambientSaturation 0.4, diffuseSun 0.15 under a pink sun ((1, 0.95, 0.93) clear, (1, 0.92, 0.88) hazy; the frames' lit faces
+ *   have G = B): the shade becomes Decima's mauve-grey (R = B > G: s206 ours 0.54/0.53/0.54 vs 0.53/0.51/0.53) where the art's was sky-blue
+ *   (B/R 1.5) and round 1's, desaturated under a yellow sun, brown.
+ * - temporalAccumulate 1 (applied by cloudLookSettings): at rate 1 the resolve averages the jitter over frames. Without it every ultra frame is one
+ *   jittered sample set: the interleaved-gradient jitter prints a fingerprint-like whorl texture into every surface at 2-3x (the judges' 'fibre')
+ *   and the surface changes frame to frame (flicker std 0.0029 -> 0.0018).
+ * - The sky is per frame (refs.ts): turbidity 3 (s78), 6 (pack renders), 10 (s129), 20 with miePhaseG 0.5 (s181: a near-white hazy sky without
+ *   the Mie halo), the suns re-fitted (s78 from in front and high, s181 from behind-right and high).
+ * Kept from art: typeFromScale 1, the C1 low-sun handoff, the C2 haze, the 10 percent ground share (ambientSkyBias 0.9), the phase lobes.
+ * Kept from deck: everything it states and nothing it does not (no glow boost, no deep octaves, no edge darkening, no micro-shadow, exp ambient).
  * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
  */
 export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
-  densityScale: 1.0, lightDensityScale: 0.09, msStrength: 1, ambientStrength: 1,
+  densityScale: 0.7, lightDensityScale: 0.13, msStrength: 1, ambientStrength: 0.7,
   silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
-  edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 1, wispyBias: 0, glowFront: 0, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0,
-  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0,
+  edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.9, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
+  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1,
   microShadow: 0, detailBias: 0,
   ambientLaw: 1,
-  bodySunFloor: 1, bodySunKnee: 0.4, bodyEnv: 0, bodyDepth: 0, envSunWeight: 0, ambientLowSun: 0, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
-  hazeDensity: 0, hazeHeight: 1000, hazeBase: 0,
+  bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
+  hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0,
   fineErosion: 1,
-  inlineLightScale: 0.06, inlineProfile: 0, lightMipBias: 0,
+  inlineLightScale: 0.086, inlineProfile: 0, lightMipBias: 0,
   diffuseSun: 0.15, diffuseFalloff: 0.11, ambientSaturation: 0.4, ambientWarmth: 0,
 };
 
@@ -586,7 +598,7 @@ export type CloudLook = 'art' | 'deck' | 'decima';
  */
 export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Partial<CloudSettings> {
   if (look === 'deck') return { ...CLOUD_DECK_SETTINGS, microDist: 0 };
-  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0 };
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 0, temporalAccumulate: 1 };
   return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 
@@ -612,6 +624,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
+    temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -796,6 +809,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const prevCam = [0, 0, 0], prevFwd = [0, 0, 1], prevSun = [0, 1, 0];
   const prevModel = new Float32Array(FRAME_UNIFORM_BYTES / 4);
   const lastRate = [0, 0];
+  let lastAccumulate = false;
   let prevValid = false, needReset = true, temporalFrames = 0, temporalResets = 0;
   const passFull = [true, true];
   let skyTarget: { w: number; h: number; color: GPUTexture; depth: GPUTexture; back: GPUTexture; scale: number } | null = null;
@@ -858,9 +872,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     output = externalOutput ?? device.createTexture({ label: 'cloud composite', size: [outCW, outCH], format: 'rgba16float', usage });
   };
   /** The trace target (this frame's fresh samples, compact) exists only while the pass runs at k > 1, sized for the rate. Recreated when the rate changes; the bind groups are rebuilt. */
-  const ensureTrace = (pass: number, k: number) => {
+  const ensureTrace = (pass: number, k: number, accumulate: boolean) => {
     const t = targets![pass];
-    const w = k === 4 || k === 2 ? Math.ceil(t.w / 2) : 0, h = k === 4 ? Math.ceil(t.h / 2) : k === 2 ? t.h : 0;
+    // D1 round 2: at k = 1 with temporalAccumulate the trace is full size (every pixel is fresh every frame).
+    const w = k === 4 || k === 2 ? Math.ceil(t.w / 2) : accumulate ? t.w : 0, h = k === 4 ? Math.ceil(t.h / 2) : k === 2 || accumulate ? t.h : 0;
     if (t.trace && t.trace.w === w && t.trace.h === h) return;
     if (t.trace) releaseTrace(t);
     if (w) {
@@ -1102,12 +1117,15 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
       if (cut) temporalResets++;
       for (const i of TEMPORAL_MODEL_INDICES) prevModel[i] = f[i];
+      const accumulate = settings.temporalAccumulate > 0.5;
       for (let pass = 0; pass < 2; pass++) {
         const k = rates[pass];
-        passFull[pass] = k > 1 && (cut || lastRate[pass] !== k);   // k = 1 writes the history directly: every pixel, every frame
+        // k = 1 writes the history directly (every pixel, every frame) unless temporalAccumulate; a cut or a rate change traces every pixel into the history.
+        passFull[pass] = (k > 1 || accumulate) && (cut || lastRate[pass] !== k || lastAccumulate !== accumulate);
         lastRate[pass] = k;
-        ensureTrace(pass, k);
+        ensureTrace(pass, k, k === 1 && accumulate);
       }
+      lastAccumulate = accumulate;
       cur ^= 1;
       for (let pass = 0; pass < 2; pass++) {
         const t = targets[pass];
@@ -1166,7 +1184,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         if (pass === 0 && !nearActive) continue;
         const k = rates[pass], t = targets[pass];
         // k = 1 and cut frames march straight into the history texture (every pixel); otherwise into the compact trace, which the resolve merges with last frame's result.
-        const direct = k === 1 || passFull[pass];
+        const direct = passFull[pass] || (k === 1 && !accumulate);
         const marchIndex = ((pass * 2 + gridStep.front) * 2 + cur) * 2 + (direct ? 1 : 0);
         const march = encoder.beginComputePass({ label: pass ? 'cloud march far' : 'cloud march near', timestampWrites: timer?.passTimestampWrites(pass ? 'marchFar' : 'marchNear') });
         march.setPipeline(getMarchPipeline(!!uniformLighting, direct, !!fine && settings.fineDistance > 0, !!volume?.direct));
@@ -1183,7 +1201,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         if (!uniformLighting) march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere!);
         const w = t.rw, h = t.rh;
         // Only the traced pixels are dispatched: x halves for k >= 2, y for k = 4.
-        const gx = direct ? w : Math.ceil(w / 2), gy = direct || k === 2 ? h : Math.ceil(h / 2);
+        const gx = direct || k === 1 ? w : Math.ceil(w / 2), gy = direct || k <= 2 ? h : Math.ceil(h / 2);
         march.dispatchWorkgroups(Math.ceil(gx / 8), Math.ceil(gy / 8));
         march.end();
         if (!direct) {
