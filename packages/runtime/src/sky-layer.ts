@@ -5,6 +5,7 @@
 // window keeps rendering; the new window, with the shaping it was configured with, replaces it in one frame once it is complete, and the
 // temporal history dissolves to it over one 16-frame cycle (no full-resolution reset trace).
 import { createWeatherBake, type ProceduralWeatherOptions, type WeatherBake } from './generate/weather';
+import { PROFILE_TABLE_FLOOR, packProfileTables, profileTopEnds } from './generate/profile-tables';
 import type { ProceduralDensityModel } from './procedural/types';
 import { NVDF_DEFAULTS, altoFractions, type NvdfParams } from './generate/volume-generator';
 import type { GpuTimer } from './gpu-timer';
@@ -13,7 +14,7 @@ import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { MARCH_ATMOSPHERE_GROUP } from './shaders/march.wgsl';
 import {
   SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAM_BYTES, SKY_PARAM_FLOATS, SKY_RESOLVE_BINDINGS,
-  SKY_RESOLVE_WGSL, SKY_SAMPLER_BINDING, SKY_TEMPORAL_PERIOD, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING, skyLayerWgsl,
+  SKY_RESOLVE_WGSL, SKY_SAMPLER_BINDING, SKY_TEMPORAL_PERIOD, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING, SKY_LUT_OFFSET, SKY_TABLE_TOP_OFFSET, skyLayerWgsl,
 } from './shaders/sky-layer.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
 
@@ -50,6 +51,31 @@ export interface SkyLayerSettings {
    * GPU, too close to the 1 ms bound; 24 rows keep it about 0.7 (P9-B2's 32 rows were 0.18 / 0.3-0.65 ms). Read when a bake starts.
    */
   bakeRows: number;
+  /**
+   * H4 (S3): how a column's vertical shape is made. 0 (default): the species height law (generate/shaders.ts SP_* rows, f = s - h^p). 1: the
+   * Nubis Evolved / N3 s18 top x bottom tables (generate/profile-tables.ts) with an independent top and bottom type per column. Needs the species
+   * rows (NvdfParams.profiles); the upper (altocumulus) layer and the voxel box keep the species law.
+   */
+  profileMode: number;
+  /** Table mode: the top type everywhere (0..1), or -1 (default) for each column's species row (profile-tables.ts SPECIES_TOP_TYPES). */
+  topType: number;
+  /** Table mode: the bottom type everywhere (0 crisp flat base .. 1 slow ragged base), or -1 (default) for the world field below. */
+  bottomType: number;
+  /** Table mode: the bottom-type field's range (a world-anchored very-low-frequency noise, independent of the top type). Defaults 0 / 0.7. */
+  bottomTypeLo: number;
+  bottomTypeHi: number;
+  /** Table mode: the bottom-type field's feature size, metres. Default 6000. */
+  bottomTypeCell: number;
+  /** Table mode: 1 (default) the column's min height sits at the tables' floor (h 0.266, where both tables start); 0 the literal mapping (min height at h 0). */
+  tableFloor: number;
+  /** Table mode: the threshold tau on coverage * top * bottom / its column peak (plus the billow) where the cloud surface is. Default 0.1. */
+  tableThreshold: number;
+  /**
+   * H4 (S4): the up-rez erosion law of the layer (shaders/sky-layer.wgsl.ts skyDensityShaped). 0 (default) ValueErosion, the voxel march's N3 law;
+   * 1 HZD additive sat(n' - (1 - P)) with the N3 noise inverted; 2 Nubis Evolved (1 with NE's pow 0.27 sharpening); 3 additive with the raw noise
+   * (sign check). The owner judges the A/B (work/captures/H4/); the default stays ValueErosion until then.
+   */
+  erosionLaw: number;
 }
 
 export interface SkyLayerOptions {
@@ -154,6 +180,7 @@ export interface SkyEncodeArgs {
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
   resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, debug: 0, bakeRows: 24,
+  profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
 /** Weather window mip levels: level 0 the bake, levels 1.. the 2x2 maxima (the trace's empty-space skip reads up to level 6). */
@@ -179,7 +206,8 @@ const CUT_TURN_COS = Math.cos((15 * Math.PI) / 180);
 const SUN_JUMP_COS = Math.cos((0.5 * Math.PI) / 180);
 const MODEL_PARAM_FLOATS = 36;        // params[0..36) describe the cloud model; a change resets the history (except 35, the temporal blend)
 const BLEND_PARAM = 35;
-const SPECIES_PARAM = 64;             // params[64..68): the species profiles (P9-C), part of the model too
+const SPECIES_PARAM = 64;             // params[64..80): the species profiles (P9-C) and H4's profile table and erosion law, part of the model too
+const SPECIES_PARAMS = 16;
 
 /** Invert a column-major 4x4 (gl-matrix style). Returns false when singular. */
 function invert4(m: ArrayLike<number>, out: Float32Array): boolean {
@@ -269,7 +297,15 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   const paramBuffer = device.createBuffer({ label: 'cloud sky params', size: SKY_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const params = new Float32Array(SKY_PARAM_FLOATS);
   const prevModel = new Float32Array(MODEL_PARAM_FLOATS);
-  const prevSpecies = new Float32Array(4);
+  const prevSpecies = new Float32Array(SPECIES_PARAMS);
+  // H4: the static part of the params buffer (the tables' top ends and the packed N3 s18 tables), written once; the per-frame writes stop before it.
+  {
+    const ends = profileTopEnds(), lut = packProfileTables();
+    const words = new Uint32Array(SKY_LUT_OFFSET - SKY_TABLE_TOP_OFFSET + lut.length);
+    new Float32Array(words.buffer, 0, ends.length).set(ends);
+    words.set(lut, SKY_LUT_OFFSET - SKY_TABLE_TOP_OFFSET);
+    device.queue.writeBuffer(paramBuffer, SKY_TABLE_TOP_OFFSET * 4, words);
+  }
 
   let options: SkyLayerOptions | null = null;
   let dirty = false;
@@ -510,6 +546,10 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       p[64] = resolved.profiles ? 1 : 0; p[65] = alto[0]; p[66] = alto[1]; p[67] = win.rimWidth === 0 ? win.densityFade : 0;
       // wOrigin.zw: the generator's wind-shear lean (metres per metre of height, x and z), P9-B NvdfParams.shearX/Y.
       p[60] = win.wOrigin[0]; p[61] = win.wOrigin[1]; p[62] = resolved.shearX; p[63] = resolved.shearY;
+      // H4: profile table (S3) and erosion law (S4).
+      p[68] = s.profileMode; p[69] = s.tableFloor > 0.5 ? PROFILE_TABLE_FLOOR : 0; p[70] = s.tableThreshold; p[71] = s.topType;
+      p[72] = s.bottomType; p[73] = s.bottomTypeLo; p[74] = s.bottomTypeHi; p[75] = s.bottomTypeCell;
+      p[76] = s.erosionLaw; p[77] = 0; p[78] = 0; p[79] = 0;
       }
       procWasActive = !!proc;
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
@@ -522,7 +562,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         const sunDot = sun[0] * prevSun[0] + sun[1] * prevSun[1] + sun[2] * prevSun[2];
         if (d > CUT_POSITION_M || turn < CUT_TURN_COS || sunDot < SUN_JUMP_COS) cut = true;
         for (let i = 0; i < MODEL_PARAM_FLOATS && !cut; i++) if (i !== BLEND_PARAM && p[i] !== prevModel[i]) cut = true;
-        for (let i = 0; i < 4 && !cut; i++) if (p[SPECIES_PARAM + i] !== prevSpecies[i]) cut = true;
+        for (let i = 0; i < SPECIES_PARAMS && !cut; i++) if (p[SPECIES_PARAM + i] !== prevSpecies[i]) cut = true;
       }
       if (cut && s.temporal) resets++;
       const period = SKY_TEMPORAL_PERIOD;
@@ -531,7 +571,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
-      prevSpecies.set(p.subarray(SPECIES_PARAM, SPECIES_PARAM + 4));
+      prevSpecies.set(p.subarray(SPECIES_PARAM, SPECIES_PARAM + SPECIES_PARAMS));
       // Remember this frame's view for the next frame's reprojection.
       prevValid = invert4(a.inverseViewProjection, prevViewProj);
       prevCam[0] = cam[0]; prevCam[1] = cam[1]; prevCam[2] = cam[2];

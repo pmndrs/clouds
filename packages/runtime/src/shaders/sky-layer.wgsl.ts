@@ -1,4 +1,5 @@
 import { BILLOW_WGSL } from '../generate/shaders';
+import { SPECIES_TOP_TYPES } from '../generate/profile-tables';
 import { atmosphereWgsl } from './atmosphere.wgsl';
 import { FRAME_WGSL } from './frame.wgsl';
 import { LIGHTING_WGSL } from './lighting.wgsl';
@@ -19,9 +20,15 @@ export const SKY_VOXEL_DEPTH_BINDING = 15;
 export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
 } as const;
-/** SkyParams uniform: 10 vec4 + mat4 + 3 vec4 = 68 floats. */
-export const SKY_PARAM_FLOATS = 68;
-export const SKY_PARAM_BYTES = SKY_PARAM_FLOATS * 4;
+/**
+ * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 6 vec4 = 80 floats, written every frame), then H4's static part written once at
+ * creation: the profile tables' top ends (16 vec4, 64 floats), the two N3 s18 tables and their column peaks (768 vec4<u32>: 3 x 64 x 64 bytes).
+ */
+export const SKY_PARAM_FLOATS = 80;
+/** H4: word offsets of the static part (the tables' top ends, then the packed tables) in the params buffer. */
+export const SKY_TABLE_TOP_OFFSET = SKY_PARAM_FLOATS;
+export const SKY_LUT_OFFSET = SKY_TABLE_TOP_OFFSET + 64;
+export const SKY_PARAM_BYTES = (SKY_LUT_OFFSET + 3072) * 4;
 /** Temporal amortization: one pixel of every 4x4 block per frame, 16 frames per cycle. */
 export const SKY_TEMPORAL_PERIOD = 16;
 
@@ -72,6 +79,11 @@ struct SkyParams {
   prevCam: vec4<f32>,  // previous camera position, w = 1 when the history is valid
   wOrigin: vec4<f32>,  // P7-E: world position (x, z) of the weather map's uv origin: the billow and shape noise are anchored there (default: the box min corner); zw: wind-shear lean (P9-B2)
   species: vec4<f32>,  // P9-C: species profile table on (x > 0.5), upper (altocumulus) layer base and depth (fractions of the shell height; 0 = off); w: P9-C2 density hand-off width (m, 0 = off)
+  table: vec4<f32>,    // H4 (S3): x profile mode (1 = the N3 s18 top x bottom tables), y table height of the column's min height (the floor 17/64, or 0), z threshold tau, w top type (< 0: from the species row)
+  tableB: vec4<f32>,   // H4: x bottom type (< 0: the world field), y / z the field's range, w the field's feature size (m)
+  erosion: vec4<f32>,  // H4 (S4): x erosion law (0 ValueErosion, 1 HZD additive with inverted noise, 2 Nubis Evolved, 3 additive with the raw noise); yzw 0
+  tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
+  lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
 const BAYER4 = array<u32, 16>(0u, 8u, 2u, 10u, 12u, 4u, 14u, 6u, 3u, 11u, 1u, 9u, 15u, 7u, 13u, 5u);
 fn bayerIndex(px: vec2<i32>) -> u32 { return BAYER4[u32(px.y & 3) * 4u + u32(px.x & 3)]; }
@@ -147,6 +159,68 @@ fn skyAltoRow() -> SkyRow {
   return SkyRow(SKY.species.y, SKY.species.y + SKY.species.z, row.topExp, SKY.species.z * shellH / row.bottom, row.billowAmp, row.billowCell, row.flip, row.scale);
 }
 fn skyAltoOn() -> bool { return skyProfiles() && SKY.species.y > 0.0 && SKY.species.z > 0.0; }
+
+// H4 (S3): the Nubis Evolved / N3 s18 vertical-profile tables (generate/profile-tables.ts): vertical_profile = top(top type, h) * bottom(bottom type, h),
+// times coverage [N3 s18, NE p.21-29]. The low layer only, and only with the species rows (they give each column its min height and depth).
+fn skyTableOn() -> bool { return SKY.table.x > 0.5 && skyProfiles(); }
+fn skyLutTexel(t: u32, x: u32, y: u32) -> f32 {
+  let i = t * 4096u + y * 64u + x;
+  let w = SKY.lut[i >> 4u][(i >> 2u) & 3u];
+  return f32((w >> ((i & 3u) * 8u)) & 255u) * (1.0 / 255.0);
+}
+// Bilinear on texel centres (type: i / 63, height: (i + 0.5) / 64), as profile-tables.ts sampleProfileTable. t: 0 the top table, 1 the bottom one.
+// The peaks (t = 2) are read the same way with the bottom type in place of the height: skyLut(2u, tt, bt * 63/64 + 0.5/64).
+fn skyLut(t: u32, type_: f32, v: f32) -> f32 {
+  let x = clamp(type_, 0.0, 1.0) * 63.0;
+  let y = clamp(v * 64.0 - 0.5, 0.0, 63.0);
+  let x0 = min(u32(x), 62u);
+  let y0 = min(u32(y), 62u);
+  let fx = x - f32(x0);
+  let a = mix(skyLutTexel(t, x0, y0), skyLutTexel(t, x0 + 1u, y0), fx);
+  let b = mix(skyLutTexel(t, x0, y0 + 1u), skyLutTexel(t, x0 + 1u, y0 + 1u), fx);
+  return mix(a, b, y - f32(y0));
+}
+// The vertical profile at height fraction u of the column (0 = its min height, 1 = its max height); the min height sits at table height table.y.
+fn skyTableV(tt: f32, bt: f32, u: f32) -> f32 {
+  let v = SKY.table.y + u * (1.0 - SKY.table.y);
+  return skyLut(0u, tt, v) * skyLut(1u, bt, v);
+}
+// Where the top table ends for this top type (table height), interpolated over the type columns.
+fn skyTableTop(tt: f32) -> f32 {
+  let x = clamp(tt, 0.0, 1.0) * 63.0;
+  let i0 = min(u32(x), 62u);
+  let a = SKY.tableTop[i0 >> 2u][i0 & 3u];
+  let b = SKY.tableTop[(i0 + 1u) >> 2u][(i0 + 1u) & 3u];
+  return mix(a, b, x - f32(i0));
+}
+// Top type of a column: one value everywhere (table.w >= 0) or the species row's (profile-tables.ts SPECIES_TOP_TYPES, piecewise linear in g).
+const SKY_TOP_TYPES = array<f32, 5>(${SPECIES_TOP_TYPES.map(v => v.toFixed(4)).join(', ')});
+fn skyTopType(g: f32) -> f32 {
+  if (SKY.table.w >= 0.0) { return SKY.table.w; }
+  let x = clamp(g, 0.0, 1.0) * 4.0;
+  let i = min(u32(x), 3u);
+  return mix(SKY_TOP_TYPES[i], SKY_TOP_TYPES[i + 1u], x - f32(i));
+}
+// Bottom type of a column, independent of the top type: one value everywhere (tableB.x >= 0) or a world-anchored very-low-frequency field between
+// tableB.y and tableB.z with features of about tableB.w metres (two octaves of value noise). The G path's weather map has no free channel for it;
+// the NDF's bottom-type field (work/specs/ndf.md, ndfA.B) is where it goes when the sky layer reads the NDF.
+fn skyValueNoise2(q: vec2<f32>, s: u32) -> f32 {
+  let i = vec2<i32>(floor(q));
+  let f = fract(q);
+  let u = f * f * (3.0 - 2.0 * f);
+  let k = 1.0 / 4294967295.0;
+  let a = f32(hashu(vec3<i32>(i, 0), s)) * k;
+  let b = f32(hashu(vec3<i32>(i + vec2<i32>(1, 0), 0), s)) * k;
+  let c = f32(hashu(vec3<i32>(i + vec2<i32>(0, 1), 0), s)) * k;
+  let d = f32(hashu(vec3<i32>(i + vec2<i32>(1, 1), 0), s)) * k;
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+fn skyBottomType(col: vec2<f32>) -> f32 {
+  if (SKY.tableB.x >= 0.0) { return SKY.tableB.x; }
+  let q = col / max(SKY.tableB.w, 100.0);
+  let n = 0.65 * skyValueNoise2(q, 71u) + 0.35 * skyValueNoise2(q * 2.03 + vec2(17.3, 5.1), 72u);
+  return mix(SKY.tableB.y, SKY.tableB.z, smoothstep(0.2, 0.8, n));
+}
 
 // The generator's smooth shape field at coverage cov and shell height fraction hz: f = s - g(h) (generate/shaders.ts shapeAt), for the layer row L.
 // lift: the rim curl of the base (baseLift; half of it for the upper layer, as the generator).
@@ -344,6 +418,123 @@ fn skyLayerAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L:
   return r;
 }
 
+// H4 (S3): the low layer from the N3 s18 tables instead of the species height law. The column: min height = the species row's base (lifted toward the
+// rim as the generator's), max height from the column's mass through the species' height law (s^(1/p) of the species depth: NE sets min and max
+// height per column [NE p.20]; ours derives max height from the mass, so small clouds are low domes instead of full-height drums), and the table
+// stretched so its top type's end lands on that max height (ext: the fraction of the table the top type fills). The NE dimensional profile
+// P = coverage * top * bottom [N3 s18, NE p.29] is turned into a level set with the NE additive structure [N3 s24, NE p.34] and the generator's billow
+// as the low-frequency noise: f = P + K - tau, K = the billow in [-0.6 P, BILLOW_LIFT * P]: its outward (cloud-making) part capped so nothing grows where the
+// table is 0 (a flat, crisp base under bottom type 0; a billow-ragged one under the slow ramp of bottom type 1). The depth below that surface then goes
+// through the same profile ramp, detail type and density scale as skyLayerAt, and the up-rez erodes it (skyDensityShaped).
+fn skyTableAt(pm: vec3<f32>, hz: f32, shellH: f32, cov: f32, dcov: vec2<f32>, L: SkyRow, lift: f32, wb: f32, g: f32, lodDistance: f32, given: SkyGiven) -> SkyModel {
+  var r: SkyModel;
+  r.m = vec3(0.0); r.depth = 0.0; r.skip = 0.0; r.f = -1.0; r.b = vec4(0.0); r.n = vec2(0.0); r.empty2d = false; r.hz = hz;
+  let thr = SKY.shapeB.x;
+  let s = saturate((cov - thr) / (1.0 - thr));
+  let ds = dcov / (1.0 - thr);
+  let lean = skyLean();
+  let tt = skyTopType(g);
+  let bt = skyBottomType(pm.xy - lean * pm.z);
+  let f0 = SKY.table.y;
+  let ext = clamp((skyTableTop(tt) - f0) / (1.0 - f0), 0.05, 1.0);
+  let base = L.base + lift * pow(1.0 - s, 1.5);
+  let invP = 1.0 / max(L.p, 1.0);
+  let depthFull = max((L.top - L.base) * shellH, 10.0);
+  let hMax = pow(max(s, 0.02), invP);   // the column's max height (fraction of the species depth)
+  let colM = depthFull * hMax / ext;
+  let above = (hz - base) * shellH;      // metres above the column's min height
+  let u = above / colM;
+  // Under the column's min height the table is 0: skip by the vertical distance (less the slack of the neighbours' base lift).
+  if (u < -0.02) { r.skip = max(-above - 0.02 * colM - 20.0, 2.0); return r; }
+  if (u > ext + 0.02) {
+    // Over this column's top: a neighbour with more mass reaches higher. Skip by the species law's field s - (above / depth)^p, whose surface is
+    // the max height of every column, through its gradient (as skyLayerAt's empty skip), less slack for the billow on the neighbours' tops.
+    let hf = above / depthFull;
+    let fA = s - pow(hf, L.p);
+    let gA = vec3(ds.x, -L.p * pow(hf, L.p - 1.0) / depthFull - dot(lean, ds), ds.y);
+    r.skip = clamp(-fA / max(1.5 * length(gA), 1e-5) - 30.0, 2.0, 400.0);
+    return r;
+  }
+  let tau = SKY.table.z;
+  let du = (1.0 / 64.0) / (1.0 - f0);   // one table row in column units
+  // The dimensional profile s * V, normalised by the column's peak for this type pair so a full-mass column peaks at its mass (the threshold then
+  // keeps one footprint for every type); the unnormalised table value still says how full the cloud is (softT below).
+  let pk = max(skyLut(2u, tt, (bt * 63.0 + 0.5) / 64.0), 0.05);
+  let V = skyTableV(tt, bt, u) / pk;
+  let Vu = skyTableV(tt, bt, u + du) / pk;
+  let Vd = skyTableV(tt, bt, u - du) / pk;
+  let P = s * V;
+  let fs = P - tau;
+  // Gradient of the smooth field per metre: horizontal through the coverage (directly, and through the max height: du/ds = -u / (p s)), vertical
+  // through the table (and the coverage change along the lean).
+  let dVdu = (Vu - Vd) / (2.0 * du);
+  let dfds = V - select(0.0, u * dVdu * invP, s > 0.02);
+  var grad = vec3(dfds * ds.x, s * dVdu / colM - dfds * dot(lean, ds), dfds * ds.y);
+  let withBillow = lodDistance >= 0.0 && SKY.billow.x > 0.0;
+  let A = SKY.billow.x * 3.0 * L.bAmp * wb;
+  let liftCap = BILLOW_LIFT * P;
+  let kMax = select(0.0, min(0.64 * A, liftCap), withBillow);
+  if (fs + kMax < 0.0) {
+    // No billow can reach the surface here: step by the smooth field's distance to the reach level (capped: the coverage gradient is local).
+    r.f = fs + kMax;
+    r.skip = clamp(-(fs + kMax) / max(1.5 * length(grad), 1e-4), 2.0, 40.0);
+    return r;
+  }
+  var K = 0.0;
+  if (withBillow) {
+    var b = given.b;
+    let pmb = pm + vec3(0.0, 0.0, thinNoiseOffset(ext * colM));   // NE p.102 (as skyLayerAt)
+    if (!given.valid) { b = billowGrad(pmb, SKY.billow.y * L.bCell, u32(SKY.billow.z * 131.0), lodDistance, 3u); }
+    r.b = b;
+    // Capped both ways in proportion to P: outward so nothing grows where the table is 0, inward so a billow valley carves a small cloud but does
+    // not delete it (the generator's billow is a surface displacement, not NE's density noise).
+    let K0 = A * b.w;
+    K = clamp(K0, -0.6 * P, liftCap);
+    if (K == K0) { grad += A * vec3(b.x, b.z, b.y); }
+  }
+  let f = fs + K;
+  r.f = f;
+  let gl = max(length(grad), 1e-4);
+  if (f <= 0.0) { r.skip = clamp(-f / (1.5 * gl), 2.0, 40.0); return r; }
+  // Metres below the surface: first order, capped by the vertical distances to where the column's field runs out one table row up and down
+  // (the first-order estimate blows up where the gradient vanishes: inside a thin sheet's plateau).
+  let dm = du * colM;
+  let fu = s * Vu + K - tau;
+  let fd = s * Vd + K - tau;
+  var depth = f / gl;
+  if (fu < f) { depth = min(depth, f * dm / (f - fu)); }
+  if (fd < f) { depth = min(depth, f * dm / (f - fd)); }
+  r.depth = depth;
+  let hcol = clamp(u / ext, 0.0, 1.0);
+  // The profile's depth noise and surface patches, as skyLayerAt.
+  var dEff = depth;
+  var patchN = 0.0;
+  if (given.valid) {
+    patchN = given.n.y;
+    dEff = depth * exp(SKY.extra.y * given.n.x);
+  } else if (lodDistance >= 0.0) {
+    var n = clamp(profileNoise(pm, SKY.extra.x, u32(SKY.billow.z * 53.0)) * 3.4, -2.5, 2.5);
+    let patchW = 1.0 - smoothstep(2500.0, 4000.0, lodDistance);
+    if (L.flip >= 0.0 && patchW > 0.0) { patchN = patchW * surfacePatch(pm, u32(SKY.billow.z * 53.0) + 31u); n = n + 1.2 * patchN; }
+    dEff = depth * exp(SKY.extra.y * n);
+    r.n = vec2(n, patchN);
+  }
+  let dirC = directionalDetail(hcol, dcov, lean);
+  let core = pow(clamp((dEff - 1.4) / (66.0 * exp(-DIR_RAMP * dirC)), 0.0, 1.0), 1.05);
+  // The table's own softness instead of the generator's base lift: where the vertical profile is low (the slow ramp of a ragged bottom type, a
+  // thin top) the up-rez profile stays low, so the erosion reaches deeper there; where the table rises fast (bottom type 0) the base is full right
+  // away. The table value, not times the mass: the rims already get their softness from the depth ramp, as in skyLayerAt.
+  let softT = 0.15 + 0.85 * smoothstep(0.02, 0.45, V * pk);
+  let profile = max(core * softT, 1.0 / 255.0);
+  let scale = clamp(mix(SKY.shapeB.z, SKY.shapeB.w, smoothstep(0.0, 0.6, hcol)) * L.scale, 0.0, 1.0);
+  let hd = hcol - 0.25 * clamp(depth / 32.0, 0.0, 1.0);
+  var detail = clamp(smoothstep(0.1, 0.75, hd) + (g - 0.5) * SKY.shapeC.x, 0.0, 1.0);
+  if (L.flip >= 0.0) { detail = detailFlip(hd, L.flip, patchN); }
+  detail = clamp(detail + DIR_TYPE * dirC, 0.0, 1.0);
+  r.m = vec3(profile, detail, scale);
+  return r;
+}
+
 fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, given: SkyGiven) -> SkyModel {
   var r: SkyModel;
   r.m = vec3(0.0); r.depth = 0.0; r.skip = 0.0; r.f = -1.0; r.b = vec4(0.0); r.n = vec2(0.0); r.empty2d = false;
@@ -394,7 +585,8 @@ fn skyModelB(p0: vec3<f32>, lodDistance: f32, light: bool, given: SkyGiven) -> S
   let wdz = textureSampleLevel(skyWeather, skySampler, wuv + vec2(0.0, 1.0 / dims.y), 0.0) - w;
   if (cov > thr) {
     let dcov = vec2(wdx.r, wdz.r) * fade / texel;   // per metre (x, z)
-    out = skyLayerAt(pm, r.hz, shellH, cov, dcov, skyRow(w.g, shellH), SKY.shapeA.w, select(1.0, w.b, SKY.shapeB.y > 0.5), w.g, false, lodDistance, given);
+    if (skyTableOn()) { out = skyTableAt(pm, r.hz, shellH, cov, dcov, skyRow(w.g, shellH), SKY.shapeA.w, w.b, w.g, lodDistance, given); }   // H4
+    else { out = skyLayerAt(pm, r.hz, shellH, cov, dcov, skyRow(w.g, shellH), SKY.shapeA.w, select(1.0, w.b, SKY.shapeB.y > 0.5), w.g, false, lodDistance, given); }
     have = true;
   }
   if (covA > thr) {
@@ -486,11 +678,59 @@ const SKY_LIGHT_REFRESH_M = 24.0;      // lighting varies slowly along the ray: 
 const SKY_LIGHT_REFRESH_REL = 0.03;
 const SKY_MICRO_NEAR = 700.0;   // Q2: metres; the near micro shadow fades out over 0.7-1.4 km (further out it shows the noise tile as a regular weave)
 ${SKY_FIELD_WGSL}
+/**
+ * H4 (S4): the up-rez with a selectable erosion law (SKY.erosion.x). 0 is cloudDensityShaped itself (the voxel march's N3 law, ValueErosion). The
+ * others replace only the erosion line [shape.md §4]; the noise composite, the HHF fold, the density-scale chain and the near fade are the same:
+ *   1 HZD additive   sat(n' - (1 - P)) with n' = 1 - composite [N3 s24, NE p.34]: the N3 channels are tuned for ValueErosion (high = more erosion,
+ *                    billows scaled 0.3), so the additive law, where high noise means more cloud, reads them inverted. Same zero set as
+ *                    ValueErosion, but the core keeps the noise (1 - n) instead of going flat to 1.
+ *   2 Nubis Evolved  the same additive erosion with NE's own sharpening, pow(.., 0.27) [NE p.105], in place of N3's pow(d, lerp(0.3, 0.6, S^4))
+ *                    (S^4 still scales the density). Ours: NE prints the 0.27 for its envelope model; the vertical-profile model's is not shown.
+ *   3 additive raw   sat(n - (1 - P)) with the composite as it is (the sign check shape.md asks for: the core reads as negative space).
+ */
+fn skyDensityShaped(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, modeling: vec3<f32>, hFrac: f32) -> vec2<f32> {
+  let law = u32(SKY.erosion.x + 0.5);
+  if (law == 0u) { return cloudDensityShaped(p, rayDistance, inputs, modeling, hFrac); }
+  let profile = modeling.x;
+  let type_ = modeling.y * (1.0 - inputs.wispyBias * (1.0 - hFrac) * (1.0 - hFrac));
+  let densityScale = modeling.z;
+  if (!(profile > 0.0)) { return vec2(0.0); }
+  let hf = inputs.hfDetails != 0u;
+  let mip = log2(1.0 + abs(rayDistance * inputs.mipDistanceScale)) + inputs.baseMip;
+  let n = textureSampleLevel(cloudNoise, repeatSampler, (p - inputs.wind) * cloudVolume.noiseScale, mip);
+  let wispy = mix(n.r, n.g, profile);
+  let billowy = mix(n.b * 0.3, n.a * 0.3, sqrt(sqrt(profile)));
+  var noiseComposite = mix(wispy, billowy, type_);
+  if (hf) {
+    let tg = abs(abs(n.g * 2.0 - 1.0) * 2.0 - 1.0);
+    let ta = abs(abs(n.a * 2.0 - 1.0) * 2.0 - 1.0);
+    let tg2 = tg * tg;
+    let hhf = saturate(mix(1.0 - tg2 * tg2, ta * ta, type_));
+    noiseComposite = mix(hhf, noiseComposite, valueRemap(rayDistance, 50.0, 150.0, 0.9, 1.0));
+  }
+  noiseComposite = saturate(noiseComposite * (1.0 + inputs.detailBias));
+  let ds2 = saturate(densityScale) * saturate(densityScale);
+  let poweredScale = ds2 * ds2;
+  var d = 0.0;
+  if (law == 3u) { d = saturate(noiseComposite - (1.0 - profile)); }
+  else { d = saturate((1.0 - noiseComposite) - (1.0 - profile)); }
+  if (law == 2u) {
+    d = pow(d, 0.27) * poweredScale;
+  } else {
+    d = d * poweredScale;
+    d = pow(d, mix(0.3, 0.6, max(EPSILON, poweredScale)));
+  }
+  if (hf) {
+    let f = fractionFromValue(rayDistance, 50.0, 150.0);
+    d = pow(d, mix(0.5, 1.0, f)) * mix(0.666, 1.0, f);
+  }
+  return vec2(d * valueRemap(rayDistance, 10.0, 120.0, 0.25, 1.0), profile * densityScale);
+}
 // Full up-rez density at a light-sample point (the in-line sun samples: the surface detail matters there).
 fn skyDensityLight(p: vec3<f32>, rayDistance: f32, inputs: DensityInputs, view: SkyModel) -> f32 {
   let sm = skyModelB(p, rayDistance, true, SkyGiven(view.b, view.n, true));
   if (!(sm.m.x > 0.0)) { return 0.0; }
-  return cloudDensityShaped(p, rayDistance, inputs, sm.m, saturate(sm.hz)).x;
+  return skyDensityShaped(p, rayDistance, inputs, sm.m, saturate(sm.hz)).x;
 }
 fn heat(x0: f32) -> vec3<f32> {
   let x = saturate(x0);
@@ -579,7 +819,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         if (firstHit < 0.0) { firstHit = ts; firstF = sp.depth; firstCov = sp.m.x; }
         let ds = min(step, tEnd - t);
         if (ts < tEnd) {
-          let d = cloudDensityShaped(ps, ts, inputs, sp.m, saturate(sp.hz));
+          let d = skyDensityShaped(ps, ts, inputs, sp.m, saturate(sp.hz));
           if (d.x > 0.0) {
             // Fade out toward the end of the range so the layer does not end on a line.
             let fade = 1.0 - smoothstep(0.75 * SKY.shell.z, SKY.shell.z, ts);
