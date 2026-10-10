@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:53806/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
+  "url": "http://127.0.0.1:57880/decima/?cloud=parkouring&bookmark=p101&clean=1&look=deck",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T17:11:11.284Z",
+  "startedAt": "2026-10-10T18:09:16.176Z",
   "shots": [
     {
       "name": "view",
@@ -23,18 +23,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.023873,
-          "lightGrid": 0.031871,
-          "marchNear": 0.09442368333333331,
-          "marchFar": 7.100759550000001,
-          "shadowMap": 0.03305877272727273,
-          "composite": 0.17743723333333333,
-          "dome": 0.060848049999999994
+          "lightGridReduce": 0.02658,
+          "lightGrid": 0.037537,
+          "marchNear": 1.705015558139535,
+          "marchFar": 24.87751844186047,
+          "shadowMap": 0.37007685714285715,
+          "composite": 3.5620185116279073,
+          "dome": 0.1859733488372093
         },
         "frameMs": {},
         "renderSize": [
-          1440,
-          810
+          1920,
+          1080
         ],
         "settings": {
           "lightning": {
@@ -103,9 +103,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            3.099899999999999,
+            6.749699999999999,
             0,
-            1.5499499999999995
+            3.3748499999999995
           ],
           "windVelocity": [
             3,
@@ -141,7 +141,8 @@
           "stepJitter": 0,
           "lightGridFilter": 0,
           "inlineReuse": 4,
-          "profileFilter": 0
+          "profileFilter": 0,
+          "historyDither": 0
         }
       }
     },
@@ -162,18 +163,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.023873,
-          "lightGrid": 0.031871,
-          "marchNear": 0.09356808333333332,
-          "marchFar": 7.540322433333333,
-          "shadowMap": 0.03305877272727273,
-          "composite": 0.18182839999999997,
-          "dome": 0.06584066666666667
+          "lightGridReduce": 0.02658,
+          "lightGrid": 0.037537,
+          "marchNear": 1.4262795499999998,
+          "marchFar": 22.929950833333343,
+          "shadowMap": 0.37007685714285715,
+          "composite": 3.166817666666666,
+          "dome": 0.23290688333333331
         },
         "frameMs": {},
         "renderSize": [
-          1440,
-          810
+          1920,
+          1080
         ],
         "settings": {
           "lightning": {
@@ -242,9 +243,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            6.299699999999998,
+            13.249499999999983,
             0,
-            3.149849999999999
+            6.624749999999992
           ],
           "windVelocity": [
             3,
@@ -280,7 +281,8 @@
           "stepJitter": 0,
           "lightGridFilter": 0,
           "inlineReuse": 4,
-          "profileFilter": 0
+          "profileFilter": 0,
+          "historyDither": 0
         }
       }
     },
@@ -301,18 +303,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.023873,
-          "lightGrid": 0.031871,
-          "marchNear": 0.09841446666666667,
-          "marchFar": 7.484671166666664,
-          "shadowMap": 0.03305877272727273,
-          "composite": 0.17098836666666659,
-          "dome": 0.066874
+          "lightGridReduce": 0.02658,
+          "lightGrid": 0.037537,
+          "marchNear": 1.45580205,
+          "marchFar": 22.94889708333333,
+          "shadowMap": 0.37007685714285715,
+          "composite": 2.405050116666667,
+          "dome": 0.16576000000000005
         },
         "frameMs": {},
         "renderSize": [
-          1440,
-          810
+          1920,
+          1080
         ],
         "settings": {
           "lightning": {
@@ -381,9 +383,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            9.549899999999981,
+            19.84919999999995,
             0,
-            4.774949999999991
+            9.924599999999975
           ],
           "windVelocity": [
             3,
@@ -419,7 +421,8 @@
           "stepJitter": 0,
           "lightGridFilter": 0,
           "inlineReuse": 4,
-          "profileFilter": 0
+          "profileFilter": 0,
+          "historyDither": 0
         }
       }
     },
@@ -440,18 +443,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.023873,
-          "lightGrid": 0.031871,
-          "marchNear": 0.1101073,
-          "marchFar": 7.666374650000003,
-          "shadowMap": 0.03305877272727273,
-          "composite": 0.18256168333333342,
-          "dome": 0.06978366666666666
+          "lightGridReduce": 0.02658,
+          "lightGrid": 0.037537,
+          "marchNear": 1.1081858499999997,
+          "marchFar": 23.97748063333334,
+          "shadowMap": 0.37007685714285715,
+          "composite": 2.789539283333333,
+          "dome": 0.16781971666666665
         },
         "frameMs": {},
         "renderSize": [
-          1440,
-          810
+          1920,
+          1080
         ],
         "settings": {
           "lightning": {
@@ -520,9 +523,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            12.749399999999977,
+            26.59889999999993,
             0,
-            6.374699999999988
+            13.299449999999965
           ],
           "windVelocity": [
             3,
@@ -558,7 +561,8 @@
           "stepJitter": 0,
           "lightGridFilter": 0,
           "inlineReuse": 4,
-          "profileFilter": 0
+          "profileFilter": 0,
+          "historyDither": 0
         }
       }
     },
@@ -579,18 +583,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.023873,
-          "lightGrid": 0.031871,
-          "marchNear": 0.09671025000000001,
-          "marchFar": 7.713623999999999,
-          "shadowMap": 0.03305877272727273,
-          "composite": 0.16174404999999997,
-          "dome": 0.07226753333333334
+          "lightGridReduce": 0.02658,
+          "lightGrid": 0.037537,
+          "marchNear": 1.2607925333333336,
+          "marchFar": 23.24208555,
+          "shadowMap": 0.37007685714285715,
+          "composite": 2.806222499999999,
+          "dome": 0.16894733333333342
         },
         "frameMs": {},
         "renderSize": [
-          1440,
-          810
+          1920,
+          1080
         ],
         "settings": {
           "lightning": {
@@ -659,9 +663,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            15.949499999999961,
+            33.198599999999935,
             0,
-            7.974749999999981
+            16.599299999999968
           ],
           "windVelocity": [
             3,
@@ -697,7 +701,8 @@
           "stepJitter": 0,
           "lightGridFilter": 0,
           "inlineReuse": 4,
-          "profileFilter": 0
+          "profileFilter": 0,
+          "historyDither": 0
         }
       }
     },
@@ -718,18 +723,18 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.023873,
-          "lightGrid": 0.031871,
-          "marchNear": 0.10034366666666669,
-          "marchFar": 7.662747700000001,
-          "shadowMap": 0.03305877272727273,
-          "composite": 0.18998809999999994,
-          "dome": 0.06381434999999999
+          "lightGridReduce": 0.02658,
+          "lightGrid": 0.037537,
+          "marchNear": 1.2984280666666663,
+          "marchFar": 22.750213933333328,
+          "shadowMap": 0.37007685714285715,
+          "composite": 2.8786997333333337,
+          "dome": 0.15238804999999997
         },
         "frameMs": {},
         "renderSize": [
-          1440,
-          810
+          1920,
+          1080
         ],
         "settings": {
           "lightning": {
@@ -798,9 +803,9 @@
           "inScatterProfile": 0,
           "ambientBelowMirror": 0,
           "windOffset": [
-            19.149299999999947,
+            39.64829999999994,
             0,
-            9.574649999999973
+            19.82414999999997
           ],
           "windVelocity": [
             3,
@@ -836,7 +841,8 @@
           "stepJitter": 0,
           "lightGridFilter": 0,
           "inlineReuse": 4,
-          "profileFilter": 0
+          "profileFilter": 0,
+          "historyDither": 0
         }
       }
     }
