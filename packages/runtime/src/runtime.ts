@@ -304,6 +304,12 @@ export interface CloudSettings {
   /** D1 round 5: distance (m) within which the two in-line sun samples are reused by the following steps (P3-E; 4 before). 0 = fresh taps at every lit step. */
   inlineReuse: number;
   /**
+   * D1 round 7: 1 = stochastic rounding of the temporal history (rgba16float): at `temporalBlend` 0.1 the exponential update stalls below
+   * 5 ulp, which on bright faces is over half an 8-bit step, so converged gradients print concentric contour rings (the judges' whorls on
+   * the lit faces). 0 = round to nearest (before round 7).
+   */
+  historyDither: number;
+  /**
    * D1 round 6: bit flags, 1 = the lighting's profile read (inScatterProfile) is tricubic, 2 = its SDF read (the glow relaxation) is tricubic.
    * Trilinear reads are C0 across the 8 m voxel planes; the lighting prints the kink as a straight seam where a plane is seen edge-on.
    */
@@ -657,7 +663,7 @@ export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
   densityScale: 2, lightDensityScale: 0.031, msStrength: 0.5, ambientStrength: 1.0,
   silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
   edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.7, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
-  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1,
+  noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 0,   // D1 round 7: the shipped sampler's type (the NVDF's); typeFromScale 1 printed wispy fibre whorls on the lit faces
   microShadow: 0, detailBias: 0,
   ambientLaw: 1,
   bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'mie', dropletDiameter: 10,
@@ -705,7 +711,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
-    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1223,7 +1229,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         device.queue.writeBuffer(frameUniforms[pass], 0, f);
         resolveF32.set(prevViewProj, 0);
         resolveF32[16] = prevCam[0]; resolveF32[17] = prevCam[1]; resolveF32[18] = prevCam[2]; resolveF32[19] = prevValid && !cut ? 1 : 0;
-        resolveF32[20] = Math.min(1, Math.max(0.02, flashFrame ? Math.max(settings.temporalBlend, FLASH_BLEND) : settings.temporalBlend)); resolveF32[21] = TEMPORAL_CLIP_SIGMA; resolveF32[22] = TEMPORAL_CLIP_MARGIN; resolveF32[23] = 0;
+        resolveF32[20] = Math.min(1, Math.max(0.02, flashFrame ? Math.max(settings.temporalBlend, FLASH_BLEND) : settings.temporalBlend)); resolveF32[21] = TEMPORAL_CLIP_SIGMA; resolveF32[22] = TEMPORAL_CLIP_MARGIN; resolveF32[23] = settings.historyDither;
         resolveF32[24] = t.prw; resolveF32[25] = t.prh; resolveF32[26] = 0; resolveF32[27] = 0;
         device.queue.writeBuffer(resolveParams[pass], 0, resolveF32);
       }

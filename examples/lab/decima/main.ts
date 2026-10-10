@@ -49,8 +49,9 @@ try {
   sun.attach(scene);
   await sky.compileAsync();
   const skyBridge = createSkyBridge(renderer, sky);
-  // D1 round 7: ?passScale=1.3333 renders the ultra far pass at the output resolution (the 0.75-scale upsample serrates opaque silhouettes).
-  const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout, passScale: query.has('passScale') ? Number(query.get('passScale')) : 1 });
+  // D1 round 7: the ultra far pass renders at the output resolution (passScale 4/3; the 0.75-scale upsample serrated opaque silhouettes: 7 percent of the
+  // s181 crust's edge columns jumped 2 px or more, 5 percent at full resolution). ?passScale=1 restores the tier's scales.
+  const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout, passScale: query.has('passScale') ? Number(query.get('passScale')) : 4 / 3 });
   const matte = query.get('matte') === '1';   // ?matte=1: present the cloud opacity (no tone mapping) for the parity masks
   const bridge = createCloudBridge(renderer, runtime, { matte });
   const POST_MODES: Record<string, 0 | 1 | 2> = { aces: 0, none: 1, fit: 2 };

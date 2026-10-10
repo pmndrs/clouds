@@ -31,7 +31,7 @@ ${FRAME_WGSL}
 struct TemporalParams {
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,    // xyz = previous camera position, w = 1 when the previous frame is a valid history
-  settings: vec4<f32>,   // x = blend of a fresh sample, y = clip gamma (sigmas), z = relative margin, w = 0
+  settings: vec4<f32>,   // x = blend of a fresh sample, y = clip gamma (sigmas), z = relative margin, w = historyDither (D1 round 7, see main)
   prevRect: vec4<f32>,   // xy = this pass's rendered size last frame (dynamic resolution moves the grid), zw = 0
 }
 @group(1) @binding(${TEMPORAL_BINDINGS.trace}) var traceColor: texture_2d<f32>;
@@ -175,6 +175,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         dist = hdx;
       }
     }
+  }
+  // D1 round 7 (historyDither): the history is rgba16float; at blend 0.1 the update stalls once |fresh - history| is under 5 ulp (0.0025 at
+  // 0.5-1.0, over half an 8-bit step), so a converged bright face sits at whichever of a few levels its path ended on: concentric contour
+  // rings on the lit tops. Stochastic rounding (a uniform +-0.5 ulp per channel, per pixel and frame) makes the stored mean unbiased.
+  if (TP.settings.w > 0.5) {
+    let h = vec4(hash01(pcg(gid.x * 1973u + gid.y * 9277u + frame.frameIndex * 26699u)), hash01(pcg(gid.x * 7919u + gid.y * 104729u + frame.frameIndex * 3331u)),
+                 hash01(pcg(gid.x * 2459u + gid.y * 6271u + frame.frameIndex * 7793u)), hash01(pcg(gid.x * 4201u + gid.y * 3061u + frame.frameIndex * 1181u)));
+    let mag = max(abs(result), vec4(1.0e-6));
+    let ulp = exp2(floor(log2(mag)) - 10.0);
+    result += (h - 0.5) * ulp;
   }
   textureStore(outColor, px, result);
   textureStore(outDepth, px, vec4<u32>(packDepth(dist, tEnd, sceneEnd), 0u, 0u, 0u));
