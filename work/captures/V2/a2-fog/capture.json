@@ -1,0 +1,190 @@
+{
+  "url": "http://127.0.0.1:58522/flagship/?cloud=local/direct/a2-wide-fog&quality=high&clean=1&base=1300&time=15.9",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T05:38:53.404Z",
+  "shots": [
+    {
+      "name": "photo",
+      "file": "work/captures/V2/a2-fog/photo.jpg",
+      "report": {
+        "camera": [
+          733.7156814518385,
+          1.9999999999995453,
+          1966.9454298934859
+        ],
+        "hfovDeg": 47.99999999999998,
+        "focusBox": {
+          "min": [
+            -524,
+            1364,
+            -752
+          ],
+          "max": [
+            524,
+            2036,
+            752
+          ]
+        },
+        "gpuMs": {
+          "scene": 0.48643495000000025,
+          "skyCompute": 0.084749,
+          "lightGridReduce": 0.05633,
+          "lightGrid": 0.237444,
+          "marchNear": 0.10064428333333338,
+          "marchFar": 3.2249042166666664,
+          "shadowMap": 0.01628014814814815,
+          "composite": 0.18974773333333328,
+          "dome": 0.11166144999999998,
+          "resolveNear": 0.04097785,
+          "resolveFar": 0.08161196666666667
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.05633,
+          "lightGrid": 0.237444,
+          "marchNear": 0.095457,
+          "marchFar": 3.046245,
+          "shadowMap": 0.026833,
+          "composite": 0.174455,
+          "dome": 0.107581,
+          "resolveNear": 0.03729,
+          "resolveFar": 0.075666
+        },
+        "frameMs": {
+          "p50": 16.700000000000045,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "photo",
+        "timeOfDay": 15.899999999999999,
+        "sunElevation": 38.79809624658686,
+        "sunAzimuth": 269.54333297645786,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 12441600,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 9057600,
+          "shadow": 8388608,
+          "total": 44215948
+        },
+        "cloud": "local/direct/a2-wide-fog",
+        "frames": 93,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 93,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 95.60000002384186,
+        "firstCloudFrameMs": 200.80000001192093
+      }
+    },
+    {
+      "name": "detail",
+      "file": "work/captures/V2/a2-fog/detail.jpg",
+      "report": {
+        "camera": [
+          896.4410441507995,
+          1.9999999999993179,
+          2403.1796778178864
+        ],
+        "hfovDeg": 20,
+        "focusBox": {
+          "min": [
+            -524,
+            1364,
+            -752
+          ],
+          "max": [
+            524,
+            2036,
+            752
+          ]
+        },
+        "gpuMs": {
+          "scene": 0.4564174333333335,
+          "skyCompute": 0.161664,
+          "lightGridReduce": 0.05633,
+          "lightGrid": 0.237444,
+          "marchNear": 0.07977306666666667,
+          "marchFar": 3.3421406499999993,
+          "shadowMap": 0.01628014814814815,
+          "composite": 0.19127684999999994,
+          "dome": 0.13789786666666665,
+          "resolveNear": 0.03887445,
+          "resolveFar": 0.06774676666666667
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.05633,
+          "lightGrid": 0.237444,
+          "marchNear": 0.083582,
+          "marchFar": 3.231326,
+          "shadowMap": 0.026833,
+          "composite": 0.178915,
+          "dome": 0.090373,
+          "resolveNear": 0.037416,
+          "resolveFar": 0.071291
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.600000000000364
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "detail",
+        "timeOfDay": 15.899999999999999,
+        "sunElevation": 38.79809624658686,
+        "sunAzimuth": 269.54333297645786,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 12441600,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 9057600,
+          "shadow": 8388608,
+          "total": 44215948
+        },
+        "cloud": "local/direct/a2-wide-fog",
+        "frames": 188,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 3,
+          "frames": 188,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 95.60000002384186,
+        "firstCloudFrameMs": 200.80000001192093
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

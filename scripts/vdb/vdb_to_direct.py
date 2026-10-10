@@ -61,20 +61,25 @@ def read_range(prim, lo, hi, up_z):
     return np.ascontiguousarray(a.transpose(1, 0, 2))   # up = hou y, row = hou z
 
 
-def like_range(meta, alo, ahi, sv):
-    """Source index range (hou x, y, z) covering the world box of a vdb_to_nvdf.py --up z conversion, and the voxel ratio."""
+def like_range(meta, alo, ahi, sv, up_z):
+    """Source index range (hou x, y, z) covering the world box of a vdb_to_nvdf.py fog conversion, and the voxel ratio."""
     tv = float(meta['voxelSizeMeters'])
     r = tv / sv
-    if abs(r - round(r)) > 1e-6 or round(r) < 1:
+    if abs(r - round(r)) > 1e-5 or round(r) < 1:
         fail(f'--like asset voxel {tv} m is not an integer multiple of the source voxel {sv} m')
     r = int(round(r))
+    w, h, d = meta['dims']                               # texture (x, row, up)
+    if not up_z:
+        # Y-up conversions keep the global target index in cropOffset (source axes x, row = hou z, up = hou y); target voxel g covers source [g r, (g + 1) r).
+        cx, cr, cu = meta['cropOffset']
+        lo = [cx * r, cu * r, cr * r]
+        return lo, [lo[0] + w * r, lo[1] + d * r, lo[2] + h * r], r
     margin = int(meta['margin'])
     pad = int(math.ceil(margin * tv / sv)) + 2           # vdb_to_nvdf.py convert(): lo/hi around the active box
     lo = [alo[i] - pad for i in range(3)]
     hi = [ahi[i] + pad for i in range(3)]
     a = [math.floor(lo[i] * sv / tv) for i in range(3)]  # resample_to_target: first target index per hou axis
     b = [math.ceil(hi[i] * sv / tv) for i in range(3)]
-    w, h, d = meta['dims']                               # texture (x, row, up)
     cx, cr, cu = meta['cropOffset']                      # crop min, texture order (t0 is reset to 0 for --up z)
     x0 = (a[0] + cx) * r
     z0 = (a[2] + cu) * r
@@ -84,8 +89,6 @@ def like_range(meta, alo, ahi, sv):
 
 def convert(args):
     t0 = time.perf_counter()
-    if args.up != 'z' and args.like:
-        fail('--like is only implemented for --up z (the C1 CloudPack conversions)')
     _, prim = load_grid(args.input, args.density_grid)
     vs = [float(x) for x in prim.voxelSize()]
     if max(vs) - min(vs) > 1e-6 * vs[0]:
@@ -97,7 +100,9 @@ def convert(args):
     like = None
     if args.like:
         like = json.loads((Path(args.like) / 'cloud.json').read_text())
-        lo, hi, ratio = like_range(like, alo, ahi, sv)
+        if like.get('converter', {}).get('rotateY') or 'rotate' in like.get('source', ''):
+            fail('--like does not follow --rotate-y conversions')
+        lo, hi, ratio = like_range(like, alo, ahi, sv, args.up == 'z')
     else:
         pad = args.margin
         lo = [alo[i] - pad for i in range(3)]
