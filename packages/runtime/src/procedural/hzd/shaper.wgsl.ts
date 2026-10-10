@@ -164,6 +164,9 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   }
   density = saturate(density);
   if (density <= 0.0) { return o; }
+  // H5 (ne22 p.105's envelope sharpen, pow(.., 0.27), as a setting; 1 = GP7, no shaping): lifts the low densities of the edge ramp so a lit rim
+  // reads crisp instead of a wide haze.
+  if (P.hzMisc.z != 1.0) { density = pow(density, P.hzMisc.z); }
   o.sigma = density * P.hzLayer.w;
   o.coarse = coarse;
   o.h = h;

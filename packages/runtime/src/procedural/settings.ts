@@ -89,7 +89,7 @@ export interface HzdNdfSettings {
   /** Texels per tile edge, and metres per tile (NE p.20 uses 16 km x 16 km). */
   resolution: number;
   tileMeters: number;
-  /** Coverage: a 4-octave periodic fBM from `coverageCells` cells per tile, plus a 2-octave island gate from `islandCells` (weight `islandWeight`),
+  /** Coverage: a 4-octave periodic fBM from `coverageCells` cells per tile (H5: 6 -> 9, more separate bodies), plus a 2-octave island gate from `islandCells` (weight `islandWeight`),
    *  mapped linearly from coverageLo..coverageHi onto 0..1 (a gradual field: the coverage remap of noise x gradient shapes the clouds). */
   coverageCells: number;
   islandCells: number;
@@ -123,9 +123,11 @@ export interface HzdShape {
    *  at our NDF's coverage (p99 0.57), so gp7's fixed 0.2 erosion cap ate small clouds and thinned bodies to popcorn (H1's stage 2 -> 3). */
   coverageMultiply: boolean;
   /** How the three Nutshell gradients (nut s7-8) blend by type; the law is unpublished. 'points' lerps the four stops (n17.md's reading, one
-   *  flat core); 'curves' is GP7 p.103's "weighted sum" with tent weights. */
+   *  flat core); 'curves' is GP7 p.103's "weighted sum" with tent weights. H5: 'curves' by default (it is what GP7 p.103 writes): between the
+   *  types the profile is a sum of two humps, which separates the bodies and rounds their tops (H5 step 2 captures). */
   typeBlend: 'points' | 'curves';
-  /** World size of one tile of the shape (128^3), detail (32^3) and curl (128^2) textures, and the curl displacement (none published; ours). */
+  /** World size of one tile of the shape (128^3), detail (32^3) and curl (128^2) textures, and the curl displacement (none published; ours).
+   *  H5: shape tile 4 -> 6 km: lobes 1.5x larger and rounder (lobe/body band energy 0.21 -> 0.15; GP7 Fig 4.16 0.09); needs the cubic read. */
   shapeTile: number;
   detailTile: number;
   curlTile: number;
@@ -165,6 +167,8 @@ export interface HzdShape {
   /** H5 (ours): the shape texture is read with a tricubic B-spline (8 trilinear taps) on full samples nearer than this (m) while it is
    *  magnified; trilinear beyond, and everywhere at 0. Removes the terraces trilinear filtering leaves on flanks and bases. */
   shapeCubicDistance: number;
+  /** H5: exponent on the final density (1 = GP7: none; ne22 p.105 sharpens its envelope with 0.27). Below 1 lifts the edge ramp: crisper rims. */
+  densityPow: number;
   ndf: HzdNdfSettings;
 }
 
@@ -248,14 +252,14 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 };
 
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
-  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 6, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
+  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
   typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.8, heightVariation: 0.1,
 };
 export const HZD_DEFAULTS: HzdShape = {
-  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'points',
-  shapeTile: 4000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
+  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves',
+  shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
-  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, shapeCubicDistance: 0, ndf: HZD_NDF_DEFAULTS,
+  stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, shapeCubicDistance: 0, densityPow: 1, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -326,7 +330,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
   out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
   out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : 0], 140);
-  out.set([hz.stage, hz.shapeCubicDistance, 0, 0], 144);
+  out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, 0], 144);
   return [minY, maxY];
 }
 
