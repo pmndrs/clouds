@@ -1,0 +1,230 @@
+{
+ "d02.jpg": {
+  "frame": "p101",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d09.jpg": {
+  "frame": "p101",
+  "source": "decima",
+  "kind": "full"
+ },
+ "d03.jpg": {
+  "frame": "p101",
+  "source": "art",
+  "kind": "full"
+ },
+ "d07.jpg": {
+  "frame": "p213",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d05.jpg": {
+  "frame": "p213",
+  "source": "decima",
+  "kind": "full"
+ },
+ "d12.jpg": {
+  "frame": "p213",
+  "source": "art",
+  "kind": "full"
+ },
+ "d01.jpg": {
+  "frame": "s206",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d11.jpg": {
+  "frame": "s206",
+  "source": "decima",
+  "kind": "full"
+ },
+ "d06.jpg": {
+  "frame": "s206",
+  "source": "art",
+  "kind": "full"
+ },
+ "d04.jpg": {
+  "frame": "s33t3",
+  "source": "decima-reference",
+  "kind": "full"
+ },
+ "d08.jpg": {
+  "frame": "s33t3",
+  "source": "decima",
+  "kind": "full"
+ },
+ "d10.jpg": {
+  "frame": "s33t3",
+  "source": "art",
+  "kind": "full"
+ },
+ "c10.jpg": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c13.jpg": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c07.jpg": {
+  "frame": "p101",
+  "region": "tower",
+  "source": "art",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c09.jpg": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c06.jpg": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c16.jpg": {
+  "frame": "p101",
+  "region": "leftmass",
+  "source": "art",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c02.jpg": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c15.jpg": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c11.jpg": {
+  "frame": "p213",
+  "region": "tower",
+  "source": "art",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c22.jpg": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c23.jpg": {
+  "frame": "p213",
+  "region": "base",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c12.jpg": {
+  "frame": "p213",
+  "region": "base",
+  "source": "art",
+  "kind": "crop",
+  "scale": "native 4k"
+ },
+ "c14.jpg": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c17.jpg": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c20.jpg": {
+  "frame": "s206",
+  "region": "leg",
+  "source": "art",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c05.jpg": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c21.jpg": {
+  "frame": "s206",
+  "region": "body",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c04.jpg": {
+  "frame": "s206",
+  "region": "body",
+  "source": "art",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c18.jpg": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c24.jpg": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c08.jpg": {
+  "frame": "s33t3",
+  "region": "base",
+  "source": "art",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c01.jpg": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima-reference",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c03.jpg": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "decima",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ },
+ "c19.jpg": {
+  "frame": "s33t3",
+  "region": "upper",
+  "source": "art",
+  "kind": "crop",
+  "scale": "2x of 1080p"
+ }
+}
