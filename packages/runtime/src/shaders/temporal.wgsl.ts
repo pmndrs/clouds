@@ -5,7 +5,7 @@ export const TEMPORAL_BINDINGS = {
   trace: 2, traceDepth: 3, hist: 4, histDepth: 5, out: 6, outDepth: 7, params: 8, sampler: 9,
 } as const;
 /** TemporalParams uniform: mat4 + 3 vec4 = 28 floats. */
-export const TEMPORAL_PARAM_FLOATS = 28;
+export const TEMPORAL_PARAM_FLOATS = 32;
 export const TEMPORAL_PARAM_BYTES = TEMPORAL_PARAM_FLOATS * 4;
 
 /**
@@ -33,6 +33,8 @@ struct TemporalParams {
   prevCam: vec4<f32>,    // xyz = previous camera position, w = 1 when the previous frame is a valid history
   settings: vec4<f32>,   // x = blend of a fresh sample, y = clip gamma (sigmas), z = relative margin, w = historyDither (D1 round 7, see main)
   prevRect: vec4<f32>,   // xy = this pass's rendered size last frame (dynamic resolution moves the grid), zw = the wind's world displacement (x, z) since the previous frame (D1 round 8, windCompensate)
+  extra: vec4<f32>,      // x = historyFilter (D1 round 9: 1 = Catmull-Rom history read, 0 = bilinear), y = windCompensate mode (3 = integer-texel snap),
+                         // zw = the wind's total offset (x, z) now; prevRect.zw then holds the total offset of the previous frame
 }
 @group(1) @binding(${TEMPORAL_BINDINGS.trace}) var traceColor: texture_2d<f32>;
 @group(1) @binding(${TEMPORAL_BINDINGS.traceDepth}) var traceDepth: texture_2d<f32>;
@@ -42,6 +44,35 @@ struct TemporalParams {
 @group(1) @binding(${TEMPORAL_BINDINGS.outDepth}) var outDepth: texture_storage_2d<r32uint, write>;
 @group(1) @binding(${TEMPORAL_BINDINGS.params}) var<uniform> TP: TemporalParams;
 @group(1) @binding(${TEMPORAL_BINDINGS.sampler}) var histSampler: sampler;
+
+// D1 round 9 (historyFilter): Catmull-Rom history read from nine bilinear taps (the TAA standard). A bilinear read at a sub-pixel offset
+// (the wind compensation moves the read 0.24 px a frame at 4k) blurs the history a little every frame, which over the resolve's 10-20 frame
+// window smeared the florets as much as the uncompensated drift; the cubic kernel keeps them.
+fn historyRead(uv: vec2<f32>, texSize: vec2<f32>) -> vec4<f32> {
+  if (TP.extra.x < 0.5) { return textureSampleLevel(histColor, histSampler, uv, 0.0); }
+  let pos = uv * texSize;
+  let center = floor(pos - 0.5) + 0.5;
+  let f = pos - center;
+  let f2 = f * f;
+  let f3 = f2 * f;
+  let w0 = f2 - 0.5 * (f3 + f);
+  let w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
+  let w3 = 0.5 * (f3 - f2);
+  let w2 = 1.0 - w0 - w1 - w3;
+  let w12 = w1 + w2;
+  let off12 = w2 / w12;
+  let tc0 = (center - 1.0) / texSize;
+  let tc3 = (center + 2.0) / texSize;
+  let tc12 = (center + off12) / texSize;
+  var r = textureSampleLevel(histColor, histSampler, vec2(tc12.x, tc0.y), 0.0) * (w12.x * w0.y);
+  r += textureSampleLevel(histColor, histSampler, vec2(tc0.x, tc12.y), 0.0) * (w0.x * w12.y);
+  r += textureSampleLevel(histColor, histSampler, vec2(tc12.x, tc12.y), 0.0) * (w12.x * w12.y);
+  r += textureSampleLevel(histColor, histSampler, vec2(tc3.x, tc12.y), 0.0) * (w3.x * w12.y);
+  r += textureSampleLevel(histColor, histSampler, vec2(tc12.x, tc3.y), 0.0) * (w12.x * w3.y);
+  // the four corners carry little weight and are dropped (the 5-tap form); renormalise
+  let wsum = w12.x * w0.y + w0.x * w12.y + w12.x * w12.y + w3.x * w12.y + w12.x * w3.y;
+  return max(r / wsum, vec4(0.0));
+}
 
 // passSceneEnd (frame.wgsl.ts) with the four corners of the covered output pixels instead of all of them (the resolve runs on every
 // pixel; a feature thinner than a pass pixel that sits between the corners is the only difference).
@@ -101,15 +132,32 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // the history is read, so that it is not taken for camera motion (which would clip and partly reset the history every frame).
   let world = origin + dir * rd;
   let clip = TP.prevViewProj * vec4(world, 1.0);
-  let clipW = TP.prevViewProj * vec4(world - vec3(TP.prevRect.z, 0.0, TP.prevRect.w), 1.0);
-  var valid = TP.prevCam.w > 0.5 && clip.w > 1e-3 && clipW.w > 1e-3;
+  var valid = TP.prevCam.w > 0.5 && clip.w > 1e-3;
   var puv = vec2(0.0);
   var puvW = vec2(0.0);
   if (valid) {
     let ndc = clip.xy / clip.w;
     puv = vec2(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
-    let ndcW = clipW.xy / clipW.w;
-    puvW = vec2(ndcW.x * 0.5 + 0.5, 0.5 - ndcW.y * 0.5);
+    puvW = puv;
+    if (TP.extra.y > 2.5) {
+      // Integer-texel snap (D1 round 9): a sub-texel shift of the history read every frame low-passes the history each time it is resampled
+      // (bilinear at a 0.18 texel offset keeps 84 percent of a 4 px feature per frame: nothing after ten frames), which is why the plain
+      // compensation blurred the florets as much as the drift. The shift is taken from the wind's TOTAL offset, rounded to whole history
+      // texels, as the difference of this frame's and the previous frame's rounded shifts: 0 or +-1 texel a frame, exact resampling, and
+      // unbiased over time (the rounding carries). The profile does not move, so the static lobe shading is read at most half a texel off.
+      let prevSize = TP.prevRect.xy;
+      let cNow = TP.prevViewProj * vec4(world - vec3(TP.extra.z, 0.0, TP.extra.w), 1.0);
+      let cPrev = TP.prevViewProj * vec4(world - vec3(TP.prevRect.z, 0.0, TP.prevRect.w), 1.0);
+      if (cNow.w > 1e-3 && cPrev.w > 1e-3) {
+        let nNow = cNow.xy / cNow.w; let nPrev = cPrev.xy / cPrev.w;
+        let tNow = (vec2(nNow.x * 0.5 + 0.5, 0.5 - nNow.y * 0.5) - puv) * prevSize;
+        let tPrev = (vec2(nPrev.x * 0.5 + 0.5, 0.5 - nPrev.y * 0.5) - puv) * prevSize;
+        puvW = puv + (round(tNow) - round(tPrev)) / prevSize;
+      }
+    } else {
+      let clipW = TP.prevViewProj * vec4(world - vec3(TP.prevRect.z, 0.0, TP.prevRect.w), 1.0);
+      if (clipW.w > 1e-3) { let ndcW = clipW.xy / clipW.w; puvW = vec2(ndcW.x * 0.5 + 0.5, 0.5 - ndcW.y * 0.5); }
+    }
     valid = all(puv >= vec2(0.0)) && all(puv <= vec2(1.0)) && all(puvW >= vec2(0.0)) && all(puvW <= vec2(1.0));
   }
   var hdx = 0.0;
@@ -135,7 +183,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var dist = 0.0;
   if (valid && moved <= 0.0) {
     // Static pixel: its history; a fresh sample blends in. No neighbourhood needed (it only guards moving history).
-    let history = textureSampleLevel(histColor, histSampler, histUv, 0.0);
+    let history = historyRead(histUv, texDims);
     result = history;
     dist = hdx;
     if (fresh) { result = mix(history, traceColorAt(px), TP.settings.x); dist = own; }
@@ -177,7 +225,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       let mean = m1 / max(n, 1.0);
       let sigma = sqrt(max(m2 / max(n, 1.0) - mean * mean, vec4(0.0)));
       let margin = TP.settings.y * sigma + TP.settings.z * abs(mean);
-      let h0 = textureSampleLevel(histColor, histSampler, histUv, 0.0);
+      let h0 = historyRead(histUv, texDims);
       let history = mix(h0, clamp(h0, mean - margin, mean + margin), moved);
       if (fresh) {
         result = mix(history, nearC, mix(TP.settings.x, max(TP.settings.x, 0.6), moved));

@@ -290,15 +290,24 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.
                 // D1 round 6 (profileFilter, bit 1): the lighting profile through the tricubic read (trilinear kinks print voxel-plane seams).
                 let cubicP = (u32(frame.material2.w) & 1u) != 0u;
-                var pLight = select(d.y, sampleModeling(ps, frame.baseMip).x, frame.d1.w > 0.5);
-                if (cubicP && frame.d1.w > 0.5) { pLight = sampleModelingCubic(ps, frame.baseMip).x; }
+                // D1 round 9: inScatterProfile is an exponent, pLight = P * S^(1 - t): 0 = P x S (P1 and before), 1 = the deck's P (s123), 0.5 = P sqrt(S).
+                var mLight = sampleModeling(ps, frame.baseMip);
+                if (cubicP) { mLight = sampleModelingCubic(ps, frame.baseMip); }
                 // D1 round 8 (glowDepth): the deck's glow is the light scattered deeper inside shining through the surface (s116-119); read P
-                // where that light comes from, glowDepth metres along the view ray past the sample, instead of at the lobe's own front, where
-                // the profile is small and a protruding profile lobe prints a dark disc.
-                if (frame.d3.x > 0.0 && frame.d1.w > 0.5) {
-                  let pDeep = sampleModeling(ps + dir * frame.d3.x, frame.baseMip).x;
-                  pLight = select(pDeep, max(pLight, pDeep), frame.d3.y > 0.5);
+                // where that light comes from, glowDepth metres past the sample, instead of at the lobe's own front, where the profile is small and
+                // a protruding profile lobe prints a dark disc. Mode 0: along the view ray; 1: max of both reads; 2 (round 9): inward along the
+                // SDF's gradient (the lobe's own core), so a thin lit sliver in front of a dense body does not borrow the body's P (the hard chip).
+                if (frame.d3.x > 0.0) {
+                  var inward = dir;
+                  if (frame.d3.y > 1.5) {
+                    let e = 0.5 * cloudVolume.voxelSize;
+                    let g = vec3(cloudDistance(ps + vec3(e, 0.0, 0.0)) - cloudDistance(ps - vec3(e, 0.0, 0.0)), cloudDistance(ps + vec3(0.0, e, 0.0)) - cloudDistance(ps - vec3(0.0, e, 0.0)), cloudDistance(ps + vec3(0.0, 0.0, e)) - cloudDistance(ps - vec3(0.0, 0.0, e)));
+                    inward = -normalize(g + vec3(1e-6, 0.0, 0.0));
+                  }
+                  let mDeep = sampleModeling(ps + inward * frame.d3.x, frame.baseMip);
+                  if (frame.d3.y > 0.5 && frame.d3.y < 1.5) { mLight = select(mLight, mDeep, mDeep.x > mLight.x); } else { mLight = mDeep; }
                 }
+                let pLight = mLight.x * pow(max(mLight.z, 1e-4), 1.0 - saturate(frame.d1.w));
                 // D1 round 4: the glow's depth relaxation reads the true distance at the sample (s123 GetVoxelCloudDistance), not the stepping
                 // bound sdf (the last fetch minus the distance travelled, refetched every 24 m): the bound's error followed the per-pixel
                 // jitter and printed speckle into the ms term wherever the relaxation is steep.

@@ -22,7 +22,7 @@ describe('looks (D0)', () => {
     expect(cloudLookSettings('decima', 'ultra').temporalBlend).toBe(0.1);   // round 4: the jitter's residual share in the resolve
     expect(cloudLookSettings('decima', 'ultra').stepJitter).toBe(1);   // round 5: the step phase randomised at the cloud entry
     expect(cloudLookSettings('decima', 'ultra').glowDepth).toBe(12);   // round 8: the glow's profile read past the sample (no profile discs)
-    expect(d.inScatterProfile).toBe(1);   // round 3: the deck's dimensional profile, not P x S, in the lighting
+    expect(d.inScatterProfile).toBe(0.5);   // round 3: the deck's dimensional profile, not P x S, in the lighting; round 9: P sqrt(S), between the two
     // the taps' optical depth per density-metre (densityScale * inlineLightScale) is within a factor 2 of the grid's (densityScale * lightDensityScale)
     const taps = d.densityScale * d.inlineLightScale, grid = d.densityScale * d.lightDensityScale;
     expect(taps / grid).toBeGreaterThan(0.5); expect(taps / grid).toBeLessThan(2);

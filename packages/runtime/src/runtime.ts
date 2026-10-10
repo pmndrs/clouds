@@ -281,6 +281,7 @@ export interface CloudSettings {
    */
   ambientBelowMirror: number;
   /**
+   * D1 round 9: now an exponent, the lighting profile is P x S^(1 - inScatterProfile): 0.5 = P sqrt(S) (between the two below).
    * D1 round 3: which profile the Nubis lighting's in-scatter probability and ambient occlusion read. 0 = `mProfile` = profile x density scale
    * (what the light grid is built from; P1 and before). 1 = the deck's `dimensional_profile` alone (s123 `ms_volume = dimensional_profile`,
    * s126 `pow(1 - dimensional_profile, 0.5)`): where the density scale is low (most of Parkouring, S about 0.24) the ms glow is 4x stronger and
@@ -309,6 +310,7 @@ export interface CloudSettings {
    * camera has a small P at its front and prints a dark disc on the shade side (round 7's finding). `glowDepthMode` 1 takes the max of both reads.
    */
   glowDepth: number;
+  /** 0 = along the view ray, 1 = the max of the sample's and the deeper read, 2 (D1 round 9) = inward along the SDF gradient (the lobe's own core). */
   glowDepthMode: number;
   /**
    * D1 round 8: 1 = the temporal resolve reprojects the history through the wind's displacement of the up-rez noise since the previous frame
@@ -317,6 +319,8 @@ export interface CloudSettings {
    * needs a sharper history filter (Catmull-Rom) before it helps; off until then. The parity page stops the wind instead (refs.ts settings).
    */
   windCompensate: number;
+  /** D1 round 9: 1 = Catmull-Rom history read in the temporal resolve (keeps sub-pixel detail under the wind compensation), 0 = bilinear. */
+  historyFilter: number;
   /** D1 round 8: the up-rez noise's world scale (1 / tiling period in metres; the pack's sampler uses 0.01 = 100 m). Investigation knob for the floret scale. */
   noiseScale: number;
   /**
@@ -687,7 +691,7 @@ export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
   fineErosion: 1,
   inlineLightScale: 0.03, inlineProfile: 0, lightMipBias: 0,
   diffuseSun: 0.15, diffuseFalloff: 0.11, ambientSaturation: 0.5, ambientWarmth: 0,
-  inScatterProfile: 1, ambientBelowMirror: 1,
+  inScatterProfile: 0.5, ambientBelowMirror: 1,   // D1 round 9: P sqrt(S): the deck's P alone carved the thin Stormbird trunk (ring, slit, chip); P x S lost Parkouring's shadow value (round 3)
 };
 
 export type CloudLook = 'art' | 'deck' | 'decima';
@@ -728,7 +732,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
-    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, noiseScale: 0.01, windCompensate: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1257,7 +1261,12 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         resolveF32[16] = prevCam[0]; resolveF32[17] = prevCam[1]; resolveF32[18] = prevCam[2]; resolveF32[19] = prevValid && !cut ? 1 : 0;
         resolveF32[20] = Math.min(1, Math.max(0.02, flashFrame ? Math.max(settings.temporalBlend, FLASH_BLEND) : settings.temporalBlend)); resolveF32[21] = TEMPORAL_CLIP_SIGMA; resolveF32[22] = TEMPORAL_CLIP_MARGIN; resolveF32[23] = settings.historyDither;
         resolveF32[24] = t.prw; resolveF32[25] = t.prh;
-        resolveF32[26] = settings.windCompensate > 0.5 ? windDelta[0] : 0; resolveF32[27] = settings.windCompensate > 0.5 ? windDelta[1] : 0;
+        // windCompensate 1 = the per-frame displacement (prevRect.zw), 2 = its opposite sign (diagnostic), 3 = integer-texel snap from the total offsets
+        // (prevRect.zw = the previous frame's total, extra.zw = this frame's total).
+        const wc = settings.windCompensate;
+        if (wc > 2.5) { resolveF32[26] = settings.windOffset[0] - windDelta[0]; resolveF32[27] = settings.windOffset[2] - windDelta[1]; resolveF32[30] = settings.windOffset[0]; resolveF32[31] = settings.windOffset[2]; }
+        else { const wsign = wc > 1.5 ? -1 : wc > 0.5 ? 1 : 0; resolveF32[26] = wsign * windDelta[0]; resolveF32[27] = wsign * windDelta[1]; resolveF32[30] = 0; resolveF32[31] = 0; }
+        resolveF32[28] = settings.historyFilter; resolveF32[29] = settings.windCompensate;
         device.queue.writeBuffer(resolveParams[pass], 0, resolveF32);
       }
       f[60] = 0; f[61] = 0; f[62] = 0; frameU32[34] = frame.frameIndex >>> 0;
