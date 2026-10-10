@@ -288,11 +288,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
               else {
                 // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.
-                let pLight = select(d.y, sampleModeling(ps, frame.baseMip).x, frame.d1.w > 0.5);
+                // D1 round 6 (profileFilter, bit 1): the lighting profile through the tricubic read (trilinear kinks print voxel-plane seams).
+                let cubicP = (u32(frame.material2.w) & 1u) != 0u;
+                var pLight = select(d.y, sampleModeling(ps, frame.baseMip).x, frame.d1.w > 0.5);
+                if (cubicP && frame.d1.w > 0.5) { pLight = sampleModelingCubic(ps, frame.baseMip).x; }
                 // D1 round 4: the glow's depth relaxation reads the true distance at the sample (s123 GetVoxelCloudDistance), not the stepping
                 // bound sdf (the last fetch minus the distance travelled, refetched every 24 m): the bound's error followed the per-pixel
                 // jitter and printed speckle into the ms term wherever the relaxation is steep.
-                let sdfLit = cloudDistance(ps);
+                var sdfLit = cloudDistance(ps);
+                if ((u32(frame.material2.w) & 2u) != 0u) { sdfLit = cloudDistanceCubic(ps); }   // D1 round 6 (profileFilter, bit 2)
                 lit = cloudInScatterMicro(pLight, sdfLit, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp * ambOcc, ambientDown * ambOcc, envUp, envDown, microOcc);
               }
               depthMax = max(depthMax, -sdf);

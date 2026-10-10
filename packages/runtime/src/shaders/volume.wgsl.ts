@@ -61,6 +61,64 @@ fn sampleModelingHero(p: vec3<f32>, mip: f32) -> vec4<f32> {
   let o = vec3(f32(slot & 31u), f32((slot >> 5u) & 31u), f32(slot >> 10u)) * 10.0 + 1.0;
   return vec4(textureSampleLevel(heroPool, clampSampler, (o + f - vec3<f32>(cell) * 8.0) * hero.invPool, 0.0).rgb, 1.0);
 }
+// D1 round 6: tricubic B-spline reads (Sigg & Hadwiger 2005, eight trilinear taps) of the NVDF and the SDF. Trilinear filtering is C0: across
+// every 8 m voxel plane the interpolated field has a kink, which the lighting (P x exp(-tau relax(sdf))) prints as a straight seam where the
+// voxel plane is seen edge-on (the dark vertical slit in the s181 trunk). Zero outside the volume like the trilinear reads.
+fn cubicTaps(c: vec3<f32>, dims: vec3<f32>) -> array<vec3<f32>, 4> {
+  let i = floor(c);
+  let f = c - i;
+  let f2 = f * f;
+  let f3 = f2 * f;
+  let omf = 1.0 - f;
+  let w0 = omf * omf * omf / 6.0;
+  let w1 = (4.0 - 6.0 * f2 + 3.0 * f3) / 6.0;
+  let w2 = (4.0 - 6.0 * omf * omf + 3.0 * omf * omf * omf) / 6.0;
+  let w3 = f3 / 6.0;
+  let g0 = w0 + w1;
+  let g1 = w2 + w3;
+  return array<vec3<f32>, 4>((i + w1 / g0 - 1.0 + 0.5) / dims, (i + w3 / g1 + 1.0 + 0.5) / dims, g0, g1);
+}
+fn sampleModelingCubic(p: vec3<f32>, mip: f32) -> vec3<f32> {
+  if (!insideVolume(p)) { return vec3(0.0); }
+  let dims = vec3<f32>(textureDimensions(cloudNvdf)) / exp2(floor(mip));
+  let t = cubicTaps(volumeUvw(p) * dims - 0.5, dims);
+  let h0 = t[0]; let h1 = t[1]; let g0 = t[2]; let g1 = t[3];
+  var acc = vec3(0.0);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h0.x, h0.y, h0.z), mip).rgb * (g0.x * g0.y * g0.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h1.x, h0.y, h0.z), mip).rgb * (g1.x * g0.y * g0.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h0.x, h1.y, h0.z), mip).rgb * (g0.x * g1.y * g0.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h1.x, h1.y, h0.z), mip).rgb * (g1.x * g1.y * g0.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h0.x, h0.y, h1.z), mip).rgb * (g0.x * g0.y * g1.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h1.x, h0.y, h1.z), mip).rgb * (g1.x * g0.y * g1.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h0.x, h1.y, h1.z), mip).rgb * (g0.x * g1.y * g1.z);
+  acc += textureSampleLevel(cloudNvdf, clampSampler, vec3(h1.x, h1.y, h1.z), mip).rgb * (g1.x * g1.y * g1.z);
+  return acc;
+}
+fn sampleSdfCubic(uvw: vec3<f32>) -> f32 {
+  let dims = vec3<f32>(textureDimensions(cloudSdf));
+  let t = cubicTaps(uvw * dims - 0.5, dims);
+  let h0 = t[0]; let h1 = t[1]; let g0 = t[2]; let g1 = t[3];
+  var acc = 0.0;
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h0.x, h0.y, h0.z), 0.0).r * (g0.x * g0.y * g0.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h1.x, h0.y, h0.z), 0.0).r * (g1.x * g0.y * g0.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h0.x, h1.y, h0.z), 0.0).r * (g0.x * g1.y * g0.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h1.x, h1.y, h0.z), 0.0).r * (g1.x * g1.y * g0.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h0.x, h0.y, h1.z), 0.0).r * (g0.x * g0.y * g1.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h1.x, h0.y, h1.z), 0.0).r * (g1.x * g0.y * g1.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h0.x, h1.y, h1.z), 0.0).r * (g0.x * g1.y * g1.z);
+  acc += textureSampleLevel(cloudSdf, clampSampler, vec3(h1.x, h1.y, h1.z), 0.0).r * (g1.x * g1.y * g1.z);
+  return acc;
+}
+// The lighting's distance read (not a bound: the march's conservative stepping keeps cloudDistance).
+fn cloudDistanceCubic(p: vec3<f32>) -> f32 {
+  let lo = cloudVolume.minCorner;
+  let hi = cloudVolume.minCorner + cloudVolume.extent;
+  let c = clamp(p, lo, hi);
+  let boxDist = length(p - c);
+  let s = sampleSdfCubic(volumeUvw(c)) - 0.5 * cloudVolume.voxelSize;
+  if (boxDist <= 0.0) { return s; }
+  return max(boxDist, s - boxDist);
+}
 // Signed distance to cloud in metres, never larger than the true distance.
 // Outside the cropped box: the cloud lies inside the box, so the box distance is a lower bound, and so is
 // sdf(clamped) - |p - clamped| by the triangle inequality.

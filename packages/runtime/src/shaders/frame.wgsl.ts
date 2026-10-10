@@ -44,7 +44,8 @@ struct Frame {
   // z = ambientWarmth (0..1 toward the sun's chromaticity at the same luminance), w = directInScatterFlat (direct volumes: 0 = in-scatter weight saturate(density), 1 = 1).
   material: vec4<f32>,
   // M1: x = diffuseFalloff (k of the diffuse sun's 1 / (1 + k tau)); D1: y = inlineLightScale (scale of the in-line sun taps' optical depth,
-  // 1 = the view extinction), z = jitterStatic (1 = static march jitter beyond 250 m, N3 s150), w = 0.
+  // 1 = the view extinction), z = jitterStatic (1 = static march jitter beyond 250 m, N3 s150), w = profileFilter (D1 round 6: bit 1 = the
+  // lighting's profile read tricubic, bit 2 = its SDF read tricubic).
   material2: vec4<f32>,
   // D1 sun taps: x = inlineProfile (1 = the two in-line sun samples read the cheap profile P * S instead of the up-rezzed density),
   // y = lightMipBias (mip added to the field and noise fetches of the in-line sun samples), z = ambientTap (m, upward occlusion sample of the

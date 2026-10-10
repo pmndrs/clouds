@@ -303,6 +303,11 @@ export interface CloudSettings {
   lightGridFilter: number;
   /** D1 round 5: distance (m) within which the two in-line sun samples are reused by the following steps (P3-E; 4 before). 0 = fresh taps at every lit step. */
   inlineReuse: number;
+  /**
+   * D1 round 6: bit flags, 1 = the lighting's profile read (inScatterProfile) is tricubic, 2 = its SDF read (the glow relaxation) is tricubic.
+   * Trilinear reads are C0 across the 8 m voxel planes; the lighting prints the kink as a straight seam where a plane is seen edge-on.
+   */
+  profileFilter: number;
 }
 
 /**
@@ -644,7 +649,7 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
  * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
  */
 export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
-  densityScale: 2, lightDensityScale: 0.045, msStrength: 0.5, ambientStrength: 0.7,
+  densityScale: 2, lightDensityScale: 0.031, msStrength: 0.7, ambientStrength: 0.7,
   silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
   edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.7, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
   noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1,
@@ -695,7 +700,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
-    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1155,7 +1160,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[86] = settings.phaseModel === 'mie' ? 1 : 0; f[87] = settings.bodyDepth * (1 - sunUp);
       f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale; f[99] = settings.ambientLaw;
       f[100] = settings.diffuseSun; f[101] = settings.ambientSaturation; f[102] = settings.ambientWarmth; f[103] = settings.directInScatterFlat; f[104] = settings.diffuseFalloff;
-      f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic;
+      f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic; f[107] = settings.profileFilter;
       f[108] = settings.inlineProfile; f[109] = settings.lightMipBias; f[110] = settings.ambientTap; f[111] = settings.inScatterProfile;
       f[112] = settings.jitterNoise; f[113] = settings.stepJitter; f[114] = settings.lightGridFilter; f[115] = Math.max(0, settings.inlineReuse);
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
