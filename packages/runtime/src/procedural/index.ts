@@ -1,7 +1,7 @@
 // X1 procedural density model (a parallel `densityModel`, a stopgap next to the NVDF path; see work/reports/X1.md).
 //
-//   const proc = createProceduralClouds(device, { shaper: 'takram' });   // or 'skypro'
-//   await proc.load({ skyproNoise: url });                         // or { takram: { shape, shapeDetail, localWeather, turbulence } }
+//   const proc = createProceduralClouds(device, { shaper: 'takram' });   // or 'skypro', or 'hzd' (H1: the HZD reference path)
+//   await proc.load({ skyproNoise: url });                         // or { takram: { shape, shapeDetail, localWeather, turbulence } }, or { hzd: true }
 //   runtime.setProceduralModel(proc); runtime.settings.densityModel = 'procedural';
 //   runtime.setVolume(proceduralPlaceholderVolume(), { position });  // the runtime still wants a (tiny, empty) volume bound
 //
@@ -11,19 +11,30 @@ import { COMMON_WGSL } from '../shaders/common.wgsl';
 import { volumeWgsl } from '../shaders/volume.wgsl';
 import { SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
 import { defaultProceduralSettings, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
-import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL, PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, procBindingsWgsl } from './density.wgsl';
+import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
+import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
+import { bakeHzdNoise, type HzdNoise } from './hzd/noise';
+import { generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
+import { hzdNdfKey } from './settings';
 import { bakeSkyProWeather, loadSkyProNoise, loadTakramTextures, skyProWeatherKey, type SkyProWeather, type TakramTextures, type TakramTextureUrls } from './textures';
 import { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 import type { ProceduralDensityModel } from './types';
 
 export * from './settings';
 export type { ProceduralDensityModel } from './types';
+export { bakeHzdNoise, type HzdNoise, type HzdNoiseOptions } from './hzd/noise';
+export { generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
+export { HZD_GRADIENTS, hzdHeightGradient } from './hzd/shaper.wgsl';
 export { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 
 export interface ProceduralClouds extends ProceduralDensityModel {
   readonly settings: ProceduralSettings;
-  /** Load the textures of one or both shapers. */
-  load(urls: { skyproNoise?: string; takram?: TakramTextureUrls }): Promise<void>;
+  /** Load the textures of one or more shapers. `hzd: true` bakes the HZD noise set and the generated NDF (no files; they are also baked on first use). */
+  load(urls: { skyproNoise?: string; takram?: TakramTextureUrls; hzd?: boolean }): Promise<void>;
+  /** H1: replace the generated NDF with authored fields (size^2 bytes each; see uploadHzdNdf), or null to go back to the generated map. */
+  setNdf(ndf: { size: number; fields: Parameters<typeof uploadHzdNdf>[2] } | null): void;
+  /** H1: the HZD shaper's textures (debug views), null until baked. */
+  readonly hzdTextures: { noise: HzdNoise; ndf: HzdNdf } | null;
 }
 
 export function createProceduralClouds(device: GPUDevice, options: { shaper?: ProceduralShaper } = {}): ProceduralClouds {
@@ -37,12 +48,24 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   let skyproNoise: GPUTexture | null = null;
   let skyproWeather: SkyProWeather | null = null;
   let takram: TakramTextures | null = null;
+  let hzdNoise: HzdNoise | null = null;
+  let hzdNdf: HzdNdf | null = null;
+  let hzdUploaded = false;
+  const retire = (t: { destroy(): void } | null) => { if (t) setTimeout(() => t.destroy(), 1000); };
+  // H1: bake the noise set (once, or again when the format setting changes) and generate the NDF when its settings change.
+  const hzdSync = (): boolean => {
+    const h = settings.hzd;
+    let changed = false;
+    if (!hzdNoise || hzdNoise.format !== h.noiseFormat) { retire(hzdNoise); hzdNoise = bakeHzdNoise(device, { format: h.noiseFormat }); changed = true; }
+    if (!hzdUploaded && (!hzdNdf || hzdNdf.key !== hzdNdfKey(h.ndf))) { const old = hzdNdf?.texture ?? null; hzdNdf = generateHzdNdf(device, h.ndf); retire(old); changed = true; }
+    return changed;
+  };
   let version = 0, resourceKey: object = {}, lastShaper: ProceduralShaper | null = null;
   let shell: [number, number] = [0, 1];
   // Trace pipelines by shaper and lighting mode (compiled asynchronously), the pass layout they share, and the cached bind groups (the pass
   // entries ping-pong with the voxel march's history, so a few are kept).
   const pipelines = new Map<string, GPUComputePipeline | 'pending'>();
-  let passLayout: { entries: GPUBindGroupLayoutEntry[]; layout: GPUBindGroupLayout } | null = null;
+  let passLayout: { entries: GPUBindGroupLayoutEntry[]; shaper: ProceduralShaper; layout: GPUBindGroupLayout } | null = null;
   let groups: { key: unknown[]; group: GPUBindGroup }[] = [];
   const dummyWeather = device.createTexture({ label: 'proc dummy weather', size: [1, 1], format: 'rgba8unorm', usage });
   const C = GPUShaderStage.COMPUTE;
@@ -51,27 +74,30 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     { binding: base + O.params, visibility, buffer: { type: 'uniform' } },
     { binding: base + O.noiseA, visibility, texture: { sampleType: 'float', viewDimension: '3d' } },
     { binding: base + O.noiseB, visibility, texture: { sampleType: 'float', viewDimension: '3d' } },
-    { binding: base + O.weather, visibility, texture: { sampleType: 'float' } },
+    // H1: the HZD shaper's weather slot is the NDF (a 2-layer 2D array, procedural/hzd/ndf.wgsl.ts).
+    { binding: base + O.weather, visibility, texture: { sampleType: 'float', viewDimension: settings.shaper === 'hzd' ? '2d-array' : '2d' } },
     { binding: base + O.aux, visibility, texture: { sampleType: 'float' } },
     { binding: base + O.sampler, visibility, sampler: { type: 'filtering' } },
   ];
-  const haveShaper = () => (settings.shaper === 'skypro' ? !!skyproNoise : !!takram);
+  const haveShaper = () => (settings.shaper === 'skypro' ? !!skyproNoise : settings.shaper === 'hzd' ? !!hzdNoise && !!hzdNdf : !!takram);
 
   return {
     settings,
-    get ready() { return haveShaper(); },
+    // H1: the HZD shaper needs no files, so selecting it is enough: its textures are baked here on first use.
+    get ready() { if (settings.shaper === 'hzd' && !haveShaper() && hzdSync()) resourceKey = {}; return haveShaper(); },
     get shell() { return shell; },
     get version() { return version; },
     get lightingModel() { return settings.lightingModel; },
     get wgslKey() { return settings.shaper; },
     get resourceKey() { return resourceKey; },
+    get hzdTextures() { return hzdNoise && hzdNdf ? { noise: hzdNoise, ndf: hzdNdf } : null; },
     densityWgsl(group, base) {
-      return PROC_PARAMS_WGSL + procBindingsWgsl(group, base) + (settings.shaper === 'skypro' ? PROC_SKYPRO_WGSL : PROC_TAKRAM_WGSL);
+      return PROC_PARAMS_WGSL + procShaperBindingsWgsl(settings.shaper, group, base) + procShaperWgsl(settings.shaper);
     },
     layoutEntries,
     pipeline(mode, layouts) {
-      if (passLayout?.entries !== layouts.pass) {
-        passLayout = { entries: layouts.pass, layout: device.createBindGroupLayout({ label: 'proc trace', entries: [...layouts.pass, ...layoutEntries(PROC_BINDINGS.params, C)] }) };
+      if (passLayout?.entries !== layouts.pass || passLayout.shaper !== settings.shaper) {
+        passLayout = { entries: layouts.pass, shaper: settings.shaper, layout: device.createBindGroupLayout({ label: 'proc trace', entries: [...layouts.pass, ...layoutEntries(PROC_BINDINGS.params, C)] }) };
         pipelines.clear(); groups = [];
       }
       const key = `${settings.shaper}:${mode}`;
@@ -99,7 +125,16 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       const jobs: Promise<void>[] = [];
       if (urls.skyproNoise) jobs.push(loadSkyProNoise(device, urls.skyproNoise).then(t => { skyproNoise?.destroy(); skyproNoise = t; }));
       if (urls.takram) jobs.push(loadTakramTextures(device, urls.takram).then(t => { takram = t; }));
+      if (urls.hzd) { hzdSync(); jobs.push(device.queue.onSubmittedWorkDone()); }
       await Promise.all(jobs);
+      resourceKey = {};
+    },
+    setNdf(ndf) {
+      const old = hzdNdf?.texture ?? null;
+      hzdUploaded = !!ndf;
+      hzdNdf = ndf ? uploadHzdNdf(device, ndf.size, ndf.fields) : null;
+      retire(old);
+      if (!ndf) hzdSync();
       resourceKey = {};
     },
     resourceEntries(base) {
@@ -119,6 +154,16 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
           { binding: B.sampler, resource: sampler },
         ];
       }
+      if (settings.shaper === 'hzd') {
+        return [
+          { binding: B.params, resource: { buffer } },
+          { binding: B.noiseA, resource: hzdNoise!.shape.createView() },
+          { binding: B.noiseB, resource: hzdNoise!.detail.createView() },
+          { binding: B.weather, resource: hzdNdf!.texture.createView({ dimension: '2d-array' }) },
+          { binding: B.aux, resource: hzdNoise!.curl.createView() },
+          { binding: B.sampler, resource: sampler },
+        ];
+      }
       const t = takram!;
       return [
         { binding: B.params, resource: { buffer } },
@@ -132,6 +177,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     update(time, view) {
       // A shaper switch or a new weather bake changes the resources.
       if (settings.shaper !== lastShaper || (settings.shaper === 'skypro' && skyproWeather && skyproWeather.key !== skyProWeatherKey(settings.skypro))) { lastShaper = settings.shaper; resourceKey = {}; }
+      if (settings.shaper === 'hzd' && hzdSync()) resourceKey = {};
       shell = packProceduralParams(settings, params);
       let changed = false;
       for (let i = 0; i < PROC_PARAM_FLOATS; i++) if ((i < PROC_VIEW_FLOATS[0] || i >= PROC_VIEW_FLOATS[1]) && params[i] !== prev[i]) { changed = true; break; }
@@ -145,6 +191,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     dispose() {
       buffer.destroy(); dummy3d.destroy(); dummyWeather.destroy(); skyproNoise?.destroy(); skyproWeather?.map.destroy(); skyproWeather?.bounds.destroy();
       if (takram) for (const t of Object.values(takram)) t.destroy();
+      hzdNoise?.destroy(); hzdNdf?.texture.destroy();
     },
   };
 }

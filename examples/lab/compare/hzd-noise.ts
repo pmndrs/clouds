@@ -1,8 +1,11 @@
 // H1 debug page: the baked HZD noise set (packages/runtime/src/procedural/hzd/noise.ts) as slices, 2 x 2 tiled to show the seams, with channel
 // statistics and an exact-tiling test read back from the GPU. ?fmt=rgba16float bakes the 16-bit variant; ?z=<slice> picks the shape slice.
+// Row 3: the generated NDF (coverage, top type, min height, max height; one tile); ?hzn_<key>=N overrides its settings.
 // The harness report carries the numbers (work/captures/H1/noise/capture.json).
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { bakeHzdNoise } from '../../../packages/runtime/src/procedural/hzd/noise';
+import { generateHzdNdf } from '../../../packages/runtime/src/procedural/hzd/ndf';
+import { HZD_NDF_DEFAULTS } from '../../../packages/runtime/src/procedural/settings';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
@@ -95,6 +98,11 @@ try {
   const shape1 = await readTexture(device, noise.shape, 1);
   const detail = await readTexture(device, noise.detail);
   const curl = await readTexture(device, noise.curl);
+  const ndfSettings = { ...HZD_NDF_DEFAULTS };
+  for (const [k, v] of query) if (k.startsWith('hzn_') && k.slice(4) in ndfSettings) (ndfSettings as unknown as Record<string, number>)[k.slice(4)] = Number(v);
+  const ndf = await readTexture(device, generateHzdNdf(device, ndfSettings).texture);
+  const ndfA = { data: ndf.data.subarray(0, ndf.data.length / 2), n: [ndf.n[0], ndf.n[1], 1] as [number, number, number] };
+  const ndfB = { data: ndf.data.subarray(ndf.data.length / 2), n: [ndf.n[0], ndf.n[1], 1] as [number, number, number] };
   const names = ['R', 'G', 'B', 'A'];
   const report: Record<string, unknown> = { format, bakeMs };
   const lines: string[] = [`HZD noise set (${format}), bake + sync ${bakeMs.toFixed(1)} ms`, ''];
@@ -112,17 +120,30 @@ try {
   block('shape mip1', shape1, 4);
   block('detail', detail, 3);
   block('curl', curl, 3);
+  block('ndf layer 0 (coverage, topType, bottomType)', ndfA, 3);
+  block('ndf layer 1 (minHeight, maxHeight)', ndfB, 2);
+  { let covered = 0; for (let i = 0; i < ndfA.data.length; i += 4) if (ndfA.data[i] > 0.38) covered++; lines.push(`ndf: ${(100 * covered * 4 / ndfA.data.length).toFixed(1)} % of columns have coverage > 0.38 (where a mean base shape survives the remap)`); }
   lines.push('', 'seam = mean |v(N-1) - v(0)| / mean |v(N-1) - v(N-2)| per axis (1 = exact tiling)');
   out.textContent = lines.join('\n');
 
   // Layout: row 1 shape R G B A (z slice, 2x2 tiles at 1 px/texel), row 2 detail R G B (4 px/texel) and curl x y z (1 px/texel).
   const z = Number(query.get('z') ?? 64);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
-  canvas.width = 4 * 256 + 3 * 8; canvas.height = 256 * 2 + 8;
+  canvas.width = 4 * 256 + 3 * 8; canvas.height = 256 * 3 + 16;
   const ctx = canvas.getContext('2d')!;
   for (let c = 0; c < 4; c++) drawSlice(ctx, c * 264, 0, shape.data, shape.n, z, c, 1);
   for (let c = 0; c < 3; c++) drawSlice(ctx, c * 132, 264, detail.data, detail.n, Math.floor(z / 4), c, 2);
   for (let c = 0; c < 3; c++) drawSlice(ctx, 400 + c * 264, 264, curl.data, curl.n, 0, c, 1, true);
+  // NDF: one tile, down-sampled to 256 px.
+  const drawField = (x0: number, t: { data: Float32Array; n: [number, number, number] }, c: number) => {
+    const img = ctx.createImageData(256, 256), step = t.n[0] / 256;
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+      const g = Math.round(255 * t.data[(Math.floor(y * step) * t.n[0] + Math.floor(x * step)) * 4 + c]);
+      const i = (y * 256 + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = g; img.data[i + 3] = 255;
+    }
+    ctx.putImageData(img, x0, 528);
+  };
+  drawField(0, ndfA, 0); drawField(264, ndfA, 1); drawField(528, ndfB, 0); drawField(792, ndfB, 1);
   harness.ready({ report: () => ({ gpuMs: { bake: bakeMs }, frameMs: { p50: 0 }, renderSize: [canvas.width, canvas.height], noise: report }) });
   const tick = () => { harness.frame(); requestAnimationFrame(tick); };
   requestAnimationFrame(tick);

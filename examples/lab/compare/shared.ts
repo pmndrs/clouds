@@ -51,6 +51,8 @@ export const mapCoverage = {
   ours: (c: number): { lo: number; hi: number } => ({ lo: 0.56 + (0.5 - c) * 0.6, hi: Math.min(0.99, 0.9 + (0.5 - c) * 0.3) }),
   skypro: (c: number): number => c * 0.98,
   takram: (c: number): number => 0.1 + c * 0.5,
+  /** H1: the HZD shaper's artist coverage bias (hzd15 s38-42, +-0.5 on the NDF's coverage): 0 at 0.5. */
+  hzd: (c: number): number => c - 0.5,
 };
 
 /** The ground albedo every pane shares (sRGB hex, olive grass; converted to linear per pane). */
@@ -58,7 +60,7 @@ export const GROUND_HEX = 0x3d4a2e;
 
 export interface PaneStats { gpuMs: Record<string, number> | null; cpuMs: number }
 export interface Pane {
-  readonly id: 'ours' | 'skypro' | 'takram' | 'photo';
+  readonly id: 'ours' | 'hzd' | 'skypro' | 'takram' | 'photo';
   readonly label: string;
   readonly canvas: HTMLCanvasElement;
   init(): Promise<void>;

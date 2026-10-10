@@ -61,7 +61,14 @@ struct ProcParams {
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
   drift: vec4<f32>,      // wind offset (CloudSettings.windOffset, m), 0         (likewise)
   hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1); X4: hero shadow strength (light grid), 0
-  _pad: array<vec4<f32>, 2>,
+  // H1 HZD shaper (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packProceduralParams)
+  hzLayer: vec4<f32>,    // layer bottom, layer top (m), NDF tile (m), extinction (1/m)
+  hzScale: vec4<f32>,    // shape tile, detail tile, curl tile (m), curl strength (m)
+  hzCov: vec4<f32>,      // coverage bias, type bias, coverage multiply (0/1), erosion law (0 gp7, 1 hag)
+  hzFade: vec4<f32>,     // base fade min, base fade height (h), detail distance (m), mip bias
+  hzWind: vec4<f32>,     // wind direction x, z, cloud top offset (m), upward bias
+  hzSpeed: vec4<f32>,    // NDF drift (fraction of the wind offset, 0 = static), shape speed, detail speed, type blend (0 points, 1 curves)
+  hzMisc: vec4<f32>,     // build stage (1..3), 0, 0, 0
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
 const PROC_EARTH_M = 6371000.0;

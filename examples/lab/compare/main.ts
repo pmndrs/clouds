@@ -1,5 +1,5 @@
 // Side-by-side comparison of cloud implementations over the same wide scene. Each pane has its own canvas and renderer; one shared camera, sun and exposure drive them.
-//   ?impls=ours,skypro,takram,photo   which panes (default ours,takram)   photo: ?photo=<path|url> ?photofit=cover|contain, or drop an image / use the bar's "photo file" (see panes/photo.ts)       ?layout=rows|cols (default rows)
+//   ?impls=ours,hzd,skypro,takram,photo   which panes (default ours,takram); hzd = ours with the HZD reference shaper (H1; = ours?model=procedural&shaper=hzd)   photo: ?photo=<path|url> ?photofit=cover|contain, or drop an image / use the bar's "photo file" (see panes/photo.ts)       ?layout=rows|cols (default rows)
 //   ?bookmark=ground|horizon|sunset|dusk|afterglow|above   ?coverage=0..1   ?exposure=  ?fov=   ?hud=0 / ?clean=1 hide the labels / all UI
 //   ?sunel= ?sunaz= ?lookaz= ?pitch= override the bookmark; ours: ?c_<setting>=<number> overrides a runtime setting (c_lightDebug=1..5 splits the light terms), ?phase=mie
 //   ?vibe=1 ours,takram,photo in cols. Sun el: slider (0.1 deg steps -6..15) + number field, keys [ ] 0.1 deg, { } 1 deg. Photo drawer: O, step with , and .
@@ -26,7 +26,7 @@ const SHOW_LABELS = query.get('hud') !== '0';
 const SHOW_UI = query.get('clean') !== '1';
 // ?vibe=1: ours, Takram and the photo in three columns (the "vibe" layout; the bar's "vibe" button reloads into it).
 const VIBE = query.get('vibe') === '1';
-const IMPLS = (query.get('impls') ?? (VIBE ? 'ours,takram,photo' : 'ours,takram')).split(',').filter(s => ['ours', 'skypro', 'takram', 'photo'].includes(s)) as Pane['id'][];
+const IMPLS = (query.get('impls') ?? (VIBE ? 'ours,takram,photo' : 'ours,takram')).split(',').filter(s => ['ours', 'hzd', 'skypro', 'takram', 'photo'].includes(s)) as Pane['id'][];
 const LAYOUT = query.get('layout') === 'cols' || (VIBE && query.get('layout') !== 'rows') ? 'cols' : 'rows';
 msg.classList.toggle('hidden', !SHOW_UI);
 
@@ -60,6 +60,7 @@ try {
     let pane: Pane;
     if (id === 'photo') pane = createPhotoPane(canvas, query);
     else if (id === 'ours') pane = createOursPane(canvas, query);
+    else if (id === 'hzd') pane = createOursPane(canvas, query, { model: 'procedural', shaper: 'hzd' });
     else if (id === 'takram') pane = createTakramPane(canvas, query, GROUND_GAIN);
     else {
       const sp = await createSkyProPane(canvas, { groundAlbedo: [groundLinear.r * GROUND_GAIN, groundLinear.g * GROUND_GAIN, groundLinear.b * GROUND_GAIN], groundShadows: query.get('shadows') === '1' });

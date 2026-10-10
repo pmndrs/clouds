@@ -5,9 +5,12 @@
 //   'takram'  The HZD 2015 per-sample model as Takram's three-clouds implements it (MIT): a weather map with one coverage channel per
 //             layer, per-layer height gradients, a 128^3 Perlin-Worley shape and a 32^3 Worley detail texture, a 2D turbulence offset.
 //             Defaults are Takram's CloudLayers.DEFAULT and CloudsEffect defaults (@takram/three-clouds 0.7.6).
+//   'hzd'     H1: the Horizon Zero Dawn reference path. GPU Pro 7's density chain (gp7 p.103-110) on our own bake of the HZD noise set
+//             (procedural/hzd/noise.ts, Nubis noise-generator recipe) and the Nubis-era five-field NDF (work/specs/ndf.md). Values no source
+//             publishes are marked "ours" below and in work/reports/H1.md.
 // See procedural/NOTICE.md for the credits.
 
-export type ProceduralShaper = 'skypro' | 'takram';
+export type ProceduralShaper = 'skypro' | 'takram' | 'hzd';
 
 /** Sky Pro's shape settings (SkyProClouds.js PRESET.shape / wind / weather). Metres unless noted. */
 export interface SkyProShape {
@@ -78,6 +81,78 @@ export interface TakramShape {
   detailDistance: number;
 }
 
+/** H1: the generated NDF (work/specs/ndf.md "Generation (until W2 lands)"): fBM coverage with islands, a very-low-frequency top type, mild height variation. */
+export interface HzdNdfSettings {
+  seed: number;
+  /** Texels per tile edge, and metres per tile (NE p.20 uses 16 km x 16 km). */
+  resolution: number;
+  tileMeters: number;
+  /** Coverage: a 4-octave periodic fBM from `coverageCells` cells per tile, plus a 2-octave island gate from `islandCells` (weight `islandWeight`),
+   *  mapped linearly from coverageLo..coverageHi onto 0..1 (a gradual field: the coverage remap of noise x gradient shapes the clouds). */
+  coverageCells: number;
+  islandCells: number;
+  islandWeight: number;
+  coverageLo: number;
+  coverageHi: number;
+  /** Top type: a 2-octave fBM from `typeCells` cells per tile, mapped onto typeMin..typeMax. */
+  typeCells: number;
+  typeMin: number;
+  typeMax: number;
+  /** Bottom type (constant; the HZD shaper ignores it, NE table mode will read it). 0 = sharp-onset crisp base. */
+  bottomType: number;
+  /** Column base and top as fractions of the layer, each varied by +- heightVariation (a 2-octave fBM from 3 cells per tile). */
+  minHeight: number;
+  maxHeight: number;
+  heightVariation: number;
+}
+
+/** H1: the HZD reference shaper (GPU Pro 7 chain). Metres unless noted. */
+export interface HzdShape {
+  /** The cloud layer: NDF min/max height map into it. GP7 p.119 renders a shell 1.5 km up and 3.5 km thick. */
+  layerBottom: number;
+  layerTop: number;
+  /** Extinction (1/m) at density 1 (ours, tuned). */
+  extinction: number;
+  /** HZD 2015's artist override (hzd15 s38-42): coverage +-0.5 and type +-1, added to the NDF. The compare page drives coverageBias. */
+  coverageBias: number;
+  typeBias: number;
+  /** gp7 p.107: multiply by coverage after the remap ("small clouds lighter"). The remap itself uses HFW p.17's sign (threshold 1 - coverage). */
+  coverageMultiply: boolean;
+  /** How the three Nutshell gradients (nut s7-8) blend by type; the law is unpublished. 'points' lerps the four stops (n17.md's reading, one
+   *  flat core); 'curves' is GP7 p.103's "weighted sum" with tent weights. */
+  typeBlend: 'points' | 'curves';
+  /** World size of one tile of the shape (128^3), detail (32^3) and curl (128^2) textures, and the curl displacement (none published; ours). */
+  shapeTile: number;
+  detailTile: number;
+  curlTile: number;
+  curlStrength: number;
+  /** The detail erosion fades out from 0.75x to 1.25x this distance (cheap-then-expensive, hzd15 s77-80). */
+  detailDistance: number;
+  /** Texture LOD bias (0: one output pixel's footprint per texel). */
+  mipBias: number;
+  /** hzd15 s35-36 base fade before erosion: density x remap(h, 0, baseFadeHeight, baseFadeMin, 1) (constants unpublished; ours). */
+  baseFadeMin: number;
+  baseFadeHeight: number;
+  /** 'gp7': mix(fbm, 1-fbm, sat(h*10)) * 0.2 (p.108-109). 'hag': Häggström's sat(h*5) and 0.35 exp(-0.75 coverage) (hag eq 13-16). */
+  erosionLaw: 'gp7' | 'hag';
+  /** GP7 p.109-110 wind: tops lean `cloudTopOffset` metres along `windDirection` (x, z; normalised), and the noise rises by `upwardBias` per metre of drift. */
+  windDirection: [number, number];
+  cloudTopOffset: number;
+  upwardBias: number;
+  /** W1 (owner 2026-10-10): 'drift' (default) moves the NDF with the wind offset times `ndfDrift`, 'static' keeps it fixed (Nubis/HZD: noise-only
+   *  scroll). The shape and detail noise scroll at their own speeds (gp7 p.109: "each noise its own speed"; values ours). */
+  ndfMotion: 'drift' | 'static';
+  ndfDrift: number;
+  shapeSpeed: number;
+  detailSpeed: number;
+  /** Build stage, to compare with gp7 Fig 4.13 -> 4.14 -> 4.16: 1 base shape x gradient with the coverage remap; 2 + coverage multiply and base
+   *  fade; 3 + detail erosion (the full chain). */
+  stage: 1 | 2 | 3;
+  /** Noise texture format (procedural/hzd/noise.ts): RGBA8 as HZD, or rgba16float (SD8). Changing it re-bakes the noise. */
+  noiseFormat: 'rgba8unorm' | 'rgba16float';
+  ndf: HzdNdfSettings;
+}
+
 export interface ProceduralSettings {
   shaper: ProceduralShaper;
   /** March (Sky Pro "high"): fine step floor (m; it grows with the pixel cone), step cap, light taps (1..7), and the opacity after which light taps use the cheap density. */
@@ -127,6 +202,7 @@ export interface ProceduralSettings {
   heroShadow: number;
   skypro: SkyProShape;
   takram: TakramShape;
+  hzd: HzdShape;
 }
 
 /** Tidewater "Partly cloudy" (SkyProClouds.js PRESET, commit 4811ba4). */
@@ -156,17 +232,33 @@ export const TAKRAM_DEFAULTS: TakramShape = {
   coverage: 0.3, weatherTileMeters: 100000, shapeRepeat: 3e-4, detailRepeat: 6e-3, turbulenceRepeat: 20, turbulenceDisplacement: 350, detailDistance: 60000,
 };
 
+export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
+  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 6, islandCells: 2, islandWeight: 0.8, coverageLo: -0.45, coverageHi: 0.85,
+  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.8, heightVariation: 0.1,
+};
+export const HZD_DEFAULTS: HzdShape = {
+  layerBottom: 1500, layerTop: 5000, extinction: 0.2, coverageBias: 0, typeBias: 0, coverageMultiply: true, typeBlend: 'points',
+  shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
+  erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
+  stage: 3, noiseFormat: 'rgba8unorm', ndf: HZD_NDF_DEFAULTS,
+};
+/** A deep copy of the HZD defaults. */
+export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
+/** The NDF generator's inputs as a cache key: a new key re-generates the map. */
+export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation].join(',');
+
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
     lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
+    hzd: hzdDefaults(),
   };
 }
 
-/** ProcParams uniform: 32 vec4. */
-export const PROC_PARAM_FLOATS = 128;
+/** ProcParams uniform: 37 vec4 (the last seven are the HZD shaper's). */
+export const PROC_PARAM_FLOATS = 148;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -176,8 +268,11 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.fill(0);
   const sp = s.skypro, tk = s.takram;
   let minY: number, maxY: number;
+  const hz = s.hzd;
   if (s.shaper === 'skypro') {
     minY = sp.altitude; maxY = sp.altitude + sp.thickness * 1.3;   // the shape reads up to 1.3 shell heights (scCandidate)
+  } else if (s.shaper === 'hzd') {
+    minY = hz.layerBottom; maxY = Math.max(hz.layerTop, hz.layerBottom + 1);
   } else {
     const on = tk.layers.filter(l => l.height > 0 && l.densityScale > 0);
     minY = on.length ? Math.min(...on.map(l => l.altitude)) : 0;
@@ -208,6 +303,15 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
   out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), 0], 116);
+  // H1 HZD shaper (PROC_HZD_WGSL): hzLayer, hzScale, hzCov, hzFade, hzWind, hzSpeed, hzMisc.
+  out.set([hz.layerBottom, Math.max(hz.layerTop, hz.layerBottom + 1), hz.ndf.tileMeters, hz.extinction], 120);
+  out.set([hz.shapeTile, hz.detailTile, hz.curlTile, hz.curlStrength], 124);
+  out.set([hz.coverageBias, hz.typeBias, hz.coverageMultiply ? 1 : 0, hz.erosionLaw === 'hag' ? 1 : 0], 128);
+  out.set([hz.baseFadeMin, Math.max(hz.baseFadeHeight, 1e-3), hz.detailDistance, hz.mipBias], 132);
+  const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
+  out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
+  out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : 0], 140);
+  out.set([hz.stage, 0, 0, 0], 144);
   return [minY, maxY];
 }
 

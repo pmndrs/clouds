@@ -3,7 +3,8 @@ import { FRAME_WGSL } from '../shaders/frame.wgsl';
 import { LIGHTING_WGSL } from '../shaders/lighting.wgsl';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_RADIANCE_LIMIT, SKY_LIGHT_ENTRIES, SUN_HEIGHT_WGSL } from '../shaders/march.wgsl';
 import { SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAMS_WGSL, SKY_SAMPLER_BINDING, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
-import { PROC_PARAMS_WGSL, PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, procBindingsWgsl } from './density.wgsl';
+import { PROC_PARAMS_WGSL } from './density.wgsl';
+import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import type { ProceduralShaper } from './settings';
 
 /** Extra group-1 bindings of the procedural trace (after the sky layer's 0..8). */
@@ -50,8 +51,8 @@ ${SUN_HEIGHT_WGSL}
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
 ${PROC_PARAMS_WGSL}
-${procBindingsWgsl(1, B.params)}
-${shaper === 'skypro' ? PROC_SKYPRO_WGSL : PROC_TAKRAM_WGSL}
+${procShaperBindingsWgsl(shaper, 1, B.params)}
+${procShaperWgsl(shaper)}
 
 // X3 hybrid: the nearest voxel cloud distance (march depth word x, 0 = no cloud) over the pass texels this layer pixel covers (at most 4 x 4).
 fn procVoxelMin(tex: texture_2d<u32>, rect: vec2<f32>, uv0: vec2<f32>, uv1: vec2<f32>) -> f32 {
