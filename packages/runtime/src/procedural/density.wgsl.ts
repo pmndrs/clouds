@@ -73,7 +73,8 @@ struct ProcParams {
   hzExtra: vec4<f32>,    // H5: shape (R) contrast about 0.5 (1 = off); H6: erosion strength (gp7 0.2), wispy/billowy switch height (gp7 0.1), erosion order (0 gp7 after coverage, 1 hfw before)
   hzProf: vec4<f32>,     // H6: top round (0 = Nutshell stops), smooth ramps (0/1), height-from-coverage amount, its reference coverage
   hzConn: vec4<f32>,     // H6: density-from-coverage exponent (0 = off), its reference coverage, veil width (base units), veil density
-  hzH6: vec4<f32>,       // H6: veil height (h), ring fade start (fraction of ring end), veil wisp exponent, 0
+  hzH6: vec4<f32>,       // H6: veil height (h), ring fade start (fraction of ring end), veil wisp exponent, veil distance (m)
+  hzVeil: vec4<f32>,     // H6: veil noise (0 detail fBM, 1 shape A.a), 0, 0, 0
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
 const PROC_EARTH_M = 6371000.0;

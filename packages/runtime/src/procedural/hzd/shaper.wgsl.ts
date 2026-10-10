@@ -32,8 +32,12 @@ export const HZD_GRADIENTS = {
 const v4 = (a: readonly number[]) => `vec4(${a.map(x => x.toFixed(2)).join(', ')})`;
 
 /** CPU mirror of `hzdHeightGradient` (tests and plots). */
-export function hzdHeightGradient(type: number, h: number, blend: 'points' | 'curves' = 'points'): number {
-  const trap = (s: readonly number[]) => Math.min(1, Math.max(0, (h - s[0]) / (s[1] - s[0]))) * Math.min(1, Math.max(0, (s[3] - h) / (s[3] - s[2])));
+export function hzdHeightGradient(type: number, h: number, blend: 'points' | 'curves' = 'points', opts: { topRound?: number; smooth?: boolean } = {}): number {
+  const ramp = (x: number) => { const t = Math.min(1, Math.max(0, x)); return opts.smooth ? t * t * (3 - 2 * t) : t; };
+  const trap = (s: readonly number[]) => {
+    const c = s[2] + (s[1] - s[2]) * (opts.topRound ?? 0);
+    return ramp((h - s[0]) / (s[1] - s[0])) * ramp((s[3] - h) / Math.max(s[3] - c, 1e-3));
+  };
   const { stratus: S, stratocumulus: M, cumulus: C } = HZD_GRADIENTS;
   const t = Math.min(1, Math.max(0, type));
   if (blend === 'points') {
@@ -113,6 +117,16 @@ fn hzdCubic3(tex: texture_3d<f32>, uvw: vec3<f32>) -> vec4<f32> {
   return r;
 }
 fn hzdLod(footprint: f32, tile: f32, texels: f32) -> f32 { return max(0.0, log2(max(footprint * texels / tile, 1e-6)) + P.hzFade.w); }
+// gp7 p.108: the curl displaces the detail lookup by (1 - h); the 32^3 fBM .625 R + .25 G + .125 B. 'cubic' = the H5 B-spline read when magnified.
+fn hzdDetailFbm(q0: vec3<f32>, h: f32, footprint: f32, cubic: bool) -> f32 {
+  let curl = textureSampleLevel(procAux, procRepeat, q0.xz / P.hzScale.z, 0.0).xy;
+  let qd = q0 + vec3(curl.x, 0.0, curl.y) * (P.hzScale.w * (1.0 - h));
+  let detailLod = hzdLod(footprint, P.hzScale.y, 32.0);
+  var B: vec3<f32>;
+  if (cubic && detailLod <= 0.0) { B = hzdCubic3(procNoiseB, qd / P.hzScale.y).rgb; }
+  else { B = textureSampleLevel(procNoiseB, procRepeat, qd / P.hzScale.y, detailLod).rgb; }
+  return B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
+}
 
 fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o: ProcSample;
@@ -170,8 +184,20 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   // H6 veil: how far below the coverage threshold this sample is, in base x gradient units (0..1 over veilWidth), low in the column only.
   let veilOn = P.hzConn.z > 0.0 && P.hzConn.w > 0.0 && stage >= 2.5;
   var veil = 0.0;
-  if (veilOn) { veil = saturate(1.0 + (baseCloud - (1.0 - cov)) / P.hzConn.z) * saturate(1.0 - h / P.hzH6.x); }
+  if (veilOn) { veil = saturate(1.0 + (baseCloud - (1.0 - cov)) / P.hzConn.z) * saturate(1.0 - h / P.hzH6.x) * (1.0 - smoothstep(0.5, 1.0, t / P.hzH6.w)); }
   if (d <= 0.0 && veil <= 0.0) { return o; }
+  let qDetail = q - scroll * P.hzSpeed.z;
+  // H6: a veil-only sample (below the threshold) is streaked either by the detail fBM, read trilinear (veilNoise 'detail'), or by the shape
+  // texture's finest Worley octave A.a (veilNoise 'shape', no extra read; softer, smudgier streaks).
+  if (d <= 0.0) {
+    let fadeV = select(1.0, hzdRemap(saturate(h / P.hzFade.y), 0.0, 1.0, P.hzFade.x, 1.0), stage >= 1.5);
+    var w = A.a;
+    if (P.hzVeil.x < 0.5) { w = hzdDetailFbm(qDetail, h, footprint, false); }
+    let vd = P.hzConn.w * veil * pow(w, P.hzH6.z) * fadeV;
+    if (vd <= 0.0) { return o; }
+    o.sigma = vd * P.hzLayer.w; o.coarse = 0.0; o.h = h; o.depth = 0.0;
+    return o;
+  }
   var fadeK = 1.0;
   if (stage >= 1.5) { fadeK = hzdRemap(saturate(h / P.hzFade.y), 0.0, 1.0, P.hzFade.x, 1.0); }
   let covK = select(1.0, cov, stage >= 1.5 && P.hzCov.z > 0.5);
@@ -181,16 +207,10 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   // 6 Detail (stage 3, full samples, within the detail distance; the fade is dithered so its end draws no line).
   var density = d;
   let fade = 1.0 - smoothstep(0.75, 1.25, t / max(P.hzFade.z, 1.0) + (jitter - 0.5) * 0.1);
-  var wisp = 1.0;
+  var veilW = A.a;
   if (full && stage >= 2.5 && fade > 0.0) {
-    var qd = q - scroll * P.hzSpeed.z;
-    let curl = textureSampleLevel(procAux, procRepeat, qd.xz / P.hzScale.z, 0.0).xy;
-    qd = qd + vec3(curl.x, 0.0, curl.y) * (P.hzScale.w * (1.0 - h));
-    let detailLod = hzdLod(footprint, P.hzScale.y, 32.0);
-    var B: vec3<f32>;
-    if (detailLod <= 0.0 && t < P.hzMisc.w) { B = hzdCubic3(procNoiseB, qd / P.hzScale.y).rgb; }
-    else { B = textureSampleLevel(procNoiseB, procRepeat, qd / P.hzScale.y, detailLod).rgb; }
-    let hfFbm = B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
+    let hfFbm = hzdDetailFbm(qDetail, h, footprint, t < P.hzMisc.w);
+    if (P.hzVeil.x < 0.5) { veilW = hfFbm; }
     let hag = P.hzCov.w > 0.5;
     // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
     let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
@@ -202,13 +222,12 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     } else {
       density = hzdRemap(d, modifier * strength * fade, 1.0, 0.0, 1.0);
     }
-    wisp = mix(1.0, hfFbm, fade);
   }
   density = saturate(density);
   // H6 density from coverage (gp7 p.107's "small clouds lighter" at hag eq 16's DA position: after the erosion, so it cannot eat them).
   if (P.hzConn.x > 0.0) { density *= pow(saturate(cov / P.hzConn.y), P.hzConn.x); }
-  // H6 veil: a thin low skirt continuing each body below the threshold, streaked by the detail fBM (n3 s162's connective skirt; ours).
-  if (veilOn) { density = max(density, P.hzConn.w * veil * pow(wisp, P.hzH6.z) * fadeK); }
+  // H6 veil: a thin low skirt continuing each body below the threshold, streaked by the detail fBM or A.a (n3 s162's connective skirt; ours).
+  if (veilOn) { density = max(density, P.hzConn.w * veil * pow(veilW, P.hzH6.z) * fadeK); }
   if (density <= 0.0) { return o; }
   // H5 (ne22 p.105's envelope sharpen, pow(.., 0.27), as a setting; 1 = GP7, no shaping): lifts the low densities of the edge ramp so a lit rim
   // reads crisp instead of a wide haze.

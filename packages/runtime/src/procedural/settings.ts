@@ -217,13 +217,19 @@ export interface HzdShape {
   coverageDensityPow: number;
   coverageDensityRef: number;
   /** H6 (connective material; n3 s162's wispy "skirt" between formations, ours as a formula): below the coverage threshold a thin veil continues
-   *  each body for `veilWidth` (in base x gradient units) at most `veilDensity` (density units), only below `veilHeight` (h), eroded by the
-   *  wispy detail. 0 = off. */
+   *  each body for `veilWidth` (in base x gradient units) at most `veilDensity` (density units), only below `veilHeight` (h), streaked by the
+   *  detail fBM (veilNoise). 0 = off. Cost: the march takes fine steps and light taps through the veil (default 0.08 / 0.04 / 0.25 within
+   *  veilDistance 15 km: sky layer about +2.5 ms at ultra; 0.12 / 0.03 / 0.3 about +4 ms; unbounded (the H6 step-1 to step-5 captures) +8-10 ms). */
   veilWidth: number;
   veilDensity: number;
   veilHeight: number;
-  /** H6: the veil is multiplied by the detail fBM to this power (1 = the fBM; higher = streakier, ours). */
+  /** H6: the veil is multiplied by its noise (veilNoise) to this power (higher = streakier, ours). */
   veilWisp: number;
+  /** H6 (ours, cost): the veil fades out from half this distance (m) to it; a ray along the layer otherwise marches fine steps through it to the horizon. */
+  veilDistance: number;
+  /** H6: what streaks the veil: 'detail' = the curl-displaced detail fBM (wisps; one trilinear detail read per veil sample), 'shape' = the shape
+   *  texture's finest Worley channel (no extra read; softer smudges). */
+  veilNoise: 'detail' | 'shape';
   ndf: HzdNdfSettings;
 }
 
@@ -312,11 +318,11 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
 };
 export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves',
-  shapeTile: 6000, detailTile: 400, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
+  shapeTile: 6000, detailTile: 300, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
-  coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.12, veilDensity: 0.025, veilHeight: 0.3, veilWisp: 3, ndf: HZD_NDF_DEFAULTS,
+  coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail', ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -333,8 +339,8 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
   };
 }
 
-/** ProcParams uniform: 42 vec4 (the last twelve are the HZD shaper's). */
-export const PROC_PARAM_FLOATS = 168;
+/** ProcParams uniform: 43 vec4 (the last thirteen are the HZD shaper's). */
+export const PROC_PARAM_FLOATS = 172;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -392,7 +398,8 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.shapeContrast, hz.erosionStrength, Math.max(hz.wispyHeight, 1e-3), hz.erosionOrder === 'hfw' ? 1 : 0], 152);
   out.set([hz.topRound, hz.profileSmooth ? 1 : 0, hz.heightFromCoverage, Math.max(hz.heightCoverageRef, 1e-3)], 156);
   out.set([hz.coverageDensityPow, Math.max(hz.coverageDensityRef, 1e-3), hz.veilWidth, hz.veilDensity], 160);
-  out.set([Math.max(hz.veilHeight, 1e-3), hz.ringFadeStart, hz.veilWisp, 0], 164);
+  out.set([Math.max(hz.veilHeight, 1e-3), hz.ringFadeStart, hz.veilWisp, Math.max(hz.veilDistance, 1)], 164);
+  out.set([hz.veilNoise === 'shape' ? 1 : 0, 0, 0, 0], 168);
   return [minY, maxY];
 }
 

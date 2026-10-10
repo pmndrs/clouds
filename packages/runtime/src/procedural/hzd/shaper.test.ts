@@ -27,6 +27,28 @@ describe('HZD shaper (H1)', () => {
     expect(hzdHeightGradient(0.75, 0.45, 'points')).toBeCloseTo(1);    // stops (0.025, 0.125, 0.485, 0.64)
     expect(hzdHeightGradient(0.75, 0.45, 'curves')).toBeLessThan(0.8);
   });
+  it('H6: topRound widens the top fall and smooth ramps keep the stops', () => {
+    // Cumulus falls over 0.65..0.80 (Nutshell); topRound 0.7 starts the fall at 0.65 + (0.09 - 0.65) * 0.7 = 0.258.
+    expect(hzdHeightGradient(1, 0.5)).toBeCloseTo(1);
+    expect(hzdHeightGradient(1, 0.5, 'points', { topRound: 0.7 })).toBeCloseTo((0.8 - 0.5) / (0.8 - 0.258), 3);
+    expect(hzdHeightGradient(1, 0.725, 'points', { smooth: true })).toBeCloseTo(0.5);
+    expect(hzdHeightGradient(1, 0.8, 'curves', { topRound: 0.7, smooth: true })).toBe(0);
+    expect(PROC_HZD_WGSL).toContain('let c = mix(s.z, s.y, P.hzProf.x);');
+  });
+  it('H6: packs the new words (defaults) and keeps every H6 term switchable', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    expect(Array.from(out.subarray(152, 156))).toEqual([1, 0.3, 0.2, 1].map(Math.fround));           // contrast, erosion 0.3, wispy 0.2, 'hfw'
+    expect(Array.from(out.subarray(156, 160))).toEqual([0.7, 1, 0.4, 0.4].map(Math.fround));         // topRound, smooth, height from coverage
+    expect(Array.from(out.subarray(160, 164))).toEqual([0, 0.5, 0.08, 0.04].map(Math.fround));       // density from coverage off, veil
+    expect(Array.from(out.subarray(164, 172))).toEqual([0.25, 0.5, 3, 15000, 0, 0, 0, 0].map(Math.fround));
+    s.hzd.erosionOrder = 'gp7'; s.hzd.veilNoise = 'shape';
+    packProceduralParams(s, out);
+    expect(out[155]).toBe(0);
+    expect(out[168]).toBe(1);
+    expect(PROC_HZD_WGSL).toContain('let be = hzdRemap(base, modifier * strength * fade, 1.0, 0.0, 1.0);');   // HFW p.15 order
+  });
   it('packs the HZD words and spans the shell over the layer', () => {
     const s = defaultProceduralSettings('hzd');
     const out = new Float32Array(PROC_PARAM_FLOATS);
