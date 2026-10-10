@@ -29,6 +29,11 @@ struct Atmosphere {
   cameraUp: vec3<f32>, skyViewHeightKm: f32,      // local up and planet-centred radius the sky-view LUT was baked at
   apKmPerSlice: f32, apDepthSlices: f32, flatWorld: f32, apEnabled: f32,
   viewRotProj: mat4x4<f32>,                       // camera projection * view with translation removed (AP camera)
+  // D1 round 10: the sky's own grade, so the clouds' ambient sees the sky the viewer sees. skyTint = the sky's luminance factor (per channel);
+  // the ramp (rampStrength 0..1) replaces the LUT's radiance with a colour ramp over sin(elevation): ramp0..3 = (rgb in LUT units, sin el),
+  // ascending, linear between stops, clamped outside (the frames' flat upper sky and pale horizon band, which the Earth LUT cannot shape).
+  skyTint: vec3<f32>, rampStrength: f32,
+  ramp0: vec4<f32>, ramp1: vec4<f32>, ramp2: vec4<f32>, ramp3: vec4<f32>,
 }
 @group(${group}) @binding(0) var<uniform> atmosphere: Atmosphere;
 @group(${group}) @binding(1) var atmTransmittanceLut: texture_2d<f32>;
@@ -105,9 +110,22 @@ fn atmSkyViewUv(viewZenithCos: f32, lightViewCos: f32, dims: vec2<f32>) -> vec2<
   // fromUnitToSubUvs
   return vec2<f32>((uvX + 0.5 / dims.x) * (dims.x / (dims.x + 1.0)), (uvY + 0.5 / dims.y) * (dims.y / (dims.y + 1.0)));
 }
+// D1 round 10: the sky ramp at sin(elevation) and the shaped sky radiance (LUT units): mix(LUT, ramp, strength) x tint.
+fn atmSkyRamp(sinEl: f32) -> vec3<f32> {
+  var c = atmosphere.ramp0.xyz;
+  c = mix(c, atmosphere.ramp1.xyz, saturate((sinEl - atmosphere.ramp0.w) / max(atmosphere.ramp1.w - atmosphere.ramp0.w, 1e-4)));
+  c = mix(c, atmosphere.ramp2.xyz, saturate((sinEl - atmosphere.ramp1.w) / max(atmosphere.ramp2.w - atmosphere.ramp1.w, 1e-4)));
+  c = mix(c, atmosphere.ramp3.xyz, saturate((sinEl - atmosphere.ramp2.w) / max(atmosphere.ramp3.w - atmosphere.ramp2.w, 1e-4)));
+  return c;
+}
+fn atmSkyShape(lut: vec3<f32>, sinEl: f32) -> vec3<f32> {
+  var c = lut;
+  if (atmosphere.rampStrength > 0.0) { c = mix(lut, atmSkyRamp(sinEl), atmosphere.rampStrength); }
+  return c * atmosphere.skyTint;
+}
 fn atmSkyRadiance(viewZenithCos: f32, lightViewCos: f32) -> vec3<f32> {
   let dims = vec2<f32>(textureDimensions(atmSkyViewLut, 0));
-  return textureSampleLevel(atmSkyViewLut, atmSampler, atmSkyViewUv(viewZenithCos, lightViewCos, dims), 0.0).rgb;
+  return atmSkyShape(textureSampleLevel(atmSkyViewLut, atmSampler, atmSkyViewUv(viewZenithCos, lightViewCos, dims), 0.0).rgb, viewZenithCos);
 }
 
 // Cosine-weighted mean sky radiance of each hemisphere around the local up, in the sky's exposure units.
@@ -131,7 +149,7 @@ fn atmHemisphereMean(v0: f32, v1: f32, zha: f32, beta: f32, dims: vec2<f32>) -> 
     for (var j = 0; j < ATM_AMBIENT_AZIMUTHS; j++) {
       let cosPhi = cos((f32(j) + 0.5) * ATM_PI / f32(ATM_AMBIENT_AZIMUTHS));
       let uvX = (sqrt(saturate(-cosPhi * 0.5 + 0.5)) + 0.5 / dims.x) * (dims.x / (dims.x + 1.0));
-      row += textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb;
+      row += atmSkyShape(textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb, cos(theta));
     }
     acc += row * (weight / f32(ATM_AMBIENT_AZIMUTHS));
   }
@@ -158,7 +176,7 @@ fn atmHemisphereMeanSun(v0: f32, v1: f32, zha: f32, beta: f32, dims: vec2<f32>, 
       let uvX = (sqrt(saturate(-cosPhi * 0.5 + 0.5)) + 0.5 / dims.x) * (dims.x / (dims.x + 1.0));
       let toSun = max(cos(theta) * muS + sin(theta) * sinS * cosPhi, 0.0);
       let w = weight * (1.0 + sunWeight * toSun * toSun);
-      acc += textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb * w;
+      acc += atmSkyShape(textureSampleLevel(atmSkyViewLut, atmSampler, vec2<f32>(uvX, uvY), 0.0).rgb, cos(theta)) * w;
       wPlain += weight;
       wSun += w;
     }
@@ -249,8 +267,8 @@ fn applyAerialPerspective(color: vec3<f32>, transmittance: f32, viewDir: vec3<f3
 
 // ---- TS side: uniform layout, bind group layout (renderer-agnostic) -----------------------------------
 
-/** Floats in the Atmosphere uniform (144 bytes). Offsets match the WGSL struct. */
-export const ATMOSPHERE_UNIFORM_FLOATS = 36;
+/** Floats in the Atmosphere uniform (224 bytes). Offsets match the WGSL struct. */
+export const ATMOSPHERE_UNIFORM_FLOATS = 56;
 export const ATMOSPHERE_UNIFORM_BYTES = ATMOSPHERE_UNIFORM_FLOATS * 4;
 
 /** Plain values for the Atmosphere uniform. Units: radii in km, planetCenter in world metres. */
@@ -273,6 +291,13 @@ export interface AtmosphereUniformValues {
   apEnabled: boolean;
   /** Column-major projection * view-without-translation of the camera that built the AP LUT. */
   viewRotProj: ArrayLike<number>;
+  /** D1 round 10: per-channel tint of the sky radiance (the sky's luminance factor; the sun is not tinted). Default white. */
+  skyTint?: ArrayLike<number>;
+  /**
+   * D1 round 10: a colour ramp over sin(elevation) that replaces the LUT's sky radiance (strength 1) for the sky the clouds' ambient integrates:
+   * up to 4 stops ascending in `at`, colours in LUT units (the sky's radiance before luminanceScale, sunColor and the tint). Default none.
+   */
+  skyRamp?: { strength: number; stops: { at: number; color: ArrayLike<number> }[] } | null;
 }
 
 /** Fill `out` (length >= ATMOSPHERE_UNIFORM_FLOATS) in place. No allocation. */
@@ -283,6 +308,13 @@ export function writeAtmosphereUniforms(out: Float32Array, v: AtmosphereUniformV
   out[12] = v.cameraUp[0]; out[13] = v.cameraUp[1]; out[14] = v.cameraUp[2]; out[15] = v.skyViewHeightKm;
   out[16] = v.apKmPerSlice; out[17] = v.apDepthSlices; out[18] = v.flat ? 1 : 0; out[19] = v.apEnabled ? 1 : 0;
   for (let i = 0; i < 16; i++) out[20 + i] = v.viewRotProj[i];
+  const tint = v.skyTint ?? [1, 1, 1];
+  out[36] = tint[0]; out[37] = tint[1]; out[38] = tint[2]; out[39] = v.skyRamp && v.skyRamp.stops.length > 0 ? v.skyRamp.strength : 0;
+  const stops = v.skyRamp?.stops ?? [];
+  for (let i = 0; i < 4; i++) {
+    const st = stops[Math.min(i, stops.length - 1)];
+    out[40 + 4 * i] = st ? st.color[0] : 0; out[41 + 4 * i] = st ? st.color[1] : 0; out[42 + 4 * i] = st ? st.color[2] : 0; out[43 + 4 * i] = st ? st.at : 0;
+  }
   return out;
 }
 

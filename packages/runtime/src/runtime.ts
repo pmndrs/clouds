@@ -321,8 +321,8 @@ export interface CloudSettings {
   /**
    * D1 round 10 (the floret investigation's H2): how `microShadow` occludes the glow terms. 0 = by the micro tap's whole optical depth (Q-1), which
    * also darkens every shaded and deep part (the mean occlusion is already in the relaxed tau). 1 = by the residual of the up-rezzed density over
-   * the profile density along the same tap (full - profile, the florets' own relief toward the sun): a dome's sunlit side brightens, the gap
-   * beside it darkens, and the glow's mean over a face is unchanged.
+   * the profile density along the same tap (max(full - profile, 0), the florets' own relief toward the sun): the gap beside a dome darkens
+   * where the tap runs into the next dome, the faces keep their mean (no brightening: a negative residual printed glints).
    */
   microShadowMode: number;
   /**

@@ -278,10 +278,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               var tauMicro = d.x * frame.microDist * microExt;
               var tauMicroP = d.y * frame.microDist * microExt;   // the same tap at the profile density (D1 round 10, microShadowMode 1)
               if (microOn && sdf > -MICRO_DEPTH) { let sm = ${density}(ps + sunMicro, ts, inputs); tauMicro = sm.x * frame.microDist * microExt; tauMicroP = sm.y * frame.microDist * microExt; }
-              // D1 round 10 (microShadowMode 1): the glow sees only the florets' relief toward the sun (full minus profile along the tap), not the
-              // tap's whole depth, which the relaxed tau already carries; the mean over a face is unchanged, so creases and shade do not darken.
+              // D1 round 10 (microShadowMode 1): the glow sees only the florets' relief toward the sun (the up-rezzed density over the profile
+              // along the tap: the gap beside a dome, where the tap runs into the neighbouring dome), not the tap's whole depth, which the relaxed
+              // tau already carries; occlusion only (a negative residual, the dome's own sunlit flank, printed glints at exp(+k)), so the faces
+              // keep their mean and only the gaps between florets darken, as the frames' crests do.
               var microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
-              if (frame.d3.w > 0.5) { microOcc = exp(-frame.microShadow * clamp(tauMicro - tauMicroP, -2.0, 4.0)); }
+              if (frame.d3.w > 0.5) { microOcc = exp(-frame.microShadow * min(max(tauMicro - tauMicroP, 0.0), 4.0)); }
               // D1 round 3: lobe-scale ambient occlusion, one upward sample of the full density (ambientTap metres) in the in-line light units.
               var ambOcc = 1.0;
               if (frame.d1.z > 0.0) { ambOcc = exp(-${density}(ps + vec3(0.0, 0.5 * frame.d1.z, 0.0), ts, lightInputs).x * frame.d1.z * inlineExt); }

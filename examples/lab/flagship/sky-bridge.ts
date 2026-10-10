@@ -34,6 +34,12 @@ export interface SkyBridge {
   update(camera: PerspectiveCamera): void;
   /** Re-resolve the LUT textures (after a Sky quality or LUT size change) and rebuild the bind group. */
   rebind(): void;
+  /**
+   * D1 round 10: a sky ramp the clouds' ambient integrates in place of the LUT (see AtmosphereUniformValues.skyRamp), with colours in the sky's
+   * displayed units (what the sky mesh shows under a `value: 1, chroma: 1` look of the same stops: linear radiance before the page's post).
+   * update() converts them to LUT units (divides by luminanceScale, sunColor and the luminance factor). null = the physical LUT.
+   */
+  skyRamp: { strength: number; stops: { at: number; color: [number, number, number] }[] } | null;
   dispose(): void;
 }
 
@@ -51,7 +57,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
   const apLut = baker.aerialPerspectiveLUT ?? null;
 
   const values: AtmosphereUniformValues = {
-    sunDirection: [0, 1, 0], luminanceScale: 1, sunColor: [1, 1, 1],
+    sunDirection: [0, 1, 0], luminanceScale: 1, sunColor: [1, 1, 1], skyTint: [1, 1, 1], skyRamp: null,
     bottomRadiusKm: 6360, topRadiusKm: 6460,
     planetCenter: [0, 0, 0], flat: !options.planetCenter, cameraUp: [0, 1, 0], skyViewHeightKm: 6360,
     apKmPerSlice: apLut?.kmPerSlice ?? 8, apDepthSlices: apLut?.resolution?.z ?? 32, apEnabled: !!apLut,
@@ -59,6 +65,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
   };
   const sunDir = values.sunDirection as number[];
   const sunColor = values.sunColor as number[];
+  const skyTint = values.skyTint as number[];
   const planetCenter = values.planetCenter as number[];
   const cameraUp = values.cameraUp as number[];
   const viewRotProj = values.viewRotProj as Float32Array;
@@ -76,6 +83,7 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
 
   const bridge: SkyBridge = {
     device, layout, sampler, uniformBuffer, data, values,
+    skyRamp: null,
     transmittance: undefined as unknown as GPUTextureView, skyView: undefined as unknown as GPUTextureView, aerialPerspective: undefined as unknown as GPUTextureView,
     bindGroup: undefined as unknown as GPUBindGroup,
     update(camera) {
@@ -87,6 +95,11 @@ export function createSkyBridge(renderer: WebGPURenderer, sky: Sky, options: Sky
       sunColor[0] = color.x; sunColor[1] = color.y; sunColor[2] = color.z;
       cameraUp[0] = up.x; cameraUp[1] = up.y; cameraUp[2] = up.z;
       values.luminanceScale = baker.sky.luminanceScale.value;
+      // D1 round 10: the sky's luminance factor tints the sky radiance the clouds see (the sky mesh applies it after the look); the ramp in LUT units.
+      const skyf: Vector3 = baker.sky.skyLuminanceFactor.value;
+      skyTint[0] = skyf.x; skyTint[1] = skyf.y; skyTint[2] = skyf.z;
+      const ramp = bridge.skyRamp;
+      values.skyRamp = ramp ? { strength: ramp.strength, stops: ramp.stops.map(st => ({ at: st.at, color: [0, 1, 2].map(i => st.color[i] / Math.max(values.luminanceScale * sunColor[i] * skyTint[i], 1e-6)) })) } : null;
       values.bottomRadiusKm = params.bottomRadius;
       values.topRadiusKm = params.topRadius;
       values.skyViewHeightKm = baker.skyViewLUT.viewHeight;
