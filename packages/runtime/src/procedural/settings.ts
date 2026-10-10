@@ -79,6 +79,8 @@ export interface TakramShape {
   turbulenceDisplacement: number;
   /** The detail erosion fades out beyond this distance (Takram gates it by a texel-footprint mip, which reaches about 100 km). */
   detailDistance: number;
+  /** S6 (H1): false (default) = the turbulence displaces only the detail lookup (hzd15 s37, gp7 p.108); true = Takram's original, shape and detail. */
+  turbulenceOnShape: boolean;
 }
 
 /** H1: the generated NDF (work/specs/ndf.md "Generation (until W2 lands)"): fBM coverage with islands, a very-low-frequency top type, mild height variation. */
@@ -229,7 +231,7 @@ export const TAKRAM_DEFAULTS: TakramShape = {
     takramLayer({ channel: 2, altitude: 7500, height: 500, densityScale: 0.003, shapeAmount: 0.4, shapeDetailAmount: 0, coverageFilterWidth: 0.5 }),
     takramLayer({ channel: 3, densityScale: 0 }),
   ],
-  coverage: 0.3, weatherTileMeters: 100000, shapeRepeat: 3e-4, detailRepeat: 6e-3, turbulenceRepeat: 20, turbulenceDisplacement: 350, detailDistance: 60000,
+  coverage: 0.3, weatherTileMeters: 100000, shapeRepeat: 3e-4, detailRepeat: 6e-3, turbulenceRepeat: 20, turbulenceDisplacement: 350, detailDistance: 60000, turbulenceOnShape: false,
 };
 
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
@@ -298,7 +300,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   lane(72, l => l.densityProfile[0]); lane(76, l => l.densityProfile[1]); lane(80, l => l.densityProfile[2]); lane(84, l => l.densityProfile[3]);
   lane(88, l => l.channel);
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
-  out.set([tk.turbulenceDisplacement, tk.detailDistance, 0, 0], 96);
+  out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, 0], 96);
   out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).

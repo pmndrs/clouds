@@ -55,7 +55,7 @@ struct ProcParams {
   tkBias: vec4<f32>, tkFilter: vec4<f32>, tkExpTerm: vec4<f32>, tkExponent: vec4<f32>, tkLinear: vec4<f32>, tkConstant: vec4<f32>,
   tkChannel: vec4<f32>,
   tkRepeat: vec4<f32>,   // weather tile (m), shape repeat (1/m), detail repeat (1/m), turbulence tiles per weather tile
-  tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), 0, 0
+  tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), turbulence on the shape lookup too (0/1; S6 default 0), 0
   lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, 0
   octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, diffusion tail weight
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
@@ -218,7 +218,9 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   let uv = (p.xz - P.drift.xz) / P.tkRepeat.x;
   let turb = P.tkTurb.x * (textureSampleLevel(procAux, procRepeat, uv * P.tkRepeat.w, 0.0).rgb * 2.0 - 1.0) * dot(density, procRemap4(w.hf, vec4(0.3), vec4(0.0)));
   let wp = vec3(p.x - P.drift.x, alt, p.z - P.drift.z);
-  let shape = textureSampleLevel(procNoiseA, procRepeat, (wp + turb) * P.tkRepeat.y, 0.0).r;
+  // S6 (H1): the turbulence displaces the detail lookup only (hzd15 s37, gp7 p.108); displacing the shape lookup too (Takram's original,
+  // tkTurb.z = 1) tears the silhouettes.
+  let shape = textureSampleLevel(procNoiseA, procRepeat, (wp + turb * P.tkTurb.z) * P.tkRepeat.y, 0.0).r;
   density = procRemap4(density, vec4(1.0 - shape) * P.tkShape, vec4(1.0));
   let coarse = density;
   // Detail near the camera (HZD s77-80), jittered across its fade so the switch does not draw a line.

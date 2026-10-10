@@ -1,0 +1,188 @@
+{
+  "url": "http://127.0.0.1:64389/compare/?impls=ours&model=procedural&shaper=takram&tk_turbulenceOnShape=0&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T03:53:44.892Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/H1/s6-turb-shape-0/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.39153711666666685,
+          "ours.lightGridReduce": 0.019124,
+          "ours.lightGrid": 0.008791,
+          "ours.marchNear": 0.09681096666666664,
+          "ours.marchFar": 0.10545808333333336,
+          "ours.shadowMap": 0.017986000000000002,
+          "ours.composite": 0.2846692333333333,
+          "ours.dome": 0.022969100000000003,
+          "ours.resolveNear": 0.03893285000000001,
+          "ours.resolveFar": 0.06366281666666666,
+          "ours.skyLayer": 1.822901022222222,
+          "ours.skyResolve": 0.10982044444444444,
+          "ours.cloudsTotal": 2.5911255166666662,
+          "ours.total": 2.9826626333333333
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 7,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural (takram shaper, octave lighting)",
+            "gpuMs": {
+              "scene": 0.39153711666666685,
+              "lightGridReduce": 0.019124,
+              "lightGrid": 0.008791,
+              "marchNear": 0.09681096666666664,
+              "marchFar": 0.10545808333333336,
+              "shadowMap": 0.017986000000000002,
+              "composite": 0.2846692333333333,
+              "dome": 0.022969100000000003,
+              "resolveNear": 0.03893285000000001,
+              "resolveFar": 0.06366281666666666,
+              "skyLayer": 1.822901022222222,
+              "skyResolve": 0.10982044444444444,
+              "cloudsTotal": 2.5911255166666662,
+              "total": 2.9826626333333333
+            },
+            "cpuMs": 0.8016666650772095,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/takram/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 133
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/H1/s6-turb-shape-0/above.jpg",
+      "report": {
+        "gpuMs": {
+          "ours.scene": 0.4822509666666667,
+          "ours.lightGridReduce": 0.019124,
+          "ours.lightGrid": 0.022814222222222222,
+          "ours.marchNear": 0.09588885000000004,
+          "ours.marchFar": 0.10499338333333333,
+          "ours.shadowMap": 0.14698341509433965,
+          "ours.composite": 0.5097296000000001,
+          "ours.dome": 0.3616140333333332,
+          "ours.resolveNear": 0.04310285,
+          "ours.resolveFar": 0.06211353333333334,
+          "ours.skyLayer": 2.0345530333333333,
+          "ours.skyResolve": 0.1720348,
+          "ours.cloudsTotal": 3.5729517206498955,
+          "ours.total": 4.055202687316562
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "above",
+        "layout": "rows",
+        "impls": [
+          "ours"
+        ],
+        "view": {
+          "position": [
+            0,
+            3000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -9,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 50,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "ours": {
+            "label": "ours: @clouds/three, procedural (takram shaper, octave lighting)",
+            "gpuMs": {
+              "scene": 0.4822509666666667,
+              "lightGridReduce": 0.019124,
+              "lightGrid": 0.022814222222222222,
+              "marchNear": 0.09588885000000004,
+              "marchFar": 0.10499338333333333,
+              "shadowMap": 0.14698341509433965,
+              "composite": 0.5097296000000001,
+              "dome": 0.3616140333333332,
+              "resolveNear": 0.04310285,
+              "resolveFar": 0.06211353333333334,
+              "skyLayer": 2.0345530333333333,
+              "skyResolve": 0.1720348,
+              "cloudsTotal": 3.5729517206498955,
+              "total": 4.055202687316562
+            },
+            "cpuMs": 0.9899999956289928,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/takram/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 231
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
