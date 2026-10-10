@@ -95,8 +95,11 @@ def check_axis_aligned(prim, name):
         fail(f'grid {name!r} has anisotropic voxels {d}; resample it to cubic voxels in Houdini first')
 
 
+UP_Z = False   # set by --up z: the source is Z-up (EmberGen, Blender); texture order is then (up=hou z, row=hou y, x)
+
+
 def read_dense(prim, lo, hi):
-    """Dense float32 read of hou index range [lo, hi) -> texture order (h=y, row=z, x)."""
+    """Dense float32 read of hou index range [lo, hi) -> texture order (h=y, row=z, x); with --up z (h=z, row=y, x)."""
     import hou
     n = [hi[i] - lo[i] for i in range(3)]
     if n[0] * n[1] * n[2] > MAX_VOXELS:
@@ -106,7 +109,10 @@ def read_dense(prim, lo, hi):
     if flat.size != n[0] * n[1] * n[2]:
         fail(f'voxelRangeAsFloat returned {flat.size} values for {n}')
     # Houdini order: x fastest, then y (height), then z (map row) -> arr[z, y, x] -> texture [y, z, x]
-    return np.ascontiguousarray(flat.reshape(n[2], n[1], n[0]).transpose(1, 0, 2))
+    a = flat.reshape(n[2], n[1], n[0])
+    if UP_Z:
+        return np.ascontiguousarray(a)
+    return np.ascontiguousarray(a.transpose(1, 0, 2))
 
 
 # ---------------------------------------------------------------- resampling to the target lattice
@@ -116,7 +122,7 @@ def resample_to_target(arr, lo, sv, tv):
     anchored at the source corner (index 0); t0 = global target index of arr'[0,0,0] in hou (x,y,z)."""
     if abs(sv - tv) < 1e-9 * tv:
         return arr, list(lo)
-    ax_hou = [1, 2, 0]  # texture axis -> hou axis
+    ax_hou = [2, 1, 0] if UP_Z else [1, 2, 0]  # texture axis -> hou axis
     t0 = [0, 0, 0]
     for tex_axis, ha in enumerate(ax_hou):
         n_in = arr.shape[tex_axis]
@@ -249,6 +255,10 @@ def write_fine(out, r8_fine, depth_fine, cmin, cdims, ratio, fv, tv, corner0, t0
 # ---------------------------------------------------------------- conversion
 
 def convert(args):
+    global UP_Z
+    UP_Z = getattr(args, 'up', 'y') == 'z'
+    if UP_Z and args.fine_voxel_size:
+        fail('--up z is not supported with --fine-voxel-size')
     timer = Timer()
     grids = load_vdbs(args.input)
     report = {'input': str(Path(args.input).resolve()), 'grids': {n: grid_info(p) for n, p in grids.items()}}
@@ -318,6 +328,10 @@ def convert(args):
         if scale_to_metres:
             arr = arr * (args.world_scale)
         arr, t0 = resample_to_target(arr, lo, sv, rtv)
+        if UP_Z:
+            # Z-up -> Y-up is a rotation about X (new up = old z, new row = -old y): flip the row axis so it stays a rotation, not a mirror.
+            arr = np.ascontiguousarray(arr[:, ::-1, :])
+            t0 = [0, 0, 0]   # placement metadata is not tracked through the axis change (the runtime centres the cloud itself)
         return arr, t0
 
     # --- gather resampled fields (texture order), target lattice origin t0 (hou x,y,z)
@@ -522,6 +536,8 @@ def parser():
     p.add_argument('--world-scale', type=float, default=1.0, help='multiply VDB world units by this to get metres (default 1)')
     p.add_argument('--rotate-y', type=int, default=0, choices=[0, 90, 180, 270],
                    help='rotate the field about the up axis by a quarter-turn multiple (default 0)')
+    p.add_argument('--up', choices=['y', 'z'], default='y',
+                   help='up axis of the source VDB (default y, Houdini). z: EmberGen/Blender exports; rotated to y-up on read (new up = z, new row = -y). Not with --fine-voxel-size')
     p.add_argument('--margin', type=int, default=8, help='crop margin in target voxels around profile > 0 (default 8 = 64 m)')
     p.add_argument('--profile-grid', default='dimensional_profile')
     p.add_argument('--detail-grid', help='detail-type grid (0 wispy .. 1 billowy). pack default: detail_type; fog/sdf: optional')

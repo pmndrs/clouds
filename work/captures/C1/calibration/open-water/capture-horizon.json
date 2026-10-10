@@ -1,0 +1,58 @@
+{
+  "url": "http://127.0.0.1:54002/open-water/?clean=1&hud=0&quality=high&",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T04:05:25.264Z",
+  "shots": [
+    {
+      "name": "horizon",
+      "file": "work/captures/C1/calibration/open-water/horizon/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6004060333333331,
+          "lightGridReduce": 0.089039,
+          "lightGrid": 0.23186760606060608,
+          "marchNear": 0.0520602,
+          "marchFar": 1.52527255,
+          "shadowMap": 0.2910712333333333,
+          "composite": 0.22208628333333327,
+          "dome": 0.3104750833333333,
+          "skyWeather": 0.6669709166666669,
+          "resolveNear": 0.020524716666666665,
+          "resolveFar": 0.03329608333333333,
+          "skyWeatherMips": 0.076165,
+          "skyLayer": 1.3141438666666667,
+          "skyResolve": 0.07461890000000002,
+          "cloudsTotal": 4.907591439393939,
+          "total": 5.507997472727272
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "horizon",
+        "frames": 252,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 829.4000000357628,
+          "encodeSubmitMsTotal": 1.8999999165534973
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -11,15 +11,15 @@ export const CLOUD_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 90
 export const FOCUS_BOX = { min: [-432, 500, -432] as Vector3Tuple, max: [432, 908, 432] as Vector3Tuple };
 export const INSIDE_POINT: Vector3Tuple = [0, 700, 0];
 
-export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow', 'frontlit'] as const;
+export const BOOKMARK_NAMES = ['ground', 'edge', 'inside', 'above', 'backlit', 'shadow', 'frontlit', 'side', 'horizon', 'up30'] as const;
 export type BookmarkName = (typeof BOOKMARK_NAMES)[number];
 
 export interface Bookmark { position: Vector3Tuple; target: Vector3Tuple; timeOfDay: number }
 
 /** World min corner for an asset: centred on x = z = 0, base at CLOUD_BASE_HEIGHT. Updates CLOUD_BOX and INSIDE_POINT. */
-export function placeCloud(asset: CloudVolumeAsset): Vector3Tuple {
+export function placeCloud(asset: CloudVolumeAsset, baseHeight: number = CLOUD_BASE_HEIGHT): Vector3Tuple {
   const [w, h, d] = asset.dims, v = asset.voxelSizeMeters;
-  const min: Vector3Tuple = [-(w * v) / 2, CLOUD_BASE_HEIGHT, -(h * v) / 2];
+  const min: Vector3Tuple = [-(w * v) / 2, baseHeight, -(h * v) / 2];
   const max: Vector3Tuple = [min[0] + w * v, min[1] + d * v, min[2] + h * v];
   CLOUD_BOX.min = min; CLOUD_BOX.max = max;
   const lo = [w, h, d], hi = [-1, -1, -1];
@@ -87,6 +87,11 @@ export function resolveBookmark(name: BookmarkName, sun: Vector3Tuple = [0, 0.7,
   };
   switch (name) {
     case 'ground': return { position: ring(35, 1.45 * r, 2), target: c, timeOfDay };
+    // C1 calibration framings at fixed distances (not scaled by the cloud): side-on at 4 km, horizon view at 10 km.
+    case 'side': return { position: ring(95, 4000, c[1]), target: c, timeOfDay };
+    // 30 degrees of elevation from the ground to the cloud centre (distance follows the cloud altitude).
+    case 'up30': return { position: ring(35, Math.max(100, (c[1] - 2) / Math.tan(Math.PI / 6)), 2), target: c, timeOfDay };
+    case 'horizon': return { position: ring(35, 10000, 60), target: c, timeOfDay };
     case 'frontlit': return { position: ring(0, 1.15 * r, 2), target: c, timeOfDay };
     case 'edge': return { position: ring(95, 2.1 * r, c[1] - 0.1 * r), target: c, timeOfDay };
     case 'shadow': {

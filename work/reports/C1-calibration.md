@@ -1,0 +1,13 @@
+# C1 Calibration set: EmberGen CloudPack rendered properly
+(Named C1-calibration because work/reports/C1.md already holds the older C1 "Sunset" report.)
+Status: ready for review
+Changed: `scripts/vdb/vdb_to_nvdf.py` (new `--up z`), `scripts/vdb/test_hython.py` (--up z test), `examples/lab/flagship/main.ts` (CLOUDS += cloudpack-02/03/08/09/10, local/a2/base, local/a2/wide; `?clean=1` hides HUD/panel; `?base=<m>` cloud base altitude), `examples/lab/flagship/bookmarks.ts` (bookmarks `side` 4 km, `horizon` 10 km, `up30`; `placeCloud(asset, baseHeight?)`).
+Verified:
+- `hython scripts/vdb/test_hython.py` OK (new check: --up z dims are the y-up dims with row/up swapped); `pnpm typecheck` clean; `pnpm test` 259 passed.
+- Z-up handled in the converter (`--up z`, rotation about X: new up = z, new row = -y, so no mirror). Not combinable with `--fine-voxel-size`.
+- Conversions (`--mode fog --up z --world-scale 4`, 8 m voxels, fog defaults), assets in gitignored `assets/clouds/local/cloudpack-NN/`:
+  02 17.3 s 24 MB dims 178x252x95; 03 19.0 s 23 MB 172x251x94; 08 14.0 s 16 MB 132x230x91; 09 18.6 s 20 MB 149x241x98; 10 15.7 s 21 MB 156x268x88. Height incl. 2x64 m margin 704-784 m, so about 580-650 m of cloud; length 1.7-2 km.
+- Captures `work/captures/C1/calibration/<source>/{up30,side,horizon}.jpg` plus `sheet-ground.jpg`, `sheet-side.jpg`, `sheet-horizon.jpg` (3x3, each tile labelled). Flagship: `quality=high&clean=1&base=1300`, 1920x1080, defaults. Framings: up30 = ground, 30 deg elevation to the cloud centre; side = 4 km; horizon = 10 km (camera 60 m up). Sources: EmberGen 02/03/08/09/10, Parkouring, A2 base, A2 wide (all base 1300 m), generated open water.
+Open-water: `open-water/` uses the open-water lab page, not the flagship: ground = pos 0,2,0 pitch 30; side = camera 1 km south of origin at 300 m looking north (about 3.3 km from the field centre, field base 150 m, not raised); horizon = the existing `horizon` bookmark. Its altitude was not changed (it is a field with its own base, owned elsewhere).
+Artefacts: none from the conversion. All five stand upright, base flat-ish, no clipping at the crop (64 m margin), no axis error. Density: 0.06-0.8 range normalised by p99, clouds read opaque white, not thin. Notes for judges: Parkouring is smaller (about 400 m), so it is tiny at fixed 4/10 km distances; A2 clouds and EmberGen render at the same scale; at 10 km every single cloud is a few pixels (expected). EmberGen 03/10 have detached wisps that read as separate puffs. Shadows on the ground are from the shadow map.
+Open issues: the owner/judge round should decide whether Parkouring is scaled up; `side`/`horizon` distances are fixed, not scaled by cloud size.

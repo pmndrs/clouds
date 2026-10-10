@@ -47,6 +47,12 @@ def main():
         meta, nvdf, sdf = run(['--mode', 'fog', fog, '--out', os.path.join(tmp, f'fog{vs:g}'), '--voxel-size', str(vs)])
         check_common(meta, nvdf, sdf, vs)
         assert nvdf[nvdf[:, 0] > 0, 0].max() > 100, 'profile should reach the core'
+    # --up z reads the same VDB with hou Z as up: dims (x, row, up) become (x, up, row) of the y-up run, and occupancy is the transpose
+    mz, nz_, sz = run(['--mode', 'fog', fog, '--out', os.path.join(tmp, 'upz'), '--up', 'z'])
+    my, ny_, _ = run(['--mode', 'fog', fog, '--out', os.path.join(tmp, 'upy')])
+    dy, dz = my['dims'], mz['dims']
+    assert dz[0] == dy[0] and abs(dz[1] - dy[2]) <= 1 and abs(dz[2] - dy[1]) <= 1, ('--up z dims', dy, dz)
+    check_common(mz, nz_, sz, 8.0)
     meta, nvdf, sdf = run(['--mode', 'sdf', sdfv, '--out', os.path.join(tmp, 'sdf'), '--sdf-grid', 'surface'])
     check_common(meta, nvdf, sdf, 8.0)
     # depth parameter moves the gradient: a shorter depth saturates more of the interior

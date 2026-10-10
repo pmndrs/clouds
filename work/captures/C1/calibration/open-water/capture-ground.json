@@ -1,0 +1,58 @@
+{
+  "url": "http://127.0.0.1:53854/open-water/?clean=1&hud=0&quality=high&pos=0,2,0&az=20&pitch=30",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T04:05:14.237Z",
+  "shots": [
+    {
+      "name": "shore",
+      "file": "work/captures/C1/calibration/open-water/ground/shore.jpg",
+      "report": {
+        "gpuMs": {
+          "scene": 0.2512268333333333,
+          "lightGridReduce": 0.215955,
+          "lightGrid": 0.3760385294117648,
+          "marchNear": 0.07244399999999998,
+          "marchFar": 1.7602654000000002,
+          "shadowMap": 0.31673135,
+          "composite": 0.34382529999999994,
+          "dome": 0.9967291499999998,
+          "skyWeather": 0.5901868833333332,
+          "resolveNear": 0.02710856666666666,
+          "resolveFar": 0.04336239999999998,
+          "skyWeatherMips": 0.142831,
+          "skyLayer": 1.8368767833333333,
+          "skyResolve": 0.10038535,
+          "cloudsTotal": 6.822739712745099,
+          "total": 7.073966546078432
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999955
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "shore",
+        "frames": 252,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 813.1000000238419,
+          "encodeSubmitMsTotal": 1.300000011920929
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

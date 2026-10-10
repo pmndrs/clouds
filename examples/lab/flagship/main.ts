@@ -14,7 +14,7 @@ import { createSkyBridge } from './sky-bridge';
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const QUALITIES = ['auto', 'mobile', 'low', 'medium', 'high', 'ultra'] as const;   // ?quality=auto&budget=2: tier from the adapter, render scale from the GPU timer toward a 2 ms budget
-const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus', 'disney', 'disney-fine', 'heroes/sim-cumulus-fine', 'heroes/sim-congestus-fine', 'local/bunny-cloud', 'local/cloud-0001'] as const;
+const CLOUDS = ['parkouring', 'stormbird', 'houdini-test', 'heroes/tower', 'heroes/valley-fog', 'heroes/fairweather', 'heroes/sim-cumulus', 'heroes/sim-congestus', 'disney', 'disney-fine', 'heroes/sim-cumulus-fine', 'heroes/sim-congestus-fine', 'local/bunny-cloud', 'local/cloud-0001', 'local/cloudpack-02', 'local/cloudpack-03', 'local/cloudpack-08', 'local/cloudpack-09', 'local/cloudpack-10', 'local/a2/base', 'local/a2/wide'] as const;
 const cloudName = CLOUDS.includes(query.get('cloud') as never) ? (query.get('cloud') as string) : 'parkouring';
 const state = {
   bookmark: (isBookmarkName(query.get('bookmark') ?? '') ? query.get('bookmark') : 'ground') as BookmarkName,
@@ -61,7 +61,7 @@ try {
   const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume(`/clouds/${cloudName}/`), loadCloudNoise('/clouds/noise/')]);
   const assetsLoadedAt = performance.now();
   let firstCloudFrameMs = -1; // ms from assets loaded to the first frame the runtime encoded clouds
-  await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset) });
+  await runtime.setVolume(volumeAsset, { position: placeCloud(volumeAsset, query.has('base') ? Number(query.get('base')) : undefined) });
   await runtime.setNoise(noiseAsset);
   for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number>)[key.slice(2)] = Number(value);
 
@@ -106,6 +106,7 @@ try {
   // ---- HUD + panel ----
   const hud = document.getElementById('hud')!;
   const panel = document.getElementById('panel')!;
+  if (query.get('clean') === '1') { hud.style.display = 'none'; panel.style.display = 'none'; }   // ?clean=1: no HUD or panel (calibration captures)
   const frameTimes: number[] = [];
   const sceneGpu: number[] = [];
   const extraGpu: Record<string, number> = {};
