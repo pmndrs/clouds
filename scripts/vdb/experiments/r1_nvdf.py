@@ -15,7 +15,9 @@ Pipeline (defaults reproduce the shipped converter's pack mapping bit for bit):
   2. profile (phase 2): pack fit sat((d_eff - d0)/D)^g with --ramp D (default 66 m), --gamma g (1.05), --profile-noise (1)
   3. density scale (phase 2): --scale pack (height trend x (0.5 + 0.5 density/p99), default) | const:<S> | gain:<k> (pack x k)
      | dens:<lo>,<hi> (lerp lo..hi by density/p99, no height trend)
-  4. --fill <v>  labelled comparison only (not Nubis): profile floor v inside the closed envelope where the input mask is empty.
+  4. --depth-shift: the pack detail-type fit makes deep voxels wispier (0.25); a closed envelope is deeper everywhere, so it
+     turns almost all wispy and the uncapped wispy erosion pits the surface. 0 = height-only type.
+  5. --fill <v>  labelled comparison only (not Nubis): profile floor v inside the closed envelope where the input mask is empty.
 """
 from __future__ import annotations
 
@@ -51,6 +53,7 @@ def main():
     ap.add_argument('--scale', default='pack')
     ap.add_argument('--fill', type=float, default=0.0)
     ap.add_argument('--seed', type=int, default=1)
+    ap.add_argument('--depth-shift', type=float, default=nm.PACK_FIT['detail']['depthShift'], help='pack detail type: wispier with depth by this much (fit 0.25)')
     a = ap.parse_args()
 
     z = np.load(a.npz)
@@ -78,7 +81,8 @@ def main():
     prof = np.clip(prof, 0.0, 1.0)
     r8 = nm.quantize_unorm8(prof)
     r8 = np.where(mask, np.maximum(r8, 1), 0).astype(np.uint8)
-    detail = nm.pack_detail(depth, hfrac)
+    prm['detail']['depthShift'] = a.depth_shift
+    detail = nm.pack_detail(depth, hfrac, prm)
     dn, ref = nm.scale_from_density(density, None)
     if a.env_blur > 0 or a.close > 0:
         # density / p99 inside the new envelope: blurred so the filled gaps take the neighbourhood's value

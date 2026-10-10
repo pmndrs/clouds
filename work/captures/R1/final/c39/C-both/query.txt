@@ -1,0 +1,1 @@
+cloud=local/r1/c39-close32-hc1-ds0&clean=1&base=1300&time=15.9&quality=ultra&s.mipDistanceScale=0.001&s.deepAttenuation=0.15
