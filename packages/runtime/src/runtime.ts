@@ -266,6 +266,26 @@ export interface CloudSettings {
    * ultra) and a full-size trace target per pass.
    */
   temporalAccumulate: number;
+  /**
+   * D1 round 3: length (m) of one upward sample of the up-rezzed density taken from every lit step; its optical depth (in the in-line light units)
+   * occludes the ambient, exp(-d_up * ambientTap * extinction * inlineLightScale). A lobe-scale ambient occlusion: a crease has cloud above it
+   * within a few tens of metres, a lobe tip has not. The deck's ambient (s128) reads the light grid's up sum of the smooth profile, which has no
+   * lobes, so its shadow side is flat; Decima's frames show nested lobe pockets on the shadow side too. 0 = off (one density fetch saved).
+   */
+  ambientTap: number;
+  /**
+   * D1 round 3: 0..1, how far the lower-hemisphere ambient (what lights undersides, `ambientSkyBias` shares it in) follows the upper one. The
+   * deck frames have no ground: their sky gradient continues below the horizon near white, so Decima's undersides are lit from below; our lower
+   * hemisphere is the dark sea / ground. 1 = the sky mirrored below the horizon for the cloud's ambient. 0 = the scene's own lower hemisphere.
+   */
+  ambientBelowMirror: number;
+  /**
+   * D1 round 3: which profile the Nubis lighting's in-scatter probability and ambient occlusion read. 0 = `mProfile` = profile x density scale
+   * (what the light grid is built from; P1 and before). 1 = the deck's `dimensional_profile` alone (s123 `ms_volume = dimensional_profile`,
+   * s126 `pow(1 - dimensional_profile, 0.5)`): where the density scale is low (most of Parkouring, S about 0.24) the ms glow is 4x stronger and
+   * the ambient occlusion deeper than with P x S, and the two S = 1 cores no longer stand apart (one 8-bit NVDF fetch per lit step).
+   */
+  inScatterProfile: number;
 }
 
 /**
@@ -505,7 +525,8 @@ export type CloudLookSettings = Pick<CloudSettings, 'densityScale' | 'lightDensi
   | 'ambientExtinction' | 'edgeDarkening' | 'glowBoost' | 'ambientSkyBias' | 'wispyBias' | 'glowFront' | 'deepScatter' | 'deepAttenuation' | 'ambientFloor'
   | 'microShadow' | 'detailBias' | 'noiseInvert' | 'detailTypeOverride' | 'typeFromScale' | 'ambientLaw' | 'bodySunFloor' | 'bodySunKnee' | 'bodyEnv'
   | 'bodyDepth' | 'envSunWeight' | 'ambientLowSun' | 'groundAlbedo' | 'phaseModel' | 'dropletDiameter' | 'hazeDensity' | 'hazeHeight' | 'hazeBase' | 'fineErosion'
-  | 'inlineLightScale' | 'inlineProfile' | 'lightMipBias' | 'diffuseSun' | 'diffuseFalloff' | 'ambientSaturation' | 'ambientWarmth'>;
+  | 'inlineLightScale' | 'inlineProfile' | 'lightMipBias' | 'diffuseSun' | 'diffuseFalloff' | 'ambientSaturation' | 'ambientWarmth'
+  | 'inScatterProfile' | 'ambientBelowMirror'>;
 
 /** Our art-directed defaults (what `createCloudRuntime` starts with). */
 export const CLOUD_ART_SETTINGS: Readonly<CloudLookSettings> = {
@@ -522,6 +543,7 @@ export const CLOUD_ART_SETTINGS: Readonly<CloudLookSettings> = {
   fineErosion: 1,
   inlineLightScale: 1, inlineProfile: 0, lightMipBias: 0, // D1: in-line sun taps at the view extinction (the pre-D1 behaviour)
   diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, // M1 material balance: neutral
+  inScatterProfile: 0, ambientBelowMirror: 0, // D1 round 3: P x S as the lighting profile, the scene's own lower hemisphere
 };
 
 /**
@@ -549,6 +571,7 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
   fineErosion: 1,
   inlineLightScale: 1, inlineProfile: 0, lightMipBias: 0, // D0 kept the in-line taps at the full view extinction (D1 finds this is the pitting)
   diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0,
+  inScatterProfile: 0, ambientBelowMirror: 0,
 };
 
 /**
@@ -573,22 +596,36 @@ export const CLOUD_DECK_SETTINGS: Readonly<CloudLookSettings> = {
  *   and the surface changes frame to frame (flicker std 0.0029 -> 0.0018).
  * - The sky is per frame (refs.ts): turbidity 3 (s78), 6 (pack renders), 10 (s129), 20 with miePhaseG 0.5 (s181: a near-white hazy sky without
  *   the Mie halo), the suns re-fitted (s78 from in front and high, s181 from behind-right and high).
- * Kept from art: typeFromScale 1, the C1 low-sun handoff, the C2 haze, the 10 percent ground share (ambientSkyBias 0.9), the phase lobes.
+ * Round 3 (after blind judging round 2: clean but waxy, Parkouring's shadow too dark, undersides smudged):
+ * - densityScale 2 with the light units held (lightDensityScale 0.045, inlineLightScale 0.03: still 0.09 / 0.06 per density-metre): the up-rezzed
+ *   lumps are 12-24 m and at extinction 0.7 their e-folding length was 8-14 m, so they were semi-transparent at their own scale and washed out.
+ *   At 2 the 4-32 px band-pass spectrum of the s78 tower at native 4k matches the frame (b4/b8/b16 0.0038/0.0070/0.0117 vs 0.0040/0.0076/0.0132);
+ *   no sampling variable (noise mip 0, half step, HHF everywhere, accumulation off, far-pass scale) moved it. At 4 fibre returns on the hard surface.
+ * - inScatterProfile 1: the deck's in-scatter probability and ambient occlusion read the dimensional profile P (s123, s126), not mProfile = P x S
+ *   that the light grid is built from. With P x S the glow was 4x too weak wherever S is low (most of Parkouring) and the two S = 1 cores stood
+ *   apart under the base (the smudges); with P Parkouring's shadow side lands on the frame (p10 0.575 vs 0.568, RGB .57/.57/.60 vs .56/.56/.60)
+ *   while the thick, back-lit Stormbird keeps its dark mauve mass (its glow dies in the optical depth). msStrength 0.5 with it.
+ * - ambientBelowMirror 1 with ambientSkyBias 0.7: the deck frames have no ground, their sky gradient continues below the horizon near white, so
+ *   undersides are lit from below; the scene mirrors the sky below the horizon for the camera too (refs.ts mirrorBelowHorizon).
+ * - Tested and rejected: a density cutoff for the skirt (cut-paper edges), noise mips 0.005-0.02 (soften the silhouette, do not touch the fibre),
+ *   profile / mip-biased sun taps, an upward ambient occlusion tap (`ambientTap`, +15 percent at 4-8 px only; kept as a setting, off).
+ * Kept from art: typeFromScale 1, the C1 low-sun handoff, the C2 haze, the phase lobes.
  * Kept from deck: everything it states and nothing it does not (no glow boost, no deep octaves, no edge darkening, no micro-shadow, exp ambient).
  * Recommended as the default look for Guerrilla-style NVDF clouds; the per-frame sky belongs to the scene.
  */
 export const CLOUD_DECIMA_SETTINGS: Readonly<CloudLookSettings> = {
-  densityScale: 0.7, lightDensityScale: 0.13, msStrength: 1, ambientStrength: 0.7,
+  densityScale: 2, lightDensityScale: 0.045, msStrength: 0.5, ambientStrength: 0.7,
   silverStrength: 0.4, phaseG: 0.2, silverG: 0.85, ambientExtinction: 0.5,
-  edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.9, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
+  edgeDarkening: 0, glowBoost: 0, ambientSkyBias: 0.7, wispyBias: 0, glowFront: 1, deepScatter: 0, deepAttenuation: 0.35, ambientFloor: 0.15,
   noiseInvert: 0, detailTypeOverride: -1, typeFromScale: 1,
   microShadow: 0, detailBias: 0,
   ambientLaw: 1,
   bodySunFloor: 0.05, bodySunKnee: 0.4, bodyEnv: 1, bodyDepth: 0.1, envSunWeight: 4, ambientLowSun: 1, groundAlbedo: 0.2, phaseModel: 'hg', dropletDiameter: 10,
   hazeDensity: 0.05, hazeHeight: 1000, hazeBase: 0,
   fineErosion: 1,
-  inlineLightScale: 0.086, inlineProfile: 0, lightMipBias: 0,
+  inlineLightScale: 0.03, inlineProfile: 0, lightMipBias: 0,
   diffuseSun: 0.15, diffuseFalloff: 0.11, ambientSaturation: 0.4, ambientWarmth: 0,
+  inScatterProfile: 1, ambientBelowMirror: 1,
 };
 
 export type CloudLook = 'art' | 'deck' | 'decima';
@@ -625,6 +662,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
+    ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1081,7 +1119,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[96] = settings.noiseInvert; f[97] = settings.detailTypeOverride; f[98] = settings.typeFromScale; f[99] = settings.ambientLaw;
       f[100] = settings.diffuseSun; f[101] = settings.ambientSaturation; f[102] = settings.ambientWarmth; f[103] = settings.directInScatterFlat; f[104] = settings.diffuseFalloff;
       f[105] = settings.inlineLightScale; f[106] = settings.jitterStatic;
-      f[108] = settings.inlineProfile; f[109] = settings.lightMipBias;
+      f[108] = settings.inlineProfile; f[109] = settings.lightMipBias; f[110] = settings.ambientTap; f[111] = settings.inScatterProfile;
       f[92] = Math.max(0, settings.hazeDensity) * 1e-3; f[93] = 1 / Math.max(1, settings.hazeHeight); f[94] = settings.hazeBase; f[95] = settings.lightingModel === 'octave' ? 1 : 0;
       if (settings.dropletDiameter !== mieDiameter) { mieDiameter = settings.dropletDiameter; const m = mieParams(mieDiameter); f[88] = m[0]; f[89] = m[1]; f[90] = m[2]; f[91] = m[3]; }
       // Temporal handling of a flash: the history is not reset (a cut would trace every pixel at full cost for the whole flash). While a flash is up, and for
@@ -1169,7 +1207,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         device.queue.writeBuffer(skyLightBuffer, 0, lightingData);
       } else {
         // The compute pass reads its parameters from the last entry.
-        lightingData[28] = settings.groundAlbedo; lightingData[29] = settings.envSunWeight; lightingData[30] = lowSun * settings.ambientLowSun; lightingData[31] = 0;
+        lightingData[28] = settings.groundAlbedo; lightingData[29] = settings.envSunWeight; lightingData[30] = lowSun * settings.ambientLowSun; lightingData[31] = settings.ambientBelowMirror;
         device.queue.writeBuffer(skyLightBuffer, 28 * 4, lightingData, 28, 4);
         const sky = encoder.beginComputePass({ label: 'cloud sky light' });
         sky.setPipeline(skyLightPipeline);

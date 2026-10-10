@@ -47,7 +47,8 @@ struct Frame {
   // 1 = the view extinction), z = jitterStatic (1 = static march jitter beyond 250 m, N3 s150), w = 0.
   material2: vec4<f32>,
   // D1 sun taps: x = inlineProfile (1 = the two in-line sun samples read the cheap profile P * S instead of the up-rezzed density),
-  // y = lightMipBias (mip added to the field and noise fetches of the in-line sun samples), zw = 0.
+  // y = lightMipBias (mip added to the field and noise fetches of the in-line sun samples), z = ambientTap (m, upward occlusion sample of the
+  // ambient; 0 = off), w = inScatterProfile (1 = the lighting's profile is the deck's dimensional profile P, 0 = P x density scale).
   d1: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

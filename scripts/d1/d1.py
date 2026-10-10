@@ -141,6 +141,37 @@ def cmd_crops(a):
     sheet.save(a.out, quality=90)
 
 
+def cmd_bands(a):
+    """Band-pass detail spectrum inside the cloud: std of (blur_r/2 - blur_r) of luminance for r = 2, 4, 8, 16, 32 px at the image's own
+    resolution (no resize), inside the sky-fit mask eroded by 8 px (or the matte's). Compare a 4k reference with 4k renders; --box limits to a region."""
+    for path in a.imgs:
+        im = Image.open(path).convert('RGB')
+        if a.width and im.width != a.width:
+            im = im.resize((a.width, round(im.height * a.width / im.width)), Image.LANCZOS)
+        rgb = np.asarray(im, dtype=np.float64) / 255.0
+        if a.box:
+            x, y, w, h = [int(v) for v in a.box.split(',')]
+            rgb = rgb[y:y + h, x:x + w]
+        L = rgb @ d0.LUMA
+        if a.matte:
+            mim = Image.open(a.matte).convert('RGB')
+            if mim.width != im.width:
+                mim = mim.resize(im.size, Image.LANCZOS)
+            m = np.asarray(mim, dtype=np.float64)[..., 0] / 255.0 > d0.MATTE_ALPHA
+            if a.box:
+                m = m[y:y + h, x:x + w]
+        else:
+            m = d0.cloud_mask(rgb, 0.07)[0]
+        inner = erode(m, 8)
+        out = {}
+        prev = L
+        for r in (1, 2, 4, 8, 16, 32):
+            b = d0.box_blur(L, r)
+            out[f'b{r}'] = round(float((prev - b)[inner].std()), 4)
+            prev = b
+        print(os.path.basename(path)[:70].ljust(70), ' '.join(f'{k}={v}' for k, v in out.items()), f'(mask {inner.mean():.2f})')
+
+
 def cmd_flicker(a):
     frames = [d0.load_rgb(p, a.width) for p in a.imgs]
     rgb, mask, _, _ = d0.ref_mask(a.imgs[0], a.width)
@@ -157,11 +188,12 @@ def main():
     s = sub.add_parser('stats'); s.add_argument('ref'); s.add_argument('ours', nargs='+'); s.add_argument('--width', type=int, default=960); s.add_argument('--json'); s.add_argument('--matte', help='our matte shot of the same bookmark: exact silhouette instead of the sky fit'); s.add_argument('--rgb', action='store_true', help='append shade / lit RGB')
     s = sub.add_parser('crops'); s.add_argument('out'); s.add_argument('ref'); s.add_argument('ours', nargs='+'); s.add_argument('--box', default='560,180,700,500'); s.add_argument('--scale', type=int, default=1); s.add_argument('--cols', type=int, default=3)
     s = sub.add_parser('flicker'); s.add_argument('imgs', nargs='+'); s.add_argument('--width', type=int, default=960)
+    s = sub.add_parser('bands'); s.add_argument('imgs', nargs='+'); s.add_argument('--width', type=int, default=0); s.add_argument('--box'); s.add_argument('--matte')
     s = sub.add_parser('refof'); s.add_argument('bookmark')
     a = p.parse_args()
     if a.cmd == 'refof':
         print(ref_of(a.bookmark)); return
-    {'stats': cmd_stats, 'crops': cmd_crops, 'flicker': cmd_flicker}[a.cmd](a)
+    {'stats': cmd_stats, 'crops': cmd_crops, 'flicker': cmd_flicker, 'bands': cmd_bands}[a.cmd](a)
 
 
 if __name__ == '__main__':

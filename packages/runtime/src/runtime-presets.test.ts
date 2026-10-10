@@ -19,6 +19,7 @@ describe('looks (D0)', () => {
     expect([d.edgeDarkening, d.glowBoost, d.deepScatter, d.microShadow, d.detailBias, d.wispyBias]).toEqual([0, 0, 0, 0, 0, 0]);
     expect(d.ambientLaw).toBe(1); expect(d.ambientFloor).toBeGreaterThan(0);   // exp(-tauUp) (N3 s128) bounded by the art floor (round 2: no dark core columns)
     expect(cloudLookSettings('decima', 'ultra').temporalAccumulate).toBe(1);
+    expect(d.inScatterProfile).toBe(1);   // round 3: the deck's dimensional profile, not P x S, in the lighting
     // the taps' optical depth per density-metre (densityScale * inlineLightScale) is within a factor 2 of the grid's (densityScale * lightDensityScale)
     const taps = d.densityScale * d.inlineLightScale, grid = d.densityScale * d.lightDensityScale;
     expect(taps / grid).toBeGreaterThan(0.5); expect(taps / grid).toBeLessThan(2);

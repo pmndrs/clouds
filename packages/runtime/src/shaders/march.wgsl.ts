@@ -18,7 +18,8 @@ export const MARCH_RADIANCE_LIMIT = 60000;
  * C1: [3] / [4] log(sun radiance) at the lit part's lowest / the volume's top height (w = that height, m), mixed by sample height (sunRadianceAtHeight),
  * [0].w = height of the earth's shadow (m; below it the sun has set, -1e9 while the sun is up), [2].w = half the width of its penumbra (m),
  * [5] the environment light above the body (the sky reduced with a weight toward the sun), [6] below it (ground bounce + the lower hemisphere),
- * [7] parameters written by the CPU before the dispatch: x = ground albedo, y = the sun weight of [5], z = how far [1]/[2] lean to [5]/[6] (low sun).
+ * [7] parameters written by the CPU before the dispatch: x = ground albedo, y = the sun weight of [5], z = how far [1]/[2] lean to [5]/[6] (low sun),
+ * w = ambientBelowMirror (D1: how far the lower hemisphere [2]/[6] follows the upper one).
  */
 export const SKY_LIGHT_ENTRIES = 8;
 export const SKY_LIGHT_BYTES = SKY_LIGHT_ENTRIES * 16;
@@ -252,6 +253,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               var tauMicro = d.x * frame.microDist * inlineExt;
               if (microOn && sdf > -MICRO_DEPTH) { tauMicro = ${density}(ps + sunMicro, ts, inputs).x * frame.microDist * inlineExt; }
               let microOcc = exp(-frame.microShadow * (tauMicro + tauNear));
+              // D1 round 3: lobe-scale ambient occlusion, one upward sample of the full density (ambientTap metres) in the in-line light units.
+              var ambOcc = 1.0;
+              if (frame.d1.z > 0.0) { ambOcc = exp(-${density}(ps + vec3(0.0, 0.5 * frame.d1.z, 0.0), ts, lightInputs).x * frame.d1.z * inlineExt); }
               let grid = lightGridSampleClamped(ps + sunGrid);
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
@@ -259,7 +263,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // H3: the ambient's up sum is read at the sample itself. The sun tap (48 m toward the sun) landed inside the neighbouring
               // tower on shaded walls and under dense cores, so the ambient darkened by that column, not the cloud above the sample.
               if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
-              else { lit = cloudInScatterMicro(d.y, sdf, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, microOcc); }
+              else {
+                // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.
+                let pLight = select(d.y, sampleModeling(ps, frame.baseMip).x, frame.d1.w > 0.5);
+                lit = cloudInScatterMicro(pLight, sdf, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp * ambOcc, ambientDown * ambOcc, envUp, envDown, microOcc);
+              }
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
               let w = T * (1.0 - stepT);
@@ -342,11 +350,13 @@ fn main() {
   // Ground bounce under the cloud: a Lambertian ground of albedo params.x lit by the sun and the sky, plus the haze of the lower hemisphere.
   let ground = c - up * (atmRadiusKm(c) - atmosphere.bottomRadiusKm) * 1000.0;
   let muS = max(dot(atmosphere.sunDirection, up), 0.0);
-  let envDown = a.lower + params.x * (sunRadianceAt(ground) * (muS / ATM_PI) + a.upper);
+  // D1 round 3 (params.w = ambientBelowMirror): the lower hemisphere follows the upper one, the deck frames' sky below the horizon.
+  let lower = mix(a.lower, a.upper, saturate(params.w));
+  let envDown = lower + params.x * (sunRadianceAt(ground) * (muS / ATM_PI) + a.upper);
   skyLightOut[5] = vec4(envUp, 0.0);
   skyLightOut[6] = vec4(envDown, 0.0);
   // The ambient pair leans to the environment pair as the sun drops (params.z = 0 at and above the body knee: unchanged by day).
   skyLightOut[1] = vec4(mix(a.upper, envUp, params.z), 0.0);
-  skyLightOut[2] = vec4(mix(a.lower, envDown, params.z), pen);
+  skyLightOut[2] = vec4(mix(lower, envDown, params.z), pen);
 }
 `;

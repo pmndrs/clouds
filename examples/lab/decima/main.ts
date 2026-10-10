@@ -80,6 +80,7 @@ try {
   let skyFactorNow = '1,1,1';
   let sunColorNow = '1,1,1';
   let miePhaseNow = 0.8;
+  let mirrorNow = false;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
   //   p101@sun:45:335@look:art@exp:0.3@turb:4@matte@s.densityScale:0.2@cam:ex:ey:ez:tx:ty:tz:vfov
@@ -112,6 +113,10 @@ try {
     // mieg:g = the haze's forward-scatter phase (@pmndrs/sky miePhaseG, 0.8 default): lower spreads the sun halo that Decima's gradient skies lack.
     const mieg = v.has('mieg') ? Number(v.get('mieg')![0]) : (ref.miePhaseG ?? 0.8);
     if (mieg !== miePhaseNow) { sky.setAtmosphere({ miePhaseG: mieg }); miePhaseNow = mieg; }
+    // mirror:1 = the sky mirrored below the horizon (D1 round 3): the deck frames have no ground, their sky gradient continues below the horizon
+    // near white, so Decima's undersides are lit from below; our lower hemisphere was the dark sea.
+    const mirror = v.has('mirror') ? v.get('mirror')![0] === '1' : (ref.mirrorBelowHorizon ?? false);
+    if (mirror !== mirrorNow) { sky.setMirrorBelowHorizon(mirror); mirrorNow = mirror; }
     bridge.matte = matte || v.has('matte');
     renderer.toneMapping = bridge.matte ? NoToneMapping : ACESFilmicToneMapping;
     renderer.toneMappingExposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);
