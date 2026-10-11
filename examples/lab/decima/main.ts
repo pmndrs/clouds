@@ -3,6 +3,7 @@
 // defaults (?look=art). Flagship shell (three WebGPURenderer + @pmndrs/sky, the window.__clouds contract); no ground, as the deck frames show only sky.
 //   ?cloud=parkouring|stormbird   ?bookmark=<ref>   ?look=decima|deck|art   ?quality=ultra   ?exposure=0.35
 //   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2[:ambientWeight]  @skytint:0|1  @ambtint:r:g:b  @suntint:r:g:b  @wind:x:y:z  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
+//   T or the "tune" button: every runtime setting and the scene values as live dials, with presets (tune.ts)
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
 import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
@@ -15,6 +16,7 @@ import { createCloudBridge } from './bridge';
 import { CameraRig } from '../flagship/controls';
 import { createSkyBridge } from '../flagship/sky-bridge';
 import { DECIMA_REFS, DECIMA_REF_NAMES, type DecimaRef } from './refs';
+import { createTuner, type TuneScene } from './tune';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
@@ -86,6 +88,8 @@ try {
   let atmNow = '1.2,1,1';
   let rampNow = '';
   let mirrorNow = false;
+  let tuner: ReturnType<typeof createTuner> | null = null;
+  let sceneNow: TuneScene | null = null;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
   //   p101@sun:45:335@look:art@exp:0.3@turb:4@matte@s.densityScale:0.2@cam:ex:ey:ez:tx:ty:tz:vfov
@@ -165,6 +169,27 @@ try {
     bridge.post.exposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);
     runtime.resetTemporal();
     syncLook();
+    const sunNow = s.length === 2 ? { elevation: s[0], azimuth: s[1] } : ref.sun;
+    sceneNow = {
+      sunElevation: sunNow.elevation, sunAzimuth: sunNow.azimuth, exposure: bridge.post.exposure, turbidity, miePhaseG: mieg,
+      sunColor: [sunc[0], sunc[1], sunc[2]], sunTint: [suntint[0], suntint[1], suntint[2]], ambientTint: [ambtint[0], ambtint[1], ambtint[2]], skyFactor: [skyf[0], skyf[1], skyf[2]],
+      postMode: bridge.post.mode, dither: bridge.post.dither,
+    };
+    tuner?.sync(sceneNow);
+  };
+  // The tuning panel's scene dials: the same setters applyRef uses, with its change trackers kept in step.
+  const applyScene = (t: TuneScene) => {
+    sky.setSunDirection({ elevation: t.sunElevation, azimuth: t.sunAzimuth });
+    if (t.miePhaseG !== miePhaseNow) { sky.setAtmosphere({ miePhaseG: t.miePhaseG }); miePhaseNow = t.miePhaseG; sky.setTurbidity(t.turbidity); }
+    if (t.turbidity !== turbidityNow) { sky.setTurbidity(t.turbidity); turbidityNow = t.turbidity; }
+    if (t.skyFactor.join() !== skyFactorNow) { sky.setSkyLuminanceFactor(t.skyFactor); skyFactorNow = t.skyFactor.join(); }
+    if (t.sunColor.join() !== sunColorNow) { sky.setSunColor(t.sunColor); sunColorNow = t.sunColor.join(); }
+    skyBridge.sunTint = [...t.sunTint];
+    skyBridge.ambientTint = [...t.ambientTint];
+    bridge.post.exposure = t.exposure;
+    bridge.post.mode = (Math.max(0, Math.min(2, t.postMode)) as 0 | 1 | 2);
+    bridge.post.dither = t.dither;
+    runtime.resetTemporal();
   };
 
   const hud = document.getElementById('hud')!;
@@ -175,8 +200,18 @@ try {
   }
   const lookBtn = document.createElement('button');
   const syncLook = () => { lookBtn.textContent = `look: ${look}`; };
-  lookBtn.onclick = () => { look = LOOKS[(LOOKS.indexOf(look) + 1) % LOOKS.length]; applyLook(); syncLook(); };
+  lookBtn.onclick = () => { look = LOOKS[(LOOKS.indexOf(look) + 1) % LOOKS.length]; applyLook(); syncLook(); if (sceneNow) tuner?.sync(sceneNow); };
   syncLook(); panel.appendChild(lookBtn);
+  tuner = createTuner({
+    settings: runtime.settings as unknown as Record<string, unknown>,
+    onSettingChange: () => runtime.resetTemporal(),
+    applyScene,
+    bookmark: () => current.split('@')[0],
+    look: () => look,
+    loadBookmark: name => applyRef(name),
+  });
+  (window as unknown as { __tune: unknown }).__tune = tuner;
+  const tuneBtn = document.createElement('button'); tuneBtn.textContent = 'tune (T)'; tuneBtn.onclick = () => tuner!.toggle(); panel.appendChild(tuneBtn);
 
   const frameData: CloudFrame = {
     view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16),
