@@ -69,6 +69,18 @@ Test (one change, with A/B sheets):
 2. Score the shading (corr and lit IoU) plus the lit faces' R−B / R−G against the frames.
 3. If a low sun explains both the shading and the pink, replace `sunTint` with it. That also tells us what the sky's colour should be.
 
+## Read, not acted on: stochastic texture filtering (2026-10-11)
+
+The owner asked whether NVIDIA's "Filtering After Shading With Stochastic Texture Filtering" (Pharr et al. 2024) helps. The note and the verdict are in `docs/research/sources/stochtex.md`.
+
+**Not a D1 lever.** Its two levers are:
+- better reconstruction of the 8 m grid (tricubic);
+- less prefiltering before the nonlinear erosion (noise mip).
+
+D1 already tried both (`profileFilter` 3, `lightGridFilter` 1, `mipDistanceScale` 0.0005, noise mip 0) and saw no visible change. Decima itself filters before shading with hardware trilinear. Don't spend a round on it.
+
+**Where it does fit:** keep it for the hero-brick / imported-VDB work (no brick borders, one-tap tricubic for coarse sims) and for the performance pass. The two Shadertoys the owner linked (clXXDs, MfyXzV) are still unread: Shadertoy's Cloudflare check blocked the agent's browser.
+
 ## Next steps, in order
 
 1. Judge round 12 (both judges, set l) and record `d1l-results.md`. Round 12 is committed (c6b7ee5, 64d322d, 0fe2cf8); the tree is clean and passing. Fable's own priority list is in D1.md §16, "Resume here": the shade's range (deep-shade fill), the Stormbird lit level (a per-cloud tone curve), a per-octave erosion amplitude for the cauliflower hierarchy, the base fringe and thin material, then the shade artefacts.

@@ -70,6 +70,7 @@ Papers are in `papers/`, Guerrilla's Nubis material in `nubis/` (owner reorganis
 | `nubis-pack/`, `nubis-src/` | authoring | ✅ (P0) | Guerrilla's voxel cloud pack, MIT per the owner; assets in `assets/nubis-voxel-clouds/` |
 | TileableVolumeNoise (GitHub sebh, MIT; web only) | noise shape | 🟦 [sources/tvn.md](sources/tvn.md) | Periodic Worley/Perlin-Worley recipe and the Nyquist rule for our noise bake |
 | psrdnoise (GitHub stegu, MIT; web only) | noise motion | 🟦 [sources/psrd.md](sources/psrd.md) | Periodic simplex with rotating gradients and analytic derivatives: curl and flow noise |
+| `stochtex.pdf` (Pharr, Wronski, Salvi, Fajardo 2024, "Filtering After Shading With Stochastic Texture Filtering"; top of `artifacts/research/`) | perf authoring | ✅ [sources/stochtex.md](sources/stochtex.md) | One random texel per lookup, resolved by TAA/DLSS: cheap tricubic, filter after nonlinear shading, one-read sparse/compressed grids. **Verdict: no D1 parity lever** (tricubic and noise-mip already tested in D1, no change); fits hero bricks / VDBs and the perf pass. The Shadertoys clXXDs and MfyXzV are not yet read |
 | `vdbs/CloudPack/` (EmberGen, 10 VDBs plus `.ember`) | authoring | 🟦 [cloudpack-embergen.md](cloudpack-embergen.md) | Owner-supplied; Z-up; seeding vs our Pyro |
 | `disney-cloud/` | authoring | ✅ (P4-G) | WDAS cloud, CC BY-SA 3.0 |
 | `vdbs/` (bunny, cloud.0001, ...) | authoring | ✅ (P4-H) | Import test assets |
