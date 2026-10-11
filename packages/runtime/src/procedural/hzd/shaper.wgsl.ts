@@ -450,8 +450,70 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   o.depth = coarse * (top - bottom) * 0.25;
   return o;
 }
+// F1 step 3: a sheet layer with its own form (photos §5-7, web18 Table 2, ne22 p.15-16; constants ours). A = (form, bottom m, thickness m,
+// coverage), B = (cell size m, elongation along the wind, extinction 1/m, detail erosion). The noise is the HZD shape texture read with the
+// sheet's own tile in wind-aligned coordinates (stretched B.y : 1 along the wind), under a large-scale coverage field (patches, a density
+// gradient across the sky, merged areas).
+fn hzdSheetSample(A: vec4<f32>, B: vec4<f32>, p: vec3<f32>, t: f32, footprint: f32, full: bool) -> ProcSample {
+  var o: ProcSample;
+  o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
+  let alt = procAltitude(p);
+  let h = (alt - A.y) / A.z;
+  if (h <= 0.0 || h >= 1.0) { return o; }
+  let wind2 = vec2(P.hzWind.x, P.hzWind.y);
+  let xz = p.xz - P.drift.xz * P.hzSpeed.y;
+  let uv = vec2(dot(xz, wind2) / B.y, dot(xz, vec2(-wind2.y, wind2.x)));
+  // Local coverage: the sheet's coverage moved +-0.35 by a field with features of about 40 cells.
+  let c = saturate(A.w + 0.35 * hzdLowField(uv, B.x * 40.0, 0.83));
+  if (c <= 0.0) { return o; }
+  let form = u32(A.x + 0.5);
+  var T = B.x * 10.0;                      // altocumulus: the first Worley octave (G, 10 cells per tile) is one cell
+  if (form != 1u) { T = B.x * 6.0; }
+  let lod = hzdLod(footprint, T, 128.0);
+  let N = textureSampleLevel(procNoiseA, procRepeat, vec3(uv / T, 0.31 + alt / T), lod);
+  var n: f32; var grad: f32;
+  if (form == 1u) {
+    // Altocumulus: jittered Worley cells (inverted Worley fBM: bright cell centres; random feature points give the irregular spacing), flat
+    // base, domed lumpy top: the cell value x a quick rise and a long rounded fall.
+    n = saturate((N.g * 0.7 + N.b * 0.3 - 0.5) / 0.35);
+    grad = smoothstep(0.0, 0.12, h) * smoothstep(1.0, 0.25, h);
+  } else if (form == 2u) {
+    // Altostratus: a mottled sheet (the Perlin-Worley, low contrast), soft at both ends.
+    n = saturate(0.55 + (N.r - 0.5) * 1.2);
+    grad = smoothstep(0.0, 0.35, h) * smoothstep(1.0, 0.45, h);
+  } else {
+    // Stratus deck: flat base, gently lumpy top.
+    n = saturate(0.2 + N.r * 0.5 + N.g * 0.4);
+    grad = smoothstep(0.0, 0.08, h) * smoothstep(1.0, 0.4, h);
+  }
+  var d = hzdRemap(n * grad, 1.0 - c, 1.0, 0.0, 1.0);
+  if (d <= 0.0) { return o; }
+  let coarse = saturate(d);
+  // Detail: wispy toward the base, billowy above (gp7 p.108), within the detail distance.
+  if (full && B.w > 0.0 && t < P.hzFade.z) {
+    let f = hzdDetailFbm(vec3(xz.x, alt, xz.y), h, footprint, false);
+    let modifier = mix(f, 1.0 - f, saturate(h / 0.3));
+    d = hzdRemap(d, modifier * B.w * (1.0 - smoothstep(0.75, 1.25, t / max(P.hzFade.z, 1.0))), 1.0, 0.0, 1.0);
+  }
+  d = saturate(d);
+  if (d <= 0.0) { return o; }
+  o.sigma = d * B.z; o.coarse = coarse; o.h = h; o.depth = coarse * A.z * 0.25;
+  return o;
+}
+// Two samples in one: extinctions add; the rest is extinction-weighted.
+fn hzdMerge(a: ProcSample, b: ProcSample) -> ProcSample {
+  if (b.sigma <= 0.0) { return a; }
+  if (a.sigma <= 0.0) { return b; }
+  let s = a.sigma + b.sigma;
+  let w = b.sigma / s;
+  var o: ProcSample;
+  o.sigma = s; o.coarse = mix(a.coarse, b.coarse, w); o.depth = mix(a.depth, b.depth, w); o.h = mix(a.h, b.h, w);
+  return o;
+}
 fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o = hzdMainSample(p, t, footprint, full, jitter);
+  if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }
+  if (P.hzDeck.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzDeck, P.hzDeck2, p, t, footprint, full)); }
   return o;
 }
 fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }

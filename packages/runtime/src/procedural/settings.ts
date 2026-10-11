@@ -436,8 +436,8 @@ export const HZD_FORM_DEFAULTS = {
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
-  midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 700, midElongation: 1.5, midExtinction: 0.1, midErosion: 0.3,
-  deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.6, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
+  midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
+  deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
   fractusDensity: 0, fractusTrail: 700, fractusDrop: 250, fractusBelly: 0.08, fractusScale: 2, fractusCurl: 2, fractusTaps: 3, fractusDistance: 15000,
 } satisfies Partial<HzdShape>;
 const FORM_CODE = { off: 0, altocumulus: 1, altostratus: 2, stratus: 3 } as const;

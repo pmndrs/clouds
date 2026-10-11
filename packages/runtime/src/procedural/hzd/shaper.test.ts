@@ -179,4 +179,20 @@ describe('HZD shaper F1: types and forms', () => {
     expect(PROC_HZD_WGSL).toContain('pow(g, max(saturate(hzdRemap(h, 0.65, 0.95, 1.0, 1.0 - fl)), 0.05))');      // hag eq 17
     expect(PROC_HZD_WGSL).toContain('saturate(hzdRemap(sqrt(h), 0.4, 0.95, 1.0, 0.2))');                          // hag eq 18
   });
+  it('step 3: two sheet slots with their own forms; each widens the shell only when on', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    const o = PROC_HZD_FORMS_OFFSET;
+    packProceduralParams(s, out);
+    expect(out[o + 20]).toBe(0);
+    expect(out[o + 28]).toBe(0);
+    s.hzd.midForm = 'altocumulus'; s.hzd.deckForm = 'stratus';
+    expect(packProceduralParams(s, out)).toEqual([600, 5850]);              // deck 600 + 400 below the layer, Ac 5400 + 450 above
+    expect(Array.from(out.subarray(o + 20, o + 24))).toEqual([1, 5400, 450, 0.5].map(Math.fround));
+    expect(out[o + 28]).toBe(3);
+    s.hzd.midForm = 'altostratus';
+    packProceduralParams(s, out);
+    expect(out[o + 20]).toBe(2);
+    expect(PROC_HZD_WGSL).toContain('if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }');
+  });
 });
