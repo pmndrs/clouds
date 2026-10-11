@@ -1,10 +1,10 @@
 {
-  "url": "http://127.0.0.1:49205/decima/?cloud=parkouring&clean=1",
+  "url": "http://127.0.0.1:55120/decima/?cloud=parkouring&clean=1",
   "size": [
     1920,
     1080
   ],
-  "startedAt": "2026-10-10T23:04:25.240Z",
+  "startedAt": "2026-10-11T00:07:45.949Z",
   "shots": [
     {
       "name": "p101@look:decima",
@@ -23,15 +23,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.08945,
-          "marchNear": 1.0211608166666666,
-          "marchFar": 17.407518433333337,
-          "shadowMap": 0.5411307857142856,
-          "composite": 3.435694066666668,
-          "dome": 0.23288121666666678,
-          "resolveNear": 0.5452777,
-          "resolveFar": 3.242837916666667
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.075241,
+          "marchNear": 1.23750945,
+          "marchFar": 20.243215400000015,
+          "shadowMap": 0.5191212941176471,
+          "composite": 4.7861499499999995,
+          "dome": 0.33547045,
+          "resolveNear": 1.230542383333333,
+          "resolveFar": 3.3805955999999995
         },
         "frameMs": {},
         "renderSize": [
@@ -61,7 +61,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -80,7 +80,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -152,6 +152,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -175,15 +176,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.08945,
-          "marchNear": 1.090915983333333,
-          "marchFar": 16.645475933333334,
-          "shadowMap": 0.5411307857142856,
-          "composite": 4.476818466666666,
-          "dome": 0.2338541,
-          "resolveNear": 0.9130514333333333,
-          "resolveFar": 2.3693069666666657
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.075241,
+          "marchNear": 1.5768064166666664,
+          "marchFar": 20.777902366666662,
+          "shadowMap": 0.5191212941176471,
+          "composite": 4.494306366666666,
+          "dome": 0.2761451666666667,
+          "resolveNear": 1.2520733333333334,
+          "resolveFar": 3.2780797500000016
         },
         "frameMs": {},
         "renderSize": [
@@ -213,7 +214,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -232,7 +233,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -304,6 +305,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -327,15 +329,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.14204533333333333,
-          "marchNear": 1.1278008333333331,
-          "marchFar": 17.197882099999998,
-          "shadowMap": 0.7085499687499999,
-          "composite": 4.536116899999998,
-          "dome": 0.3483295333333334,
-          "resolveNear": 0.9013501333333332,
-          "resolveFar": 2.451928
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.4468668571428571,
+          "marchNear": 0.8294810333333335,
+          "marchFar": 19.06013628333334,
+          "shadowMap": 0.48560800000000015,
+          "composite": 4.06178665,
+          "dome": 0.30313489999999993,
+          "resolveNear": 1.256485733333334,
+          "resolveFar": 3.396121033333335
         },
         "frameMs": {},
         "renderSize": [
@@ -365,7 +367,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -456,6 +458,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -479,15 +482,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.14204533333333333,
-          "marchNear": 1.6417999333333333,
-          "marchFar": 16.657536166666663,
-          "shadowMap": 0.7085499687499999,
-          "composite": 3.6542163166666666,
-          "dome": 0.3219889499999999,
-          "resolveNear": 0.9013501333333332,
-          "resolveFar": 2.451928
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.4468668571428571,
+          "marchNear": 1.6954699666666666,
+          "marchFar": 18.547352349999997,
+          "shadowMap": 0.48560800000000015,
+          "composite": 3.6422292499999993,
+          "dome": 0.2590375833333332,
+          "resolveNear": 1.256485733333334,
+          "resolveFar": 3.396121033333335
         },
         "frameMs": {},
         "renderSize": [
@@ -517,7 +520,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -608,6 +611,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -631,15 +635,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.3766414545454545,
-          "marchNear": 1.17271385,
-          "marchFar": 19.39637773333334,
-          "shadowMap": 0.7082630799999999,
-          "composite": 3.4757011333333327,
-          "dome": 0.22807576666666668,
-          "resolveNear": 0.9013501333333332,
-          "resolveFar": 2.451928
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.28315825,
+          "marchNear": 0.9478029,
+          "marchFar": 24.621386733333335,
+          "shadowMap": 0.42897933333333355,
+          "composite": 4.059790133333332,
+          "dome": 0.2938163333333334,
+          "resolveNear": 1.256485733333334,
+          "resolveFar": 3.396121033333335
         },
         "frameMs": {},
         "renderSize": [
@@ -669,7 +673,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -760,6 +764,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -783,15 +788,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.3766414545454545,
-          "marchNear": 1.5678997333333338,
-          "marchFar": 20.396050416666665,
-          "shadowMap": 0.7082630799999999,
-          "composite": 4.312715349999999,
-          "dome": 0.22403411666666673,
-          "resolveNear": 0.9013501333333332,
-          "resolveFar": 2.451928
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.28315825,
+          "marchNear": 1.3891718166666667,
+          "marchFar": 22.005005933333333,
+          "shadowMap": 0.42897933333333355,
+          "composite": 3.9928863166666657,
+          "dome": 0.24319471666666667,
+          "resolveNear": 1.256485733333334,
+          "resolveFar": 3.396121033333335
         },
         "frameMs": {},
         "renderSize": [
@@ -821,7 +826,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -912,6 +917,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -935,15 +941,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.3186697333333333,
-          "marchNear": 0.9670268999999998,
-          "marchFar": 16.79269303333333,
-          "shadowMap": 0.6734925,
-          "composite": 3.7894469999999996,
-          "dome": 0.3488759166666666,
-          "resolveNear": 0.68809775,
-          "resolveFar": 1.903871633333334
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.509077625,
+          "marchNear": 1.26217945,
+          "marchFar": 19.60221889999999,
+          "shadowMap": 0.5452366999999999,
+          "composite": 4.035496116666667,
+          "dome": 0.39957790000000004,
+          "resolveNear": 0.9454523166666667,
+          "resolveFar": 2.6778646166666666
         },
         "frameMs": {},
         "renderSize": [
@@ -973,7 +979,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -992,7 +998,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -1064,6 +1070,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1087,15 +1094,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.3186697333333333,
-          "marchNear": 1.3311561333333335,
-          "marchFar": 14.782307216666664,
-          "shadowMap": 0.6734925,
-          "composite": 4.201327549999999,
-          "dome": 0.45040341666666667,
-          "resolveNear": 0.8891023666666669,
-          "resolveFar": 2.4859190833333336
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.509077625,
+          "marchNear": 1.6839146666666671,
+          "marchFar": 18.272196250000004,
+          "shadowMap": 0.5452366999999999,
+          "composite": 4.068149083333334,
+          "dome": 0.23965951666666657,
+          "resolveNear": 1.0205344666666667,
+          "resolveFar": 2.994125083333333
         },
         "frameMs": {},
         "renderSize": [
@@ -1125,7 +1132,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -1144,7 +1151,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -1216,6 +1223,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1239,15 +1247,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.31688449999999996,
-          "marchNear": 1.3529661166666669,
-          "marchFar": 16.309035150000003,
-          "shadowMap": 0.42687053333333336,
-          "composite": 2.995059949999999,
-          "dome": 0.18576315,
-          "resolveNear": 0.9293462,
-          "resolveFar": 2.7431568
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.4106320952380952,
+          "marchNear": 1.4197651833333333,
+          "marchFar": 18.354724766666664,
+          "shadowMap": 0.5582692666666665,
+          "composite": 3.902016883333333,
+          "dome": 0.21954459999999998,
+          "resolveNear": 0.9283733166666667,
+          "resolveFar": 3.035499466666667
         },
         "frameMs": {},
         "renderSize": [
@@ -1277,7 +1285,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -1368,6 +1376,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1391,15 +1400,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.31688449999999996,
-          "marchNear": 1.1757293999999996,
-          "marchFar": 16.754650000000005,
-          "shadowMap": 0.42687053333333336,
-          "composite": 2.3078765499999987,
-          "dome": 0.22244938333333333,
-          "resolveNear": 0.9293462,
-          "resolveFar": 2.7431568
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.4106320952380952,
+          "marchNear": 1.6235926333333333,
+          "marchFar": 19.143030000000007,
+          "shadowMap": 0.5582692666666665,
+          "composite": 3.466928433333334,
+          "dome": 0.31924714999999987,
+          "resolveNear": 0.9283733166666667,
+          "resolveFar": 3.035499466666667
         },
         "frameMs": {},
         "renderSize": [
@@ -1429,7 +1438,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -1520,6 +1529,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1543,15 +1553,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.29818192,
-          "marchNear": 1.2747791999999998,
-          "marchFar": 18.59871201666667,
-          "shadowMap": 0.28039080000000005,
-          "composite": 3.797222633333333,
-          "dome": 0.23165616666666658,
-          "resolveNear": 0.9293462,
-          "resolveFar": 2.7431568
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3531321153846153,
+          "marchNear": 1.1354243666666666,
+          "marchFar": 18.584871983333336,
+          "shadowMap": 0.5445597833333335,
+          "composite": 4.501718716666667,
+          "dome": 0.37136859999999994,
+          "resolveNear": 0.9283733166666667,
+          "resolveFar": 3.035499466666667
         },
         "frameMs": {},
         "renderSize": [
@@ -1581,7 +1591,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -1672,6 +1682,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1695,15 +1706,15 @@
         "sunAzimuth": 210,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.29818192,
-          "marchNear": 1.270675733333333,
-          "marchFar": 20.58286233333333,
-          "shadowMap": 0.28039080000000005,
-          "composite": 3.3995702666666685,
-          "dome": 0.3160840666666668,
-          "resolveNear": 0.9293462,
-          "resolveFar": 2.7431568
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3531321153846153,
+          "marchNear": 1.6225293833333334,
+          "marchFar": 21.699311933333334,
+          "shadowMap": 0.5445597833333335,
+          "composite": 3.550839516666666,
+          "dome": 0.31206745,
+          "resolveNear": 0.9283733166666667,
+          "resolveFar": 3.035499466666667
         },
         "frameMs": {},
         "renderSize": [
@@ -1733,7 +1744,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -1824,6 +1835,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1847,15 +1859,15 @@
         "sunAzimuth": 240,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.45364423333333337,
-          "marchNear": 1.1334437333333331,
-          "marchFar": 10.05117026666667,
-          "shadowMap": 0.19578509999999996,
-          "composite": 3.2178857500000007,
-          "dome": 0.23620955,
-          "resolveNear": 1.30231145,
-          "resolveFar": 2.239661
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.34112646666666663,
+          "marchNear": 0.9943446666666667,
+          "marchFar": 11.463550099999999,
+          "shadowMap": 0.5433542666666666,
+          "composite": 3.6544024833333335,
+          "dome": 0.21283001666666662,
+          "resolveNear": 0.9564109666666666,
+          "resolveFar": 4.0984345499999995
         },
         "frameMs": {},
         "renderSize": [
@@ -1885,7 +1897,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -1904,7 +1916,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -1976,6 +1988,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -1999,15 +2012,15 @@
         "sunAzimuth": 240,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.45364423333333337,
-          "marchNear": 1.5482486166666665,
-          "marchFar": 9.978953416666666,
-          "shadowMap": 0.19578509999999996,
-          "composite": 2.701315683333334,
-          "dome": 0.3234479166666667,
-          "resolveNear": 0.9681810666666668,
-          "resolveFar": 2.399144516666667
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.34112646666666663,
+          "marchNear": 1.6155080666666666,
+          "marchFar": 10.807778916666667,
+          "shadowMap": 0.5433542666666666,
+          "composite": 2.4895320999999995,
+          "dome": 0.2902094,
+          "resolveNear": 1.5166927666666663,
+          "resolveFar": 2.4619061499999995
         },
         "frameMs": {},
         "renderSize": [
@@ -2037,7 +2050,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -2056,7 +2069,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -2128,6 +2141,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -2151,15 +2165,15 @@
         "sunAzimuth": 240,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.5256774857142857,
-          "marchNear": 0.9254686166666667,
-          "marchFar": 9.85755371666667,
-          "shadowMap": 0.2778755,
-          "composite": 3.7437700333333326,
-          "dome": 0.2586440499999999,
-          "resolveNear": 1.0354120500000001,
-          "resolveFar": 2.16326205
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.314419,
+          "marchNear": 1.0573748333333333,
+          "marchFar": 10.10857558333333,
+          "shadowMap": 0.3367900833333333,
+          "composite": 4.89846625,
+          "dome": 0.32598378333333333,
+          "resolveNear": 1.5174365333333333,
+          "resolveFar": 2.0288898166666667
         },
         "frameMs": {},
         "renderSize": [
@@ -2189,7 +2203,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -2280,6 +2294,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -2303,15 +2318,15 @@
         "sunAzimuth": 240,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.5256774857142857,
-          "marchNear": 1.0580136500000001,
-          "marchFar": 8.521412416666665,
-          "shadowMap": 0.2778755,
-          "composite": 3.2691812999999987,
-          "dome": 0.2047427166666666,
-          "resolveNear": 1.0354120500000001,
-          "resolveFar": 2.16326205
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.314419,
+          "marchNear": 1.0868257333333338,
+          "marchFar": 9.387352583333332,
+          "shadowMap": 0.3367900833333333,
+          "composite": 2.881210166666667,
+          "dome": 0.21794106666666666,
+          "resolveNear": 1.5174365333333333,
+          "resolveFar": 2.0288898166666667
         },
         "frameMs": {},
         "renderSize": [
@@ -2341,7 +2356,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -2432,6 +2447,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -2455,15 +2471,15 @@
         "sunAzimuth": 240,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.463308375,
-          "marchNear": 0.7989899333333332,
-          "marchFar": 11.045468283333337,
-          "shadowMap": 0.30599735000000006,
-          "composite": 3.947103599999999,
-          "dome": 0.24105953333333335,
-          "resolveNear": 1.0354120500000001,
-          "resolveFar": 2.16326205
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3174247368421052,
+          "marchNear": 0.6822451166666668,
+          "marchFar": 10.626855166666667,
+          "shadowMap": 0.3268290666666668,
+          "composite": 3.858400116666666,
+          "dome": 0.22695484999999996,
+          "resolveNear": 1.5174365333333333,
+          "resolveFar": 2.0288898166666667
         },
         "frameMs": {},
         "renderSize": [
@@ -2493,7 +2509,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -2584,6 +2600,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -2607,15 +2624,15 @@
         "sunAzimuth": 240,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.463308375,
-          "marchNear": 1.0545360333333333,
-          "marchFar": 11.73093776666667,
-          "shadowMap": 0.30599735000000006,
-          "composite": 3.364057866666666,
-          "dome": 0.22978259999999995,
-          "resolveNear": 1.0354120500000001,
-          "resolveFar": 2.16326205
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3174247368421052,
+          "marchNear": 1.6139313999999996,
+          "marchFar": 11.826145383333335,
+          "shadowMap": 0.3268290666666668,
+          "composite": 2.955907616666666,
+          "dome": 0.23905059999999995,
+          "resolveNear": 1.5174365333333333,
+          "resolveFar": 2.0288898166666667
         },
         "frameMs": {},
         "renderSize": [
@@ -2645,7 +2662,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -2736,6 +2753,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -2759,15 +2777,15 @@
         "sunAzimuth": 100,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.41733702222222224,
-          "marchNear": 1.0070367666666669,
-          "marchFar": 14.972818033333336,
-          "shadowMap": 0.48114056666666677,
-          "composite": 3.4025840666666665,
-          "dome": 0.2996953833333334,
-          "resolveNear": 1.0510679833333332,
-          "resolveFar": 2.6603115166666664
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3241783571428571,
+          "marchNear": 1.171060683333334,
+          "marchFar": 18.668445116666664,
+          "shadowMap": 0.49187159999999985,
+          "composite": 1.8127744333333327,
+          "dome": 0.20486365000000004,
+          "resolveNear": 0.9748170166666671,
+          "resolveFar": 2.6967852833333343
         },
         "frameMs": {},
         "renderSize": [
@@ -2797,7 +2815,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -2816,7 +2834,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -2888,6 +2906,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -2911,15 +2930,15 @@
         "sunAzimuth": 100,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.41733702222222224,
-          "marchNear": 0.8493563999999999,
-          "marchFar": 14.261292849999993,
-          "shadowMap": 0.48114056666666677,
-          "composite": 4.113716383333333,
-          "dome": 0.2607306333333333,
-          "resolveNear": 0.7717611166666666,
-          "resolveFar": 2.077946700000001
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3241783571428571,
+          "marchNear": 1.569700383333334,
+          "marchFar": 16.60215703333333,
+          "shadowMap": 0.49187159999999985,
+          "composite": 2.4902439000000003,
+          "dome": 0.28129225,
+          "resolveNear": 1.1066672000000002,
+          "resolveFar": 2.043468816666666
         },
         "frameMs": {},
         "renderSize": [
@@ -2949,7 +2968,7 @@
             ]
           },
           "densityScale": 2,
-          "lightDensityScale": 0.031,
+          "lightDensityScale": 0.045,
           "msStrength": 0.7,
           "ambientStrength": 0.7,
           "silverStrength": 0.4,
@@ -2968,7 +2987,7 @@
           "detailTypeOverride": -1,
           "typeFromScale": 0,
           "microShadow": 2,
-          "detailBias": 0,
+          "detailBias": 0.1,
           "ambientLaw": 1,
           "bodySunFloor": 0.05,
           "bodySunKnee": 0.4,
@@ -3040,6 +3059,7 @@
           "microDist2": 8,
           "microShadow2": 1,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -3063,15 +3083,15 @@
         "sunAzimuth": 100,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.4036080784313726,
-          "marchNear": 1.182090283333333,
-          "marchFar": 15.439470649999997,
-          "shadowMap": 0.46293815,
-          "composite": 3.057202599999999,
-          "dome": 0.2608613166666667,
-          "resolveNear": 0.7938975833333335,
-          "resolveFar": 2.0303904666666672
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3070738913043478,
+          "marchNear": 1.2673480166666666,
+          "marchFar": 18.14870981666666,
+          "shadowMap": 0.48291201666666644,
+          "composite": 4.4319303166666675,
+          "dome": 0.26244531666666665,
+          "resolveNear": 1.0349982500000003,
+          "resolveFar": 2.24557335
         },
         "frameMs": {},
         "renderSize": [
@@ -3101,7 +3121,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -3192,6 +3212,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -3215,15 +3236,15 @@
         "sunAzimuth": 100,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.4036080784313726,
-          "marchNear": 1.0240795666666667,
-          "marchFar": 13.8824813,
-          "shadowMap": 0.46293815,
-          "composite": 4.914420133333334,
-          "dome": 0.2525849333333334,
-          "resolveNear": 0.7938975833333335,
-          "resolveFar": 2.0303904666666672
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.3070738913043478,
+          "marchNear": 1.5167560500000004,
+          "marchFar": 13.484629550000003,
+          "shadowMap": 0.48291201666666644,
+          "composite": 3.511919283333333,
+          "dome": 0.24163588333333333,
+          "resolveNear": 1.0349982500000003,
+          "resolveFar": 2.24557335
         },
         "frameMs": {},
         "renderSize": [
@@ -3253,7 +3274,7 @@
             ]
           },
           "densityScale": 0.6,
-          "lightDensityScale": 0.1,
+          "lightDensityScale": 0.045,
           "msStrength": 1,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -3344,6 +3365,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -3367,15 +3389,15 @@
         "sunAzimuth": 100,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.39764037500000005,
-          "marchNear": 1.0207559999999998,
-          "marchFar": 17.139703133333335,
-          "shadowMap": 0.5250914,
-          "composite": 4.14224025,
-          "dome": 0.2207827333333333,
-          "resolveNear": 0.7938975833333335,
-          "resolveFar": 2.0303904666666672
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.354861,
+          "marchNear": 1.1102490666666667,
+          "marchFar": 19.266537900000003,
+          "shadowMap": 0.5088553666666666,
+          "composite": 3.3434405999999997,
+          "dome": 0.3205972500000001,
+          "resolveNear": 1.0349982500000003,
+          "resolveFar": 2.24557335
         },
         "frameMs": {},
         "renderSize": [
@@ -3405,7 +3427,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -3496,6 +3518,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
@@ -3519,15 +3542,15 @@
         "sunAzimuth": 100,
         "quality": "ultra",
         "gpuMs": {
-          "lightGridReduce": 0.06416,
-          "lightGrid": 0.39764037500000005,
-          "marchNear": 1.3108986666666669,
-          "marchFar": 17.292628499999996,
-          "shadowMap": 0.5250914,
-          "composite": 3.90187025,
-          "dome": 0.35129326666666677,
-          "resolveNear": 0.7938975833333335,
-          "resolveFar": 2.0303904666666672
+          "lightGridReduce": 0.049911,
+          "lightGrid": 0.354861,
+          "marchNear": 1.1804443333333332,
+          "marchFar": 18.78646401666667,
+          "shadowMap": 0.5088553666666666,
+          "composite": 4.3071231333333335,
+          "dome": 0.2212611,
+          "resolveNear": 1.0349982500000003,
+          "resolveFar": 2.24557335
         },
         "frameMs": {},
         "renderSize": [
@@ -3557,7 +3580,7 @@
             ]
           },
           "densityScale": 0.3,
-          "lightDensityScale": 1.2,
+          "lightDensityScale": 0.045,
           "msStrength": 1.4,
           "ambientStrength": 1,
           "silverStrength": 0.4,
@@ -3648,6 +3671,7 @@
           "microDist2": 0,
           "microShadow2": 0,
           "directProfile": 0,
+          "directRimDepth": 0,
           "noiseScale": 0.01,
           "windCompensate": 0,
           "historyFilter": 0
