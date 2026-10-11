@@ -79,7 +79,8 @@ Test (one change, with A/B sheets):
    - narrower rounds (two or three changes)
 
    Agree the budget with the owner before restarting.
-4. Continue D1 from the open list above. When parity is "good enough" by the owner's eye, recommend NVDF-volume defaults from the decima look and resume the queued work:
+4. Round H is complete (H5 accepted 2026-10-11). The rest of the top 20 is planned on the board as W1, W2, L2, A4, S7 and R2 (section "Next from the top 20"). They are gated on D1 and the owner's go.
+5. Continue D1 from the open list above. When parity is "good enough" by the owner's eye, recommend NVDF-volume defaults from the decima look and resume the queued work:
    - M-like material for imported VDBs
    - the HZD sky: fractus skirts per body from the belly line, held until the renderer baseline is right
    - fog: procedural and SDF
