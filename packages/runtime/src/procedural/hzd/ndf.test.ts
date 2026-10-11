@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HZD_NDF_DEFAULTS, hzdNdfKey } from '../settings';
+import { defaultProceduralSettings, HZD_NDF_DEFAULTS, hzdNdfKey, packProceduralParams, PROC_PARAM_FLOATS } from '../settings';
 import { HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL } from './ndf.wgsl';
 import { hzdNdfImageKey, packHzdNdfGen } from './ndf';
 
@@ -28,5 +28,22 @@ describe('W1 weather map (NDF generator)', () => {
   it('authored maps: image centre at the world origin, heights kept ordered', () => {
     expect(HZD_NDF_IMAGE_WGSL).toContain('/ vec2<f32>(size) + 0.5');
     expect(HZD_NDF_IMAGE_WGSL).toContain('max(b.g, min(b.r + 1.0 / 255.0, 1.0))');
+  });
+});
+
+describe('W1 map-advection policy', () => {
+  const speeds = (m: 'drift' | 'static' | 'rigid' | 'shape' | 'detail') => {
+    const s = defaultProceduralSettings('hzd');
+    Object.assign(s.hzd, { ndfMotion: m, ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 0.8, upwardBias: 0.1 });
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    return [out[140], out[141], out[142], out[139]].map(v => +v.toFixed(3));   // map, shape, detail, upward bias
+  };
+  it('packs map / shape / detail speeds per policy (anchored noises take the map speed)', () => {
+    expect(speeds('drift')).toEqual([0.5, 1, 0.8, 0.1]);
+    expect(speeds('static')).toEqual([0, 1, 0.8, 0.1]);
+    expect(speeds('rigid')).toEqual([0.5, 0.5, 0.5, 0]);
+    expect(speeds('shape')).toEqual([0.5, 0.5, 0.8, 0.1]);
+    expect(speeds('detail')).toEqual([0.5, 1, 0.5, 0.1]);
   });
 });

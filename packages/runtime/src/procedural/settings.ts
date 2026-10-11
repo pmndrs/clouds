@@ -175,9 +175,15 @@ export interface HzdShape {
   windDirection: [number, number];
   cloudTopOffset: number;
   upwardBias: number;
-  /** W1 (owner 2026-10-10): 'drift' (default) moves the NDF with the wind offset times `ndfDrift`, 'static' keeps it fixed (Nubis/HZD: noise-only
-   *  scroll). The shape and detail noise scroll at their own speeds (gp7 p.109: "each noise its own speed"; values ours). */
-  ndfMotion: 'drift' | 'static';
+  /** W1 map-advection policy (weather.md §5, top-20 rank 20). Speeds are fractions of the wind offset; "anchored" = the noise moves with the
+   *  map (SD7's volume-local anchor: the detail is carried with the cloud), "free" = it scrolls at its own `shapeSpeed` / `detailSpeed`
+   *  (gp7 p.109: "each noise its own speed").
+   *    'drift'  (default, owner 2026-10-10) the map moves at `ndfDrift`, both noises free: slow weather, noise flowing over it.
+   *    'static' Nubis/HZD (n17 p.45, nut s15, ne22 p.37): the map stays, both noises free: formations persist, detail streams through them.
+   *    'rigid'  Häggström (hag p.34): map, shape and detail all at `ndfDrift`, no upward bias: clouds carried whole, nothing evolves.
+   *    'shape'  split: map and shape anchored, detail free (detailSpeed 0 = the detail stays in the world while the cloud moves through it).
+   *    'detail' split, the reverse: map and detail anchored (the detail rides with the cloud), shape free (the forms evolve as they move). */
+  ndfMotion: 'drift' | 'static' | 'rigid' | 'shape' | 'detail';
   ndfDrift: number;
   shapeSpeed: number;
   detailSpeed: number;
@@ -461,8 +467,11 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.coverageBias, hz.typeBias, hz.coverageMultiply ? 1 : 0, hz.erosionLaw === 'hag' ? 1 : 0], 128);
   out.set([hz.baseFadeMin, Math.max(hz.baseFadeHeight, 1e-3), hz.detailDistance, hz.mipBias], 132);
   const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
-  out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
-  out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : hz.typeBlend === 'hybrid' ? 2 : 0], 140);
+  out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.ndfMotion === 'rigid' ? 0 : hz.upwardBias], 136);
+  // W1 advection policy -> hzSpeed (map, shape, detail): anchored noises take the map's speed.
+  const m = hz.ndfMotion, mapSpeed = m === 'static' ? 0 : hz.ndfDrift;
+  const shapeSpeed = m === 'rigid' || m === 'shape' ? mapSpeed : hz.shapeSpeed, detailSpeed = m === 'rigid' || m === 'detail' ? mapSpeed : hz.detailSpeed;
+  out.set([mapSpeed, shapeSpeed, detailSpeed, hz.typeBlend === 'curves' ? 1 : hz.typeBlend === 'hybrid' ? 2 : 0], 140);
   out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, hz.detailCubicDistance], 144);
   out.set([hz.ringStart, Math.max(hz.ringEnd, hz.ringStart + 1), hz.ringCoverage, hz.ringType], 148);
   out.set([hz.shapeContrast, hz.erosionStrength, Math.max(hz.wispyHeight, 1e-3), hz.erosionOrder === 'hfw' ? 1 : 0], 152);

@@ -16,7 +16,7 @@ import { HZD_NOISE_LIB_WGSL, HZD_WORLEY_SCALE } from './noise.wgsl';
 /** The sampling helper. Needs `procWeather: texture_2d_array<f32>`, `procRepeat` and `P` (ProcParams). Every HZD-era shaper reads the NDF through it. */
 export const HZD_NDF_SAMPLE_WGSL = /* wgsl */ `
 struct NdfSample { coverage: f32, topType: f32, bottomType: f32, minHeight: f32, maxHeight: f32 }
-// W1 motion: the map moves with the wind offset times P.hzSpeed.x ('drift', default 0.5) or stays put (0, 'static': Nubis/HZD, noise-only scroll).
+// W1 motion: the map moves with the wind offset times P.hzSpeed.x (0 for 'static'; settings.ts ndfMotion packs the policy into hzSpeed).
 fn ndfOffset() -> vec2<f32> { return P.drift.xz * P.hzSpeed.x; }
 fn ndfSample(xz: vec2<f32>) -> NdfSample {
   let uv = (xz - ndfOffset()) / P.hzLayer.z;
