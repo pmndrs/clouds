@@ -19,7 +19,7 @@ The project is paused until next week: the weekly model limit was reached (it re
   4. **Florets:** the geometry is there. They lacked floret-scale sun occlusion: the micro taps at 4 m and 4–8 m, plus the glow occluded by the up-rez excess. Hollows come from erosion (`detailBias` 0.1), not from occlusion.
   5. The sky: the frames' horizon band is painted as a smooth 8-stop ramp, in the sky only. In the ambient it over-lit the bellies.
   6. Colour: a per-scene sun tint apart from the sky (`sunTint`) gives the Parkouring pink. On Stormbird the lit faces sit on the ACES shoulder, which limits the tint.
-  7. Asset time is ruled out: the NVDF has no evolution.
+  7. Asset time: the NVDF has no evolution, and the noise scroll never changes the leg, the holes or the extra fragment. So the frames show a different authoring state of the asset than the pack we have, and silhouettes should be scored with that in mind.
 - **Open, in order** (also the judges' gaps):
   1. Cauliflower hierarchy: domes on domes down to 1–3 px grain, with hollows. Our relief is still single-scale, and the frames carry about 30 percent more 1–3 px grain even through matched JPEG.
   2. Stormbird lit level and pink (the ACES shoulder).
@@ -30,7 +30,7 @@ The project is paused until next week: the weekly model limit was reached (it re
 
 ## Next steps, in order
 
-1. Judge round 12 (both judges, set l) and record `d1l-results.md`.
+1. Judge round 12 (both judges, set l) and record `d1l-results.md`. Round 12 is committed (c6b7ee5, 64d322d, 0fe2cf8); the tree is clean and passing. Fable's own priority list is in D1.md §16, "Resume here": the shade's range (deep-shade fill), the Stormbird lit level (a per-cloud tone curve), a per-octave erosion amplitude for the cauliflower hierarchy, the base fringe and thin material, then the shade artefacts.
 2. Ask the owner whether they want to look at the latest crops themselves. Offered three times, unanswered: the judges have been split by half a point for several rounds.
 3. **Cost:** Fable used the week's limit. D1 rounds are about 0.4–1 M tokens each, plus about 0.4 M per pair of judges. Consider:
    - Opus for D1 implementation rounds, with Fable kept for judging and for specific hard problems
