@@ -1,11 +1,26 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
+import type { Plugin } from 'vite';
+// /decima (no trailing slash) used to fall through to the gallery: redirect a bare page folder to its index.
+const slashRedirect = (): Plugin => ({
+  name: 'lab-slash-redirect',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const path = (req.url ?? '').split('?')[0];
+      if (path.length > 1 && !path.endsWith('/') && !path.includes('.') && !path.startsWith('/@') && !path.startsWith('/__')
+        && existsSync(fileURLToPath(new URL(`./examples/lab${path}/index.html`, import.meta.url)))) {
+        res.statusCode = 302; res.setHeader('location', `${path}/${(req.url ?? '').slice(path.length)}`); res.end(); return;
+      }
+      next();
+    });
+  },
+});
 import { cloudPhotos } from './examples/lab/compare/photos-plugin';
 import { decimaRefs } from './examples/lab/decima/refs-plugin';
 export default defineConfig({
   root: 'examples/lab',
-  plugins: [cloudPhotos(fileURLToPath(new URL('.', import.meta.url))), decimaRefs(fileURLToPath(new URL('.', import.meta.url)))],
+  plugins: [slashRedirect(), cloudPhotos(fileURLToPath(new URL('.', import.meta.url))), decimaRefs(fileURLToPath(new URL('.', import.meta.url)))],
   resolve: { alias: {
     '@clouds/legacy-three/layers': fileURLToPath(new URL('./packages/legacy/three/src/layers/index.ts', import.meta.url)),
     '@clouds/legacy-three/environment': fileURLToPath(new URL('./packages/legacy/three/src/environment/index.ts', import.meta.url)),
