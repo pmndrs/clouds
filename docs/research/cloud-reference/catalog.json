@@ -1,0 +1,1209 @@
+{
+  "schema": "webgpuclouds.cloud-reference/1",
+  "updated": "2026-10-09",
+  "about": "Cloud reference catalog for shaping and lighting work. One entry per photo folder. Altitudes are typical mid-latitude cloud-base heights above ground. 'size' uses the WMO hand rule: the apparent size of one cloud element held against the sky at arm's length, measured more than 30 degrees above the horizon. Personal photos live outside git in artifacts/research/cloud-photos/<id>/ (main checkout); Wikimedia Commons references are listed per entry with license and source page.",
+  "photoRoot": "artifacts/research/cloud-photos",
+  "viewTags": {
+    "ground": "Shot from the ground looking up or out.",
+    "ground-horizon": "From the ground, cloud near the horizon, so depth and layering read.",
+    "aerial-above": "From a plane or mountain, looking down on cloud tops.",
+    "aerial-level": "From a plane at cloud height, looking across the layer.",
+    "aerial-below": "From a plane, looking up at a higher layer.",
+    "orbit": "From space or very high altitude."
+  },
+  "timeTags": {
+    "day": "Sun well above the horizon.",
+    "golden": "Sun under about 10 degrees, warm light.",
+    "sunset": "Sun at or just under the horizon. Clouds lit from below.",
+    "blue-hour": "Sun 4 to 8 degrees below the horizon. Only high cloud still lit.",
+    "night": "Moonlight, city light or lightning."
+  },
+  "types": [
+    {
+      "id": "cumulus-humilis",
+      "name": "Fair-weather cumulus",
+      "latin": "Cumulus humilis",
+      "family": "low",
+      "altitudeM": [
+        500,
+        2000
+      ],
+      "thicknessM": [
+        100,
+        800
+      ],
+      "size": "Each cloud is about a fist or larger at arm's length.",
+      "spotIt": "Small, separate cotton puffs with flat grey bottoms that all sit at the same height. Wider than they are tall. Lots of blue sky between them. Typical late-morning summer sky.",
+      "confusedWith": [
+        {
+          "id": "cumulus-mediocris",
+          "tell": "Mediocris is about as tall as it is wide. Humilis is clearly flattened."
+        },
+        {
+          "id": "stratocumulus",
+          "tell": "Stratocumulus cells touch and form a sheet. Humilis puffs are separate."
+        }
+      ],
+      "shape": {
+        "silhouette": "Flattened dome on a flat base.",
+        "edges": "Sharp, cauliflower outline on top. Clean flat base.",
+        "interior": "A few soft billows. Little internal shadowing.",
+        "field": "Evenly scattered. Bases all share one condensation level, so they line up toward the horizon."
+      },
+      "light": "Bright white sunlit tops, light grey bases. Thin enough that the sun side and shadow side differ only slightly. Silver lining when backlit.",
+      "fromAbove": "White popcorn scattered over the ground, each puff casting a dark shadow on the terrain. Very common from a plane on climb-out.",
+      "atSunset": "Turns gold then pink on the sun side. Bases go dark blue-grey quickly.",
+      "shaping": {
+        "verticalProfile": "Fast rise from a hard base, rounded top, peak density in the lower third.",
+        "coverage": "0.1 to 0.35",
+        "erosion": "Billowy (Worley-heavy). Little wispy detail.",
+        "notes": "Shared flat base height across the field is the main realism cue. Base should be sharper than the top. Low density, so light diffuses through in a few hundred metres."
+      },
+      "photoTargets": [
+        "Puff field down to the horizon with bases lining up",
+        "Single puff backlit with silver edge",
+        "From a plane: shadows on the ground"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/cumulus-humilis-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_humilis_clouds.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Toby Hudson"
+        },
+        {
+          "file": "_reference/cumulus-humilis-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_humilis.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Rasbak"
+        },
+        {
+          "file": "_reference/cumulus-humilis-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Fair_weather_cumulus_and_cirrus_clouds_over_Parkland_at_Tollymore_-_geograph.org.uk_-_6810272.jpg",
+          "license": "CC BY-SA 2.0",
+          "author": "Eric Jones"
+        }
+      ]
+    },
+    {
+      "id": "cumulus-mediocris",
+      "name": "Medium cumulus",
+      "latin": "Cumulus mediocris",
+      "family": "low",
+      "altitudeM": [
+        600,
+        2000
+      ],
+      "thicknessM": [
+        500,
+        2000
+      ],
+      "size": "Two fists or more at arm's length.",
+      "spotIt": "Puffy clouds as tall as they are wide, with lumpy cauliflower tops and flat darker bases. Bigger and chunkier than fair-weather puffs, but no tall towers yet.",
+      "confusedWith": [
+        {
+          "id": "cumulus-humilis",
+          "tell": "Humilis is wider than tall."
+        },
+        {
+          "id": "congestus",
+          "tell": "Congestus is clearly taller than wide and towers."
+        }
+      ],
+      "shape": {
+        "silhouette": "Rounded heap, roughly square in profile.",
+        "edges": "Crisp sprouting bulges at the top. Ragged or flat at the base.",
+        "interior": "Several rising cells visible as separate rounded lobes with shadowed creases between them.",
+        "field": "Scattered to broken. Sometimes lines up in rows along the wind (cloud streets)."
+      },
+      "light": "Strong contrast: brilliant sunlit lobes, deep grey creases and bases. Self-shadowing between lobes is obvious.",
+      "fromAbove": "Lumpy white domes with clear shadow sides. From a plane at cloud height they look like a range of white hills.",
+      "atSunset": "Tops lit orange while the base and lower half go dark. A strong test of light falling off with depth.",
+      "shaping": {
+        "verticalProfile": "Hard base, density holds through the middle, rounded top.",
+        "coverage": "0.25 to 0.5",
+        "erosion": "Billowy, with a medium-scale lobe pattern visible in silhouette.",
+        "notes": "Creases between lobes need dark self-shadow but a bright powder-like rim. Good test for multiple scattering versus single scattering."
+      },
+      "photoTargets": [
+        "Side view near the horizon with shadow side",
+        "Cloud streets",
+        "Sunset with lit tops and dark bases"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/cumulus-mediocris-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_mediocris-1.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Kreuzschnabel"
+        },
+        {
+          "file": "_reference/cumulus-mediocris-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_clouds_in_fair_weather.jpeg",
+          "license": "CC BY-SA 2.0",
+          "author": "Michael Jastremski"
+        },
+        {
+          "file": "_reference/cumulus-mediocris-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_clouds_panorama.jpg",
+          "license": "GFDL 1.2",
+          "author": "Fir0002"
+        }
+      ]
+    },
+    {
+      "id": "congestus",
+      "name": "Towering cumulus",
+      "latin": "Cumulus congestus",
+      "family": "vertical",
+      "altitudeM": [
+        600,
+        2000
+      ],
+      "thicknessM": [
+        2000,
+        6000
+      ],
+      "size": "Fills a large part of the view. Height is the giveaway.",
+      "spotIt": "A tall cauliflower tower, clearly taller than it is wide, with hard sharp edges and bright sprouting tops. Often a precursor to a thunderstorm. No smooth anvil on top yet.",
+      "confusedWith": [
+        {
+          "id": "cumulonimbus",
+          "tell": "Cumulonimbus has a smooth, fibrous or flat-spreading top (anvil). Congestus tops are still sharp and bubbly."
+        },
+        {
+          "id": "cumulus-mediocris",
+          "tell": "Mediocris is about as tall as wide."
+        }
+      ],
+      "shape": {
+        "silhouette": "Tower or stack of towers, sometimes leaning with wind shear.",
+        "edges": "Very sharp, high-contrast cauliflower turrets.",
+        "interior": "Nested billows at many scales. Deep shadowed canyons between turrets.",
+        "field": "Usually a few big ones among smaller cumulus."
+      },
+      "light": "Extreme range: blinding white turret tops, dark undersides. Thick enough that the base can look grey-blue in full sun.",
+      "fromAbove": "From a plane: tall white columns poking above the haze layer or a lower deck. Iconic aerial shot.",
+      "atSunset": "Tall towers keep sunlight on their tops long after the ground is in shadow: pink and orange tops over a blue-grey base.",
+      "shaping": {
+        "verticalProfile": "Dense core from base to near top. Top made of separate rounded turrets.",
+        "coverage": "Local. 0.3 to 0.6 around the tower.",
+        "erosion": "Billowy at several scales. Worley detail should stack (large lobes carrying smaller lobes).",
+        "notes": "Can lean downwind with height. Height is the main difference from mediocris, so the vertical extent of the density profile must be adjustable per cloud type."
+      },
+      "photoTargets": [
+        "Single tower near the horizon",
+        "From a plane: towers through haze",
+        "Sunset-lit tops"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/congestus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:2016_Chmura_Cumulus_congestus_01.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Jacek Halicki"
+        },
+        {
+          "file": "_reference/congestus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_congestus_cloud.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Bidgee"
+        },
+        {
+          "file": "_reference/congestus-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_congestus_bei_Limburg.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/congestus-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulus_congestus_Perth_2009.jpg",
+          "license": "CC BY 2.5 au",
+          "author": "User:JarrahTree"
+        }
+      ]
+    },
+    {
+      "id": "cumulonimbus",
+      "name": "Thunderstorm cloud",
+      "latin": "Cumulonimbus (calvus, capillatus, incus)",
+      "family": "vertical",
+      "altitudeM": [
+        500,
+        2000
+      ],
+      "thicknessM": [
+        6000,
+        15000
+      ],
+      "size": "Huge. Often fills the sky or sits on the horizon as a mountain of cloud.",
+      "spotIt": "A giant tower whose top has gone smooth, fibrous or flat. The classic sign is the anvil: a flat sheet spreading sideways from the top. Dark, often rainy base. Can have mammatus or a shelf cloud.",
+      "confusedWith": [
+        {
+          "id": "congestus",
+          "tell": "No smooth or fibrous top on congestus."
+        },
+        {
+          "id": "nimbostratus",
+          "tell": "Nimbostratus is a featureless grey layer, not a tower."
+        }
+      ],
+      "shape": {
+        "silhouette": "Tower plus a wide flat or fibrous anvil. Anvil often overshoots downwind.",
+        "edges": "Lower tower is sharp cauliflower. Upper part and anvil turn fibrous and smooth (ice).",
+        "interior": "Huge internal shadowing. Rain shafts below the base.",
+        "field": "Isolated cells or a line of storms."
+      },
+      "light": "From far away the tower is white and the anvil is pale. Underneath it is very dark, sometimes green-grey. Lightning lights it from inside at night.",
+      "fromAbove": "From a plane: bright towers with the anvil spreading at your altitude or above. Overshooting tops bubble up through the anvil.",
+      "atSunset": "Anvils catch light long after sunset and glow pink or orange, with the dark tower below. Very photogenic and a hard lighting test.",
+      "shaping": {
+        "verticalProfile": "Dense through the full troposphere. The anvil is a wide, thinner layer at the top.",
+        "coverage": "Local and very high.",
+        "erosion": "Billowy low down, fading to wispy or smooth at the anvil.",
+        "notes": "Needs a shape that changes with height (billowy to fibrous) and an anvil that spreads with wind at altitude. The project's storm and lightning work (P6) targets this type."
+      },
+      "photoTargets": [
+        "Whole storm with anvil on the horizon",
+        "Anvil lit at sunset",
+        "From a plane: anvil at eye level",
+        "Lightning at night"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/cumulonimbus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulonimbus_incus_over_Warsaw,_Poland.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Kamil Nowacki"
+        },
+        {
+          "file": "_reference/cumulonimbus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:20200607_Chmura_cumulonimbus_incus_nad_Krakowem_1407_0252.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Jakub Hałun"
+        },
+        {
+          "file": "_reference/cumulonimbus-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulonimbus_calvus_cloud_over_the_Gulf_of_Mexico_in_Galveston,_Texas.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Matthew T Rader"
+        },
+        {
+          "file": "_reference/cumulonimbus-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cumulonimbus_calvus_bei_Point_Alpha.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "stratocumulus",
+      "name": "Stratocumulus",
+      "latin": "Stratocumulus",
+      "family": "low",
+      "altitudeM": [
+        300,
+        2000
+      ],
+      "thicknessM": [
+        200,
+        1000
+      ],
+      "size": "Each cell is about a fist or larger at arm's length.",
+      "spotIt": "A lumpy grey-and-white blanket of rounded clumps or rolls that mostly touch each other. Often grey on the bottom with gaps of blue. The most common cloud on Earth.",
+      "confusedWith": [
+        {
+          "id": "altocumulus",
+          "tell": "Altocumulus cells are smaller, about a thumb wide, because they are higher."
+        },
+        {
+          "id": "stratus-fog-valley",
+          "tell": "Stratus has no lumps or cells."
+        },
+        {
+          "id": "cumulus-humilis",
+          "tell": "Cumulus puffs are separate with clear blue between them."
+        }
+      ],
+      "shape": {
+        "silhouette": "Flat-topped sheet made of joined cells or rolls.",
+        "edges": "Soft, rounded. Tops are flat at the inversion.",
+        "interior": "Cellular pattern with darker thick centres and thinner bright gaps.",
+        "field": "Covers large areas. Rolls often line up perpendicular to the wind."
+      },
+      "light": "Shading varies across the cells: thick parts dark grey, thin parts bright. Sun breaks through the gaps as spots and rays.",
+      "fromAbove": "The classic view out of the plane window: a white, gently lumpy cotton floor stretching to the horizon, sometimes with open cells. Tops are flat and brightly lit.",
+      "atSunset": "Undersides light up orange and red when the sun is below the deck from the ground view. Great for the sunset-colour work.",
+      "shaping": {
+        "verticalProfile": "Thin layer with a flat top (inversion) and slightly lumpy base.",
+        "coverage": "0.6 to 0.95",
+        "erosion": "Billowy at low amplitude. Cell pattern at a 1 to 3 km scale.",
+        "notes": "Flat-topped cloud deck seen from above is the main plane-flight demo backdrop. Gaps between cells must keep their structure at long distance."
+      },
+      "photoTargets": [
+        "From a plane: the cloud floor to the horizon",
+        "From the ground: rolls with blue gaps",
+        "Sunset underlit deck"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/stratocumulus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:2018_Front_ch%C5%82odny_w_Kotlinie_K%C5%82odzkiej_2.jpg",
+          "license": "CC BY 3.0",
+          "author": "Jacek Halicki"
+        },
+        {
+          "file": "_reference/stratocumulus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Stratocumulus_cumulogenitus_-_20150804_16h39_(10909).jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Another one of my pictures:\n\n\n\nThis photograph was taken by Medium69 (William Cr"
+        },
+        {
+          "file": "_reference/stratocumulus-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Stratocumulus_stratiformis_asperitas_am_Rand_eines_Regengebiets_III.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/stratocumulus-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Stratocumulus_and_cumulus_over_G%C3%A5seberg.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "W.carter"
+        }
+      ]
+    },
+    {
+      "id": "altocumulus",
+      "name": "Altocumulus",
+      "latin": "Altocumulus (stratiformis, floccus, castellanus)",
+      "family": "middle",
+      "altitudeM": [
+        2000,
+        6000
+      ],
+      "thicknessM": [
+        200,
+        1000
+      ],
+      "size": "Each element is about one to three fingers wide at arm's length.",
+      "spotIt": "A layer of many small white or light grey puffs, ripples or rows, often in a regular pattern like fish scales (mackerel sky). Higher and finer than stratocumulus, puffier and with more shading than cirrocumulus.",
+      "confusedWith": [
+        {
+          "id": "stratocumulus",
+          "tell": "Stratocumulus elements are about a fist wide."
+        },
+        {
+          "id": "cirrocumulus",
+          "tell": "Cirrocumulus grains are smaller than a little finger and have no shading."
+        }
+      ],
+      "shape": {
+        "silhouette": "Thin layer of many small elements.",
+        "edges": "Soft-sided puffs with slight shading on one side.",
+        "interior": "Regular cells, rolls or waves (undulatus). Castellanus has tiny turrets.",
+        "field": "Patchy to extensive. Patterns can stretch across the whole sky."
+      },
+      "light": "Mostly white with grey shading. Can show iridescence or a corona near the sun.",
+      "fromAbove": "From a plane above it: a dotted or rippled layer with the ground or a lower deck visible through the gaps.",
+      "atSunset": "One of the best sunset clouds. The whole layer can go orange, pink and purple at once.",
+      "shaping": {
+        "verticalProfile": "Thin layer with uniform elements.",
+        "coverage": "0.3 to 0.8, with a regular cellular mask.",
+        "erosion": "Moderately billowy at a small scale.",
+        "notes": "Needs a regular cellular pattern at the layer scale, not only noise. A mid layer between cumulus and cirrus. Relevant to the sunset-colour comparison with Takram."
+      },
+      "photoTargets": [
+        "Mackerel sky overhead",
+        "Sunset-coloured layer",
+        "From a plane: dotted layer with ground visible"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/altocumulus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altocumulus_stratiformis_translucidus_perlucidus_undulatus.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/altocumulus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altocumulus_castellanus_undulatus,_Altocumulus_floccus_and_Cirrocumulus_floccus.jpg",
+          "license": "CC BY 4.0",
+          "author": "Daniele.Brundu"
+        },
+        {
+          "file": "_reference/altocumulus-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altocumulus_stratiformis_translucidus_perlucidus.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/altocumulus-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altocumulus_stratiformis_duplicatus.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "altostratus",
+      "name": "Altostratus",
+      "latin": "Altostratus (translucidus, opacus)",
+      "family": "middle",
+      "altitudeM": [
+        2000,
+        7000
+      ],
+      "thicknessM": [
+        1000,
+        3000
+      ],
+      "size": "One sheet. No elements.",
+      "spotIt": "A grey or blue-grey veil over all or most of the sky. The sun looks like it is behind frosted glass: a dim disk with no halo and no shadows on the ground.",
+      "confusedWith": [
+        {
+          "id": "cirrostratus",
+          "tell": "Cirrostratus is thinner, whiter, the sun is still bright and casts shadows, and there may be a halo."
+        },
+        {
+          "id": "nimbostratus",
+          "tell": "Nimbostratus is darker, lower and fully hides the sun, usually with steady rain."
+        }
+      ],
+      "shape": {
+        "silhouette": "Even sheet.",
+        "edges": "No clear edges. Sometimes faint streaks or fibres.",
+        "interior": "Smooth with gentle gradients.",
+        "field": "Covers the sky. Often arrives ahead of a warm front."
+      },
+      "light": "Flat, diffuse light. The sun disk is visible but dull.",
+      "fromAbove": "From a plane: a flat grey-white sheet, sometimes multi-layered with lower clouds beneath.",
+      "atSunset": "Can glow evenly yellow or orange across the underside when the sun is low.",
+      "shaping": {
+        "verticalProfile": "Thick, low-contrast sheet.",
+        "coverage": "0.9 to 1.0",
+        "erosion": "Mostly smooth, a little wispy.",
+        "notes": "Mostly a lighting and transmittance test: how much sun gets through and how flat the sky light becomes."
+      },
+      "photoTargets": [
+        "Watery sun through the layer",
+        "Whole-sky grey veil"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/altostratus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altostratus_translucidus_undulatus.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/altostratus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altostratus_translucidus_am_4.12.2020_in_Limburg_II.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "nimbostratus",
+      "name": "Rain layer",
+      "latin": "Nimbostratus",
+      "family": "middle",
+      "altitudeM": [
+        500,
+        3000
+      ],
+      "thicknessM": [
+        2000,
+        5000
+      ],
+      "size": "One thick sheet.",
+      "spotIt": "A dark grey, featureless sky with steady rain or snow. No sun visible at all. Often ragged dark scud clouds float underneath.",
+      "confusedWith": [
+        {
+          "id": "stratus-fog-valley",
+          "tell": "Stratus is lower and lighter and gives drizzle, not steady rain."
+        },
+        {
+          "id": "altostratus",
+          "tell": "With altostratus you can still find the sun."
+        }
+      ],
+      "shape": {
+        "silhouette": "Thick sheet without a clear base.",
+        "edges": "Base blurred by falling rain.",
+        "interior": "Featureless. Darker patches where rain is heavier.",
+        "field": "Covers the whole sky for hours."
+      },
+      "light": "Very dim, flat, grey. Blue-grey tint.",
+      "fromAbove": "From a plane: a thick, flat, often layered white top. Inside it is grey and featureless (turbulence on climb).",
+      "atSunset": "Little colour. Sometimes a strip of orange at a clear gap on the horizon.",
+      "shaping": {
+        "verticalProfile": "Thick and uniform with a soft base.",
+        "coverage": "1.0",
+        "erosion": "Low.",
+        "notes": "Mainly a fog, precipitation and ambient-light test. Low priority for shaping."
+      },
+      "photoTargets": [
+        "Rainy overcast with scud",
+        "Horizon gap at sunset under the deck"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/nimbostratus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Nimbostratus_pannus.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/nimbostratus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Ns1.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "see Commons page"
+        }
+      ]
+    },
+    {
+      "id": "stratus-fog-valley",
+      "name": "Stratus, fog and valley fog",
+      "latin": "Stratus (nebulosus, fractus), fog",
+      "family": "low",
+      "altitudeM": [
+        0,
+        500
+      ],
+      "thicknessM": [
+        50,
+        500
+      ],
+      "size": "One sheet, or ragged shreds (fractus).",
+      "spotIt": "A low, flat grey layer like fog that does not touch the ground, or real fog sitting in valleys. From a hilltop or plane you see a white sea of cloud filling the valleys with hills sticking out.",
+      "confusedWith": [
+        {
+          "id": "stratocumulus",
+          "tell": "Stratocumulus has lumps and cells."
+        },
+        {
+          "id": "nimbostratus",
+          "tell": "Nimbostratus is thicker and darker with steady rain."
+        }
+      ],
+      "shape": {
+        "silhouette": "Flat sheet that follows the terrain. In valleys it pools like a liquid.",
+        "edges": "Diffuse, feathered where it meets ridges.",
+        "interior": "Smooth with slow wisps.",
+        "field": "Fills low ground. Edges wrap around hills."
+      },
+      "light": "From below: flat white-grey. From above: brilliant white with soft blue shadows from the terrain.",
+      "fromAbove": "Valley fog or a cloud sea seen from a mountain or plane. Hills poke through as islands. Very relevant to the onsen valley demo.",
+      "atSunset": "Fog tops turn pink and gold. Sunrise valley fog is a classic shot.",
+      "shaping": {
+        "verticalProfile": "Thin, flat top, density tied to height above terrain.",
+        "coverage": "Terrain-driven.",
+        "erosion": "Wispy and soft. Very low billowiness.",
+        "notes": "Needs a height-above-ground density term, not only an altitude band. Edge fade against ridges is the realism cue."
+      },
+      "photoTargets": [
+        "Valley fog from a hilltop",
+        "Sunrise fog with peaks as islands",
+        "Low stratus over a city or coast"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/stratus-fog-valley-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Inversion_mist_and_fog_Teme_Valley_-_geograph.org.uk_-_2163624.jpg",
+          "license": "CC BY-SA 2.0",
+          "author": "Peter Evans"
+        },
+        {
+          "file": "_reference/stratus-fog-valley-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Fog_in_tillamook_county.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "J. Passepartout"
+        },
+        {
+          "file": "_reference/stratus-fog-valley-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Rogue_Valley_Inversion_1.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Little Mountain 5"
+        },
+        {
+          "file": "_reference/stratus-fog-valley-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Stratus_nebulosus_%C3%BCber_Limburg,_25.11.2020.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "cirrus",
+      "name": "Cirrus",
+      "latin": "Cirrus (fibratus, uncinus, spissatus)",
+      "family": "high",
+      "altitudeM": [
+        6000,
+        12000
+      ],
+      "thicknessM": [
+        100,
+        1500
+      ],
+      "size": "Thin strands across large parts of the sky.",
+      "spotIt": "Thin white wispy strands or hooks like brush strokes or horse tails, high in a blue sky. Made of ice, so they look silky with no shading.",
+      "confusedWith": [
+        {
+          "id": "cirrostratus",
+          "tell": "Cirrostratus is a smooth sheet. Cirrus is separate strands."
+        },
+        {
+          "id": "cirrocumulus",
+          "tell": "Cirrocumulus is tiny grains, not strands."
+        }
+      ],
+      "shape": {
+        "silhouette": "Streaks, hooks (uncinus) and fallstreaks curving with wind shear.",
+        "edges": "Fibrous, combed.",
+        "interior": "Parallel fibres. Denser heads with trailing tails.",
+        "field": "Patches or bands, often all aligned in one direction."
+      },
+      "light": "White in daylight with no shadow side. Often catches colour first and last around sunrise and sunset.",
+      "fromAbove": "Usually above the plane. From cruise altitude it can be at eye level as faint haze bands.",
+      "atSunset": "Among the first to light up and the last to fade. Strands go gold, then red, then pink against a darkening sky.",
+      "shaping": {
+        "verticalProfile": "Very thin layer or a 2D sky-shell layer.",
+        "coverage": "0.1 to 0.5",
+        "erosion": "Wispy (curl or flow noise stretched along wind).",
+        "notes": "Usually rendered as a 2D high layer with anisotropic, wind-stretched noise. The hooks come from shear. Main contributor to sunset colour after the sun is down."
+      },
+      "photoTargets": [
+        "Mare's tails on blue sky",
+        "Cirrus lit red after sunset",
+        "Fallstreaks with hooks"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/cirrus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cirrus_clouds2.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "see Commons page"
+        },
+        {
+          "file": "_reference/cirrus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cirrus_uncinus_clouds_in_the_morning_sky.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "ADARSHluck"
+        },
+        {
+          "file": "_reference/cirrus-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cirrus_sky_panorama.jpg",
+          "license": "GFDL 1.2",
+          "author": "fir0002  flagstaffotos [at] gmail.com\n\t\tCanon 20D + Canon 17-40mm f/4 L"
+        },
+        {
+          "file": "_reference/cirrus-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Long_Cirrus_fibratus.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "see Commons page"
+        }
+      ]
+    },
+    {
+      "id": "cirrocumulus",
+      "name": "Cirrocumulus",
+      "latin": "Cirrocumulus",
+      "family": "high",
+      "altitudeM": [
+        6000,
+        12000
+      ],
+      "thicknessM": [
+        100,
+        500
+      ],
+      "size": "Each grain is smaller than a little finger's width at arm's length.",
+      "spotIt": "Tiny white grains or ripples in rows, like sand ripples on a beach, very high up. No grey shading at all.",
+      "confusedWith": [
+        {
+          "id": "altocumulus",
+          "tell": "Altocumulus elements are larger (one to three fingers) and have shading."
+        },
+        {
+          "id": "cirrus",
+          "tell": "Cirrus is strands, not grains."
+        }
+      ],
+      "shape": {
+        "silhouette": "Thin patch of tiny regular grains or ripples.",
+        "edges": "Very fine.",
+        "interior": "Regular rippled pattern.",
+        "field": "Usually patches, often with cirrus nearby."
+      },
+      "light": "Pure white, no shading. Can show iridescence near the sun.",
+      "fromAbove": "Almost always above the plane.",
+      "atSunset": "Fine pink texture across the sky.",
+      "shaping": {
+        "verticalProfile": "Very thin high layer.",
+        "coverage": "0.1 to 0.4",
+        "erosion": "Small-scale regular cellular or ripple pattern.",
+        "notes": "A 2D high-layer pattern. Test for fine texture at a distance without aliasing."
+      },
+      "photoTargets": [
+        "Ripple patch overhead",
+        "Pink ripples at sunset"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/cirrocumulus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cirrocumulus_stratiformis_lacunosus_(links).jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/cirrocumulus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cirrocumulus_stratiformis_undulatus_08.07.2011.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "cirrostratus",
+      "name": "Cirrostratus",
+      "latin": "Cirrostratus",
+      "family": "high",
+      "altitudeM": [
+        6000,
+        12000
+      ],
+      "thicknessM": [
+        100,
+        2000
+      ],
+      "size": "One thin veil.",
+      "spotIt": "A thin milky veil over the sky. The sun is still bright and things still cast shadows. Often makes a ring (22-degree halo) around the sun or moon.",
+      "confusedWith": [
+        {
+          "id": "altostratus",
+          "tell": "Altostratus is thicker and greyer, the sun is dull and there is no halo."
+        },
+        {
+          "id": "cirrus",
+          "tell": "Cirrus is separate strands."
+        }
+      ],
+      "shape": {
+        "silhouette": "Featureless or faintly fibrous veil.",
+        "edges": "Hard to see. Fades out gradually.",
+        "interior": "Smooth or faintly fibrous.",
+        "field": "Whole sky. Often arrives before a warm front."
+      },
+      "light": "Whitens the blue sky. Halos and sun dogs.",
+      "fromAbove": "Usually above the plane, as a milky sky.",
+      "atSunset": "Washes the whole sky in soft colour.",
+      "shaping": {
+        "verticalProfile": "Thin, high, uniform.",
+        "coverage": "0.7 to 1.0, very low density.",
+        "erosion": "Minimal.",
+        "notes": "Sky-tint and transmittance only. Halos would need an ice-crystal phase function, out of scope for now."
+      },
+      "photoTargets": [
+        "Halo around the sun",
+        "Milky sky with sharp shadows on the ground"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/cirrostratus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:22%C2%B0-Halo_in_Cirrostratus_fibratus_bei_Limburg_II.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/cirrostratus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Cirrostratus_transformiert_zu_Altostratus_I_farbusm.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "lenticular",
+      "name": "Lenticular cloud",
+      "latin": "Altocumulus lenticularis",
+      "family": "feature",
+      "altitudeM": [
+        2000,
+        6000
+      ],
+      "thicknessM": [
+        200,
+        1500
+      ],
+      "size": "Varies. Smooth lens or UFO shape.",
+      "spotIt": "A smooth lens, saucer or stack of plates, usually near or downwind of mountains. Stays in one place while the wind blows through it.",
+      "confusedWith": [
+        {
+          "id": "altocumulus",
+          "tell": "Ordinary altocumulus is lumpy and in many elements."
+        }
+      ],
+      "shape": {
+        "silhouette": "Smooth lens, often stacked like plates.",
+        "edges": "Very smooth, sharp outline.",
+        "interior": "Smooth layered bands.",
+        "field": "Single or a few, tied to terrain."
+      },
+      "light": "Smooth gradients, bright rims, iridescence sometimes.",
+      "fromAbove": "From a plane: smooth lenses at or above flight level near mountains.",
+      "atSunset": "Smooth surfaces take colour evenly. Very dramatic.",
+      "shaping": {
+        "verticalProfile": "Lens, thickest in the middle.",
+        "coverage": "Local.",
+        "erosion": "Very low. Smooth.",
+        "notes": "Good candidate for an artist-authored VDB hero cloud, because procedural noise fields struggle with smooth stacked lenses."
+      },
+      "photoTargets": [
+        "Lens over a mountain",
+        "Stacked plates at sunset"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/lenticular-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Mont_Blanc_from_Les_Arcs_1950.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Dmitry A. Mottl"
+        },
+        {
+          "file": "_reference/lenticular-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Lenticular_clouds_in_High_Arctic_photo-montage.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Brocken Inaglory"
+        },
+        {
+          "file": "_reference/lenticular-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altocumulus-lenticularis.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "Pkrul at Dutch Wikipedia"
+        }
+      ]
+    },
+    {
+      "id": "mammatus",
+      "name": "Mammatus",
+      "latin": "Mamma (supplementary feature)",
+      "family": "feature",
+      "altitudeM": [
+        2000,
+        10000
+      ],
+      "thicknessM": [
+        200,
+        1000
+      ],
+      "size": "Each pouch is roughly a fist wide.",
+      "spotIt": "Rounded pouches hanging down from the underside of a cloud, usually under a thunderstorm anvil. Most dramatic around sunset when they glow orange.",
+      "confusedWith": [
+        {
+          "id": "stratocumulus",
+          "tell": "Stratocumulus lumps bulge up and sideways. Mammatus pouches hang down."
+        }
+      ],
+      "shape": {
+        "silhouette": "Downward-hanging rounded lobes.",
+        "edges": "Smooth, rounded.",
+        "interior": "Smooth pouches with strong shading between them.",
+        "field": "Underside of an anvil or a thick layer."
+      },
+      "light": "Lit from the side or below at sunset. The shading between pouches is the whole look.",
+      "fromAbove": "Not visible from above.",
+      "atSunset": "Iconic orange glow on the pouches.",
+      "shaping": {
+        "verticalProfile": "Inverted billows on the base of a layer.",
+        "coverage": "Local.",
+        "erosion": "Smooth, low frequency.",
+        "notes": "Needs a base shape that bulges downward, the opposite of normal cumulus. Optional stretch goal for storms."
+      },
+      "photoTargets": [
+        "Pouches at sunset",
+        "Under an anvil after a storm"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/mammatus-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Mammatus-clouds-Tulsa-1973.png",
+          "license": "Public domain",
+          "author": "NOAA"
+        },
+        {
+          "file": "_reference/mammatus-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Mammatus_clouds,_Pittsburgh,_2022-06-16,_01.jpg",
+          "license": "CC0",
+          "author": "Cbaile19"
+        },
+        {
+          "file": "_reference/mammatus-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Mammatus_clouds_Montana_MT1.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Acroterion"
+        }
+      ]
+    },
+    {
+      "id": "shelf-cloud",
+      "name": "Shelf cloud",
+      "latin": "Arcus (supplementary feature)",
+      "family": "feature",
+      "altitudeM": [
+        300,
+        2000
+      ],
+      "thicknessM": [
+        500,
+        2000
+      ],
+      "size": "Spans the horizon.",
+      "spotIt": "A long low wedge or shelf on the leading edge of a storm, dark underneath with layered tiers. Looks like a wall or a wave rolling toward you. Gusty winds arrive right under it.",
+      "confusedWith": [
+        {
+          "id": "cumulonimbus",
+          "tell": "The shelf is a low feature at the front of a cumulonimbus, not the whole storm."
+        }
+      ],
+      "shape": {
+        "silhouette": "Low horizontal wedge with stepped tiers.",
+        "edges": "Smooth sculpted underside, ragged front.",
+        "interior": "Layered banding.",
+        "field": "A line along the storm front."
+      },
+      "light": "Dark underside with a bright gap of clear sky beneath it.",
+      "fromAbove": "Rare from a plane.",
+      "atSunset": "Strong backlit drama.",
+      "shaping": {
+        "verticalProfile": "Low wedge.",
+        "coverage": "Local line.",
+        "erosion": "Smooth layered.",
+        "notes": "Storm-front drama. Stretch goal. Would likely need an authored shape."
+      },
+      "photoTargets": [
+        "Shelf over open land",
+        "Shelf with bright gap underneath"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/shelf-cloud-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Riiulpilv_-_Shelf_cloud_(2)_copy.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Kristian Pikner"
+        },
+        {
+          "file": "_reference/shelf-cloud-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Shelf_cloud_pano_oct07_ver4.jpg",
+          "license": "GFDL 1.2",
+          "author": "User:Fir0002"
+        },
+        {
+          "file": "_reference/shelf-cloud-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Schauer_mit_Arcus_bei_Wolferts_kurz_vor_dem_Eintreffen_II.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        }
+      ]
+    },
+    {
+      "id": "aerial-cloud-deck",
+      "name": "From the plane window",
+      "latin": "View category, any low or middle cloud",
+      "family": "view",
+      "altitudeM": [
+        0,
+        12000
+      ],
+      "thicknessM": [
+        0,
+        0
+      ],
+      "size": "Seen from above or at the same level.",
+      "spotIt": "Any photo out of a plane window or from a high mountain where you look down on or across cloud tops. Sort by what you see: a flat cotton floor is usually stratocumulus or stratus; separate white puffs are cumulus; tall columns are congestus or cumulonimbus. Put the photo here and tag the type too.",
+      "confusedWith": [],
+      "shape": {
+        "silhouette": "Depends on the cloud type underneath.",
+        "edges": "Tops are sunlit and crisp in cumulus, soft in stratus.",
+        "interior": "Shadows cast by taller clouds onto lower ones and onto the ground.",
+        "field": "Aerial perspective: contrast and colour fade to blue haze with distance. Earth curvature at the horizon at cruise altitude."
+      },
+      "light": "Direct sun on tops, so very bright. Haze grows with distance. Glory (a rainbow ring around the plane's shadow) sometimes visible.",
+      "fromAbove": "This is the view.",
+      "atSunset": "The deck turns gold and pink, with a bright horizon band and a dark blue sky above.",
+      "shaping": {
+        "verticalProfile": "Look for flat tops (inversion), turrets poking through and multiple layers.",
+        "coverage": "Any.",
+        "erosion": "Any.",
+        "notes": "Primary reference for the plains plane-flight demo. Key cues: distance haze on clouds, cloud shadows on lower layers and ground, tops that stay crisp at long range, and the horizon line."
+      },
+      "photoTargets": [
+        "Cloud floor to the horizon",
+        "Towers rising through the deck",
+        "Cumulus shadows on the ground",
+        "Flying through a gap between layers",
+        "Sunset from cruise altitude"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/aerial-cloud-deck-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Aerial_photograph_of_clouds_from_flight_window_02.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Pinakpani"
+        },
+        {
+          "file": "_reference/aerial-cloud-deck-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Aerial_photograph_of_clouds_from_flight_window_10.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Pinakpani"
+        },
+        {
+          "file": "_reference/aerial-cloud-deck-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Aerial_photograph_of_clouds_from_flight_window_14.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Pinakpani"
+        },
+        {
+          "file": "_reference/aerial-cloud-deck-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Altocumulus_floccus_und_castellanus_%C3%BCber_dem_Atlantik_III.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "GerritR"
+        },
+        {
+          "file": "_reference/aerial-cloud-deck-4.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Surkhan_Nature_Reserve_Above_Clouds.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Panpanchik"
+        },
+        {
+          "file": "_reference/aerial-cloud-deck-5.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Sunset_view_from_an_airplane_window_above_the_clouds.jpg",
+          "license": "CC0",
+          "author": "Salwa Farwaneh Dameh"
+        }
+      ]
+    },
+    {
+      "id": "sunset-layers",
+      "name": "Sunset and sunrise colour",
+      "latin": "Lighting category, any cloud",
+      "family": "lighting",
+      "altitudeM": [
+        0,
+        12000
+      ],
+      "thicknessM": [
+        0,
+        0
+      ],
+      "size": "Any.",
+      "spotIt": "Any sky with sunset or sunrise colour on the clouds. The best ones show several layers at different heights in different colours: high cirrus still pink while lower clouds are already grey.",
+      "confusedWith": [],
+      "shape": {
+        "silhouette": "Depends on the cloud type.",
+        "edges": "Edges facing the sun glow first.",
+        "interior": "Underside lighting when the sun is below the cloud base.",
+        "field": "Layering by height is the point: each layer loses the sun at a different time."
+      },
+      "light": "The sun's light passes through a long path of atmosphere, so it reaches the clouds already orange or red. Higher clouds stay lit longer. Shadowed parts pick up blue and violet from the sky.",
+      "fromAbove": "From a plane, the deck below turns warm while the sky above goes deep blue.",
+      "atSunset": "This is the category.",
+      "shaping": {
+        "verticalProfile": "N/A",
+        "coverage": "N/A",
+        "erosion": "N/A",
+        "notes": "Highest priority for lighting: this is where Takram currently beats us. Compare layer-by-height colour, underlit bases, and the blue ambient fill in shadows. Record the time relative to sunset if you know it."
+      },
+      "photoTargets": [
+        "Multiple layers at different heights with different colours",
+        "Underlit bases",
+        "Afterglow on cirrus",
+        "Sunset from a plane"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/sunset-layers-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Stringy_pink_and_orange_clouds_at_sunset_in_the_dry_paddy_fields_of_Don_Det_Laos.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Basile Morin"
+        },
+        {
+          "file": "_reference/sunset-layers-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Clouds_Camels_(56747814).jpeg",
+          "license": "CC BY 3.0",
+          "author": "Josh Janssen"
+        },
+        {
+          "file": "_reference/sunset-layers-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Blue_Waters_Sunset_showing_layers_like_look_of_fire_in_sky.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Saron Satheesh Menon"
+        },
+        {
+          "file": "_reference/sunset-layers-3.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Sunset_above_cloud_layer_Haleakala_Maui.jpg",
+          "license": "CC BY 4.0",
+          "author": "Lianguanlun"
+        }
+      ]
+    },
+    {
+      "id": "crepuscular-rays",
+      "name": "Sun rays and silver linings",
+      "latin": "Crepuscular rays, silver lining",
+      "family": "lighting",
+      "altitudeM": [
+        0,
+        12000
+      ],
+      "thicknessM": [
+        0,
+        0
+      ],
+      "size": "Any.",
+      "spotIt": "Beams of light and shadow fanning out from behind a cloud, or a bright glowing edge around a cloud that sits in front of the sun.",
+      "confusedWith": [],
+      "shape": {
+        "silhouette": "Rays radiate from the sun's position.",
+        "edges": "The silver lining is a thin bright rim where light scatters forward through the thin edge.",
+        "interior": "Dark centre of the cloud against a bright rim.",
+        "field": "Needs haze or dust in the air for rays to show."
+      },
+      "light": "Strong forward scattering at cloud edges, plus light shafts in hazy air.",
+      "fromAbove": "Shafts falling through gaps in a deck.",
+      "atSunset": "Rays are most visible near sunset.",
+      "shaping": {
+        "verticalProfile": "N/A",
+        "coverage": "N/A",
+        "erosion": "N/A",
+        "notes": "Tests the phase function (forward lobe), thin-edge transmittance and volumetric shadows in the atmosphere (god rays)."
+      },
+      "photoTargets": [
+        "Backlit cloud with a bright rim",
+        "Rays through gaps",
+        "Shafts falling on the landscape"
+      ],
+      "webReferences": [
+        {
+          "file": "_reference/crepuscular-rays-0.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Crepuscular_rays_color.jpg",
+          "license": "CC BY-SA 3.0",
+          "author": "PiccoloNamek"
+        },
+        {
+          "file": "_reference/crepuscular-rays-1.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Crepuscular_rays_at_Sunset_near_Waterberg_Plateau.jpg",
+          "license": "FAL",
+          "author": "Alchemist-hp (www.pse-mendelejew.de)"
+        },
+        {
+          "file": "_reference/crepuscular-rays-2.jpg",
+          "commons": "https://commons.wikimedia.org/wiki/File:Sunlight_through_clouds_and_view_of_Ginkaku-ji_Temple_from_above,_Kyoto,_Japan.jpg",
+          "license": "CC BY-SA 4.0",
+          "author": "Basile Morin"
+        }
+      ]
+    }
+  ]
+}
