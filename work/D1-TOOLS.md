@@ -22,7 +22,7 @@ Open `http://localhost:5180/decima/` in Chrome (it needs WebGPU).
 
 Keys and buttons:
 - **R / compare** cycles off → wipe → overlay → frame. Guerrilla's frame for the shot sits over our render, letterboxed to the frames' 16:9.
-  - The slider sets the wipe position or the overlay opacity; shift-drag also moves the wipe.
+  - Drag the yellow handle on the image to move the wipe; in overlay mode the same handle sets the frame's opacity (shift-move also works, and so does the panel slider).
   - Hold **F** to flip to the frame.
   - The frame only lines up from the shot camera ("back to the shot camera").
 - **T / tune** is the tuning panel: every runtime setting and the shot's scene values (sun, exposure, haze, colours, tints, tone curve).
@@ -30,6 +30,10 @@ Keys and buttons:
   - ↺ resets one dial; hover a name to see what it does.
   - "save" stores a preset in the browser; "export" / "import" read and write JSON files. Put exported presets in `work/presets/`.
   - Hand changes carry across shots unless that box is unticked.
+  - **Camera dials** (scene section): `camEye`, `camTarget` (metres, y from the cloud base), `vfov`, `roll`.
+    - `vfovKeepSize` is a dolly zoom: it changes the field of view while moving the camera so the cloud keeps its size, which tests perspective rather than framing.
+    - "use the current view as the camera" copies an orbited view into the dials.
+    - Guerrilla never published the cameras: every shot's camera was fitted from the silhouette (`scripts/d0/d0.py fit`, then `scripts/d1/camfit.py`).
 - Variants from the console, the same strings the capture runs use: `await __clouds.bookmark('p101@sun:15:210@suntint:1:1:1@exp:0.24')`.
   - The full `@` list is at the top of `examples/lab/decima/main.ts`: `@sun @exp @turb @skyf @sunc @suntint @ambtint @mieg @atm @ramp @skytint @wind @post @dither @look @matte @cam @s.<setting>`.
   - `__tune.snapshot()` returns the current state as a preset.

@@ -5,6 +5,8 @@
 import runtimeSource from '../../../packages/runtime/src/runtime.ts?raw';
 
 export interface TuneScene {
+  /** The shot camera, relative to the cloud base as in refs.ts (y up, metres), its vertical field of view and roll in degrees. */
+  camEye: [number, number, number]; camTarget: [number, number, number]; vfov: number; roll: number;
   sunElevation: number; sunAzimuth: number; exposure: number; turbidity: number; miePhaseG: number;
   sunColor: [number, number, number]; sunTint: [number, number, number]; ambientTint: [number, number, number]; skyFactor: [number, number, number];
   postMode: number; dither: number;
@@ -19,6 +21,8 @@ export interface TuneHost {
   bookmark(): string;
   look(): string;
   loadBookmark(name: string): void;
+  /** The camera as it is now (after orbiting), in the same base-relative coordinates. */
+  readCamera(): { eye: [number, number, number]; target: [number, number, number]; vfov: number };
 }
 
 interface Preset { bookmark: string; look: string; scene: TuneScene; settings: Record<string, unknown>; savedAt: string; note?: string }
@@ -89,6 +93,7 @@ export function createTuner(host: TuneHost) {
     <div class="row"><input type="text" placeholder="filter settings…" data-a="filter" style="flex:1"><label><input type="checkbox" data-a="changed"> changed only</label></div>
     <div class="row"><label title="When you switch shots, re-apply your changed settings on top of the new shot (scene values stay per shot)"><input type="checkbox" data-a="carry" checked> keep my setting changes when switching shots</label></div>
     <div class="row"><input type="text" placeholder="preset name" data-a="name" style="flex:1"><button data-a="save">save</button><button data-a="export">export</button><button data-a="import">import</button><button data-a="resetall">reset all</button></div>
+    <div class="row"><button data-a="readcam" title="Copy the camera you orbited to into the camera dials">use the current view as the camera</button></div>
     <div class="presets"></div>
     <input type="file" accept="application/json" data-a="file" hidden>
   </header><div class="body"></div>`;
@@ -188,7 +193,18 @@ export function createTuner(host: TuneHost) {
     if (scene && sceneBase) {
       const sb = sceneBase, s = scene;
       const push = () => host.applyScene(s);
+      const dolly = (v: number) => {
+        // Change the field of view and move the eye along the view line so the target keeps its size: tests perspective, not framing.
+        const d = s.camEye.map((e, i) => e - s.camTarget[i]); const len = Math.hypot(...d);
+        const k = Math.tan((s.vfov * Math.PI) / 360) / Math.tan((v * Math.PI) / 360);
+        s.camEye = s.camTarget.map((t, i) => t + (d[i] / len) * len * k) as TuneScene['camEye']; s.vfov = v; push(); render();
+      };
       const sceneRows: [string, HTMLElement][] = [
+        ['camEye', vecRow('camEye', () => s.camEye, v => { s.camEye = v as TuneScene['camEye']; push(); }, sb.camEye, 'Camera position (x, y, z metres; y from the cloud base). Fitted from the silhouette: Guerrilla never published the cameras.')],
+        ['camTarget', vecRow('camTarget', () => s.camTarget, v => { s.camTarget = v as TuneScene['camTarget']; push(); }, sb.camTarget, 'The point the camera looks at (x, y, z metres; y from the cloud base).')],
+        ['vfov', numberRow('vfov', () => s.vfov, v => { s.vfov = v; push(); }, sb.vfov, 'Vertical field of view in degrees.')],
+        ['vfovKeepSize', numberRow('vfovKeepSize', () => s.vfov, dolly, sb.vfov, 'Dolly zoom: changes the field of view and moves the camera so the cloud keeps its size. A silhouette fit cannot tell distance from field of view, so this is the test for perspective.')],
+        ['roll', numberRow('roll', () => s.roll, v => { s.roll = v; push(); }, sb.roll, 'Camera roll in degrees about the view axis.')],
         ['sunElevation', numberRow('sunElevation', () => s.sunElevation, v => { s.sunElevation = v; push(); }, sb.sunElevation, 'Sun elevation in degrees above the horizon.')],
         ['sunAzimuth', numberRow('sunAzimuth', () => s.sunAzimuth, v => { s.sunAzimuth = v; push(); }, sb.sunAzimuth, 'Sun azimuth in degrees (the sky convention, north = -Z).')],
         ['exposure', numberRow('exposure', () => s.exposure, v => { s.exposure = v; push(); }, sb.exposure, 'Exposure before the tone curve.')],
@@ -248,6 +264,10 @@ export function createTuner(host: TuneHost) {
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
     if (a === 'import') $<HTMLInputElement>('[data-a=file]').click();
+    if (a === 'readcam' && scene) {
+      const c = host.readCamera();
+      scene.camEye = c.eye; scene.camTarget = c.target; scene.vfov = c.vfov; host.applyScene(scene); render(); say('camera taken from the view');
+    }
     if (a === 'resetall') {
       for (const [k, v] of Object.entries(base)) host.settings[k] = clone(v);
       edits = {};

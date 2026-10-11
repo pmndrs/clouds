@@ -21,6 +21,8 @@ export interface DecimaRef {
   eye: [number, number, number];
   target: [number, number, number];
   vfov: number;
+  /** Camera roll in degrees about the view axis (tuning panel / @roll:deg); 0 when absent. */
+  roll?: number;
   /** Sun elevation and compass azimuth (degrees; north = -Z, east = +X). */
   sun: { elevation: number; azimuth: number };
   /** Sky haze (@pmndrs/sky turbidity, 1 = earth default) reconstructed for this frame. */

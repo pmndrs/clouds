@@ -91,8 +91,10 @@ try {
     refImg.style.display = mode === 'off' ? 'none' : 'block';
     refImg.style.opacity = mode === 'overlay' ? String(compareAmount) : '1';
     refImg.style.clipPath = mode === 'wipe' ? `inset(0 ${((1 - compareAmount) * 100).toFixed(2)}% 0 0)` : 'none';
-    divider.style.display = mode === 'wipe' ? 'block' : 'none';
-    Object.assign(divider.style, { left: `${r.x + r.w * compareAmount - 1}px`, top: `${r.y}px`, height: `${r.h}px` });
+    divider.style.display = mode === 'wipe' || mode === 'overlay' ? 'block' : 'none';
+    divider.classList.toggle('overlay', mode === 'overlay');
+    divider.title = mode === 'overlay' ? `drag: frame opacity ${(compareAmount * 100).toFixed(0)}%` : 'drag: wipe position';
+    Object.assign(divider.style, { left: `${r.x + r.w * compareAmount - 11}px`, top: `${r.y}px`, height: `${r.h}px` });
   };
   const resize = () => {
     const r = rect();
@@ -116,6 +118,8 @@ try {
   let mirrorNow = false;
   let tuner: ReturnType<typeof createTuner> | null = null;
   let frameEye: [number, number, number] = [0, 0, 0], frameTarget: [number, number, number] = [0, 0, 0];
+  let rollDeg = 0;
+  let camKeyNow = '';
   let sceneNow: TuneScene | null = null;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
@@ -199,15 +203,28 @@ try {
     runtime.resetTemporal();
     syncLook();
     const sunNow = s.length === 2 ? { elevation: s[0], azimuth: s[1] } : ref.sun;
+    rollDeg = v.has('roll') ? Number(v.get('roll')![0]) : (ref.roll ?? 0);
+    const rel = (p: readonly number[]) => [p[0], p[1] - CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
     sceneNow = {
+      camEye: rel(eye), camTarget: rel(target), vfov: camera.fov, roll: rollDeg,
       sunElevation: sunNow.elevation, sunAzimuth: sunNow.azimuth, exposure: bridge.post.exposure, turbidity, miePhaseG: mieg,
       sunColor: [sunc[0], sunc[1], sunc[2]], sunTint: [suntint[0], suntint[1], suntint[2]], ambientTint: [ambtint[0], ambtint[1], ambtint[2]], skyFactor: [skyf[0], skyf[1], skyf[2]],
       postMode: bridge.post.mode, dither: bridge.post.dither,
     };
+    camKeyNow = [...sceneNow.camEye, ...sceneNow.camTarget, sceneNow.vfov].join();
     tuner?.sync(sceneNow);
   };
   // The tuning panel's scene dials: the same setters applyRef uses, with its change trackers kept in step.
   const applyScene = (t: TuneScene) => {
+    // Move the camera only when a camera dial changed, so tuning the light does not undo an orbit.
+    const camKey = [...t.camEye, ...t.camTarget, t.vfov].join();
+    if (camKey !== camKeyNow) {
+      frameEye = base(t.camEye); frameTarget = base(t.camTarget);
+      rig.set(frameEye, frameTarget);
+      camera.fov = t.vfov; camera.updateProjectionMatrix();
+      camKeyNow = camKey;
+    }
+    rollDeg = t.roll;
     sky.setSunDirection({ elevation: t.sunElevation, azimuth: t.sunAzimuth });
     if (t.miePhaseG !== miePhaseNow) { sky.setAtmosphere({ miePhaseG: t.miePhaseG }); miePhaseNow = t.miePhaseG; sky.setTurbidity(t.turbidity); }
     if (t.turbidity !== turbidityNow) { sky.setTurbidity(t.turbidity); turbidityNow = t.turbidity; }
@@ -238,6 +255,10 @@ try {
     bookmark: () => current.split('@')[0],
     look: () => look,
     loadBookmark: name => applyRef(name),
+    readCamera: () => {
+      const p = camera.position, t = rig.orbit.target;
+      return { eye: [p.x, p.y - CLOUD_BASE_HEIGHT, p.z], target: [t.x, t.y - CLOUD_BASE_HEIGHT, t.z], vfov: camera.fov };
+    },
   });
   (window as unknown as { __tune: unknown }).__tune = tuner;
   const compareBtn = document.createElement('button');
@@ -255,8 +276,13 @@ try {
     if (e.key === 'f' && !flip) { flip = true; layoutCompare(); }
   });
   addEventListener('keyup', e => { if (e.key === 'f') { flip = false; layoutCompare(); } });
-  // Drag on the image with shift held to move the wipe divider.
-  addEventListener('pointermove', e => { if (e.shiftKey && compare === 'wipe') { const r = rect(); compareAmount = Math.min(1, Math.max(0, (e.clientX - r.x) / r.w)); compareSlider.value = String(compareAmount); layoutCompare(); } });
+  // The handle on the image: drag it to move the wipe (or, in overlay mode, to set the frame's opacity). Shift-move also moves it.
+  const moveHandle = (clientX: number) => { const r = rect(); compareAmount = Math.min(1, Math.max(0, (clientX - r.x) / r.w)); compareSlider.value = String(compareAmount); layoutCompare(); };
+  let draggingHandle = false;
+  divider.addEventListener('pointerdown', e => { draggingHandle = true; divider.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
+  divider.addEventListener('pointermove', e => { if (draggingHandle) moveHandle(e.clientX); });
+  divider.addEventListener('pointerup', () => { draggingHandle = false; });
+  addEventListener('pointermove', e => { if (e.shiftKey && (compare === 'wipe' || compare === 'overlay')) moveHandle(e.clientX); });
   syncCompare();
   const tuneBtn = document.createElement('button'); tuneBtn.textContent = 'tune (T)'; tuneBtn.onclick = () => tuner!.toggle(); panel.appendChild(tuneBtn);
 
@@ -270,6 +296,7 @@ try {
   renderer.setAnimationLoop((now: number) => {
     const dt = Math.min(0.25, (now - last) / 1000); last = now;
     rig.update(dt);
+    if (rollDeg) camera.rotateZ((rollDeg * Math.PI) / 180);   // the rig re-aims every frame, so the roll is applied fresh each frame
     camera.near = Math.min(200, Math.max(0.5, camera.position.y * 0.002));
     camera.updateProjectionMatrix();
     sky.update(camera);
