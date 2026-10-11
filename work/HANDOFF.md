@@ -35,6 +35,13 @@ The owner suspects the silhouette differences (the s206 leg, the holes, the extr
 - A silhouette fit cannot separate distance from field of view, so a wrong perspective with the right outline is plausible.
 - The pack fixes the scale at 8 m voxels (N3 s71–73; `voxelSizeMeters` 8 in the asset).
 
+How the cameras were fitted (D0, `scripts/d0/d0.py fit`):
+- The camera sits on a sphere around the cloud's density centroid, at a yaw and elevation, with the distance taken from a coarse list of multiples of the cloud's radius.
+- A proxy silhouette is rendered at a fixed 40° vfov, and a 2D scale and shift match it to the frame's mask. The scale becomes the vfov and the shift becomes the aim.
+- So distance and field of view were never solved separately: the field of view absorbed the size. `camfit.py` (D1) then hill-climbed eye, target and vfov on the outline overlap, which barely responds to perspective.
+- The camera height comes out of the elevation angle times that distance. Nothing fixed it independently: not the horizon line in the frames (which sets the pitch), and not the cloud's real altitude (we place the base at 500 m, `CLOUD_BASE_HEIGHT`).
+- All the frames are 16:9 (3840×2160 or 1920×1080), so the aspect matches if the slides show uncropped frames.
+
 Test with the panel's `vfovKeepSize` (dolly zoom) and `roll` on s206 and s33t3, plus a camfit pass that scores interior features (holes, the leg) and not only the outline.
 
 ## Owner tuning by hand (2026-10-11)
