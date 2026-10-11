@@ -28,6 +28,10 @@ The project is paused until next week: the weekly model limit was reached (it re
   5. Serrated chalky rims versus fibrous, pink-rimmed edges.
 - **Process that works:** one change at a time, each with its own A/B crop sheet against the round's anchor. Only visual winners go into the bundle. Then both judges (Opus and Fable) score blind: full frames plus zoom crops, the same JPEG treatment for every source, and decoded results in `work/calibration/d1<x>-results.md`. Bundled rounds regressed twice (r7, r10). Metrics: band std at 1–3 / 4–12 / 12–32 px on the lit half, plus floret blob count and dark fraction. Neither replaces the eye; the owner's eye is final.
 
+## Owner tuning by hand (2026-10-11)
+
+The owner may tune by hand during the pause. The Decima parity page (`/decima/`; `pnpm dev --port 5180`, because 5173 is used by the owner's other projects) has a tuning panel (`T`, `examples/lab/decima/tune.ts`). It exposes every runtime setting and each shot's scene values as live dials, and supports presets. **Before restarting the agents, check `work/presets/`** for exported presets, and ask the owner for any presets still only in their browser. Treat them as the owner's direction: a hand-found setting beats our measures, and the next rounds should start from it.
+
 ## Owner hypothesis to test first: a near-sunset sun (2026-10-11)
 
 The owner believes the pink comes from Guerrilla setting the time of day near sunset on purpose. Their deck cover and other hero shots are clearly at sunset; the midday sun we fitted is the doubtful part. Our `sunTint` is a stand-in for this. Facts so far:
