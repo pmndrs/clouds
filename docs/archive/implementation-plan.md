@@ -114,6 +114,8 @@ Define jitter ownership, cloud depth/motion approximation, reactivity for changi
 
 **Review R4:** matching recorded paths with modes switchable, including motion playback. Present a small set of quality/performance choices with measurements; human review sets the acceptable ghosting/detail tradeoff. Missing RTX evidence means Windows performance is unverified, not implicitly passed.
 
+**Later performance pass:** candidate experiments (panorama shell cache, baked light volumes, temporal pixel amortisation, layered cirrus, impostors) are tracked in [cloud performance tricks](research/cloud-perf-tricks.md). Not scheduled until visual targets are settled.
+
 ## P5 — Package APIs and R3F v10
 
 **Deliver:** stable lifecycle/update/render contracts, minimal plain Three.js examples, then equivalent R3F v10 components/hooks. Keep frame scheduling and GPU logic outside React bindings. Include an independent 2D-only consumer, an environment integration consumer and a voxel consumer.

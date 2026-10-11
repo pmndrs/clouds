@@ -5,7 +5,7 @@
 
 ## Focused follow-up
 
-The R2 coverage review prompted direct reading of the 2022/2023 slide PDFs: [distance rendering, LOD distinctions and P2 revision](nubis-lod.md). This adds page-specific evidence beyond the original survey.
+The R2 coverage review prompted direct reading of the 2022/2023 slide PDFs: [distance rendering, LOD distinctions and P2 revision](nubis-lod.md). This adds page-specific evidence beyond the original survey. Performance techniques and impostor ideas for the later perf pass are collected in [cloud-perf-tricks.md](cloud-perf-tricks.md).
 
 ## Findings at a glance
 
