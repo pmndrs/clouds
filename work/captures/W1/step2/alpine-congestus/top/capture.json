@@ -1,0 +1,98 @@
+{
+  "url": "http://127.0.0.1:5391/compare/?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&hzn_image=/clouds/ndf/alpine-congestus.png&hzn_tileMeters=24000&hzn_heightImage=/clouds/ndf/alpine-congestus-height.png&posy=14000&pitch=-60&sunel=60",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-11T15:28:24.300Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/W1/step2/alpine-congestus/top/view.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 3.112101133333333,
+          "hzd.lightGridReduce": 0.007375,
+          "hzd.lightGrid": 0.008207,
+          "hzd.marchNear": 0.7276839833333333,
+          "hzd.marchFar": 1.5052789500000003,
+          "hzd.shadowMap": 0.21381149999999993,
+          "hzd.composite": 1.0465742999999998,
+          "hzd.dome": 0.5679212333333333,
+          "hzd.skyLayer": 2.5676503833333344,
+          "hzd.skyResolve": 2.0995930500000006,
+          "hzd.cloudsTotal": 8.7440954,
+          "hzd.total": 11.856196533333334
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            14000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -60,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 60,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 3.112101133333333,
+              "lightGridReduce": 0.007375,
+              "lightGrid": 0.008207,
+              "marchNear": 0.7276839833333333,
+              "marchFar": 1.5052789500000003,
+              "shadowMap": 0.21381149999999993,
+              "composite": 1.0465742999999998,
+              "dome": 0.5679212333333333,
+              "skyLayer": 2.5676503833333344,
+              "skyResolve": 2.0995930500000006,
+              "cloudsTotal": 8.7440954,
+              "total": 11.856196533333334
+            },
+            "cpuMs": 0.4666666666666667,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 345
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

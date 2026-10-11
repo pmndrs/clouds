@@ -1,0 +1,344 @@
+{
+  "url": "http://127.0.0.1:5391/compare/?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&hzn_image=/clouds/ndf/cutscene-gradient.png&hzn_tileMeters=30000",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-11T15:24:50.258Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/W1/step2/cutscene-gradient/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 15.423311366666663,
+          "hzd.lightGridReduce": 0.014499,
+          "hzd.lightGrid": 0.029999,
+          "hzd.marchNear": 0.19738096666666666,
+          "hzd.marchFar": 0.5264669166666668,
+          "hzd.shadowMap": 0.7038593125,
+          "hzd.composite": 0.7390013166666672,
+          "hzd.dome": 0.39674613333333336,
+          "hzd.skyLayer": 11.9748416,
+          "hzd.skyResolve": 1.167140616666667,
+          "hzd.cloudsTotal": 15.749934862500002,
+          "hzd.total": 31.173246229166665
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 33.30000000000018
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 7,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 15.423311366666663,
+              "lightGridReduce": 0.014499,
+              "lightGrid": 0.029999,
+              "marchNear": 0.19738096666666666,
+              "marchFar": 0.5264669166666668,
+              "shadowMap": 0.7038593125,
+              "composite": 0.7390013166666672,
+              "dome": 0.39674613333333336,
+              "skyLayer": 11.9748416,
+              "skyResolve": 1.167140616666667,
+              "cloudsTotal": 15.749934862500002,
+              "total": 31.173246229166665
+            },
+            "cpuMs": 0.7683333307504654,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 349
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/W1/step2/cutscene-gradient/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 15.428674299999999,
+          "hzd.lightGridReduce": 0.014499,
+          "hzd.lightGrid": 0.29616200000000004,
+          "hzd.marchNear": 0.2106940333333333,
+          "hzd.marchFar": 0.6350090666666666,
+          "hzd.shadowMap": 0.6401900882352942,
+          "hzd.composite": 0.9939308500000003,
+          "hzd.dome": 0.48131564999999993,
+          "hzd.skyLayer": 14.9365247,
+          "hzd.skyResolve": 0.93191565,
+          "hzd.cloudsTotal": 19.140241038235295,
+          "hzd.total": 34.56891533823529
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 33.399999999999636
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "horizon",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            40,
+            0
+          ],
+          "lookAz": 15,
+          "pitch": 1.5,
+          "fov": 50,
+          "sunAz": 70,
+          "sunEl": 25,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 15.428674299999999,
+              "lightGridReduce": 0.014499,
+              "lightGrid": 0.29616200000000004,
+              "marchNear": 0.2106940333333333,
+              "marchFar": 0.6350090666666666,
+              "shadowMap": 0.6401900882352942,
+              "composite": 0.9939308500000003,
+              "dome": 0.48131564999999993,
+              "skyLayer": 14.9365247,
+              "skyResolve": 0.93191565,
+              "cloudsTotal": 19.140241038235295,
+              "total": 34.56891533823529
+            },
+            "cpuMs": 0.821666665871938,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 659
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/W1/step2/cutscene-gradient/above.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 19.739703549999994,
+          "hzd.lightGridReduce": 0.014499,
+          "hzd.lightGrid": 0.2781082,
+          "hzd.marchNear": 0.43158375000000004,
+          "hzd.marchFar": 0.6491561666666665,
+          "hzd.shadowMap": 0.6237574230769233,
+          "hzd.composite": 1.303040633333333,
+          "hzd.dome": 0.4909862666666668,
+          "hzd.skyLayer": 16.159794983333338,
+          "hzd.skyResolve": 1.3412885833333335,
+          "hzd.cloudsTotal": 21.292215006410263,
+          "hzd.total": 41.03191855641026
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 33.400000000001455
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "above",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            3000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -9,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 50,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 19.739703549999994,
+              "lightGridReduce": 0.014499,
+              "lightGrid": 0.2781082,
+              "marchNear": 0.43158375000000004,
+              "marchFar": 0.6491561666666665,
+              "shadowMap": 0.6237574230769233,
+              "composite": 1.303040633333333,
+              "dome": 0.4909862666666668,
+              "skyLayer": 16.159794983333338,
+              "skyResolve": 1.3412885833333335,
+              "cloudsTotal": 21.292215006410263,
+              "total": 41.03191855641026
+            },
+            "cpuMs": 0.7283333351214727,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 969
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/W1/step2/cutscene-gradient/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 32.29760036666667,
+          "hzd.lightGridReduce": 0.014499,
+          "hzd.lightGrid": 0.2043078666666667,
+          "hzd.marchNear": 0.6691405666666669,
+          "hzd.marchFar": 0.8862725000000002,
+          "hzd.shadowMap": 0.5873736666666666,
+          "hzd.composite": 2.123411283333333,
+          "hzd.dome": 0.5892092166666666,
+          "hzd.skyLayer": 15.423447200000004,
+          "hzd.skyResolve": 2.0470784333333336,
+          "hzd.cloudsTotal": 22.544739733333337,
+          "hzd.total": 54.84234010000001
+        },
+        "frameMs": {
+          "p50": 33.20000000000073,
+          "p95": 50.099999999998545
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "sunset",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 355,
+          "pitch": 4,
+          "fov": 50,
+          "sunAz": 355,
+          "sunEl": 4,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 32.29760036666667,
+              "lightGridReduce": 0.014499,
+              "lightGrid": 0.2043078666666667,
+              "marchNear": 0.6691405666666669,
+              "marchFar": 0.8862725000000002,
+              "shadowMap": 0.5873736666666666,
+              "composite": 2.123411283333333,
+              "dome": 0.5892092166666666,
+              "skyLayer": 15.423447200000004,
+              "skyResolve": 2.0470784333333336,
+              "cloudsTotal": 22.544739733333337,
+              "total": 54.84234010000001
+            },
+            "cpuMs": 0.6150000085433324,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 1279
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
