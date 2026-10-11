@@ -119,6 +119,16 @@ try {
   let tuner: ReturnType<typeof createTuner> | null = null;
   let frameEye: [number, number, number] = [0, 0, 0], frameTarget: [number, number, number] = [0, 0, 0];
   let rollDeg = 0;
+  const lens = { width: 1, height: 1, shiftX: 0, shiftY: 0 };   // tuning panel framing (TuneScene frameWidth / frameHeight / shiftX / shiftY)
+  // Applied after every updateProjectionMatrix in the frame loop: per-axis zoom and an off-centre shift on three's projection matrix.
+  const fovEff = (vfov: number, k: number) => (2 * Math.atan(Math.tan((vfov * Math.PI) / 360) * k) * 180) / Math.PI;
+  const applyLens = () => {
+    if (lens.width === 1 && lens.height === 1 && lens.shiftX === 0 && lens.shiftY === 0) return;
+    const m = camera.projectionMatrix.elements;
+    m[0] /= lens.width; m[5] /= lens.height;
+    m[8] -= 2 * lens.shiftX; m[9] -= 2 * lens.shiftY;
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+  };
   let camKeyNow = '';
   let sceneNow: TuneScene | null = null;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
@@ -207,6 +217,7 @@ try {
     const rel = (p: readonly number[]) => [p[0], p[1] - CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
     sceneNow = {
       camEye: rel(eye), camTarget: rel(target), vfov: camera.fov, roll: rollDeg,
+      frameWidth: lens.width, frameHeight: lens.height, shiftX: lens.shiftX, shiftY: lens.shiftY,
       sunElevation: sunNow.elevation, sunAzimuth: sunNow.azimuth, exposure: bridge.post.exposure, turbidity, miePhaseG: mieg,
       sunColor: [sunc[0], sunc[1], sunc[2]], sunTint: [suntint[0], suntint[1], suntint[2]], ambientTint: [ambtint[0], ambtint[1], ambtint[2]], skyFactor: [skyf[0], skyf[1], skyf[2]],
       postMode: bridge.post.mode, dither: bridge.post.dither,
@@ -225,6 +236,7 @@ try {
       camKeyNow = camKey;
     }
     rollDeg = t.roll;
+    lens.width = t.frameWidth || 1; lens.height = t.frameHeight || 1; lens.shiftX = t.shiftX; lens.shiftY = t.shiftY;
     sky.setSunDirection({ elevation: t.sunElevation, azimuth: t.sunAzimuth });
     if (t.miePhaseG !== miePhaseNow) { sky.setAtmosphere({ miePhaseG: t.miePhaseG }); miePhaseNow = t.miePhaseG; sky.setTurbidity(t.turbidity); }
     if (t.turbidity !== turbidityNow) { sky.setTurbidity(t.turbidity); turbidityNow = t.turbidity; }
@@ -299,6 +311,7 @@ try {
     if (rollDeg) camera.rotateZ((rollDeg * Math.PI) / 180);   // the rig re-aims every frame, so the roll is applied fresh each frame
     camera.near = Math.min(200, Math.max(0.5, camera.position.y * 0.002));
     camera.updateProjectionMatrix();
+    applyLens();
     sky.update(camera);
     void sky.updateAerialPerspective();
     skyBridge.update(camera);
@@ -312,7 +325,7 @@ try {
     timer.endFrame(encoder);
     device.queue.submit([encoder.finish()]);
     bridge.present();
-    if (frame++ % 15 === 0) hud.textContent = `${current} (${DECIMA_REFS[current]?.source ?? ''})  look ${look}  q ${runtime.quality}\ncam ${camera.position.toArray().map(v => v.toFixed(0)).join(', ')}  vfov ${camera.fov.toFixed(1)}\nsun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}`;
+    if (frame++ % 15 === 0) hud.textContent = `${current} (${DECIMA_REFS[current]?.source ?? ''})  look ${look}  q ${runtime.quality}\ncam ${camera.position.toArray().map(v => v.toFixed(0)).join(', ')} (${(camera.position.y - CLOUD_BASE_HEIGHT).toFixed(0)} m from the base)\nvfov ${fovEff(camera.fov, lens.height).toFixed(2)}  hfov ${fovEff(camera.fov, lens.width * camera.aspect).toFixed(2)}  shift ${lens.shiftX.toFixed(3)}, ${lens.shiftY.toFixed(3)}\nsun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}`;
     harness.frame();
   });
 

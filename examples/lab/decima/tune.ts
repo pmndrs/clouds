@@ -7,6 +7,8 @@ import runtimeSource from '../../../packages/runtime/src/runtime.ts?raw';
 export interface TuneScene {
   /** The shot camera, relative to the cloud base as in refs.ts (y up, metres), its vertical field of view and roll in degrees. */
   camEye: [number, number, number]; camTarget: [number, number, number]; vfov: number; roll: number;
+  /** Framing: the width and height of the view as multiples of the fitted ones (anamorphic, 1 = as fitted), and a lens shift in frame widths / heights. */
+  frameWidth: number; frameHeight: number; shiftX: number; shiftY: number;
   sunElevation: number; sunAzimuth: number; exposure: number; turbidity: number; miePhaseG: number;
   sunColor: [number, number, number]; sunTint: [number, number, number]; ambientTint: [number, number, number]; skyFactor: [number, number, number];
   postMode: number; dither: number;
@@ -204,6 +206,10 @@ export function createTuner(host: TuneHost) {
         ['camTarget', vecRow('camTarget', () => s.camTarget, v => { s.camTarget = v as TuneScene['camTarget']; push(); }, sb.camTarget, 'The point the camera looks at (x, y, z metres; y from the cloud base).')],
         ['vfov', numberRow('vfov', () => s.vfov, v => { s.vfov = v; push(); }, sb.vfov, 'Vertical field of view in degrees.')],
         ['vfovKeepSize', numberRow('vfovKeepSize', () => s.vfov, dolly, sb.vfov, 'Dolly zoom: changes the field of view and moves the camera so the cloud keeps its size. A silhouette fit cannot tell distance from field of view, so this is the test for perspective.')],
+        ['frameWidth', numberRow('frameWidth', () => s.frameWidth, v => { s.frameWidth = v; push(); }, sb.frameWidth, 'How much the view shows horizontally, as a multiple of the fitted view (1 = as fitted; above 1 shows more and the cloud gets narrower). Changes the horizontal field of view only.')],
+        ['frameHeight', numberRow('frameHeight', () => s.frameHeight, v => { s.frameHeight = v; push(); }, sb.frameHeight, 'How much the view shows vertically, as a multiple of the fitted view (1 = as fitted). Changes the vertical field of view only.')],
+        ['shiftX', numberRow('shiftX', () => s.shiftX, v => { s.shiftX = v; push(); }, sb.shiftX, 'Lens shift, in frame widths (+ moves the picture right). Off-centre framing, as if the frame had been cropped off-centre.')],
+        ['shiftY', numberRow('shiftY', () => s.shiftY, v => { s.shiftY = v; push(); }, sb.shiftY, 'Lens shift, in frame heights (+ moves the picture up).')],
         ['roll', numberRow('roll', () => s.roll, v => { s.roll = v; push(); }, sb.roll, 'Camera roll in degrees about the view axis.')],
         ['sunElevation', numberRow('sunElevation', () => s.sunElevation, v => { s.sunElevation = v; push(); }, sb.sunElevation, 'Sun elevation in degrees above the horizon.')],
         ['sunAzimuth', numberRow('sunAzimuth', () => s.sunAzimuth, v => { s.sunAzimuth = v; push(); }, sb.sunAzimuth, 'Sun azimuth in degrees (the sky convention, north = -Z).')],

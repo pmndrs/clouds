@@ -33,6 +33,7 @@ Keys and buttons:
   - **Camera dials** (scene section): `camEye`, `camTarget` (metres, y from the cloud base), `vfov`, `roll`.
     - `vfovKeepSize` is a dolly zoom: it changes the field of view while moving the camera so the cloud keeps its size, which tests perspective rather than framing.
     - "use the current view as the camera" copies an orbited view into the dials.
+    - **Framing:** `frameWidth` / `frameHeight` scale how much the view shows on each axis (anamorphic: horizontal and vertical field of view apart; 1 = as fitted), and `shiftX` / `shiftY` are a lens shift for off-centre framing. The HUD shows the effective vfov, hfov, shift, and the camera's height above the cloud base.
     - Guerrilla never published the cameras: every shot's camera was fitted from the silhouette (`scripts/d0/d0.py fit`, then `scripts/d1/camfit.py`).
 - Variants from the console, the same strings the capture runs use: `await __clouds.bookmark('p101@sun:15:210@suntint:1:1:1@exp:0.24')`.
   - The full `@` list is at the top of `examples/lab/decima/main.ts`: `@sun @exp @turb @skyf @sunc @suntint @ambtint @mieg @atm @ramp @skytint @wind @post @dither @look @matte @cam @s.<setting>`.
