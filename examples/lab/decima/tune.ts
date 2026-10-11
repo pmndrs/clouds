@@ -95,7 +95,7 @@ export function createTuner(host: TuneHost) {
     <div class="row"><input type="text" placeholder="filter settings…" data-a="filter" style="flex:1"><label><input type="checkbox" data-a="changed"> changed only</label></div>
     <div class="row"><label title="When you switch shots, re-apply your changed settings on top of the new shot (scene values stay per shot)"><input type="checkbox" data-a="carry" checked> keep my setting changes when switching shots</label></div>
     <div class="row"><input type="text" placeholder="preset name" data-a="name" style="flex:1"><button data-a="save">save</button><button data-a="export">export</button><button data-a="import">import</button><button data-a="resetall">reset all</button></div>
-    <div class="row"><button data-a="readcam" title="Copy the camera you orbited to into the camera dials">use the current view as the camera</button></div>
+    <div class="row"><button data-a="readcam" title="Copy the camera you orbited to into the camera dials">use the current view as the camera</button><button data-a="copycam" title="Copy the camera dials as a refs.ts line, to paste into examples/lab/decima/refs.ts (or send to Claude)">copy camera for refs.ts</button></div>
     <div class="presets"></div>
     <input type="file" accept="application/json" data-a="file" hidden>
   </header><div class="body"></div>`;
@@ -270,6 +270,12 @@ export function createTuner(host: TuneHost) {
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
     if (a === 'import') $<HTMLInputElement>('[data-a=file]').click();
+    if (a === 'copycam' && scene) {
+      const r = (v: number) => Math.round(v * 10) / 10;
+      const extra = (scene.frameWidth !== 1 || scene.frameHeight !== 1 || scene.shiftX || scene.shiftY || scene.roll) ? ` /* framing: frameWidth ${scene.frameWidth}, frameHeight ${scene.frameHeight}, shiftX ${scene.shiftX}, shiftY ${scene.shiftY}, roll ${scene.roll} */` : '';
+      const text = `${host.bookmark()}: eye: [${scene.camEye.map(r).join(', ')}], target: [${scene.camTarget.map(r).join(', ')}], vfov: ${Math.round(scene.vfov * 100) / 100},${extra}`;
+      navigator.clipboard.writeText(text).then(() => say('camera copied')).catch(() => { console.log(text); say('copy failed: the line is in the console'); });
+    }
     if (a === 'readcam' && scene) {
       const c = host.readCamera();
       scene.camEye = c.eye; scene.camTarget = c.target; scene.vfov = c.vfov; host.applyScene(scene); render(); say('camera taken from the view');

@@ -118,6 +118,11 @@ try {
   let mirrorNow = false;
   let tuner: ReturnType<typeof createTuner> | null = null;
   let frameEye: [number, number, number] = [0, 0, 0], frameTarget: [number, number, number] = [0, 0, 0];
+  // The compare view's frame: the shot's own by default, or any other frame of the same cloud (the "frame" picker, [ and ] keys), so one camera can be
+  // checked against several of Guerrilla's frames (e.g. p101 / p102 / p213). ?ref=<shot> picks it from the URL.
+  let shotName = '';
+  let refOverride: string | null = query.get('ref');
+  let syncRefImage = () => {};
   let rollDeg = 0;
   const lens = { width: 1, height: 1, shiftX: 0, shiftY: 0 };   // tuning panel framing (TuneScene frameWidth / frameHeight / shiftX / shiftY)
   // Applied after every updateProjectionMatrix in the frame loop: per-axis zoom and an off-centre shift on three's projection matrix.
@@ -152,7 +157,8 @@ try {
     camera.fov = cam.length === 7 ? cam[6] : ref.vfov;
     camera.updateProjectionMatrix();
     rig.set(eye, target);
-    refImg.src = `/__decima/ref/${name}.png`;
+    shotName = name;
+    syncRefImage();
     frameEye = eye; frameTarget = target;
     const s = v.has('sun') ? v.get('sun')!.map(Number) : nums('sun');
     sky.setSunDirection(s.length === 2 ? { elevation: s[0], azimuth: s[1] } : ref.sun);
@@ -281,7 +287,26 @@ try {
   compareSlider.oninput = () => { compareAmount = Number(compareSlider.value); layoutCompare(); };
   const reframeBtn = document.createElement('button'); reframeBtn.textContent = 'back to the shot camera'; reframeBtn.title = 'the frame only lines up from the shot camera';
   reframeBtn.onclick = () => rig.set(frameEye, frameTarget);
-  panel.append(compareBtn, compareSlider, reframeBtn);
+  const refPick = document.createElement('select'); refPick.title = 'which of Guerrilla\'s frames the compare view shows ([ and ] cycle)';
+  const refNames = DECIMA_REF_NAMES.filter(n => DECIMA_REFS[n].cloud === cloudName);
+  refPick.append(new Option('frame: the shot\'s own', ''), ...refNames.map(n => new Option(`frame: ${n} (${DECIMA_REFS[n].source})`, n)));
+  refPick.value = refOverride ?? '';
+  syncRefImage = () => {
+    const ref = refOverride ?? shotName;
+    refImg.src = `/__decima/ref/${ref}.png`;
+    refPick.value = refOverride ?? '';
+    refPick.classList.toggle('on', !!refOverride && refOverride !== shotName);
+  };
+  refPick.onchange = () => { refOverride = refPick.value || null; syncRefImage(); };
+  addEventListener('keydown', e => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+    if (e.key !== '[' && e.key !== ']') return;
+    const list = refNames, cur = list.indexOf(refOverride ?? shotName);
+    refOverride = list[(cur + (e.key === ']' ? 1 : list.length - 1)) % list.length];
+    syncRefImage();
+  });
+  panel.append(compareBtn, compareSlider, refPick, reframeBtn);
+  syncRefImage();
   addEventListener('keydown', e => {
     if (e.target instanceof HTMLInputElement) return;
     if (e.key === 'r') compareBtn.click();
@@ -325,7 +350,7 @@ try {
     timer.endFrame(encoder);
     device.queue.submit([encoder.finish()]);
     bridge.present();
-    if (frame++ % 15 === 0) hud.textContent = `${current} (${DECIMA_REFS[current]?.source ?? ''})  look ${look}  q ${runtime.quality}\ncam ${camera.position.toArray().map(v => v.toFixed(0)).join(', ')} (${(camera.position.y - CLOUD_BASE_HEIGHT).toFixed(0)} m from the base)\nvfov ${fovEff(camera.fov, lens.height).toFixed(2)}  hfov ${fovEff(camera.fov, lens.width * camera.aspect).toFixed(2)}  shift ${lens.shiftX.toFixed(3)}, ${lens.shiftY.toFixed(3)}\nsun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}`;
+    if (frame++ % 15 === 0) hud.textContent = `${current} (${DECIMA_REFS[current]?.source ?? ''})  look ${look}${compare !== 'off' ? `  vs ${refOverride ?? shotName}` : ''}  q ${runtime.quality}\ncam ${camera.position.toArray().map(v => v.toFixed(0)).join(', ')} (${(camera.position.y - CLOUD_BASE_HEIGHT).toFixed(0)} m from the base)\nvfov ${fovEff(camera.fov, lens.height).toFixed(2)}  hfov ${fovEff(camera.fov, lens.width * camera.aspect).toFixed(2)}  shift ${lens.shiftX.toFixed(3)}, ${lens.shiftY.toFixed(3)}\nsun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}`;
     harness.frame();
   });
 

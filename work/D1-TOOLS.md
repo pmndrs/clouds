@@ -24,6 +24,7 @@ Keys and buttons:
 - **R / compare** cycles off → wipe → overlay → frame. Guerrilla's frame for the shot sits over our render, letterboxed to the frames' 16:9.
   - Drag the yellow handle on the image to move the wipe; in overlay mode the same handle sets the frame's opacity (shift-move also works, and so does the panel slider).
   - Hold **F** to flip to the frame.
+  - **The frame picker** (under the compare slider, or the `[` and `]` keys, or `?ref=p213` in the URL) shows any of the cloud's frames against the current camera, e.g. our p102 camera against image101, image102 and image213. The HUD shows `vs <frame>`.
   - The frame only lines up from the shot camera ("back to the shot camera").
 - **T / tune** is the tuning panel: every runtime setting and the shot's scene values (sun, exposure, haze, colours, tints, tone curve).
   - The filter box and "changed only" narrow the list.
@@ -33,6 +34,7 @@ Keys and buttons:
   - **Camera dials** (scene section): `camEye`, `camTarget` (metres, y from the cloud base), `vfov`, `roll`.
     - `vfovKeepSize` is a dolly zoom: it changes the field of view while moving the camera so the cloud keeps its size, which tests perspective rather than framing.
     - "use the current view as the camera" copies an orbited view into the dials.
+    - "copy camera for refs.ts" copies the camera dials as a `refs.ts` line (framing values as a comment) to paste into `examples/lab/decima/refs.ts`, or to send to Claude.
     - **Framing:** `frameWidth` / `frameHeight` scale how much the view shows on each axis (anamorphic: horizontal and vertical field of view apart; 1 = as fitted), and `shiftX` / `shiftY` are a lens shift for off-centre framing. The HUD shows the effective vfov, hfov, shift, and the camera's height above the cloud base.
     - Guerrilla never published the cameras: every shot's camera was fitted from the silhouette (`scripts/d0/d0.py fit`, then `scripts/d1/camfit.py`).
 - Variants from the console, the same strings the capture runs use: `await __clouds.bookmark('p101@sun:15:210@suntint:1:1:1@exp:0.24')`.
