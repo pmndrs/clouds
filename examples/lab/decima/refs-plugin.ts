@@ -6,7 +6,7 @@ import { createReadStream, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const FRAMES: Record<string, string> = {
-  p101: 'extracted/n3/pptx/media/image101.png', p125: 'extracted/n3/pptx/media/image127.png', p161: 'extracted/n3/pptx/media/image162.png',
+  p101: 'extracted/n3/pptx/media/image101.png', p102: 'extracted/n3/pptx/media/image102.png', p125: 'extracted/n3/pptx/media/image127.png', p161: 'extracted/n3/pptx/media/image162.png',
   p213: 'extracted/n3/pptx/media/image213.png', s206: 'extracted/n3/pptx/media/image206.png', s214: 'extracted/n3/pptx/media/image214.png',
   s33t3: 'd0-parity/ref/frames/media33-t3.png', s33t6: 'd0-parity/ref/frames/media33-t6.png', s33t9: 'd0-parity/ref/frames/media33-t9.png',
 };

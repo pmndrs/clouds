@@ -14,7 +14,7 @@ Open `http://localhost:5180/decima/` in Chrome (it needs WebGPU).
 
 | Query | What it does |
 | --- | --- |
-| `?bookmark=p101` | The shot: Parkouring `p101 p125 p161 p213`, Stormbird `s206 s214 s33t3 s33t6 s33t9` (Stormbird also needs `&cloud=stormbird`) |
+| `?bookmark=p101` | The shot: Parkouring `p101 p102 p125 p161 p213` (`p102` = p101's camera with the fine detail off, against slide 78's raw-profile image102), Stormbird `s206 s214 s33t3 s33t6 s33t9` (Stormbird also needs `&cloud=stormbird`) |
 | `?look=decima\|deck\|art` | The starting dial set: `decima` is the parity tune, `deck` is the slides' numbers, `art` is our older defaults |
 | `?compare=wipe\|overlay\|frame` | Opens with Guerrilla's frame shown against ours |
 | `?s.<setting>=<value>` | Any runtime setting, e.g. `?s.detailBias=0.2` |
