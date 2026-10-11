@@ -28,6 +28,17 @@ The project is paused until next week: the weekly model limit was reached (it re
   5. Serrated chalky rims versus fibrous, pink-rimmed edges.
 - **Process that works:** one change at a time, each with its own A/B crop sheet against the round's anchor. Only visual winners go into the bundle. Then both judges (Opus and Fable) score blind: full frames plus zoom crops, the same JPEG treatment for every source, and decoded results in `work/calibration/d1<x>-results.md`. Bundled rounds regressed twice (r7, r10). Metrics: band std at 1–3 / 4–12 / 12–32 px on the lit half, plus floret blob count and dark fraction. Neither replaces the eye; the owner's eye is final.
 
+## Owner hypothesis to test first: a near-sunset sun (2026-10-11)
+
+The owner believes the pink comes from Guerrilla setting the time of day near sunset on purpose. Their deck cover and other hero shots are clearly at sunset; the midday sun we fitted is the doubtful part. Our `sunTint` is a stand-in for this. Facts so far:
+- Every sun sweep so far tested elevations of 15° and above only (`sweep6`: 15–75°; `r10i`: 25–55°). Nothing near sunset (2–12°) has been scored.
+- A quick look on the bench: physical sun colour, no tint, p101 at azimuth 210. At 8° the cloud goes orange and dark; at 15° it turns warm, but the shade pattern moves to the side and the left mass falls into shade. A low sun therefore needs its own azimuth, probably behind the camera to keep the frames' front-lit faces, plus a per-sun exposure refit.
+
+Test (one change, with A/B sheets):
+1. Run `sunsweep.py` at elevations 2–15° over all azimuths, with `@suntint:1:1:1` and the exposure refit for each sun.
+2. Score the shading (corr and lit IoU) plus the lit faces' R−B / R−G against the frames.
+3. If a low sun explains both the shading and the pink, replace `sunTint` with it. That also tells us what the sky's colour should be.
+
 ## Next steps, in order
 
 1. Judge round 12 (both judges, set l) and record `d1l-results.md`. Round 12 is committed (c6b7ee5, 64d322d, 0fe2cf8); the tree is clean and passing. Fable's own priority list is in D1.md §16, "Resume here": the shade's range (deep-shade fill), the Stormbird lit level (a per-cloud tone curve), a per-octave erosion amplitude for the cauliflower hierarchy, the base fringe and thin material, then the shade artefacts.
