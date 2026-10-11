@@ -2036,7 +2036,7 @@ Source of truth for every item: `docs/research/topics/README.md` (top 20, ids in
 - **Also (from P1):** fill detail type and density scale 1–2 voxels outside the profile, as Guerrilla's pack does; writing 0 there pulls surface samples toward wispy and thin, which makes pits.
 - **Acceptance:** tests; C1 photo/detail captures of CloudPack 02 and A2 wide at `quality=ultra` match R1's C-both renders.
 
-### [r] H5 HZD look-match pass on the `hzd` shaper · Opus (judged by Opus + Fable, rubric v2, quality=ultra) (report: work/reports/H5.md; blind set pending)
+### [x] H5 HZD look-match pass on the `hzd` shaper · Opus (accepted 2026-10-11: blind-judged (Opus 5, Fable 4), the owner chose its direction; popcorn erosion and torn silhouettes fixed, bodies round and connected; still flat-cut and isolated, carried into H6) (report: work/reports/H5.md)
 - **Owns:** `packages/runtime/src/procedural/hzd/`, `procedural/settings.ts`, `examples/lab/compare/`, `work/reports/H5.md`, `work/captures/H5/`.
 - **Does:** orchestrator review of H1 (2026-10-10) against GPU Pro 7 Fig 4.16 and HZD 2015 frames: the chain runs, but (1) erosion is too strong: bodies fragment into popcorn bits and small clouds vanish at stage 3, where HZD keeps compact rounded cumulus; (2) silhouettes are fuzzy and torn where HZD's are crisp, rounded lobes (owner edge rule: lit crusts crisp, only thin parts soft); (3) shaded flanks are faceted (H1 traced it to the Nubis R channel's carved pits); (4) the distant field turns into a uniform speckled mat instead of separate clouds receding; (5) the `above` view reads as fuzzy cotton blobs with a vertical streak cloud at right, and low self-shadow contrast hides lobe structure; (6) the published GPU Pro 7 detail scale (`p*0.1`) was replaced by a separate tile: re-test the literal reading. Fix in order, each with A/B captures beside Fig 4.13–4.16, hzd15 p037–039 and N3 s37 at matched framing; tune constants only within what the sources allow, and flag every unpublished value.
 - **Acceptance:** side-by-side sheets at matched framing; the judge model chosen in the calibration round scores against the rubric in `docs/research/targets/` (lobe ladder, edge widths, base flatness, separation), then the owner.
@@ -2114,6 +2114,43 @@ Judging: both Opus and Fable, blind, rubric v2 (`work/calibration/rubric.md`), a
 - **Why (owner, 2026-10-10):** before shaping our own clouds we should have matched our render of Guerrilla's files to Guerrilla's frames exactly. Our P0/P1 parity was numerical (density formula to 1e-3), never visual.
 - **Does:** collect every Decima frame of the pack clouds (Parkouring: the N3 modelling slides; Stormbird and Parkouring finals: s181 media33, s185 image165, pack renders image213/214; video turntables via frame extraction) and every render setting the deck gives (step sizes, extinction, lighting terms, light grid, ambient, phase, glow constants, exposure cues). Reconstruct camera, sun and framing per frame; render ours (Nubis chain, Nubis lighting, the deck's constants rather than our art defaults) and iterate until each frame matches, listing every remaining difference and its cause (sampler, lighting, tonemapping, sky, resolution). Work in an isolated worktree; changes that matter come back as a branch for the orchestrator to merge.
 - **Acceptance:** side-by-side sheets per reference frame (local only: deck images are third-party), a parity table (silhouette IoU, brightness/colour stats), a list of deviations of our defaults from the deck, and recommended default changes.
+
+## Next from the top 20 (planned 2026-10-11, not started)
+
+Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H1, H2, H4, A1–A3). The items below are the rest. **Gate:** the owner's priority is D1 parity first, and the project is paused for the week (model limit). Start these only after the owner says go and the D1 budget is agreed (`work/HANDOFF.md`). Each follows the D1 process: one change at a time, A/B sheets against an anchor, both judges blind, the owner final.
+
+### [ ] W1 A real coverage map + advection policy [W2 rank 11, W1 rank 20] · Opus
+- **Owns:** `packages/runtime/src/procedural/hzd/` (NDF map generation), `procedural/settings.ts`, `examples/lab/compare/`, `work/reports/W1.md`, `work/captures/W1/`.
+- **Does:**
+  - Replace the generated NDF with a real map: the N17 gate × footprints with type (connected vs isolated, clusters, islands; n17 p.53–58, hzd15 s40–46, ne22 p.70–74). G's weather v2 is the second arm.
+  - Add the map-advection policy as a setting: Nubis static / rigid / split, with the volume-local anchor from SD7.
+- **Acceptance:** world-view captures at 5–10 km and from the ground beside the hzd15/ne22 map frames; motion clips per advection policy.
+
+### [ ] W2 Weather states, scheduler and the HZD bias panel [W3 + W4 rank 19] · Opus (after W1)
+- **Owns:** new `procedural/weather/`, `examples/lab/compare/` (panel), `work/reports/W2.md`.
+- **Does:**
+  - Weather states with 10–30 s lerps (coverage ±0.5, type ±1, cirrus density), and a scheduler.
+  - An HZD-style art panel (n17 p.59–72, nut s20, hzd15 s38–45).
+  - No rain channel (owner).
+- **Acceptance:** a clip through three states without pops; panel presets saved and loaded.
+
+### [ ] L2 One volumetric shell with continuous type [L2 rank 12] · Opus
+- **Owns:** `procedural/hzd/`, `procedural/settings.ts`, `work/reports/L2.md`.
+- **Does:** replace the summed layers with one shell whose type varies continuously over the map (stratus to cumulus), plus the 2D high layer (hzd15 s73, gp7 p.98–104).
+- **Acceptance:** no overlap smear at layer boundaries; a stratus-to-cumulus transect capture.
+
+### [ ] A4 Detail type and density scale from the surface normal [SD3 + AU5 rank 13] · Sonnet
+- **Owns:** `scripts/vdb/vdb_to_nvdf.py`, `scripts/vdb/nvdf_math.py`, tests, `houdini/rigs/nvdf_channels.hip`, `work/reports/A4.md`.
+- **Does:** derive type and density scale from the surface normal in the converter and in a Houdini rig, for the whole library. Guerrilla's pack fields are untouched: they already match the pack exactly.
+- **Acceptance:** the Frog and CloudPack 02 before/after at ultra, blind-judged.
+
+### [ ] S7 Anvils [S7 rank 14] · Opus
+- **Does:** the N17 anvil exponent with its clamp switch, plus Häggström's density fix (n17 p.46–50, hag eq 17–18), in the `hzd` shaper.
+- **Acceptance:** an anvil cell from the ground and the side beside the n17 frames.
+
+### [ ] R2 Metre-scale rim pass [SD6 rank 18] · Opus (held until D1 settles edges)
+- **Does:** `S((−sdf + A(n−0.5))/w)` within about 2 km (bou08 p.7; Frog F1–F2), for cotton fuzz on lit edges tied to cloud size.
+- **Hold:** D1 is still working on the edges (chalky rims against fibrous pink rims). Start after D1's edge verdict so the two don't fight.
 
 ## Decisions and escalations
 
