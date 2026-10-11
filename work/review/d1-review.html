@@ -1,0 +1,144 @@
+<title>Decima Parity Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column. Status first, then the round ledger, what we learned, what is open, and the restart plan; the same family as the rounds overview. */
+:root {
+  --bg: #eef2f6; --panel: #f8fafc; --ink: #18222f; --muted: #566476; --line: #cfd8e3;
+  --sky: #34587f; --win: #2f7a4f; --loss: #a8452f; --even: #8a6d1f;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Serif 4", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544;
+  --sky: #8fb0dd; --win: #6cc293; --loss: #e58a73; --even: #e2b85a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141b; --panel: #161d27; --ink: #e2e8f0; --muted: #94a3b8; --line: #2a3544;
+  --sky: #8fb0dd; --win: #6cc293; --loss: #e58a73; --even: #e2b85a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 80px; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.4rem; font-weight: 700; }
+h3 { font-size: 1.08rem; font-weight: 700; }
+p { margin: 0; max-width: 70ch; }
+code { font-family: var(--mono); font-size: 0.82em; }
+.eyebrow { font: 500 0.74rem var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.lede { font-size: 1.12rem; }
+section { display: grid; gap: 16px; min-width: 0; }
+.rule { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; border-top: 2px solid var(--ink); padding-top: 10px; }
+.rule .alt { font: 0.74rem var(--mono); color: var(--muted); margin-left: auto; }
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.stat b { font: 700 1.5rem var(--display); }
+.stat span { font-size: 0.92rem; color: var(--muted); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.85rem; white-space: nowrap; }
+.pill { font: 500 0.7rem var(--mono); padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.win { color: var(--win); } .pill.loss { color: var(--loss); } .pill.even { color: var(--even); } .pill.wait { color: var(--muted); }
+ul, ol { margin: 0; padding-left: 1.2em; display: grid; gap: 7px; max-width: 72ch; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px; }
+.two > div { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.ask { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--sky); border-radius: 4px; padding: 14px 18px; display: grid; gap: 8px; }
+a { color: var(--sky); }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">WebGPU Clouds · D1 · paused 2026-10-11 until next week</span>
+  <h1>Decima Parity Review</h1>
+  <p class="lede">Where the effort to make our renderer match Decima's frames of Guerrilla's own clouds (Parkouring and Stormbird) stands after 12 rounds, what we learned, and how to restart. All other renderer work stays paused until this is right.</p>
+</header>
+
+<section>
+  <div class="rule"><h2>Status</h2></div>
+  <div class="status">
+    <div class="stat"><b>3–4 / 10</b><span>Both blind judges, every round: "same cloud, different engine"</span></div>
+    <div class="stat"><b>11 of 16</b><span>Round 11 against round 9, the first clear win since round 8</span></div>
+    <div class="stat"><b>Round 12</b><span>Done; not judged yet (blind set built, judging next session)</span></div>
+    <div class="stat"><b>Paused</b><span>Weekly model limit reached; it resets 15 Oct at 12:00 Tokyo time</span></div>
+  </div>
+  <p>The renders are clearly closer than at the start. The skies now match, the blotches and most of the trunk flaws are gone, the cauliflower bumps are starting to show, and Parkouring has its pink. Nothing yet passes as a frame from the same engine.</p>
+</section>
+
+<section>
+  <div class="rule"><h2>Round ledger</h2><span class="alt">blind calls against the previous round; both judges, distance and close-up</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Round</th><th>Main change</th><th>Verdict</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1–5</td><td>Lighting units from the deck, suns refit, blue noise, PNG captures</td><td><span class="pill win">steady gains</span></td><td>In-line taps were 10× too strong; the JPEG captures had been causing the contour banding</td></tr>
+      <tr><td class="num">6</td><td>Light grid 1.44× too strong; term balance fitted to the frames</td><td><span class="pill even">mixed</span></td><td>Parkouring shade level right; round "polka-dot" blotches appeared</td></tr>
+      <tr><td class="num">7</td><td>Shade lifted by sky light</td><td><span class="pill loss">regression</span></td><td>The haze hid the blotches without removing them; 30–60% of the detail lost; reverted</td></tr>
+      <tr><td class="num">8</td><td>Wind stopped for stills; blotches broken up</td><td><span class="pill win">Parkouring win</span></td><td>Wind was smearing the bumps; Stormbird's own flaws exposed</td></tr>
+      <tr><td class="num">9</td><td>Stormbird flaws traced to the glow on thin material; 4 m sun tap</td><td><span class="pill even">9 of 16</span></td><td>Trunk slit and ring fainter</td></tr>
+      <tr><td class="num">10</td><td>Bump shading on the glow, painted sky, steeper Stormbird suns</td><td><span class="pill loss">4 of 16</span></td><td>Stepped sky band, fog wall over the base, Stormbird worse</td></tr>
+      <tr><td class="num">11</td><td>Round 10 taken apart one change at a time; winners only</td><td><span class="pill win">11 of 16</span></td><td>Smooth sky (background only), bumps at two sizes, suns restored</td></tr>
+      <tr><td class="num">12</td><td>Fog wall, pink sun tint, hollows between bumps, asset time</td><td><span class="pill wait">not judged</span></td><td>Each change kept only with its own before/after sheet</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="rule"><h2>What we learned</h2></div>
+  <ol>
+    <li><b>Units matter more than shapes.</b> Guerrilla's light sums are counted in density samples. Our short shadow samples were 10× too strong and the light grid 1.44× too strong. Most of the early pitting and over-dark shade came from that.</li>
+    <li><b>The round blotches</b> were the cloud's large-scale shape showing through the soft-glow term. Weighting the glow by the actual density and reading it a little deeper fixed them, and also most of Stormbird's slit, ring and pits.</li>
+    <li><b>Wind smears the bumps.</b> The detail noise drifts with the wind, and the frame blending only follows the camera. Re-aligning old frames can't fix it, because the bumps change shape as they drift. For the product, the fix is blending fewer frames when the wind is on; this belongs in the performance pass.</li>
+    <li><b>The bump shapes were there all along.</b> They lacked a short-range sun shadow at their own scale (4–13 m), and the glow and sky light were brightening exactly the dips. The hollows between bumps come from erosion, not from shadowing.</li>
+    <li><b>The sky's horizon band</b> has to be painted from the frames, and kept as background only. Letting it light the cloud over-brightens the undersides.</li>
+    <li><b>The pink</b> comes from warming the sunlight without warming the sky. On Stormbird the sunlit faces sit at the top of the tone curve, where the tint has little room to work.</li>
+    <li><b>Asset time is ruled out.</b> Guerrilla's cloud files have no animation state, so the silhouette differences are camera and noise.</li>
+    <li><b>Process.</b> Rounds that bundled many changes went backwards twice (7, 10). One change at a time, each with its own before/after crop sheet, then blind judging, works. Measures help but don't replace the eye, and yours is final.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="rule"><h2>Still open</h2><span class="alt">in priority order</span></div>
+  <ol>
+    <li><b>Cauliflower hierarchy:</b> Decima has bumps on bumps down to fine grain, with hollows between them. Ours are one size, and Decima still carries about 30% more fine grain, even with matched compression.</li>
+    <li><b>Stormbird brightness and pink:</b> the tone curve's shoulder limits the warmth.</li>
+    <li><b>The far Parkouring view's base</b> still softens into the haze band, where Decima has a crisp flat underside.</li>
+    <li><b>Shadow flaws:</b> the glow disc in the broad Stormbird cloud, ochre blotches, and the faint trunk ring and slit.</li>
+    <li><b>Edges:</b> ours are serrated and chalky, with a bright outline; Decima's are fibrous, with a pink rim.</li>
+  </ol>
+</section>
+
+<section>
+  <div class="rule"><h2>Restarting next week</h2></div>
+  <div class="two">
+    <div>
+      <h3>First steps</h3>
+      <ol>
+        <li>Judge round 12 blind and record the result.</li>
+        <li>Agree a token budget for D1 (below).</li>
+        <li>Continue from the open list, one change at a time.</li>
+        <li>When parity is good enough by your eye, carry the look over as the default for imported volumes and resume the paused rounds: material, the HZD sky, fog, weather, Santa's Sleigh, authoring, performance.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <p>Each Fable implementation round used roughly 0.4–1 million tokens, and each pair of judges about 0.4 million. That is what used the week's limit.</p>
+      <ul>
+        <li>Run implementation rounds on Opus, and keep Fable for judging and for specific hard problems.</li>
+        <li>Use one judge per round, and both only on bundles we intend to keep.</li>
+        <li>Keep rounds narrow: two or three changes.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="eyebrow">Handoff: work/HANDOFF.md · report: work/reports/D1.md §10–16 · judging: work/calibration/d1*-results.md · floret study: work/reports/D1-florets.md</p>
+</section>
+
+<section>
+  <div class="rule"><h2>For you</h2></div>
+  <div class="ask">
+    <p><b>Your eye on the latest crops.</b> The judges have split by half a point for several rounds. A look from you at round 12 against Decima would tell us whether we're heading the right way. The sheets are local, in <code>artifacts/research/d1-parity/sheets-r12/</code>.</p>
+    <p><b>The budget.</b> Which of the cost options above, if any, to adopt before restarting.</p>
+  </div>
+</section>
+</div>

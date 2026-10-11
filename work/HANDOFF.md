@@ -1,4 +1,72 @@
-# Orchestrator handoff (2026-10-10, early morning)
+# Orchestrator handoff (2026-10-11, paused for the week)
+
+The project is paused until next week: the weekly model limit was reached (it resets on 15 Oct at 12:00 Tokyo time). Start here, then read `work/reports/D1.md` (§10–16 and its "resume here" list), `work/calibration/d1k-results.md` (the latest judged round) and `work/reports/D1-florets.md`.
+
+**Review of the pause (owner-facing):** https://claude.ai/artifact/UfkrDuARTKY61vDBUXfmBt (source `work/review/d1-review.html`).
+
+**Rounds overview (living page, update it every round):** https://claude.ai/artifact/VqPT2dzg3uFNXpcvnMQRQw (source `work/review/rounds.html`).
+
+## Where we are
+
+**Owner priority: D1 parity first.** All other renderer work is paused until our render of Guerrilla's own clouds (Parkouring, Stormbird; the NVDF pack assets) matches Decima's frames. Fable leads D1 with a free hand (the deck and art looks are both just inputs, sky changes are allowed, no Karma port). The HZD/procedural branches may continue later: pure procedural, newer Nubis methods, hybrids, LOD and fog.
+
+- **Score:** both blind judges give a steady 3–4/10, "same cloud, different engine", over 12 rounds. Round 11 was the first clear win since round 8 (11 of 16 calls against r9). **Round 12 is done but not yet judged:** blind set `scratchpad/blind-d1l/` + key `blind-d1l-key/key.json` (Decima / r11 / r12, every source through JPEG q90). The scratchpad is session-local and may be gone next week; if so, rebuild the set from the captures (the D1 agent's recipe is in the report).
+- **The look lives in** `CLOUD_DECIMA_SETTINGS` (`packages/runtime/src/runtime.ts`) plus the per-frame scene settings in the parity page's `refs.ts` (cameras, suns, exposures, sky ramp, `sunTint`, Parkouring `lightDensityScale` 0.045). Captures: `work/captures/D1/{parkouring,stormbird}`; sheets (local only): `artifacts/research/d1-parity/sheets-r*/`; scripts: `scripts/d1/` (d1.py bands3, sunsweep, termfit, camfit, postfit), plus the floret metric `florets.py` (copy it from the scratchpad into `scripts/d1/` next session if it is still there; the D1-florets report has its definition).
+- **What was learned (12 rounds):**
+  1. Light units: the deck's light sums are in "density samples"; our in-line taps were 10× too strong and the light grid 1.44×.
+  2. Disc blotches: the dimensional profile's lobes showing through the glow (ms) term. Fixed by reading the glow's P deeper along the ray (`glowDepth`) and by weighting it with density (`inScatterProfile` 0.5 = P·√S), which also removed most of the Stormbird slit, ring and pits.
+  3. **Wind smears florets:** the noise scrolls with the wind, and the temporal resolve reprojects only through the camera. The parity stills stop the wind. Reprojecting through the noise cannot fix it, because the florets change shape as the noise slides over a static profile. The product will need a lower blend under wind (a performance-pass item).
+  4. **Florets:** the geometry is there. They lacked floret-scale sun occlusion: the micro taps at 4 m and 4–8 m, plus the glow occluded by the up-rez excess. Hollows come from erosion (`detailBias` 0.1), not from occlusion.
+  5. The sky: the frames' horizon band is painted as a smooth 8-stop ramp, in the sky only. In the ambient it over-lit the bellies.
+  6. Colour: a per-scene sun tint apart from the sky (`sunTint`) gives the Parkouring pink. On Stormbird the lit faces sit on the ACES shoulder, which limits the tint.
+  7. Asset time is ruled out: the NVDF has no evolution.
+- **Open, in order** (also the judges' gaps):
+  1. Cauliflower hierarchy: domes on domes down to 1–3 px grain, with hollows. Our relief is still single-scale, and the frames carry about 30 percent more 1–3 px grain even through matched JPEG.
+  2. Stormbird lit level and pink (the ACES shoulder).
+  3. The p213 base edge against the haze band.
+  4. Shade artefacts: the s206 glow disc, ochre blotches, the s33t3 ring and slit.
+  5. Serrated chalky rims versus fibrous, pink-rimmed edges.
+- **Process that works:** one change at a time, each with its own A/B crop sheet against the round's anchor. Only visual winners go into the bundle. Then both judges (Opus and Fable) score blind: full frames plus zoom crops, the same JPEG treatment for every source, and decoded results in `work/calibration/d1<x>-results.md`. Bundled rounds regressed twice (r7, r10). Metrics: band std at 1–3 / 4–12 / 12–32 px on the lit half, plus floret blob count and dark fraction. Neither replaces the eye; the owner's eye is final.
+
+## Next steps, in order
+
+1. Judge round 12 (both judges, set l) and record `d1l-results.md`.
+2. Ask the owner whether they want to look at the latest crops themselves. Offered three times, unanswered: the judges have been split by half a point for several rounds.
+3. **Cost:** Fable used the week's limit. D1 rounds are about 0.4–1 M tokens each, plus about 0.4 M per pair of judges. Consider:
+   - Opus for D1 implementation rounds, with Fable kept for judging and for specific hard problems
+   - one judge per round, with both only on bundles we intend to keep
+   - narrower rounds (two or three changes)
+
+   Agree the budget with the owner before restarting.
+4. Continue D1 from the open list above. When parity is "good enough" by the owner's eye, recommend NVDF-volume defaults from the decima look and resume the queued work:
+   - M-like material for imported VDBs
+   - the HZD sky: fractus skirts per body from the belly line, held until the renderer baseline is right
+   - fog: procedural and SDF
+   - Round W: weather/NDF map, paint page, valley fog
+   - Round S: the Santa's Sleigh multi-body scene, with multi-volume support
+   - Round A: authoring quality
+   - Round P: the performance pass, which must handle the wind/temporal florets issue
+
+## Housekeeping
+
+- **Branch:** `claude/cloud-research-setup-10bf11` (this worktree); not merged to main.
+- **Untracked, left alone:** `work/captures/C1/calibration/{detail,photo}/` and the two C1 sheets (C1 calibration extras). `work/reports/M2.md` is the stopped M2 task's report (superseded by D1); commit or delete it with the owner.
+- **Owner review pages:**
+  - Round H: https://claude.ai/artifact/RPabtz6qpXTh9nS9nfGMu5
+  - Research: https://claude.ai/artifact/SUx3sFPuiHSBEARrFHhsfS
+
+  Their databases hold the owner's answers.
+- **Standing rules:**
+  - Never touch port 5201.
+  - Never commit Decima frames, slide images, EmberGen or Karma renders, or the owner's photos (they stay in `artifacts/`).
+  - Never read `.env` / `FAL_KEY`.
+  - Commit by pathspec with the attribution line.
+  - Run python with `-I`.
+  - Downloads need the owner's OK in chat.
+
+---
+
+# Earlier handoff (2026-10-10, early morning)
 
 For the next orchestrator session. Read this, then `docs/research/topics/README.md` (topic map, combined top-20, all owner questions), `work/README.md` (protocol) and `docs/PLAN-2026-10-next.md`.
 
