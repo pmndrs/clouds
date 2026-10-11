@@ -195,4 +195,18 @@ describe('HZD shaper F1: types and forms', () => {
     expect(out[o + 20]).toBe(2);
     expect(PROC_HZD_WGSL).toContain('if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }');
   });
+  it('step 4: fractus is off by default, looks upwind for a body base and lowers the shell by its drop', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    const o = PROC_HZD_FORMS_OFFSET;
+    packProceduralParams(s, out);
+    expect(out[o + 36]).toBe(0);
+    s.hzd.fractusDensity = 0.2;
+    expect(packProceduralParams(s, out)).toEqual([1500 - s.hzd.fractusDrop, 5000]);
+    expect(Array.from(out.subarray(o + 36, o + 40))).toEqual([0.2, 900, 220, 0.08].map(Math.fround));
+    expect(out[o + 42]).toBe(3);                                                       // taps: overhead + 2 upwind
+    expect(PROC_HZD_WGSL).toContain('let b = hzdBelly(p.xz - wind2 * (P.hzFrac.y * f), lod);');
+    expect(PROC_HZD_WGSL).toContain('F *= 1.0 - 0.85 * over;');                          // not under the whole base: from the lee edge
+    expect(PROC_HZD_WGSL).toContain('if (P.hzFrac.x > 0.0 && full && o.sigma <= 0.0) { o = hzdFractusSample(p, t, footprint); }');
+  });
 });

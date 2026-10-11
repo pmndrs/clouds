@@ -510,8 +510,80 @@ fn hzdMerge(a: ProcSample, b: ProcSample) -> ProcSample {
   o.sigma = s; o.coarse = mix(a.coarse, b.coarse, w); o.depth = mix(a.depth, b.depth, w); o.h = mix(a.h, b.h, w);
   return o;
 }
+// F1 step 4: is there a body base over column xz? Returns (presence 0..1: the coarse body at the belly height fractusBelly, as the main chain
+// thresholds it; the belly altitude). Mirrors hzdMainSample's column (NDF heights, height from coverage) without the ring, storms or detail.
+fn hzdBelly(xz: vec2<f32>, lod: f32) -> vec2<f32> {
+  let n = ndfSample(xz);
+  let cov = saturate(n.coverage + P.hzCov.x);
+  let span = P.hzLayer.y - P.hzLayer.x;
+  let bottom = P.hzLayer.x + n.minHeight * span;
+  var top = P.hzLayer.x + n.maxHeight * span;
+  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(cov / P.hzProf.w), P.hzProf.z); }
+  let hb = P.hzFrac.w;
+  let altB = bottom + hb * max(top - bottom, 1.0);
+  if (cov <= 0.0) { return vec2(0.0, altB); }
+  hzdBt = saturate(n.bottomType + P.hzType2.x);
+  hzdStormW = 0.0;
+  let g = hzdHeightGradient(n.topType + P.hzCov.y, hb);
+  if (g <= 0.0) { return vec2(0.0, altB); }
+  let windDir = vec3(P.hzWind.x, 0.0, P.hzWind.y);
+  let scroll = P.drift.xyz + vec3(0.0, P.hzWind.w * length(P.drift.xz), 0.0);
+  let q = vec3(xz.x, altB, xz.y) - windDir * (hb * P.hzWind.z) - scroll * P.hzSpeed.y;
+  let A = textureSampleLevel(procNoiseA, procRepeat, q / P.hzScale.x, lod);
+  let base = hzdRemap(A.r, -(1.0 - (A.g * 0.625 + A.b * 0.25 + A.a * 0.125)), 1.0, 0.0, 1.0);
+  return vec2(saturate(hzdRemap(base * g, 1.0 - cov, 1.0, 0.0, 1.0) / 0.15), altB);
+}
+// F1 step 4: fractus. Ragged shreds hanging from each body's belly line (h fractusBelly) down to fractusDrop m below it and trailing up to
+// fractusTrail m downwind: the sample looks fractusTaps taps upwind (0 .. trail) for a body base (hzdBelly), so material exists only under and
+// behind real bodies and never above the belly (crisp tops; H7's skirt band attached to nothing and crossed lit crowns). The pieces sink a little
+// and thin out with the distance they have trailed. The shreds: the detail fBM read fractusScale x coarser, curl-displaced fractusCurl x (with a
+// vertical share), cut where it is below 1 - presence (ragged gaps, no streaks). Ours (n3 s162's skirt, hzd15 s26/s37 wispy bottoms).
+fn hzdFractusSample(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
+  var o: ProcSample;
+  o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
+  let alt = procAltitude(p);
+  let span = P.hzLayer.y - P.hzLayer.x;
+  if (alt < P.hzLayer.x - P.hzFrac.z || alt > P.hzLayer.x + 0.45 * span || t > P.hzFrac2.w) { return o; }
+  let wind2 = vec2(P.hzWind.x, P.hzWind.y);
+  let K = u32(P.hzFrac2.z);
+  let lod = hzdLod(footprint, P.hzScale.x, 128.0) + 1.0;
+  // The pieces leave the lee edge: the trail term (taps 1..K-1 upwind) is cut where a body sits right overhead (tap 0), so the shreds hang
+  // along the edges and stream out behind each body instead of lining its whole underside as a second base. Their hang height wanders by
+  // +-0.4 drop over ~1 km (no flat band at one altitude).
+  let jit = 0.4 * P.hzFrac.z * hzdLowField(p.xz, 4000.0, 0.47);
+  var F = 0.0;
+  var over = 0.0;
+  for (var k = 0u; k < K; k++) {
+    let f = select(f32(k) / f32(K - 1u), 0.0, K == 1u);
+    let b = hzdBelly(p.xz - wind2 * (P.hzFrac.y * f), lod);
+    if (b.x <= 0.0) { continue; }
+    let top = b.y - 0.3 * P.hzFrac.z * f + jit;      // trailing pieces sink
+    // Soft at both ends (a thin band with hard ends flickers under the march's jittered steps).
+    let v = smoothstep(top - P.hzFrac.z, top - 0.5 * P.hzFrac.z, alt) * (1.0 - smoothstep(top - 0.5 * P.hzFrac.z, top + 40.0, alt));
+    if (k == 0u && K > 1u) { over = b.x * v; continue; }
+    F = max(F, b.x * v * (1.0 - 0.5 * f));
+  }
+  F *= 1.0 - 0.85 * over;
+  if (F <= 0.0) { return o; }
+  let scroll = P.drift.xyz + vec3(0.0, P.hzWind.w * length(P.drift.xz), 0.0);
+  let q = vec3(p.x, alt, p.z) - scroll * P.hzSpeed.z;
+  let curl = textureSampleLevel(procAux, procRepeat, q.xz / P.hzScale.z, 0.0).xyz;
+  var qd = q + vec3(curl.x, 0.5 * curl.z, curl.y) * (P.hzScale.w * P.hzFrac2.y);
+  // Mildly stretched along the wind (1.6 : 1, torn pieces trail; H7's 2.5 read as streaks).
+  qd -= vec3(wind2.x, 0.0, wind2.y) * dot(qd.xz, wind2) * (1.0 - 1.0 / 1.6);
+  let tile = P.hzScale.y * P.hzFrac2.x;
+  let B = textureSampleLevel(procNoiseB, procRepeat, qd / tile, hzdLod(footprint, tile, 32.0)).rgb;
+  // The wispy form (gp7 p.108: fbm, not 1 - fbm): the detail channels are inverted Worley, so 1 - fBM is the web between the cells, i.e.
+  // torn, filamentary pieces instead of the round billows at the cell centres.
+  let wv = 1.0 - (B.r * 0.625 + B.g * 0.25 + B.b * 0.125);
+  let d = saturate(hzdRemap(wv, 1.0 - 0.7 * F, 1.0, 0.0, 1.0)) * P.hzFrac.x;
+  if (d <= 0.0) { return o; }
+  o.sigma = d * P.hzLayer.w; o.coarse = d; o.h = 0.02; o.depth = 0.0;
+  return o;
+}
 fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o = hzdMainSample(p, t, footprint, full, jitter);
+  if (P.hzFrac.x > 0.0 && full && o.sigma <= 0.0) { o = hzdFractusSample(p, t, footprint); }
   if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }
   if (P.hzDeck.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzDeck, P.hzDeck2, p, t, footprint, full)); }
   return o;
