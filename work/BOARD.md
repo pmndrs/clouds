@@ -2126,7 +2126,7 @@ Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H
   - Add the map-advection policy as a setting: Nubis static / rigid / split, with the volume-local anchor from SD7.
 - **Acceptance:** world-view captures at 5–10 km and from the ground beside the hzd15/ne22 map frames; motion clips per advection policy.
 
-### [~] F1 Cloud types and forms in the hzd shaper [S3 in the shaper, S7 rank 14, fractus] · Opus (started 2026-10-11, own worktree)
+### [x] F1 Cloud types and forms in the hzd shaper [S3 in the shaper, S7 rank 14, fractus] · Opus (merged 2026-10-12, all off by default, H6 look unchanged: profile tables `profileMode 'tables'` (+5-8 ms), storms/anvils `stormStrength`, mid/deck sheets `midForm`/`deckForm`, fractus `fractusDensity`; in the HZD bench panel. Open: tables to a texture binding, storm lighting, fibrous anvil edges, altocumulus bands, altostratus overcast, fractus near-camera dither) (report: work/reports/F1.md)
 - **Owns:** `procedural/hzd/shaper.wgsl.ts`, `shaper.test.ts`, the type and form block of `procedural/settings.ts`, ProcParams (append only), `work/reports/F1.md`, `work/captures/F1/`.
 - **Does:**
   - NE22 / N3 s18 top × bottom type tables in the shaper (reused from H4).
@@ -2136,7 +2136,7 @@ Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H
   - Each change behind settings, with an A/B sheet against H6 beside the paper frames.
 - **Acceptance:** sheets; defaults only when clearly closer; reviewed by people on the HZD bench.
 
-### [~] B1 HZD bench (procedural) · Opus (started 2026-10-11)
+### [x] B1 HZD bench (procedural) · Opus (merged b860daf, 2026-10-12; W1 and F1 settings added to its panel)
 - **Owns:** `examples/lab/hzd/`, a shared tuning module under `examples/lab/tune/` (the Decima bench moves onto it), the lab index, `work/HZD-BENCH.md`.
 - **Does:**
   - Like the Decima bench: a full-window procedural sky, a sidebar for views, sun and coverage, and a reference viewer (paper and photo shots side by side or picture-in-picture, served locally).
