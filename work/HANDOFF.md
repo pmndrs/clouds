@@ -28,6 +28,14 @@ The project is paused until next week: the weekly model limit was reached (it re
   5. Serrated chalky rims versus fibrous, pink-rimmed edges.
 - **Process that works:** one change at a time, each with its own A/B crop sheet against the round's anchor. Only visual winners go into the bundle. Then both judges (Opus and Fable) score blind: full frames plus zoom crops, the same JPEG treatment for every source, and decoded results in `work/calibration/d1<x>-results.md`. Bundled rounds regressed twice (r7, r10). Metrics: band std at 1–3 / 4–12 / 12–32 px on the lit half, plus floret blob count and dark fraction. Neither replaces the eye; the owner's eye is final.
 
+## Targets and the asset (owner, 2026-10-11)
+
+- **Primary targets: p213 and s214**, the renders published with the pack on slide 191. Until now the blind sets used p101, p213, s206 and s33t3, and never s214. Slide 78's image101/102 (p101/p102) and the turntable frames stay as secondary checks.
+- **The asset is exact.** Our converted clouds (from the pack VDBs) equal the pack's TGA slices voxel for voxel: R, G and B identical on both clouds, 45,301 and 102,627 voxels, mean difference 0. The noise was already checked bit for bit (P1). The input is not the gap.
+- **Next: a Houdini camera match.** Guerrilla published no cameras. Load the pack VDB in Houdini with each frame as the camera's background plate, match the camera by eye (or have the owner do it), and export position, aim, focal length and aperture to `refs.ts`. That replaces the silhouette fits, which confuse distance with field of view.
+  - A Karma render of the raw profile from the same camera, set against our `p102`-style raw render, also checks our projection, placement and axes exactly.
+  - Karma cannot render the Nubis up-rez, so it gives camera and geometry truth, not Decima's look (K1 was dropped for that reason).
+
 ## Owner hypothesis: the cameras, not a different asset state (2026-10-11)
 
 The owner suspects the silhouette differences (the s206 leg, the holes, the extra fragment) come from our cameras, not from a different authoring state.
