@@ -11,7 +11,7 @@
  *   5  base fade before erosion (hzd15 s35-36): x remap(h, 0, baseFadeHeight, baseFadeMin, 1) so bases erode harder (constants ours)
  *   6  detail (p.108-109): curl displaces the detail lookup only, by (1 - h); 32^3 fBM .625 R + .25 G + .125 B; modifier
  *      mix(fbm, 1 - fbm, sat(h * 10)) (wispy below 10 % of the column, billowy above); final = remap(d, modifier * 0.2, 1, 0, 1)
- *   anvil: `hzdAnvil` is the hook for S7 (N17's coverage exponent); it returns the coverage unchanged.
+ *   anvil (F1, S7): N17's coverage exponent (`hzdAnvil`), hag eq 17-18's top flattening and density fix, and a placed storm cell.
  * GP7 reads the detail texture at `p * 0.1` relative to the shape texture, which would make the 32^3 "high frequency" texture ten times
  * coarser than the 128^3 one; we read it with its own tile (`detailTile`) instead (see work/reports/H1.md). H5 re-tested the literal reading
  * (detail tile = 10 x the shape tile = 60 km): the erosion turns into a near-constant offset and the edge billows of Fig 4.16 vanish, so the
@@ -124,8 +124,26 @@ fn hzdTableProfile(tt: f32, h: f32, hr: f32) -> f32 {
   let pk = max(hzdLut(2u, tt, (hzdBt * 63.0 + 0.5) / 64.0), 0.05);
   return saturate(hzdLut(0u, tt, f0 + saturate(h) * (1.0 - f0)) * hzdLut(1u, hzdBt, f0 + saturate(hr) * (1.0 - f0)) / pk);
 }
+// F1 S7: the cumulonimbus gradient (hzd15 s34 = gp7 Fig 4.10's third panel, measured: full 0.08, to 0.74, zero 0.96), or the tallest table type.
+const HZD_CUMULONIMBUS = vec4(0.01, 0.08, 0.74, 0.96);
+fn hzdStormGradient(h: f32, hr: f32) -> f32 {
+  if (P.hzType.x > 0.5) { return hzdTableProfile(1.0, h, hr); }
+  let s = HZD_CUMULONIMBUS;
+  return hzdRamp((hr - s.x) / (s.y - s.x)) * hzdRamp((s.w - h) / (s.w - s.z));
+}
+// F1 S7: how much of the anvil terms act on this column (the storm weight, or everywhere when N17's anvil bias is set).
+fn hzdAnvilAmount() -> f32 { return max(hzdStormW, sign(P.hzAnvil.x)); }
 // H7: hr is the height the rise (base) ramps are read at (h + the base-lump offset); the falls read h.
+// F1: the type gradient, mixed toward the cumulonimbus one by the storm weight, then hag eq 17's anvil flattening:
+// gradient ^ sat(remap(h, 0.65, 0.95, 1, 1 - flatten)) lifts the top ramp into a plate (0 stays 0).
 fn hzdHeightGradientR(cloudType: f32, h: f32, hr: f32) -> f32 {
+  var g = hzdTypeGradient(cloudType, h, hr);
+  if (hzdStormW > 0.0) { g = mix(g, hzdStormGradient(h, hr), hzdStormW); }
+  let fl = P.hzAnvil.z * hzdAnvilAmount();
+  if (fl > 0.0 && g > 0.0) { g = pow(g, max(saturate(hzdRemap(h, 0.65, 0.95, 1.0, 1.0 - fl)), 0.05)); }
+  return g;
+}
+fn hzdTypeGradient(cloudType: f32, h: f32, hr: f32) -> f32 {
   if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }
   let t = saturate(cloudType);
   // 'points': lerp the stops stratus -> stratocumulus (type 0..0.5) -> cumulus (0.5..1).
@@ -142,8 +160,17 @@ fn hzdHeightGradientR(cloudType: f32, h: f32, hr: f32) -> f32 {
   // 'curves'' separate, rounded bodies (ours).
   return hzdRamp((hr - s.x) / (s.y - s.x)) * (ws * hzdFall(HZD_STRATUS, h) + (1.0 - ws - wc) * hzdFall(HZD_STRATOCUMULUS, h) + wc * hzdFall(HZD_CUMULUS, h));
 }
-// S7 hook: N17's anvil exponent pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias))) goes here. Unchanged for now.
-fn hzdAnvil(coverage: f32, h: f32, n: NdfSample) -> f32 { return coverage; }
+// F1 S7 (n17 p.46-50): coverage = pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias))), the remap unclamped as printed (the exponent
+// passes 0 at h 0.9: everything above fills) or clamped to [lerp(1, 0.5, bias), 1] (P.hzAnvil.y: only the top inflates). The bias is N17's
+// weather-state scalar P.hzAnvil.x, raised to 1 inside a storm.
+fn hzdAnvil(coverage: f32, h: f32, n: NdfSample) -> f32 {
+  let bias = max(P.hzAnvil.x, hzdStormW);
+  if (bias <= 0.0 || coverage <= 0.0) { return coverage; }
+  let lo = mix(1.0, 0.5, bias);
+  var e = hzdRemap(h, 0.7, 0.8, 1.0, lo);
+  if (P.hzAnvil.y > 0.5) { e = clamp(e, lo, 1.0); }
+  return saturate(pow(coverage, max(e, 0.0)));
+}
 // H5: tricubic B-spline read of the 128^3 shape (and 32^3 detail) texture from 8 trilinear taps (Sigg & Hadwiger, GPU Gems 2 ch. 20). Trilinear filtering leaves a
 // gradient kink on every texel face; at a 4 km tile a texel is 31 m, and the coverage threshold turns the kinks into terraced, faceted
 // flanks and flat bases ("contour lines" seen from below). The B-spline is C2, so the iso-surfaces are smooth (ours; HZD does not say).
@@ -196,7 +223,10 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   var o: ProcSample;
   o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
   let alt = procAltitude(p);
-  if (alt <= P.hzLayer.x || alt >= P.hzLayer.y) { return o; }
+  // F1 S7: a storm column reaches above the layer, to the storm top.
+  let stormOn = P.hzStorm.w > 0.0 || P.hzStorm2.w < 1.0;
+  hzdStormW = 0.0;
+  if (alt <= P.hzLayer.x || alt >= select(P.hzLayer.y, max(P.hzLayer.y, P.hzStorm2.x), stormOn)) { return o; }
   var n = ndfSample(p.xz);
   // H5 horizon ring (hzd15 s45): coverage toward the ring's target and type toward cumulus from ringStart to ringEnd; nothing beyond ringEnd.
   // The ring is HZD's ground-level far field: it fades out as the camera climbs from half the layer base to the base (ours), so a view from
@@ -217,11 +247,48 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   let span = P.hzLayer.y - P.hzLayer.x;
   let bottom = P.hzLayer.x + n.minHeight * span;
   var top = P.hzLayer.x + n.maxHeight * span;
-  let cov0 = saturate(n.coverage + P.hzCov.x);
+  let covN = saturate(n.coverage + P.hzCov.x);
+  var cov0 = covN;
+  // F1 S7 storms. The placed cell: an envelope (its whole reach, anvil included) where the column is a storm (cumulonimbus gradient, top at the
+  // storm top, coverage from the cell); inside it the cell's coverage is 0.85 over the core radius, and above h 0.7..0.8 (n17's anvil band) its
+  // radius grows to anvilSpread x and its centre shears anvilShear m downwind from h 0.6 to the top (photos §4). Type-driven storms: NDF top
+  // types above stormTypeStart ramp to a storm at type 1 (their coverage stays the NDF's; N17's exponent and hag's flattening make the anvil).
+  var se = 0.0;
+  var stormCov = 0.0;
+  if (stormOn) {
+    let wind2 = vec2(P.hzWind.x, P.hzWind.y);
+    let R = P.hzStorm.z;
+    if (P.hzStorm.w > 0.0) {
+      let reach = 1.25 * R * max(0.85 * P.hzStorm2.y, 1.15) + 0.5 * abs(P.hzStorm2.z);
+      let rEnv = length(p.xz - P.hzStorm.xy - wind2 * (0.5 * P.hzStorm2.z));
+      let sp = saturate(P.hzStorm.w) * (1.0 - smoothstep(0.9 * reach, 1.15 * reach, rEnv));
+      if (sp > 0.0) {
+        let hs = saturate((alt - bottom) / max(P.hzStorm2.x - bottom, 1.0));
+        let a = smoothstep(0.7, 0.76, hs);
+        // The column narrows upward (a cone, photos §3-4: widest low), then the anvil band widens it. The anvil spreads downwind: upwind of
+        // the sheared centre its radius is a third (ours).
+        let Rh = R * mix(1.15, 0.85, smoothstep(0.0, 0.7, hs)) * mix(1.0, P.hzStorm2.y, a);
+        let dv = p.xz - P.hzStorm.xy - wind2 * (P.hzStorm2.z * smoothstep(0.6, 1.0, hs));
+        let along = dot(dv, wind2);
+        let r = length(dv + wind2 * (along * (mix(1.0, 3.0, a) - 1.0) * step(along, 0.0)));
+        // A wide fall-off so the shape noise, not the radius, draws the cauliflower wall.
+        stormCov = 0.75 * (1.0 - smoothstep(0.0, 1.25 * Rh, r));
+        // The column is a storm where the cell has coverage at this height; elsewhere in the envelope (under the anvil, around the core) the
+        // NDF's own clouds stay, with their own tops.
+        se = sp * smoothstep(0.0, 0.2, stormCov);
+        cov0 = mix(cov0, stormCov, se);
+      }
+    }
+    if (P.hzStorm2.w < 1.0) {
+      let st = smoothstep(P.hzStorm2.w, 1.0, n.topType + P.hzCov.y);
+      se = max(se, st);
+    }
+  }
   if (cov0 <= 0.0) { return o; }
   // H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
   // dome at the cloud scale instead of meeting one ceiling.
-  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(cov0 / P.hzProf.w), P.hzProf.z); }
+  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(covN / P.hzProf.w), P.hzProf.z); }
+  if (se > 0.0) { top = mix(top, P.hzStorm2.x, se); hzdStormW = se; }
   if (alt <= bottom || alt >= top || top - bottom < 1.0) { return o; }
   let h = (alt - bottom) / (top - bottom);
   let cov = hzdAnvil(cov0, h, n);
@@ -251,9 +318,12 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   if (P.hzShelf.x > 0.0) {
     gradient = hzdHeightGradientR(n.topType + P.hzCov.y, h, h + clamp(P.hzShelf.x * (A.g - 0.69) / 0.1, 0.0, lumpMax));
     if (gradient <= 0.0) { return o; }
-  } else { gradient = hzdHeightGradient(n.topType + P.hzCov.y, h); }
+  }   // F1: with no base lumps the early-out's gradient (read at h + 0) is the gradient: no second evaluation (the tables cost 3 bilinear reads).
   let pw = select(saturate(0.5 + (A.r - 0.5) * P.hzExtra.x), A.r, P.hzExtra.x == 1.0);   // H5 shapeContrast (1 = off)
-  let base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
+  var base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
+  // F1 S7: the anvil plate follows the cell's footprint more than the shape noise (a smooth, flat-bottomed plate; its edge frays by the
+  // detail erosion, wispy there), ours.
+  if (hzdStormW > 0.0) { base = mix(base, 0.75, 0.6 * hzdStormW * smoothstep(0.7, 0.78, h)); }
   let baseCloud = base * gradient;   // 3 height gradient (gp7 p.106: hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient)
 
   // 4 Coverage: threshold 1 - coverage (HFW p.17), then the gp7 multiply; 5 base fade before erosion (stage 2 and up).
@@ -318,9 +388,13 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     if (P.hzVeil.x < 0.5) { veilW = hfFbm; if (skirtOn && veil > 0.0) { veilW = hzdDetailFbm(qVeil, h, footprint, false); } }
     let hag = P.hzCov.w > 0.5;
     // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
-    let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
+    var modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
+    // F1 S7: a storm's upper 40 % is glaciated: fibrous (wispy) instead of cauliflower (photos §4).
+    if (hzdStormW > 0.0) { modifier = mix(modifier, hfFbm, hzdStormW * smoothstep(0.55, 0.75, h)); }
     // H7: the erosion strength rises from P.hzSkirt.w at the base to erosionStrength at the wispy switch (wispy bottoms erode deeper; gp7 one value).
-    let strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
+    var strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
+    // F1 S7: the anvil plate erodes at half strength (smooth glaciated top, photos §4; ours).
+    if (hzdStormW > 0.0) { strength *= 1.0 - 0.5 * hzdStormW * smoothstep(0.65, 0.8, h); }
     // H7 lobe rung: the step between the body (shape noise, 0.6-1.2 km) and the detail grain (75 m cells) that the photos have and we lacked
     // (santa D1 / frog F1: ~3.5x per level; topics/surface-detail.md "a lobe field at ~70-250 m in the profile stage"). One billowy octave:
     // the detail texture's coarsest channel (inverted Worley, 4 cells per tile) read with its own tile (lobeTile; 4 cells = lobeTile / 4 m),
@@ -355,6 +429,9 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     }
   }
   density = saturate(density);
+  // F1 S7, hag eq 18: the anvil density fix, x lerp(1, sat(remap(sqrt(h), 0.4, 0.95, 1, 0.2)), amount) (keeps the plate from going opaque).
+  let dfix = P.hzAnvil.w * hzdAnvilAmount();
+  if (dfix > 0.0) { density *= mix(1.0, saturate(hzdRemap(sqrt(h), 0.4, 0.95, 1.0, 0.2)), dfix); }
   // H6 density from coverage (gp7 p.107's "small clouds lighter" at hag eq 16's DA position: after the erosion, so it cannot eat them).
   if (P.hzConn.x > 0.0) { density *= pow(saturate(cov / P.hzConn.y), P.hzConn.x); }
   // H6 veil: a thin low skirt continuing each body below the threshold, streaked by the detail fBM or A.a (n3 s162's connective skirt; ours).

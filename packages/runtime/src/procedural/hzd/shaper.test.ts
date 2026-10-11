@@ -163,4 +163,20 @@ describe('HZD shaper F1: types and forms', () => {
     expect(out[o + 5]).toBeCloseTo(0.6);
     expect(PROC_HZD_WGSL).toContain('if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }');
   });
+  it('step 2: anvils (n17 exponent with its clamp switch, hag eq 17-18) and a placed storm cell that lifts the shell', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    expect(packProceduralParams(s, out)).toEqual([1500, 5000]);            // storms off: the H6 shell
+    const o = PROC_HZD_FORMS_OFFSET;
+    expect(Array.from(out.subarray(o + 8, o + 12))).toEqual([0, 1, 0, 0]);  // anvil off, clamped
+    expect(out[o + 15]).toBe(0);                                           // storm strength
+    s.hzd.stormStrength = 1;
+    expect(packProceduralParams(s, out)).toEqual([1500, 10000]);           // the storm top lifts the march shell
+    s.hzd.stormStrength = 0; s.hzd.stormTypeStart = 0.95;
+    expect(packProceduralParams(s, out)[1]).toBe(10000);                   // type-driven storms too
+    expect(PROC_HZD_WGSL).toContain('var e = hzdRemap(h, 0.7, 0.8, 1.0, lo);');                                    // n17 p.46
+    expect(PROC_HZD_WGSL).toContain('if (P.hzAnvil.y > 0.5) { e = clamp(e, lo, 1.0); }');
+    expect(PROC_HZD_WGSL).toContain('pow(g, max(saturate(hzdRemap(h, 0.65, 0.95, 1.0, 1.0 - fl)), 0.05))');      // hag eq 17
+    expect(PROC_HZD_WGSL).toContain('saturate(hzdRemap(sqrt(h), 0.4, 0.95, 1.0, 0.2))');                          // hag eq 18
+  });
 });
