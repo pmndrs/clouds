@@ -5,6 +5,8 @@
 //   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2[:ambientWeight]  @skytint:0|1  @ambtint:r:g:b  @suntint:r:g:b  @wind:x:y:z  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
 //   R or the "compare" button: Guerrilla's frame for the shot next to ours (wipe, overlay, or the frame alone; hold F to flip to it), letterboxed to
 //   the frames' 16:9. The frames come from the local research folder through the dev server (refs-plugin.ts), never from the repo.
+//   Every option below also has a sidebar control (shots of both clouds, look, compare, frame, matte, sky, quality, far pass, hide UI, help); the URL
+//   follows the sidebar. ?sky=2|0 = the frame's painted sky / the physical sky.
 //   T or the "tune" button: every runtime setting and the scene values as live dials, with presets (tune.ts)
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
 import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
@@ -56,7 +58,7 @@ try {
   // D1 round 7/8: ?passScale=1.3334 renders the ultra far pass at the output resolution (the 0.75-scale upsample serrates opaque silhouettes, 7 vs 5 percent
   // of the s181 crust's edge columns jumping 2 px; the full-resolution pass adds 18 percent 1-3 px grain, the judges' stipple fringe). Default: the tier's scales.
   const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout, passScale: query.has('passScale') ? Number(query.get('passScale')) : 1 });
-  const matte = query.get('matte') === '1';   // ?matte=1: present the cloud opacity (no tone mapping) for the parity masks
+  let matte = query.get('matte') === '1';   // ?matte=1: present the cloud opacity (no tone mapping) for the parity masks
   const bridge = createCloudBridge(renderer, runtime, { matte });
   const POST_MODES: Record<string, 0 | 1 | 2> = { aces: 0, none: 1, fit: 2 };
   const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume(`/clouds/${cloudName}/`), loadCloudNoise('/clouds/noise/')]);
@@ -117,6 +119,7 @@ try {
   let rampNow = '';
   let mirrorNow = false;
   let tuner: ReturnType<typeof createTuner> | null = null;
+  let skyForce: number | null = query.has('sky') ? Number(query.get('sky')) : null;   // the sidebar's sky switch: 2 = the frame's painted sky, 0 = physical
   let frameEye: [number, number, number] = [0, 0, 0], frameTarget: [number, number, number] = [0, 0, 0];
   // The compare view's frame: the shot's own by default, or any other frame of the same cloud (the "frame" picker, [ and ] keys), so one camera can be
   // checked against several of Guerrilla's frames (e.g. p101 / p102 / p213). ?ref=<shot> picks it from the URL.
@@ -189,7 +192,7 @@ try {
     // D1 round 10 (ramp:0|1): the frame's sky ramp (refs.skyRamp) painted on the sky and integrated by the clouds' ambient; ramp:0 = the physical LUT.
     // ramp:0 = the physical LUT; 1 = painted sky, the clouds' ambient integrates it; 2 (round 11) = painted sky only, the ambient from the LUT;
     // ramp:1:a = painted sky with the ambient's ramp weight a (0..1). The look's stops ease smoothly (round 11: linear stops printed a stepped band).
-    const rampArgs = v.has('ramp') ? v.get('ramp')!.map(Number) : [];
+    const rampArgs = v.has('ramp') ? v.get('ramp')!.map(Number) : skyForce !== null ? [skyForce] : [];
     const rampMode = rampArgs.length ? rampArgs[0] : (ref.skyRamp ? 1 : 0);
     const rampAmbient = rampMode === 2 ? 0 : rampArgs.length > 1 ? rampArgs[1] : (ref.skyRampAmbient ?? 0);
     const rampOn = rampMode > 0;
@@ -218,6 +221,7 @@ try {
     bridge.post.exposure = v.has('exp') ? Number(v.get('exp')![0]) : query.has('exposure') ? baseExposure : (ref.exposure ?? baseExposure);
     runtime.resetTemporal();
     syncLook();
+    syncShots();
     const sunNow = s.length === 2 ? { elevation: s[0], azimuth: s[1] } : ref.sun;
     rollDeg = v.has('roll') ? Number(v.get('roll')![0]) : (ref.roll ?? 0);
     const rel = (p: readonly number[]) => [p[0], p[1] - CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
@@ -258,14 +262,50 @@ try {
 
   const hud = document.getElementById('hud')!;
   const panel = document.getElementById('panel')!;
-  if (query.get('clean') === '1') { hud.style.display = 'none'; panel.style.display = 'none'; }
-  for (const name of DECIMA_REF_NAMES.filter(n => DECIMA_REFS[n].cloud === cloudName)) {
-    const b = document.createElement('button'); b.textContent = name; b.title = DECIMA_REFS[name].source; b.onclick = () => applyRef(name); panel.appendChild(b);
+  // The sidebar: every page option as a control (no hidden URL flags). The URL follows what is chosen, so a link reopens the same view.
+  const syncUrl = () => {
+    const q = new URLSearchParams();
+    q.set('cloud', cloudName); q.set('bookmark', current.split('@')[0]);
+    if (look !== 'decima') q.set('look', look);
+    if (compare !== 'off') q.set('compare', compare);
+    if (refOverride) q.set('ref', refOverride);
+    if (quality !== 'ultra') q.set('quality', quality);
+    if (query.has('passScale')) q.set('passScale', query.get('passScale')!);
+    if (matte) q.set('matte', '1');
+    if (skyForce !== null) q.set('sky', String(skyForce));
+    history.replaceState(null, '', `?${q}`);
+  };
+  const reloadWith = (changes: Record<string, string | null>) => {
+    const q = new URLSearchParams(location.search);
+    for (const [k, v] of Object.entries(changes)) { if (v === null) q.delete(k); else q.set(k, v); }
+    location.search = q.toString();
+  };
+  const section = (title: string) => { const h = document.createElement('div'); h.className = 'sec'; h.textContent = title; panel.appendChild(h); };
+  const row = (...els: HTMLElement[]) => { const r = document.createElement('div'); r.className = 'row'; r.append(...els); panel.appendChild(r); return r; };
+  const button = (text: string, title: string, onclick: () => void) => { const b = document.createElement('button'); b.textContent = text; b.title = title; b.onclick = onclick; return b; };
+  const select = (title: string, options: [string, string][], value: string, onchange: (v: string) => void) => {
+    const sel = document.createElement('select'); sel.title = title; sel.append(...options.map(([v, t]) => new Option(t, v))); sel.value = value; sel.onchange = () => onchange(sel.value); return sel;
+  };
+
+  // Shots: both clouds. A shot of the other cloud reloads the page with that cloud (one cloud is loaded at a time).
+  const shotButtons = new Map<string, HTMLButtonElement>();
+  for (const cloud of ['parkouring', 'stormbird'] as const) {
+    section(cloud === 'parkouring' ? 'Parkouring shots' : 'Stormbird shots');
+    row(...DECIMA_REF_NAMES.filter(n => DECIMA_REFS[n].cloud === cloud).map(name => {
+      const b = button(name, `${DECIMA_REFS[name].source}${cloud !== cloudName ? ' (reloads with this cloud)' : ''}`,
+        () => cloud === cloudName ? (applyRef(name), syncUrl()) : reloadWith({ cloud, bookmark: name, ref: null }));
+      shotButtons.set(name, b); return b;
+    }));
   }
-  const lookBtn = document.createElement('button');
-  const syncLook = () => { lookBtn.textContent = `look: ${look}`; };
-  lookBtn.onclick = () => { look = LOOKS[(LOOKS.indexOf(look) + 1) % LOOKS.length]; applyLook(); syncLook(); if (sceneNow) tuner?.sync(sceneNow); };
-  syncLook(); panel.appendChild(lookBtn);
+  const syncShots = () => { for (const [n, b] of shotButtons) b.classList.toggle('on', n === current.split('@')[0]); };
+
+  section('Look');
+  const lookPick = select('the starting dial set: decima = the parity tune, deck = the slides\' numbers, art = our older defaults',
+    LOOKS.map(l => [l, `look: ${l}`]), look, v => { look = v as CloudLook; applyLook(); if (sceneNow) tuner?.sync(sceneNow); syncUrl(); });
+  const syncLook = () => { lookPick.value = look; };
+  const tuneBtn = button('tune (T)', 'every dial: settings, camera, framing, sun, sky, tone curve; presets', () => tuner!.toggle());
+  row(lookPick, tuneBtn);
+
   tuner = createTuner({
     settings: runtime.settings as unknown as Record<string, unknown>,
     onSettingChange: () => runtime.resetTemporal(),
@@ -279,38 +319,65 @@ try {
     },
   });
   (window as unknown as { __tune: unknown }).__tune = tuner;
-  const compareBtn = document.createElement('button');
+
+  section('Compare with Guerrilla\'s frame');
+  const modeButtons = COMPARE.map(m => button(m, { off: 'our render only', wipe: 'Guerrilla\'s frame left of the handle, ours right', overlay: 'Guerrilla\'s frame over ours; the handle sets its opacity', frame: 'Guerrilla\'s frame alone' }[m], () => { compare = m; syncCompare(); }));
+  row(...modeButtons);
   const compareSlider = document.createElement('input'); compareSlider.type = 'range'; compareSlider.min = '0'; compareSlider.max = '1'; compareSlider.step = '0.01'; compareSlider.value = String(compareAmount);
-  compareSlider.title = 'wipe position / overlay opacity';
-  const syncCompare = () => { compareBtn.textContent = `compare: ${compare} (R)`; compareBtn.classList.toggle('on', compare !== 'off'); compareSlider.style.display = compare === 'wipe' || compare === 'overlay' ? 'block' : 'none'; resize(); };
-  compareBtn.onclick = () => { compare = COMPARE[(COMPARE.indexOf(compare) + 1) % COMPARE.length]; syncCompare(); };
+  compareSlider.title = 'wipe position / overlay opacity (or drag the handle on the image)';
+  const syncCompare = () => {
+    for (const b of modeButtons) b.classList.toggle('on', b.textContent === compare);
+    compareSlider.style.display = compare === 'wipe' || compare === 'overlay' ? 'block' : 'none';
+    resize(); syncUrl();
+  };
   compareSlider.oninput = () => { compareAmount = Number(compareSlider.value); layoutCompare(); };
-  const reframeBtn = document.createElement('button'); reframeBtn.textContent = 'back to the shot camera'; reframeBtn.title = 'the frame only lines up from the shot camera';
-  reframeBtn.onclick = () => rig.set(frameEye, frameTarget);
-  const refPick = document.createElement('select'); refPick.title = 'which of Guerrilla\'s frames the compare view shows ([ and ] cycle)';
   const refNames = DECIMA_REF_NAMES.filter(n => DECIMA_REFS[n].cloud === cloudName);
-  refPick.append(new Option('frame: the shot\'s own', ''), ...refNames.map(n => new Option(`frame: ${n} (${DECIMA_REFS[n].source})`, n)));
-  refPick.value = refOverride ?? '';
+  const refPick = select('which of Guerrilla\'s frames the compare view shows ([ and ] cycle)',
+    [['', 'frame: the shot\'s own'], ...refNames.map(n => [n, `frame: ${n} (${DECIMA_REFS[n].source})`] as [string, string])], refOverride ?? '', v => { refOverride = v || null; syncRefImage(); });
   syncRefImage = () => {
     const ref = refOverride ?? shotName;
     refImg.src = `/__decima/ref/${ref}.png`;
     refPick.value = refOverride ?? '';
     refPick.classList.toggle('on', !!refOverride && refOverride !== shotName);
+    syncUrl();
   };
-  refPick.onchange = () => { refOverride = refPick.value || null; syncRefImage(); };
+  const reframeBtn = button('back to the shot camera', 'the frame only lines up from the shot camera', () => rig.set(frameEye, frameTarget));
+  panel.append(compareSlider); row(refPick); row(reframeBtn);
+
+  section('View');
+  const matteBtn = button('matte', 'show the cloud\'s opacity only (what the camera fitting compares)', () => { matte = !matte; bridge.matte = matte; matteBtn.classList.toggle('on', matte); syncUrl(); });
+  matteBtn.classList.toggle('on', matte);
+  const skyNames: Record<string, string> = { '': 'sky: the shot\'s', '2': 'sky: painted from the frame', '0': 'sky: physical' };
+  const skyPick = select('the sky behind the cloud: the frame\'s painted gradient or the physical atmosphere (switching resets the shot\'s sun and exposure; your setting changes carry over)',
+    Object.entries(skyNames), skyForce === null ? '' : String(skyForce), v => { skyForce = v === '' ? null : Number(v); applyRef(current); syncUrl(); });
+  row(matteBtn, skyPick);
+  const qualityPick = select('render quality (reloads the page)', QUALITIES.map(q => [q, `quality: ${q}`]), quality, v => reloadWith({ quality: v === 'ultra' ? null : v }));
+  const passPick = select('far pass resolution (reloads the page): the tier\'s 0.75 scale, or full resolution',
+    [['', 'far pass: tier'], ['1.3334', 'far pass: full res']], query.get('passScale') ?? '', v => reloadWith({ passScale: v || null }));
+  row(qualityPick, passPick);
+
+  // Hide the UI (H, or ?clean=1 for captures) and a help card with the keys.
+  let uiHidden = query.get('clean') === '1';
+  const showUiBtn = document.createElement('button'); showUiBtn.id = 'showui'; showUiBtn.textContent = 'show UI (H)'; document.body.appendChild(showUiBtn);
+  const setUi = (hidden: boolean) => { uiHidden = hidden; hud.style.display = panel.style.display = hidden ? 'none' : ''; showUiBtn.style.display = hidden && query.get('clean') !== '1' ? 'block' : 'none'; };
+  showUiBtn.onclick = () => setUi(false);
+  const help = document.createElement('div'); help.id = 'help'; help.hidden = true;
+  help.innerHTML = `<b>Keys</b><br>R cycle the compare mode · hold F show Guerrilla's frame<br>[ ] switch Guerrilla's frame · T tuning panel · H hide the UI<br>drag the yellow handle: wipe position / overlay opacity<br>mouse: orbit the camera ("back to the shot camera" resets it)`;
+  document.body.appendChild(help);
+  row(button('hide UI (H)', 'hide the sidebar and readout', () => setUi(true)), button('help (?)', 'the keys', () => { help.hidden = !help.hidden; }));
+  setUi(uiHidden);
+
   addEventListener('keydown', e => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
-    if (e.key !== '[' && e.key !== ']') return;
-    const list = refNames, cur = list.indexOf(refOverride ?? shotName);
-    refOverride = list[(cur + (e.key === ']' ? 1 : list.length - 1)) % list.length];
-    syncRefImage();
-  });
-  panel.append(compareBtn, compareSlider, refPick, reframeBtn);
-  syncRefImage();
-  addEventListener('keydown', e => {
-    if (e.target instanceof HTMLInputElement) return;
-    if (e.key === 'r') compareBtn.click();
+    if (e.key === '[' || e.key === ']') {
+      const list = refNames, cur = list.indexOf(refOverride ?? shotName);
+      refOverride = list[(cur + (e.key === ']' ? 1 : list.length - 1)) % list.length];
+      syncRefImage();
+    }
+    if (e.key === 'r') { compare = COMPARE[(COMPARE.indexOf(compare) + 1) % COMPARE.length]; syncCompare(); }
     if (e.key === 'f' && !flip) { flip = true; layoutCompare(); }
+    if (e.key === 'h') setUi(!uiHidden);
+    if (e.key === '?') help.hidden = !help.hidden;
   });
   addEventListener('keyup', e => { if (e.key === 'f') { flip = false; layoutCompare(); } });
   // The handle on the image: drag it to move the wipe (or, in overlay mode, to set the frame's opacity). Shift-move also moves it.
@@ -321,7 +388,7 @@ try {
   divider.addEventListener('pointerup', () => { draggingHandle = false; });
   addEventListener('pointermove', e => { if (e.shiftKey && (compare === 'wipe' || compare === 'overlay')) moveHandle(e.clientX); });
   syncCompare();
-  const tuneBtn = document.createElement('button'); tuneBtn.textContent = 'tune (T)'; tuneBtn.onclick = () => tuner!.toggle(); panel.appendChild(tuneBtn);
+  syncRefImage();
 
   const frameData: CloudFrame = {
     view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16),

@@ -10,7 +10,9 @@ Start the dev server. Port 5173 is often taken by the owner's other projects, an
 pnpm dev --port 5180
 ```
 
-Open `http://localhost:5180/decima/` in Chrome (it needs WebGPU).
+Open `http://localhost:5173/decima/` in Chrome (it needs WebGPU), or use the Work section on the lab index.
+
+Everything on the bench has a control in the sidebar: shots for both clouds, the look, compare mode and frame, matte, sky (painted or physical), quality, the far-pass resolution, hide UI and help. The URL follows the sidebar, so a copied link reopens the same view. The query options below are the same choices for links and captures; you never need to type them.
 
 | Query | What it does |
 | --- | --- |
