@@ -729,7 +729,9 @@ export function cloudLookSettings(look: CloudLook, quality: CloudQuality): Parti
   // D1 round 10: microShadowMode 1 at microShadow 2: the glow occluded by the florets' own relief toward the sun (the up-rez residual over the profile
   // along the 4 m tap), the floret-scale shading the glow lacked (H2; the s78 tower's lit-half 4-12 px energy 0.72 -> 1.01 of the frame's 1.46 at round 9's sky).
   // D1 round 11: a second tap 4-8 m at weight 1 (two floret scales; the s191 tower's lit-half 4-12 px band 0.59 -> 0.87 of the frame's 1.36, blobs 2.33 / 2.08).
-  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 4, microLightScale: 0.25, microShadow: 2, microShadowMode: 1, microDist2: 8, microShadow2: 1, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1, glowDepth: 12 };
+  // D1 round 12: detailBias 0.1 (the up-rez noise's amplitude before the erosion): the hollows between the domes come from the erosion, not the
+  // occlusion (the s191 tower's pits 0.65 -> 0.84 of the frame's 1.00, the dome share 0.68 -> 0.62 of the frame's 0.52).
+  if (look === 'decima') return { ...CLOUD_DECIMA_SETTINGS, microDist: 4, microLightScale: 0.25, microShadow: 2, microShadowMode: 1, microDist2: 8, microShadow2: 1, detailBias: 0.1, temporalAccumulate: 1, temporalBlend: 0.1, stepJitter: 1, glowDepth: 12 };
   return { ...CLOUD_ART_SETTINGS, microDist: CLOUD_QUALITY_PRESETS[quality].microDist };
 }
 
