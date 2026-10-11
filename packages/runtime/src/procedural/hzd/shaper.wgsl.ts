@@ -22,6 +22,7 @@
 import { PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, PROC_BINDING_OFFSETS, procBindingsWgsl } from '../density.wgsl';
 import type { ProceduralShaper } from '../settings';
 import { HZD_NDF_SAMPLE_WGSL } from './ndf.wgsl';
+import { PROFILE_TABLE_FLOOR, profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
 
 /** The shipped HZD height gradients (Nutshell slide-XML stops; nut.md), (rise start, full, fall start, zero). */
 export const HZD_GRADIENTS = {
@@ -45,6 +46,21 @@ export function hzdHeightGradient(type: number, h: number, blend: 'points' | 'cu
   const ws = Math.max(0, 1 - 2 * t), wc = Math.max(0, 2 * t - 1);
   if (blend === 'curves') return ws * trap(S) + (1 - ws - wc) * trap(M) + wc * trap(C);
   return rise(lerped) * (ws * fall(S) + (1 - ws - wc) * fall(M) + wc * fall(C));
+}
+
+/** F1: CPU mirror of the WGSL table type map (HZD type -> table top type through the three anchors). */
+export function hzdTableType(type: number, anchors: readonly [number, number, number]): number {
+  const x = Math.min(1, Math.max(0, type));
+  return x < 0.5 ? anchors[0] + (anchors[1] - anchors[0]) * x * 2 : anchors[1] + (anchors[2] - anchors[1]) * (x * 2 - 1);
+}
+/** F1: CPU mirror of `hzdTableProfile`: top(tt, h) x bottom(bt, h) / peak(tt, bt), the column base at table height `floor`. */
+let peaks: Uint8Array | null = null;
+export function hzdTableProfile(tt: number, bt: number, h: number, floor = PROFILE_TABLE_FLOOR): number {
+  const { top, bottom } = profileTablesSmoothed();
+  peaks ??= profilePeaks();
+  const v = floor + Math.min(1, Math.max(0, h)) * (1 - floor);
+  const pk = Math.max(sampleProfileTable(peaks, tt, (Math.min(1, Math.max(0, bt)) * 63 + 0.5) / 64), 0.05);
+  return Math.min(1, sampleProfileTable(top, tt, v) * sampleProfileTable(bottom, bt, v) / pk);
 }
 
 /** The bindings of the HZD shaper: as procBindingsWgsl, but the weather slot is the NDF's 2D array. */
@@ -74,8 +90,43 @@ fn hzdRamp(x: f32) -> f32 { let t = saturate(x); return select(t, t * t * (3.0 -
 fn hzdFall(s: vec4<f32>, h: f32) -> f32 { let c = mix(s.z, s.y, P.hzProf.x); return hzdRamp((s.w - h) / max(s.w - c, 1e-3)); }
 fn hzdTrapezoid(s: vec4<f32>, h: f32, hr: f32) -> f32 { return hzdRamp((hr - s.x) / (s.y - s.x)) * hzdFall(s, h); }
 fn hzdHeightGradient(cloudType: f32, h: f32) -> f32 { return hzdHeightGradientR(cloudType, h, h); }
+// F1 step 1 (ne22 p.21-29, n3 s18): the NE vertical profile from H4's tables (generate/profile-tables.ts), packed 3 bytes per float in
+// P.hzLut: t 0 = the top table (type across, height up), 1 = the bottom table, 2 = the column peaks (top type across, bottom type up).
+fn hzdLutTexel(t: u32, x: u32, y: u32) -> f32 {
+  let i = t * 4096u + y * 64u + x;
+  let f = i / 3u;
+  let w = u32(P.hzLut[f >> 2u][f & 3u]);
+  return f32((w >> ((i - f * 3u) * 8u)) & 255u) * (1.0 / 255.0);
+}
+// Bilinear on texel centres (type: i / 63, height: (i + 0.5) / 64), as profile-tables.ts sampleProfileTable and sky-layer.wgsl.ts skyLut.
+fn hzdLut(t: u32, type_: f32, v: f32) -> f32 {
+  let x = saturate(type_) * 63.0;
+  let y = clamp(v * 64.0 - 0.5, 0.0, 63.0);
+  let x0 = min(u32(x), 62u);
+  let y0 = min(u32(y), 62u);
+  let fx = x - f32(x0);
+  let a = mix(hzdLutTexel(t, x0, y0), hzdLutTexel(t, x0 + 1u, y0), fx);
+  let b = mix(hzdLutTexel(t, x0, y0 + 1u), hzdLutTexel(t, x0 + 1u, y0 + 1u), fx);
+  return mix(a, b, y - f32(y0));
+}
+// The HZD type (0 stratus, 0.5 stratocumulus, 1 cumulus) as a table top type, piecewise linear through P.hzType.yzw.
+fn hzdTableType(cloudType: f32) -> f32 {
+  let x = saturate(cloudType);
+  return select(mix(P.hzType.z, P.hzType.w, x * 2.0 - 1.0), mix(P.hzType.y, P.hzType.z, x * 2.0), x < 0.5);
+}
+// The bottom type of the current column (procSample sets it; the gradient reads it).
+var<private> hzdBt: f32 = 0.0;
+// F1 S7: the storm weight of the current column (0..1) and its anvil amount; set in procSample.
+var<private> hzdStormW: f32 = 0.0;
+// top(tt, h) x bottom(bt, hr) / peak(tt, bt): the column base maps to the table floor P.hzType2.w, so min height is where the base is (H4).
+fn hzdTableProfile(tt: f32, h: f32, hr: f32) -> f32 {
+  let f0 = P.hzType2.w;
+  let pk = max(hzdLut(2u, tt, (hzdBt * 63.0 + 0.5) / 64.0), 0.05);
+  return saturate(hzdLut(0u, tt, f0 + saturate(h) * (1.0 - f0)) * hzdLut(1u, hzdBt, f0 + saturate(hr) * (1.0 - f0)) / pk);
+}
 // H7: hr is the height the rise (base) ramps are read at (h + the base-lump offset); the falls read h.
 fn hzdHeightGradientR(cloudType: f32, h: f32, hr: f32) -> f32 {
+  if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }
   let t = saturate(cloudType);
   // 'points': lerp the stops stratus -> stratocumulus (type 0..0.5) -> cumulus (0.5..1).
   let s = select(mix(HZD_STRATOCUMULUS, HZD_CUMULUS, t * 2.0 - 1.0), mix(HZD_STRATUS, HZD_STRATOCUMULUS, t * 2.0), t < 0.5);
@@ -135,7 +186,13 @@ fn hzdDetailFbm(q0: vec3<f32>, h: f32, footprint: f32, cubic: bool) -> f32 {
   return B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
 }
 
-fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
+// F1: a world-anchored low-frequency field in -1..1 (the shape texture's Perlin-Worley read flat at a coarse mip, contrast x4; ours).
+fn hzdLowField(xz: vec2<f32>, tile: f32, z: f32) -> f32 {
+  let r = textureSampleLevel(procNoiseA, procRepeat, vec3(xz / tile, z), 2.0).r;
+  return clamp((r - 0.5) * 4.0, -1.0, 1.0);
+}
+// The HZD low layer (H1-H7, + F1 types and storms). procSample (below) adds the F1 sheets and fractus.
+fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o: ProcSample;
   o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
   let alt = procAltitude(p);
@@ -153,6 +210,10 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - ringOn * smoothstep(P.hzH6.y, 1.0, r / P.hzRing.y));
     n.topType = mix(n.topType, P.hzRing.w, w);
   }
+  // F1: the column's bottom type (NDF + bias + a low-frequency variation), read by the table profile.
+  var bt = n.bottomType + P.hzType2.x;
+  if (P.hzType2.y != 0.0) { bt += P.hzType2.y * hzdLowField(p.xz, P.hzType2.z, 0.61); }
+  hzdBt = saturate(bt);
   let span = P.hzLayer.y - P.hzLayer.x;
   let bottom = P.hzLayer.x + n.minHeight * span;
   var top = P.hzLayer.x + n.maxHeight * span;
@@ -310,6 +371,10 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   o.h = h;
   // No surface distance in a per-sample model: the coarse density times the column height stands in (as the Takram shaper).
   o.depth = coarse * (top - bottom) * 0.25;
+  return o;
+}
+fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
+  var o = hzdMainSample(p, t, footprint, full, jitter);
   return o;
 }
 fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }

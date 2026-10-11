@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_FLOATS, hzdNdfKey } from '../settings';
+import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_FLOATS, hzdNdfKey, PROC_HZD_FORMS_OFFSET, PROC_HZD_LUT_OFFSET, PROC_HZD_LUT_FLOATS } from '../settings';
 import { PROC_PARAMS_WGSL } from '../density.wgsl';
-import { HZD_GRADIENTS, hzdHeightGradient, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
+import { profilePeaks, profileTablesSmoothed } from '../../generate/profile-tables';
+import { HZD_GRADIENTS, hzdHeightGradient, hzdTableProfile, hzdTableType, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
 import { HZD_DETAIL_GAINS, HZD_SHAPE_GAINS, hzdNoiseBakeWgsl, worleyLadder } from './noise.wgsl';
 import { HZD_NDF_SAMPLE_WGSL } from './ndf.wgsl';
 
@@ -91,7 +92,8 @@ describe('HZD shaper (H1)', () => {
     s.hzd.ndfMotion = 'static';
     packProceduralParams(s, out);
     expect(out[140]).toBe(0);                          // static: Nubis / HZD, noise-only scroll
-    expect(PROC_PARAMS_WGSL.match(/: vec4<f32>/g)!.length).toBe(PROC_PARAM_FLOATS / 4);   // the struct matches the packer
+    expect(PROC_PARAMS_WGSL.match(/: vec4<f32>/g)!.length).toBe(PROC_HZD_LUT_OFFSET / 4);   // the struct matches the packer (then the F1 tables)
+    expect(PROC_PARAM_FLOATS).toBe(PROC_HZD_LUT_OFFSET + PROC_HZD_LUT_FLOATS);
   });
   it('reads the NDF through ndfSample from a 2-layer array, and binds it as such', () => {
     expect(HZD_NDF_SAMPLE_WGSL).toContain('fn ndfSample(xz: vec2<f32>) -> NdfSample');
@@ -117,5 +119,48 @@ describe('HZD noise bake recipe (H1)', () => {
   });
   it('builds the shape kernel for either texture format', () => {
     expect(hzdNoiseBakeWgsl('rgba16float')).toContain('texture_storage_3d<rgba16float, write>');
+  });
+});
+
+describe('HZD shaper F1: types and forms', () => {
+  it('step 1: packs the N3 s18 tables 3 bytes per float, exactly and NaN-free', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    const lut = out.subarray(PROC_HZD_LUT_OFFSET, PROC_HZD_LUT_OFFSET + PROC_HZD_LUT_FLOATS);
+    expect(lut.every(v => Number.isInteger(v) && v >= 0 && v < 2 ** 24)).toBe(true);
+    // Decode as the WGSL does (hzdLutTexel) and compare with the smoothed tables H4 uses.
+    const { top, bottom } = profileTablesSmoothed();
+    const byte = (i: number) => (lut[Math.floor(i / 3)] >> ((i % 3) * 8)) & 255;
+    for (const i of [0, 17 * 64 + 5, 4095]) { expect(byte(i)).toBe(top[i]); expect(byte(4096 + i)).toBe(bottom[i]); }
+    expect(byte(8192 + 64 * 10 + 30)).toBe(profilePeaks()[64 * 10 + 30]);
+    expect(PROC_PARAMS_WGSL).toContain('hzLut: array<vec4<f32>, 1024>');
+  });
+  it('step 1: the table profile gives crisp bases at bottom type 0, ragged ones at 1, and taller tops with the top type', () => {
+    // Bottom type 0 reaches most of its peak within 15 % of the column; bottom type 1 rises slowly.
+    expect(hzdTableProfile(0.4, 0, 0.15)).toBeGreaterThan(0.8);
+    expect(hzdTableProfile(0.4, 1, 0.1)).toBeLessThan(0.75 * hzdTableProfile(0.4, 0, 0.1));   // the peak normalisation narrows the gap
+    expect(hzdTableProfile(0.4, 1, 0.03)).toBeLessThan(0.5 * hzdTableProfile(0.4, 0, 0.03));
+    // NE's cumulus type (0.4) is gone above about 0.8 of the column; the tall tiered types reach the top.
+    expect(hzdTableProfile(0.4, 0, 0.85)).toBeLessThan(0.05);
+    expect(hzdTableProfile(0.9, 0, 0.85)).toBeGreaterThan(0.4);
+    // Normalised: every pair peaks at 1 (within the bilinear read).
+    const peak = (tt: number, bt: number) => Math.max(...Array.from({ length: 101 }, (_, i) => hzdTableProfile(tt, bt, i / 100)));
+    expect(peak(0.27, 0)).toBeGreaterThan(0.95);
+    expect(peak(0.75, 1)).toBeGreaterThan(0.95);
+    expect(hzdTableType(0, [0.14, 0.27, 0.4])).toBeCloseTo(0.14);
+    expect(hzdTableType(0.75, [0.14, 0.27, 0.4])).toBeCloseTo(0.335);
+  });
+  it('step 1: packs the type words; the Nutshell path stays the default', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    const o = PROC_HZD_FORMS_OFFSET;
+    expect(Array.from(out.subarray(o, o + 4))).toEqual([0, 0.14, 0.27, 0.4].map(Math.fround));
+    s.hzd.profileMode = 'tables'; s.hzd.bottomTypeVariation = 0.6;
+    packProceduralParams(s, out);
+    expect(out[o]).toBe(1);
+    expect(out[o + 5]).toBeCloseTo(0.6);
+    expect(PROC_HZD_WGSL).toContain('if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }');
   });
 });
