@@ -11,7 +11,7 @@
  *   5  base fade before erosion (hzd15 s35-36): x remap(h, 0, baseFadeHeight, baseFadeMin, 1) so bases erode harder (constants ours)
  *   6  detail (p.108-109): curl displaces the detail lookup only, by (1 - h); 32^3 fBM .625 R + .25 G + .125 B; modifier
  *      mix(fbm, 1 - fbm, sat(h * 10)) (wispy below 10 % of the column, billowy above); final = remap(d, modifier * 0.2, 1, 0, 1)
- *   anvil: `hzdAnvil` is the hook for S7 (N17's coverage exponent); it returns the coverage unchanged.
+ *   anvil (F1, S7): N17's coverage exponent (`hzdAnvil`), hag eq 17-18's top flattening and density fix, and a placed storm cell.
  * GP7 reads the detail texture at `p * 0.1` relative to the shape texture, which would make the 32^3 "high frequency" texture ten times
  * coarser than the 128^3 one; we read it with its own tile (`detailTile`) instead (see work/reports/H1.md). H5 re-tested the literal reading
  * (detail tile = 10 x the shape tile = 60 km): the erosion turns into a near-constant offset and the edge billows of Fig 4.16 vanish, so the
@@ -22,6 +22,7 @@
 import { PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, PROC_BINDING_OFFSETS, procBindingsWgsl } from '../density.wgsl';
 import type { ProceduralShaper } from '../settings';
 import { HZD_NDF_SAMPLE_WGSL } from './ndf.wgsl';
+import { PROFILE_TABLE_FLOOR, profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
 
 /** The shipped HZD height gradients (Nutshell slide-XML stops; nut.md), (rise start, full, fall start, zero). */
 export const HZD_GRADIENTS = {
@@ -45,6 +46,21 @@ export function hzdHeightGradient(type: number, h: number, blend: 'points' | 'cu
   const ws = Math.max(0, 1 - 2 * t), wc = Math.max(0, 2 * t - 1);
   if (blend === 'curves') return ws * trap(S) + (1 - ws - wc) * trap(M) + wc * trap(C);
   return rise(lerped) * (ws * fall(S) + (1 - ws - wc) * fall(M) + wc * fall(C));
+}
+
+/** F1: CPU mirror of the WGSL table type map (HZD type -> table top type through the three anchors). */
+export function hzdTableType(type: number, anchors: readonly [number, number, number]): number {
+  const x = Math.min(1, Math.max(0, type));
+  return x < 0.5 ? anchors[0] + (anchors[1] - anchors[0]) * x * 2 : anchors[1] + (anchors[2] - anchors[1]) * (x * 2 - 1);
+}
+/** F1: CPU mirror of `hzdTableProfile`: top(tt, h) x bottom(bt, h) / peak(tt, bt), the column base at table height `floor`. */
+let peaks: Uint8Array | null = null;
+export function hzdTableProfile(tt: number, bt: number, h: number, floor = PROFILE_TABLE_FLOOR): number {
+  const { top, bottom } = profileTablesSmoothed();
+  peaks ??= profilePeaks();
+  const v = floor + Math.min(1, Math.max(0, h)) * (1 - floor);
+  const pk = Math.max(sampleProfileTable(peaks, tt, (Math.min(1, Math.max(0, bt)) * 63 + 0.5) / 64), 0.05);
+  return Math.min(1, sampleProfileTable(top, tt, v) * sampleProfileTable(bottom, bt, v) / pk);
 }
 
 /** The bindings of the HZD shaper: as procBindingsWgsl, but the weather slot is the NDF's 2D array. */
@@ -74,8 +90,61 @@ fn hzdRamp(x: f32) -> f32 { let t = saturate(x); return select(t, t * t * (3.0 -
 fn hzdFall(s: vec4<f32>, h: f32) -> f32 { let c = mix(s.z, s.y, P.hzProf.x); return hzdRamp((s.w - h) / max(s.w - c, 1e-3)); }
 fn hzdTrapezoid(s: vec4<f32>, h: f32, hr: f32) -> f32 { return hzdRamp((hr - s.x) / (s.y - s.x)) * hzdFall(s, h); }
 fn hzdHeightGradient(cloudType: f32, h: f32) -> f32 { return hzdHeightGradientR(cloudType, h, h); }
+// F1 step 1 (ne22 p.21-29, n3 s18): the NE vertical profile from H4's tables (generate/profile-tables.ts), packed 3 bytes per float in
+// P.hzLut: t 0 = the top table (type across, height up), 1 = the bottom table, 2 = the column peaks (top type across, bottom type up).
+fn hzdLutTexel(t: u32, x: u32, y: u32) -> f32 {
+  let i = t * 4096u + y * 64u + x;
+  let f = i / 3u;
+  let w = u32(P.hzLut[f >> 2u][f & 3u]);
+  return f32((w >> ((i - f * 3u) * 8u)) & 255u) * (1.0 / 255.0);
+}
+// Bilinear on texel centres (type: i / 63, height: (i + 0.5) / 64), as profile-tables.ts sampleProfileTable and sky-layer.wgsl.ts skyLut.
+fn hzdLut(t: u32, type_: f32, v: f32) -> f32 {
+  let x = saturate(type_) * 63.0;
+  let y = clamp(v * 64.0 - 0.5, 0.0, 63.0);
+  let x0 = min(u32(x), 62u);
+  let y0 = min(u32(y), 62u);
+  let fx = x - f32(x0);
+  let a = mix(hzdLutTexel(t, x0, y0), hzdLutTexel(t, x0 + 1u, y0), fx);
+  let b = mix(hzdLutTexel(t, x0, y0 + 1u), hzdLutTexel(t, x0 + 1u, y0 + 1u), fx);
+  return mix(a, b, y - f32(y0));
+}
+// The HZD type (0 stratus, 0.5 stratocumulus, 1 cumulus) as a table top type, piecewise linear through P.hzType.yzw.
+fn hzdTableType(cloudType: f32) -> f32 {
+  let x = saturate(cloudType);
+  return select(mix(P.hzType.z, P.hzType.w, x * 2.0 - 1.0), mix(P.hzType.y, P.hzType.z, x * 2.0), x < 0.5);
+}
+// The bottom type of the current column (procSample sets it; the gradient reads it).
+var<private> hzdBt: f32 = 0.0;
+// F1 S7: the storm weight of the current column (0..1) and its anvil amount; set in procSample.
+var<private> hzdStormW: f32 = 0.0;
+// top(tt, h) x bottom(bt, hr) / peak(tt, bt): the column base maps to the table floor P.hzType2.w, so min height is where the base is (H4).
+fn hzdTableProfile(tt: f32, h: f32, hr: f32) -> f32 {
+  let f0 = P.hzType2.w;
+  let pk = max(hzdLut(2u, tt, (hzdBt * 63.0 + 0.5) / 64.0), 0.05);
+  return saturate(hzdLut(0u, tt, f0 + saturate(h) * (1.0 - f0)) * hzdLut(1u, hzdBt, f0 + saturate(hr) * (1.0 - f0)) / pk);
+}
+// F1 S7: the cumulonimbus gradient (hzd15 s34 = gp7 Fig 4.10's third panel, measured: full 0.08, to 0.74, zero 0.96), or the tallest table type.
+const HZD_CUMULONIMBUS = vec4(0.01, 0.08, 0.74, 0.96);
+fn hzdStormGradient(h: f32, hr: f32) -> f32 {
+  if (P.hzType.x > 0.5) { return hzdTableProfile(1.0, h, hr); }
+  let s = HZD_CUMULONIMBUS;
+  return hzdRamp((hr - s.x) / (s.y - s.x)) * hzdRamp((s.w - h) / (s.w - s.z));
+}
+// F1 S7: how much of the anvil terms act on this column (the storm weight, or everywhere when N17's anvil bias is set).
+fn hzdAnvilAmount() -> f32 { return max(hzdStormW, sign(P.hzAnvil.x)); }
 // H7: hr is the height the rise (base) ramps are read at (h + the base-lump offset); the falls read h.
+// F1: the type gradient, mixed toward the cumulonimbus one by the storm weight, then hag eq 17's anvil flattening:
+// gradient ^ sat(remap(h, 0.65, 0.95, 1, 1 - flatten)) lifts the top ramp into a plate (0 stays 0).
 fn hzdHeightGradientR(cloudType: f32, h: f32, hr: f32) -> f32 {
+  var g = hzdTypeGradient(cloudType, h, hr);
+  if (hzdStormW > 0.0) { g = mix(g, hzdStormGradient(h, hr), hzdStormW); }
+  let fl = P.hzAnvil.z * hzdAnvilAmount();
+  if (fl > 0.0 && g > 0.0) { g = pow(g, max(saturate(hzdRemap(h, 0.65, 0.95, 1.0, 1.0 - fl)), 0.05)); }
+  return g;
+}
+fn hzdTypeGradient(cloudType: f32, h: f32, hr: f32) -> f32 {
+  if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }
   let t = saturate(cloudType);
   // 'points': lerp the stops stratus -> stratocumulus (type 0..0.5) -> cumulus (0.5..1).
   let s = select(mix(HZD_STRATOCUMULUS, HZD_CUMULUS, t * 2.0 - 1.0), mix(HZD_STRATUS, HZD_STRATOCUMULUS, t * 2.0), t < 0.5);
@@ -91,8 +160,17 @@ fn hzdHeightGradientR(cloudType: f32, h: f32, hr: f32) -> f32 {
   // 'curves'' separate, rounded bodies (ours).
   return hzdRamp((hr - s.x) / (s.y - s.x)) * (ws * hzdFall(HZD_STRATUS, h) + (1.0 - ws - wc) * hzdFall(HZD_STRATOCUMULUS, h) + wc * hzdFall(HZD_CUMULUS, h));
 }
-// S7 hook: N17's anvil exponent pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias))) goes here. Unchanged for now.
-fn hzdAnvil(coverage: f32, h: f32, n: NdfSample) -> f32 { return coverage; }
+// F1 S7 (n17 p.46-50): coverage = pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvil_bias))), the remap unclamped as printed (the exponent
+// passes 0 at h 0.9: everything above fills) or clamped to [lerp(1, 0.5, bias), 1] (P.hzAnvil.y: only the top inflates). The bias is N17's
+// weather-state scalar P.hzAnvil.x, raised to 1 inside a storm.
+fn hzdAnvil(coverage: f32, h: f32, n: NdfSample) -> f32 {
+  let bias = max(P.hzAnvil.x, hzdStormW);
+  if (bias <= 0.0 || coverage <= 0.0) { return coverage; }
+  let lo = mix(1.0, 0.5, bias);
+  var e = hzdRemap(h, 0.7, 0.8, 1.0, lo);
+  if (P.hzAnvil.y > 0.5) { e = clamp(e, lo, 1.0); }
+  return saturate(pow(coverage, max(e, 0.0)));
+}
 // H5: tricubic B-spline read of the 128^3 shape (and 32^3 detail) texture from 8 trilinear taps (Sigg & Hadwiger, GPU Gems 2 ch. 20). Trilinear filtering leaves a
 // gradient kink on every texel face; at a 4 km tile a texel is 31 m, and the coverage threshold turns the kinks into terraced, faceted
 // flanks and flat bases ("contour lines" seen from below). The B-spline is C2, so the iso-surfaces are smooth (ours; HZD does not say).
@@ -135,11 +213,20 @@ fn hzdDetailFbm(q0: vec3<f32>, h: f32, footprint: f32, cubic: bool) -> f32 {
   return B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
 }
 
-fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
+// F1: a world-anchored low-frequency field in -1..1 (the shape texture's Perlin-Worley read flat at a coarse mip, contrast x4; ours).
+fn hzdLowField(xz: vec2<f32>, tile: f32, z: f32) -> f32 {
+  let r = textureSampleLevel(procNoiseA, procRepeat, vec3(xz / tile, z), 2.0).r;
+  return clamp((r - 0.5) * 4.0, -1.0, 1.0);
+}
+// The HZD low layer (H1-H7, + F1 types and storms). procSample (below) adds the F1 sheets and fractus.
+fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o: ProcSample;
   o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
   let alt = procAltitude(p);
-  if (alt <= P.hzLayer.x || alt >= P.hzLayer.y) { return o; }
+  // F1 S7: a storm column reaches above the layer, to the storm top.
+  let stormOn = P.hzStorm.w > 0.0 || P.hzStorm2.w < 1.0;
+  hzdStormW = 0.0;
+  if (alt <= P.hzLayer.x || alt >= select(P.hzLayer.y, max(P.hzLayer.y, P.hzStorm2.x), stormOn)) { return o; }
   var n = ndfSample(p.xz);
   // H5 horizon ring (hzd15 s45): coverage toward the ring's target and type toward cumulus from ringStart to ringEnd; nothing beyond ringEnd.
   // The ring is HZD's ground-level far field: it fades out as the camera climbs from half the layer base to the base (ours), so a view from
@@ -153,14 +240,55 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     n.coverage = mix(n.coverage, P.hzRing.z, w) * (1.0 - ringOn * smoothstep(P.hzH6.y, 1.0, r / P.hzRing.y));
     n.topType = mix(n.topType, P.hzRing.w, w);
   }
+  // F1: the column's bottom type (NDF + bias + a low-frequency variation), read by the table profile.
+  var bt = n.bottomType + P.hzType2.x;
+  if (P.hzType2.y != 0.0) { bt += P.hzType2.y * hzdLowField(p.xz, P.hzType2.z, 0.61); }
+  hzdBt = saturate(bt);
   let span = P.hzLayer.y - P.hzLayer.x;
   let bottom = P.hzLayer.x + n.minHeight * span;
   var top = P.hzLayer.x + n.maxHeight * span;
-  let cov0 = saturate(n.coverage + P.hzCov.x);
+  let covN = saturate(n.coverage + P.hzCov.x);
+  var cov0 = covN;
+  // F1 S7 storms. The placed cell: an envelope (its whole reach, anvil included) where the column is a storm (cumulonimbus gradient, top at the
+  // storm top, coverage from the cell); inside it the cell's coverage is 0.85 over the core radius, and above h 0.7..0.8 (n17's anvil band) its
+  // radius grows to anvilSpread x and its centre shears anvilShear m downwind from h 0.6 to the top (photos §4). Type-driven storms: NDF top
+  // types above stormTypeStart ramp to a storm at type 1 (their coverage stays the NDF's; N17's exponent and hag's flattening make the anvil).
+  var se = 0.0;
+  var stormCov = 0.0;
+  if (stormOn) {
+    let wind2 = vec2(P.hzWind.x, P.hzWind.y);
+    let R = P.hzStorm.z;
+    if (P.hzStorm.w > 0.0) {
+      let reach = 1.25 * R * max(0.85 * P.hzStorm2.y, 1.15) + 0.5 * abs(P.hzStorm2.z);
+      let rEnv = length(p.xz - P.hzStorm.xy - wind2 * (0.5 * P.hzStorm2.z));
+      let sp = saturate(P.hzStorm.w) * (1.0 - smoothstep(0.9 * reach, 1.15 * reach, rEnv));
+      if (sp > 0.0) {
+        let hs = saturate((alt - bottom) / max(P.hzStorm2.x - bottom, 1.0));
+        let a = smoothstep(0.7, 0.76, hs);
+        // The column narrows upward (a cone, photos §3-4: widest low), then the anvil band widens it. The anvil spreads downwind: upwind of
+        // the sheared centre its radius is a third (ours).
+        let Rh = R * mix(1.15, 0.85, smoothstep(0.0, 0.7, hs)) * mix(1.0, P.hzStorm2.y, a);
+        let dv = p.xz - P.hzStorm.xy - wind2 * (P.hzStorm2.z * smoothstep(0.6, 1.0, hs));
+        let along = dot(dv, wind2);
+        let r = length(dv + wind2 * (along * (mix(1.0, 3.0, a) - 1.0) * step(along, 0.0)));
+        // A wide fall-off so the shape noise, not the radius, draws the cauliflower wall.
+        stormCov = 0.75 * (1.0 - smoothstep(0.0, 1.25 * Rh, r));
+        // The column is a storm where the cell has coverage at this height; elsewhere in the envelope (under the anvil, around the core) the
+        // NDF's own clouds stay, with their own tops.
+        se = sp * smoothstep(0.0, 0.2, stormCov);
+        cov0 = mix(cov0, stormCov, se);
+      }
+    }
+    if (P.hzStorm2.w < 1.0) {
+      let st = smoothstep(P.hzStorm2.w, 1.0, n.topType + P.hzCov.y);
+      se = max(se, st);
+    }
+  }
   if (cov0 <= 0.0) { return o; }
   // H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
   // dome at the cloud scale instead of meeting one ceiling.
-  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(cov0 / P.hzProf.w), P.hzProf.z); }
+  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(covN / P.hzProf.w), P.hzProf.z); }
+  if (se > 0.0) { top = mix(top, P.hzStorm2.x, se); hzdStormW = se; }
   if (alt <= bottom || alt >= top || top - bottom < 1.0) { return o; }
   let h = (alt - bottom) / (top - bottom);
   let cov = hzdAnvil(cov0, h, n);
@@ -190,9 +318,12 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   if (P.hzShelf.x > 0.0) {
     gradient = hzdHeightGradientR(n.topType + P.hzCov.y, h, h + clamp(P.hzShelf.x * (A.g - 0.69) / 0.1, 0.0, lumpMax));
     if (gradient <= 0.0) { return o; }
-  } else { gradient = hzdHeightGradient(n.topType + P.hzCov.y, h); }
+  }   // F1: with no base lumps the early-out's gradient (read at h + 0) is the gradient: no second evaluation (the tables cost 3 bilinear reads).
   let pw = select(saturate(0.5 + (A.r - 0.5) * P.hzExtra.x), A.r, P.hzExtra.x == 1.0);   // H5 shapeContrast (1 = off)
-  let base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
+  var base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
+  // F1 S7: the anvil plate follows the cell's footprint more than the shape noise (a smooth, flat-bottomed plate; its edge frays by the
+  // detail erosion, wispy there), ours.
+  if (hzdStormW > 0.0) { base = mix(base, 0.75, 0.6 * hzdStormW * smoothstep(0.7, 0.78, h)); }
   let baseCloud = base * gradient;   // 3 height gradient (gp7 p.106: hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient)
 
   // 4 Coverage: threshold 1 - coverage (HFW p.17), then the gp7 multiply; 5 base fade before erosion (stage 2 and up).
@@ -257,9 +388,13 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     if (P.hzVeil.x < 0.5) { veilW = hfFbm; if (skirtOn && veil > 0.0) { veilW = hzdDetailFbm(qVeil, h, footprint, false); } }
     let hag = P.hzCov.w > 0.5;
     // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
-    let modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
+    var modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
+    // F1 S7: a storm's upper 40 % is glaciated: fibrous (wispy) instead of cauliflower (photos §4).
+    if (hzdStormW > 0.0) { modifier = mix(modifier, hfFbm, hzdStormW * smoothstep(0.55, 0.75, h)); }
     // H7: the erosion strength rises from P.hzSkirt.w at the base to erosionStrength at the wispy switch (wispy bottoms erode deeper; gp7 one value).
-    let strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
+    var strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
+    // F1 S7: the anvil plate erodes at half strength (smooth glaciated top, photos §4; ours).
+    if (hzdStormW > 0.0) { strength *= 1.0 - 0.5 * hzdStormW * smoothstep(0.65, 0.8, h); }
     // H7 lobe rung: the step between the body (shape noise, 0.6-1.2 km) and the detail grain (75 m cells) that the photos have and we lacked
     // (santa D1 / frog F1: ~3.5x per level; topics/surface-detail.md "a lobe field at ~70-250 m in the profile stage"). One billowy octave:
     // the detail texture's coarsest channel (inverted Worley, 4 cells per tile) read with its own tile (lobeTile; 4 cells = lobeTile / 4 m),
@@ -294,6 +429,9 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
     }
   }
   density = saturate(density);
+  // F1 S7, hag eq 18: the anvil density fix, x lerp(1, sat(remap(sqrt(h), 0.4, 0.95, 1, 0.2)), amount) (keeps the plate from going opaque).
+  let dfix = P.hzAnvil.w * hzdAnvilAmount();
+  if (dfix > 0.0) { density *= mix(1.0, saturate(hzdRemap(sqrt(h), 0.4, 0.95, 1.0, 0.2)), dfix); }
   // H6 density from coverage (gp7 p.107's "small clouds lighter" at hag eq 16's DA position: after the erosion, so it cannot eat them).
   if (P.hzConn.x > 0.0) { density *= pow(saturate(cov / P.hzConn.y), P.hzConn.x); }
   // H6 veil: a thin low skirt continuing each body below the threshold, streaked by the detail fBM or A.a (n3 s162's connective skirt; ours).
@@ -310,6 +448,144 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   o.h = h;
   // No surface distance in a per-sample model: the coarse density times the column height stands in (as the Takram shaper).
   o.depth = coarse * (top - bottom) * 0.25;
+  return o;
+}
+// F1 step 3: a sheet layer with its own form (photos §5-7, web18 Table 2, ne22 p.15-16; constants ours). A = (form, bottom m, thickness m,
+// coverage), B = (cell size m, elongation along the wind, extinction 1/m, detail erosion). The noise is the HZD shape texture read with the
+// sheet's own tile in wind-aligned coordinates (stretched B.y : 1 along the wind), under a large-scale coverage field (patches, a density
+// gradient across the sky, merged areas).
+fn hzdSheetSample(A: vec4<f32>, B: vec4<f32>, p: vec3<f32>, t: f32, footprint: f32, full: bool) -> ProcSample {
+  var o: ProcSample;
+  o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
+  let alt = procAltitude(p);
+  let h = (alt - A.y) / A.z;
+  if (h <= 0.0 || h >= 1.0) { return o; }
+  let wind2 = vec2(P.hzWind.x, P.hzWind.y);
+  let xz = p.xz - P.drift.xz * P.hzSpeed.y;
+  let uv = vec2(dot(xz, wind2) / B.y, dot(xz, vec2(-wind2.y, wind2.x)));
+  // Local coverage: the sheet's coverage moved +-0.35 by a field with features of about 40 cells.
+  let c = saturate(A.w + 0.35 * hzdLowField(uv, B.x * 40.0, 0.83));
+  if (c <= 0.0) { return o; }
+  let form = u32(A.x + 0.5);
+  var T = B.x * 10.0;                      // altocumulus: the first Worley octave (G, 10 cells per tile) is one cell
+  if (form != 1u) { T = B.x * 6.0; }
+  let lod = hzdLod(footprint, T, 128.0);
+  let N = textureSampleLevel(procNoiseA, procRepeat, vec3(uv / T, 0.31 + alt / T), lod);
+  var n: f32; var grad: f32;
+  if (form == 1u) {
+    // Altocumulus: jittered Worley cells (inverted Worley fBM: bright cell centres; random feature points give the irregular spacing), flat
+    // base, domed lumpy top: the cell value x a quick rise and a long rounded fall.
+    n = saturate((N.g * 0.7 + N.b * 0.3 - 0.5) / 0.35);
+    grad = smoothstep(0.0, 0.12, h) * smoothstep(1.0, 0.25, h);
+  } else if (form == 2u) {
+    // Altostratus: a mottled sheet (the Perlin-Worley, low contrast), soft at both ends.
+    n = saturate(0.55 + (N.r - 0.5) * 1.2);
+    grad = smoothstep(0.0, 0.35, h) * smoothstep(1.0, 0.45, h);
+  } else {
+    // Stratus deck: flat base, gently lumpy top.
+    n = saturate(0.2 + N.r * 0.5 + N.g * 0.4);
+    grad = smoothstep(0.0, 0.08, h) * smoothstep(1.0, 0.4, h);
+  }
+  var d = hzdRemap(n * grad, 1.0 - c, 1.0, 0.0, 1.0);
+  if (d <= 0.0) { return o; }
+  let coarse = saturate(d);
+  // Detail: wispy toward the base, billowy above (gp7 p.108), within the detail distance.
+  if (full && B.w > 0.0 && t < P.hzFade.z) {
+    let f = hzdDetailFbm(vec3(xz.x, alt, xz.y), h, footprint, false);
+    let modifier = mix(f, 1.0 - f, saturate(h / 0.3));
+    d = hzdRemap(d, modifier * B.w * (1.0 - smoothstep(0.75, 1.25, t / max(P.hzFade.z, 1.0))), 1.0, 0.0, 1.0);
+  }
+  d = saturate(d);
+  if (d <= 0.0) { return o; }
+  o.sigma = d * B.z; o.coarse = coarse; o.h = h; o.depth = coarse * A.z * 0.25;
+  return o;
+}
+// Two samples in one: extinctions add; the rest is extinction-weighted.
+fn hzdMerge(a: ProcSample, b: ProcSample) -> ProcSample {
+  if (b.sigma <= 0.0) { return a; }
+  if (a.sigma <= 0.0) { return b; }
+  let s = a.sigma + b.sigma;
+  let w = b.sigma / s;
+  var o: ProcSample;
+  o.sigma = s; o.coarse = mix(a.coarse, b.coarse, w); o.depth = mix(a.depth, b.depth, w); o.h = mix(a.h, b.h, w);
+  return o;
+}
+// F1 step 4: is there a body base over column xz? Returns (presence 0..1: the coarse body at the belly height fractusBelly, as the main chain
+// thresholds it; the belly altitude). Mirrors hzdMainSample's column (NDF heights, height from coverage) without the ring, storms or detail.
+fn hzdBelly(xz: vec2<f32>, lod: f32) -> vec2<f32> {
+  let n = ndfSample(xz);
+  let cov = saturate(n.coverage + P.hzCov.x);
+  let span = P.hzLayer.y - P.hzLayer.x;
+  let bottom = P.hzLayer.x + n.minHeight * span;
+  var top = P.hzLayer.x + n.maxHeight * span;
+  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(cov / P.hzProf.w), P.hzProf.z); }
+  let hb = P.hzFrac.w;
+  let altB = bottom + hb * max(top - bottom, 1.0);
+  if (cov <= 0.0) { return vec2(0.0, altB); }
+  hzdBt = saturate(n.bottomType + P.hzType2.x);
+  hzdStormW = 0.0;
+  let g = hzdHeightGradient(n.topType + P.hzCov.y, hb);
+  if (g <= 0.0) { return vec2(0.0, altB); }
+  let windDir = vec3(P.hzWind.x, 0.0, P.hzWind.y);
+  let scroll = P.drift.xyz + vec3(0.0, P.hzWind.w * length(P.drift.xz), 0.0);
+  let q = vec3(xz.x, altB, xz.y) - windDir * (hb * P.hzWind.z) - scroll * P.hzSpeed.y;
+  let A = textureSampleLevel(procNoiseA, procRepeat, q / P.hzScale.x, lod);
+  let base = hzdRemap(A.r, -(1.0 - (A.g * 0.625 + A.b * 0.25 + A.a * 0.125)), 1.0, 0.0, 1.0);
+  return vec2(saturate(hzdRemap(base * g, 1.0 - cov, 1.0, 0.0, 1.0) / 0.15), altB);
+}
+// F1 step 4: fractus. Ragged shreds hanging from each body's belly line (h fractusBelly) down to fractusDrop m below it and trailing up to
+// fractusTrail m downwind: the sample looks fractusTaps taps upwind (0 .. trail) for a body base (hzdBelly), so material exists only under and
+// behind real bodies and never above the belly (crisp tops; H7's skirt band attached to nothing and crossed lit crowns). The pieces sink a little
+// and thin out with the distance they have trailed. The shreds: the detail fBM read fractusScale x coarser, curl-displaced fractusCurl x (with a
+// vertical share), cut where it is below 1 - presence (ragged gaps, no streaks). Ours (n3 s162's skirt, hzd15 s26/s37 wispy bottoms).
+fn hzdFractusSample(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
+  var o: ProcSample;
+  o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
+  let alt = procAltitude(p);
+  let span = P.hzLayer.y - P.hzLayer.x;
+  if (alt < P.hzLayer.x - P.hzFrac.z || alt > P.hzLayer.x + 0.45 * span || t > P.hzFrac2.w) { return o; }
+  let wind2 = vec2(P.hzWind.x, P.hzWind.y);
+  let K = u32(P.hzFrac2.z);
+  let lod = hzdLod(footprint, P.hzScale.x, 128.0) + 1.0;
+  // The pieces leave the lee edge: the trail term (taps 1..K-1 upwind) is cut where a body sits right overhead (tap 0), so the shreds hang
+  // along the edges and stream out behind each body instead of lining its whole underside as a second base. Their hang height wanders by
+  // +-0.4 drop over ~1 km (no flat band at one altitude).
+  let jit = 0.4 * P.hzFrac.z * hzdLowField(p.xz, 4000.0, 0.47);
+  var F = 0.0;
+  var over = 0.0;
+  for (var k = 0u; k < K; k++) {
+    let f = select(f32(k) / f32(K - 1u), 0.0, K == 1u);
+    let b = hzdBelly(p.xz - wind2 * (P.hzFrac.y * f), lod);
+    if (b.x <= 0.0) { continue; }
+    let top = b.y - 0.3 * P.hzFrac.z * f + jit;      // trailing pieces sink
+    // Soft at both ends (a thin band with hard ends flickers under the march's jittered steps).
+    let v = smoothstep(top - P.hzFrac.z, top - 0.5 * P.hzFrac.z, alt) * (1.0 - smoothstep(top - 0.5 * P.hzFrac.z, top + 40.0, alt));
+    if (k == 0u && K > 1u) { over = b.x * v; continue; }
+    F = max(F, b.x * v * (1.0 - 0.5 * f));
+  }
+  F *= 1.0 - 0.85 * over;
+  if (F <= 0.0) { return o; }
+  let scroll = P.drift.xyz + vec3(0.0, P.hzWind.w * length(P.drift.xz), 0.0);
+  let q = vec3(p.x, alt, p.z) - scroll * P.hzSpeed.z;
+  let curl = textureSampleLevel(procAux, procRepeat, q.xz / P.hzScale.z, 0.0).xyz;
+  var qd = q + vec3(curl.x, 0.5 * curl.z, curl.y) * (P.hzScale.w * P.hzFrac2.y);
+  // Mildly stretched along the wind (1.6 : 1, torn pieces trail; H7's 2.5 read as streaks).
+  qd -= vec3(wind2.x, 0.0, wind2.y) * dot(qd.xz, wind2) * (1.0 - 1.0 / 1.6);
+  let tile = P.hzScale.y * P.hzFrac2.x;
+  let B = textureSampleLevel(procNoiseB, procRepeat, qd / tile, hzdLod(footprint, tile, 32.0)).rgb;
+  // The wispy form (gp7 p.108: fbm, not 1 - fbm): the detail channels are inverted Worley, so 1 - fBM is the web between the cells, i.e.
+  // torn, filamentary pieces instead of the round billows at the cell centres.
+  let wv = 1.0 - (B.r * 0.625 + B.g * 0.25 + B.b * 0.125);
+  let d = saturate(hzdRemap(wv, 1.0 - 0.7 * F, 1.0, 0.0, 1.0)) * P.hzFrac.x;
+  if (d <= 0.0) { return o; }
+  o.sigma = d * P.hzLayer.w; o.coarse = d; o.h = 0.02; o.depth = 0.0;
+  return o;
+}
+fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
+  var o = hzdMainSample(p, t, footprint, full, jitter);
+  if (P.hzFrac.x > 0.0 && full && o.sigma <= 0.0) { o = hzdFractusSample(p, t, footprint); }
+  if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }
+  if (P.hzDeck.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzDeck, P.hzDeck2, p, t, footprint, full)); }
   return o;
 }
 fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }

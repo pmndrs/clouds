@@ -10,6 +10,8 @@
 //             publishes are marked "ours" below and in work/reports/H1.md.
 // See procedural/NOTICE.md for the credits.
 
+import { PROFILE_TABLE_FLOOR, profilePeaks, profileTablesSmoothed } from '../generate/profile-tables';
+
 export type ProceduralShaper = 'skypro' | 'takram' | 'hzd';
 
 /** Sky Pro's shape settings (SkyProClouds.js PRESET.shape / wind / weather). Metres unless noted. */
@@ -300,6 +302,79 @@ export interface HzdShape {
   baseLump: number;
   bottomCurlDown: number;
   wispyStrength: number;
+  // ---- F1: cloud types and forms (this block only; packed by packHzdForms) ----
+  /** F1 step 1 (ne22 p.21-29, n3 s18): the vertical profile. 'nutshell' = the three HZD trapezoids blended by type (H1-H7); 'tables' = NE's
+   *  top table(top type, h) x bottom table(bottom type, h), divided by the pair's peak so a full column still peaks at 1 (H4's tables,
+   *  generate/profile-tables.ts, reused). The HZD type maps onto the table's top type piecewise linearly through tableTypeStratus (type 0),
+   *  tableTypeStratocumulus (0.5) and tableTypeCumulus (1): NE's insets put stratus at 0.07, stratocumulus 0.27, cumulus 0.40 (ne22 p.23-25);
+   *  above 0.44 the table's tops are tall and tiered (towering cumulus). */
+  profileMode: 'nutshell' | 'tables';
+  tableTypeStratus: number;
+  tableTypeStratocumulus: number;
+  tableTypeCumulus: number;
+  /** F1: bottom type = NDF bottomType + bottomTypeBias + bottomTypeVariation x a world-anchored low-frequency field (the shape texture's
+   *  Perlin-Worley read flat with a `bottomTypeTile` m tile), clamped 0..1. 0 = sharp, flat, crisp base; 1 = slow, ragged base (n3.md §7a). Ours. */
+  bottomTypeBias: number;
+  bottomTypeVariation: number;
+  bottomTypeTile: number;
+  /** F1: the table height the column base maps to (H4: the tables' shared floor 17/64; 0 = the literal mapping). */
+  tableFloor: number;
+  /** F1 step 2, S7 anvils. n17 p.46-50: coverage = pow(coverage, remap(h, 0.7, 0.8, 1, lerp(1, 0.5, anvilBias))); `anvilClamp` clamps the
+   *  exponent to [lerp(1, 0.5, bias), 1] (only the top inflates) instead of the unclamped remap (thins the body below 0.7, fills above 0.9).
+   *  hag eq 17: the height gradient ^ sat(remap(h, 0.65, 0.95, 1, 1 - anvilFlatten)) flattens the top ramp into a plate; hag eq 18's density fix
+   *  x lerp(1, sat(remap(sqrt(h), 0.4, 0.95, 1, 0.2)), anvilDensityFix) keeps the plate from going opaque (hag fig 12 vs 13). All 0 = off. The
+   *  anvil terms act where the column is a storm (storm cell or storm type below); anvilBias also acts everywhere, as N17's weather-state scalar. */
+  anvilBias: number;
+  anvilClamp: boolean;
+  anvilFlatten: number;
+  anvilDensityFix: number;
+  /** F1 S7: a placed cumulonimbus cell (gp7 p.104 / hzd15 s42: storm -> cumulonimbus type, coverage >= 0.7). Inside `stormRadius` (m) of
+   *  (stormX, stormZ) the column takes the cumulonimbus gradient (hzd15 s34 / gp7 Fig 4.10: full 0.08, to 0.74, zero 0.96) or the tallest
+   *  table type, coverage 0.85 falling off radially, and its top rises to `stormTop` (m). Above h 0.7 the coverage footprint widens to
+   *  `anvilSpread` x the radius and its centre shears `anvilShear` m downwind (photos §4: anvil 2-4x the column, sheared one way). `stormStrength`
+   *  0 = off. `stormTypeStart` < 1: NDF top types above it become storms too (type-driven, ramping to full at type 1). Constants ours. */
+  stormX: number;
+  stormZ: number;
+  stormRadius: number;
+  stormStrength: number;
+  stormTop: number;
+  anvilSpread: number;
+  anvilShear: number;
+  stormTypeStart: number;
+  /** F1 step 3: two sheet layers with their own forms (photos §5-7, web18 Table 2, ne22 p.15-16): 'altocumulus' = jittered cells (the shape
+   *  texture's Worley fBM read flat, elongated `cellElongation`:1 along the wind, cell size `cellSize` m) under a large-scale coverage mask,
+   *  flat bases and lumpy domed tops; 'altostratus' = a soft mottled sheet; 'stratus' = a flat-based low deck with a gently lumpy top.
+   *  Each: base (m), thickness (m), coverage (0..1), extinction (1/m at density 1), detail erosion. 'off' = not drawn. Ours. */
+  midForm: 'off' | 'altocumulus' | 'altostratus' | 'stratus';
+  midBottom: number;
+  midThickness: number;
+  midCoverage: number;
+  midCellSize: number;
+  midElongation: number;
+  midExtinction: number;
+  midErosion: number;
+  deckForm: 'off' | 'altocumulus' | 'altostratus' | 'stratus';
+  deckBottom: number;
+  deckThickness: number;
+  deckCoverage: number;
+  deckCellSize: number;
+  deckElongation: number;
+  deckExtinction: number;
+  deckErosion: number;
+  /** F1 step 4: fractus attached to each body (both judges after H7). Ragged shreds that leave each cloud's belly line (h `fractusBelly`) and
+   *  hang up to `fractusDrop` m below it, trailing up to `fractusTrail` m downwind: a sample looks `fractusTaps` taps upwind for a body base
+   *  (the coarse body at belly height), so shreds exist only under and behind real bodies and never above the belly (tops stay crisp). The
+   *  shreds are the detail fBM read `fractusScale` x coarser, curl-displaced `fractusCurl` x. `fractusDensity` 0 = off; none beyond
+   *  `fractusDistance` m (cost). Ours (n3 s162's skirt and hzd15 s26's wispy bottoms as a per-body formula). */
+  fractusDensity: number;
+  fractusTrail: number;
+  fractusDrop: number;
+  fractusBelly: number;
+  fractusScale: number;
+  fractusCurl: number;
+  fractusTaps: number;
+  fractusDistance: number;
+  // ---- end F1 ----
   ndf: HzdNdfSettings;
 }
 
@@ -390,6 +465,61 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
   recipe: 'n17', gateCells: 3, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
 };
+/** F1 type and form settings (every new behaviour off: the H6 look). */
+export const HZD_FORM_DEFAULTS = {
+  profileMode: 'nutshell', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4,
+  bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
+  anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
+  stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
+  midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
+  deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
+  fractusDensity: 0, fractusTrail: 900, fractusDrop: 220, fractusBelly: 0.08, fractusScale: 3, fractusCurl: 2, fractusTaps: 3, fractusDistance: 15000,
+} satisfies Partial<HzdShape>;
+const FORM_CODE = { off: 0, altocumulus: 1, altostratus: 2, stratus: 3 } as const;
+/** ProcParams floats of the F1 block: 11 vec4 after hzShelf, then the 64x64 top, bottom and peak tables at 3 bytes per float. */
+export const PROC_HZD_FORMS_OFFSET = 188;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
+export const PROC_HZD_LUT_FLOATS = 4096;
+let hzdLut: Float32Array | null = null;
+/** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
+ *  per-frame change test in procedural/index.ts stays stable). Byte i lives in float i / 3 at bits 8 (i % 3). */
+export function packHzdLut(): Float32Array {
+  if (!hzdLut) {
+    const { top, bottom } = profileTablesSmoothed();
+    const peaks = profilePeaks();
+    const bytes = new Uint8Array(PROC_HZD_LUT_FLOATS * 3);
+    bytes.set(top, 0); bytes.set(bottom, 4096); bytes.set(peaks, 8192);
+    hzdLut = new Float32Array(PROC_HZD_LUT_FLOATS);
+    for (let i = 0; i < PROC_HZD_LUT_FLOATS; i++) hzdLut[i] = bytes[3 * i] + bytes[3 * i + 1] * 256 + bytes[3 * i + 2] * 65536;
+  }
+  return hzdLut;
+}
+/** Pack the F1 block (layout in procedural/density.wgsl.ts hzType .. hzLut). */
+export function packHzdForms(hz: HzdShape, out: Float32Array): void {
+  const o = PROC_HZD_FORMS_OFFSET;
+  out.set([hz.profileMode === 'tables' ? 1 : 0, hz.tableTypeStratus, hz.tableTypeStratocumulus, hz.tableTypeCumulus], o);
+  out.set([hz.bottomTypeBias, hz.bottomTypeVariation, Math.max(hz.bottomTypeTile, 1), Math.min(Math.max(hz.tableFloor, 0), 0.9)], o + 4);
+  out.set([Math.max(hz.anvilBias, 0), hz.anvilClamp ? 1 : 0, Math.min(Math.max(hz.anvilFlatten, 0), 1), Math.min(Math.max(hz.anvilDensityFix, 0), 1)], o + 8);
+  out.set([hz.stormX, hz.stormZ, Math.max(hz.stormRadius, 1), Math.max(hz.stormStrength, 0)], o + 12);
+  out.set([hz.stormTop, Math.max(hz.anvilSpread, 1), hz.anvilShear, hz.stormTypeStart], o + 16);
+  out.set([FORM_CODE[hz.midForm] ?? 0, hz.midBottom, Math.max(hz.midThickness, 1), hz.midCoverage], o + 20);
+  out.set([Math.max(hz.midCellSize, 1), Math.max(hz.midElongation, 0.1), hz.midExtinction, hz.midErosion], o + 24);
+  out.set([FORM_CODE[hz.deckForm] ?? 0, hz.deckBottom, Math.max(hz.deckThickness, 1), hz.deckCoverage], o + 28);
+  out.set([Math.max(hz.deckCellSize, 1), Math.max(hz.deckElongation, 0.1), hz.deckExtinction, hz.deckErosion], o + 32);
+  out.set([Math.max(hz.fractusDensity, 0), hz.fractusTrail, Math.max(hz.fractusDrop, 1), Math.max(hz.fractusBelly, 1e-3)], o + 36);
+  out.set([Math.max(hz.fractusScale, 1e-3), hz.fractusCurl, Math.min(Math.max(Math.round(hz.fractusTaps), 1), 6), Math.max(hz.fractusDistance, 1)], o + 40);
+  out.set(packHzdLut(), PROC_HZD_LUT_OFFSET);
+}
+/** The march shell of the HZD shaper with the F1 forms: the storm top, the sheets and the fractus below the base widen it. */
+export function hzdShell(hz: HzdShape): [number, number] {
+  let lo = hz.layerBottom, hi = Math.max(hz.layerTop, hz.layerBottom + 1);
+  if (hz.stormStrength > 0 || hz.stormTypeStart < 1) hi = Math.max(hi, hz.stormTop);
+  for (const [f, b, t] of [[hz.midForm, hz.midBottom, hz.midThickness], [hz.deckForm, hz.deckBottom, hz.deckThickness]] as const) {
+    if (f !== 'off') { lo = Math.min(lo, b); hi = Math.max(hi, b + t); }
+  }
+  if (hz.fractusDensity > 0) lo = Math.min(lo, hz.layerBottom - hz.fractusDrop);
+  return [Math.max(lo, 0), hi];
+}
 export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
   shapeTile: 6000, detailTile: 300, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
@@ -397,7 +527,7 @@ export const HZD_DEFAULTS: HzdShape = {
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -415,8 +545,8 @@ export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): 
   };
 }
 
-/** ProcParams uniform: 47 vec4 (the last seventeen are the HZD shaper's). */
-export const PROC_PARAM_FLOATS = 188;
+/** ProcParams uniform: 58 vec4 (the last twenty-eight are the HZD shaper's) and the F1 tables (4096 floats). */
+export const PROC_PARAM_FLOATS = PROC_HZD_LUT_OFFSET + PROC_HZD_LUT_FLOATS;
 /** Floats [PROC_VIEW_FLOATS[0], [1]) are written every frame (camera, wind offset): not part of the model version. */
 export const PROC_VIEW_FLOATS = [108, 116] as const;
 export const PROC_PARAM_BYTES = PROC_PARAM_FLOATS * 4;
@@ -430,7 +560,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   if (s.shaper === 'skypro') {
     minY = sp.altitude; maxY = sp.altitude + sp.thickness * 1.3;   // the shape reads up to 1.3 shell heights (scCandidate)
   } else if (s.shaper === 'hzd') {
-    minY = hz.layerBottom; maxY = Math.max(hz.layerTop, hz.layerBottom + 1);
+    [minY, maxY] = hzdShell(hz);
   } else {
     const on = tk.layers.filter(l => l.height > 0 && l.densityScale > 0);
     minY = on.length ? Math.min(...on.map(l => l.altitude)) : 0;
@@ -483,6 +613,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([Math.max(hz.skirtScale, 1e-3), Math.max(hz.skirtTrailWidth, 1e-3), hz.bottomErosion, Math.min(Math.max(hz.skirtGap, 0), 0.95)], 176);
   out.set([Math.max(hz.lobeTile, 1), Math.max(hz.lobeStrength, 0), hz.lobeFull, hz.lobeCubic ? 1 : 0], 180);
   out.set([Math.max(hz.baseLump, 0), 0, 0, hz.lobeCoverage], 184);
+  packHzdForms(hz, out);
   return [minY, maxY];
 }
 

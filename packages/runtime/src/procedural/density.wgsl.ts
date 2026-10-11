@@ -79,6 +79,19 @@ struct ProcParams {
   hzSkirt2: vec4<f32>,   // H7: skirt noise scale (x the detail tile), trail footprint width (x veil width), bottom erosion (gp7 order, at h = 0; 0 = off), skirt gap threshold (0..1)
   hzLobe: vec4<f32>,     // H7 lobe rung: tile (m), strength (0 = off), full height (h), cubic read (0/1)
   hzShelf: vec4<f32>,    // H7: base lump (h), 0, 0, lobe coverage reference
+  // F1 types and forms (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packHzdForms)
+  hzType: vec4<f32>,     // F1: profile (0 Nutshell trapezoids, 1 NE/N3 s18 tables), table top type at HZD type 0, 0.5, 1
+  hzType2: vec4<f32>,    // F1: bottom-type bias, bottom-type variation, its tile (m), table floor (table height of the column base)
+  hzAnvil: vec4<f32>,    // F1 S7: n17 anvil bias (0 = off), exponent clamp (0/1), hag top flatten (0..1), hag density fix (0..1)
+  hzStorm: vec4<f32>,    // F1 S7 storm cell: centre x, z (m), core radius (m), strength (0 = off)
+  hzStorm2: vec4<f32>,   // F1 S7: storm top (m), anvil spread (x core radius), anvil shear (m downwind), storm-by-type start (> 1 = off)
+  hzMid: vec4<f32>,      // F1 sheet A: form (0 off, 1 altocumulus, 2 altostratus, 3 stratus deck), bottom (m), thickness (m), coverage
+  hzMid2: vec4<f32>,     // F1 sheet A: cell size (m), elongation along the wind, extinction (1/m), detail erosion
+  hzDeck: vec4<f32>,     // F1 sheet B: as hzMid
+  hzDeck2: vec4<f32>,    // F1 sheet B: as hzMid2
+  hzFrac: vec4<f32>,     // F1 fractus: density (0 = off), trail (m downwind), drop (m below the belly), belly height (h)
+  hzFrac2: vec4<f32>,    // F1 fractus: noise scale (x detail tile), curl gain, upwind taps, distance (m)
+  hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
 const PROC_EARTH_M = 6371000.0;
