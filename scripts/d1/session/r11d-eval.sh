@@ -1,0 +1,12 @@
+#!/bin/zsh
+cd /Users/dex/Developer/WebGPUClouds/.claude/worktrees/cloud-research-setup-10bf11
+S=/private/tmp/claude-502/-Users-dex-Developer-WebGPUClouds--claude-worktrees-cloud-research-setup-10bf11/a381824f-b944-467f-94ec-8988ae178608/scratchpad
+O=/Users/dex/Developer/WebGPUClouds/artifacts/research/d1-parity/sheets-r11; D=work/captures/scratch/d1/r11d; C="@s.microShadow:0"
+for b in p101:image101:parkouring/p101 p213:image213:parkouring/p213; do f=${b%%:*}; r=${b#*:}; img=${r%%:*}; mp=${r#*:}; echo "== $f"
+  python3 -I scripts/d1/d1.py stats /Users/dex/Developer/WebGPUClouds/artifacts/research/extracted/n3/pptx/media/$img.png "$D/$f@look:decima$C.png" "$D/$f@look:decima$C@s.directProfile:0.5.png" "$D/$f@look:decima$C@s.directProfile:1.png" "$D/$f@look:decima$C@ambtint:1.04:1:1.02.png" "$D/$f@look:decima$C@ambtint:1.05:1:1.05.png" "$D/$f@look:decima$C@s.directProfile:0.5@ambtint:1.04:1:1.02.png" "$D/$f@look:decima@s.microDist:2@s.microDist2:6@s.microShadow2:1.png" --matte work/captures/D1/$mp@look:decima@matte.png --rgb 2>&1 | sed "s/$f@look:decima//" | cut -c1-250
+  for c in "dp05:$C@s.directProfile:0.5" "dp1:$C@s.directProfile:1" "ambtint-a:$C@ambtint:1.04:1:1.02" "ambtint-b:$C@ambtint:1.05:1:1.05"; do python3 -I $S/d1/ab.py "$O/ab-$f-${c%%:*}.jpg" $f "$D/$f@look:decima$C.png" "$D/$f@look:decima${c#*:}.png" 2>&1 | sed 's/.*sheets-r11\///' | cut -c1-200; done
+done
+for b in s206:image206 s33t3:media33-t3; do f=${b%%:*}; img=${b#*:}; ref=/Users/dex/Developer/WebGPUClouds/artifacts/research/extracted/n3/pptx/media/$img.png; [[ $img == media* ]] && ref=/Users/dex/Developer/WebGPUClouds/artifacts/research/d0-parity/ref/frames/$img.png; echo "== $f"
+  python3 -I scripts/d1/d1.py stats $ref "$D/$f@look:decima$C.png" "$D/$f@look:decima$C@s.directProfile:0.5.png" "$D/$f@look:decima$C@s.directProfile:1.png" "$D/$f@look:decima$C@ambtint:1.05:1:1.05.png" "$D/$f@look:decima$C@ambtint:1.08:1:1.06.png" "$D/$f@look:decima$C@s.directProfile:0.5@ambtint:1.05:1:1.05.png" --matte work/captures/scratch/d1/r9-final/stormbird/$f@look:decima@matte.png --rgb 2>&1 | sed "s/$f@look:decima//" | cut -c1-250
+  for c in "dp05:$C@s.directProfile:0.5" "dp1:$C@s.directProfile:1" "ambtint-b:$C@ambtint:1.05:1:1.05" "ambtint-c:$C@ambtint:1.08:1:1.06"; do python3 -I $S/d1/ab.py "$O/ab-$f-${c%%:*}.jpg" $f "$D/$f@look:decima$C.png" "$D/$f@look:decima${c#*:}.png" 2>&1 | sed 's/.*sheets-r11\///' | cut -c1-200; done
+done

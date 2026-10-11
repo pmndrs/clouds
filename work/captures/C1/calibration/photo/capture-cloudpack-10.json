@@ -1,0 +1,190 @@
+{
+  "url": "http://127.0.0.1:59056/flagship/?cloud=local/cloudpack-10&quality=high&clean=1&base=1300&time=15.9",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-10T04:14:08.764Z",
+  "shots": [
+    {
+      "name": "photo",
+      "file": "",
+      "report": {
+        "camera": [
+          853.6380220898687,
+          2,
+          2288.4333111302003
+        ],
+        "hfovDeg": 47.99999999999998,
+        "focusBox": {
+          "min": [
+            -560,
+            1364,
+            -1008
+          ],
+          "max": [
+            560,
+            1940,
+            1008
+          ]
+        },
+        "gpuMs": {
+          "scene": 0.6165391333333335,
+          "skyCompute": 0.10379,
+          "lightGridReduce": 0.041748,
+          "lightGrid": 0.270942,
+          "marchNear": 0.09049516666666668,
+          "marchFar": 3.122442616666667,
+          "shadowMap": 0.023175407407407415,
+          "composite": 0.2076864333333334,
+          "dome": 0.09254369999999999,
+          "resolveNear": 0.03881466666666666,
+          "resolveFar": 0.07151351666666668
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.041748,
+          "lightGrid": 0.270942,
+          "marchNear": 0.08654,
+          "marchFar": 2.841748,
+          "shadowMap": 0.010417,
+          "composite": 0.210539,
+          "dome": 0.084791,
+          "resolveNear": 0.032625,
+          "resolveFar": 0.07304
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000045,
+          "last": 16.600000000000136
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "photo",
+        "timeOfDay": 15.899999999999999,
+        "sunElevation": 38.79809624658686,
+        "sunAzimuth": 269.54333297645786,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 12441600,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 11037312,
+          "shadow": 8388608,
+          "total": 46195660
+        },
+        "cloud": "local/cloudpack-10",
+        "frames": 93,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 2,
+          "frames": 93,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 64.19999998807907,
+        "firstCloudFrameMs": 156.19999998807907
+      }
+    },
+    {
+      "name": "detail",
+      "file": "",
+      "report": {
+        "camera": [
+          1042.9600718562474,
+          1.9999999999990905,
+          2795.967973370466
+        ],
+        "hfovDeg": 20,
+        "focusBox": {
+          "min": [
+            -560,
+            1364,
+            -1008
+          ],
+          "max": [
+            560,
+            1940,
+            1008
+          ]
+        },
+        "gpuMs": {
+          "scene": 0.5879214500000001,
+          "skyCompute": 0.151581,
+          "lightGridReduce": 0.041748,
+          "lightGrid": 0.270942,
+          "marchNear": 0.08009740000000003,
+          "marchFar": 3.054624266666667,
+          "shadowMap": 0.023175407407407415,
+          "composite": 0.24575323333333324,
+          "dome": 0.08365301666666666,
+          "resolveNear": 0.044898566666666674,
+          "resolveFar": 0.08297709999999996
+        },
+        "gpuMedian": {
+          "lightGridReduce": 0.041748,
+          "lightGrid": 0.270942,
+          "marchNear": 0.084166,
+          "marchFar": 3.106119,
+          "shadowMap": 0.010417,
+          "composite": 0.215205,
+          "dome": 0.084248,
+          "resolveNear": 0.041958,
+          "resolveFar": 0.074581
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.700000000000273,
+          "last": 16.699999999999818
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "bookmark": "detail",
+        "timeOfDay": 15.899999999999999,
+        "sunElevation": 38.79809624658686,
+        "sunAzimuth": 269.54333297645786,
+        "animateTime": false,
+        "quality": "high",
+        "qualityOption": "high",
+        "auto": null,
+        "renderScale": 1,
+        "memory": {
+          "history": 12266808,
+          "trace": 1537044,
+          "sky": 12441600,
+          "output": 0,
+          "dome": 524288,
+          "lightGrid": 11037312,
+          "shadow": 8388608,
+          "total": 46195660
+        },
+        "cloud": "local/cloudpack-10",
+        "frames": 188,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 3,
+          "frames": 188,
+          "bytes": 13803852
+        },
+        "assetLoadMs": 64.19999998807907,
+        "firstCloudFrameMs": 156.19999998807907
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
