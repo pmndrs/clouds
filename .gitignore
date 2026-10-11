@@ -13,3 +13,4 @@ assets/clouds/local/
 .env
 .env.local
 .env.*.local
+*.env
