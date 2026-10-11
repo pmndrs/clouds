@@ -1,7 +1,9 @@
-// Tuning panel for the Decima parity page: every runtime setting and the frame's scene values as live dials, for tuning by hand.
-// Edits apply to the running render immediately. Presets save to this browser (localStorage) and export / import as JSON files.
-// A preset stores the bookmark, the look, the scene values and only the settings that differ from the bookmark's own starting values,
-// so it reapplies cleanly on top of later code changes. Open it with the "tune" button or the T key.
+// Tuning panel for the Decima parity page (Tweakpane): every runtime setting and the shot's scene values as live controls, grouped by what they
+// change: the shot (camera and framing, sun and sky, exposure and tone), then the renderer (shape and detail, ray march, sun light and shadows,
+// inner glow, sky light, colour and phase, atmosphere, models, debug). Each control has an (i) with what it does, a reset to the shot's value, and
+// an amber name when it differs from the shot. Modes are dropdowns. Presets save to this browser and export / import as JSON. T opens it.
+import { Pane, type FolderApi } from 'tweakpane';
+import type { BindingApi } from '@tweakpane/core';
 import runtimeSource from '../../../packages/runtime/src/runtime.ts?raw';
 
 export interface TuneScene {
@@ -18,7 +20,7 @@ export interface TuneHost {
   settings: Record<string, unknown>;
   /** Called after a setting changes (the page resets the temporal history so the change shows at once). */
   onSettingChange(key: string): void;
-  /** Applies one scene value to the sky, the bridge or the post chain. */
+  /** Applies the scene values to the camera, the sky, the bridge and the post chain. */
   applyScene(scene: TuneScene): void;
   bookmark(): string;
   look(): string;
@@ -28,280 +30,381 @@ export interface TuneHost {
 }
 
 interface Preset { bookmark: string; look: string; scene: TuneScene; settings: Record<string, unknown>; savedAt: string; note?: string }
+type Vec3Key = 'camEye' | 'camTarget' | 'sunColor' | 'sunTint' | 'ambientTint' | 'skyFactor';
 
 const STORE = 'decima-tune-presets';
 const SKIP = new Set(['lightning']);
-
-// The doc comment above each CloudSettings field, shown as the row's tooltip.
-const docs = (() => {
-  const out: Record<string, string> = {};
-  const block = runtimeSource.slice(runtimeSource.indexOf('export interface CloudSettings'));
-  const end = block.indexOf('\n}');
-  const re = /\/\*\*([\s\S]*?)\*\/\s*(\w+)\??:/g;
-  for (const m of block.slice(0, end).matchAll(re)) out[m[2]] = m[1].replace(/\n\s*\*\s?/g, ' ').trim();
-  return out;
-})();
-
-const css = `
-#tune{position:fixed;left:8px;top:64px;bottom:8px;width:380px;max-width:calc(100vw - 16px);display:none;flex-direction:column;background:#0b0f15ee;border:1px solid #333;border-radius:4px;font:12px/1.35 ui-monospace,Menlo,monospace;color:#e6e6e6;z-index:10}
-#tune.open{display:flex}
-#tune header{display:grid;gap:6px;padding:8px;border-bottom:1px solid #333}
-#tune header .row{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-#tune input[type=text],#tune input[type=number],#tune select{font:inherit;background:#161c25;color:#fff;border:1px solid #444;border-radius:3px;padding:2px 4px;min-width:0}
-#tune button{font:inherit;background:#222;color:#fff;border:1px solid #555;border-radius:3px;padding:2px 6px;cursor:pointer}
-#tune button:hover{background:#2c3a4a}
-#tune .body{overflow:auto;padding:4px 8px 12px}
-#tune h4{margin:10px 0 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8fb0dd;cursor:pointer;user-select:none}
-#tune .item{display:grid;grid-template-columns:140px 1fr 74px 18px;gap:6px;align-items:center;padding:2px 0}
-#tune .item.vec{grid-template-columns:140px 1fr 18px}
-#tune .item .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#tune .item.changed .name{color:#f0b85a}
-#tune .item input[type=range]{width:100%;min-width:0}
-#tune .item .vecs{display:flex;gap:3px;min-width:0}
-#tune .item .vecs input{width:100%}
-#tune .item .reset{background:none;border:none;color:#777;padding:0;cursor:pointer}
-#tune .item .reset:hover{color:#fff}
-#tune .presets{display:grid;gap:3px;max-height:120px;overflow:auto}
-#tune .presets .p{display:flex;gap:4px;align-items:center}
-#tune .presets .p span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#tune .msg{color:#8fb0dd;min-height:1em}
-`;
-
-const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(1) : Math.abs(v) >= 1 ? v.toFixed(3) : v.toPrecision(3));
-const stepOf = (v: number) => { const a = Math.abs(v); return a === 0 ? 0.001 : a >= 100 ? 1 : a >= 10 ? 0.1 : a >= 1 ? 0.01 : a >= 0.1 ? 0.001 : 0.0001; };
-const rangeOf = (v: number): [number, number] => {
-  const a = Math.abs(v);
-  if (Number.isInteger(v) && a <= 4) return [Math.min(-1, v), 4];
-  const hi = a === 0 ? 1 : a * 4;
-  return [v < 0 ? -hi : 0, hi];
-};
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+const settingsBlock = (() => { const b = runtimeSource.slice(runtimeSource.indexOf('export interface CloudSettings')); return b.slice(0, b.indexOf('\n}')); })();
+// What each setting does: its doc comment in CloudSettings, or a line here for the few without one.
+const docs: Record<string, string> = {
+  silverG: 'Anisotropy of the forward (silver lining) lobe of the phase function.',
+  mipDistanceScale: 'How fast the noise switches to blurrier mips with distance (the noise MIP constant; smaller keeps detail further out).',
+  baseMip: 'Mip level the noise starts from at the camera.',
+  maxSteps: 'Most march steps per ray.',
+  hazeHeight: 'Scale height (m) of the horizon haze.',
+  windVelocity: 'Wind velocity (m/s) the up-rez noise scrolls at (the parity stills stop it with animSpeed 0).',
+  animSpeed: 'Multiplier on time for the noise scroll (0 = frozen, as the parity stills are).',
+  microShadow2: 'Weight of the second micro sun tap (from microDist to microDist2) on the glow terms.',
+  bodySunKnee: 'Sun elevation (as sin) over which the low-sun handoff fades the sun out of the body terms.',
+  temporalFar: 'Pixels traced per frame in the far march = 1/k, k in {1, 2, 4}.',
+};
+for (const m of settingsBlock.matchAll(/\/\*\*((?:(?!\*\/)[\s\S])*?)\*\/\s*(\w+)\??:/g)) docs[m[2]] = m[1].replace(/\n\s*\*\s?/g, ' ').trim();
+// String settings list their choices from the CloudSettings type.
+const unions: Record<string, string[]> = {};
+for (const m of settingsBlock.matchAll(/^\s+(\w+)\??:\s*('[^']+'(?:\s*\|\s*'[^']+')+);/gm)) unions[m[1]] = [...m[2].matchAll(/'([^']+)'/g)].map(x => x[1]);
+
+// Numeric settings that are really modes or on/off switches.
+const MODES: Record<string, Record<string, number>> = {
+  lightDebug: { 'normal': 0, 'direct sun only': 1, 'inner glow (ms) only': 2, 'deep octaves only': 3, 'sky ambient only': 4, 'environment body only': 5, 'all, no aerial perspective': 6 },
+  ambientLaw: { 'diffuse 1 / (1 + τ)': 0, 'deck exp(−τ)': 1 },
+  glowDepthMode: { 'along the view ray': 0, 'max of sample and deeper': 1, 'inward along the SDF': 2 },
+  microShadowMode: { 'whole optical depth': 0, 'up-rez excess': 1 },
+  noiseInvert: { 'as shipped': 0, 'billowy inverted': 1, 'wispy inverted': 2, 'both inverted': 3 },
+  profileFilter: { 'trilinear': 0, 'tricubic profile': 1, 'tricubic SDF': 2, 'tricubic both': 3 },
+  temporalNear: { 'every frame': 1, '1 in 2': 2, '1 in 4': 4 },
+  temporalFar: { 'every frame': 1, '1 in 2': 2, '1 in 4': 4 },
+};
+const SWITCHES = new Set(['compositeShadow', 'jitterStatic', 'inlineProfile', 'temporalAccumulate', 'jitterNoise', 'stepJitter', 'lightGridFilter', 'windCompensate', 'historyFilter', 'historyDither']);
+
+// The renderer's settings by what they change, in pipeline order. Anything not listed lands in "Other".
+const GROUPS: { title: string; about: string; keys: string[] }[] = [
+  { title: 'Shape and detail', about: 'How the cloud\'s density is built: how thick it is, and how the noise carves the coarse shape into detail (the up-rez).',
+    keys: ['densityScale', 'detailBias', 'wispyBias', 'typeFromScale', 'detailTypeOverride', 'noiseScale', 'noiseInvert', 'fineErosion', 'detailDistance', 'mipDistanceScale', 'baseMip'] },
+  { title: 'Ray march', about: 'How each pixel\'s ray steps through the cloud: step size and limits, jitter, and the temporal blend that cleans the noise up over frames.',
+    keys: ['stepScale', 'maxSteps', 'transmittanceCutoff', 'splitDistance', 'farLimit', 'fineDistance', 'renderScale', 'jitterNoise', 'jitterStatic', 'stepJitter', 'temporalNear', 'temporalFar', 'temporalBlend', 'temporalAccumulate', 'historyFilter', 'historyDither', 'windCompensate', 'animSpeed', 'windVelocity', 'windOffset'] },
+  { title: 'Sun light and shadows', about: 'How much sunlight reaches each point: the coarse light grid, the short shadow samples near the surface (they shade the cauliflower bumps), and the direct term.',
+    keys: ['lightDensityScale', 'lightGridFilter', 'inlineLightScale', 'inlineProfile', 'inlineReuse', 'lightMipBias', 'microDist', 'microShadow', 'microLightScale', 'microShadowMode', 'microDist2', 'microShadow2', 'directProfile', 'directRimDepth', 'edgeDarkening', 'shadowStrength', 'compositeShadow'] },
+  { title: 'Inner glow (multiple scattering)', about: 'Light bouncing around inside the cloud: what lifts the shadow sides and makes thick parts glow.',
+    keys: ['msStrength', 'glowBoost', 'glowFront', 'glowDepth', 'glowDepthMode', 'inScatterProfile', 'profileFilter', 'deepScatter', 'deepAttenuation', 'diffuseSun', 'diffuseFalloff', 'bodySunFloor', 'bodySunKnee', 'bodyEnv', 'bodyDepth'] },
+  { title: 'Sky light (ambient)', about: 'Light from the sky dome and the ground below: how bright and how flat the shade and the underside are.',
+    keys: ['ambientStrength', 'ambientExtinction', 'ambientLaw', 'ambientFloor', 'ambientSkyBias', 'ambientTap', 'ambientBelowMirror', 'ambientLowSun', 'envSunWeight', 'groundAlbedo'] },
+  { title: 'Colour and phase', about: 'How light scatters by direction (the phase function: silver linings, the glow toward the sun) and the colour of the sky light the cloud sees.',
+    keys: ['phaseModel', 'phaseG', 'silverG', 'silverStrength', 'dropletDiameter', 'ambientSaturation', 'ambientWarmth'] },
+  { title: 'Atmosphere', about: 'The haze between the camera and the cloud.', keys: ['hazeDensity', 'hazeBase', 'hazeHeight'] },
+  { title: 'Models and imported volumes', about: 'Which density and lighting model runs, and the settings for imported VDBs rendered directly.',
+    keys: ['densityModel', 'lightingModel', 'directDensity', 'directInScatterFlat'] },
+  { title: 'Debug', about: 'Show one lighting term at a time.', keys: ['lightDebug'] },
+];
+
+const SCENE_DOCS: Record<string, string> = {
+  camEye: 'Where the camera stands (x, y, z metres; y is height above the cloud base). Fitted from the silhouette: Guerrilla never published the cameras.',
+  camTarget: 'The point the camera looks at (x, y, z metres; y from the cloud base). Move it to pan or tilt.',
+  vfov: 'Vertical field of view in degrees (smaller zooms in).',
+  vfovKeepSize: 'Dolly zoom: changes the field of view and moves the camera so the cloud keeps its size. A silhouette fit cannot tell distance from field of view, so this tests perspective.',
+  roll: 'Camera roll in degrees about the view axis.',
+  frameWidth: 'How much the view shows horizontally, as a multiple of the fitted view (1 = as fitted; above 1 the cloud gets narrower). Horizontal field of view only.',
+  frameHeight: 'How much the view shows vertically, as a multiple of the fitted view. Vertical field of view only.',
+  shiftX: 'Lens shift in frame widths (+ moves the picture right): off-centre framing, as if the frame had been cropped off-centre.',
+  shiftY: 'Lens shift in frame heights (+ moves the picture up).',
+  sunElevation: 'Sun elevation in degrees above the horizon.',
+  sunAzimuth: 'Sun azimuth in degrees (the sky convention, north = -Z).',
+  sunColor: 'Sun colour for the sky and the clouds (linear; x, y, z = r, g, b).',
+  sunTint: 'Extra tint of the sun the clouds see; the sky is untouched (the round-12 pink). x, y, z = r, g, b.',
+  turbidity: 'Haze amount of the physical sky.',
+  miePhaseG: 'Forward scattering of the haze: the size of the glow around the sun.',
+  skyFactor: 'Per-channel sky brightness (the sky and the clouds\' ambient). x, y, z = r, g, b.',
+  ambientTint: 'Tint of the sky light the clouds see; the sky is untouched. x, y, z = r, g, b.',
+  exposure: 'Exposure before the tone curve.',
+  postMode: 'Tone curve: ACES filmic, linear, or the curve fitted to Decima\'s frames.',
+  dither: 'Output dither before 8-bit (hides banding).',
+};
+
+const css = `
+#tune{position:fixed;left:8px;top:96px;bottom:8px;width:400px;max-width:calc(100vw - 16px);display:none;overflow:auto;z-index:10;border-radius:6px}
+#tune.open{display:block}
+#tune .tp-dfwv{width:100% !important;--tp-blade-value-width:190px}
+#tune .tp-lblv_l{display:flex;align-items:center;gap:4px;overflow:visible}
+#tune .tp-lblv_l .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+#tune .changed > .tp-lblv_l .nm{color:#f0b85a}
+#tune .ib,#tune .rb{flex:none;width:15px;height:15px;border-radius:50%;border:1px solid #6b7785;background:none;color:#9aa6b2;font:10px/13px ui-monospace,Menlo,monospace;text-align:center;padding:0;cursor:pointer}
+#tune .ib:hover,#tune .rb:hover{color:#fff;border-color:#fff}
+#tune .rb{border:none;font-size:12px;visibility:hidden}
+#tune .changed .rb{visibility:visible}
+#tune .doc{margin:2px 8px 6px;padding:6px 8px;border-radius:4px;background:#0006;color:#c9d2db;font:11.5px/1.45 system-ui,sans-serif}
+#tune .about{margin:4px 8px 6px;color:#8d99a6;font:11px/1.4 system-ui,sans-serif}
+#tune .presets{display:grid;gap:3px;margin:4px 6px 6px}
+#tune .presets .p{display:flex;gap:4px;align-items:center;font:11px ui-monospace,Menlo,monospace;color:#c9d2db}
+#tune .presets .p span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tune .presets button{font:inherit;background:#2a3039;color:#fff;border:0;border-radius:3px;padding:1px 6px;cursor:pointer}
+#tune .msg{margin:2px 8px;color:#8fb0dd;font:11px system-ui,sans-serif;min-height:1em}
+`;
+
+const rangeOf = (key: string, v: number): { min: number; max: number } | undefined => {
+  if (/\b0\.\.1\b/.test(docs[key] ?? '') && v >= 0 && v <= 1) return { min: 0, max: 1 };
+  if (v === 0) return undefined;   // no scale to guess from: a plain number field (drag or type), unclamped
+  const hi = Math.abs(v) * 4;
+  return { min: v < 0 ? -hi : 0, max: hi };
+};
+const stepOf = (v: number) => { const a = Math.abs(v); return a === 0 ? 0.001 : a >= 100 ? 1 : a >= 10 ? 0.1 : a >= 1 ? 0.01 : a >= 0.1 ? 0.001 : 0.0001; };
+
+// A Tweakpane point value over a 3-array, held in { v } (Tweakpane binds an object's property); the array stays the source of truth.
+const vec3Holder = (get: () => number[], set: (v: number[]) => void) => ({
+  v: {
+    get x() { return get()[0]; }, set x(n: number) { const v = [...get()]; v[0] = n; set(v); },
+    get y() { return get()[1]; }, set y(n: number) { const v = [...get()]; v[1] = n; set(v); },
+    get z() { return get()[2]; }, set z(n: number) { const v = [...get()]; v[2] = n; set(v); },
+  },
+});
+
+interface Entry { key: string; api: BindingApi; value(): unknown; base(): unknown; reset(): void; docEl?: HTMLElement; folder?: FolderApi }
 
 export function createTuner(host: TuneHost) {
   const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
   const root = document.createElement('div'); root.id = 'tune'; document.body.appendChild(root);
-  let base: Record<string, unknown> = {};          // the bookmark's starting settings (look + scene settings), for "changed" and reset
+  const pane = new Pane({ container: root, title: 'Tune (T)' });
+
+  let base: Record<string, unknown> = {};
   let sceneBase: TuneScene | null = null;
-  let scene: TuneScene | null = null;
-  let filter = '';
-  let changedOnly = false;
-  let carry = true;
-  let edits: Record<string, unknown> = {};          // the settings the user changed by hand (carried across shots)
-  const collapsed = new Set<string>();
+  const scene = {} as TuneScene;            // a stable object: the bindings read it through getters
+  let edits: Record<string, unknown> = {};  // settings changed by hand (carried across shots)
+  const ui = { filter: '', changedOnly: false, carry: true, name: '' };
+  const entries: Entry[] = [];
+  const msgEl = document.createElement('div'); msgEl.className = 'msg';
+  const say = (t: string) => { msgEl.textContent = t; setTimeout(() => { if (msgEl.textContent === t) msgEl.textContent = ''; }, 2500); };
 
-  root.innerHTML = `<header>
-    <div class="row"><b style="flex:1">Tune</b><span class="msg"></span><button data-a="close">close (T)</button></div>
-    <div class="row"><input type="text" placeholder="filter settings…" data-a="filter" style="flex:1"><label><input type="checkbox" data-a="changed"> changed only</label></div>
-    <div class="row"><label title="When you switch shots, re-apply your changed settings on top of the new shot (scene values stay per shot)"><input type="checkbox" data-a="carry" checked> keep my setting changes when switching shots</label></div>
-    <div class="row"><input type="text" placeholder="preset name" data-a="name" style="flex:1"><button data-a="save">save</button><button data-a="export">export</button><button data-a="import">import</button><button data-a="resetall">reset all</button></div>
-    <div class="row"><button data-a="readcam" title="Copy the camera you orbited to into the camera dials">use the current view as the camera</button><button data-a="copycam" title="Copy the camera dials as a refs.ts line, to paste into examples/lab/decima/refs.ts (or send to Claude)">copy camera for refs.ts</button></div>
-    <div class="presets"></div>
-    <input type="file" accept="application/json" data-a="file" hidden>
-  </header><div class="body"></div>`;
-  const $ = <T extends HTMLElement>(sel: string) => root.querySelector(sel) as T;
-  const body = $('.body'), msg = $('.msg'), presetsEl = $('.presets');
-  const say = (t: string) => { msg.textContent = t; setTimeout(() => { if (msg.textContent === t) msg.textContent = ''; }, 2500); };
+  const mark = (e: Entry) => e.api.element.classList.toggle('changed', e.base() !== undefined && !same(e.value(), e.base()));
+  const markAll = () => entries.forEach(mark);
+  const applyFilter = () => {
+    const q = ui.filter.trim().toLowerCase();
+    for (const e of entries) {
+      const text = `${e.key} ${docs[e.key] ?? SCENE_DOCS[e.key] ?? ''}`.toLowerCase();
+      e.api.hidden = (!!q && !text.includes(q)) || (ui.changedOnly && !e.api.element.classList.contains('changed'));
+      if (e.api.hidden && e.docEl) { e.docEl.remove(); e.docEl = undefined; }
+    }
+    // While filtering, open every group that has a match.
+    if (q || ui.changedOnly) for (const e of entries) if (!e.api.hidden && e.folder) e.folder.expanded = true;
+  };
+  const refresh = () => { pane.refresh(); markAll(); applyFilter(); };
 
+  // The (i) and reset buttons go into the control's label; the doc opens under the control.
+  const decorate = (e: Entry, doc: string | undefined) => {
+    const label = e.api.element.querySelector('.tp-lblv_l') as HTMLElement | null;
+    if (!label) return;
+    const name = document.createElement('span'); name.className = 'nm'; name.textContent = label.textContent ?? e.key; name.title = e.key;
+    label.textContent = ''; label.append(name);
+    if (doc) {
+      const ib = document.createElement('button'); ib.className = 'ib'; ib.textContent = 'i'; ib.title = doc;
+      ib.onclick = ev => {
+        ev.stopPropagation();
+        if (e.docEl) { e.docEl.remove(); e.docEl = undefined; return; }
+        e.docEl = document.createElement('div'); e.docEl.className = 'doc'; e.docEl.textContent = `${e.key}: ${doc}`;
+        e.api.element.insertAdjacentElement('afterend', e.docEl);
+      };
+      label.append(ib);
+    }
+    const rb = document.createElement('button'); rb.className = 'rb'; rb.textContent = '↺'; rb.title = 'back to the shot\'s value';
+    rb.onclick = ev => { ev.stopPropagation(); e.reset(); };
+    label.append(rb);
+  };
+  const about = (folder: FolderApi, text: string) => {
+    const div = document.createElement('div'); div.className = 'about'; div.textContent = text;
+    folder.element.querySelector('.tp-fldv_c')?.prepend(div);
+  };
+
+  // --- Presets and tools ---
+  const tools = pane.addFolder({ title: 'Presets and tools', expanded: true });
+  tools.addBinding(ui, 'filter', { label: 'filter' }).on('change', applyFilter);
+  tools.addBinding(ui, 'changedOnly', { label: 'changed only' }).on('change', applyFilter);
+  tools.addBinding(ui, 'carry', { label: 'keep changes across shots' });
+  tools.addBinding(ui, 'name', { label: 'preset name' });
+  const presetsEl = document.createElement('div'); presetsEl.className = 'presets';
   const loadStore = (): Record<string, Preset> => { try { return JSON.parse(localStorage.getItem(STORE) ?? '{}'); } catch { return {}; } };
   const saveStore = (s: Record<string, Preset>) => { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { say('could not save to this browser'); } };
-
   const snapshot = (): Preset => {
     const diff: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(host.settings)) {
       if (SKIP.has(k) || (typeof v === 'object' && !Array.isArray(v))) continue;
       if (!same(v, base[k])) diff[k] = clone(v);
     }
-    return { bookmark: host.bookmark(), look: host.look(), scene: clone(scene!), settings: diff, savedAt: new Date().toISOString() };
+    return { bookmark: host.bookmark(), look: host.look(), scene: clone(scene), settings: diff, savedAt: new Date().toISOString() };
   };
+  const pushScene = () => host.applyScene(scene);
   const apply = (p: Preset) => {
     edits = clone(p.settings);
     if (p.bookmark && p.bookmark !== host.bookmark()) host.loadBookmark(p.bookmark);
-    else for (const [k, v] of Object.entries(base)) host.settings[k] = clone(v);   // same shot: start from the shot, then the preset
+    else for (const [k, v] of Object.entries(base)) host.settings[k] = clone(v);
     for (const [k, v] of Object.entries(p.settings)) if (k in host.settings) host.settings[k] = clone(v);
-    if (p.scene) { scene = { ...scene!, ...clone(p.scene) }; host.applyScene(scene); }
-    host.onSettingChange('*');
-    render();
+    if (p.scene) { Object.assign(scene, clone(p.scene)); pushScene(); }
+    host.onSettingChange('*'); refresh();
   };
-
   const renderPresets = () => {
-    const store = loadStore();
     presetsEl.innerHTML = '';
-    for (const [name, p] of Object.entries(store).sort((a, b) => b[1].savedAt.localeCompare(a[1].savedAt))) {
+    for (const [name, p] of Object.entries(loadStore()).sort((a, b) => b[1].savedAt.localeCompare(a[1].savedAt))) {
       const row = document.createElement('div'); row.className = 'p';
-      const label = document.createElement('span'); label.textContent = `${name}  ·  ${p.bookmark}  ·  ${Object.keys(p.settings).length} changed`; label.title = p.savedAt;
+      const label = document.createElement('span'); label.textContent = `${name} · ${p.bookmark} · ${Object.keys(p.settings).length} changed`; label.title = p.savedAt;
       const load = document.createElement('button'); load.textContent = 'load'; load.onclick = () => { apply(p); say(`loaded ${name}`); };
       const del = document.createElement('button'); del.textContent = '×'; del.title = 'delete'; del.onclick = () => { const s = loadStore(); delete s[name]; saveStore(s); renderPresets(); };
       row.append(label, load, del); presetsEl.appendChild(row);
     }
   };
+  tools.addButton({ title: 'save preset' }).on('click', () => {
+    const name = ui.name.trim() || `${host.bookmark()} ${new Date().toLocaleTimeString()}`;
+    const s = loadStore(); s[name] = snapshot(); saveStore(s); renderPresets(); say(`saved ${name}`);
+  });
+  tools.addButton({ title: 'export preset (JSON file)' }).on('click', () => {
+    const name = ui.name.trim() || host.bookmark();
+    const blob = new Blob([JSON.stringify({ ...snapshot(), note: name }, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${name.replace(/[^\w.-]+/g, '_')}.json`; link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  });
+  const file = document.createElement('input'); file.type = 'file'; file.accept = 'application/json'; file.hidden = true; root.appendChild(file);
+  file.onchange = () => {
+    const f = file.files?.[0]; if (!f) return;
+    f.text().then(txt => {
+      const data = JSON.parse(txt);
+      const list: Record<string, Preset> = data.bookmark ? { [f.name.replace(/\.json$/, '')]: data } : data;
+      const s = loadStore(); Object.assign(s, list); saveStore(s); renderPresets();
+      const first = Object.values(list)[0]; if (first) apply(first);
+      say(`imported ${Object.keys(list).length}`);
+    }).catch(() => say('not a preset file')).finally(() => { file.value = ''; });
+  };
+  tools.addButton({ title: 'import preset (JSON file)' }).on('click', () => file.click());
+  tools.addButton({ title: 'reset everything to the shot' }).on('click', () => {
+    for (const [k, v] of Object.entries(base)) host.settings[k] = clone(v);
+    edits = {};
+    if (sceneBase) { Object.assign(scene, clone(sceneBase)); pushScene(); }
+    host.onSettingChange('*'); refresh(); say('back to the shot');
+  });
+  tools.element.querySelector('.tp-fldv_c')!.append(msgEl, presetsEl);
 
-  const numberRow = (name: string, get: () => number, set: (v: number) => void, baseVal: number | undefined, tip?: string) => {
-    const row = document.createElement('div'); row.className = 'item';
-    const v0 = get();
-    const label = document.createElement('span'); label.className = 'name'; label.textContent = name; label.title = tip ? `${name}: ${tip}` : name;
-    const [lo, hi] = rangeOf(baseVal ?? v0);
-    const slider = document.createElement('input'); slider.type = 'range'; slider.min = String(Math.min(lo, v0)); slider.max = String(Math.max(hi, v0)); slider.step = String(stepOf(baseVal ?? v0) / 10 || 0.0001); slider.value = String(v0);
-    const box = document.createElement('input'); box.type = 'number'; box.step = String(stepOf(v0)); box.value = fmt(v0);
-    const reset = document.createElement('button'); reset.className = 'reset'; reset.textContent = '↺'; reset.title = 'back to the bookmark value';
-    const mark = () => row.classList.toggle('changed', baseVal !== undefined && Math.abs(get() - baseVal) > 1e-9);
-    const commit = (v: number) => { if (!Number.isFinite(v)) return; set(v); slider.value = String(v); box.value = fmt(v); mark(); };
-    slider.oninput = () => commit(Number(slider.value));
-    box.onchange = () => { const v = Number(box.value); if (v > Number(slider.max)) slider.max = String(v * 2); if (v < Number(slider.min)) slider.min = String(v * 2); commit(v); };
-    reset.onclick = () => { if (baseVal !== undefined) commit(baseVal); };
-    mark(); row.append(label, slider, box, reset);
-    return row;
+  // --- The shot: camera and framing, sun and sky, exposure and tone ---
+  const sceneBaseOf = (key: string) => sceneBase ? (sceneBase as unknown as Record<string, unknown>)[key] : undefined;
+  const sceneNum = (folder: FolderApi, key: keyof TuneScene, opts: Record<string, unknown>) => {
+    const api = folder.addBinding(scene as unknown as Record<string, unknown>, key, { label: key, ...opts });
+    const e: Entry = {
+      key, api, value: () => scene[key], base: () => sceneBaseOf(key),
+      reset: () => { if (!sceneBase) return; (scene as unknown as Record<string, unknown>)[key] = clone(sceneBaseOf(key)); pushScene(); refresh(); },
+    };
+    api.on('change', () => { pushScene(); mark(e); });
+    e.folder = folder; decorate(e, SCENE_DOCS[key]); entries.push(e);
   };
-  const vecRow = (name: string, get: () => number[], set: (v: number[]) => void, baseVal: number[] | undefined, tip?: string) => {
-    const row = document.createElement('div'); row.className = 'item vec';
-    const label = document.createElement('span'); label.className = 'name'; label.textContent = name; label.title = tip ? `${name}: ${tip}` : name;
-    const wrap = document.createElement('div'); wrap.className = 'vecs';
-    const reset = document.createElement('button'); reset.className = 'reset'; reset.textContent = '↺';
-    const mark = () => row.classList.toggle('changed', !!baseVal && !same(get(), baseVal));
-    const boxes = get().map((x, i) => {
-      const b = document.createElement('input'); b.type = 'number'; b.step = String(stepOf(x)); b.value = fmt(x);
-      b.onchange = () => { const v = [...get()]; v[i] = Number(b.value); set(v); mark(); };
-      wrap.appendChild(b); return b;
-    });
-    reset.onclick = () => { if (!baseVal) return; set([...baseVal]); boxes.forEach((b, i) => { b.value = fmt(baseVal[i]); }); mark(); };
-    mark(); row.append(label, wrap, reset);
-    return row;
-  };
-  const otherRow = (name: string, value: unknown, set: (v: unknown) => void, baseVal: unknown, tip?: string) => {
-    const row = document.createElement('div'); row.className = 'item vec';
-    const label = document.createElement('span'); label.className = 'name'; label.textContent = name; label.title = tip ? `${name}: ${tip}` : name;
-    const input = document.createElement('input');
-    if (typeof value === 'boolean') { input.type = 'checkbox'; input.checked = value; input.onchange = () => { set(input.checked); mark(); }; }
-    else { input.type = 'text'; input.value = String(value); input.onchange = () => { set(input.value); mark(); }; }
-    const reset = document.createElement('button'); reset.className = 'reset'; reset.textContent = '↺';
-    const mark = () => row.classList.toggle('changed', !same(typeof value === 'boolean' ? input.checked : input.value, baseVal));
-    reset.onclick = () => { set(baseVal); if (typeof baseVal === 'boolean') input.checked = baseVal; else input.value = String(baseVal); mark(); };
-    mark(); row.append(label, input, reset);
-    return row;
+  const sceneVec = (folder: FolderApi, key: Vec3Key, step: number) => {
+    const holder = vec3Holder(() => scene[key], v => { scene[key] = v as TuneScene[Vec3Key]; pushScene(); });
+    const api = folder.addBinding(holder, 'v', { label: key, x: { step }, y: { step }, z: { step } });
+    const e: Entry = {
+      key, api, value: () => scene[key], base: () => sceneBaseOf(key),
+      reset: () => { if (!sceneBase) return; scene[key] = clone(sceneBase[key]); pushScene(); refresh(); },
+    };
+    api.on('change', () => mark(e));
+    e.folder = folder; decorate(e, SCENE_DOCS[key]); entries.push(e);
   };
 
-  const section = (title: string, rows: HTMLElement[]) => {
-    if (!rows.length) return;
-    const h = document.createElement('h4'); h.textContent = `${collapsed.has(title) ? '▸' : '▾'} ${title} (${rows.length})`;
-    h.onclick = () => { collapsed.has(title) ? collapsed.delete(title) : collapsed.add(title); render(); };
-    body.appendChild(h);
-    if (!collapsed.has(title)) for (const r of rows) body.appendChild(r);
-  };
-  const keep = (name: string, row: HTMLElement) => (!filter || name.toLowerCase().includes(filter)) && (!changedOnly || row.classList.contains('changed'));
-
-  function render() {
-    if (!root.classList.contains('open')) return;
-    body.innerHTML = '';
-    if (scene && sceneBase) {
-      const sb = sceneBase, s = scene;
-      const push = () => host.applyScene(s);
-      const dolly = (v: number) => {
-        // Change the field of view and move the eye along the view line so the target keeps its size: tests perspective, not framing.
-        const d = s.camEye.map((e, i) => e - s.camTarget[i]); const len = Math.hypot(...d);
-        const k = Math.tan((s.vfov * Math.PI) / 360) / Math.tan((v * Math.PI) / 360);
-        s.camEye = s.camTarget.map((t, i) => t + (d[i] / len) * len * k) as TuneScene['camEye']; s.vfov = v; push(); render();
+  // Built on the first sync: Tweakpane picks each control from the value it finds.
+  const buildScene = () => {
+    const cam = pane.addFolder({ title: 'Shot: camera and framing', expanded: false });
+    about(cam, 'Where the camera is and what it sees. Guerrilla published no cameras; these were fitted from the cloud\'s outline. Line them up with the compare view in overlay mode.');
+    sceneVec(cam, 'camEye', 1);
+    sceneVec(cam, 'camTarget', 1);
+    sceneNum(cam, 'vfov', { min: 5, max: 90, step: 0.01 });
+    {
+      // Dolly zoom: the field of view changes and the eye moves along the view line so the target keeps its size.
+      const dollyObj = {
+        get vfovKeepSize() { return scene.vfov; },
+        set vfovKeepSize(x: number) {
+          const k = Math.tan((scene.vfov * Math.PI) / 360) / Math.tan((x * Math.PI) / 360);
+          scene.camEye = scene.camTarget.map((t, i) => t + (scene.camEye[i] - t) * k) as TuneScene['camEye']; scene.vfov = x; pushScene();
+        },
       };
-      const sceneRows: [string, HTMLElement][] = [
-        ['camEye', vecRow('camEye', () => s.camEye, v => { s.camEye = v as TuneScene['camEye']; push(); }, sb.camEye, 'Camera position (x, y, z metres; y from the cloud base). Fitted from the silhouette: Guerrilla never published the cameras.')],
-        ['camTarget', vecRow('camTarget', () => s.camTarget, v => { s.camTarget = v as TuneScene['camTarget']; push(); }, sb.camTarget, 'The point the camera looks at (x, y, z metres; y from the cloud base).')],
-        ['vfov', numberRow('vfov', () => s.vfov, v => { s.vfov = v; push(); }, sb.vfov, 'Vertical field of view in degrees.')],
-        ['vfovKeepSize', numberRow('vfovKeepSize', () => s.vfov, dolly, sb.vfov, 'Dolly zoom: changes the field of view and moves the camera so the cloud keeps its size. A silhouette fit cannot tell distance from field of view, so this is the test for perspective.')],
-        ['frameWidth', numberRow('frameWidth', () => s.frameWidth, v => { s.frameWidth = v; push(); }, sb.frameWidth, 'How much the view shows horizontally, as a multiple of the fitted view (1 = as fitted; above 1 shows more and the cloud gets narrower). Changes the horizontal field of view only.')],
-        ['frameHeight', numberRow('frameHeight', () => s.frameHeight, v => { s.frameHeight = v; push(); }, sb.frameHeight, 'How much the view shows vertically, as a multiple of the fitted view (1 = as fitted). Changes the vertical field of view only.')],
-        ['shiftX', numberRow('shiftX', () => s.shiftX, v => { s.shiftX = v; push(); }, sb.shiftX, 'Lens shift, in frame widths (+ moves the picture right). Off-centre framing, as if the frame had been cropped off-centre.')],
-        ['shiftY', numberRow('shiftY', () => s.shiftY, v => { s.shiftY = v; push(); }, sb.shiftY, 'Lens shift, in frame heights (+ moves the picture up).')],
-        ['roll', numberRow('roll', () => s.roll, v => { s.roll = v; push(); }, sb.roll, 'Camera roll in degrees about the view axis.')],
-        ['sunElevation', numberRow('sunElevation', () => s.sunElevation, v => { s.sunElevation = v; push(); }, sb.sunElevation, 'Sun elevation in degrees above the horizon.')],
-        ['sunAzimuth', numberRow('sunAzimuth', () => s.sunAzimuth, v => { s.sunAzimuth = v; push(); }, sb.sunAzimuth, 'Sun azimuth in degrees (the sky convention, north = -Z).')],
-        ['exposure', numberRow('exposure', () => s.exposure, v => { s.exposure = v; push(); }, sb.exposure, 'Exposure before the tone curve.')],
-        ['turbidity', numberRow('turbidity', () => s.turbidity, v => { s.turbidity = v; push(); }, sb.turbidity, 'Haze amount of the physical sky.')],
-        ['miePhaseG', numberRow('miePhaseG', () => s.miePhaseG, v => { s.miePhaseG = v; push(); }, sb.miePhaseG, 'Forward scattering of the haze: the size of the glow around the sun.')],
-        ['postMode', numberRow('postMode', () => s.postMode, v => { s.postMode = Math.round(v); push(); }, sb.postMode, '0 = ACES filmic, 1 = linear, 2 = the fitted Decima curve.')],
-        ['dither', numberRow('dither', () => s.dither, v => { s.dither = v; push(); }, sb.dither, 'Output dither before 8-bit (1 = on).')],
-        ['sunColor', vecRow('sunColor', () => s.sunColor, v => { s.sunColor = v as TuneScene['sunColor']; push(); }, sb.sunColor, 'Sun colour for sky and clouds (linear RGB).')],
-        ['sunTint', vecRow('sunTint', () => s.sunTint, v => { s.sunTint = v as TuneScene['sunTint']; push(); }, sb.sunTint, 'Extra tint of the sun the clouds see; the sky is untouched (the round-12 pink).')],
-        ['ambientTint', vecRow('ambientTint', () => s.ambientTint, v => { s.ambientTint = v as TuneScene['ambientTint']; push(); }, sb.ambientTint, 'Tint of the sky light the clouds see; the sky is untouched.')],
-        ['skyFactor', vecRow('skyFactor', () => s.skyFactor, v => { s.skyFactor = v as TuneScene['skyFactor']; push(); }, sb.skyFactor, 'Per-channel sky brightness (sky and the clouds\' ambient).')],
-      ];
-      section('scene', sceneRows.filter(([n, r]) => keep(n, r)).map(([, r]) => r));
+      const api = cam.addBinding(dollyObj, 'vfovKeepSize', { label: 'vfovKeepSize', min: 5, max: 90, step: 0.01 });
+      const e: Entry = {
+        key: 'vfovKeepSize', api, value: () => scene.vfov, base: () => sceneBase?.vfov,
+        reset: () => { if (!sceneBase) return; scene.vfov = sceneBase.vfov; scene.camEye = clone(sceneBase.camEye); pushScene(); refresh(); },
+      };
+      api.on('change', () => refresh());
+      e.folder = cam; decorate(e, SCENE_DOCS.vfovKeepSize); entries.push(e);
     }
-    const settingRows: [string, HTMLElement][] = [];
-    for (const key of Object.keys(host.settings).sort((a, b) => a.localeCompare(b))) {
-      if (SKIP.has(key)) continue;
-      const v = host.settings[key], b = base[key], tip = docs[key];
-      const set = (x: unknown) => { host.settings[key] = x; if (same(x, b)) delete edits[key]; else edits[key] = clone(x); host.onSettingChange(key); };
-      if (typeof v === 'number') settingRows.push([key, numberRow(key, () => host.settings[key] as number, set, typeof b === 'number' ? b : undefined, tip)]);
-      else if (Array.isArray(v) && v.every(x => typeof x === 'number')) settingRows.push([key, vecRow(key, () => host.settings[key] as number[], set, Array.isArray(b) ? (b as number[]) : undefined, tip)]);
-      else if (typeof v === 'boolean' || typeof v === 'string') settingRows.push([key, otherRow(key, v, set, b, tip)]);
-    }
-    section('runtime settings', settingRows.filter(([n, r]) => keep(n, r)).map(([, r]) => r));
-  }
-
-  root.addEventListener('input', e => {
-    const t = e.target as HTMLInputElement;
-    if (t.dataset.a === 'filter') { filter = t.value.trim().toLowerCase(); render(); }
-  });
-  root.addEventListener('change', e => {
-    const t = e.target as HTMLInputElement;
-    if (t.dataset.a === 'changed') { changedOnly = t.checked; render(); }
-    if (t.dataset.a === 'carry') carry = t.checked;
-    if (t.dataset.a === 'file' && t.files?.[0]) {
-      t.files[0].text().then(txt => {
-        const data = JSON.parse(txt);
-        const list: Record<string, Preset> = data.bookmark ? { [t.files![0].name.replace(/\.json$/, '')]: data } : data;
-        const store = loadStore(); Object.assign(store, list); saveStore(store); renderPresets();
-        const first = Object.values(list)[0]; if (first) apply(first);
-        say(`imported ${Object.keys(list).length}`);
-      }).catch(() => say('not a preset file')).finally(() => { t.value = ''; });
-    }
-  });
-  root.addEventListener('click', e => {
-    const a = (e.target as HTMLElement).dataset.a;
-    if (a === 'close') toggle(false);
-    if (a === 'save') {
-      const nameEl = $<HTMLInputElement>('[data-a=name]');
-      const name = nameEl.value.trim() || `${host.bookmark()} ${new Date().toLocaleTimeString()}`;
-      const store = loadStore(); store[name] = snapshot(); saveStore(store); renderPresets(); say(`saved ${name}`);
-    }
-    if (a === 'export') {
-      const name = $<HTMLInputElement>('[data-a=name]').value.trim() || host.bookmark();
-      const blob = new Blob([JSON.stringify({ ...snapshot(), note: name }, null, 2)], { type: 'application/json' });
-      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${name.replace(/[^\w.-]+/g, '_')}.json`; link.click();
-      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-    }
-    if (a === 'import') $<HTMLInputElement>('[data-a=file]').click();
-    if (a === 'copycam' && scene) {
+    sceneNum(cam, 'roll', { min: -45, max: 45, step: 0.1 });
+    sceneNum(cam, 'frameWidth', { min: 0.5, max: 2, step: 0.001 });
+    sceneNum(cam, 'frameHeight', { min: 0.5, max: 2, step: 0.001 });
+    sceneNum(cam, 'shiftX', { min: -0.5, max: 0.5, step: 0.001 });
+    sceneNum(cam, 'shiftY', { min: -0.5, max: 0.5, step: 0.001 });
+    cam.addButton({ title: 'use the current view as the camera' }).on('click', () => {
+      const c = host.readCamera(); scene.camEye = c.eye; scene.camTarget = c.target; scene.vfov = c.vfov; pushScene(); refresh(); say('camera taken from the view');
+    });
+    cam.addButton({ title: 'copy camera for refs.ts' }).on('click', () => {
       const r = (v: number) => Math.round(v * 10) / 10;
       const extra = (scene.frameWidth !== 1 || scene.frameHeight !== 1 || scene.shiftX || scene.shiftY || scene.roll) ? ` /* framing: frameWidth ${scene.frameWidth}, frameHeight ${scene.frameHeight}, shiftX ${scene.shiftX}, shiftY ${scene.shiftY}, roll ${scene.roll} */` : '';
       const text = `${host.bookmark()}: eye: [${scene.camEye.map(r).join(', ')}], target: [${scene.camTarget.map(r).join(', ')}], vfov: ${Math.round(scene.vfov * 100) / 100},${extra}`;
       navigator.clipboard.writeText(text).then(() => say('camera copied')).catch(() => { console.log(text); say('copy failed: the line is in the console'); });
-    }
-    if (a === 'readcam' && scene) {
-      const c = host.readCamera();
-      scene.camEye = c.eye; scene.camTarget = c.target; scene.vfov = c.vfov; host.applyScene(scene); render(); say('camera taken from the view');
-    }
-    if (a === 'resetall') {
-      for (const [k, v] of Object.entries(base)) host.settings[k] = clone(v);
-      edits = {};
-      if (sceneBase) { scene = clone(sceneBase); host.applyScene(scene); }
-      host.onSettingChange('*'); render(); say('back to the bookmark');
-    }
-  });
+    });
 
-  const toggle = (open = !root.classList.contains('open')) => { root.classList.toggle('open', open); render(); };
-  addEventListener('keydown', e => { if (e.key === 't' && !(e.target instanceof HTMLInputElement)) toggle(); });
+    const sun = pane.addFolder({ title: 'Shot: sun and sky', expanded: false });
+    about(sun, 'The light the shot is lit by: where the sun is, its colour, and the sky around the cloud.');
+    sceneNum(sun, 'sunElevation', { min: -10, max: 90, step: 0.1 });
+    sceneNum(sun, 'sunAzimuth', { min: 0, max: 360, step: 0.5 });
+    sceneVec(sun, 'sunColor', 0.01);
+    sceneVec(sun, 'sunTint', 0.01);
+    sceneNum(sun, 'turbidity', { min: 1, max: 20, step: 0.1 });
+    sceneNum(sun, 'miePhaseG', { min: 0, max: 0.99, step: 0.01 });
+    sceneVec(sun, 'skyFactor', 0.01);
+    sceneVec(sun, 'ambientTint', 0.01);
+
+    const post = pane.addFolder({ title: 'Shot: exposure and tone', expanded: false });
+    about(post, 'How the rendered light becomes the image: exposure, the tone curve and the output dither.');
+    sceneNum(post, 'exposure', { min: 0, max: 1, step: 0.001 });
+    sceneNum(post, 'postMode', { options: { 'ACES filmic': 0, 'linear': 1, 'fitted to Decima': 2 } });
+    sceneNum(post, 'dither', { options: { off: 0, on: 1 } });
+  };
+
+  // --- The renderer's settings, grouped ---
+  const settingEntry = (folder: FolderApi, key: string) => {
+    const v = host.settings[key];
+    const changed = () => { const x = host.settings[key]; if (same(x, base[key])) delete edits[key]; else edits[key] = clone(x); host.onSettingChange(key); };
+    let api: BindingApi;
+    if (Array.isArray(v)) {
+      api = folder.addBinding(vec3Holder(() => host.settings[key] as number[], nv => { host.settings[key] = nv; changed(); }), 'v', { label: key });
+    } else if (typeof v === 'string') {
+      const opts = unions[key];
+      api = folder.addBinding(host.settings, key, opts ? { label: key, options: Object.fromEntries(opts.map(o => [o, o])) } : { label: key });
+      api.on('change', changed);
+    } else if (typeof v === 'boolean') {
+      api = folder.addBinding(host.settings, key, { label: key }); api.on('change', changed);
+    } else if (typeof v === 'number') {
+      const b = (base[key] as number) ?? v;
+      const opts = MODES[key] ?? (SWITCHES.has(key) ? { off: 0, on: 1 } : undefined);
+      api = folder.addBinding(host.settings, key, opts ? { label: key, options: opts } : { label: key, ...(rangeOf(key, b) ?? {}), step: stepOf(b) });
+      api.on('change', changed);
+    } else return;
+    const e: Entry = {
+      key, api, value: () => host.settings[key], base: () => base[key],
+      reset: () => { host.settings[key] = clone(base[key]); delete edits[key]; host.onSettingChange(key); refresh(); },
+    };
+    api.on('change', () => mark(e));
+    e.folder = folder; decorate(e, docs[key]); entries.push(e);
+  };
+  let built = false;
+  const buildSettings = () => {
+    const listed = new Set(GROUPS.flatMap(g => g.keys));
+    for (const g of GROUPS) {
+      const keys = g.keys.filter(k => k in host.settings);
+      if (!keys.length) continue;
+      const f = pane.addFolder({ title: g.title, expanded: false });
+      about(f, g.about);
+      for (const k of keys) settingEntry(f, k);
+    }
+    const rest = Object.keys(host.settings).filter(k => !listed.has(k) && !SKIP.has(k)).sort();
+    if (rest.length) { const f = pane.addFolder({ title: 'Other', expanded: false }); for (const k of rest) settingEntry(f, k); }
+    built = true;
+  };
+
+  const toggle = (open = !root.classList.contains('open')) => { root.classList.toggle('open', open); };
+  addEventListener('keydown', e => { if (e.key === 't' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement)) toggle(); });
   renderPresets();
 
   return {
     toggle,
     /** Called by the page after each bookmark: the new starting point for "changed" and reset. */
     sync(sceneNow: TuneScene) {
-      const carried = carry ? edits : {};
+      const carried = ui.carry ? edits : {};
       base = clone(Object.fromEntries(Object.entries(host.settings).filter(([k]) => !SKIP.has(k))));
-      sceneBase = clone(sceneNow); scene = clone(sceneNow);
+      sceneBase = clone(sceneNow); Object.assign(scene, clone(sceneNow));
+      if (!built) { buildScene(); buildSettings(); }
       for (const [k, v] of Object.entries(carried)) if (k in host.settings) host.settings[k] = clone(v);
       if (Object.keys(carried).length) host.onSettingChange('*');
-      render();
+      refresh();
     },
     /** The current state as a preset, for scripts and captures (window.__tune.snapshot()). */
     snapshot,

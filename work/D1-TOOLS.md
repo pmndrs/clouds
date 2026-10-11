@@ -28,16 +28,14 @@ Keys and buttons:
   - Hold **F** to flip to the frame.
   - **The frame picker** (under the compare slider, or the `[` and `]` keys, or `?ref=p213` in the URL) shows any of the cloud's frames against the current camera, e.g. our p102 camera against image101, image102 and image213. The HUD shows `vs <frame>`.
   - The frame only lines up from the shot camera ("back to the shot camera").
-- **T / tune** is the tuning panel: every runtime setting and the shot's scene values (sun, exposure, haze, colours, tints, tone curve).
-  - The filter box and "changed only" narrow the list.
-  - ↺ resets one dial; hover a name to see what it does.
-  - "save" stores a preset in the browser; "export" / "import" read and write JSON files. Put exported presets in `work/presets/`.
-  - Hand changes carry across shots unless that box is unticked.
-  - **Camera dials** (scene section): `camEye`, `camTarget` (metres, y from the cloud base), `vfov`, `roll`.
-    - `vfovKeepSize` is a dolly zoom: it changes the field of view while moving the camera so the cloud keeps its size, which tests perspective rather than framing.
-    - "use the current view as the camera" copies an orbited view into the dials.
-    - "copy camera for refs.ts" copies the camera dials as a `refs.ts` line (framing values as a comment) to paste into `examples/lab/decima/refs.ts`, or to send to Claude.
-    - **Framing:** `frameWidth` / `frameHeight` scale how much the view shows on each axis (anamorphic: horizontal and vertical field of view apart; 1 = as fitted), and `shiftX` / `shiftY` are a lens shift for off-centre framing. The HUD shows the effective vfov, hfov, shift, and the camera's height above the cloud base.
+- **T / tune** is the tuning panel (Tweakpane), grouped by what each control changes:
+  - **The shot:** camera and framing; sun and sky; exposure and tone.
+  - **The renderer:** shape and detail; ray march; sun light and shadows; inner glow; sky light; colour and phase; atmosphere; models and imported volumes; debug.
+  - Each group opens with a line saying what it covers. Every control has an **i** that opens what it does (from the code's own comments). A changed control's name turns amber and shows **↺**, which resets it to the shot's value.
+  - Modes are dropdowns: `phaseModel`, `densityModel`, `lightingModel`, `lightDebug`, `ambientLaw` and the on/off switches.
+  - **Presets and tools:** the filter (it searches the names and the explanations, and opens the groups that match), "changed only", "keep changes across shots", and save, export, import and reset everything. Put exported presets in `work/presets/`.
+  - **Camera dials** (Shot: camera and framing): `camEye` (where the camera stands) and `camTarget` (what it looks at), both x, y, z in metres with y from the cloud base; `vfov`; `vfovKeepSize` (a dolly zoom that keeps the cloud's size, to test perspective); `roll`; `frameWidth` / `frameHeight` (the horizontal and vertical field of view apart); `shiftX` / `shiftY` (lens shift).
+    - "use the current view as the camera" copies an orbited view into the dials. "copy camera for refs.ts" copies a line to paste into `examples/lab/decima/refs.ts` or to send to Claude.
     - Guerrilla never published the cameras: every shot's camera was fitted from the silhouette (`scripts/d0/d0.py fit`, then `scripts/d1/camfit.py`).
 - Variants from the console, the same strings the capture runs use: `await __clouds.bookmark('p101@sun:15:210@suntint:1:1:1@exp:0.24')`.
   - The full `@` list is at the top of `examples/lab/decima/main.ts`: `@sun @exp @turb @skyf @sunc @suntint @ambtint @mieg @atm @ramp @skytint @wind @post @dither @look @matte @cam @s.<setting>`.
