@@ -28,6 +28,15 @@ The project is paused until next week: the weekly model limit was reached (it re
   5. Serrated chalky rims versus fibrous, pink-rimmed edges.
 - **Process that works:** one change at a time, each with its own A/B crop sheet against the round's anchor. Only visual winners go into the bundle. Then both judges (Opus and Fable) score blind: full frames plus zoom crops, the same JPEG treatment for every source, and decoded results in `work/calibration/d1<x>-results.md`. Bundled rounds regressed twice (r7, r10). Metrics: band std at 1–3 / 4–12 / 12–32 px on the lit half, plus floret blob count and dark fraction. Neither replaces the eye; the owner's eye is final.
 
+## Owner hypothesis: the cameras, not a different asset state (2026-10-11)
+
+The owner suspects the silhouette differences (the s206 leg, the holes, the extra fragment) come from our cameras, not from a different authoring state.
+- Guerrilla published no camera data. Every shot's camera was fitted from the silhouette alone: `d0.py fit`, then `camfit.py`, matte IoU 0.85–0.93.
+- A silhouette fit cannot separate distance from field of view, so a wrong perspective with the right outline is plausible.
+- The pack fixes the scale at 8 m voxels (N3 s71–73; `voxelSizeMeters` 8 in the asset).
+
+Test with the panel's `vfovKeepSize` (dolly zoom) and `roll` on s206 and s33t3, plus a camfit pass that scores interior features (holes, the leg) and not only the outline.
+
 ## Owner tuning by hand (2026-10-11)
 
 All the commands (the bench, captures, measures, round tools) are in `work/D1-TOOLS.md`. The bench also shows Guerrilla's frame against ours: press R for the compare view.
