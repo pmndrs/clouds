@@ -1,0 +1,37 @@
+{
+  "url": "http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-aa870fc0b8d9c5742/work/captures/W1/tools/ndf-map.html?label=step1-pw&hzn_footprint=1&hzn_footLo=-0.45&hzn_footHi=0.7",
+  "size": [
+    1530,
+    430
+  ],
+  "startedAt": "2026-10-11T15:17:05.599Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/W1/maps/step1-pw/view.png",
+      "report": {
+        "gpuMs": {},
+        "frameMs": {
+          "p50": 0
+        },
+        "stats": {
+          "p50": 0.25,
+          "p90": 0.5,
+          "p99": 0.69,
+          "coverageMean": 0.256,
+          "typeMean": 0.768,
+          "covered": 0.266,
+          "clusters": 14,
+          "largestShare": 0.184,
+          "medianClusterKm2": 2.33
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

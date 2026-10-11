@@ -1,0 +1,37 @@
+{
+  "url": "http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-aa870fc0b8d9c5742/work/captures/W1/tools/ndf-map.html?label=h6&hzn_recipe=h6",
+  "size": [
+    1530,
+    430
+  ],
+  "startedAt": "2026-10-11T15:17:04.120Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/W1/maps/h6/view.png",
+      "report": {
+        "gpuMs": {},
+        "frameMs": {
+          "p50": 0
+        },
+        "stats": {
+          "p50": 0.35,
+          "p90": 0.5,
+          "p99": 0.65,
+          "coverageMean": 0.348,
+          "typeMean": 0.75,
+          "covered": 0.396,
+          "clusters": 11,
+          "largestShare": 0.494,
+          "medianClusterKm2": 2.19
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
