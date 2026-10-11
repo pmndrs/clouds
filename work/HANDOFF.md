@@ -30,6 +30,8 @@ The project is paused until next week: the weekly model limit was reached (it re
 
 ## Owner tuning by hand (2026-10-11)
 
+All the commands (the bench, captures, measures, round tools) are in `work/D1-TOOLS.md`. The bench also shows Guerrilla's frame against ours: press R for the compare view.
+
 The owner may tune by hand during the pause. The Decima parity page (`/decima/`; `pnpm dev --port 5180`, because 5173 is used by the owner's other projects) has a tuning panel (`T`, `examples/lab/decima/tune.ts`). It exposes every runtime setting and each shot's scene values as live dials, and supports presets. **Before restarting the agents, check `work/presets/`** for exported presets, and ask the owner for any presets still only in their browser. Treat them as the owner's direction: a hand-found setting beats our measures, and the next rounds should start from it.
 
 ## Owner hypothesis to test first: a near-sunset sun (2026-10-11)

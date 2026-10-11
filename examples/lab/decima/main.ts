@@ -3,6 +3,8 @@
 // defaults (?look=art). Flagship shell (three WebGPURenderer + @pmndrs/sky, the window.__clouds contract); no ground, as the deck frames show only sky.
 //   ?cloud=parkouring|stormbird   ?bookmark=<ref>   ?look=decima|deck|art   ?quality=ultra   ?exposure=0.35
 //   bookmark variants (D1): @sun:el:az  @turb:t  @exp:e  @skyf:r:g:b  @sunc:r:g:b  @mieg:g  @atm:mieHeightKm:multiScatter:rayleighMul  @ramp:0|1|2[:ambientWeight]  @skytint:0|1  @ambtint:r:g:b  @suntint:r:g:b  @wind:x:y:z  @matte  @look:x  @s.<setting>:v  @post:aces|none|fit  @dither:0|1
+//   R or the "compare" button: Guerrilla's frame for the shot next to ours (wipe, overlay, or the frame alone; hold F to flip to it), letterboxed to
+//   the frames' 16:9. The frames come from the local research folder through the dev server (refs-plugin.ts), never from the repo.
 //   T or the "tune" button: every runtime setting and the scene values as live dials, with presets (tune.ts)
 //   ?matte=1 (opacity only)   ?cam=ex,ey,ez,tx,ty,tz,vfov (relative to the cloud base, overrides the bookmark)   ?sun=elevation,azimuth   ?s.<setting>=<value>
 import { LinearSRGBColorSpace, NoToneMapping, PerspectiveCamera, Scene } from 'three';
@@ -70,12 +72,36 @@ try {
   };
   applyLook();
 
+  // Compare view: the reference frame over the render. Off, wipe (frame left of the divider), overlay (frame at the slider's opacity), frame only.
+  const COMPARE = ['off', 'wipe', 'overlay', 'frame'] as const;
+  let compare: (typeof COMPARE)[number] = (COMPARE as readonly string[]).includes(query.get('compare') ?? '') ? query.get('compare') as (typeof COMPARE)[number] : 'off';
+  let compareAmount = 0.5;
+  let flip = false;
+  const refImg = document.createElement('img'); refImg.id = 'refimg'; refImg.alt = ''; document.body.appendChild(refImg);
+  const divider = document.createElement('div'); divider.id = 'divider'; document.body.appendChild(divider);
+  const rect = () => {
+    if (compare === 'off') return { x: 0, y: 0, w: innerWidth, h: innerHeight };
+    const w = Math.min(innerWidth, Math.round(innerHeight * 16 / 9)), h = Math.round(w * 9 / 16);
+    return { x: Math.round((innerWidth - w) / 2), y: Math.round((innerHeight - h) / 2), w, h };
+  };
+  const layoutCompare = () => {
+    const r = rect();
+    for (const el of [app, refImg]) Object.assign(el.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` });
+    const mode = flip ? 'frame' : compare;
+    refImg.style.display = mode === 'off' ? 'none' : 'block';
+    refImg.style.opacity = mode === 'overlay' ? String(compareAmount) : '1';
+    refImg.style.clipPath = mode === 'wipe' ? `inset(0 ${((1 - compareAmount) * 100).toFixed(2)}% 0 0)` : 'none';
+    divider.style.display = mode === 'wipe' ? 'block' : 'none';
+    Object.assign(divider.style, { left: `${r.x + r.w * compareAmount - 1}px`, top: `${r.y}px`, height: `${r.h}px` });
+  };
   const resize = () => {
+    const r = rect();
     renderer.setPixelRatio(1);
-    renderer.setSize(innerWidth, innerHeight, false);
-    bridge.resize(innerWidth, innerHeight);
-    camera.aspect = innerWidth / innerHeight;
+    renderer.setSize(r.w, r.h, false);
+    bridge.resize(r.w, r.h);
+    camera.aspect = r.w / r.h;
     camera.updateProjectionMatrix();
+    layoutCompare();
   };
   addEventListener('resize', resize);
   resize();
@@ -89,6 +115,7 @@ try {
   let rampNow = '';
   let mirrorNow = false;
   let tuner: ReturnType<typeof createTuner> | null = null;
+  let frameEye: [number, number, number] = [0, 0, 0], frameTarget: [number, number, number] = [0, 0, 0];
   let sceneNow: TuneScene | null = null;
   const base = (p: readonly number[]) => [p[0], p[1] + CLOUD_BASE_HEIGHT, p[2]] as [number, number, number];
   // A bookmark is a ref name with optional variants for sweeps in one capture run, '@'-separated, ':' between key and values:
@@ -111,6 +138,8 @@ try {
     camera.fov = cam.length === 7 ? cam[6] : ref.vfov;
     camera.updateProjectionMatrix();
     rig.set(eye, target);
+    refImg.src = `/__decima/ref/${name}.png`;
+    frameEye = eye; frameTarget = target;
     const s = v.has('sun') ? v.get('sun')!.map(Number) : nums('sun');
     sky.setSunDirection(s.length === 2 ? { elevation: s[0], azimuth: s[1] } : ref.sun);
     const turbidity = v.has('turb') ? Number(v.get('turb')![0]) : (ref.turbidity ?? 1);
@@ -211,6 +240,24 @@ try {
     loadBookmark: name => applyRef(name),
   });
   (window as unknown as { __tune: unknown }).__tune = tuner;
+  const compareBtn = document.createElement('button');
+  const compareSlider = document.createElement('input'); compareSlider.type = 'range'; compareSlider.min = '0'; compareSlider.max = '1'; compareSlider.step = '0.01'; compareSlider.value = String(compareAmount);
+  compareSlider.title = 'wipe position / overlay opacity';
+  const syncCompare = () => { compareBtn.textContent = `compare: ${compare} (R)`; compareBtn.classList.toggle('on', compare !== 'off'); compareSlider.style.display = compare === 'wipe' || compare === 'overlay' ? 'block' : 'none'; resize(); };
+  compareBtn.onclick = () => { compare = COMPARE[(COMPARE.indexOf(compare) + 1) % COMPARE.length]; syncCompare(); };
+  compareSlider.oninput = () => { compareAmount = Number(compareSlider.value); layoutCompare(); };
+  const reframeBtn = document.createElement('button'); reframeBtn.textContent = 'back to the shot camera'; reframeBtn.title = 'the frame only lines up from the shot camera';
+  reframeBtn.onclick = () => rig.set(frameEye, frameTarget);
+  panel.append(compareBtn, compareSlider, reframeBtn);
+  addEventListener('keydown', e => {
+    if (e.target instanceof HTMLInputElement) return;
+    if (e.key === 'r') compareBtn.click();
+    if (e.key === 'f' && !flip) { flip = true; layoutCompare(); }
+  });
+  addEventListener('keyup', e => { if (e.key === 'f') { flip = false; layoutCompare(); } });
+  // Drag on the image with shift held to move the wipe divider.
+  addEventListener('pointermove', e => { if (e.shiftKey && compare === 'wipe') { const r = rect(); compareAmount = Math.min(1, Math.max(0, (e.clientX - r.x) / r.w)); compareSlider.value = String(compareAmount); layoutCompare(); } });
+  syncCompare();
   const tuneBtn = document.createElement('button'); tuneBtn.textContent = 'tune (T)'; tuneBtn.onclick = () => tuner!.toggle(); panel.appendChild(tuneBtn);
 
   const frameData: CloudFrame = {
