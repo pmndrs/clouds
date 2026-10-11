@@ -1,0 +1,98 @@
+{
+  "url": "http://127.0.0.1:5391/compare/?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&hzn_image=/clouds/ndf/boss-fight.png&hzn_tileMeters=24000&posy=14000&pitch=-60&sunel=60",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-11T15:24:41.932Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/W1/step2/boss-fight/top/view.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 1.2193924666666665,
+          "hzd.lightGridReduce": 0.04608,
+          "hzd.lightGrid": 0.023541,
+          "hzd.marchNear": 0.13778755,
+          "hzd.marchFar": 0.34481139999999993,
+          "hzd.shadowMap": 0.659627375,
+          "hzd.composite": 1.2912822166666664,
+          "hzd.dome": 0.4699999333333333,
+          "hzd.skyLayer": 7.69172715,
+          "hzd.skyResolve": 2.5320952333333335,
+          "hzd.cloudsTotal": 13.196951858333334,
+          "hzd.total": 14.416344325
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.800000000000182
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            14000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -60,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 60,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 1.2193924666666665,
+              "lightGridReduce": 0.04608,
+              "lightGrid": 0.023541,
+              "marchNear": 0.13778755,
+              "marchFar": 0.34481139999999993,
+              "shadowMap": 0.659627375,
+              "composite": 1.2912822166666664,
+              "dome": 0.4699999333333333,
+              "skyLayer": 7.69172715,
+              "skyResolve": 2.5320952333333335,
+              "cloudsTotal": 13.196951858333334,
+              "total": 14.416344325
+            },
+            "cpuMs": 0.8983333299557368,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 347
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

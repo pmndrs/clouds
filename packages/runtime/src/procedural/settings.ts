@@ -111,6 +111,31 @@ export interface HzdNdfSettings {
    *  `worleyCells` = cells per tile of the footprint's first Worley octave (ours; N17 gives no frequencies). */
   footprint: number;
   worleyCells: number;
+  // ---- W1 weather map (work/reports/W1.md). Own block: the map recipe, the authored-map input. ----
+  /** W1: the generator recipe. 'h6' = the H1-H6 map above (footprint fBM + island fBM, summed, mapped coverageLo..coverageHi: one gradual field
+   *  everywhere). 'n17' = Nubis 2017 (n17 p.54-58): coverage = gate x footprint. The gate is one low-frequency noise ("large regions where air
+   *  masses overlap and clouds are allowed to form", p.55): clear where it is 0, open where it is 1. The footprint is the R/G choice above
+   *  (`footprint` 0 Perlin "connected", 1 Perlin-Worley "isolated islands", p.56-57) from `coverageCells`, mapped footLo..footHi. Type: as h6
+   *  (typeCells, typeMin..typeMax) with `typeContrast` sharpening it into areas (p.58 "another low frequency noise"). Heights as h6. */
+  recipe: 'h6' | 'n17';
+  /** n17 gate: a 4-octave fBM from `gateCells` cells per tile (p.55 shows 3-4 open regions per map side), smoothstep(gateLo, gateHi) of it. */
+  gateCells: number;
+  gateLo: number;
+  gateHi: number;
+  /** n17 footprint: the 4-octave Perlin fBM (about +-0.5) mapped footLo..footHi onto 0..1 before the Perlin-Worley carve. */
+  footLo: number;
+  footHi: number;
+  /** n17 Perlin-Worley footprint (`footprint` > 0): the inverted Worley lifts the footprint by islandGain x (w - 0.5), round islands at the
+   *  cells (a dilation, as the 3D Perlin-Worley; h6's carve halved the coverage). */
+  islandGain: number;
+  /** n17 type: the type fBM's gain about its middle before typeMin..typeMax (1 = h6's 1.6x; higher = distinct type areas, sharper borders). */
+  typeContrast: number;
+  /** W1 authored map: a URL of an RGBA PNG holding the NDF's layer 0 (R coverage, G top type, B bottom type, A ignored; 8-bit linear, not sRGB).
+   *  '' = none. Loaded by createProceduralClouds (procedural/index.ts), resampled (bilinear, wrapping) into the NDF; the image's centre sits at the
+   *  world origin and it spans `tileMeters`. `heightImage` optionally replaces layer 1 (R min height, G max height); without it the heights are the
+   *  recipe's. Example maps: assets/clouds/ndf/ (served at /clouds/ndf/). */
+  image: string;
+  heightImage: string;
 }
 
 /** H1: the HZD reference shaper (GPU Pro 7 chain). Metres unless noted. */
@@ -150,9 +175,15 @@ export interface HzdShape {
   windDirection: [number, number];
   cloudTopOffset: number;
   upwardBias: number;
-  /** W1 (owner 2026-10-10): 'drift' (default) moves the NDF with the wind offset times `ndfDrift`, 'static' keeps it fixed (Nubis/HZD: noise-only
-   *  scroll). The shape and detail noise scroll at their own speeds (gp7 p.109: "each noise its own speed"; values ours). */
-  ndfMotion: 'drift' | 'static';
+  /** W1 map-advection policy (weather.md §5, top-20 rank 20). Speeds are fractions of the wind offset; "anchored" = the noise moves with the
+   *  map (SD7's volume-local anchor: the detail is carried with the cloud), "free" = it scrolls at its own `shapeSpeed` / `detailSpeed`
+   *  (gp7 p.109: "each noise its own speed").
+   *    'drift'  (default, owner 2026-10-10) the map moves at `ndfDrift`, both noises free: slow weather, noise flowing over it.
+   *    'static' Nubis/HZD (n17 p.45, nut s15, ne22 p.37): the map stays, both noises free: formations persist, detail streams through them.
+   *    'rigid'  Häggström (hag p.34): map, shape and detail all at `ndfDrift`, no upward bias: clouds carried whole, nothing evolves.
+   *    'shape'  split: map and shape anchored, detail free (detailSpeed 0 = the detail stays in the world while the cloud moves through it).
+   *    'detail' split, the reverse: map and detail anchored (the detail rides with the cloud), shape free (the forms evolve as they move). */
+  ndfMotion: 'drift' | 'static' | 'rigid' | 'shape' | 'detail';
   ndfDrift: number;
   shapeSpeed: number;
   detailSpeed: number;
@@ -354,6 +385,10 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
   typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
+  // W1 weather map
+  // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
+  // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
+  recipe: 'n17', gateCells: 3, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
 };
 export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
@@ -367,7 +402,8 @@ export const HZD_DEFAULTS: HzdShape = {
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
-export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.footprint, n.worleyCells].join(',');
+export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.footprint, n.worleyCells,
+  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
@@ -431,8 +467,11 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([hz.coverageBias, hz.typeBias, hz.coverageMultiply ? 1 : 0, hz.erosionLaw === 'hag' ? 1 : 0], 128);
   out.set([hz.baseFadeMin, Math.max(hz.baseFadeHeight, 1e-3), hz.detailDistance, hz.mipBias], 132);
   const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
-  out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.upwardBias], 136);
-  out.set([hz.ndfMotion === 'static' ? 0 : hz.ndfDrift, hz.shapeSpeed, hz.detailSpeed, hz.typeBlend === 'curves' ? 1 : hz.typeBlend === 'hybrid' ? 2 : 0], 140);
+  out.set([hz.windDirection[0] / hl, hz.windDirection[1] / hl, hz.cloudTopOffset, hz.ndfMotion === 'rigid' ? 0 : hz.upwardBias], 136);
+  // W1 advection policy -> hzSpeed (map, shape, detail): anchored noises take the map's speed.
+  const m = hz.ndfMotion, mapSpeed = m === 'static' ? 0 : hz.ndfDrift;
+  const shapeSpeed = m === 'rigid' || m === 'shape' ? mapSpeed : hz.shapeSpeed, detailSpeed = m === 'rigid' || m === 'detail' ? mapSpeed : hz.detailSpeed;
+  out.set([mapSpeed, shapeSpeed, detailSpeed, hz.typeBlend === 'curves' ? 1 : hz.typeBlend === 'hybrid' ? 2 : 0], 140);
   out.set([hz.stage, hz.shapeCubicDistance, hz.densityPow, hz.detailCubicDistance], 144);
   out.set([hz.ringStart, Math.max(hz.ringEnd, hz.ringStart + 1), hz.ringCoverage, hz.ringType], 148);
   out.set([hz.shapeContrast, hz.erosionStrength, Math.max(hz.wispyHeight, 1e-3), hz.erosionOrder === 'hfw' ? 1 : 0], 152);

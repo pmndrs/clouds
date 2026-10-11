@@ -14,7 +14,7 @@ import { defaultProceduralSettings, packProceduralParams, packProceduralView, PR
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
 import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
-import { generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
+import { applyHzdNdfImages, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
 import { hzdNdfKey } from './settings';
 import { bakeSkyProWeather, loadSkyProNoise, loadTakramTextures, skyProWeatherKey, type SkyProWeather, type TakramTextures, type TakramTextureUrls } from './textures';
 import { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
@@ -23,7 +23,7 @@ import type { ProceduralDensityModel } from './types';
 export * from './settings';
 export type { ProceduralDensityModel } from './types';
 export { bakeHzdNoise, type HzdNoise, type HzdNoiseOptions } from './hzd/noise';
-export { generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
+export { applyHzdNdfImages, generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
 export { HZD_GRADIENTS, hzdHeightGradient } from './hzd/shaper.wgsl';
 export { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 
@@ -51,6 +51,9 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   let hzdNoise: HzdNoise | null = null;
   let hzdNdf: HzdNdf | null = null;
   let hzdUploaded = false;
+  // W1 authored map: the image load for the current NDF settings (load() awaits it; the generated map shows until it lands).
+  let ndfImageJob: Promise<void> | null = null;
+  let ndfWant = '';   // the key (generator settings + image URLs) the current NDF was made for
   const retire = (t: { destroy(): void } | null) => { if (t) setTimeout(() => t.destroy(), 1000); };
   // H1: bake the noise set (once, or again when the format setting changes) and generate the NDF when its settings change.
   const hzdSync = (): boolean => {
@@ -59,7 +62,19 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     // H5: the bake options (format, R-chain carve/fine/smooth) are a key; a new key re-bakes.
     const noiseOpts = { format: h.noiseFormat, carve: h.noiseCarve, fine: h.noiseFine, smooth: h.noiseSmooth, supersample: h.noiseSupersample, detailRecipe: h.detailRecipe };
     if (!hzdNoise || hzdNoise.key !== hzdNoiseKey(noiseOpts)) { retire(hzdNoise); hzdNoise = bakeHzdNoise(device, noiseOpts); changed = true; }
-    if (!hzdUploaded && (!hzdNdf || hzdNdf.key !== hzdNdfKey(h.ndf))) { const old = hzdNdf?.texture ?? null; hzdNdf = generateHzdNdf(device, h.ndf); retire(old); changed = true; }
+    const want = hzdNdfImageKey(hzdNdfKey(h.ndf), h.ndf);
+    if (!hzdUploaded && (!hzdNdf || ndfWant !== want)) {
+      const old = hzdNdf?.texture ?? null; hzdNdf = generateHzdNdf(device, h.ndf); retire(old); changed = true; ndfWant = want;
+      // W1: ndf.image / ndf.heightImage paint over the generated layers once loaded (in place; the generated map shows meanwhile).
+      if (h.ndf.image || h.ndf.heightImage) {
+        const target = hzdNdf;
+        ndfImageJob = applyHzdNdfImages(device, target, { image: h.ndf.image, heightImage: h.ndf.heightImage }).then(done => {
+          if (hzdNdf !== target) return;
+          target.key = done.key; resourceKey = {}; version++;
+        }, e => console.error('procedural NDF image failed', e));
+      } else ndfImageJob = null;
+    }
+    if (changed) version++;   // W1: a new map is a history cut (the map is not in ProcParams)
     return changed;
   };
   let version = 0, resourceKey: object = {}, lastShaper: ProceduralShaper | null = null;
@@ -127,13 +142,13 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       const jobs: Promise<void>[] = [];
       if (urls.skyproNoise) jobs.push(loadSkyProNoise(device, urls.skyproNoise).then(t => { skyproNoise?.destroy(); skyproNoise = t; }));
       if (urls.takram) jobs.push(loadTakramTextures(device, urls.takram).then(t => { takram = t; }));
-      if (urls.hzd) { hzdSync(); jobs.push(device.queue.onSubmittedWorkDone()); }
+      if (urls.hzd) { hzdSync(); if (ndfImageJob) jobs.push(ndfImageJob); jobs.push(device.queue.onSubmittedWorkDone()); }
       await Promise.all(jobs);
       resourceKey = {};
     },
     setNdf(ndf) {
       const old = hzdNdf?.texture ?? null;
-      hzdUploaded = !!ndf;
+      hzdUploaded = !!ndf; ndfWant = '';
       hzdNdf = ndf ? uploadHzdNdf(device, ndf.size, ndf.fields) : null;
       retire(old);
       if (!ndf) hzdSync();

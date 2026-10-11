@@ -1,0 +1,37 @@
+{
+  "url": "http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-aa870fc0b8d9c5742/work/captures/W1/tools/ndf-map.html?label=img-desert-morning&hzn_image=/clouds/ndf/desert-morning.png",
+  "size": [
+    1530,
+    430
+  ],
+  "startedAt": "2026-10-11T15:21:12.570Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/W1/maps/img-desert-morning/view.png",
+      "report": {
+        "gpuMs": {},
+        "frameMs": {
+          "p50": 0
+        },
+        "stats": {
+          "p50": 0.3,
+          "p90": 0.45,
+          "p99": 0.57,
+          "coverageMean": 0.292,
+          "typeMean": 0,
+          "covered": 0.268,
+          "clusters": 26,
+          "largestShare": 0.118,
+          "medianClusterKm2": 0.99
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

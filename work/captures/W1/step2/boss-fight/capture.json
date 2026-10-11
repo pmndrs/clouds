@@ -1,0 +1,344 @@
+{
+  "url": "http://127.0.0.1:5391/compare/?impls=hzd&clean=1&hud=0&quality=ultra&c_animSpeed=0&hzn_image=/clouds/ndf/boss-fight.png&hzn_tileMeters=24000",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-11T15:24:06.475Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/W1/step2/boss-fight/ground.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 40.05128130000001,
+          "hzd.lightGridReduce": 0.046165,
+          "hzd.lightGrid": 0.083205,
+          "hzd.marchNear": 1.3289832000000001,
+          "hzd.marchFar": 1.688263066666667,
+          "hzd.shadowMap": 0.8584692,
+          "hzd.composite": 3.1963331333333334,
+          "hzd.dome": 0.7588822000000001,
+          "hzd.skyLayer": 16.573021599999997,
+          "hzd.skyResolve": 2.575518333333334,
+          "hzd.cloudsTotal": 27.10884073333333,
+          "hzd.total": 67.16012203333334
+        },
+        "frameMs": {
+          "p50": 33.30000000000018,
+          "p95": 66.70000000000073
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "ground",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            2,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": 7,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 40,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 40.05128130000001,
+              "lightGridReduce": 0.046165,
+              "lightGrid": 0.083205,
+              "marchNear": 1.3289832000000001,
+              "marchFar": 1.688263066666667,
+              "shadowMap": 0.8584692,
+              "composite": 3.1963331333333334,
+              "dome": 0.7588822000000001,
+              "skyLayer": 16.573021599999997,
+              "skyResolve": 2.575518333333334,
+              "cloudsTotal": 27.10884073333333,
+              "total": 67.16012203333334
+            },
+            "cpuMs": 0.6183333347241083,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 347
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/W1/step2/boss-fight/horizon.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 28.522952916666668,
+          "hzd.lightGridReduce": 0.046165,
+          "hzd.lightGrid": 0.20681319999999997,
+          "hzd.marchNear": 0.30015725,
+          "hzd.marchFar": 0.6447722333333332,
+          "hzd.shadowMap": 1.0470119736842107,
+          "hzd.composite": 0.7901475833333333,
+          "hzd.dome": 0.45975635,
+          "hzd.skyLayer": 13.408502983333332,
+          "hzd.skyResolve": 1.0258809333333336,
+          "hzd.cloudsTotal": 17.92920750701754,
+          "hzd.total": 46.452160423684205
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 66.69999999999709
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "horizon",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            40,
+            0
+          ],
+          "lookAz": 15,
+          "pitch": 1.5,
+          "fov": 50,
+          "sunAz": 70,
+          "sunEl": 25,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 28.522952916666668,
+              "lightGridReduce": 0.046165,
+              "lightGrid": 0.20681319999999997,
+              "marchNear": 0.30015725,
+              "marchFar": 0.6447722333333332,
+              "shadowMap": 1.0470119736842107,
+              "composite": 0.7901475833333333,
+              "dome": 0.45975635,
+              "skyLayer": 13.408502983333332,
+              "skyResolve": 1.0258809333333336,
+              "cloudsTotal": 17.92920750701754,
+              "total": 46.452160423684205
+            },
+            "cpuMs": 0.5599999994039535,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 657
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/W1/step2/boss-fight/above.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 14.652291683333337,
+          "hzd.lightGridReduce": 0.046165,
+          "hzd.lightGrid": 0.1222858,
+          "hzd.marchNear": 0.12066268333333335,
+          "hzd.marchFar": 0.34849671666666665,
+          "hzd.shadowMap": 0.9312207894736841,
+          "hzd.composite": 0.8881523,
+          "hzd.dome": 0.46082358333333334,
+          "hzd.skyLayer": 11.412473816666667,
+          "hzd.skyResolve": 1.2477913333333335,
+          "hzd.cloudsTotal": 15.578072022807019,
+          "hzd.total": 30.230363706140356
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 33.29999999999927
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "above",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            3000,
+            0
+          ],
+          "lookAz": 0,
+          "pitch": -9,
+          "fov": 50,
+          "sunAz": 150,
+          "sunEl": 50,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 14.652291683333337,
+              "lightGridReduce": 0.046165,
+              "lightGrid": 0.1222858,
+              "marchNear": 0.12066268333333335,
+              "marchFar": 0.34849671666666665,
+              "shadowMap": 0.9312207894736841,
+              "composite": 0.8881523,
+              "dome": 0.46082358333333334,
+              "skyLayer": 11.412473816666667,
+              "skyResolve": 1.2477913333333335,
+              "cloudsTotal": 15.578072022807019,
+              "total": 30.230363706140356
+            },
+            "cpuMs": 0.5566666652758916,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 967
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/W1/step2/boss-fight/sunset.jpg",
+      "report": {
+        "gpuMs": {
+          "hzd.scene": 15.963797449999994,
+          "hzd.lightGridReduce": 0.046165,
+          "hzd.lightGrid": 0.10747066666666667,
+          "hzd.marchNear": 0.2232972,
+          "hzd.marchFar": 0.37571585,
+          "hzd.shadowMap": 0.7972489333333334,
+          "hzd.composite": 0.8231180499999999,
+          "hzd.dome": 0.4349899,
+          "hzd.skyLayer": 13.894042099999997,
+          "hzd.skyResolve": 0.7790228000000001,
+          "hzd.cloudsTotal": 17.481070499999998,
+          "hzd.total": 33.44486794999999
+        },
+        "frameMs": {
+          "p50": 16.700000000000728,
+          "p95": 33.400000000001455
+        },
+        "renderSize": [
+          [
+            1920,
+            1080
+          ]
+        ],
+        "bookmark": "sunset",
+        "layout": "rows",
+        "impls": [
+          "hzd"
+        ],
+        "view": {
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "lookAz": 355,
+          "pitch": 4,
+          "fov": 50,
+          "sunAz": 355,
+          "sunEl": 4,
+          "coverage": 0.5,
+          "exposure": 1
+        },
+        "panes": {
+          "hzd": {
+            "label": "hzd: HZD reference (GPU Pro 7 chain, Nubis noise, NDF; octave lighting)",
+            "gpuMs": {
+              "scene": 15.963797449999994,
+              "lightGridReduce": 0.046165,
+              "lightGrid": 0.10747066666666667,
+              "marchNear": 0.2232972,
+              "marchFar": 0.37571585,
+              "shadowMap": 0.7972489333333334,
+              "composite": 0.8231180499999999,
+              "dome": 0.4349899,
+              "skyLayer": 13.894042099999997,
+              "skyResolve": 0.7790228000000001,
+              "cloudsTotal": 17.481070499999998,
+              "total": 33.44486794999999
+            },
+            "cpuMs": 0.6799999992052714,
+            "renderSize": [
+              1920,
+              1080
+            ],
+            "detail": {
+              "cloudsReady": true,
+              "generated": true,
+              "exposure": 0.35,
+              "coverageLo": "",
+              "model": "procedural/hzd/octave",
+              "voxelLighting": "nubis"
+            }
+          }
+        },
+        "frames": 1278
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
