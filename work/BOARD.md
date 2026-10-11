@@ -2119,7 +2119,7 @@ Judging: both Opus and Fable, blind, rubric v2 (`work/calibration/rubric.md`), a
 
 Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H1, H2, H4, A1–A3). The items below are the rest. **Gate:** the owner's priority is D1 parity first, and the project is paused for the week (model limit). Start these only after the owner says go and the D1 budget is agreed (`work/HANDOFF.md`). Each follows the D1 process: one change at a time, A/B sheets against an anchor, both judges blind, the owner final.
 
-### [~] W1 A real coverage map + advection policy [W2 rank 11, W1 rank 20] · Opus (started 2026-10-11, own worktree; adds an authored-map input)
+### [x] W1 A real coverage map + advection policy [W2 rank 11, W1 rank 20] · Opus (merged 51eba48, 2026-10-12: Nubis 2017 gate × footprint map is the default (`ndf.recipe 'n17'`); painted maps `ndf.image` with 5 example maps in `assets/clouds/ndf/`; `ndfMotion` drift/static/rigid/shape/detail. Owner to decide: Perlin vs Perlin-Worley footprint, 32 km tile, motion policy) (report: work/reports/W1.md)
 - **Owns:** `packages/runtime/src/procedural/hzd/` (NDF map generation), `procedural/settings.ts`, `examples/lab/compare/`, `work/reports/W1.md`, `work/captures/W1/`.
 - **Does:**
   - Replace the generated NDF with a real map: the N17 gate × footprints with type (connected vs isolated, clusters, islands; n17 p.53–58, hzd15 s40–46, ne22 p.70–74). G's weather v2 is the second arm.
