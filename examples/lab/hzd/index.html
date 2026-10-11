@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Clouds - HZD bench</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font:12px/1.35 ui-monospace,Menlo,monospace;color:#fff}
+#view{position:fixed;left:0;top:0;width:100vw;height:100vh;touch-action:none;background:#000}
+#view canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#refbox{position:fixed;display:none;background:#0b0b0b;z-index:3}
+#refbox canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#refbox .cap{position:absolute;left:0;right:0;bottom:0;padding:4px 8px;background:#000b;white-space:normal;pointer-events:none}
+#refbox .cap .src{color:#9aa6b2}
+#refbox .cap .approx{color:#f0b85a}
+#refbox.pip{border:1px solid #fff5;box-shadow:0 2px 12px #000a}
+#refbox.full{z-index:20}
+#refbox .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa6b2;text-align:center;padding:20px}
+#hud{position:fixed;left:8px;top:8px;padding:6px 8px;background:#0009;border-radius:4px;white-space:pre;pointer-events:none;z-index:4}
+#panel{position:fixed;right:8px;top:8px;max-height:calc(100vh - 16px);overflow-y:auto;overflow-x:hidden;padding:8px;background:#000b;border-radius:4px;display:grid;gap:5px;width:min(250px,calc(100vw - 16px));box-sizing:border-box;z-index:6}
+#panel .sec{margin-top:6px;color:#8fb0dd;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+#panel .row{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+#panel .row>select{flex:1 1 0;width:0;min-width:0}
+#panel .row>button{flex:none}
+#panel .note{color:#9aa6b2;font-size:11px;white-space:normal}
+#panel label.sl{display:grid;grid-template-columns:62px 1fr 40px;align-items:center;gap:4px}
+#panel label.sl span{text-align:right;color:#c9d2db}
+#panel label.ck{display:flex;gap:5px;align-items:center}
+#panel input[type=range]{width:100%;min-width:0}
+#panel button,#panel select{font:inherit;background:#222;color:#fff;border:1px solid #555;border-radius:3px;padding:2px 5px;cursor:pointer}
+#panel button.on,#panel select.on{background:#357}
+#panel .sunctl{display:grid;grid-template-columns:62px 1fr 52px 8px;align-items:center;gap:4px}
+#panel .sunctl input[type=number]{width:100%;box-sizing:border-box;background:#000;color:#fff;border:1px solid #555;font:inherit}
+#showui{position:fixed;right:8px;top:8px;display:none;z-index:6;font:inherit;background:#222c;color:#fff;border:1px solid #555;border-radius:3px;padding:2px 6px;cursor:pointer}
+#help{position:fixed;right:270px;top:8px;max-width:380px;padding:8px 10px;background:#000d;border-radius:4px;z-index:7;white-space:normal}
+#help b{color:#8fb0dd}
+</style></head>
+<body><div id="view"></div><div id="refbox"><canvas></canvas><div class="msg" hidden></div><div class="cap"></div></div><div id="hud"></div><div id="panel"></div><script type="module" src="./main.ts"></script></body></html>

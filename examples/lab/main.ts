@@ -35,6 +35,8 @@ function group(title: string, items: More[]): string {
 const PARK = ['p101', 'p102', 'p125', 'p161', 'p213'];
 const STORM = ['s206', 's214', 's33t3', 's33t6', 's33t9'];
 const shot = (b: string, cloud: string) => `<a class="chip" href="decima/?cloud=${cloud}&bookmark=${b}&compare=wipe">${b}</a>`;
+const HZD_VIEWS = ['ground', 'gp7', 'horizon', 'sunset', 'dusk', 'afterglow', 'above', 'high'];
+const HZD_REFS: [string, string][] = [['gp7-f4.16', 'GP7 Fig 4.16'], ['hzd15-p039', 'HZD15 erosion'], ['n3-image55', 'HFW sunset'], ['ne22-p023', 'NE cumulus'], ['photo-20220701-151538_DSC00139', 'humilis photo']];
 const REVIEWS: [string, string][] = [
   ['Decima parity review', 'https://claude.ai/artifact/UfkrDuARTKY61vDBUXfmBt'],
   ['Rounds overview', 'https://claude.ai/artifact/VqPT2dzg3uFNXpcvnMQRQw'],
@@ -52,9 +54,15 @@ const work = `
       <div class="marks"><span class="marks-label">Stormbird</span>${STORM.map(b => shot(b, 'stormbird')).join('')}</div>
     </article>
     <article class="wcard">
+      <h3><a href="hzd/">HZD bench</a></h3>
+      <p>Our procedural Horizon Zero Dawn sky beside Guerrilla's papers and the owner's photos (side by side or picture in picture). T = every setting, grouped, with presets; R = reference mode; , . = step references. The URL keeps the view and every changed setting.</p>
+      <div class="marks"><span class="marks-label">Views</span>${HZD_VIEWS.map(v => `<a class="chip" href="hzd/?view=${v}">${v}</a>`).join('')}</div>
+      <div class="marks"><span class="marks-label">Against</span>${HZD_REFS.map(([id, t]) => `<a class="chip" href="hzd/?ref=${id}&refmode=side">${t}</a>`).join('')}</div>
+    </article>
+    <article class="wcard">
       <h3><a href="docs/">Docs</a></h3>
       <p>Every note in docs/ and work/, rendered and searchable: the handoff, the tools guide, round reports, judging results, research.</p>
-      <div class="marks"><a class="chip" href="docs/#work%2FHANDOFF.md">handoff</a><a class="chip" href="docs/#work%2FD1-TOOLS.md">tools</a><a class="chip" href="docs/#work%2Freports%2FD1.md">D1 report</a><a class="chip" href="docs/#work%2FBOARD.md">board</a><a class="chip" href="docs/#docs%2Fresearch%2Ftopics%2FREADME.md">research</a></div>
+      <div class="marks"><a class="chip" href="docs/#work%2FHANDOFF.md">handoff</a><a class="chip" href="docs/#work%2FD1-TOOLS.md">tools</a><a class="chip" href="docs/#work%2FHZD-BENCH.md">HZD bench</a><a class="chip" href="docs/#work%2Freports%2FD1.md">D1 report</a><a class="chip" href="docs/#work%2FBOARD.md">board</a><a class="chip" href="docs/#docs%2Fresearch%2Ftopics%2FREADME.md">research</a></div>
     </article>
     <article class="wcard">
       <h3>Other benches</h3>

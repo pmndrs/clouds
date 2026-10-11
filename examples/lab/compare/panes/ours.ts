@@ -27,7 +27,11 @@ if (volQuery) { FIELD.dims = [Number(volQuery[1]), Number(volQuery[2]), Number(v
 /** Exposure calibration: our own default (physical sun, ACES at 0.35); the other panes are matched to this one. */
 export const OURS_EXPOSURE = 0.35;
 
-export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams, force?: { model: 'procedural' | 'hybrid'; shaper: ProceduralShaper }): Pane {
+/** The pane's renderer objects, for pages that drive more than the shared view (the HZD bench's tuning panel). Set once `init` has resolved. */
+export interface OursInternals { clouds: Clouds; proc: ProceduralClouds | undefined; sky: Sky; renderer: WebGPURenderer; camera: PerspectiveCamera }
+export type OursPane = Pane & { internals(): OursInternals };
+
+export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams, force?: { model: 'procedural' | 'hybrid'; shaper: ProceduralShaper }): OursPane {
   let renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, sky: Sky, clouds: Clouds, post: RenderPipeline;
   const state = { ready: false, cpuMs: 0, sceneGpu: [] as number[], busy: false, frames: 0, generated: false, skyWait: false, weatherKey: '', cloudsOn: query.get('clouds') !== '0' };
   const cpu: number[] = [];
@@ -207,6 +211,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
       const cloudSum = Object.values(c).reduce((x, y) => x + y, 0);
       return { gpuMs: { scene: mean(state.sceneGpu), ...c, cloudsTotal: cloudSum, total: mean(state.sceneGpu) + cloudSum }, cpuMs: mean(cpu) };
     },
+    internals: () => ({ clouds, proc, sky, renderer, camera }),
     detail: () => ({ cloudsReady: clouds?.isReady, generated: state.generated, exposure: renderer?.toneMappingExposure, coverageLo: state.weatherKey, model: proc ? `${MODEL}/${proc.settings.shaper}/${proc.settings.lightingModel}` : 'nvdf', voxelLighting: clouds?.core.settings.lightingModel }),
   };
 }

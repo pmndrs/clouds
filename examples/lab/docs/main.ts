@@ -19,6 +19,7 @@ const read = async (p: string) => { if (!cache.has(p)) cache.set(p, await files.
 const START: [string, string][] = [
   ['work/HANDOFF.md', 'Where everything stands, and what to do next'],
   ['work/D1-TOOLS.md', 'Every bench, capture and measuring command'],
+  ['work/HZD-BENCH.md', 'The HZD bench: our procedural sky against the papers and photos'],
   ['work/reports/D1.md', 'The Decima parity rounds, in full'],
   ['work/calibration/d1k-results.md', 'The latest judged round'],
   ['work/reports/D1-florets.md', 'Why the cauliflower bumps were missing'],
