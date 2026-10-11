@@ -91,8 +91,9 @@ Test (one change, with A/B sheets):
 
 ## Housekeeping
 
-- **Branch:** `claude/cloud-research-setup-10bf11` (this worktree); not merged to main.
-- **Untracked, left alone:** `work/captures/C1/calibration/{detail,photo}/` and the two C1 sheets (C1 calibration extras). `work/reports/M2.md` is the stopped M2 task's report (superseded by D1); commit or delete it with the owner.
+- **Branch:** everything is on `main` in the main checkout (`/Users/dex/Developer/WebGPUClouds`). On 2026-10-11 every branch and worktree was merged into it and removed: the research setup, the audit, the D0 agent, the snapshot, the photo catalogue and the perf notes. `master` was renamed `main`. There is no remote. Start new work from `main`.
+- **Start here in the browser:** `pnpm dev` from the repo root, then `/`. The lab index has a Work section: the Decima bench with its shots, the docs viewer (`/docs/`, every note rendered and searchable), the other benches, and the review pages.
+- **Local only (ignored by git, in the main checkout):** `assets/clouds/local/` (3.1 GB of converted test clouds), `work/captures/scratch/` (1.7 GB of agent experiments), and `artifacts/` (third-party frames, sheets, blind sets).
 - **Owner review pages:**
   - Round H: https://claude.ai/artifact/RPabtz6qpXTh9nS9nfGMu5
   - Research: https://claude.ai/artifact/SUx3sFPuiHSBEARrFHhsfS

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Clouds docs</title>
+  <link rel="stylesheet" href="/gallery/gallery.css">
+  <style>
+    /* Three panes: the file tree, the document, its headings. The palette comes from the gallery. */
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--bg); color: var(--text); font: 15px/1.6 system-ui, -apple-system, sans-serif; display: grid; grid-template-rows: auto 1fr; }
+    header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+    header a.home { color: var(--accent); text-decoration: none; font-weight: 600; }
+    header input[type=search] { flex: 1; min-width: 200px; max-width: 420px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: inherit; }
+    header label, #count { color: var(--muted); font-size: 13px; }
+    .panes { display: grid; grid-template-columns: 300px minmax(0, 1fr) 230px; min-height: 0; }
+    #nav, #main, #toc { overflow: auto; min-height: 0; }
+    #nav { border-right: 1px solid var(--line); padding: 10px 8px 40px; }
+    #toc { border-left: 1px solid var(--line); padding: 14px 12px; font-size: 13px; }
+    .group { margin-bottom: 8px; }
+    .gtitle { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--muted); font: 600 11px/1.8 ui-monospace, Menlo, monospace; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; cursor: pointer; }
+    .gtitle span { opacity: .6; }
+    .file { display: block; padding: 2px 8px 2px 18px; color: var(--text); text-decoration: none; border-radius: 6px; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file:hover { background: var(--panel-2); }
+    .file.on { background: var(--panel-2); color: var(--accent); }
+    .file.start { white-space: normal; padding: 5px 8px; }
+    .file.start b { display: block; font-weight: 600; }
+    .file.start span { display: block; color: var(--muted); font-size: 12px; }
+    #main { padding: 18px 28px 80px; }
+    #doc { max-width: 900px; }
+    #doc .path { display: flex; gap: 12px; align-items: baseline; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    #doc .path a { color: var(--accent); }
+    #doc h1 { font-size: 1.8rem; line-height: 1.2; margin: .4em 0 .6em; }
+    #doc h2 { font-size: 1.3rem; margin: 1.6em 0 .5em; padding-top: .4em; border-top: 1px solid var(--line); }
+    #doc h3 { font-size: 1.08rem; margin: 1.3em 0 .4em; }
+    #doc h1, #doc h2, #doc h3 { text-wrap: balance; }
+    #doc p, #doc li { max-width: 78ch; }
+    #doc a { color: var(--accent); }
+    #doc code { font: 0.86em ui-monospace, Menlo, monospace; background: var(--panel-2); padding: 1px 5px; border-radius: 5px; }
+    #doc pre { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow: auto; }
+    #doc pre code { background: none; padding: 0; }
+    #doc .tablewrap { overflow-x: auto; margin: 1em 0; }
+    #doc table { border-collapse: collapse; font-size: 13.5px; }
+    #doc th, #doc td { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+    #doc th { color: var(--muted); font-weight: 600; }
+    #doc blockquote { margin: 1em 0; padding: 4px 14px; border-left: 3px solid var(--accent-2); color: var(--muted); }
+    #doc img { max-width: 100%; border-radius: 6px; }
+    #doc hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
+    #doc mark { background: var(--accent-2); color: #111; border-radius: 3px; }
+    #toc a { display: block; color: var(--muted); text-decoration: none; padding: 2px 0; }
+    #toc a:hover { color: var(--text); }
+    #toc a.l3 { padding-left: 12px; }
+    #toc a.l1 { color: var(--text); font-weight: 600; }
+    @media (max-width: 1100px) { .panes { grid-template-columns: 260px minmax(0, 1fr); } #toc { display: none; } }
+    @media (max-width: 700px) { .panes { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; } #nav { border-right: 0; border-bottom: 1px solid var(--line); } #main { padding: 14px 16px 60px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="home" href="/">← Clouds lab</a>
+    <strong>Docs</strong>
+    <input id="search" type="search" placeholder="Filter by name…" aria-label="Search the docs">
+    <label><input id="deep" type="checkbox"> search the text too</label>
+    <span id="count"></span>
+  </header>
+  <div class="panes">
+    <nav id="nav" aria-label="Documents"></nav>
+    <main id="main"><article id="doc"></article></main>
+    <aside id="toc" aria-label="On this page"></aside>
+  </div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

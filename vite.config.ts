@@ -20,6 +20,8 @@ import { cloudPhotos } from './examples/lab/compare/photos-plugin';
 import { decimaRefs } from './examples/lab/decima/refs-plugin';
 export default defineConfig({
   root: 'examples/lab',
+  // The docs page (examples/lab/docs/) builds editor and image links from the checkout's own path.
+  define: { __REPO_ROOT__: JSON.stringify(fileURLToPath(new URL('.', import.meta.url))) },
   plugins: [slashRedirect(), cloudPhotos(fileURLToPath(new URL('.', import.meta.url))), decimaRefs(fileURLToPath(new URL('.', import.meta.url)))],
   resolve: { alias: {
     '@clouds/legacy-three/layers': fileURLToPath(new URL('./packages/legacy/three/src/layers/index.ts', import.meta.url)),

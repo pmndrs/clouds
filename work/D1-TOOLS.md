@@ -1,6 +1,6 @@
 # D1 parity: tools and commands
 
-Every command used in the Decima parity work, in one place. Run them from the repo root (this worktree). Python runs with `-I`. Decima's frames are third party: the tools read them from the local `artifacts/research/` folder of the main checkout, and nothing writes them into the repo.
+Every command used in the Decima parity work, in one place. Run them from the repo root on `main`. Python runs with `-I`. Decima's frames are third party: the tools read them from the local `artifacts/research/` folder of the main checkout, and nothing writes them into the repo.
 
 ## The bench (by hand)
 

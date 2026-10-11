@@ -71,3 +71,17 @@ footer a { color: var(--muted); text-decoration: underline; }
   .grid { gap: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .card, .thumb img { transition: none; } }
+
+/* Work pages section (benches, docs, review links) above the examples. */
+.work { margin-bottom: 28px; }
+.work h2, .examples-title { font-size: 1.1rem; margin: 0 0 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.work-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.wcard { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.wcard h3 { margin: 0; font-size: 1.05rem; }
+.wcard h3 a { color: var(--text); text-decoration: none; }
+.wcard h3 a:hover { color: var(--accent); }
+.wcard p { margin: 0; color: var(--muted); font-size: 14px; }
+.wcard ul.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.wcard ul.plain a { color: var(--accent); }
+.wcard .note { color: var(--muted); font-size: 13px; }
+.wcard code { font-size: 12px; }
