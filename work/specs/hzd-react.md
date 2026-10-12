@@ -4,6 +4,16 @@ Owner request (2026-10-12): move the HZD bench, and the weather-map painter firs
 shadcn components, so the painter can grow into smart components. Tweakpane stays for the tuning panel for now; Leva or our own shadcn controls
 replace it later. Work happens on branch `hzd-r3f` (worktree `.claude/worktrees/hzd-r3f`); `main` keeps the working vanilla bench.
 
+## Status (2026-10-12)
+
+Phases 0-4 are done on branch `hzd-r3f`: the React bench is `examples/lab/hzd/` (the paths below that say `hzd-r3f/` are where it was built
+before the cut-over). Checks: canonical captures match the vanilla bench within run noise (mean 0.13-0.38 vs run noise 0.29-0.49), sky-layer
+GPU time within noise (alternating-order runs), the scripted shell and painter drives pass, typecheck and tests pass, the packed-consumer
+check passes. To merge into `main` (decision 5). On alpha.6: bump `@react-three/fiber` and `@react-three/tsl` in `package.json` and the
+`overrides` in `pnpm-workspace.yaml`. Still on the deprecated `@react-three/fiber/webgpu` entry (it goes at the first beta): the legacy React
+examples and `packages/legacy/react`, and the import snippets in `docs/guide/*.mdx`, `docs/react.md` and `packages/react/README.md` (which
+should also name `@react-three/tsl` as a peer of `@clouds/react` now).
+
 ## What must not change
 
 These are what scripts, docs and the owner rely on. Every phase is checked against them.

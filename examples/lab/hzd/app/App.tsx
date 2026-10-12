@@ -1,5 +1,5 @@
 // The React HZD bench: the sky in an R3F <Canvas> (SkyHost drives it with the existing pane), the sidebar, the reference box, the readout and
-// help, the tuning panel (Tweakpane, unchanged) and the weather-map painter (the vanilla dock, until it is ported to components).
+// help, the tuning panel (Tweakpane) and the weather-map painter (paint/PainterDock.tsx).
 import * as React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Rig } from '../../compare/rig';

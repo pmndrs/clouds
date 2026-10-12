@@ -1,6 +1,6 @@
-// The bench's views, motions and qualities (as the vanilla bench, ../hzd/main.ts), and the view helpers both the UI and the URL use.
+// The bench's views, motions and qualities (as the vanilla bench had them), and the view helpers both the UI and the URL use.
 import { BOOKMARKS, type Bookmark, type ViewState } from '../../compare/shared';
-import type { RefView } from '../../hzd/refs';
+import type { RefView } from '../refs';
 
 /** The views: the compare bookmarks plus the two framings the H-reports used. */
 export const VIEWS: Record<string, Bookmark & { about: string }> = {

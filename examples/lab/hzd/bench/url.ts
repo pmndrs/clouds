@@ -1,8 +1,8 @@
 // The bench's URL: what a link opens (view, reference, quality, clean) and what the page writes back, with the settings under the compare
-// page's prefixes. The same keys and rules as the vanilla bench (../hzd/main.ts), so old links open the same sky. Pure: tested in url.test.ts.
+// page's prefixes. The same keys and rules as the vanilla bench had, so old links open the same sky. Pure: tested in url.test.ts.
 import { DEFAULT_COVERAGE, type ViewState } from '../../compare/shared';
-import { HZD_REF_BY_ID } from '../../hzd/refs';
-import { PREFIX, type SourceId } from '../../hzd/tune';
+import { HZD_REF_BY_ID } from '../refs';
+import { PREFIX, type SourceId } from '../tune';
 import { QUALITIES, REF_MODES, VIEWS, VIEW_NAMES, applyBookmark, applyRefView, type RefMode } from './views';
 
 export interface RefState { id: string; mode: RefMode; pip: 's' | 'm' | 'l'; corner: 'bl' | 'br'; page: boolean; follows: boolean }

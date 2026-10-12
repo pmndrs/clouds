@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { sharedBackend } from '@clouds/three';
 import { ArrowDown, ArrowUp, Blend, Droplets, Eye, Hand, Paintbrush, RotateCcw, Sparkles, X } from 'lucide-react';
-import { CHANNELS, type Channel } from '../../hzd/paint/fields';
+import { CHANNELS, type Channel } from './fields';
 import { Button } from '../ui/components/button';
 import { Checkbox } from '../ui/components/checkbox';
 import { Input } from '../ui/components/input';

@@ -1,7 +1,7 @@
 // Undo and redo for the painter as patches: only the rectangle a stroke touched, per channel it changed. The vanilla painter kept whole
 // channels per step (4 MB each at 1024², up to ~640 MB over 40 steps with four channels); a stroke of a 1.5 km brush keeps ~0.2 MB.
 // Regions are in unwrapped map pixels (a stroke can cross the edge; the map tiles), clamped to one tile. Pure: tested in history.test.ts.
-import type { Channel, MapFields } from '../../hzd/paint/fields';
+import type { Channel, MapFields } from './fields';
 
 export interface Region { x: number; y: number; w: number; h: number }
 export interface Patch { channels: Channel[]; region: Region; values: Float32Array[] }

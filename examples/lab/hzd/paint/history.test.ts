@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dab, MapFields, type Brush } from '../../hzd/paint/fields';
+import { dab, MapFields, type Brush } from './fields';
 import { History, capture, dabRegion, fullRegion, patchBytes, union } from './history';
 
 const brush: Brush = { op: 'paint', radius: 3, hardness: 0, strength: 1, noiseCells: 4, noiseSeed: 1 };

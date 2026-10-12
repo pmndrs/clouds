@@ -1,12 +1,12 @@
 // The painter's engine: the map (fields.ts's five Float32 layers), strokes, undo patches (history.ts), the upload to the sky (proc.setNdf,
 // written in place), the sources (the sky read back from the GPU, the generator and the authored maps through the runtime's own image path,
 // a PNG from disk, blank, the last painting), the autosave, save and download, and the map view's pixels. No React: the components call
-// it, and it mirrors what the controls show into the painter store (store.ts). Behaviour as the vanilla painter (../../hzd/paint/editor.ts).
+// it, and it mirrors what the controls show into the painter store (store.ts). Behaviour as the vanilla painter (examples/lab/hzd/paint/editor.ts in git history).
 import type { WebGPURenderer } from 'three/webgpu';
 import type { ViewState } from '../../compare/shared';
 import type { ProceduralClouds } from '../../../../packages/runtime/src/procedural';
 import { HZD_NDF_DEFAULTS } from '../../../../packages/runtime/src/procedural/settings';
-import { addNoise, blurAll, CHANNELS, dab, fill, fromNdfLayers, gradient, invert, MapFields, mapToWorld, strokePoints, toNdfFields, toPngPixels, worldToMap, writeImage, type Brush, type Channel } from '../../hzd/paint/fields';
+import { addNoise, blurAll, CHANNELS, dab, fill, fromNdfLayers, gradient, invert, MapFields, mapToWorld, strokePoints, toNdfFields, toPngPixels, worldToMap, writeImage, type Brush, type Channel } from './fields';
 import { History, capture, dabRegion, fullRegion, union, type Region } from './history';
 import { AUTOSAVE, type Tool } from './constants';
 import { paint, saveUi } from './store';

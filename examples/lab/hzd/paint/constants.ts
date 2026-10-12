@@ -1,5 +1,5 @@
-// The painter's tools, channel labels and recipes (as the vanilla painter, ../../hzd/paint/editor.ts).
-import type { BrushOp, Channel, Targets } from '../../hzd/paint/fields';
+// The painter's tools, channel labels and recipes (as the vanilla painter before the React bench, git history: examples/lab/hzd/paint/editor.ts).
+import type { BrushOp, Channel, Targets } from './fields';
 
 export type Tool = BrushOp | 'gradient';
 export const TOOLS: [Tool, string, string][] = [

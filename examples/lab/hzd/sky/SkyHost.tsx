@@ -9,7 +9,7 @@ import { setRenderOverride, useFrame, useStore as useRootStore, useThree, type R
 import type { PerspectiveCamera, Scene } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
 import { createOursPane } from '../../compare/panes/ours';
-import { createHzdTuner } from '../../hzd/tune';
+import { createHzdTuner } from '../tune';
 import type { CloudsHarness } from '../../harness/clouds-contract';
 import { applySettingOverrides, paneQuery, type Sources } from '../bench/url';
 import { START_QUERY, bench, bookmark, scheduleUrl, setRef, settingsChanged, viewChanged, type BenchRuntime } from '../bench/store';

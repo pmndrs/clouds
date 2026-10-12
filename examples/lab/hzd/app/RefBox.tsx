@@ -1,7 +1,7 @@
 // The reference shot beside the render (side by side), over it (picture in picture) or alone (hold F): a paper's figure or one of the owner's
 // photos, contain-fit on a 2D canvas, with its caption. The images come from the local research folder through the dev server only.
 import * as React from 'react';
-import { HZD_REF_BY_ID, type HzdRef } from '../../hzd/refs';
+import { HZD_REF_BY_ID, type HzdRef } from '../refs';
 import { cn } from '../ui/lib/utils';
 import { PIP, SIDEBAR } from '../bench/views';
 import type { RefState } from '../bench/url';

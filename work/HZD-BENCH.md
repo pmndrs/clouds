@@ -12,6 +12,7 @@ pnpm dev --port 5180
 
 - Open `http://localhost:5180/hzd/` in Chrome (it needs WebGPU), or use the Work section on the lab index. Port 5173 is often taken by the owner's other projects, and 5201 is never to be touched.
 - The page renders at `ultra` quality by default.
+- The page is React + React Three Fiber v10 (canary, pinned) with shadcn controls (`work/specs/hzd-react.md`). The sky is the same as before: an R3F `<Canvas>` hosts the compare page's pane, which drives the Canvas's renderer, scene and camera. Captures matched the earlier vanilla page within run noise.
 - Every option has a control in the sidebar. The URL follows the sidebar and the tuning panel, so a copied link reopens the same view, reference and sky.
 
 The sidebar:
@@ -86,7 +87,7 @@ Paint the weather map (the NDF) in a dock on the left of the bench. The sky upda
   - the sky as it is now (read back from the GPU)
   - the generator (seed, footprint and the tuning panel's map settings)
   - W1's example maps and saved paintings, loaded through the runtime's own image path, so they read exactly as `?hzn_image=` does
-  - a PNG from disk, a blank map, or the last painting (autosaved in this browser)
+  - a PNG from disk, a blank map, or the last painting (autosaved in this browser's IndexedDB; a failed autosave says so in the dock)
 - **Channels:** coverage, top type, bottom type, min height and max height. Tick the channels a stroke changes; each channel's slider is the value paint, noise, gradient and fill go toward. Click a name to view that channel as a ramp. **Recipes** tick and set several at once: clear, stratus, strato-cu, cumulus, congestus. They are starting points set by eye, not measured.
 - **Tools (1-8 over the map):**
   - paint, raise, lower, smooth, smudge
@@ -99,7 +100,7 @@ Paint the weather map (the NDF) in a dock on the left of the bench. The sky upda
   - Alt-click picks the values under the cursor.
   - Right-click puts the camera over that spot.
   - The wheel zooms. Space-drag or middle-drag pans. Shift-wheel or `[ ]` sets the size.
-  - Ctrl/cmd-Z undoes, shift-ctrl/cmd-Z redoes. `0` fits the map.
+  - Ctrl/cmd-Z undoes, shift-ctrl/cmd-Z redoes (40 steps; each keeps only the rectangle its stroke touched, and the dock shows the history's size). `0` fits the map.
 - **The map view:**
   - north up, and the map tiles
   - the camera and its view wedge
@@ -109,7 +110,13 @@ Paint the weather map (the NDF) in a dock on the left of the bench. The sky upda
   - It follows the map's drift (`ndfMotion`). Opening the painter sets `map motion: static`, so the map stays where you painted it; pick `drift` in the Sky section to let it move with the wind again.
 - **Sky:** `update: while painting` or `on release`. Each update cuts the temporal history, so the sky is noisy while a stroke runs. The other controls are the map size (`ndf.tileMeters`), `view from above` (14 km, straight down) and `drop the painting` (back to the generator or `ndf.image`).
 - **Save:** writes `assets/clouds/ndf/painted/<name>.png` and `<name>-height.png` (the authored-map format, `assets/clouds/ndf/README.md`) through the dev server, and points `ndf.image` and `ndf.heightImage` at them. The page's URL then reopens the painted sky: `copy link`. `download` saves the same two PNGs. A static build cannot save.
-- **Where it is:** `examples/lab/hzd/paint/` (`editor.ts` the dock, `fields.ts` the model and brush maths with `fields.test.ts`, `plugin.ts` the dev-server list and save routes). The runtime takes the map through `proc.setNdf`, which writes in place while a map of the same size is bound.
+- **Where it is:** `examples/lab/hzd/paint/`:
+  - `PainterDock.tsx` the dock's components, `MapView.tsx` the map view, `store.ts` the controls' state (zustand)
+  - `engine.ts` the map, strokes, uploads, sources and saving (no React)
+  - `history.ts` the undo patches, `fields.ts` the model and brush maths (both tested)
+  - `plugin.ts` the dev-server list and save routes
+
+  The runtime takes the map through `proc.setNdf`, which writes in place while a map of the same size is bound. `window.__paint` holds the store and the engine for the console.
 
 ### URL options
 
@@ -160,7 +167,14 @@ The ids are the try-next items in `docs/research/topics/shape.md` and `layering.
 
 ## Where things are
 
-- **The page:** `examples/lab/hzd/` (`main.ts`, `tune.ts`, `refs.ts`, `refs-plugin.ts`, `paint/` the weather-map painter).
-- **The render:** the compare page's "ours" pane, `examples/lab/compare/panes/ours.ts`, forced to `{ model: 'procedural', shaper: 'hzd' }`. Its `internals()` hands the bench the runtime and the procedural settings.
+- **The page:** `examples/lab/hzd/` (React):
+  - `main.tsx` the entry and the page's notes
+  - `app/` the layout, sidebar, reference box, HUD, help and keys
+  - `bench/` the state (zustand), the URL (`url.ts`, tested) and the views
+  - `sky/SkyHost.tsx` the sky in the R3F Canvas and its scheduler jobs
+  - `paint/` the weather-map painter
+  - `ui/` the shadcn components and theme
+  - `tune.ts` (the tuning panel), `refs.ts`, `refs-plugin.ts`
+- **The render:** the compare page's "ours" pane, `examples/lab/compare/panes/ours.ts`, forced to `{ model: 'procedural', shaper: 'hzd' }` and given the R3F Canvas's renderer, scene and camera (`host`). Its `internals()` hands the bench the runtime and the procedural settings. Per frame, `update` runs in the scheduler's update phase and `present` is R3F's render job (`setRenderOverride`).
 - **The shared panel:** `examples/lab/tune/panel.ts`.
 - **The settings and their docs:** `packages/runtime/src/procedural/settings.ts`. The round reports are `work/reports/H1.md`, `H5.md`, `H6.md` and `H7.md`. The judging results are `work/calibration/h6-results.md` and `h7-results.md`.

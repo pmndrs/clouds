@@ -8,8 +8,8 @@ import type { OursPane } from '../../compare/panes/ours';
 import type { Rig } from '../../compare/rig';
 import type { Clouds } from '@clouds/three';
 import type { ProceduralClouds } from '../../../../packages/runtime/src/procedural';
-import { HZD_REF_BY_ID } from '../../hzd/refs';
-import type { createHzdTuner } from '../../hzd/tune';
+import { HZD_REF_BY_ID } from '../refs';
+import type { createHzdTuner } from '../tune';
 import { readStart, writeQuery, type RefState, type Sources } from './url';
 import { REF_MODES, VIEWS, applyBookmark, applyRefView, type RefMode } from './views';
 

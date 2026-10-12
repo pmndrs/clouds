@@ -1,6 +1,6 @@
 // The sidebar: every option of the bench as a control (views, sun and time, clouds, reference, panel). The URL follows it.
 import * as React from 'react';
-import { HZD_REFS, HZD_REF_BY_ID } from '../../hzd/refs';
+import { HZD_REFS, HZD_REF_BY_ID } from '../refs';
 import { Button } from '../ui/components/button';
 import { Checkbox } from '../ui/components/checkbox';
 import { Label } from '../ui/components/misc';

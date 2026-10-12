@@ -1,8 +1,8 @@
 // The painter's UI state (zustand): what the controls show and what a stroke reads (tool, brush, ticked channels, their values, the view).
 // The map itself (five Float32 layers), the stroke in progress and the undo patches are the engine's (engine.ts), not React state.
 import { createStore, useStore } from 'zustand';
-import { CHANNELS, type Channel } from '../../hzd/paint/fields';
-import type { NdfMapEntry } from '../../hzd/paint/plugin';
+import { CHANNELS, type Channel } from './fields';
+import type { NdfMapEntry } from './plugin';
 import { UI_STORE, type Tool } from './constants';
 
 export interface PaintState {

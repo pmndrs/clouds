@@ -55,7 +55,7 @@ const work = `
     </article>
     <article class="wcard">
       <h3><a href="hzd/">HZD bench</a></h3>
-      <p>Our procedural Horizon Zero Dawn sky beside Guerrilla's papers and the owner's photos (side by side or picture in picture). T = every setting, grouped, with presets; R = reference mode; , . = step references. The URL keeps the view and every changed setting.</p>
+      <p>Our procedural Horizon Zero Dawn sky beside Guerrilla's papers and the owner's photos (side by side or picture in picture). T = every setting, grouped, with presets; M = paint the weather map; R = reference mode; , . = step references. The URL keeps the view and every changed setting. React + R3F.</p>
       <div class="marks"><span class="marks-label">Views</span>${HZD_VIEWS.map(v => `<a class="chip" href="hzd/?view=${v}">${v}</a>`).join('')}</div>
       <div class="marks"><span class="marks-label">Against</span>${HZD_REFS.map(([id, t]) => `<a class="chip" href="hzd/?ref=${id}&refmode=side">${t}</a>`).join('')}</div>
     </article>

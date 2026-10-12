@@ -3,7 +3,7 @@
 // over its dock), WASD QE the camera rig's.
 import { useEffect } from 'react';
 import { SUN_MAX, SUN_MIN } from '../../compare/sun-control';
-import { HZD_REFS } from '../../hzd/refs';
+import { HZD_REFS } from '../refs';
 import { bench, cycleRefMode, setUiHidden, stepRef, viewChanged } from '../bench/store';
 
 const REF_IDS = HZD_REFS.map(r => r.id);
