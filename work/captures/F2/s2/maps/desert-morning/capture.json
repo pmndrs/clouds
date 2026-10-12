@@ -1,0 +1,104 @@
+{
+  "url": "http://127.0.0.1:53532/hzd/?clean=1&motion=0&hz_profileMode=tables&hzn_image=/clouds/ndf/desert-morning.png",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:06:04.237Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2/maps/desert-morning/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 43.71532318333334,
+          "lightGridReduce": 0.046831,
+          "lightGrid": 0.074287,
+          "marchNear": 1.54982215,
+          "marchFar": 2.4958772333333332,
+          "shadowMap": 2.5923696875,
+          "composite": 1.40507855,
+          "dome": 0.7412455999999998,
+          "skyLayer": 22.07445133333333,
+          "skyResolve": 3.8896407499999994,
+          "cloudsTotal": 34.86960330416666,
+          "total": 78.5849264875
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.image": "/clouds/ndf/desert-morning.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2/maps/desert-morning/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 47.850696883333356,
+          "lightGridReduce": 0.046831,
+          "lightGrid": 0.025242999999999998,
+          "marchNear": 0.3544487500000001,
+          "marchFar": 2.1143427499999996,
+          "shadowMap": 1.8001976285714287,
+          "composite": 1.7716709666666661,
+          "dome": 0.5262079166666668,
+          "skyLayer": 24.472222500000004,
+          "skyResolve": 5.6369382833333335,
+          "cloudsTotal": 36.7481027952381,
+          "total": 84.59879967857145
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.image": "/clouds/ndf/desert-morning.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

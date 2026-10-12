@@ -25,6 +25,15 @@ describe('W1 weather map (NDF generator)', () => {
     expect(hzdNdfImageKey('k', { image: '', heightImage: '' })).toBe('k');
     expect(hzdNdfImageKey('k', { image: '/a.png', heightImage: '' })).not.toBe(hzdNdfImageKey('k', { image: '/b.png', heightImage: '' }));
   });
+  it('F2: the bottom type varies by area and with the top type; range 0 and correlation 0 give the old constant', () => {
+    const g = packHzdNdfGen(HZD_NDF_DEFAULTS);
+    expect([g[10], g[11], g[15], g[18]]).toEqual([HZD_NDF_DEFAULTS.bottomType, HZD_NDF_DEFAULTS.bottomTypeRange, HZD_NDF_DEFAULTS.bottomTypeCells, HZD_NDF_DEFAULTS.bottomTypeCorrelation].map(Math.fround));
+    expect(HZD_NDF_GEN_WGSL).toContain('var bottomType = G.types.z + G.foot.z * (tN - 0.5);');
+    expect(HZD_NDF_GEN_WGSL).toContain('if (G.types.w != 0.0) { bottomType += G.types.w * 1.6 * ndfFbm(uv, G.heights.w, 2u, seed + 701u); }');
+    for (const k of ['bottomTypeRange', 'bottomTypeCells', 'bottomTypeCorrelation'] as const) {
+      expect(hzdNdfKey({ ...HZD_NDF_DEFAULTS, [k]: HZD_NDF_DEFAULTS[k] + 0.5 })).not.toBe(hzdNdfKey(HZD_NDF_DEFAULTS));
+    }
+  });
   it('authored maps: image centre at the world origin, heights kept ordered', () => {
     expect(HZD_NDF_IMAGE_WGSL).toContain('/ vec2<f32>(size) + 0.5');
     expect(HZD_NDF_IMAGE_WGSL).toContain('max(b.g, min(b.r + 1.0 / 255.0, 1.0))');

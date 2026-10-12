@@ -102,7 +102,8 @@ export interface HzdNdfSettings {
   typeCells: number;
   typeMin: number;
   typeMax: number;
-  /** Bottom type (constant; the HZD shaper ignores it, NE table mode will read it). 0 = sharp-onset crisp base. */
+  /** Bottom type: the field's centre (with bottomTypeRange 0 and bottomTypeCorrelation 0, the constant of H1-F1). 0 = sharp-onset, flat,
+   *  crisp base; 1 = slow, ragged base (n3.md §7a). Read by the 'tables' profile only (the Nutshell profiles have no bottom axis). */
   bottomType: number;
   /** Column base and top as fractions of the layer, each varied by +- heightVariation (a 2-octave fBM from 3 cells per tile). */
   minHeight: number;
@@ -138,6 +139,15 @@ export interface HzdNdfSettings {
    *  recipe's. Example maps: assets/clouds/ndf/ (served at /clouds/ndf/). */
   image: string;
   heightImage: string;
+  // ---- F2: per-area cloud bases (work/reports/F2.md). Both recipes. ----
+  /** F2: the bottom type varies by area: bottomType + bottomTypeRange x a 2-octave fBM (about +-0.5) from `bottomTypeCells` cells per tile,
+   *  plus bottomTypeCorrelation x (the column's top type within typeMin..typeMax - 0.5), clamped 0..1. Negative correlation pairs crisp bases
+   *  with cumulus and soft, ragged ones with stratiform types: NE p.27 shows its cumulus field at bottom type 0 (flat, crisp undersides; ne22
+   *  p.26-28 gives no other pairing), and the photos' stratus and stratocumulus have diffuse or broken bases (photo-species-specs.md). The
+   *  pairing strength, range and cells are ours. bottomTypeRange 0 and correlation 0 = the constant bottomType (H1-F1). */
+  bottomTypeRange: number;
+  bottomTypeCells: number;
+  bottomTypeCorrelation: number;
 }
 
 /** H1: the HZD reference shaper (GPU Pro 7 chain). Metres unless noted. */
@@ -464,11 +474,13 @@ export const TAKRAM_DEFAULTS: TakramShape = {
 
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
-  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
+  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0.45, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
   // W1 weather map
   // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
   recipe: 'n17', gateCells: 3, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
+  // F2 per-area bases (bottomType above is the field's centre)
+  bottomTypeRange: 1.5, bottomTypeCells: 3, bottomTypeCorrelation: -0.6,
 };
 /** F1 type and form settings (every new behaviour off: the H6 look). */
 export const HZD_FORM_DEFAULTS = {
@@ -538,7 +550,7 @@ export const HZD_DEFAULTS: HzdShape = {
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
 export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.footprint, n.worleyCells,
-  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast].join(',');
+  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {

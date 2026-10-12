@@ -17,9 +17,9 @@ export function packHzdNdfGen(n: HzdNdfSettings): Float32Array<ArrayBuffer> {
   return new Float32Array([
     n.coverageCells, n.islandCells, n.typeCells, 3,
     n.islandWeight, n.coverageLo, n.coverageHi, n.seed,
-    n.typeMin, n.typeMax, n.bottomType, 0,
-    n.minHeight, n.maxHeight, n.heightVariation, 0,
-    n.footprint, n.worleyCells, 0, 0,
+    n.typeMin, n.typeMax, n.bottomType, n.bottomTypeRange,
+    n.minHeight, n.maxHeight, n.heightVariation, n.bottomTypeCells,
+    n.footprint, n.worleyCells, n.bottomTypeCorrelation, 0,
     n.recipe === 'n17' ? 1 : 0, n.gateCells, n.gateLo, Math.max(n.gateHi, n.gateLo + 1e-3),
     n.footLo, Math.max(n.footHi, n.footLo + 1e-3), n.typeContrast, n.islandGain,
   ]);
