@@ -312,6 +312,11 @@ export interface HzdShape {
   tableTypeStratus: number;
   tableTypeStratocumulus: number;
   tableTypeCumulus: number;
+  /** F2 step 1: where the shader reads the tables. 'storage' (default) = a read-only storage buffer bound beside the NDF (4 bytes per word,
+   *  the sky layer's layout); 'uniform' = F1's path, the bytes packed 3 per float into ProcParams.hzLut (5-8 ms slower at ultra on the
+   *  M-series GPU: divergent indexing of a 16 KB uniform array, work/reports/F1.md and F2.md). Both read the same bytes with the same bilinear
+   *  filter, so they render the same. (A sampled texture would take the trace past the default 16 sampled textures per shader stage.) */
+  tableSource: 'uniform' | 'storage';
   /** F1: bottom type = NDF bottomType + bottomTypeBias + bottomTypeVariation x a world-anchored low-frequency field (the shape texture's
    *  Perlin-Worley read flat with a `bottomTypeTile` m tile), clamped 0..1. 0 = sharp, flat, crisp base; 1 = slow, ragged base (n3.md §7a). Ours. */
   bottomTypeBias: number;
@@ -467,7 +472,7 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
 };
 /** F1 type and form settings (every new behaviour off: the H6 look). */
 export const HZD_FORM_DEFAULTS = {
-  profileMode: 'nutshell', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4,
+  profileMode: 'nutshell', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4, tableSource: 'storage',
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
@@ -497,7 +502,7 @@ export function packHzdLut(): Float32Array {
 /** Pack the F1 block (layout in procedural/density.wgsl.ts hzType .. hzLut). */
 export function packHzdForms(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_FORMS_OFFSET;
-  out.set([hz.profileMode === 'tables' ? 1 : 0, hz.tableTypeStratus, hz.tableTypeStratocumulus, hz.tableTypeCumulus], o);
+  out.set([hz.profileMode === 'tables' ? (hz.tableSource === 'uniform' ? 1 : 2) : 0, hz.tableTypeStratus, hz.tableTypeStratocumulus, hz.tableTypeCumulus], o);
   out.set([hz.bottomTypeBias, hz.bottomTypeVariation, Math.max(hz.bottomTypeTile, 1), Math.min(Math.max(hz.tableFloor, 0), 0.9)], o + 4);
   out.set([Math.max(hz.anvilBias, 0), hz.anvilClamp ? 1 : 0, Math.min(Math.max(hz.anvilFlatten, 0), 1), Math.min(Math.max(hz.anvilDensityFix, 0), 1)], o + 8);
   out.set([hz.stormX, hz.stormZ, Math.max(hz.stormRadius, 1), Math.max(hz.stormStrength, 0)], o + 12);

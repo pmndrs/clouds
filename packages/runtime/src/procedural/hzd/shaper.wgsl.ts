@@ -22,7 +22,7 @@
 import { PROC_SKYPRO_WGSL, PROC_TAKRAM_WGSL, PROC_BINDING_OFFSETS, procBindingsWgsl } from '../density.wgsl';
 import type { ProceduralShaper } from '../settings';
 import { HZD_NDF_SAMPLE_WGSL } from './ndf.wgsl';
-import { PROFILE_TABLE_FLOOR, profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
+import { PROFILE_TABLE_FLOOR, PROFILE_TABLE_SIZE, profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
 
 /** The shipped HZD height gradients (Nutshell slide-XML stops; nut.md), (rise start, full, fall start, zero). */
 export const HZD_GRADIENTS = {
@@ -73,7 +73,35 @@ export function hzdBindingsWgsl(group: number, base: number): string {
 @group(${group}) @binding(${base + o.weather}) var procWeather: texture_2d_array<f32>;
 @group(${group}) @binding(${base + o.aux}) var procAux: texture_2d<f32>;
 @group(${group}) @binding(${base + o.sampler}) var procRepeat: sampler;
+@group(${group}) @binding(${base + o.lut}) var<storage, read> procLut: array<u32, ${HZD_LUT_WORDS}>;
 `;
+}
+
+/** F2 step 1: the profile tables for a read-only storage buffer, one u32 per texel holding the texel's whole bilinear quad (the bytes of
+ *  (x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1), low byte first; clamped at the last row and column), so a filtered lookup is one load
+ *  and an unpack4x8unorm. Tables t = 0 top, 1 bottom, 2 peaks (generate/profile-tables.ts, as P.hzLut), 64 x 64 each: 12288 words. */
+export const HZD_LUT_WORDS = 3 * PROFILE_TABLE_SIZE * PROFILE_TABLE_SIZE;
+let lutQuads: Uint32Array<ArrayBuffer> | null = null;
+export function packHzdLutQuads(): Uint32Array<ArrayBuffer> {
+  if (!lutQuads) {
+    const N = PROFILE_TABLE_SIZE;
+    const { top, bottom } = profileTablesSmoothed();
+    const tables = [top, bottom, profilePeaks()];
+    lutQuads = new Uint32Array(HZD_LUT_WORDS);
+    for (let t = 0; t < 3; t++) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const T = tables[t], x1 = Math.min(x + 1, N - 1), y1 = Math.min(y + 1, N - 1);
+      lutQuads[t * N * N + y * N + x] = (T[y * N + x] | (T[y * N + x1] << 8) | (T[y1 * N + x] << 16) | (T[y1 * N + x1] << 24)) >>> 0;
+    }
+  }
+  return lutQuads;
+}
+/** F2 step 1: the storage buffer of packHzdLutQuads, bound by the HZD shaper at PROC_BINDING_OFFSETS.lut. (A sampled texture would put the
+ *  trace over the 16 sampled textures per shader stage of the default limits.) */
+export function createHzdLutBuffer(device: GPUDevice): GPUBuffer {
+  const words = packHzdLutQuads();
+  const buf = device.createBuffer({ label: 'hzd profile tables', size: words.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(buf, 0, words);
+  return buf;
 }
 
 export const PROC_HZD_WGSL = /* wgsl */ `
@@ -99,12 +127,19 @@ fn hzdLutTexel(t: u32, x: u32, y: u32) -> f32 {
   return f32((w >> ((i - f * 3u) * 8u)) & 255u) * (1.0 / 255.0);
 }
 // Bilinear on texel centres (type: i / 63, height: (i + 0.5) / 64), as profile-tables.ts sampleProfileTable and sky-layer.wgsl.ts skyLut.
+// F2 step 1: P.hzType.x 2 reads the procLut storage buffer, whose word per texel holds its whole bilinear quad (packHzdLutQuads): one load
+// and an unpack instead of four reads; 1 keeps F1's read of P.hzLut (3 bytes per float in the uniform). The same bytes and the same filter,
+// so the two agree exactly.
 fn hzdLut(t: u32, type_: f32, v: f32) -> f32 {
   let x = saturate(type_) * 63.0;
   let y = clamp(v * 64.0 - 0.5, 0.0, 63.0);
   let x0 = min(u32(x), 62u);
   let y0 = min(u32(y), 62u);
   let fx = x - f32(x0);
+  if (P.hzType.x > 1.5) {
+    let c = unpack4x8unorm(procLut[t * 4096u + y0 * 64u + x0]);
+    return mix(mix(c.x, c.y, fx), mix(c.z, c.w, fx), y - f32(y0));
+  }
   let a = mix(hzdLutTexel(t, x0, y0), hzdLutTexel(t, x0 + 1u, y0), fx);
   let b = mix(hzdLutTexel(t, x0, y0 + 1u), hzdLutTexel(t, x0 + 1u, y0 + 1u), fx);
   return mix(a, b, y - f32(y0));

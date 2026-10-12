@@ -27,7 +27,10 @@
  * Frame uniform (the camera and the wind offset come in ProcParams), so the shadow map and the dome can include it too.
  */
 /** Binding offsets from a pass's base binding (the trace uses base 9, after the sky layer's 0..8). */
-export const PROC_BINDING_OFFSETS = { params: 0, noiseA: 1, noiseB: 2, weather: 3, aux: 4, sampler: 5 } as const;
+/** F2: `lut` (the HZD shaper's profile tables, procedural/hzd/shaper.wgsl.ts) sits at +8: +6 and +7 are the trace's voxel depth words
+ *  (SKY_VOXEL_DEPTH_BINDING 15, 16 with the trace's base 9). Free in every pass that binds a procedural model (trace 17, shadow map 16,
+ *  light grid 16, dome 18). Only the 'hzd' shaper declares and binds it. */
+export const PROC_BINDING_OFFSETS = { params: 0, noiseA: 1, noiseB: 2, weather: 3, aux: 4, sampler: 5, lut: 8 } as const;
 export function procBindingsWgsl(group: number, base: number): string {
   const o = PROC_BINDING_OFFSETS;
   return /* wgsl */ `
@@ -80,7 +83,7 @@ struct ProcParams {
   hzLobe: vec4<f32>,     // H7 lobe rung: tile (m), strength (0 = off), full height (h), cubic read (0/1)
   hzShelf: vec4<f32>,    // H7: base lump (h), 0, 0, lobe coverage reference
   // F1 types and forms (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packHzdForms)
-  hzType: vec4<f32>,     // F1: profile (0 Nutshell trapezoids, 1 NE/N3 s18 tables), table top type at HZD type 0, 0.5, 1
+  hzType: vec4<f32>,     // F1: profile (0 Nutshell trapezoids, 1 NE/N3 s18 tables from hzLut, 2 (F2) the same tables from the procLut texture), table top type at HZD type 0, 0.5, 1
   hzType2: vec4<f32>,    // F1: bottom-type bias, bottom-type variation, its tile (m), table floor (table height of the column base)
   hzAnvil: vec4<f32>,    // F1 S7: n17 anvil bias (0 = off), exponent clamp (0/1), hag top flatten (0..1), hag density fix (0..1)
   hzStorm: vec4<f32>,    // F1 S7 storm cell: centre x, z (m), core radius (m), strength (0 = off)
