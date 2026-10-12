@@ -78,13 +78,17 @@ const MODES: Record<string, Record<string, number>> = {
 const SWITCHES = new Set(['c.compositeShadow']);
 // Slider ranges where the starting value says little (0 defaults, signed values, counts).
 const RANGES: Record<string, { min?: number; max?: number; step?: number }> = {
-  'ndf.seed': { min: 0, max: 64, step: 1 }, 'ndf.coverageCells': { min: 1, max: 32, step: 1 }, 'ndf.islandCells': { min: 1, max: 16, step: 1 },
-  'ndf.typeCells': { min: 1, max: 16, step: 1 }, 'ndf.worleyCells': { min: 1, max: 32, step: 1 },
+  'ndf.seed': { min: 0, max: 64, step: 1 }, 'ndf.coverageCells': { min: 1, max: 64, step: 1 }, 'ndf.islandCells': { min: 1, max: 16, step: 1 },
+  'ndf.typeCells': { min: 1, max: 16, step: 1 }, 'ndf.worleyCells': { min: 1, max: 64, step: 1 },
   'ndf.coverageLo': { min: -2, max: 1, step: 0.01 }, 'ndf.coverageHi': { min: 0, max: 2, step: 0.01 }, 'ndf.islandWeight': { min: 0, max: 1, step: 0.01 },
   'ndf.typeMin': { min: 0, max: 1, step: 0.01 }, 'ndf.typeMax': { min: 0, max: 1, step: 0.01 }, 'ndf.bottomType': { min: 0, max: 1, step: 0.01 },
+  'ndf.bottomTypeRange': { min: 0, max: 3, step: 0.01 }, 'ndf.bottomTypeCells': { min: 1, max: 32, step: 1 }, 'ndf.bottomTypeCorrelation': { min: -1.5, max: 1.5, step: 0.01 }, 'ndf.heightCells': { min: 1, max: 32, step: 1 },
+  'ndf.gateCells': { min: 1, max: 32, step: 1 },
   'ndf.minHeight': { min: 0, max: 1, step: 0.01 }, 'ndf.maxHeight': { min: 0, max: 1, step: 0.01 }, 'ndf.heightVariation': { min: 0, max: 0.5, step: 0.01 }, 'ndf.footprint': { min: 0, max: 1, step: 0.01 },
   'ndf.tileMeters': { min: 2000, max: 64000, step: 500 },
-  'hzd.typeBias': { min: -1, max: 1, step: 0.01 }, 'hzd.layerBottom': { min: 0, max: 6000, step: 10 }, 'hzd.layerTop': { min: 500, max: 14000, step: 10 },
+  'hzd.typeBias': { min: -1, max: 1, step: 0.01 }, 'hzd.extinction': { min: 0.05, max: 2, step: 0.01 },
+  'hzd.tableTypeStratus': { min: 0, max: 1, step: 0.01 }, 'hzd.tableTypeStratocumulus': { min: 0, max: 1, step: 0.01 }, 'hzd.tableTypeCumulus': { min: 0, max: 1, step: 0.01 },
+  'hzd.tableFloor': { min: 0, max: 0.9, step: 0.005 }, 'hzd.bottomTypeBias': { min: -1, max: 1, step: 0.01 }, 'hzd.bottomTypeVariation': { min: 0, max: 1, step: 0.01 }, 'hzd.layerBottom': { min: 0, max: 6000, step: 10 }, 'hzd.layerTop': { min: 500, max: 14000, step: 10 },
   'hzd.topRound': { min: 0, max: 1, step: 0.01 }, 'hzd.heightFromCoverage': { min: 0, max: 1, step: 0.01 }, 'hzd.heightCoverageRef': { min: 0.01, max: 1, step: 0.01 },
   'hzd.baseLump': { min: 0, max: 0.15, step: 0.001 }, 'hzd.baseFadeMin': { min: 0, max: 1, step: 0.01 }, 'hzd.baseFadeHeight': { min: 0.001, max: 1, step: 0.01 },
   'hzd.mipBias': { min: -2, max: 4, step: 0.05 }, 'hzd.densityPow': { min: 0.1, max: 2, step: 0.01 }, 'hzd.shapeContrast': { min: 0, max: 3, step: 0.01 },
@@ -107,11 +111,11 @@ const RANGES: Record<string, { min?: number; max?: number; step?: number }> = {
 
 // --- Groups, in pipeline order. `about` is the group's one-line explanation. ---
 const GROUPS: { title: string; about: string; keys: string[] }[] = [
-  { title: 'Weather map (NDF)', about: 'The 2D map that says where clouds are and what kind: coverage, the top type (stratus 0 .. cumulus 1), the bottom type, and each column\'s base and top height. Generated from noise (changing these regenerates it). The overall coverage is the sidebar\'s coverage slider (it drives the coverage bias).',
+  { title: 'Weather map (NDF)', about: 'The 2D map that says where clouds are and what kind: coverage, the top type (stratus 0 .. cumulus 1), the bottom type (F2: varies by area, crisp bases under cumulus, soft under stratiform), and each column\'s base and top height. One 32 km tile at 1024^2 (F2; 16 km at 512^2 with every cell count halved is the old tile). Generated from noise (changing these regenerates it). The overall coverage is the sidebar\'s coverage slider (it drives the coverage bias).',
     keys: ['ndf.seed', 'ndf.tileMeters', 'ndf.resolution', 'ndf.coverageCells', 'ndf.islandCells', 'ndf.islandWeight', 'ndf.coverageLo', 'ndf.coverageHi', 'ndf.footprint', 'ndf.worleyCells',
-      'ndf.typeCells', 'ndf.typeMin', 'ndf.typeMax', 'hzd.typeBias', 'ndf.bottomType', 'ndf.minHeight', 'ndf.maxHeight', 'ndf.heightVariation',
+      'ndf.typeCells', 'ndf.typeMin', 'ndf.typeMax', 'hzd.typeBias', 'ndf.bottomType', 'ndf.bottomTypeRange', 'ndf.bottomTypeCells', 'ndf.bottomTypeCorrelation', 'ndf.minHeight', 'ndf.maxHeight', 'ndf.heightVariation', 'ndf.heightCells',
       'ndf.recipe', 'ndf.gateCells', 'ndf.gateLo', 'ndf.gateHi', 'ndf.footLo', 'ndf.footHi', 'ndf.islandGain', 'ndf.typeContrast', 'ndf.image', 'ndf.heightImage'] },
-  { title: 'Cloud types and height profiles', about: 'How tall the layer is and the shape of each type\'s height gradient (the Nutshell trapezoids for stratus, stratocumulus and cumulus): how types blend, how round the tops are, where the base fades in.',
+  { title: 'Cloud types and height profiles', about: 'How tall the layer is and, with profileMode nutshell, the shape of each type\'s height gradient (the Nutshell trapezoids for stratus, stratocumulus and cumulus): how types blend, how round the tops are. Also where the base fades in. The default profile is the tables (next groups).',
     keys: ['hzd.layerBottom', 'hzd.layerTop', 'hzd.typeBlend', 'hzd.topRound', 'hzd.profileSmooth', 'hzd.heightFromCoverage', 'hzd.heightCoverageRef', 'hzd.baseFadeMin', 'hzd.baseFadeHeight', 'hzd.baseLump'] },
   { title: 'Shape noise and the coverage remap', about: 'The 3D low-frequency noise that forms the bodies, and how coverage carves it (cloud where noise x gradient > 1 - coverage). Also the density and the build stage, to compare with GPU Pro 7\'s figures.',
     keys: ['hzd.stage', 'hzd.extinction', 'hzd.shapeTile', 'hzd.shapeContrast', 'hzd.shapeCubicDistance', 'hzd.coverageMultiply', 'hzd.densityPow', 'hzd.coverageDensityPow', 'hzd.coverageDensityRef', 'hzd.mipBias',
@@ -121,8 +125,8 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
       'hzd.curlTile', 'hzd.curlStrength', 'hzd.bottomCurl', 'hzd.bottomCurlDown', 'hzd.bottomErosion', 'hzd.lobeStrength', 'hzd.lobeTile', 'hzd.lobeFull', 'hzd.lobeCoverage', 'hzd.lobeCubic'] },
   { title: 'Connective veil and skirts', about: 'Thin material between and below the bodies: H6\'s veil (a dilated shell around the lower flanks) or H7\'s skirts (a flat, wispy skirt that trails downwind of each body). Veil width 0 turns it off (and saves its cost).',
     keys: ['hzd.skirtMode', 'hzd.veilWidth', 'hzd.veilDensity', 'hzd.veilHeight', 'hzd.veilWisp', 'hzd.veilNoise', 'hzd.veilDistance', 'hzd.skirtTrail', 'hzd.skirtTrailWidth', 'hzd.skirtStretch', 'hzd.skirtPeak', 'hzd.skirtScale', 'hzd.skirtGap'] },
-  { title: 'Cloud types: profile tables', about: 'F1: Nubis Evolved\'s top type x bottom type profile tables instead of the three Nutshell profiles: crisp or ragged bases, rounded or tiered tops (towering cumulus with tableTypeCumulus 0.6-0.75). Off by default; costs 5-8 ms.',
-    keys: ['hzd.profileMode', 'hzd.tableTypeStratus', 'hzd.tableTypeStratocumulus', 'hzd.tableTypeCumulus', 'hzd.bottomTypeBias', 'hzd.bottomTypeVariation', 'hzd.bottomTypeTile', 'hzd.tableFloor'] },
+  { title: 'Cloud types: profile tables', about: 'Nubis Evolved\'s top type x bottom type profile tables (F2: the default; profileMode nutshell with extinction 0.5 is H6): crisp or ragged bases from the map\'s bottom type, rounded or tiered tops (towering cumulus with tableTypeCumulus 0.6-0.75). Read from a storage buffer (tableSource; F1\'s uniform array was 2-4 ms slower). The bottom-type bias and variation here are F1\'s shader stopgap, 0 now that the map carries the bottom type.',
+    keys: ['hzd.profileMode', 'hzd.tableSource', 'hzd.tableTypeStratus', 'hzd.tableTypeStratocumulus', 'hzd.tableTypeCumulus', 'hzd.bottomTypeBias', 'hzd.bottomTypeVariation', 'hzd.bottomTypeTile', 'hzd.tableFloor'] },
   { title: 'Storms and anvils', about: 'F1: cumulonimbus. A placed storm cell (stormStrength > 0) or storms from the map\'s type (stormTypeStart < 1), with the Nubis 2017 anvil and Häggström\'s flattening and density fix.',
     keys: ['hzd.stormStrength', 'hzd.stormX', 'hzd.stormZ', 'hzd.stormRadius', 'hzd.stormTop', 'hzd.anvilSpread', 'hzd.anvilShear', 'hzd.stormTypeStart', 'hzd.anvilBias', 'hzd.anvilClamp', 'hzd.anvilFlatten', 'hzd.anvilDensityFix'] },
   { title: 'Mid-level layer and low deck', about: 'F1: two extra sheets. The mid slot (altocumulus or altostratus, around 5.4 km) and the low deck slot (stratus, around 600 m). Each picks off, altocumulus, altostratus or stratus.',
