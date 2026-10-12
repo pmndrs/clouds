@@ -10,6 +10,7 @@ import { Tip } from '../ui/components/tooltip';
 import { MOTIONS, QUALITIES, REF_MODES, VIEWS, VIEW_NAMES, solar, type RefMode } from '../bench/views';
 import { applyRefViewNow, backToView, bench, goToView, setRef, setRefState, setUiHidden, settingsChanged, stepRef, useBench, viewChanged } from '../bench/store';
 import { Note, Row, Section, SunControl, ViewSlider, SliderRow } from './controls';
+import { currentEngine } from '../paint/engine';
 
 const REF_IDS = HZD_REFS.map(r => r.id);
 const REF_GROUPS = [...new Set(HZD_REFS.map(r => r.group))];
@@ -76,15 +77,15 @@ function SunSection() {
 }
 
 function CloudsSection() {
-  const painter = useBench(s => s.painter);
+  const canPaint = useBench(s => !!s.rt && !s.clean);
   return (
     <Section title="Clouds and exposure">
       <ViewSlider name="coverage" tip="the common coverage control: drives the HZD coverage bias (0.5 = the NDF as generated, ±0.5)" min={0} max={1} step={0.01} get={v => v.coverage} set={(v, x) => { v.coverage = x; }} />
       <ViewSlider name="exposure" tip="exposure multiplier on our calibrated ACES exposure" min={0.25} max={4} step={0.05} get={v => v.exposure} set={(v, x) => { v.exposure = x; }} />
-      {painter && (
+      {canPaint && (
         <Row>
           <Tip text="the weather-map painter: paint coverage, cloud type and heights in a dock beside the sky, load the example maps, save PNGs">
-            <Button onClick={() => painter.toggle()}>paint the weather map (M)</Button>
+            <Button onClick={() => currentEngine()?.toggle()}>paint the weather map (M)</Button>
           </Tip>
         </Row>
       )}

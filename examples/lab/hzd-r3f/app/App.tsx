@@ -3,12 +3,12 @@
 import * as React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Rig } from '../../compare/rig';
-import { createPainter } from '../../hzd/paint/editor';
-import { sharedBackend } from '@clouds/three';
 import type { CloudsHarness } from '../../harness/clouds-contract';
 import { TooltipProvider } from '../ui/components/tooltip';
 import { SkyHost } from '../sky/SkyHost';
-import { bench, scheduleUrl, settingsChanged, useBench, viewChanged, type Painter } from '../bench/store';
+import { bench, scheduleUrl, useBench, viewChanged } from '../bench/store';
+import { PainterDock } from '../paint/PainterDock';
+import { usePaint } from '../paint/store';
 import { Sidebar } from './Sidebar';
 import { RefBox, layoutFor, refAspect, useRefImage } from './RefBox';
 import { Help, Hud, ShowUiButton } from './Overlays';
@@ -16,8 +16,6 @@ import { useBenchKeys } from './keys';
 
 /** One rig per element: StrictMode mounts effects twice, and the rig's listeners have no off switch. */
 const rigs = new WeakMap<HTMLElement, Rig>();
-/** One painter per page (it builds its own dock). */
-let painterSingleton: Painter | null = null;
 
 function useWindowSize() {
   const [size, setSize] = React.useState({ width: innerWidth, height: innerHeight });
@@ -36,7 +34,7 @@ export function App({ harness }: { harness: CloudsHarness }) {
   const uiHidden = useBench(s => s.uiHidden);
   const helpOpen = useBench(s => s.helpOpen);
   const clean = useBench(s => s.clean);
-  const inset = useBench(s => s.painterInset);
+  const inset = usePaint(s => (s.open ? s.width : 0));
   const rt = useBench(s => s.rt);
   const image = useRefImage(ref.id);
   const layout = layoutFor({ ...size, inset, ref, flip, uiHidden, aspect: refAspect(image, ref.page) });
@@ -63,22 +61,6 @@ export function App({ harness }: { harness: CloudsHarness }) {
     return () => clearInterval(t);
   }, []);
 
-  // The weather-map painter (M), once the sky is up; not in clean mode.
-  React.useEffect(() => {
-    if (!rt || clean) return;
-    if (!painterSingleton) {
-      const canvas = rt.renderer.domElement as HTMLCanvasElement;
-      painterSingleton = createPainter({
-        proc: rt.proc, device: sharedBackend(rt.renderer).device, ndf: rt.sources.ndf, hzd: rt.sources.hzd, core: rt.core, view: bench.getState().view,
-        aspect: () => canvas.width / Math.max(1, canvas.height),
-        onLayout: () => bench.setState({ painterInset: painterSingleton?.inset() ?? 0 }),
-        onViewChange: () => { rt.core.resetTemporal(); viewChanged(); },
-        onSettingsChange: () => settingsChanged({ refreshTuner: true }),
-      });
-    }
-    bench.setState({ painter: painterSingleton });
-  }, [rt, clean]);
-
   React.useEffect(() => { scheduleUrl(); }, [ref]);
 
   return (
@@ -94,6 +76,7 @@ export function App({ harness }: { harness: CloudsHarness }) {
       {!uiHidden && <Sidebar />}
       {uiHidden && !clean && <ShowUiButton />}
       {helpOpen && !uiHidden && <Help />}
+      {rt && !clean && <PainterDock />}
     </TooltipProvider>
   );
 }

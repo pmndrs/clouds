@@ -10,12 +10,10 @@ import type { Clouds } from '@clouds/three';
 import type { ProceduralClouds } from '../../../../packages/runtime/src/procedural';
 import { HZD_REF_BY_ID } from '../../hzd/refs';
 import type { createHzdTuner } from '../../hzd/tune';
-import type { createPainter } from '../../hzd/paint/editor';
 import { readStart, writeQuery, type RefState, type Sources } from './url';
 import { REF_MODES, VIEWS, applyBookmark, applyRefView, type RefMode } from './views';
 
 export type Tuner = ReturnType<typeof createHzdTuner>;
-export type Painter = ReturnType<typeof createPainter>;
 
 /** The sky's objects, once the pane has started on the Canvas's renderer. */
 export interface BenchRuntime {
@@ -39,9 +37,6 @@ export interface BenchState {
   helpOpen: boolean;
   rt: BenchRuntime | null;
   rig: Rig | null;
-  painter: Painter | null;
-  /** The painter dock's width on the left (0 when closed). */
-  painterInset: number;
   error: string;
   viewTick: number;
   settingsTick: number;
@@ -63,8 +58,6 @@ export const bench = createStore<BenchState>(() => ({
   helpOpen: false,
   rt: null,
   rig: null,
-  painter: null,
-  painterInset: 0,
   error: '',
   viewTick: 0,
   settingsTick: 0,

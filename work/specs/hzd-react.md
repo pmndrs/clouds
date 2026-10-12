@@ -153,6 +153,9 @@ Each phase ends with `pnpm typecheck`, `pnpm test`, and a check against the list
 - Autosave checks its size and says when browser storage is full instead of failing silently.
 - **Done when:** the headless drive script used for the vanilla painter (paint, undo/redo, load an example, gradient, save, view from above)
   passes on the new page, and the saved PNGs are pixel-identical to the vanilla painter's for the same scripted strokes.
+- **Result (2026-10-12):** the drive passes. The React painter gives byte-identical maps on repeated scripted runs; the vanilla painter does not
+  (two vanilla runs differ by up to 46/255 along the strokes), and React vs vanilla (48/255) is within that. Undo for those four steps holds
+  5.8 MB (whole channels: ~70 MB). The autosave moved to IndexedDB (no 5 MB quota; failures show in the dock).
 
 ### 4. Cut-over (small)
 - `hzd-r3f/` becomes `hzd/`; the vanilla bench and its now-unused code are deleted; `work/HZD-BENCH.md`, the lab index and the painter guide
