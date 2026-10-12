@@ -12,6 +12,8 @@ Our own drawings, made by `work/captures/W1/tools/draw_maps.py` (spectral noise 
 | `boss-fight.png` | n17 p.68 / nut s19: a mixed map, a wedge of stratocumulus streets, an opening ahead toward the sun, painted holes | 24 km |
 | `cutscene-gradient.png` | hzd15 s47: a smooth coverage-against-type gradient | 30 km |
 
+Maps painted in the HZD bench's weather-map painter (`hzd/`, key M; `work/HZD-BENCH.md`) are saved to `painted/<name>.png` and `painted/<name>-height.png`, in the format below. Commit the ones worth keeping.
+
 ## Format
 
 - `<name>.png`: RGBA, 8-bit linear (not colour-managed). R = coverage, G = top type (0 stratus, 0.5 stratocumulus, 1 cumulus), B = bottom type, A = 255 (ignored).

@@ -14,7 +14,7 @@ import { defaultProceduralSettings, packProceduralParams, packProceduralView, PR
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
 import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
-import { applyHzdNdfImages, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
+import { applyHzdNdfImages, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, writeHzdNdf, type HzdNdf } from './hzd/ndf';
 import { hzdNdfKey } from './settings';
 import { bakeSkyProWeather, loadSkyProNoise, loadTakramTextures, skyProWeatherKey, type SkyProWeather, type TakramTextures, type TakramTextureUrls } from './textures';
 import { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
@@ -23,7 +23,7 @@ import type { ProceduralDensityModel } from './types';
 export * from './settings';
 export type { ProceduralDensityModel } from './types';
 export { bakeHzdNoise, type HzdNoise, type HzdNoiseOptions } from './hzd/noise';
-export { applyHzdNdfImages, generateHzdNdf, uploadHzdNdf, type HzdNdf } from './hzd/ndf';
+export { applyHzdNdfImages, generateHzdNdf, uploadHzdNdf, writeHzdNdf, type HzdNdf, type HzdNdfFields } from './hzd/ndf';
 export { HZD_GRADIENTS, hzdHeightGradient } from './hzd/shaper.wgsl';
 export { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 
@@ -147,12 +147,15 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       resourceKey = {};
     },
     setNdf(ndf) {
+      // An uploaded map of the same size is written in place (the bench's painter sends one per stroke update): no new texture or bind group,
+      // and the version bump cuts the temporal history and refreshes the shadow map as a regenerated map does.
+      if (ndf && hzdUploaded && hzdNdf && hzdNdf.texture.width === ndf.size) { writeHzdNdf(device, hzdNdf.texture, ndf.fields); version++; return; }
       const old = hzdNdf?.texture ?? null;
       hzdUploaded = !!ndf; ndfWant = '';
       hzdNdf = ndf ? uploadHzdNdf(device, ndf.size, ndf.fields) : null;
       retire(old);
       if (!ndf) hzdSync();
-      resourceKey = {};
+      resourceKey = {}; version++;
     },
     resourceEntries(base) {
       const B = { params: base + O.params, noiseA: base + O.noiseA, noiseB: base + O.noiseB, weather: base + O.weather, aux: base + O.aux, sampler: base + O.sampler };

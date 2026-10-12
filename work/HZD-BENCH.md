@@ -24,7 +24,7 @@ The sidebar:
   - Sun elevation (0.1° steps from -6° to 15°; the keys `[ ]` move it 0.1° and `{ }` 1°) and azimuth.
   - `time`: a time-of-day slider that sets both from a simple solar model (30° N, late spring).
   - `motion`: the renderer's `animSpeed`. `frozen` matches the H-report captures (`c_animSpeed=0`).
-- **Clouds and exposure:** `coverage` (the HZD coverage bias, ±0.5 around the generated map) and `exposure`.
+- **Clouds and exposure:** `coverage` (the HZD coverage bias, ±0.5 around the generated map), `exposure`, and `paint the weather map (M)`.
 - **Reference:** see below.
 - **Panel:** `tune (T)`, quality (reloads the page), `hide UI (H)`, `help (?)`.
 
@@ -76,6 +76,39 @@ The panel uses the shared Tweakpane panel, `examples/lab/tune/panel.ts`, the sam
 - `copy link to this view and settings`.
 - `__tune.snapshot()` and `__tune.changes()` in the console.
 
+### Weather-map painter (M)
+
+Paint the weather map (the NDF) in a dock on the left of the bench. The sky updates as you paint, so quick changes and demos no longer need another app. Open it with **M** or the sidebar's `paint the weather map`.
+
+- **Sources:**
+  - the sky as it is now (read back from the GPU)
+  - the generator (seed, footprint and the tuning panel's map settings)
+  - W1's example maps and saved paintings, loaded through the runtime's own image path, so they read exactly as `?hzn_image=` does
+  - a PNG from disk, a blank map, or the last painting (autosaved in this browser)
+- **Channels:** coverage, top type, bottom type, min height and max height. Tick the channels a stroke changes; each channel's slider is the value paint, noise, gradient and fill go toward. Click a name to view that channel as a ramp. **Recipes** tick and set several at once: clear, stratus, strato-cu, cumulus, congestus. They are starting points set by eye, not measured.
+- **Tools (1-8 over the map):**
+  - paint, raise, lower, smooth, smudge
+  - noise: toward value × fBM. It breaks up plateaus, since a painted plateau turns into a flat-sided slab (W1).
+  - restore: back toward the source map
+  - gradient: drag a line
+- **Brush:** size in metres, strength, hardness and the noise grain.
+- **Whole-map operations:** fill, blur all, invert, + noise.
+- **Map controls:**
+  - Alt-click picks the values under the cursor.
+  - Right-click puts the camera over that spot.
+  - The wheel zooms. Space-drag or middle-drag pans. Shift-wheel or `[ ]` sets the size.
+  - Ctrl/cmd-Z undoes, shift-ctrl/cmd-Z redoes. `0` fits the map.
+- **The map view:**
+  - north up, and the map tiles
+  - the camera and its view wedge
+  - the horizon ring (beyond `ringStart` the ring replaces the map, as in HZD)
+  - the sun, the wind
+  - the coverage-threshold contour: 0.38 less the coverage bias, about where a mean base shape survives
+  - It follows the map's drift (`ndfMotion`). `map motion: static` keeps the map where you painted it.
+- **Sky:** `update: while painting` or `on release`. Each update cuts the temporal history, so the sky is noisy while a stroke runs. The other controls are the map size (`ndf.tileMeters`), `view from above` (14 km, straight down) and `drop the painting` (back to the generator or `ndf.image`).
+- **Save:** writes `assets/clouds/ndf/painted/<name>.png` and `<name>-height.png` (the authored-map format, `assets/clouds/ndf/README.md`) through the dev server, and points `ndf.image` and `ndf.heightImage` at them. The page's URL then reopens the painted sky: `copy link`. `download` saves the same two PNGs. A static build cannot save.
+- **Where it is:** `examples/lab/hzd/paint/` (`editor.ts` the dock, `fields.ts` the model and brush maths with `fields.test.ts`, `plugin.ts` the dev-server list and save routes). The runtime takes the map through `proc.setNdf`, which writes in place while a map of the same size is bound.
+
 ### URL options
 
 The URL options are the same choices the sidebar and panel make, for links and captures.
@@ -122,7 +155,7 @@ The ids are the try-next items in `docs/research/topics/shape.md` and `layering.
 
 ## Where things are
 
-- **The page:** `examples/lab/hzd/` (`main.ts`, `tune.ts`, `refs.ts`, `refs-plugin.ts`).
+- **The page:** `examples/lab/hzd/` (`main.ts`, `tune.ts`, `refs.ts`, `refs-plugin.ts`, `paint/` the weather-map painter).
 - **The render:** the compare page's "ours" pane, `examples/lab/compare/panes/ours.ts`, forced to `{ model: 'procedural', shaper: 'hzd' }`. Its `internals()` hands the bench the runtime and the procedural settings.
 - **The shared panel:** `examples/lab/tune/panel.ts`.
 - **The settings and their docs:** `packages/runtime/src/procedural/settings.ts`. The round reports are `work/reports/H1.md`, `H5.md`, `H6.md` and `H7.md`. The judging results are `work/calibration/h6-results.md` and `h7-results.md`.

@@ -7,7 +7,7 @@
 //   Reference: a picker of the papers' frames and the photos, side by side or picture in picture (not an overlay: they are not pixel-matched),
 //   hold F for the reference alone, R cycles the mode, , and . step through the list. The images come from the local research folder through
 //   the dev server (refs-plugin.ts), never from the repo. A reference can carry an approximate starting view (sun, camera, coverage).
-//   T: the tuning panel. H: hide the UI. ?: help. [ ] { }: sun elevation by 0.1 / 1 degree.
+//   T: the tuning panel. M: the weather-map painter (paint/editor.ts). H: hide the UI. ?: help. [ ] { }: sun elevation by 0.1 / 1 degree.
 // The URL follows the sidebar and the panel, so a copied link reopens the same view and sky:
 //   ?view=<name> ?sunel= ?sunaz= ?lookaz= ?pitch= ?pos=x,y,z ?fov= ?coverage= ?exposure= ?motion= ?ref=<id> ?refmode=side|pip ?pip=s|m|l ?corner=bl|br
 //   ?refpage=1 (whole page instead of the figure) ?refview=0 (picking a reference keeps the view) ?quality=ultra|high|... ?clean=1 (no UI, captures)
@@ -21,6 +21,8 @@ import { createOursPane } from '../compare/panes/ours';
 import { addSunControl } from '../compare/sun-control';
 import { HZD_REFS, HZD_REF_BY_ID, type RefView } from './refs';
 import { createHzdTuner, PREFIX, type BenchView, type SourceId } from './tune';
+import { createPainter } from './paint/editor';
+import { sharedBackend } from '@clouds/three';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
@@ -57,7 +59,7 @@ try {
   const hud = document.getElementById('hud')!;
   hud.textContent = 'starting the HZD sky...';
   await pane.init();
-  const { clouds, proc } = pane.internals();
+  const { clouds, proc, renderer } = pane.internals();
   if (!proc) throw new Error('the procedural model did not start');
   const core = clouds.core;
   const sources: Record<SourceId, Record<string, unknown>> = {
@@ -174,7 +176,8 @@ try {
     return (cw * refImg.naturalWidth) / (ch * refImg.naturalHeight);
   };
   const layout = () => {
-    const W = innerWidth, H = innerHeight;
+    // The weather-map painter docks on the left (M); the render and the reference share what is left.
+    const L = painter?.inset() ?? 0, W = innerWidth - L, H = innerHeight;
     const showRef = !!refId && (flip || refMode !== 'off');
     let vw = W;
     refBox.className = '';
@@ -182,20 +185,21 @@ try {
     else {
       refBox.style.display = 'block';
       let box: { x: number; y: number; w: number; h: number };
-      if (flip) { box = { x: 0, y: 0, w: W, h: H }; refBox.classList.add('full'); }
+      if (flip) { box = { x: 0, y: 0, w: innerWidth, h: H }; refBox.classList.add('full'); }
       else if (refMode === 'side') {
         // The two halves share the width left of the sidebar (all of it with the UI hidden).
         const avail = W - (uiHidden ? 0 : SIDEBAR);
         vw = Math.round(avail / 2);
-        box = { x: vw, y: 0, w: avail - vw, h: H };
+        box = { x: L + vw, y: 0, w: avail - vw, h: H };
       } else {
         const w = Math.round(W * PIP[pipSize]), h = Math.min(Math.round(H * 0.7), Math.round(w / refAspect()) + 34);
-        box = { x: corner === 'bl' ? 12 : W - w - 12, y: H - h - 12, w, h };
+        box = { x: corner === 'bl' ? L + 12 : L + W - w - 12, y: H - h - 12, w, h };
         refBox.classList.add('pip');
       }
       Object.assign(refBox.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px` });
     }
-    Object.assign(viewHost.style, { width: `${vw}px`, height: `${H}px` });
+    Object.assign(viewHost.style, { left: `${L}px`, width: `${vw}px`, height: `${H}px` });
+    hud.style.left = `${L + 8}px`;
     pane.resize(Math.max(2, vw), Math.max(2, H));
     if (showRef) drawRef();
   };
@@ -213,6 +217,15 @@ try {
     layout();
   };
   addEventListener('resize', layout);
+
+  // --- The weather-map painter (M): paints the NDF in a dock on the left, the sky updating as it goes ---
+  const painter = CLEAN ? null : createPainter({
+    proc, device: sharedBackend(renderer).device, ndf: sources.ndf, hzd: sources.hzd, core, view,
+    aspect: () => canvas.width / Math.max(1, canvas.height),
+    onLayout: () => layout(),
+    onViewChange: () => { core.resetTemporal(); syncUi(); scheduleUrl(); },
+    onSettingsChange: () => { tuner.refresh(); core.resetTemporal(); scheduleUrl(); },
+  });
 
   // --- The sidebar: every option as a control. The URL follows it. ---
   const panel = document.getElementById('panel')!;
@@ -273,6 +286,7 @@ try {
   section('Clouds and exposure');
   slider('coverage', 'the common coverage control: drives the HZD coverage bias (0.5 = the NDF as generated, ±0.5)', 0, 1, 0.01, () => view.coverage, v => { view.coverage = v; });
   slider('exposure', 'exposure multiplier on our calibrated ACES exposure', 0.25, 4, 0.05, () => view.exposure, v => { view.exposure = v; });
+  if (painter) row(button('paint the weather map (M)', 'the weather-map painter: paint coverage, cloud type and heights in a dock beside the sky, load the example maps, save PNGs', () => painter.toggle()));
 
   section('Reference');
   const groups = [...new Set(HZD_REFS.map(r => r.group))];
@@ -326,7 +340,7 @@ try {
   const showUiBtn = document.createElement('button'); showUiBtn.id = 'showui'; showUiBtn.textContent = 'show UI (H)'; document.body.appendChild(showUiBtn);
   const help = document.createElement('div'); help.id = 'help'; help.hidden = true;
   help.innerHTML = `<b>The HZD bench</b><br>Our procedural Horizon Zero Dawn-style sky (GPU Pro 7's chain on the HZD noise set and the five-field weather map), beside Guerrilla's frames and the owner's photos.<br><br>
-<b>Keys</b><br>T tuning panel · H hide the UI · ? this card<br>R cycle the reference mode (off, side by side, picture in picture) · hold F the reference alone<br>, . previous / next reference<br>[ ] sun elevation 0.1° · { } 1°<br>drag to look · fly: WASD QE, shift faster, wheel = speed · orbit: wheel = distance<br><br>
+<b>Keys</b><br>T tuning panel · M weather-map painter · H hide the UI · ? this card<br>R cycle the reference mode (off, side by side, picture in picture) · hold F the reference alone<br>, . previous / next reference<br>[ ] sun elevation 0.1° · { } 1°<br>drag to look · fly: WASD QE, shift faster, wheel = speed · orbit: wheel = distance<br><br>
 <b>Notes</b><br>References are not pixel-matched: their starting views (sun, camera, coverage) are approximate, set by eye. Papers' pages show the figure; "show: the whole page" shows the page.<br>The URL keeps the view, the reference and every changed setting: copy it to share or reopen this state. Guide: work/HZD-BENCH.md.`;
   document.body.appendChild(help);
   const hudEl = hud;

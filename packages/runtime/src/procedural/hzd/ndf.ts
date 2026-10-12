@@ -48,8 +48,17 @@ export function generateHzdNdf(device: GPUDevice, n: HzdNdfSettings): HzdNdf {
  * Upload an authored NDF (W2 maps, a paint layer): `fields` holds size^2 bytes per field, row-major with x fastest, in the spec's order.
  * Missing fields default to bottomType 0, minHeight 0, maxHeight 255.
  */
-export function uploadHzdNdf(device: GPUDevice, size: number, fields: { coverage: Uint8Array; topType: Uint8Array; bottomType?: Uint8Array; minHeight?: Uint8Array; maxHeight?: Uint8Array }): HzdNdf {
+export function uploadHzdNdf(device: GPUDevice, size: number, fields: HzdNdfFields): HzdNdf {
   const texture = device.createTexture({ label: 'hzd ndf (uploaded)', size: [size, size, 2], format: 'rgba8unorm', usage: usage() });
+  writeHzdNdf(device, texture, fields);
+  return { texture, key: '' };
+}
+
+export interface HzdNdfFields { coverage: Uint8Array; topType: Uint8Array; bottomType?: Uint8Array; minHeight?: Uint8Array; maxHeight?: Uint8Array }
+
+/** Write authored fields into an existing NDF texture of the same size, in place (the bench's map painter, one write per stroke update). */
+export function writeHzdNdf(device: GPUDevice, texture: GPUTexture, fields: HzdNdfFields): void {
+  const size = texture.width;
   const a = new Uint8Array(size * size * 4), b = new Uint8Array(size * size * 4);
   for (let i = 0; i < size * size; i++) {
     a[i * 4] = fields.coverage[i]; a[i * 4 + 1] = fields.topType[i]; a[i * 4 + 2] = fields.bottomType?.[i] ?? 0;
@@ -57,7 +66,6 @@ export function uploadHzdNdf(device: GPUDevice, size: number, fields: { coverage
   }
   device.queue.writeTexture({ texture, origin: [0, 0, 0] }, a, { bytesPerRow: size * 4, rowsPerImage: size }, [size, size, 1]);
   device.queue.writeTexture({ texture, origin: [0, 0, 1] }, b, { bytesPerRow: size * 4, rowsPerImage: size }, [size, size, 1]);
-  return { texture, key: '' };
 }
 
 /** Fetch and decode an image as stored bytes (no colour conversion, no premultiplication: the channels are data). */
