@@ -167,7 +167,7 @@ export function createPainter(host: PainterHost): Painter {
   into.appendChild(el('div', { className: 'head' }, el('b', { textContent: 'Weather map painter' }),
     btn('help', 'keys and notes', () => { helpNote.hidden = !helpNote.hidden; }), btn('×', 'close (M)', () => toggle(false))));
   const helpNote = note('Left-drag paints. Alt-click picks the values under the cursor. Right-click puts the camera there. Wheel zooms, space- or middle-drag pans, shift-wheel sets the size. '
-    + 'Over the map: 1-8 tools, [ ] size, ctrl/cmd-Z undo, shift-ctrl/cmd-Z redo, 0 fits the map. M opens and closes the painter. '
+    + 'Over the map: 1-8 tools, [ ] size, ctrl/cmd-Z undo, shift-ctrl/cmd-Z redo, 0 fits the map. M opens and closes the painter; opening it sets the map motion to static, so what you paint stays put (pick drift again in the Sky section). '
     + 'The painting replaces the generated map in the sky from the first stroke until you drop it; the tuning panel\'s weather-map settings apply to "generated" sources. '
     + 'Beyond ringStart (15 km) the horizon ring replaces the map, as in HZD. Paint soft gradients: a flat plateau of coverage turns into a flat-sided slab.');
   helpNote.hidden = true;
@@ -718,6 +718,8 @@ export function createPainter(host: PainterHost): Painter {
     dock.style.width = `${width}px`;
     host.onLayout();
     if (open) {
+      // A painted formation should stay where it was painted: the map holds still while the painter is used (the select still changes it).
+      if (hzd.ndfMotion !== 'static') { hzd.ndfMotion = 'static'; host.onSettingsChange(); }
       sync();
       void refreshSources();
       if (!fields) void loadSource('sky');

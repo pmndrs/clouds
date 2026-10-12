@@ -106,7 +106,7 @@ Paint the weather map (the NDF) in a dock on the left of the bench. The sky upda
   - the horizon ring (beyond `ringStart` the ring replaces the map, as in HZD)
   - the sun, the wind
   - the coverage-threshold contour: 0.38 less the coverage bias, about where a mean base shape survives
-  - It follows the map's drift (`ndfMotion`). `map motion: static` keeps the map where you painted it.
+  - It follows the map's drift (`ndfMotion`). Opening the painter sets `map motion: static`, so the map stays where you painted it; pick `drift` in the Sky section to let it move with the wind again.
 - **Sky:** `update: while painting` or `on release`. Each update cuts the temporal history, so the sky is noisy while a stroke runs. The other controls are the map size (`ndf.tileMeters`), `view from above` (14 km, straight down) and `drop the painting` (back to the generator or `ndf.image`).
 - **Save:** writes `assets/clouds/ndf/painted/<name>.png` and `<name>-height.png` (the authored-map format, `assets/clouds/ndf/README.md`) through the dev server, and points `ndf.image` and `ndf.heightImage` at them. The page's URL then reopens the painted sky: `copy link`. `download` saves the same two PNGs. A static build cannot save.
 - **Where it is:** `examples/lab/hzd/paint/` (`editor.ts` the dock, `fields.ts` the model and brush maths with `fields.test.ts`, `plugin.ts` the dev-server list and save routes). The runtime takes the map through `proc.setNdf`, which writes in place while a map of the same size is bound.
