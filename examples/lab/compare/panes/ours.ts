@@ -29,9 +29,13 @@ export const OURS_EXPOSURE = 0.35;
 
 /** The pane's renderer objects, for pages that drive more than the shared view (the HZD bench's tuning panel). Set once `init` has resolved. */
 export interface OursInternals { clouds: Clouds; proc: ProceduralClouds | undefined; sky: Sky; renderer: WebGPURenderer; camera: PerspectiveCamera }
-export type OursPane = Pane & { internals(): OursInternals };
+/** A renderer, scene and camera made elsewhere (an R3F <Canvas>, the React HZD bench): the pane sets them up and drives them instead of its own. */
+export interface OursHost { renderer: WebGPURenderer; scene: Scene; camera: PerspectiveCamera }
+/** `update` (camera, sun, sky, generation) and `present` (the post pipeline, GPU timestamps) are `render`'s two halves, for a host whose own
+ *  render job draws the frame (R3F's, through setRenderOverride); `render` = update + present. */
+export type OursPane = Pane & { internals(): OursInternals; update(view: ViewState): void; present(): void };
 
-export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams, force?: { model: 'procedural' | 'hybrid'; shaper: ProceduralShaper }): OursPane {
+export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams, force?: { model: 'procedural' | 'hybrid'; shaper: ProceduralShaper }, host?: OursHost): OursPane {
   let renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, sky: Sky, clouds: Clouds, post: RenderPipeline;
   const state = { ready: false, cpuMs: 0, sceneGpu: [] as number[], busy: false, frames: 0, generated: false, skyWait: false, weatherKey: '', cloudsOn: query.get('clouds') !== '0' };
   const cpu: number[] = [];
@@ -51,13 +55,14 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
   let procFrames = 0;
 
   const start = async () => {
-    renderer = new WebGPURenderer({ canvas, antialias: false, trackTimestamp: true });
+    renderer = host?.renderer ?? new WebGPURenderer({ canvas, antialias: false, trackTimestamp: true });
     renderer.toneMapping = ACESFilmicToneMapping;
     renderer.toneMappingExposure = OURS_EXPOSURE;
-    await renderer.init();
-    renderer.setPixelRatio(1);
-    scene = new Scene();
-    camera = new PerspectiveCamera(50, 1, 0.5, 600000);
+    if (!renderer.hasInitialized()) await renderer.init();
+    if (!host) renderer.setPixelRatio(1);
+    scene = host?.scene ?? new Scene();
+    camera = host?.camera ?? new PerspectiveCamera(50, 1, 0.5, 600000);
+    if (host) { camera.fov = 50; camera.near = 0.5; camera.far = 600000; camera.updateProjectionMatrix(); }
     sky = new Sky(renderer, { preset: 'earth', timeOfDay: 14, latitude: 40, north: '-Z' });
     sky.attach(scene);
     sky.createGround({ mode: 'plane', size: 8000000, color: GROUND_HEX, roughness: 1 }).attach(scene);
@@ -168,6 +173,39 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
   };
   let appliedCoverage = -1, coverageTimer = 0;
   let stepGen: () => void = () => {};
+  let t0 = 0;
+  const update = (view: ViewState) => {
+    t0 = performance.now();
+    if (proc) {
+      if (!query.has('sp_coverage')) proc.settings.skypro.coverage = mapCoverage.skypro(view.coverage);
+      if (!query.has('tk_coverage')) proc.settings.takram.coverage = mapCoverage.takram(view.coverage);
+      if (!query.has('hz_coverageBias')) proc.settings.hzd.coverageBias = mapCoverage.hzd(view.coverage);
+      if (PROCEDURAL && !state.ready && ++procFrames > 40) state.ready = true;
+    }
+    if (!PROCEDURAL && view.coverage !== appliedCoverage && !gen && state.generated) { clearTimeout(coverageTimer); const c = view.coverage; coverageTimer = window.setTimeout(() => { if (!gen) beginGeneration(c); }, 400); }
+    stepGen();
+    camera.fov = view.fov;
+    camera.position.set(...view.position);
+    const f = forwardOf(view);
+    camera.lookAt(view.position[0] + f[0], view.position[1] + f[1], view.position[2] + f[2]);
+    camera.near = Math.min(50, Math.max(0.2, camera.position.y * 0.05));
+    camera.updateProjectionMatrix();
+    const key = `${view.sunAz},${view.sunEl}`;
+    if (key !== currentSun) { currentSun = key; sky.setSunDirection({ elevation: view.sunEl, azimuth: view.sunAz }); }
+    renderer.toneMappingExposure = OURS_EXPOSURE * view.exposure;
+    sky.update(camera);
+    void sky.updateAerialPerspective();
+  };
+  const present = () => {
+    post.render();
+    if (!state.busy) {
+      state.busy = true;
+      renderer.resolveTimestampsAsync('render').then(ms => { if (typeof ms === 'number' && ms > 0) { state.sceneGpu.push(ms); if (state.sceneGpu.length > 60) state.sceneGpu.shift(); } }).catch(() => {}).finally(() => { state.busy = false; });
+    }
+    if (state.skyWait && !state.ready && (clouds.core.skyLayer.info?.frames ?? 0) >= 20) state.ready = true;
+    cpu.push(performance.now() - t0); if (cpu.length > 60) cpu.shift();
+    state.frames++;
+  };
 
   return {
     id: force?.shaper === 'hzd' ? 'hzd' : 'ours',
@@ -176,36 +214,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     init: start,
     resize(w, h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); },
     ready: () => state.ready,
-    render(view: ViewState) {
-      const t0 = performance.now();
-      if (proc) {
-        if (!query.has('sp_coverage')) proc.settings.skypro.coverage = mapCoverage.skypro(view.coverage);
-        if (!query.has('tk_coverage')) proc.settings.takram.coverage = mapCoverage.takram(view.coverage);
-        if (!query.has('hz_coverageBias')) proc.settings.hzd.coverageBias = mapCoverage.hzd(view.coverage);
-        if (PROCEDURAL && !state.ready && ++procFrames > 40) state.ready = true;
-      }
-      if (!PROCEDURAL && view.coverage !== appliedCoverage && !gen && state.generated) { clearTimeout(coverageTimer); const c = view.coverage; coverageTimer = window.setTimeout(() => { if (!gen) beginGeneration(c); }, 400); }
-      stepGen();
-      camera.fov = view.fov;
-      camera.position.set(...view.position);
-      const f = forwardOf(view);
-      camera.lookAt(view.position[0] + f[0], view.position[1] + f[1], view.position[2] + f[2]);
-      camera.near = Math.min(50, Math.max(0.2, camera.position.y * 0.05));
-      camera.updateProjectionMatrix();
-      const key = `${view.sunAz},${view.sunEl}`;
-      if (key !== currentSun) { currentSun = key; sky.setSunDirection({ elevation: view.sunEl, azimuth: view.sunAz }); }
-      renderer.toneMappingExposure = OURS_EXPOSURE * view.exposure;
-      sky.update(camera);
-      void sky.updateAerialPerspective();
-      post.render();
-      if (!state.busy) {
-        state.busy = true;
-        renderer.resolveTimestampsAsync('render').then(ms => { if (typeof ms === 'number' && ms > 0) { state.sceneGpu.push(ms); if (state.sceneGpu.length > 60) state.sceneGpu.shift(); } }).catch(() => {}).finally(() => { state.busy = false; });
-      }
-      if (state.skyWait && !state.ready && (clouds.core.skyLayer.info?.frames ?? 0) >= 20) state.ready = true;
-      cpu.push(performance.now() - t0); if (cpu.length > 60) cpu.shift();
-      state.frames++;
-    },
+    render(view: ViewState) { update(view); present(); },
+    update,
+    present,
     stats(): PaneStats {
       const c = clouds?.timings ?? {};
       const cloudSum = Object.values(c).reduce((x, y) => x + y, 0);

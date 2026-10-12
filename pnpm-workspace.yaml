@@ -1,3 +1,9 @@
 packages:
   - packages/*
   - packages/legacy/*
+
+# One R3F everywhere: the workspace packages' auto-installed peers (@clouds/react, @pmndrs/sky) otherwise resolve `>=10.0.0-0` to the alpha
+# tag while the root pins the canary, and Vite pre-bundles two copies. Bump with the root package.json (alpha.6 next).
+overrides:
+  '@react-three/fiber': 10.0.0-canary.fbc659b
+  '@react-three/tsl': 10.0.0-canary.fbc659b

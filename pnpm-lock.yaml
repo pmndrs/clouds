@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@react-three/fiber': 10.0.0-canary.fbc659b
+  '@react-three/tsl': 10.0.0-canary.fbc659b
+
 importers:
 
   .:
@@ -122,8 +126,8 @@ importers:
         specifier: workspace:*
         version: link:../three
       '@react-three/fiber':
-        specifier: 10.0.0-alpha.5
-        version: 10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.0)
+        specifier: 10.0.0-canary.fbc659b
+        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.0)
       react:
         specifier: '>=19.0 <19.3'
         version: 19.2.3
@@ -156,13 +160,13 @@ importers:
         version: link:../three
       '@pmndrs/sky':
         specifier: '>=0.5.0'
-        version: 0.5.0(@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
       '@react-three/fiber':
-        specifier: '>=10.0.0-0'
-        version: 10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        specifier: 10.0.0-canary.fbc659b
+        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
       '@react-three/tsl':
-        specifier: '>=10.0.0-0'
-        version: 10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))
+        specifier: 10.0.0-canary.fbc659b
+        version: 10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))
       '@webgpu/types':
         specifier: '>=0.1.60'
         version: 0.1.71
@@ -482,11 +486,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@monogrid/gainmap-js@3.4.0':
-    resolution: {integrity: sha512-2Z0FATFHaoYJ8b+Y4y4Hgfn3FRFwuU5zRrk+9dFWp4uGAdHGqVEdP7HP+gLA3X469KXHmfupJaUbKo1b/aDKIg==}
-    peerDependencies:
-      three: '>= 0.159.0'
-
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
     engines: {node: ^22.20 || ^24.12 || >=25}
@@ -522,7 +521,7 @@ packages:
   '@pmndrs/sky@0.5.0':
     resolution: {integrity: sha512-l9AC9cCc5o0QefOzgBaWoMK311u5U28nrCx1rJNIElPNU8WcFgarfTJA4g50oNNIy8XzG18ORNPnVclocDXWfQ==}
     peerDependencies:
-      '@react-three/fiber': '>=10.0.0-0'
+      '@react-three/fiber': 10.0.0-canary.fbc659b
       react: '>=18'
       react-dom: '>=18'
       three: '>=0.186.0'
@@ -1229,16 +1228,6 @@ packages:
   '@radix-ui/rect@1.1.3':
     resolution: {integrity: sha512-JtyZR+mqgBibTo8xea3B6ZRmzZiM/YeVBtUkas6zMuXjAlfIFIW2FgqeM9eLyvEaYX66vr6DJMK+4U6LV0KhNw==}
 
-  '@react-three/fiber@10.0.0-alpha.5':
-    resolution: {integrity: sha512-NDnHUmaKkHh2IPXl0aUjXgiWhfgvUMbe045IRpXYP0f39FmdWAA+7iG0Kxt4bnb5dbTXTg9fvm+tMfPslM8Lmg==}
-    peerDependencies:
-      react: '>=19.0 <19.3'
-      react-dom: '>=19.0 <19.3'
-      three: '>=0.185.0'
-    peerDependenciesMeta:
-      react-dom:
-        optional: true
-
   '@react-three/fiber@10.0.0-canary.fbc659b':
     resolution: {integrity: sha512-7TWJK8rf6TS/4JVGuOy+kW4UFkG4BZXYad6h4YVa0kNYbmMGP3gdrRc93Uk/njFTq26JMbzpshKP1aLoydt70Q==}
     peerDependencies:
@@ -1252,7 +1241,7 @@ packages:
   '@react-three/tsl@10.0.0-canary.fbc659b':
     resolution: {integrity: sha512-ZdD8o84eRZRd/lMUBYVUdPqhKaddduOlTFzX0VkVktGgrSnc+4a+YTXOS4fua9VLWWIxcGX3WU9/EksrsI1Mwg==}
     peerDependencies:
-      '@react-three/fiber': ^10.0.0-alpha.6
+      '@react-three/fiber': 10.0.0-canary.fbc659b
       react: '>=19.0 <19.4'
       three: '>=0.185.0'
 
@@ -1495,7 +1484,7 @@ packages:
     resolution: {integrity: sha512-k/QAgED7bMkjVzHiBu2QD1Cqg5lcgHLc8vxVeiTTzUE+glZcZOXTjjvi74yjb+eKQHW5wh1WL/DjxVvluAQU0Q==}
     peerDependencies:
       '@react-three/drei': '>=10.0.2'
-      '@react-three/fiber': '>=9.0.4'
+      '@react-three/fiber': 10.0.0-canary.fbc659b
       '@react-three/postprocessing': '>=3.0.4'
       postprocessing: '>=6.36.7'
       react: '>=19.0'
@@ -1514,7 +1503,7 @@ packages:
     resolution: {integrity: sha512-cfoEI3W5NJuYUL1Pd4k5UXLlb7rLThh3dNIOO+/EPw8cbuRUgiIVEVtNPmA+v5KRJf87gPI+rjuxgK0huAajDw==}
     peerDependencies:
       '@react-three/drei': '*'
-      '@react-three/fiber': '>=9.0.4'
+      '@react-three/fiber': 10.0.0-canary.fbc659b
       '@react-three/postprocessing': '>=3.0.4'
       postprocessing: '>=6.36.7'
       react: '>=19.0'
@@ -1532,7 +1521,7 @@ packages:
   '@takram/three-geospatial@0.9.1':
     resolution: {integrity: sha512-fB7DAW0afN87e0/CcgZYVkF76yI0SXaRcVuT7M6+5vLZ8ySfJ7br2ceni37GVyY7zO1sLMBtoaMCH1mal/Zf9Q==}
     peerDependencies:
-      '@react-three/fiber': '>=9.0.4'
+      '@react-three/fiber': 10.0.0-canary.fbc659b
       react: '>=19.0'
       three: '>=0.170.0'
 
@@ -1753,17 +1742,6 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  immediate@3.0.6:
-    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
-
-  is-promise@2.2.2:
-    resolution: {integrity: sha512-+lP4/6lKUBfQjZ2pdxThZvLUAafmZb8OAxFb8XXtiQmS35INgr85hdOGoEs124ez1FCnZJt6jau/T+alh58QFQ==}
-
-  its-fine@2.0.0:
-    resolution: {integrity: sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng==}
-    peerDependencies:
-      react: ^19.0.0
-
   its-fine@2.1.1:
     resolution: {integrity: sha512-C5ZoVkeqSt0Aje0tzESO+iT/EQpNFNL39GkP7mCACtoZUFD6GcyerFCr6kp0ZtiII4W9HoYkY48Soy5xE/uHKw==}
     peerDependencies:
@@ -1788,9 +1766,6 @@ packages:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
     hasBin: true
-
-  lie@3.3.0:
-    resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
 
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
@@ -1917,9 +1892,6 @@ packages:
     resolution: {integrity: sha512-YmH+t74J2X1lwYjKzK/tgs9C9kqWWPB9JwZiDF5mEf4BdCEAmEFbO8lXBA7NM0/j4g+x6FgD/Tt5/kT7ogbEDA==}
     peerDependencies:
       three: '>= 0.168.0 < 0.187.0'
-
-  promise-worker-transferable@1.0.4:
-    resolution: {integrity: sha512-bN+0ehEnrXfxV2ZQvU2PetO0n4gqBD4ulq3MI1WOPLgr7/Mg9yRQkX5+0v1vagr74ZTsl7XtzlaYDo2EuCeYJw==}
 
   radix-ui@1.6.7:
     resolution: {integrity: sha512-QBdhh1arIEUvPC0dQ5+nwWAxt7+N+oP/9jPwjJkGFoSk/sqxg32gJtSXGtFh8frAIcS6oC9cx2Q+7KYCQLOAeA==}
@@ -2462,16 +2434,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@monogrid/gainmap-js@3.4.0(three@0.186.0)':
-    dependencies:
-      promise-worker-transferable: 1.0.4
-      three: 0.186.0
-
-  '@monogrid/gainmap-js@3.4.0(three@0.186.1)':
-    dependencies:
-      promise-worker-transferable: 1.0.4
-      three: 0.186.1
-
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
@@ -2484,14 +2446,6 @@ snapshots:
 
   '@pmndrs/scheduler@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     optionalDependencies:
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-
-  '@pmndrs/sky@0.5.0(@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)':
-    dependencies:
-      three: 0.186.1
-    optionalDependencies:
-      '@react-three/fiber': 10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 
@@ -3258,38 +3212,17 @@ snapshots:
 
   '@radix-ui/rect@1.1.3': {}
 
-  '@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.0)':
+  '@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.0)':
     dependencies:
       '@babel/runtime': 7.29.7
-      '@monogrid/gainmap-js': 3.4.0(three@0.186.0)
-      '@pmndrs/scheduler': 0.2.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@pmndrs/scheduler': 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       dequal: 2.0.3
-      its-fine: 2.0.0(@types/react@19.2.8)(react@19.2.3)
+      its-fine: 2.1.1(@types/react@19.2.8)(react@19.2.3)
       react: 19.2.3
       react-use-measure: 2.1.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      scheduler: 0.27.0
+      scheduler: 0.28.0
       suspend-react: 0.1.3(react@19.2.3)
       three: 0.186.0
-      use-sync-external-store: 1.7.0(react@19.2.3)
-      zustand: 5.0.15(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
-    optionalDependencies:
-      react-dom: 19.2.3(react@19.2.3)
-    transitivePeerDependencies:
-      - '@types/react'
-      - immer
-
-  '@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)':
-    dependencies:
-      '@babel/runtime': 7.29.7
-      '@monogrid/gainmap-js': 3.4.0(three@0.186.1)
-      '@pmndrs/scheduler': 0.2.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      dequal: 2.0.3
-      its-fine: 2.0.0(@types/react@19.2.8)(react@19.2.3)
-      react: 19.2.3
-      react-use-measure: 2.1.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      scheduler: 0.27.0
-      suspend-react: 0.1.3(react@19.2.3)
-      three: 0.186.1
       use-sync-external-store: 1.7.0(react@19.2.3)
       zustand: 5.0.15(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
     optionalDependencies:
@@ -3316,18 +3249,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - immer
-
-  '@react-three/tsl@10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))':
-    dependencies:
-      '@react-three/fiber': 10.0.0-alpha.5(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
-      dequal: 2.0.3
-      react: 19.2.3
-      three: 0.186.1
-      zustand: 5.0.15(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
-    transitivePeerDependencies:
-      - '@types/react'
-      - immer
-      - use-sync-external-store
 
   '@react-three/tsl@10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))':
     dependencies:
@@ -3754,17 +3675,6 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  immediate@3.0.6: {}
-
-  is-promise@2.2.2: {}
-
-  its-fine@2.0.0(@types/react@19.2.8)(react@19.2.3):
-    dependencies:
-      '@types/react-reconciler': 0.28.9(@types/react@19.2.8)
-      react: 19.2.3
-    transitivePeerDependencies:
-      - '@types/react'
-
   its-fine@2.1.1(@types/react@19.2.8)(react@19.2.3):
     dependencies:
       '@types/react-reconciler': 0.28.9(@types/react@19.2.8)
@@ -3781,10 +3691,6 @@ snapshots:
   jsesc@3.1.0: {}
 
   json5@2.2.3: {}
-
-  lie@3.3.0:
-    dependencies:
-      immediate: 3.0.6
 
   lightningcss-android-arm64@1.32.0:
     optional: true
@@ -3874,11 +3780,6 @@ snapshots:
   postprocessing@6.39.5(three@0.186.1):
     dependencies:
       three: 0.186.1
-
-  promise-worker-transferable@1.0.4:
-    dependencies:
-      is-promise: 2.2.2
-      lie: 3.3.0
 
   radix-ui@1.6.7(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
