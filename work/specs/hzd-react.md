@@ -59,8 +59,7 @@ import `@react-three/fiber/webgpu`. That entry still exists in the canary (depre
   switch to `@react-three/tsl`** (and add it as a peer) in phase 0, or the r3f example breaks.
 - Phase 0 checks the r3f page, `scripts/check-consumer.mjs` and `scripts/check-packed-consumer.mjs`.
 
-**Where shadcn lives:** `examples/lab/ui/` (`components/ui/*.tsx`, `lib/utils.ts`, `globals.css` with the theme tokens, `components.json`), so
-the Decima bench and later pages can share it. Tailwind's preflight applies only to pages that import `globals.css`.
+**Where shadcn lives:** inside the bench, `examples/lab/hzd-r3f/ui/` (`components/*.tsx`, `lib/utils.ts`, `globals.css` with the theme tokens), laid out so it can move to `examples/lab/ui/` when the other labs convert. Tailwind's preflight applies only to pages that import `globals.css`.
 
 ## Architecture
 
@@ -182,10 +181,10 @@ Each phase ends with `pnpm typecheck`, `pnpm test`, and a check against the list
 - **Tailwind preflight** restyles Tweakpane's DOM. Scope it or reset `#tune`.
 - **Shared device.** `sharedBackend` must see the renderer after `init()`; the factory guarantees that.
 
-## Open decisions for the owner
+## Decisions (owner, 2026-10-12)
 
-1. Parallel page and cut-over (recommended), or convert `hzd/` in place?
-2. Canary hash now and alpha.6 when it ships (recommended), or wait for alpha.6?
-3. shadcn in `examples/lab/ui/` for every bench (recommended), or inside `hzd-r3f/` only?
-4. Procedural support in `@clouds/react` now, or after the bench proves the shape (recommended)?
-5. Merge `hzd-r3f` into `main` after phase 2 with both pages side by side, or only at the cut-over?
+1. **A parallel page** (`hzd-r3f/`) and a cut-over.
+2. **Pin the canary** by hash now; move to `10.0.0-alpha.6` when it is published (one place: the root `package.json`, plus `@react-three/tsl`).
+3. **shadcn stays inside this bench** for now (`examples/lab/hzd-r3f/ui/`). If it goes well, every lab converts, and `ui/` moves to `examples/lab/ui/`.
+4. **`@clouds/react` procedural support waits.** This work only gets the bench into React.
+5. **`hzd-r3f` merges into `main` after the cut-over**, not before.

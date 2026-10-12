@@ -1,0 +1,69 @@
+/* The React HZD bench's Tailwind v4 + shadcn theme. Scoped: Tailwind scans only this bench's folder, and only this page imports the file.
+   Dark only, dense and monospace like the vanilla bench (12px Menlo, #8fb0dd section labels, #f0b85a for "changed" and warnings). */
+@import "tailwindcss" source(none);
+@import "tw-animate-css";
+@source "../";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.25rem;
+  --background: #0c0f13;
+  --foreground: #e7ecf2;
+  --card: #0c0f13;
+  --card-foreground: #e7ecf2;
+  --popover: #131921;
+  --popover-foreground: #e7ecf2;
+  --primary: #8fb0dd;
+  --primary-foreground: #0c0f13;
+  --secondary: #222a35;
+  --secondary-foreground: #e7ecf2;
+  --muted: #1b2430;
+  --muted-foreground: #9aa6b2;
+  --accent: #2a3a52;
+  --accent-foreground: #ffffff;
+  --destructive: #f08a74;
+  --border: #2a3340;
+  --input: #3a4554;
+  --ring: #8fb0dd;
+  --warn: #f0b85a;
+  --label: #8fb0dd;
+  --value: #c9d2db;
+  --overlay: rgb(0 0 0 / 0.72);
+}
+
+@theme inline {
+  --font-sans: ui-monospace, Menlo, "SF Mono", Consolas, monospace;
+  --font-mono: ui-monospace, Menlo, "SF Mono", Consolas, monospace;
+  --radius-sm: calc(var(--radius) - 1px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-warn: var(--warn);
+  --color-label: var(--label);
+  --color-value: var(--value);
+  --color-overlay: var(--overlay);
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html, body, #root { height: 100%; }
+  body { @apply bg-black text-foreground font-sans text-xs leading-snug overflow-hidden; color-scheme: dark; }
+}

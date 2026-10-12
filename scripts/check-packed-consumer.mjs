@@ -45,7 +45,7 @@ const dev = rootPkg.devDependencies;
 const file = n => `file:../release-pkgs/${tar(n)}`;
 const deps = {
   '@clouds/runtime': file('runtime'), '@clouds/three': file('three'), '@clouds/react': file('react'),
-  three: dev.three, react: dev.react, 'react-dom': dev['react-dom'], '@react-three/fiber': dev['@react-three/fiber'], '@pmndrs/sky': dev['@pmndrs/sky'],
+  three: dev.three, react: dev.react, 'react-dom': dev['react-dom'], '@react-three/fiber': dev['@react-three/fiber'], '@react-three/tsl': dev['@react-three/tsl'], '@pmndrs/sky': dev['@pmndrs/sky'],
 };
 await writeFile(path.join(dest, 'package.json'), JSON.stringify({
   name: 'clouds-packed-release-consumer', private: true, type: 'module', dependencies: deps,

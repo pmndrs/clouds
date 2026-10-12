@@ -9,7 +9,8 @@
 // composites the clouds node into R3F's render pipeline (`useRenderPipeline`): over the scene pass, or over whatever colour node the
 // pipeline already outputs when something else (sky's <AutoHaze />) set it first. <Cloudscape> shows a generated, camera-following cloud field.
 import { Suspense, createContext, use, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useFrame, useRenderPipeline, useStore, useThree } from '@react-three/fiber/webgpu';
+import { useFrame, useStore, useThree } from '@react-three/fiber';
+import { useRenderPipeline } from '@react-three/tsl';
 import { useSky } from '@pmndrs/sky/react';
 import type { Sky } from '@pmndrs/sky';
 import type { DirectionalLight, Vector3 } from 'three';
@@ -93,7 +94,7 @@ const DEFAULT_POSITION: [number, number, number] = [0, 500, 0];
 
 export function Clouds(props: CloudsProps) {
   const { volume, noise = '/clouds/noise/', position = DEFAULT_POSITION, quality = 'high', sky: skyProp, haze = false, lighting, planetCenter, shadowLight, onLoad, children } = props;
-  const renderer = useThree(s => s.gl) as unknown as WebGPURenderer;
+  const renderer = useThree(s => s.renderer) as unknown as WebGPURenderer;
   const contextSky = useSky() as Sky | null;
   const sky = skyProp === false ? undefined : (skyProp ?? contextSky ?? undefined);
   const noiseAsset = use(cached(noiseCache, noise, () => loadCloudNoise(noise)));
@@ -185,8 +186,8 @@ export function Clouds(props: CloudsProps) {
   const foreignPass = useRef<ScenePass | undefined>(undefined);
   const ownPass = useRef<ScenePass | undefined>(undefined);
   // Runs before `useRenderPipeline`'s own layout effect (same component, declared first): the scene pass an earlier <AutoHaze /> left in the store.
-  useLayoutEffect(() => { foreignPass.current = store.getState().passes.scenePass; }, [store]);
-  const { renderPipeline, passes } = useRenderPipeline(({ passes: p }) => { ownPass.current = p.scenePass; });
+  useLayoutEffect(() => { foreignPass.current = store.getState().passes?.scenePass; }, [store]);
+  const { renderPipeline, passes } = useRenderPipeline(({ passes: p }) => { ownPass.current = p?.scenePass; });
   const scenePass = passes.scenePass;
   useEffect(() => {
     if (!instance || !renderPipeline || !scenePass) return;
@@ -199,7 +200,7 @@ export function Clouds(props: CloudsProps) {
     } else {
       // Something (<AutoHaze />) already built a colour node. Its scene pass is not reachable from the node, but it is the one hook that is not ours:
       // reuse it for depth so the scene renders once. (If it cannot be told apart, depth comes from our own pass and the scene renders twice.)
-      const other = [foreignPass.current, store.getState().passes.scenePass].find(p => p && p !== ownPass.current);
+      const other = [foreignPass.current, store.getState().passes?.scenePass].find(p => p && p !== ownPass.current);
       pass = other ?? scenePass; colour = previous;
       if (!other) console.warn('@clouds/react: could not find the scene pass behind the pipeline output; the scene is rendered twice.');
     }

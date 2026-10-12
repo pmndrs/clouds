@@ -3,7 +3,8 @@
 import { StrictMode, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ACESFilmicToneMapping, type PerspectiveCamera } from 'three';
-import { Canvas, useFrame, useThree } from '@react-three/fiber/webgpu';
+import type { WebGPURenderer } from 'three/webgpu';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, useSky } from '@pmndrs/sky/react';
 import { AutoHaze } from '@pmndrs/sky/react/auto-haze';
 import { Clouds, Cloudscape, useClouds, type CloudsInstance, type CloudsProps } from '@clouds/react'; // CLOUDS
@@ -49,7 +50,7 @@ function Ground() {
 
 /** Camera rig, bookmarks, the capture contract and a small HUD. */
 function Harness({ cloudsRef }: { cloudsRef: { current: CloudsInstance | null } }) {
-  const sky = useSky()!, gl = useThree(s => s.gl), camera = useThree(s => s.camera) as PerspectiveCamera;
+  const sky = useSky()!, gl = useThree(s => s.renderer) as WebGPURenderer, camera = useThree(s => s.camera) as PerspectiveCamera;
   const rig = useMemo(() => new CameraRig(camera, gl.domElement), [camera, gl]);
   const hud = useRef<HTMLPreElement | null>(null);
   const s = useRef({ bookmark: 'ground', time: bookmarkTime('ground'), frame: 0, frameTimes: [] as number[], sceneGpu: [] as number[], busy: false, ready: false });

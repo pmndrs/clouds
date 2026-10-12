@@ -1,4 +1,4 @@
-import { Canvas, useFrame, useThree } from '@react-three/fiber/webgpu';
+import { Canvas, useFrame, useThree, type DefaultRendererProps } from '@react-three/fiber/webgpu';
 import { DensityCloud, type DensityCloudHandle } from '@clouds/legacy-react';
 import { createDensityField, createReferenceCloud, type DenseDensityField, type ReferenceCloudSettings } from '@clouds/legacy-three';
 import { useCallback, useEffect, useMemo, useRef, useState, StrictMode } from 'react';
@@ -23,13 +23,14 @@ const NO_OCCLUDER = {
 let ownedDevice: GPUDevice | null = null;
 let ownedRenderer: WebGPURenderer | null = null;
 
-async function createOwnedRenderer(defaultProps: { canvas: HTMLCanvasElement; [key: string]: unknown }) {
+async function createOwnedRenderer(defaultProps: DefaultRendererProps) {
   if (!navigator.gpu) throw new Error('This verification requires a browser with WebGPU.');
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
   if (!adapter) throw new Error('No WebGPU adapter is available.');
   ownedDevice = await adapter.requestDevice({});
   const renderer = new WebGPURenderer({
-    ...defaultProps,
+    ...(defaultProps as Record<string, unknown>),
+    canvas: defaultProps.canvas as HTMLCanvasElement,
     antialias: false,
     device: ownedDevice,
   });

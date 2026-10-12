@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
 import type { Plugin } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 // /decima (no trailing slash) used to fall through to the gallery: redirect a bare page folder to its index.
 const slashRedirect = (): Plugin => ({
   name: 'lab-slash-redirect',
@@ -24,7 +26,9 @@ export default defineConfig({
   root: 'examples/lab',
   // The docs page (examples/lab/docs/) builds editor and image links from the checkout's own path.
   define: { __REPO_ROOT__: JSON.stringify(fileURLToPath(new URL('.', import.meta.url))) },
-  plugins: [slashRedirect(), cloudPhotos(fileURLToPath(new URL('.', import.meta.url))), decimaRefs(fileURLToPath(new URL('.', import.meta.url))), hzdRefs(fileURLToPath(new URL('.', import.meta.url))), hzdNdfMaps(fileURLToPath(new URL('.', import.meta.url)))],
+  // React Fast Refresh only for the React HZD bench (the other TSX pages keep esbuild's plain JSX transform); Tailwind only touches CSS that
+  // imports it (the bench's ui/globals.css).
+  plugins: [react({ include: /examples\/lab\/hzd-r3f\/.*\.tsx?$/ }), tailwindcss(), slashRedirect(), cloudPhotos(fileURLToPath(new URL('.', import.meta.url))), decimaRefs(fileURLToPath(new URL('.', import.meta.url))), hzdRefs(fileURLToPath(new URL('.', import.meta.url))), hzdNdfMaps(fileURLToPath(new URL('.', import.meta.url)))],
   resolve: { alias: {
     '@clouds/legacy-three/layers': fileURLToPath(new URL('./packages/legacy/three/src/layers/index.ts', import.meta.url)),
     '@clouds/legacy-three/environment': fileURLToPath(new URL('./packages/legacy/three/src/environment/index.ts', import.meta.url)),
