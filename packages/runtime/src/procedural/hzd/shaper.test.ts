@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_FLOATS, hzdNdfKey, PROC_HZD_FORMS_OFFSET, PROC_HZD_LUT_OFFSET, PROC_HZD_LUT_FLOATS } from '../settings';
 import { PROC_PARAMS_WGSL } from '../density.wgsl';
-import { profilePeaks, profileTablesSmoothed } from '../../generate/profile-tables';
-import { HZD_GRADIENTS, hzdHeightGradient, hzdTableProfile, hzdTableType, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
+import { profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
+import { HZD_GRADIENTS, HZD_LUT_WORDS, packHzdLutQuads, hzdHeightGradient, hzdTableProfile, hzdTableType, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
 import { HZD_DETAIL_GAINS, HZD_SHAPE_GAINS, hzdNoiseBakeWgsl, worleyLadder } from './noise.wgsl';
 import { HZD_NDF_SAMPLE_WGSL } from './ndf.wgsl';
 
@@ -87,7 +87,7 @@ describe('HZD shaper (H1)', () => {
     const s = defaultProceduralSettings('hzd');
     const out = new Float32Array(PROC_PARAM_FLOATS);
     expect(packProceduralParams(s, out)).toEqual([1500, 5000]);
-    expect(Array.from(out.subarray(120, 124))).toEqual([1500, 5000, 16000, s.hzd.extinction].map(Math.fround));
+    expect(Array.from(out.subarray(120, 124))).toEqual([1500, 5000, 32000, s.hzd.extinction].map(Math.fround));
     expect(out[140]).toBeCloseTo(0.5);                 // drift: the map moves at half the wind offset
     s.hzd.ndfMotion = 'static';
     packProceduralParams(s, out);
@@ -136,6 +136,24 @@ describe('HZD shaper F1: types and forms', () => {
     expect(byte(8192 + 64 * 10 + 30)).toBe(profilePeaks()[64 * 10 + 30]);
     expect(PROC_PARAMS_WGSL).toContain('hzLut: array<vec4<f32>, 1024>');
   });
+  it('F2 step 1: the storage buffer holds each texel\'s bilinear quad; filtered as the shader does, it matches the uniform path\'s read', () => {
+    const words = packHzdLutQuads();
+    expect(words.length).toBe(HZD_LUT_WORDS);
+    const tables = [...Object.values(profileTablesSmoothed()), profilePeaks()];
+    // hzdLut's storage branch: x0 = min(floor(63 t), 62), y0 = min(floor(clamp(64 v - 0.5, 0, 63)), 62), one word, unpack4x8unorm.
+    const read = (t: number, type: number, v: number) => {
+      const x = Math.min(Math.max(type, 0), 1) * 63, y = Math.min(Math.max(v * 64 - 0.5, 0), 63);
+      const x0 = Math.min(Math.floor(x), 62), y0 = Math.min(Math.floor(y), 62), fx = x - x0, fy = y - y0;
+      const w = words[t * 4096 + y0 * 64 + x0], c = [0, 8, 16, 24].map(s => ((w >>> s) & 255) / 255);
+      const a = c[0] + (c[1] - c[0]) * fx, b = c[2] + (c[3] - c[2]) * fx;
+      return a + (b - a) * fy;
+    };
+    for (let t = 0; t < 3; t++) for (const [type, v] of [[0, 0], [0.4, 0.3], [0.77, 0.61], [1, 1], [0.123, 0.999], [0.999, 0.5]]) {
+      expect(read(t, type, v)).toBeCloseTo(sampleProfileTable(tables[t], type, v), 6);
+    }
+    expect(PROC_HZD_WGSL).toContain('let c = unpack4x8unorm(procLut[t * 4096u + y0 * 64u + x0]);');
+    expect(procShaperBindingsWgsl('hzd', 1, 9)).toContain(`@binding(17) var<storage, read> procLut: array<u32, ${HZD_LUT_WORDS}>;`);
+  });
   it('step 1: the table profile gives crisp bases at bottom type 0, ragged ones at 1, and taller tops with the top type', () => {
     // Bottom type 0 reaches most of its peak within 15 % of the column; bottom type 1 rises slowly.
     expect(hzdTableProfile(0.4, 0, 0.15)).toBeGreaterThan(0.8);
@@ -151,16 +169,22 @@ describe('HZD shaper F1: types and forms', () => {
     expect(hzdTableType(0, [0.14, 0.27, 0.4])).toBeCloseTo(0.14);
     expect(hzdTableType(0.75, [0.14, 0.27, 0.4])).toBeCloseTo(0.335);
   });
-  it('step 1: packs the type words; the Nutshell path stays the default', () => {
+  it('step 1: packs the type words; F2: the tables (storage source) are the default, Nutshell stays selectable', () => {
     const s = defaultProceduralSettings('hzd');
     const out = new Float32Array(PROC_PARAM_FLOATS);
     packProceduralParams(s, out);
     const o = PROC_HZD_FORMS_OFFSET;
-    expect(Array.from(out.subarray(o, o + 4))).toEqual([0, 0.14, 0.27, 0.4].map(Math.fround));
+    expect(Array.from(out.subarray(o, o + 4))).toEqual([2, 0.14, 0.27, 0.4].map(Math.fround));
+    s.hzd.profileMode = 'nutshell';
+    packProceduralParams(s, out);
+    expect(out[o]).toBe(0);
     s.hzd.profileMode = 'tables'; s.hzd.bottomTypeVariation = 0.6;
     packProceduralParams(s, out);
-    expect(out[o]).toBe(1);
+    expect(out[o]).toBe(2);                    // F2: the storage-buffer source is the default
     expect(out[o + 5]).toBeCloseTo(0.6);
+    s.hzd.tableSource = 'uniform';
+    packProceduralParams(s, out);
+    expect(out[o]).toBe(1);                    // F1's uniform-array path stays selectable
     expect(PROC_HZD_WGSL).toContain('if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }');
   });
   it('step 2: anvils (n17 exponent with its clamp switch, hag eq 17-18) and a placed storm cell that lifts the shell', () => {

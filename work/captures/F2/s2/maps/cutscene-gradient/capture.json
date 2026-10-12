@@ -1,0 +1,106 @@
+{
+  "url": "http://127.0.0.1:54469/hzd/?clean=1&motion=0&hz_profileMode=tables&hzn_image=/clouds/ndf/cutscene-gradient.png&hzn_tileMeters=30000",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:08:01.633Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2/maps/cutscene-gradient/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 39.48237450000001,
+          "lightGridReduce": 0.010499,
+          "lightGrid": 0.010791,
+          "marchNear": 0.8261562833333331,
+          "marchFar": 2.6856305666666667,
+          "shadowMap": 1.785767833333333,
+          "composite": 1.744501183333333,
+          "dome": 0.71201065,
+          "skyLayer": 24.17087846666666,
+          "skyResolve": 4.516888033333334,
+          "cloudsTotal": 36.46312301666666,
+          "total": 75.94549751666668
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 30000,
+          "ndf.image": "/clouds/ndf/cutscene-gradient.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2/maps/cutscene-gradient/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 45.736461116666646,
+          "lightGridReduce": 0.010499,
+          "lightGrid": 0.13118533333333335,
+          "marchNear": 0.8217742166666664,
+          "marchFar": 2.2716653333333334,
+          "shadowMap": 1.657152135135135,
+          "composite": 2.2769596666666674,
+          "dome": 0.7981940166666668,
+          "skyLayer": 32.755671750000005,
+          "skyResolve": 5.581150316666667,
+          "cloudsTotal": 46.304251768468475,
+          "total": 92.04071288513512
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 30000,
+          "ndf.image": "/clouds/ndf/cutscene-gradient.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

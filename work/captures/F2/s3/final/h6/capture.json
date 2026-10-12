@@ -1,0 +1,192 @@
+{
+  "url": "http://127.0.0.1:54028/hzd/?clean=1&motion=0&hz_profileMode=nutshell&hz_extinction=0.5",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:42:41.116Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s3/final/h6/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 14.5426114,
+          "lightGridReduce": 0.03529,
+          "lightGrid": 0.02204,
+          "marchNear": 0.057683783333333315,
+          "marchFar": 0.1381382666666667,
+          "shadowMap": 0.36588644444444446,
+          "composite": 0.3287519166666667,
+          "dome": 0.3331920833333333,
+          "skyLayer": 16.211183283333337,
+          "skyResolve": 0.23376598333333332,
+          "cloudsTotal": 17.725931761111116,
+          "total": 32.26854316111112
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.extinction": 0.5,
+          "hzd.profileMode": "nutshell",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/F2/s3/final/h6/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 14.903324,
+          "lightGridReduce": 0.03529,
+          "lightGrid": 0.02204,
+          "marchNear": 0.04895408333333333,
+          "marchFar": 0.13447153333333334,
+          "shadowMap": 0.36588644444444446,
+          "composite": 0.3212596666666668,
+          "dome": 0.33184208333333326,
+          "skyLayer": 19.96104958333334,
+          "skyResolve": 0.23672904999999997,
+          "cloudsTotal": 21.457522444444454,
+          "total": 36.360846444444455
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.extinction": 0.5,
+          "hzd.profileMode": "nutshell",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/F2/s3/final/h6/horizon.jpg",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 15,
+        "pitch": 1.5,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 10.433917683333336,
+          "lightGridReduce": 0.03529,
+          "lightGrid": 0.012923166666666666,
+          "marchNear": 0.04739023333333332,
+          "marchFar": 0.12594455,
+          "shadowMap": 0.4608729189189189,
+          "composite": 0.30528633333333327,
+          "dome": 0.3242687,
+          "skyLayer": 15.392291733333336,
+          "skyResolve": 0.21151963333333326,
+          "cloudsTotal": 16.91578726891892,
+          "total": 27.349704952252253
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.extinction": 0.5,
+          "hzd.profileMode": "nutshell",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s3/final/h6/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 13.744073583333336,
+          "lightGridReduce": 0.03529,
+          "lightGrid": 0.0252785,
+          "marchNear": 0.06252956666666667,
+          "marchFar": 0.1371326,
+          "shadowMap": 0.48106643636363633,
+          "composite": 0.3776740166666668,
+          "dome": 0.3634278333333333,
+          "skyLayer": 16.81455655,
+          "skyResolve": 0.24843373333333338,
+          "cloudsTotal": 18.545389236363633,
+          "total": 32.289462819696965
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.extinction": 0.5,
+          "hzd.profileMode": "nutshell",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

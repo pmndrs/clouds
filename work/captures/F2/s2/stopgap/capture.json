@@ -1,0 +1,200 @@
+{
+  "url": "http://127.0.0.1:59284/hzd/?clean=1&motion=0&hz_profileMode=tables&hzn_bottomType=0&hzn_bottomTypeRange=0&hzn_bottomTypeCorrelation=0&hz_bottomTypeBias=0.4&hz_bottomTypeVariation=0.6",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:18:30.553Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2/stopgap/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 83.6071174333333,
+          "lightGridReduce": 0.015665,
+          "lightGrid": 0.792351,
+          "marchNear": 1.1064400833333334,
+          "marchFar": 1.8652423333333334,
+          "shadowMap": 2.00375685,
+          "composite": 2.665291933333335,
+          "dome": 0.9762296833333337,
+          "skyLayer": 33.31774910000001,
+          "skyResolve": 2.518547633333334,
+          "cloudsTotal": 45.26127361666668,
+          "total": 128.86839104999999
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.bottomType": 1.734723475976807e-18,
+          "hzd.profileMode": "tables",
+          "hzd.bottomTypeBias": 0.4,
+          "hzd.bottomTypeVariation": 0.6,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/F2/s2/stopgap/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 57.38624098333332,
+          "lightGridReduce": 0.015665,
+          "lightGrid": 0.792351,
+          "marchNear": 0.47712670000000007,
+          "marchFar": 2.2004324666666677,
+          "shadowMap": 2.00375685,
+          "composite": 1.2148321333333334,
+          "dome": 0.6757313499999998,
+          "skyLayer": 27.966811366666672,
+          "skyResolve": 6.091023016666667,
+          "cloudsTotal": 41.43772988333334,
+          "total": 98.82397086666666
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.bottomType": 1.734723475976807e-18,
+          "hzd.profileMode": "tables",
+          "hzd.bottomTypeBias": 0.4,
+          "hzd.bottomTypeVariation": 0.6,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/F2/s2/stopgap/horizon.jpg",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 15,
+        "pitch": 1.5,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 51.19924796666667,
+          "lightGridReduce": 0.015665,
+          "lightGrid": 0.147454,
+          "marchNear": 0.1730048499999999,
+          "marchFar": 0.31371133333333323,
+          "shadowMap": 1.7659046410256405,
+          "composite": 1.9470313999999997,
+          "dome": 0.6683856333333332,
+          "skyLayer": 23.485778866666678,
+          "skyResolve": 9.135589833333333,
+          "cloudsTotal": 37.652525557692314,
+          "total": 88.85177352435898
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.bottomType": 1.734723475976807e-18,
+          "hzd.profileMode": "tables",
+          "hzd.bottomTypeBias": 0.4,
+          "hzd.bottomTypeVariation": 0.6,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2/stopgap/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 65.13032334999998,
+          "lightGridReduce": 0.015665,
+          "lightGrid": 0.359516,
+          "marchNear": 1.7940497833333329,
+          "marchFar": 5.243774200000003,
+          "shadowMap": 2.034833844827586,
+          "composite": 5.00674375,
+          "dome": 1.3843190999999997,
+          "skyLayer": 25.806324200000002,
+          "skyResolve": 5.691321500000001,
+          "cloudsTotal": 47.33654737816092,
+          "total": 112.4668707281609
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.bottomType": 1.734723475976807e-18,
+          "hzd.profileMode": "tables",
+          "hzd.bottomTypeBias": 0.4,
+          "hzd.bottomTypeVariation": 0.6,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

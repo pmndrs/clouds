@@ -1,0 +1,108 @@
+{
+  "url": "http://127.0.0.1:53968/hzd/?clean=1&motion=0&hz_profileMode=tables&hzn_image=/clouds/ndf/alpine-congestus.png&hzn_heightImage=/clouds/ndf/alpine-congestus-height.png&hzn_tileMeters=24000",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:06:59.866Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2/maps/alpine-congestus/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 26.857068700000006,
+          "lightGridReduce": 0.058623,
+          "lightGrid": 0.016332,
+          "marchNear": 0.4882203666666666,
+          "marchFar": 2.205824016666667,
+          "shadowMap": 1.5896840625000002,
+          "composite": 1.5337889999999996,
+          "dome": 0.7339610500000001,
+          "skyLayer": 16.10004118333334,
+          "skyResolve": 4.436687150000001,
+          "cloudsTotal": 27.163161829166672,
+          "total": 54.02023052916668
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 24000,
+          "ndf.image": "/clouds/ndf/alpine-congestus.png",
+          "ndf.heightImage": "/clouds/ndf/alpine-congestus-height.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2/maps/alpine-congestus/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 40.51119426666666,
+          "lightGridReduce": 0.058623,
+          "lightGrid": 0.013603833333333334,
+          "marchNear": 0.7295215333333334,
+          "marchFar": 2.2662917833333327,
+          "shadowMap": 1.9503761999999998,
+          "composite": 2.0974964833333325,
+          "dome": 0.8276228000000001,
+          "skyLayer": 20.199663999999995,
+          "skyResolve": 4.727419466666668,
+          "cloudsTotal": 32.87061909999999,
+          "total": 73.38181336666665
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 24000,
+          "ndf.image": "/clouds/ndf/alpine-congestus.png",
+          "ndf.heightImage": "/clouds/ndf/alpine-congestus-height.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

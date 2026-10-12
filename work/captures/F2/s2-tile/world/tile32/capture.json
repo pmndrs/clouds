@@ -1,0 +1,58 @@
+{
+  "url": "http://127.0.0.1:64196/hzd/?clean=1&motion=0&view=ground&posy=9000&pitch=-28",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:29:25.682Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/F2/s2-tile/world/tile32/view.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          9000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -28,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 16.49309891666667,
+          "lightGridReduce": 0.010207,
+          "lightGrid": 0.045914,
+          "marchNear": 0.05335824999999999,
+          "marchFar": 0.14068185000000002,
+          "shadowMap": 0.37343204761904764,
+          "composite": 0.44020306666666664,
+          "dome": 0.34085314999999994,
+          "skyLayer": 16.468280800000006,
+          "skyResolve": 0.2895254833333333,
+          "cloudsTotal": 18.16245564761905,
+          "total": 34.65555456428572
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

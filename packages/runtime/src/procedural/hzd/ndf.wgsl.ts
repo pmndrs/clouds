@@ -2,7 +2,7 @@
  * H1 (L1): the Nubis-era NDF (work/specs/ndf.md): five fields per column of sky, all 0..1.
  *   coverage    how much cloud in this column                                     (every shaper)
  *   topType     0 flat stratiform top .. 1 tall tiered cumulus top                (the HZD shaper reads it as HZD's cloud type)
- *   bottomType  0 sharp-onset crisp base .. 1 slow ragged base                   (NE table mode; the HZD shaper ignores it)
+ *   bottomType  0 sharp-onset crisp base .. 1 slow ragged base                   (the HZD shaper's 'tables' profile; F2: varies by area)
  *   minHeight   base of the column, as a fraction of the layer
  *   maxHeight   top of the column
  *
@@ -32,9 +32,9 @@ ${HZD_NOISE_LIB_WGSL}
 struct NdfGen {
   cells: vec4<f32>,     // coverage cells, island cells, type cells, height cells
   coverage: vec4<f32>,  // island weight, coverage lo, coverage hi, seed
-  types: vec4<f32>,     // type min, type max, bottom type, 0
-  heights: vec4<f32>,   // min height, max height, variation, 0
-  foot: vec4<f32>,      // H6: footprint (0 Perlin .. 1 Perlin-Worley, N17 p.56-57), Worley cells, 0, 0
+  types: vec4<f32>,     // type min, type max, bottom type (F2: the field's centre), F2 bottom-type range
+  heights: vec4<f32>,   // min height, max height, variation, F2 bottom-type cells
+  foot: vec4<f32>,      // H6: footprint (0 Perlin .. 1 Perlin-Worley, N17 p.56-57), Worley cells, F2 bottom-type correlation with the top type, 0
   n17: vec4<f32>,       // W1: recipe (0 h6, 1 n17), gate cells, gate lo, gate hi
   n17b: vec4<f32>,      // W1: footprint lo, footprint hi, type contrast, island gain
 }
@@ -88,7 +88,12 @@ fn generate(@builtin(global_invocation_id) id: vec3<u32>) {
   // Heights: the layer range with mild variation; the top stays at least 5 % of the layer above the base.
   let minHeight = saturate(G.heights.x + G.heights.z * ndfFbm(uv, G.cells.w, 2u, seed + 301u));
   let maxHeight = max(saturate(G.heights.y + G.heights.z * ndfFbm(uv, G.cells.w, 2u, seed + 401u)), min(minHeight + 0.05, 1.0));
-  textureStore(ndfOut, id.xy, 0, vec4(coverage, topType, G.types.z, 0.0));
+  // F2 bottom type, per area (both recipes): the centre + range x a 2-octave fBM, + correlation x the top type's place in its range (negative:
+  // crisp bases under cumulus, soft ragged ones under stratiform types). Range 0 and correlation 0 = the H1-F1 constant.
+  let tN = saturate((topType - G.types.x) / max(G.types.y - G.types.x, 1e-3));
+  var bottomType = G.types.z + G.foot.z * (tN - 0.5);
+  if (G.types.w != 0.0) { bottomType += G.types.w * 1.6 * ndfFbm(uv, G.heights.w, 2u, seed + 701u); }
+  textureStore(ndfOut, id.xy, 0, vec4(coverage, topType, saturate(bottomType), 0.0));
   textureStore(ndfOut, id.xy, 1, vec4(minHeight, maxHeight, 0.0, 0.0));
 }
 `;

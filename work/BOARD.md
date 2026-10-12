@@ -2143,6 +2143,14 @@ Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H
   - A Tweakpane panel for every procedural setting, grouped.
   - Its report also answers which cloud types the system covers.
 
+### [x] F2 Profile tables as the default, fast; per-area bases on the map; 32 km tile [F1 follow-up, owner] · Opus (merged 2026-10-12, owner asked for it: tables from a storage buffer (`tableSource 'storage'`, F1's uniform path kept), `profileMode 'tables'` and `extinction 0.8` the defaults (Nutshell + 0.5 = H6), NDF bottom-type field per area (`ndf.bottomTypeRange/Cells/Correlation`), map tile 32 km at 1024² (`HZD_NDF_TILE_16KM` restores 16 km). Owner to pick: tableTypeCumulus 0.4 vs 0.6/0.75, extinction 0.7 vs 0.8) (report: work/reports/F2.md)
+- **Owns:** `procedural/hzd/{shaper,ndf}*`, `procedural/settings.ts`, `procedural/{index,density.wgsl,trace.wgsl}.ts` (the table binding), `examples/lab/hzd/tune.ts`, `work/HZD-BENCH.md`, `work/reports/F2.md`, `work/captures/F2/`.
+- **Does:**
+  - Move the tables off the ProcParams uniform array to a binding; timing against Nutshell over interleaved runs.
+  - A bottom-type field in the n17 and h6 map recipes (NE p.26-28 pairing); the shader stopgap stays at 0.
+  - Tables the default; re-check the interacting defaults; the 32 km tile (owner).
+- **Acceptance:** A/B sheets per step (ground, horizon, above, side, gp7), timings, every default change listed.
+
 ### [ ] N1 Nubis Cubed noise for the procedural sky (Alligator / Curly-Alligator) · Opus (queued after F2; owner, 2026-10-12)
 - **Why:** the owner sees "pilling", small orbs like sprinkles on low-density parts and cloud tops. The procedural sky still uses the HZD-era noise (Perlin-Worley shape plus a 32³ Worley detail). Guerrilla replaced that noise in Nubis Cubed because inverted Worley "looked like packed spheres" (`sources/n3.md`, s90). The voxel path already uses the pack's Alligator and Curly-Alligator noise.
 - **Does:** add the pack noise as a noise option for the `hzd` shaper's erosion and detail, with wispy and billowy by type as the up-rez does. Keep the HZD noise selectable. A/B sheets of the bench views, close-ups of tops and thin parts.

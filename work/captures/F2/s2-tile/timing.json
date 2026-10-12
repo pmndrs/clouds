@@ -1,0 +1,54 @@
+{
+ "shots": "ground,gp7,horizon,above",
+ "reps": 2,
+ "arms": {
+  "tile16": "hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3",
+  "tile32": ""
+ },
+ "skyLayerMs": {
+  "tile16": {
+   "ground": [
+    13.67,
+    15.48
+   ],
+   "gp7": [
+    19.92,
+    19.35
+   ],
+   "horizon": [
+    13.86,
+    12.48
+   ],
+   "above": [
+    16.59,
+    17.31
+   ],
+   "side": [
+    18.85,
+    18.9
+   ]
+  },
+  "tile32": {
+   "ground": [
+    15.51,
+    16.77
+   ],
+   "gp7": [
+    19.6,
+    20.21
+   ],
+   "horizon": [
+    15.35,
+    15.24
+   ],
+   "above": [
+    16.59,
+    16.51
+   ],
+   "side": [
+    18.51,
+    19.2
+   ]
+  }
+ }
+}

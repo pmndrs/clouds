@@ -1,0 +1,62 @@
+{
+ "shots": "ground,above",
+ "reps": 1,
+ "arms": {
+  "desert-morning": "hz_profileMode=tables&hzn_image=/clouds/ndf/desert-morning.png",
+  "desert-afternoon": "hz_profileMode=tables&hzn_image=/clouds/ndf/desert-afternoon.png&hzn_heightImage=/clouds/ndf/desert-afternoon-height.png",
+  "alpine-congestus": "hz_profileMode=tables&hzn_image=/clouds/ndf/alpine-congestus.png&hzn_heightImage=/clouds/ndf/alpine-congestus-height.png&hzn_tileMeters=24000",
+  "boss-fight": "hz_profileMode=tables&hzn_image=/clouds/ndf/boss-fight.png&hzn_tileMeters=24000",
+  "cutscene-gradient": "hz_profileMode=tables&hzn_image=/clouds/ndf/cutscene-gradient.png&hzn_tileMeters=30000",
+  "boss-nutshell": "hzn_image=/clouds/ndf/boss-fight.png&hzn_tileMeters=24000"
+ },
+ "skyLayerMs": {
+  "desert-morning": {
+   "ground": [
+    22.07
+   ],
+   "above": [
+    24.47
+   ]
+  },
+  "desert-afternoon": {
+   "ground": [
+    17.24
+   ],
+   "above": [
+    21.93
+   ]
+  },
+  "alpine-congestus": {
+   "ground": [
+    16.1
+   ],
+   "above": [
+    20.2
+   ]
+  },
+  "boss-fight": {
+   "ground": [
+    24.39
+   ],
+   "above": [
+    29.98
+   ]
+  },
+  "cutscene-gradient": {
+   "ground": [
+    24.17
+   ],
+   "above": [
+    32.76
+   ]
+  },
+  "boss-nutshell": {
+   "ground": [
+    20.5
+   ],
+   "above": [
+    23.25
+   ]
+  }
+ }
+}

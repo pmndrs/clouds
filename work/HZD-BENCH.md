@@ -51,8 +51,10 @@ The sidebar:
 The panel uses the shared Tweakpane panel, `examples/lab/tune/panel.ts`, the same one the Decima bench uses.
 
 **Groups:**
-- **Weather map (NDF):** seed, tile, coverage fBM and islands, footprint (Perlin or Perlin-Worley), top type range and bias, bottom type, min and max heights. Changing these regenerates the map.
-- **Cloud types and height profiles:** layer bottom and top, the type blend, top rounding, smooth ramps, height from coverage, the base fade, base lumps.
+- **Weather map (NDF):** seed, tile (F2: 32 km at 1024² by default), coverage fBM and islands, footprint (Perlin or Perlin-Worley), top type range and bias, the bottom type field (F2: centre, range, cells and correlation with the top type: per-area bases), min and max heights and their cells. Changing these regenerates the map.
+- **Cloud types and height profiles:** layer bottom and top, the Nutshell type blend, top rounding, smooth ramps (these four shape the Nutshell profile only), height from coverage, the base fade, base lumps.
+- **Cloud types: profile tables** (F2: the default profile): `profileMode` (tables or nutshell), where the tables are read from (`tableSource`: storage buffer, or F1's uniform array), the HZD type to table type map (`tableTypeCumulus` 0.4 is NE's; 0.6-0.75 gives towering cumulus), the shader-side bottom-type bias and variation (a stopgap from F1, 0 now that the map carries the bottom type), the table floor.
+- **Storms and anvils**, **Mid-level layer and low deck**, **Fractus** (F1, all off by default).
 - **Shape noise and the coverage remap:** build `stage` (1, 2 or 3 = Fig 4.13, 4.14 or 4.16), extinction, shape tile and contrast, the cubic read, the coverage multiply, the density power, the noise bake options (which re-bake the noise).
 - **Erosion and detail:** the law and order, strength, wispy height, the detail tile and recipe, curl, wispy bottoms, the lobe rung.
 - **Connective veil and skirts:** H6's veil and H7's skirts.
@@ -88,6 +90,8 @@ The URL options are the same choices the sidebar and panel make, for links and c
 | `?ref=<id> ?refmode=side\|pip ?pip=s\|m\|l ?corner=bl\|br ?refpage=1 ?refview=0` | The reference and how it shows. A link with `ref` but no `view` opens at the reference's starting view |
 | `?hz_<key>= ?hzn_<key>= ?proc_<key>= ?c_<key>= ?sky_<key>= ?cirrus_<key>=` | Any setting of the shaper, the NDF, the procedural march and light, the renderer, the sky layer or the cirrus layer. Arrays are comma lists, switches are 1 / 0. These are the compare page's flags |
 | `?quality=high` `?clean=1` | Quality (default ultra), and no UI (for captures) |
+| `?hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3` | The 16 km map tile of H1-W1 (F2 made it 32 km; `HZD_NDF_TILE_16KM` in code) |
+| `?hz_profileMode=nutshell&hz_extinction=0.5` | H6's profile and extinction (F2 made the tables and 0.8 the defaults) |
 
 ## Captures (headless Chrome)
 
@@ -99,6 +103,8 @@ node scripts/gpu/capture.mjs --serve --page hzd/ --query "clean=1&motion=0" --sh
   - For example, `--shots "gp7@ref:gp7-f4.16@mode:side,ref:n3-image55"`.
   - A reference in a capture is third-party or owner content, so keep those captures local (under `artifacts/`), never in `work/captures/`.
 - Settings go in the query: `--query "clean=1&motion=0&hz_stage=1&hz_veilWidth=0"`.
+- A shot re-applies its view's camera, so `posy`, `fov` and `pitch` in the query are lost for named shots. For a custom camera, put the view in the query and pass no `--shots` (the shot is saved as `view.jpg`), e.g. F1's side view: `--query "clean=1&motion=0&view=horizon&posy=900&fov=35&pitch=4"`.
+- `work/captures/F2/tools/runs.mjs` runs several setting arms interleaved over reps and collects the sky layer's GPU time per shot (`--side 1` adds the side view); `sheet.py` makes a contact sheet with those timings, `diff.py` compares two capture folders.
 - The other options are in the header of `scripts/gpu/capture.mjs` and in `work/README.md`.
 
 ## What the sky can and cannot show
@@ -107,15 +113,14 @@ Many references show types this sky does not make yet. Compare those for light a
 
 **What it makes:**
 - One shell, 1.5-5 km.
-- Types along stratus → stratocumulus → cumulus, from the NDF top type.
+- Types along stratus → stratocumulus → cumulus, from the NDF top type, through Nubis Evolved's top x bottom profile tables (F2 default; the Nutshell trapezoids are `hz_profileMode=nutshell`, with `hz_extinction=0.5` for H6's look).
+- Per-area bases from the NDF bottom type (F2): crisp flat bases under cumulus, soft rounded ones under stratiform areas.
+- F1 forms behind settings: storm cells with anvils, altocumulus / altostratus / stratus sheets, fractus.
 - A flat cirrus slab above, if enabled.
 
 **What it does not make yet:**
-- anvils: `hzdAnvil` is a stub (S7)
-- cumulonimbus or rain (L3)
+- rain, storm lighting (dark bases, the shaded column under an anvil), fibrous anvil edges (L3, F1's leftovers)
 - towers above the shell, or per-cloud heights (S8)
-- ragged bases from the bottom type (S3 in the procedural path)
-- mid layers (L5)
 - valley fog (L7)
 
 The ids are the try-next items in `docs/research/topics/shape.md` and `layering.md`.

@@ -1,0 +1,212 @@
+{
+  "url": "http://127.0.0.1:63556/hzd/?clean=1&motion=0&hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:28:08.996Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2-tile/tile16/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 6.566447116666666,
+          "lightGridReduce": 0.041539,
+          "lightGrid": 0.022582,
+          "marchNear": 0.05180746666666665,
+          "marchFar": 0.13744645,
+          "shadowMap": 0.3693462608695652,
+          "composite": 0.32774986666666645,
+          "dome": 0.35052031666666666,
+          "skyLayer": 15.483774083333337,
+          "skyResolve": 0.2188382833333333,
+          "cloudsTotal": 17.003603727536234,
+          "total": 23.5700508442029
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 16000,
+          "ndf.resolution": 512,
+          "ndf.coverageCells": 9,
+          "ndf.islandCells": 2,
+          "ndf.worleyCells": 6,
+          "ndf.typeCells": 2,
+          "ndf.gateCells": 3,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/F2/s2-tile/tile16/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 15.045535666666668,
+          "lightGridReduce": 0.041539,
+          "lightGrid": 0.022582,
+          "marchNear": 0.04949364999999999,
+          "marchFar": 0.13637698333333328,
+          "shadowMap": 0.3693462608695652,
+          "composite": 0.3196083333333333,
+          "dome": 0.3369670000000002,
+          "skyLayer": 19.354713049999997,
+          "skyResolve": 0.24751568333333338,
+          "cloudsTotal": 20.878141960869563,
+          "total": 35.92367762753623
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 16000,
+          "ndf.resolution": 512,
+          "ndf.coverageCells": 9,
+          "ndf.islandCells": 2,
+          "ndf.worleyCells": 6,
+          "ndf.typeCells": 2,
+          "ndf.gateCells": 3,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/F2/s2-tile/tile16/horizon.jpg",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 15,
+        "pitch": 1.5,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 0.27765198333333335,
+          "lightGridReduce": 0.041539,
+          "lightGrid": 0.025381499999999998,
+          "marchNear": 0.06766905,
+          "marchFar": 0.12971401666666665,
+          "shadowMap": 0.44850845454545457,
+          "composite": 0.28181366666666663,
+          "dome": 0.48864898333333323,
+          "skyLayer": 12.482653833333334,
+          "skyResolve": 0.19527275,
+          "cloudsTotal": 14.161201254545453,
+          "total": 14.438853237878787
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 16000,
+          "ndf.resolution": 512,
+          "ndf.coverageCells": 9,
+          "ndf.islandCells": 2,
+          "ndf.worleyCells": 6,
+          "ndf.typeCells": 2,
+          "ndf.gateCells": 3,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2-tile/tile16/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 11.294520699999998,
+          "lightGridReduce": 0.041539,
+          "lightGrid": 0.03932591666666666,
+          "marchNear": 0.05602341666666668,
+          "marchFar": 0.1562754333333334,
+          "shadowMap": 0.4770242333333334,
+          "composite": 0.3970126000000001,
+          "dome": 0.36478751666666664,
+          "skyLayer": 17.305927633333333,
+          "skyResolve": 0.2834456,
+          "cloudsTotal": 19.12136135,
+          "total": 30.41588205
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 16000,
+          "ndf.resolution": 512,
+          "ndf.coverageCells": 9,
+          "ndf.islandCells": 2,
+          "ndf.worleyCells": 6,
+          "ndf.typeCells": 2,
+          "ndf.gateCells": 3,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

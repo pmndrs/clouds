@@ -17,11 +17,13 @@ Our own drawings, made by `work/captures/W1/tools/draw_maps.py` (spectral noise 
 - `<name>.png`: RGBA, 8-bit linear (not colour-managed). R = coverage, G = top type (0 stratus, 0.5 stratocumulus, 1 cumulus), B = bottom type, A = 255 (ignored).
 - `<name>-height.png` (optional): R = min height, G = max height, as fractions of the cloud layer. Without it, the heights come from the generator.
 - The image centre is the world origin. Up is north (the compare page's default view, `lookAz 0`) and right is east. The image spans `ndf.tileMeters` and wraps.
+- F2 made the default tile 32 km (the generated map's). A map drawn for 16 km needs `hzn_tileMeters=16000` (the desert maps), as the others name their tile.
 - Coverage is on our shaper's scale. A mean base shape survives where coverage is above about 0.38. The generated map's percentiles are p50 0.30, p90 0.52 and p99 0.67. Paint soft gradients: a flat plateau of coverage turns into a flat-sided slab or column.
 
 ## Use
 
 ```
+compare/?impls=hzd&hzn_image=/clouds/ndf/desert-morning.png&hzn_tileMeters=16000
 compare/?impls=hzd&hzn_image=/clouds/ndf/boss-fight.png&hzn_tileMeters=24000
 compare/?impls=hzd&hzn_image=/clouds/ndf/alpine-congestus.png&hzn_heightImage=/clouds/ndf/alpine-congestus-height.png&hzn_tileMeters=24000
 ```

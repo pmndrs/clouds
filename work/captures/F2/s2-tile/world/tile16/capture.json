@@ -1,0 +1,65 @@
+{
+  "url": "http://127.0.0.1:64112/hzd/?clean=1&motion=0&view=ground&posy=9000&pitch=-28&hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:29:17.756Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/F2/s2-tile/world/tile16/view.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          9000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -28,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 9.454160516666667,
+          "lightGridReduce": 0.007875,
+          "lightGrid": 0.007999,
+          "marchNear": 0.054039466666666675,
+          "marchFar": 0.1412574666666667,
+          "shadowMap": 0.37524790476190484,
+          "composite": 0.4131007833333334,
+          "dome": 0.34155025000000006,
+          "skyLayer": 15.261644933333335,
+          "skyResolve": 0.2840526,
+          "cloudsTotal": 16.886767404761905,
+          "total": 26.340927921428573
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 16000,
+          "ndf.resolution": 512,
+          "ndf.coverageCells": 9,
+          "ndf.islandCells": 2,
+          "ndf.worleyCells": 6,
+          "ndf.typeCells": 2,
+          "ndf.gateCells": 3,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

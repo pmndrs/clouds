@@ -1,0 +1,106 @@
+{
+  "url": "http://127.0.0.1:53766/hzd/?clean=1&motion=0&hz_profileMode=tables&hzn_image=/clouds/ndf/desert-afternoon.png&hzn_heightImage=/clouds/ndf/desert-afternoon-height.png",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:06:34.620Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2/maps/desert-afternoon/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 34.900454950000004,
+          "lightGridReduce": 0.011666,
+          "lightGrid": 0.012916,
+          "marchNear": 0.36254105000000003,
+          "marchFar": 2.308928683333334,
+          "shadowMap": 0.6513345882352941,
+          "composite": 1.5962464666666665,
+          "dome": 0.44349325000000017,
+          "skyLayer": 17.24336605,
+          "skyResolve": 4.076815533333335,
+          "cloudsTotal": 26.707307621568628,
+          "total": 61.60776257156863
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.image": "/clouds/ndf/desert-afternoon.png",
+          "ndf.heightImage": "/clouds/ndf/desert-afternoon-height.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2/maps/desert-afternoon/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 32.60677533333333,
+          "lightGridReduce": 0.011666,
+          "lightGrid": 0.874409,
+          "marchNear": 0.23928668333333333,
+          "marchFar": 1.75841835,
+          "shadowMap": 0.6731501111111111,
+          "composite": 2.4020362666666673,
+          "dome": 0.6209606000000002,
+          "skyLayer": 21.925882216666675,
+          "skyResolve": 4.2396611166666665,
+          "cloudsTotal": 32.745470344444456,
+          "total": 65.35224567777779
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.image": "/clouds/ndf/desert-afternoon.png",
+          "ndf.heightImage": "/clouds/ndf/desert-afternoon-height.png",
+          "hzd.profileMode": "tables",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

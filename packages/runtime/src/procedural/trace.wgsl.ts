@@ -8,7 +8,7 @@ import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import type { ProceduralShaper } from './settings';
 
 /** Extra group-1 bindings of the procedural trace (after the sky layer's 0..8). */
-export const PROC_BINDINGS = { params: 9, noiseA: 10, noiseB: 11, weather: 12, aux: 13, sampler: 14 } as const;
+export const PROC_BINDINGS = { params: 9, noiseA: 10, noiseB: 11, weather: 12, aux: 13, sampler: 14, lut: 17 } as const;
 
 /**
  * X1: the procedural trace. It replaces the sky layer's trace pass when CloudSettings.densityModel is 'procedural' or 'hybrid' and writes the same

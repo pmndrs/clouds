@@ -1,0 +1,123 @@
+{
+ "shots": "ground,gp7,horizon,above",
+ "reps": 2,
+ "arms": {
+  "const0": "hz_profileMode=tables&hzn_bottomType=0&hzn_bottomTypeRange=0&hzn_bottomTypeCorrelation=0",
+  "stopgap": "hz_profileMode=tables&hzn_bottomType=0&hzn_bottomTypeRange=0&hzn_bottomTypeCorrelation=0&hz_bottomTypeBias=0.4&hz_bottomTypeVariation=0.6",
+  "map": "hz_profileMode=tables",
+  "map-nocorr": "hz_profileMode=tables&hzn_bottomTypeCorrelation=0",
+  "const1": "hz_profileMode=tables&hzn_bottomType=1&hzn_bottomTypeRange=0&hzn_bottomTypeCorrelation=0"
+ },
+ "skyLayerMs": {
+  "const0": {
+   "ground": [
+    22.3,
+    25.4
+   ],
+   "gp7": [
+    26.69,
+    29.42
+   ],
+   "horizon": [
+    22.16,
+    22.76
+   ],
+   "above": [
+    27.84,
+    31.32
+   ],
+   "side": [
+    30.73,
+    31.3
+   ]
+  },
+  "stopgap": {
+   "ground": [
+    21.98,
+    33.32
+   ],
+   "gp7": [
+    35.16,
+    27.97
+   ],
+   "horizon": [
+    23.68,
+    23.49
+   ],
+   "above": [
+    23.27,
+    25.81
+   ],
+   "side": [
+    31.7,
+    43.62
+   ]
+  },
+  "map": {
+   "ground": [
+    25.05,
+    24.3
+   ],
+   "gp7": [
+    33.23,
+    28.58
+   ],
+   "horizon": [
+    25.39,
+    23.99
+   ],
+   "above": [
+    27.12,
+    32.37
+   ],
+   "side": [
+    30.84,
+    30.36
+   ]
+  },
+  "map-nocorr": {
+   "ground": [
+    22.35,
+    27.3
+   ],
+   "gp7": [
+    27.01,
+    31.79
+   ],
+   "horizon": [
+    25.88,
+    26.52
+   ],
+   "above": [
+    30.86,
+    29.85
+   ],
+   "side": [
+    36.61,
+    35.22
+   ]
+  },
+  "const1": {
+   "ground": [
+    24.57,
+    20.54
+   ],
+   "gp7": [
+    27.64,
+    25.76
+   ],
+   "horizon": [
+    23.07,
+    21.98
+   ],
+   "above": [
+    23.82,
+    22.12
+   ],
+   "side": [
+    31.66,
+    30.23
+   ]
+  }
+ }
+}
