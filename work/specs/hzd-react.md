@@ -21,7 +21,8 @@ These are what scripts, docs and the owner rely on. Every phase is checked again
   stays within run noise. React must not re-render per frame.
 - **Rules from work/README.md:** the loop always runs (noise animates), no per-change bake that stalls a frame, light colours from `@pmndrs/sky`.
 - **Shared modules stay as they are:** `compare/rig.ts`, `compare/panes/ours.ts`, `compare/sun-control.ts` and `tune/panel.ts` are also used by
-  the compare page and the Decima bench. The new bench imports their pure parts or ports them; it does not edit them.
+  the compare page and the Decima bench. The new bench imports them or ports them. The one planned edit is an optional `host` argument on
+  `createOursPane` (see "Reusing `ours.ts`"), which leaves the compare page's behaviour unchanged.
 
 ## Approach: a parallel page, then a cut-over
 
@@ -29,6 +30,11 @@ Build the new bench at `examples/lab/hzd-r3f/` beside the vanilla `examples/lab/
 compared side by side, and captures can be diffed against the old page. When the new page reaches parity, it takes over the `hzd/` route and
 the vanilla bench is deleted (phase 4). Nothing on `main` breaks in between, because `main` only receives the branch at the cut-over, or
 earlier by choice with the new page beside the old one.
+
+**R3F hosts the sky; it does not re-describe it** (owner, 2026-10-12). R3F is the escape hatch: the `<Canvas>` makes the renderer,
+scene and camera, and the bench drives them with the code it has today. There are no JSX versions of the sky, the clouds or the
+procedural model. The sky's setup (`@pmndrs/sky`, `@clouds/three` `Clouds`, `createProceduralClouds`, the overrides) runs imperatively against
+the Canvas's objects, and its per-frame work is a set of scheduler jobs with explicit order. React is there for the controls.
 
 Pure modules move or are shared, not rewritten: `paint/fields.ts` (+ tests), `paint/plugin.ts`, `refs.ts`, `refs-plugin.ts`, and the tuning
 metadata in `tune.ts` (groups, ranges, modes, docs parsed from the settings source).
@@ -70,8 +76,8 @@ examples/lab/hzd-r3f/
     settings.ts                           the live settings objects + a change bus (version counter); useSetting(source, key)
   sky/
     BenchCanvas.tsx                       <Canvas primary id="sky" frameloop="always" dpr={1} renderer={factory}>
-    useBenchSky.ts                        ours.ts's sky + clouds + procedural setup as a hook (Sky, Clouds, createProceduralClouds, overrides)
-    SkyFrame.tsx                          useFrame jobs in order: rig update, view -> camera/sun/exposure, sky.update, render, GPU timestamps
+    useBenchSky.ts                        runs ours.ts's setup imperatively on the Canvas's renderer, scene and camera (no JSX sky)
+    SkyJobs.tsx                           scheduler jobs with explicit order: rig, view -> camera/sun/exposure, sky.update, render, timestamps
     useHarness.ts                         the __clouds contract
   camera/RigControls.tsx                  wraps compare/rig.ts (unchanged) on the canvas element
   sidebar/                                ViewsSection, SunTimeSection, CloudsSection, ReferenceSection, PanelSection (shadcn)
@@ -94,8 +100,17 @@ examples/lab/hzd-r3f/
 `trackTimestamp: true`, ACES, exposure 0.35, pixel ratio 1) and awaits `init()`. The clouds runtime then takes the device with
 `sharedBackend(renderer)`. `primary` lets later canvases (the GPU map view, a top-down preview) borrow the same renderer and device.
 
-**Post.** Today `ours.ts` builds a `RenderPipeline` by hand with `clouds.node(...)` as its output. The new bench uses `@react-three/tsl`'s
-`useRenderPipeline` the way `@clouds/react` does, so R3F owns the render job and the scheduler orders it.
+**Post.** Today `ours.ts` builds a `RenderPipeline` by hand with `clouds.node(...)` as its output and calls `post.render()`. The bench keeps
+that pipeline and hands its `render()` to R3F's default render job with `setRenderOverride(store, () => post.render())`, so the job keeps its
+place in the scheduler. `@react-three/tsl`'s `useRenderPipeline` is the later option once more of the scene is in R3F.
+
+**Reusing `ours.ts`.** The cleanest path is one optional argument: `createOursPane(canvas, query, opts, host?)`, where `host` supplies an
+existing `{ renderer, scene, camera }`. Without it the pane behaves exactly as now, so the compare page is unaffected. The bench then calls
+the pane's own `render(view, dt)` and `stats()` from its jobs. If that argument turns out awkward, `useBenchSky` copies the setup instead.
+
+**Jobs.** The vanilla loop is one rAF: rig update, `pane.render`, HUD every 15 frames, `harness.frame()`. In R3F these become jobs with ids and
+`before`/`after` constraints (`rig` -> `view` -> `sky` -> render -> `timestamps` -> `harness`), so later work (GPU brushes, the map canvas,
+a top-down render target) slots in by name rather than by mount order.
 
 **Why not `@clouds/react`'s `<Clouds>` straight away.** It has no procedural model (`setProceduralModel`, the `hz_`/`hzn_` overrides,
 `proc.load({ hzd: true })`). Phase 1 builds this inside the bench's own `useBenchSky` hook. Phase 5 can move it into `@clouds/react` as a
@@ -120,8 +135,9 @@ Each phase ends with `pnpm typecheck`, `pnpm test`, and a check against the list
 - Add `@vitejs/plugin-react` and `@tailwindcss/vite` to `vite.config.ts`; scaffold `examples/lab/ui/` with the shadcn components listed.
 - **Done when:** typecheck passes; `/r3f/` renders (capture it); both consumer checks pass; `/hzd/` is unchanged.
 
-### 1. The sky in R3F (medium, the risky part)
-- `hzd-r3f/` page: `BenchCanvas`, `useBenchSky`, `SkyFrame`, `RigControls`, URL read for view and settings, `useHarness`, `clean=1`.
+### 1. The sky mounted in a Canvas (small)
+- `hzd-r3f/` page: `BenchCanvas`, `useBenchSky` (the existing setup on the Canvas's objects), `SkyJobs`, `RigControls`, URL read for view
+  and settings, `useHarness`, `clean=1`.
 - **Done when:** `capture.mjs --page hzd-r3f/` with `clean=1&motion=0` and the six canonical shots matches `--page hzd/` within run noise
   (F2 `diff.py`), sky-layer GPU time within noise (`runs.mjs`), and `bookmark('ref:<id>@mode:side')` works.
 
@@ -158,8 +174,7 @@ Each phase ends with `pnpm typecheck`, `pnpm test`, and a check against the list
 ## Risks
 
 - **Canary API churn.** The `/webgpu` entry and `useRenderPipeline` have already moved. Pin by hash; bump deliberately; alpha.6 is due soon.
-- **Frame order.** The vanilla loop is one rAF: rig, render, harness. R3F's scheduler must keep rig -> sky update -> render -> timestamps in
-  that order, or captures shift by a frame. Use explicit `useFrame` phases.
+- **Frame order.** Settled by naming the jobs and their `before`/`after` constraints (see "Jobs"); phase 1's capture diff confirms it.
 - **Re-renders.** A store subscription in the wrong component re-renders per frame and costs CPU time. Watch React DevTools' profiler and
   the frame time in `report()`.
 - **StrictMode double effects** create the sky and the procedural model twice in development. The hook must dispose cleanly, or the GPU
