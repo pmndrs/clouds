@@ -102,12 +102,15 @@ export interface HzdNdfSettings {
   typeCells: number;
   typeMin: number;
   typeMax: number;
-  /** Bottom type (constant; the HZD shaper ignores it, NE table mode will read it). 0 = sharp-onset crisp base. */
+  /** Bottom type: the field's centre (with bottomTypeRange 0 and bottomTypeCorrelation 0, the constant of H1-F1). 0 = sharp-onset, flat,
+   *  crisp base; 1 = slow, ragged base (n3.md §7a). Read by the 'tables' profile only (the Nutshell profiles have no bottom axis). */
   bottomType: number;
-  /** Column base and top as fractions of the layer, each varied by +- heightVariation (a 2-octave fBM from 3 cells per tile). */
+  /** Column base and top as fractions of the layer, each varied by +- heightVariation (a 2-octave fBM from `heightCells` cells per tile). */
   minHeight: number;
   maxHeight: number;
   heightVariation: number;
+  /** F2: cells per tile of the height variation (H1-W1: a fixed 3 on the 16 km tile; 6 on the 32 km tile keeps the same feature size). */
+  heightCells: number;
   /** H6, N17 p.53-58: the coverage footprint. 0 = R, Perlin fBM ("connected formations", H1-H5); 1 = G, Perlin-Worley ("isolated islands with
    *  connective tissue": the Perlin fBM dilated by an inverted Worley fBM, gp7 p.106's remap in 2D); between = a mix (N17: the artist picks one).
    *  `worleyCells` = cells per tile of the footprint's first Worley octave (ours; N17 gives no frequencies). */
@@ -138,6 +141,15 @@ export interface HzdNdfSettings {
    *  recipe's. Example maps: assets/clouds/ndf/ (served at /clouds/ndf/). */
   image: string;
   heightImage: string;
+  // ---- F2: per-area cloud bases (work/reports/F2.md). Both recipes. ----
+  /** F2: the bottom type varies by area: bottomType + bottomTypeRange x a 2-octave fBM (about +-0.5) from `bottomTypeCells` cells per tile,
+   *  plus bottomTypeCorrelation x (the column's top type within typeMin..typeMax - 0.5), clamped 0..1. Negative correlation pairs crisp bases
+   *  with cumulus and soft, ragged ones with stratiform types: NE p.27 shows its cumulus field at bottom type 0 (flat, crisp undersides; ne22
+   *  p.26-28 gives no other pairing), and the photos' stratus and stratocumulus have diffuse or broken bases (photo-species-specs.md). The
+   *  pairing strength, range and cells are ours. bottomTypeRange 0 and correlation 0 = the constant bottomType (H1-F1). */
+  bottomTypeRange: number;
+  bottomTypeCells: number;
+  bottomTypeCorrelation: number;
 }
 
 /** H1: the HZD reference shaper (GPU Pro 7 chain). Metres unless noted. */
@@ -145,7 +157,9 @@ export interface HzdShape {
   /** The cloud layer: NDF min/max height map into it. GP7 p.119 renders a shell 1.5 km up and 3.5 km thick. */
   layerBottom: number;
   layerTop: number;
-  /** Extinction (1/m) at density 1 (ours, tuned). */
+  /** Extinction (1/m) at density 1 (ours, tuned). F2: 0.5 -> 0.8 with the tables profile, whose lower body values (the profile peaks at 1 at
+   *  one height, the Nutshell trapezoids hold 1 over the middle) gave softer, less textured flanks at 0.5 (work/captures/F2/s3/ext). H6's
+   *  Nutshell look: profileMode 'nutshell' with extinction 0.5. */
   extinction: number;
   /** HZD 2015's artist override (hzd15 s38-42): coverage +-0.5 and type +-1, added to the NDF. The compare page drives coverageBias. */
   coverageBias: number;
@@ -303,7 +317,7 @@ export interface HzdShape {
   bottomCurlDown: number;
   wispyStrength: number;
   // ---- F1: cloud types and forms (this block only; packed by packHzdForms) ----
-  /** F1 step 1 (ne22 p.21-29, n3 s18): the vertical profile. 'nutshell' = the three HZD trapezoids blended by type (H1-H7); 'tables' = NE's
+  /** F1 step 1 (ne22 p.21-29, n3 s18): the vertical profile (F2: 'tables' is the default). 'nutshell' = the three HZD trapezoids blended by type (H1-H7); 'tables' = NE's
    *  top table(top type, h) x bottom table(bottom type, h), divided by the pair's peak so a full column still peaks at 1 (H4's tables,
    *  generate/profile-tables.ts, reused). The HZD type maps onto the table's top type piecewise linearly through tableTypeStratus (type 0),
    *  tableTypeStratocumulus (0.5) and tableTypeCumulus (1): NE's insets put stratus at 0.07, stratocumulus 0.27, cumulus 0.40 (ne22 p.23-25);
@@ -312,6 +326,11 @@ export interface HzdShape {
   tableTypeStratus: number;
   tableTypeStratocumulus: number;
   tableTypeCumulus: number;
+  /** F2 step 1: where the shader reads the tables. 'storage' (default) = a read-only storage buffer bound beside the NDF (4 bytes per word,
+   *  the sky layer's layout); 'uniform' = F1's path, the bytes packed 3 per float into ProcParams.hzLut (5-8 ms slower at ultra on the
+   *  M-series GPU: divergent indexing of a 16 KB uniform array, work/reports/F1.md and F2.md). Both read the same bytes with the same bilinear
+   *  filter, so they render the same. (A sampled texture would take the trace past the default 16 sampled textures per shader stage.) */
+  tableSource: 'uniform' | 'storage';
   /** F1: bottom type = NDF bottomType + bottomTypeBias + bottomTypeVariation x a world-anchored low-frequency field (the shape texture's
    *  Perlin-Worley read flat with a `bottomTypeTile` m tile), clamped 0..1. 0 = sharp, flat, crisp base; 1 = slow, ragged base (n3.md §7a). Ours. */
   bottomTypeBias: number;
@@ -457,17 +476,28 @@ export const TAKRAM_DEFAULTS: TakramShape = {
   coverage: 0.3, weatherTileMeters: 100000, shapeRepeat: 3e-4, detailRepeat: 6e-3, turbulenceRepeat: 20, turbulenceDisplacement: 350, detailDistance: 60000, turbulenceOnShape: false,
 };
 
+// F2 (owner, 2026-10-12): the map tile is 32 km at 1024^2 (the 16 km tile at 512^2 repeated visibly in far rows, W1). Every cell count is
+// doubled so the features keep their size (W1 found it equivalent): coverage 9 -> 18, islands 2 -> 4, types 2 -> 4, Worley 6 -> 12, gate 3 -> 6,
+// bottom type 3 -> 6, heights 3 -> 6; the texel stays 31.25 m. HZD_NDF_TILE_16KM restores the 16 km tile. Map LOD comes later.
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
-  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
-  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
+  seed: 3, resolution: 1024, tileMeters: 32000, coverageCells: 18, islandCells: 4, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
+  typeCells: 4, typeMin: 0.4, typeMax: 1, bottomType: 0.45, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, heightCells: 6, footprint: 0, worleyCells: 12,
   // W1 weather map
   // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
-  recipe: 'n17', gateCells: 3, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
+  recipe: 'n17', gateCells: 6, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
+  // F2 per-area bases (bottomType above is the field's centre)
+  bottomTypeRange: 1.5, bottomTypeCells: 6, bottomTypeCorrelation: -0.6,
 };
-/** F1 type and form settings (every new behaviour off: the H6 look). */
+/** F2: the 16 km tile at 512^2 (H1-W1's tile, F2 step 2's captures): `Object.assign(settings.hzd.ndf, HZD_NDF_TILE_16KM)`, or the URL
+ *  hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3 */
+export const HZD_NDF_TILE_16KM = {
+  tileMeters: 16000, resolution: 512, coverageCells: 9, islandCells: 2, typeCells: 2, worleyCells: 6, gateCells: 3, bottomTypeCells: 3, heightCells: 3,
+} satisfies Partial<HzdNdfSettings>;
+/** F1 type and form settings. F2: the tables profile is the default (profileMode 'nutshell' + extinction 0.5 = the H6 look); the F1 forms
+ *  (storms, sheets, fractus) stay off. */
 export const HZD_FORM_DEFAULTS = {
-  profileMode: 'nutshell', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4,
+  profileMode: 'tables', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4, tableSource: 'storage',
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
@@ -497,7 +527,7 @@ export function packHzdLut(): Float32Array {
 /** Pack the F1 block (layout in procedural/density.wgsl.ts hzType .. hzLut). */
 export function packHzdForms(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_FORMS_OFFSET;
-  out.set([hz.profileMode === 'tables' ? 1 : 0, hz.tableTypeStratus, hz.tableTypeStratocumulus, hz.tableTypeCumulus], o);
+  out.set([hz.profileMode === 'tables' ? (hz.tableSource === 'uniform' ? 1 : 2) : 0, hz.tableTypeStratus, hz.tableTypeStratocumulus, hz.tableTypeCumulus], o);
   out.set([hz.bottomTypeBias, hz.bottomTypeVariation, Math.max(hz.bottomTypeTile, 1), Math.min(Math.max(hz.tableFloor, 0), 0.9)], o + 4);
   out.set([Math.max(hz.anvilBias, 0), hz.anvilClamp ? 1 : 0, Math.min(Math.max(hz.anvilFlatten, 0), 1), Math.min(Math.max(hz.anvilDensityFix, 0), 1)], o + 8);
   out.set([hz.stormX, hz.stormZ, Math.max(hz.stormRadius, 1), Math.max(hz.stormStrength, 0)], o + 12);
@@ -521,7 +551,7 @@ export function hzdShell(hz: HzdShape): [number, number] {
   return [Math.max(lo, 0), hi];
 }
 export const HZD_DEFAULTS: HzdShape = {
-  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
+  layerBottom: 1500, layerTop: 5000, extinction: 0.8, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
   shapeTile: 6000, detailTile: 300, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
@@ -532,8 +562,8 @@ export const HZD_DEFAULTS: HzdShape = {
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
-export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.footprint, n.worleyCells,
-  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast].join(',');
+export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.heightCells, n.footprint, n.worleyCells,
+  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {

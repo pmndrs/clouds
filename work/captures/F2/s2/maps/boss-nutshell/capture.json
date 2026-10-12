@@ -1,0 +1,104 @@
+{
+  "url": "http://127.0.0.1:54737/hzd/?clean=1&motion=0&hzn_image=/clouds/ndf/boss-fight.png&hzn_tileMeters=24000",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-12T02:08:35.672Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/F2/s2/maps/boss-nutshell/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 36.52079405000001,
+          "lightGridReduce": 0.042956,
+          "lightGrid": 0.055204,
+          "marchNear": 0.4862905166666668,
+          "marchFar": 1.4402856499999996,
+          "shadowMap": 1.3749262941176468,
+          "composite": 1.809690366666667,
+          "dome": 0.6822896166666669,
+          "skyLayer": 20.503159416666673,
+          "skyResolve": 6.153367899999998,
+          "cloudsTotal": 32.54816976078432,
+          "total": 69.06896381078434
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 24000,
+          "ndf.image": "/clouds/ndf/boss-fight.png",
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/F2/s2/maps/boss-nutshell/above.jpg",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 54.65172785000001,
+          "lightGridReduce": 0.042956,
+          "lightGrid": 0.018225857142857144,
+          "marchNear": 0.6782327499999999,
+          "marchFar": 2.6986830166666667,
+          "shadowMap": 1.2161219444444444,
+          "composite": 1.3488725166666664,
+          "dome": 1.1085566666666664,
+          "skyLayer": 23.248282116666665,
+          "skyResolve": 4.444508516666668,
+          "cloudsTotal": 34.804439384920634,
+          "total": 89.45616723492064
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.tileMeters": 24000,
+          "ndf.image": "/clouds/ndf/boss-fight.png",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

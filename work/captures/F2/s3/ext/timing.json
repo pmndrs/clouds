@@ -1,0 +1,80 @@
+{
+ "shots": "ground,gp7,horizon,above",
+ "reps": 1,
+ "arms": {
+  "ext07": "hz_profileMode=tables&hz_extinction=0.7",
+  "ext08": "hz_profileMode=tables&hz_extinction=0.8",
+  "ext08v0": "hz_profileMode=tables&hz_extinction=0.8&hz_veilWidth=0",
+  "nut08": "hz_extinction=0.8"
+ },
+ "skyLayerMs": {
+  "ext07": {
+   "ground": [
+    17.66
+   ],
+   "gp7": [
+    19.21
+   ],
+   "horizon": [
+    14.91
+   ],
+   "above": [
+    18.05
+   ],
+   "side": [
+    20.05
+   ]
+  },
+  "ext08": {
+   "ground": [
+    16.44
+   ],
+   "gp7": [
+    18.18
+   ],
+   "horizon": [
+    15.21
+   ],
+   "above": [
+    17.45
+   ],
+   "side": [
+    18.89
+   ]
+  },
+  "ext08v0": {
+   "ground": [
+    7.19
+   ],
+   "gp7": [
+    9.07
+   ],
+   "horizon": [
+    6.92
+   ],
+   "above": [
+    10.08
+   ],
+   "side": [
+    9.92
+   ]
+  },
+  "nut08": {
+   "ground": [
+    16.27
+   ],
+   "gp7": [
+    17.82
+   ],
+   "horizon": [
+    13.76
+   ],
+   "above": [
+    15.93
+   ],
+   "side": [
+    19.08
+   ]
+  }
+ }
+}
