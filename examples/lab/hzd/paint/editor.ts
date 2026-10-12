@@ -71,7 +71,8 @@ const UI_STORE = 'hzd-paint-ui';
 const CSS = `
 #paint{position:fixed;left:0;top:0;bottom:0;background:#0c0f13;border-right:1px solid #2a3340;z-index:8;display:none;flex-direction:column;font:12px/1.35 ui-monospace,Menlo,monospace;color:#fff;box-sizing:border-box}
 #paint.open{display:flex}
-#paint .scroll{overflow-y:auto;overflow-x:hidden;padding:8px;display:grid;gap:5px;align-content:start}
+#paint .top{flex:none;padding:8px 8px 6px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid #2a3340}
+#paint .scroll{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;padding:8px;display:grid;gap:5px;align-content:start}
 #paint .grip{position:absolute;right:-4px;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2}
 #paint .head{display:flex;align-items:center;gap:6px}
 #paint .head b{flex:1;color:#8fb0dd;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
@@ -92,7 +93,7 @@ const CSS = `
 #paint .ch .nm{cursor:pointer}
 #paint .ch.view .nm{color:#ffd27a}
 #paint .ch span.v{text-align:right;color:#c9d2db}
-#paint .mapwrap{position:relative;width:100%;aspect-ratio:1;background:#000;border:1px solid #2a3340;border-radius:3px;overflow:hidden;touch-action:none}
+#paint .mapwrap{position:relative;flex:none;align-self:center;width:min(100%, max(180px, 100vh - 340px));aspect-ratio:1;background:#000;border:1px solid #2a3340;border-radius:3px;overflow:hidden;touch-action:none}
 #paint .mapwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #paint .status{color:#c9d2db;font-size:11px;min-height:2.7em;white-space:pre}
 #paint .busy{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000a;color:#c9d2db}
@@ -141,14 +142,17 @@ export function createPainter(host: PainterHost): Painter {
   if (!document.getElementById('paint-css')) { const st = document.createElement('style'); st.id = 'paint-css'; st.textContent = CSS; document.head.appendChild(st); }
   const dock = document.createElement('div'); dock.id = 'paint';
   const grip = document.createElement('div'); grip.className = 'grip'; grip.title = 'drag to resize';
+  // The head, source and map stay put; the controls under them scroll.
+  const top = document.createElement('div'); top.className = 'top';
   const scroll = document.createElement('div'); scroll.className = 'scroll';
-  dock.append(grip, scroll); document.body.appendChild(dock);
+  let into: HTMLElement = top;
+  dock.append(grip, top, scroll); document.body.appendChild(dock);
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] => {
     const e = document.createElement(tag); Object.assign(e, props); e.append(...kids); return e;
   };
-  const sec = (t: string) => scroll.appendChild(el('div', { className: 'sec', textContent: t }));
-  const row = (...kids: (Node | string)[]) => scroll.appendChild(el('div', { className: 'row' }, ...kids));
-  const note = (t = '') => scroll.appendChild(el('div', { className: 'note', textContent: t }));
+  const sec = (t: string) => into.appendChild(el('div', { className: 'sec', textContent: t }));
+  const row = (...kids: (Node | string)[]) => into.appendChild(el('div', { className: 'row' }, ...kids));
+  const note = (t = '') => into.appendChild(el('div', { className: 'note', textContent: t }));
   const btn = (text: string, title: string, onclick: () => void) => el('button', { textContent: text, title, onclick });
   const syncers: (() => void)[] = [];
   const sync = () => syncers.forEach(f => f());
@@ -157,10 +161,10 @@ export function createPainter(host: PainterHost): Painter {
     const t = el('span');
     i.oninput = () => { set(Number(i.value)); t.textContent = fmt(Number(i.value)); };
     syncers.push(() => { i.value = String(get()); t.textContent = fmt(get()); });
-    return scroll.appendChild(el('label', { className: 'sl', title }, name, i, t));
+    return into.appendChild(el('label', { className: 'sl', title }, name, i, t));
   };
 
-  scroll.appendChild(el('div', { className: 'head' }, el('b', { textContent: 'Weather map painter' }),
+  into.appendChild(el('div', { className: 'head' }, el('b', { textContent: 'Weather map painter' }),
     btn('help', 'keys and notes', () => { helpNote.hidden = !helpNote.hidden; }), btn('×', 'close (M)', () => toggle(false))));
   const helpNote = note('Left-drag paints. Alt-click picks the values under the cursor. Right-click puts the camera there. Wheel zooms, space- or middle-drag pans, shift-wheel sets the size. '
     + 'Over the map: 1-8 tools, [ ] size, ctrl/cmd-Z undo, shift-ctrl/cmd-Z redo, 0 fits the map. M opens and closes the painter. '
@@ -172,7 +176,7 @@ export function createPainter(host: PainterHost): Painter {
   sec('Source');
   const srcPick = el('select', { title: 'what to start painting from' });
   const fileInput = el('input', { type: 'file', accept: 'image/png' }); fileInput.style.display = 'none';
-  scroll.appendChild(fileInput);
+  into.appendChild(fileInput);
   row(srcPick, btn('load', 'replace the painting with this source (undoable only by loading again)', () => void loadSource(srcPick.value)));
   const seedIn = el('input', { type: 'number', title: 'the generator\'s seed (ndf.seed)', step: '1' }); seedIn.style.width = '56px';
   seedIn.onchange = () => { ndf.seed = Math.round(Number(seedIn.value) || 0); host.onSettingsChange(); };
@@ -194,9 +198,10 @@ export function createPainter(host: PainterHost): Painter {
   const viewCanvas = el('canvas');
   const busyEl = el('div', { className: 'busy' }); busyEl.hidden = true;
   mapWrap.append(viewCanvas, busyEl);
-  scroll.appendChild(mapWrap);
-  const status = scroll.appendChild(el('div', { className: 'status', textContent: ' ' }));
+  into.appendChild(mapWrap);
+  const status = into.appendChild(el('div', { className: 'status', textContent: ' ' }));
 
+  into = scroll;
   // Tools and brush
   sec('Tools');
   const toolButtons = TOOLS.map(([t, name, about], i) => btn(name, `${about} (${i + 1})`, () => { tool = t; sync(); }));
@@ -223,7 +228,7 @@ export function createPainter(host: PainterHost): Painter {
     i.oninput = () => { targets[c] = Number(i.value); v.textContent = fmt(targets[c]); if (!ticked[c]) { ticked[c] = true; ck.checked = true; } };
     const eye = el('input', { type: 'radio', name: 'paint-view', title: 'view this channel in the map' });
     eye.onchange = () => { viewChannel = c; display = 'channel'; dirtyMap = true; sync(); saveUi(); };
-    const r = scroll.appendChild(el('div', { className: 'ch' }, ck, nm, i, v, eye));
+    const r = into.appendChild(el('div', { className: 'ch' }, ck, nm, i, v, eye));
     syncers.push(() => { ck.checked = ticked[c]; i.value = String(targets[c]); v.textContent = fmt(targets[c]); eye.checked = display === 'channel' && viewChannel === c; r.classList.toggle('view', display === 'channel' && viewChannel === c); });
   }
   row(...RECIPES.map(([name, about, t]) => btn(name, `${about}; ticks those channels and switches to paint`, () => {
