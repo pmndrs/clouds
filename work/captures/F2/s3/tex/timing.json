@@ -1,0 +1,56 @@
+{
+ "shots": "ground,gp7",
+ "reps": 1,
+ "arms": {
+  "ero45": "hz_profileMode=tables&hz_erosionStrength=0.45&hz_wispyStrength=0.45",
+  "ero60": "hz_profileMode=tables&hz_erosionStrength=0.6&hz_wispyStrength=0.45",
+  "ext08": "hz_profileMode=tables&hz_extinction=0.8",
+  "pow07": "hz_profileMode=tables&hz_densityPow=0.7"
+ },
+ "skyLayerMs": {
+  "ero45": {
+   "ground": [
+    19.86
+   ],
+   "gp7": [
+    23.65
+   ],
+   "side": [
+    23.24
+   ]
+  },
+  "ero60": {
+   "ground": [
+    19.21
+   ],
+   "gp7": [
+    23.57
+   ],
+   "side": [
+    24.59
+   ]
+  },
+  "ext08": {
+   "ground": [
+    16.05
+   ],
+   "gp7": [
+    19.19
+   ],
+   "side": [
+    18.64
+   ]
+  },
+  "pow07": {
+   "ground": [
+    14.93
+   ],
+   "gp7": [
+    17.86
+   ],
+   "side": [
+    18.58
+   ]
+  }
+ }
+}

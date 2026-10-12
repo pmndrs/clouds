@@ -169,12 +169,15 @@ describe('HZD shaper F1: types and forms', () => {
     expect(hzdTableType(0, [0.14, 0.27, 0.4])).toBeCloseTo(0.14);
     expect(hzdTableType(0.75, [0.14, 0.27, 0.4])).toBeCloseTo(0.335);
   });
-  it('step 1: packs the type words; the Nutshell path stays the default', () => {
+  it('step 1: packs the type words; F2: the tables (storage source) are the default, Nutshell stays selectable', () => {
     const s = defaultProceduralSettings('hzd');
     const out = new Float32Array(PROC_PARAM_FLOATS);
     packProceduralParams(s, out);
     const o = PROC_HZD_FORMS_OFFSET;
-    expect(Array.from(out.subarray(o, o + 4))).toEqual([0, 0.14, 0.27, 0.4].map(Math.fround));
+    expect(Array.from(out.subarray(o, o + 4))).toEqual([2, 0.14, 0.27, 0.4].map(Math.fround));
+    s.hzd.profileMode = 'nutshell';
+    packProceduralParams(s, out);
+    expect(out[o]).toBe(0);
     s.hzd.profileMode = 'tables'; s.hzd.bottomTypeVariation = 0.6;
     packProceduralParams(s, out);
     expect(out[o]).toBe(2);                    // F2: the storage-buffer source is the default

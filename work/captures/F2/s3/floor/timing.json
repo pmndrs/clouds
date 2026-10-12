@@ -1,0 +1,44 @@
+{
+ "shots": "ground,gp7,horizon,above",
+ "reps": 1,
+ "arms": {
+  "floor020": "hz_tableFloor=0.2",
+  "floor033": "hz_tableFloor=0.33"
+ },
+ "skyLayerMs": {
+  "floor020": {
+   "ground": [
+    15.43
+   ],
+   "gp7": [
+    17.9
+   ],
+   "horizon": [
+    13.75
+   ],
+   "above": [
+    15.79
+   ],
+   "side": [
+    19.11
+   ]
+  },
+  "floor033": {
+   "ground": [
+    17.77
+   ],
+   "gp7": [
+    21.37
+   ],
+   "horizon": [
+    16.65
+   ],
+   "above": [
+    22.08
+   ],
+   "side": [
+    20.27
+   ]
+  }
+ }
+}

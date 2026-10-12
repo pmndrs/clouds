@@ -157,7 +157,9 @@ export interface HzdShape {
   /** The cloud layer: NDF min/max height map into it. GP7 p.119 renders a shell 1.5 km up and 3.5 km thick. */
   layerBottom: number;
   layerTop: number;
-  /** Extinction (1/m) at density 1 (ours, tuned). */
+  /** Extinction (1/m) at density 1 (ours, tuned). F2: 0.5 -> 0.8 with the tables profile, whose lower body values (the profile peaks at 1 at
+   *  one height, the Nutshell trapezoids hold 1 over the middle) gave softer, less textured flanks at 0.5 (work/captures/F2/s3/ext). H6's
+   *  Nutshell look: profileMode 'nutshell' with extinction 0.5. */
   extinction: number;
   /** HZD 2015's artist override (hzd15 s38-42): coverage +-0.5 and type +-1, added to the NDF. The compare page drives coverageBias. */
   coverageBias: number;
@@ -315,7 +317,7 @@ export interface HzdShape {
   bottomCurlDown: number;
   wispyStrength: number;
   // ---- F1: cloud types and forms (this block only; packed by packHzdForms) ----
-  /** F1 step 1 (ne22 p.21-29, n3 s18): the vertical profile. 'nutshell' = the three HZD trapezoids blended by type (H1-H7); 'tables' = NE's
+  /** F1 step 1 (ne22 p.21-29, n3 s18): the vertical profile (F2: 'tables' is the default). 'nutshell' = the three HZD trapezoids blended by type (H1-H7); 'tables' = NE's
    *  top table(top type, h) x bottom table(bottom type, h), divided by the pair's peak so a full column still peaks at 1 (H4's tables,
    *  generate/profile-tables.ts, reused). The HZD type maps onto the table's top type piecewise linearly through tableTypeStratus (type 0),
    *  tableTypeStratocumulus (0.5) and tableTypeCumulus (1): NE's insets put stratus at 0.07, stratocumulus 0.27, cumulus 0.40 (ne22 p.23-25);
@@ -492,9 +494,10 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
 export const HZD_NDF_TILE_16KM = {
   tileMeters: 16000, resolution: 512, coverageCells: 9, islandCells: 2, typeCells: 2, worleyCells: 6, gateCells: 3, bottomTypeCells: 3, heightCells: 3,
 } satisfies Partial<HzdNdfSettings>;
-/** F1 type and form settings (every new behaviour off: the H6 look). */
+/** F1 type and form settings. F2: the tables profile is the default (profileMode 'nutshell' + extinction 0.5 = the H6 look); the F1 forms
+ *  (storms, sheets, fractus) stay off. */
 export const HZD_FORM_DEFAULTS = {
-  profileMode: 'nutshell', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4, tableSource: 'storage',
+  profileMode: 'tables', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4, tableSource: 'storage',
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
@@ -548,7 +551,7 @@ export function hzdShell(hz: HzdShape): [number, number] {
   return [Math.max(lo, 0), hi];
 }
 export const HZD_DEFAULTS: HzdShape = {
-  layerBottom: 1500, layerTop: 5000, extinction: 0.5, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
+  layerBottom: 1500, layerTop: 5000, extinction: 0.8, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
   shapeTile: 6000, detailTile: 300, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
   erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,

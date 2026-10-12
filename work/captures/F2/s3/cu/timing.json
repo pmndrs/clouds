@@ -1,0 +1,80 @@
+{
+ "shots": "ground,gp7,horizon,above",
+ "reps": 1,
+ "arms": {
+  "nutshell": "",
+  "cu040": "hz_profileMode=tables",
+  "cu060": "hz_profileMode=tables&hz_tableTypeCumulus=0.6",
+  "cu075": "hz_profileMode=tables&hz_tableTypeCumulus=0.75"
+ },
+ "skyLayerMs": {
+  "nutshell": {
+   "ground": [
+    17.43
+   ],
+   "gp7": [
+    18.92
+   ],
+   "horizon": [
+    14.58
+   ],
+   "above": [
+    15.61
+   ],
+   "side": [
+    18.74
+   ]
+  },
+  "cu040": {
+   "ground": [
+    16.21
+   ],
+   "gp7": [
+    18.24
+   ],
+   "horizon": [
+    15.21
+   ],
+   "above": [
+    17.62
+   ],
+   "side": [
+    19.39
+   ]
+  },
+  "cu060": {
+   "ground": [
+    17.58
+   ],
+   "gp7": [
+    18.56
+   ],
+   "horizon": [
+    15.64
+   ],
+   "above": [
+    16.12
+   ],
+   "side": [
+    21.23
+   ]
+  },
+  "cu075": {
+   "ground": [
+    17.55
+   ],
+   "gp7": [
+    20.47
+   ],
+   "horizon": [
+    16.11
+   ],
+   "above": [
+    15.83
+   ],
+   "side": [
+    20.62
+   ]
+  }
+ }
+}
