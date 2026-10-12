@@ -10,7 +10,7 @@ import { bench, scheduleUrl, useBench, viewChanged } from '../bench/store';
 
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-1.5">
+    <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-1.5">
       <h2 className="mt-1.5 text-[10.5px] tracking-wider text-label uppercase">{title}</h2>
       {children}
     </section>

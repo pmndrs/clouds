@@ -30,7 +30,7 @@ describe('the React bench URL', () => {
   it('writes only what differs from the view, and reads it back the same', () => {
     const s = readStart(q('view=horizon'));
     s.view.sunEl = 7.3; s.view.position = [120, 40, -5]; s.view.coverage = 0.71;
-    const out = writeQuery({ viewName: s.viewName, view: s.view, ref: { ...s.ref, mode: 'pip', pip: 'l', corner: 'br' }, quality: 'ultra', clean: false, changes: { 'hzd.ndfMotion': 'static', 'c.windDirection': [0.5, 1], 'sky.temporalBlend': false } });
+    const out = writeQuery({ viewName: s.viewName, view: s.view, ref: { ...s.ref, mode: 'pip', pip: 'l', corner: 'br' }, quality: 'ultra', clean: false, changes: { 'hzd.ndfMotion': 'static', 'c.windDirection': [0.5, 1], 'sky.temporalBlend': false, 'sky.resolutionScale': 0.19999999999999998 } });
     expect(out.get('view')).toBe('horizon');
     expect(out.has('pitch')).toBe(false);
     expect(out.has('quality')).toBe(false);
@@ -39,6 +39,7 @@ describe('the React bench URL', () => {
     expect(out.get('hz_ndfMotion')).toBe('static');
     expect(out.get('c_windDirection')).toBe('0.5,1');
     expect(out.get('sky_temporalBlend')).toBe('0');
+    expect(out.get('sky_resolutionScale')).toBe('0.2');
     const back = readStart(out);
     expect(back.view).toEqual(s.view);
   });

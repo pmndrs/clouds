@@ -17,7 +17,7 @@ const NONE = '__none';
 
 export function Sidebar() {
   return (
-    <aside className="pointer-events-auto fixed top-2 right-2 z-[6] grid max-h-[calc(100vh-16px)] w-[min(250px,calc(100vw-16px))] content-start gap-1.5 overflow-x-hidden overflow-y-auto rounded-sm bg-black/70 p-2">
+    <aside className="pointer-events-auto fixed top-2 right-2 z-[6] grid max-h-[calc(100vh-16px)] w-[min(250px,calc(100vw-16px))] grid-cols-[minmax(0,1fr)] content-start gap-1.5 overflow-x-hidden overflow-y-auto rounded-sm bg-black/70 p-2">
       <ViewsSection />
       <SunSection />
       <CloudsSection />

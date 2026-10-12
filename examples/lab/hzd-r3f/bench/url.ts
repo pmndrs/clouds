@@ -97,7 +97,9 @@ export function writeQuery(s: UrlSnapshot): URLSearchParams {
   if (s.clean) q.set('clean', '1');
   for (const [k, v] of Object.entries(s.changes)) {
     const [src, key] = [k.slice(0, k.indexOf('.')) as SourceId, k.slice(k.indexOf('.') + 1)];
-    q.set(PREFIX[src] + key, Array.isArray(v) ? v.join(',') : typeof v === 'boolean' ? (v ? '1' : '0') : String(v));
+    // Six significant digits: Tweakpane's step snapping leaves 0.19999999999999998 for 0.2 (the vanilla bench wrote that into its links).
+    const n = (x: unknown) => (typeof x === 'number' ? String(Number(x.toPrecision(6))) : String(x));
+    q.set(PREFIX[src] + key, Array.isArray(v) ? v.map(n).join(',') : typeof v === 'boolean' ? (v ? '1' : '0') : n(v));
   }
   return q;
 }
