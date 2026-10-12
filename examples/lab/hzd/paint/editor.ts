@@ -53,7 +53,7 @@ const LABEL: Record<Channel, string> = { coverage: 'coverage', topType: 'top typ
 const ABOUT: Record<Channel, string> = {
   coverage: 'how much cloud in the column (a mean base shape survives above about 0.38 at the default coverage; the generated map\'s p50 / p90 / p99 are 0.30 / 0.52 / 0.67)',
   topType: '0 flat stratiform top, 0.5 stratocumulus, 1 tall tiered cumulus top',
-  bottomType: '0 sharp crisp base, 1 slow ragged base (table mode; the default hzd profile ignores it)',
+  bottomType: '0 sharp crisp base, 1 slow ragged base (read by the tables profile, the default since F2; nutshell ignores it)',
   minHeight: 'base of the column, as a fraction of the cloud layer',
   maxHeight: 'top of the column, as a fraction of the cloud layer (kept above the base)',
 };
