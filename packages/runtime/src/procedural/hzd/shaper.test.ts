@@ -87,7 +87,7 @@ describe('HZD shaper (H1)', () => {
     const s = defaultProceduralSettings('hzd');
     const out = new Float32Array(PROC_PARAM_FLOATS);
     expect(packProceduralParams(s, out)).toEqual([1500, 5000]);
-    expect(Array.from(out.subarray(120, 124))).toEqual([1500, 5000, 16000, s.hzd.extinction].map(Math.fround));
+    expect(Array.from(out.subarray(120, 124))).toEqual([1500, 5000, 32000, s.hzd.extinction].map(Math.fround));
     expect(out[140]).toBeCloseTo(0.5);                 // drift: the map moves at half the wind offset
     s.hzd.ndfMotion = 'static';
     packProceduralParams(s, out);

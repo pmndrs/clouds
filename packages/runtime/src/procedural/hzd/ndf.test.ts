@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultProceduralSettings, HZD_NDF_DEFAULTS, hzdNdfKey, packProceduralParams, PROC_PARAM_FLOATS } from '../settings';
+import { defaultProceduralSettings, HZD_NDF_DEFAULTS, HZD_NDF_TILE_16KM, hzdNdfKey, packProceduralParams, PROC_PARAM_FLOATS } from '../settings';
 import { HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL } from './ndf.wgsl';
 import { hzdNdfImageKey, packHzdNdfGen } from './ndf';
 
@@ -33,6 +33,13 @@ describe('W1 weather map (NDF generator)', () => {
     for (const k of ['bottomTypeRange', 'bottomTypeCells', 'bottomTypeCorrelation'] as const) {
       expect(hzdNdfKey({ ...HZD_NDF_DEFAULTS, [k]: HZD_NDF_DEFAULTS[k] + 0.5 })).not.toBe(hzdNdfKey(HZD_NDF_DEFAULTS));
     }
+  });
+  it('F2: the 32 km tile at 1024^2 keeps the 16 km texel and feature sizes; HZD_NDF_TILE_16KM restores the old tile', () => {
+    const n = HZD_NDF_DEFAULTS, o = { ...n, ...HZD_NDF_TILE_16KM };
+    expect([n.tileMeters, n.resolution]).toEqual([32000, 1024]);
+    expect(n.tileMeters / n.resolution).toBe(o.tileMeters / o.resolution);
+    for (const k of ['coverageCells', 'islandCells', 'typeCells', 'worleyCells', 'gateCells', 'bottomTypeCells', 'heightCells'] as const) expect(n[k] / n.tileMeters).toBe(o[k] / o.tileMeters);
+    expect(packHzdNdfGen(o)[3]).toBe(3);   // H1-W1's fixed height cells
   });
   it('authored maps: image centre at the world origin, heights kept ordered', () => {
     expect(HZD_NDF_IMAGE_WGSL).toContain('/ vec2<f32>(size) + 0.5');

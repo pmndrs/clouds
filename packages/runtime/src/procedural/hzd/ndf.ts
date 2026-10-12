@@ -15,7 +15,7 @@ const usage = () => GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BI
 /** The generator's uniform (NdfGen in ndf.wgsl.ts). */
 export function packHzdNdfGen(n: HzdNdfSettings): Float32Array<ArrayBuffer> {
   return new Float32Array([
-    n.coverageCells, n.islandCells, n.typeCells, 3,
+    n.coverageCells, n.islandCells, n.typeCells, n.heightCells,
     n.islandWeight, n.coverageLo, n.coverageHi, n.seed,
     n.typeMin, n.typeMax, n.bottomType, n.bottomTypeRange,
     n.minHeight, n.maxHeight, n.heightVariation, n.bottomTypeCells,

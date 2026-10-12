@@ -105,10 +105,12 @@ export interface HzdNdfSettings {
   /** Bottom type: the field's centre (with bottomTypeRange 0 and bottomTypeCorrelation 0, the constant of H1-F1). 0 = sharp-onset, flat,
    *  crisp base; 1 = slow, ragged base (n3.md §7a). Read by the 'tables' profile only (the Nutshell profiles have no bottom axis). */
   bottomType: number;
-  /** Column base and top as fractions of the layer, each varied by +- heightVariation (a 2-octave fBM from 3 cells per tile). */
+  /** Column base and top as fractions of the layer, each varied by +- heightVariation (a 2-octave fBM from `heightCells` cells per tile). */
   minHeight: number;
   maxHeight: number;
   heightVariation: number;
+  /** F2: cells per tile of the height variation (H1-W1: a fixed 3 on the 16 km tile; 6 on the 32 km tile keeps the same feature size). */
+  heightCells: number;
   /** H6, N17 p.53-58: the coverage footprint. 0 = R, Perlin fBM ("connected formations", H1-H5); 1 = G, Perlin-Worley ("isolated islands with
    *  connective tissue": the Perlin fBM dilated by an inverted Worley fBM, gp7 p.106's remap in 2D); between = a mix (N17: the artist picks one).
    *  `worleyCells` = cells per tile of the footprint's first Worley octave (ours; N17 gives no frequencies). */
@@ -472,16 +474,24 @@ export const TAKRAM_DEFAULTS: TakramShape = {
   coverage: 0.3, weatherTileMeters: 100000, shapeRepeat: 3e-4, detailRepeat: 6e-3, turbulenceRepeat: 20, turbulenceDisplacement: 350, detailDistance: 60000, turbulenceOnShape: false,
 };
 
+// F2 (owner, 2026-10-12): the map tile is 32 km at 1024^2 (the 16 km tile at 512^2 repeated visibly in far rows, W1). Every cell count is
+// doubled so the features keep their size (W1 found it equivalent): coverage 9 -> 18, islands 2 -> 4, types 2 -> 4, Worley 6 -> 12, gate 3 -> 6,
+// bottom type 3 -> 6, heights 3 -> 6; the texel stays 31.25 m. HZD_NDF_TILE_16KM restores the 16 km tile. Map LOD comes later.
 export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
-  seed: 3, resolution: 512, tileMeters: 16000, coverageCells: 9, islandCells: 2, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
-  typeCells: 2, typeMin: 0.4, typeMax: 1, bottomType: 0.45, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, footprint: 0, worleyCells: 6,
+  seed: 3, resolution: 1024, tileMeters: 32000, coverageCells: 18, islandCells: 4, islandWeight: 0.8, coverageLo: -0.47, coverageHi: 0.83,
+  typeCells: 4, typeMin: 0.4, typeMax: 1, bottomType: 0.45, minHeight: 0, maxHeight: 0.9, heightVariation: 0.2, heightCells: 6, footprint: 0, worleyCells: 12,
   // W1 weather map
   // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
-  recipe: 'n17', gateCells: 3, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
+  recipe: 'n17', gateCells: 6, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
   // F2 per-area bases (bottomType above is the field's centre)
-  bottomTypeRange: 1.5, bottomTypeCells: 3, bottomTypeCorrelation: -0.6,
+  bottomTypeRange: 1.5, bottomTypeCells: 6, bottomTypeCorrelation: -0.6,
 };
+/** F2: the 16 km tile at 512^2 (H1-W1's tile, F2 step 2's captures): `Object.assign(settings.hzd.ndf, HZD_NDF_TILE_16KM)`, or the URL
+ *  hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3 */
+export const HZD_NDF_TILE_16KM = {
+  tileMeters: 16000, resolution: 512, coverageCells: 9, islandCells: 2, typeCells: 2, worleyCells: 6, gateCells: 3, bottomTypeCells: 3, heightCells: 3,
+} satisfies Partial<HzdNdfSettings>;
 /** F1 type and form settings (every new behaviour off: the H6 look). */
 export const HZD_FORM_DEFAULTS = {
   profileMode: 'nutshell', tableTypeStratus: 0.14, tableTypeStratocumulus: 0.27, tableTypeCumulus: 0.4, tableSource: 'storage',
@@ -549,7 +559,7 @@ export const HZD_DEFAULTS: HzdShape = {
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
-export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.footprint, n.worleyCells,
+export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.heightCells, n.footprint, n.worleyCells,
   n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {

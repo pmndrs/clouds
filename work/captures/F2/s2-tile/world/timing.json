@@ -1,0 +1,20 @@
+{
+ "shots": "",
+ "reps": 1,
+ "arms": {
+  "tile16": "hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3",
+  "tile32": ""
+ },
+ "skyLayerMs": {
+  "tile16": {
+   "view": [
+    15.26
+   ]
+  },
+  "tile32": {
+   "view": [
+    16.47
+   ]
+  }
+ }
+}
