@@ -11,6 +11,7 @@
 //   bench's URL reopens the painted sky. Download saves the same two PNGs.
 // The model and the brush maths are in fields.ts; the runtime takes the map through proc.setNdf (written in place while painting).
 import type { ProceduralClouds } from '../../../../packages/runtime/src/procedural';
+import { HZD_NDF_DEFAULTS } from '../../../../packages/runtime/src/procedural/settings';
 import type { ViewState } from '../../compare/shared';
 import { addNoise, blurAll, CHANNELS, dab, fill, fromNdfLayers, gradient, invert, MapFields, mapToWorld, strokePoints, toNdfFields, toPngPixels, worldToMap, writeImage, type Brush, type BrushOp, type Channel, type Targets } from './fields';
 import type { NdfMapEntry } from './plugin';
@@ -126,7 +127,7 @@ export function createPainter(host: PainterHost): Painter {
   let dirtyMap = true, dirtyUpload = false, lastUpload = 0, busy = '';
   let maps: { examples: NdfMapEntry[]; painted: NdfMapEntry[] } = { examples: [], painted: [] };
 
-  const tile = () => Number(ndf.tileMeters) || 16000;
+  const tile = () => Number(ndf.tileMeters) || HZD_NDF_DEFAULTS.tileMeters;
   const layer = () => [Number(hzd.layerBottom) || 1500, Number(hzd.layerTop) || 5000] as const;
   const chosen = () => CHANNELS.filter(c => ticked[c]);
   /** The map's offset in the world now (the NDF drifts with the wind unless ndfMotion is 'static'; ndf.wgsl.ts ndfOffset). */
@@ -354,7 +355,7 @@ export function createPainter(host: PainterHost): Painter {
       if (kind === 'sky') { f = await readSky(); label = 'the sky'; keepOwned = owned; }
       else if (kind === 'generated') { f = await viaRuntime('', ''); label = `generated, seed ${ndf.seed}`; }
       else if (kind === 'blank') {
-        const n = proc.hzdTextures?.ndf.texture.width ?? Math.round(Number(ndf.resolution) || 512);
+        const n = proc.hzdTextures?.ndf.texture.width ?? Math.round(Number(ndf.resolution) || HZD_NDF_DEFAULTS.resolution);
         f = new MapFields(n, { coverage: 0, topType: Number(ndf.typeMax) || 1, bottomType: Number(ndf.bottomType) || 0, minHeight: Number(ndf.minHeight) || 0, maxHeight: Number(ndf.maxHeight) || 1 });
         label = 'blank';
       } else if (kind === 'autosave') {
@@ -464,7 +465,7 @@ export function createPainter(host: PainterHost): Painter {
       edited = false; sourceLabel = `painted/${name}.png`;
       saveUi();
       host.onSettingsChange();
-      fileNote.textContent = `saved ${a.path} and ${b.path}${Number(ndf.tileMeters) !== 16000 ? ` (map size ${tile() / 1000} km: keep hzn_tileMeters with it)` : ''}`;
+      fileNote.textContent = `saved ${a.path} and ${b.path}${tile() !== HZD_NDF_DEFAULTS.tileMeters ? ` (map size ${tile() / 1000} km: keep hzn_tileMeters with it)` : ''}`;
       void refreshSources();
     } catch (e) { fileNote.textContent = `save failed (the dev server saves; a static build cannot): ${e instanceof Error ? e.message : String(e)}`; }
     sync();
