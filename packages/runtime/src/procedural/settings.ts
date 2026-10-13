@@ -401,7 +401,7 @@ export interface HzdShape {
    *  bound with the volume (cloudNoise), so no binding changes. With 'nubis3' the erosion is the deck's up-rez (density.wgsl.ts):
    *  wispy = lerp(R, G, P), billowy = lerp(0.3 B, 0.3 A, P^0.25), noise = lerp(wispy, billowy, T) (+ the HHF fold near the camera), then
    *  ValueErosion(P, noise) = sat((P - noise) / (1 - noise)) on the coarse density P (the dimensional profile after the coverage remap). The
-   *  veil, skirt, lobe rung, sheets and fractus keep reading the HZD detail texture. */
+   *  veil, skirt, lobe rung, sheets and fractus keep reading the HZD detail texture. N1 step 3: 'nubis3' is the default (H1-F2: 'hzd'). */
   noiseSet: 'hzd' | 'nubis3';
   /** N1: world size (m) of one tile of the pack noise (the voxel path: 100 m, `uvw = p * 0.01`, s92). Ours: sky-scale bodies want larger. */
   n3Tile: number;
@@ -574,9 +574,10 @@ export function packHzdForms(hz: HzdShape, out: Float32Array): void {
   out.set([Math.max(hz.fractusScale, 1e-3), hz.fractusCurl, Math.min(Math.max(Math.round(hz.fractusTaps), 1), 6), Math.max(hz.fractusDistance, 1)], o + 40);
   out.set(packHzdLut(), PROC_HZD_LUT_OFFSET);
 }
-/** N1 defaults: the HZD noise stays the default noise set (see work/reports/N1.md for the A/B). */
+/** N1 defaults (work/reports/N1.md): the Nubis Cubed noise erodes by default (step 3: closer to n3 s99/s101's billowed surfaces, no pellets
+ *  on the tops, skyLayer within run noise); noiseSet 'hzd' is the H1-F2 erosion. The shape noise stays HZD's (step 2: +6-10 ms, no clear gain). */
 export const HZD_N3_DEFAULTS = {
-  noiseSet: 'hzd', n3Tile: 600, n3Strength: 1, n3StratusType: 0.5, n3HhfDistance: 900, n3Sharpen: 1, n3Curl: 0, shapeNoise: 'hzd', n3ShapeTile: 4000,
+  noiseSet: 'nubis3', n3Tile: 600, n3Strength: 1, n3StratusType: 0.5, n3HhfDistance: 900, n3Sharpen: 1, n3Curl: 0, shapeNoise: 'hzd', n3ShapeTile: 4000,
 } satisfies Partial<HzdShape>;
 /** Pack the N1 block (procedural/density.wgsl.ts hzN3, hzN3b). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {

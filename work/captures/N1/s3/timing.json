@@ -1,0 +1,78 @@
+{
+ "shots": {
+  "img55": "ref:n3-image55@mode:off",
+  "img56": "ref:n3-image56@mode:off",
+  "img124": "ref:n3-image124@mode:off",
+  "img127": "ref:n3-image127@mode:off",
+  "sunset": "sunset",
+  "dusk": "dusk"
+ },
+ "reps": 1,
+ "arms": {
+  "hzd": "",
+  "n3": "hz_noiseSet=nubis3",
+  "n3s0": "hz_noiseSet=nubis3&hz_n3Sharpen=0"
+ },
+ "skyLayerMs": {
+  "hzd": {
+   "img55": [
+    23.39
+   ],
+   "img56": [
+    25.93
+   ],
+   "img124": [
+    25.13
+   ],
+   "img127": [
+    22.38
+   ],
+   "sunset": [
+    20.62
+   ],
+   "dusk": [
+    21.85
+   ]
+  },
+  "n3": {
+   "img55": [
+    20.1
+   ],
+   "img56": [
+    22.03
+   ],
+   "img124": [
+    22.3
+   ],
+   "img127": [
+    21.16
+   ],
+   "sunset": [
+    19.85
+   ],
+   "dusk": [
+    20.11
+   ]
+  },
+  "n3s0": {
+   "img55": [
+    22.22
+   ],
+   "img56": [
+    25.05
+   ],
+   "img124": [
+    25.37
+   ],
+   "img127": [
+    23.88
+   ],
+   "sunset": [
+    21.81
+   ],
+   "dusk": [
+    24.96
+   ]
+  }
+ }
+}

@@ -133,6 +133,7 @@ The URL options are the same choices the sidebar and panel make, for links and c
 | `?quality=high` `?clean=1` | Quality (default ultra), and no UI (for captures) |
 | `?hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3` | The 16 km map tile of H1-W1 (F2 made it 32 km; `HZD_NDF_TILE_16KM` in code) |
 | `?hz_profileMode=nutshell&hz_extinction=0.5` | H6's profile and extinction (F2 made the tables and 0.8 the defaults) |
+| `?hz_noiseSet=hzd` | F2's erosion by the HZD Worley detail (N1 made the Nubis Cubed noise the default erosion) |
 
 ## Captures (headless Chrome)
 
@@ -155,6 +156,7 @@ Many references show types this sky does not make yet. Compare those for light a
 
 **What it makes:**
 - One shell, 1.5-5 km.
+- Surface detail from the Nubis Cubed noise (N1 default: the pack's Alligator billows and Curly-Alligator wisps with the deck's up-rez; `hz_noiseSet=hzd` for the HZD Worley detail).
 - Types along stratus → stratocumulus → cumulus, from the NDF top type, through Nubis Evolved's top x bottom profile tables (F2 default; the Nutshell trapezoids are `hz_profileMode=nutshell`, with `hz_extinction=0.5` for H6's look).
 - Per-area bases from the NDF bottom type (F2): crisp flat bases under cumulus, soft rounded ones under stratiform areas.
 - F1 forms behind settings: storm cells with anvils, altocumulus / altostratus / stratus sheets, fractus.

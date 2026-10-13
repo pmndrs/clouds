@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_FLOATS, hzdNdfKey, PROC_HZD_FORMS_OFFSET, PROC_HZD_LUT_OFFSET, PROC_HZD_LUT_FLOATS } from '../settings';
+import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_FLOATS, hzdNdfKey, PROC_HZD_FORMS_OFFSET, PROC_HZD_N3_OFFSET, PROC_HZD_LUT_OFFSET, PROC_HZD_LUT_FLOATS } from '../settings';
 import { PROC_PARAMS_WGSL } from '../density.wgsl';
 import { profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
 import { HZD_GRADIENTS, HZD_LUT_WORDS, packHzdLutQuads, hzdHeightGradient, hzdTableProfile, hzdTableType, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
@@ -186,6 +186,22 @@ describe('HZD shaper F1: types and forms', () => {
     packProceduralParams(s, out);
     expect(out[o]).toBe(1);                    // F1's uniform-array path stays selectable
     expect(PROC_HZD_WGSL).toContain('if (P.hzType.x > 0.5) { return hzdTableProfile(hzdTableType(cloudType), h, hr); }');
+  });
+  it('N1: packs the Nubis Cubed noise block (nubis3 the default erosion noise, HZD selectable; pack shape off) between the forms and the tables', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    const o = PROC_HZD_N3_OFFSET;
+    expect(o).toBe(PROC_HZD_FORMS_OFFSET + 44);
+    expect(PROC_HZD_LUT_OFFSET).toBe(o + 8);
+    expect(Array.from(out.subarray(o, o + 8))).toEqual([1, 600, 1, 0.5, 900, 1, 0, 0]);
+    s.hzd.noiseSet = 'hzd'; s.hzd.shapeNoise = 'nubis3';
+    packProceduralParams(s, out);
+    expect(out[o]).toBe(0);
+    expect(out[o + 7]).toBe(4000);
+    expect(PROC_PARAMS_WGSL).toContain('hzN3b: vec4<f32>,');
+    expect(PROC_HZD_WGSL).toContain('textureSampleLevel(cloudNoise, repeatSampler, q / P.hzN3.y');
+    expect(PROC_HZD_WGSL).toContain('let billowy = mix(n.b * 0.3, n.a * 0.3, sqrt(sqrt(prof)));');
   });
   it('step 2: anvils (n17 exponent with its clamp switch, hag eq 17-18) and a placed storm cell that lifts the shell', () => {
     const s = defaultProceduralSettings('hzd');
