@@ -27,7 +27,7 @@ You already chose these: the profile tables as the default, and the 32 km map.
 | B1 | Cumulus height with the tables: standard (0.4, Nubis Evolved's value) or towering (0.6 / 0.75)? | [0.4](http://localhost:5180/hzd/?view=gp7) · [0.6](http://localhost:5180/hzd/?view=gp7&hz_tableTypeCumulus=0.6) · [0.75](http://localhost:5180/hzd/?view=gp7&hz_tableTypeCumulus=0.75) |
 
 ### C. Approve the next work (one yes covers the list, in order)
-1. **Nubis lighting for the HZD sky.** It is still lit by the Takram-style "octave" model by default. Nubis lighting exists but works from stand-ins (see below). Likely part of the "toon" look.
+1. **Nubis lighting for the HZD sky, from the exact profile.** The procedural sky knows each sample's height profile and map coverage exactly, so it can light like Nubis Evolved without the voxel data. Today it uses the Takram-style "octave" model by default; its Nubis option uses a stand-in that mixes in the noise. The NVDF sky layer already does it exactly (coverage × table, depth from the gradient); C1 moves that into the HZD sky. The octave model stays as an option. This is likely part of the "toon" look.
 2. **Cloud motion in the temporal blend.** Fixes the time-lapse smear; it's also the first step toward your upscaler (U1).
 3. **Altocumulus, altostratus and cirrus as 2.5D layers read from the map (L3).** Removes the visible layer edge, cheaper.
 4. **Influence painting (W2):** paint over part of the generated sky instead of replacing all of it, plus weather states.
@@ -35,6 +35,7 @@ You already chose these: the profile tables as the default, and the 32 km map.
 
 Parked:
 - The Houdini camera rig (for the Decima work, when it resumes).
+- **The performance pass, after parity.** Culling, distance and LOD as they stand, what the papers say about distant clouds, and the candidates: `work/reports/PERF-LOD-audit.md`.
 - Footprint (connected or islands) and the motion policy: these are per-scene choices with fine defaults.
 
 ## Where we differ from Nubis Evolved, and whether it's worse
@@ -49,6 +50,8 @@ Status of each from `docs/research/ne22-coverage.md`, in plain terms:
 ## Landed (newest first)
 | When | What | Tag / report |
 | --- | --- | --- |
+| 10-13 | All worktrees merged and removed; only `main` remains (plus this session's own checkout) | — |
+| 10-13 | Culling / distance / LOD audit (read only) | `work/reports/PERF-LOD-audit.md` |
 | 10-13 | N1: Nubis Cubed noise (the default), HZD noise kept | `stable-2026-10-13`, `work/reports/N1.md` |
 | 10-13 | Nubis Evolved audit and ranked plan | `docs/research/ne22-coverage.md` |
 | 10-12 | React HZD bench with the map painter (your other session) | `work/HZD-BENCH.md` |
