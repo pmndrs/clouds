@@ -5,7 +5,10 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-Nothing. No agents are working.
+- **C1** Nubis lighting from the exact profile (Sonnet agent, own worktree).
+- **C2** cloud motion in the temporal blend (Sonnet agent, own worktree).
+
+A and B keep their current values until you answer.
 
 ## Waiting on you
 
