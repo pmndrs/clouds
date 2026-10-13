@@ -2151,7 +2151,7 @@ Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H
   - Tables the default; re-check the interacting defaults; the 32 km tile (owner).
 - **Acceptance:** A/B sheets per step (ground, horizon, above, side, gp7), timings, every default change listed.
 
-### [ ] N1 Nubis Cubed noise for the procedural sky (Alligator / Curly-Alligator) · Opus (queued after F2; owner, 2026-10-12)
+### [ ] N1 Nubis Cubed noise for the procedural sky (Alligator / Curly-Alligator) · Opus (ready for review 2026-10-13: `hzd.noiseSet 'nubis3'` the default erosion, pack noise read through the volume group's `cloudNoise` (no binding change), deck up-rez with HHF and sharpen, `n3Tile` 600 m; `hz_noiseSet=hzd` restores F2; pack shape dilation `shapeNoise` kept as an option, off (+6-10 ms). Owner to judge the tops and thin parts) (report: work/reports/N1.md)
 - **Why:** the owner sees "pilling", small orbs like sprinkles on low-density parts and cloud tops. The procedural sky still uses the HZD-era noise (Perlin-Worley shape plus a 32³ Worley detail). Guerrilla replaced that noise in Nubis Cubed because inverted Worley "looked like packed spheres" (`sources/n3.md`, s90). The voxel path already uses the pack's Alligator and Curly-Alligator noise.
 - **Does:** add the pack noise as a noise option for the `hzd` shaper's erosion and detail, with wispy and billowy by type as the up-rez does. Keep the HZD noise selectable. A/B sheets of the bench views, close-ups of tops and thin parts.
 

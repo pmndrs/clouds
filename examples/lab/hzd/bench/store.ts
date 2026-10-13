@@ -146,7 +146,8 @@ export function setUiHidden(hidden: boolean): void {
   set(s => ({ uiHidden: hidden, helpOpen: hidden ? false : s.helpOpen }));
 }
 
-/** Captures: "<view>" or "ref:<id>", with @ variants: @sun:el:az @cov:c @exp:e @ref:<id> @mode:off|side|pip. */
+/** Captures: "<view>" or "ref:<id>", with @ variants: @sun:el:az @cov:c @exp:e @ref:<id> @mode:off|side|pip, and (N1) a camera on top of
+ *  the view: @look:az:pitch @pos:x:y:z @fov:f (the fov stays for later shots, as the sidebar's: give @fov:50 to go back). */
 export function bookmark(spec: string): void {
   const [head, ...variants] = spec.split('@');
   const view = get().view;
@@ -159,6 +160,9 @@ export function bookmark(spec: string): void {
     else if (k === 'exp') view.exposure = Number(a[0]);
     else if (k === 'ref') setRef(a[0], false);
     else if (k === 'mode' && (REF_MODES as readonly string[]).includes(a[0])) setRefState({ mode: a[0] as RefMode });
+    else if (k === 'look') { view.lookAz = Number(a[0]); if (a[1] !== undefined) view.pitch = Number(a[1]); }
+    else if (k === 'pos' && a.length === 3) view.position = [Number(a[0]), Number(a[1]), Number(a[2])];
+    else if (k === 'fov') view.fov = Number(a[0]);
   }
   get().rt?.core.resetTemporal();
   viewChanged();

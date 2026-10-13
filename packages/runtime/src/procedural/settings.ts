@@ -394,6 +394,38 @@ export interface HzdShape {
   fractusTaps: number;
   fractusDistance: number;
   // ---- end F1 ----
+  // ---- N1: Nubis Cubed noise (this block only; packed by packHzdN3) ----
+  /** N1 (n3 s89-90, s95-109): the noise that erodes the coarse density. 'hzd' = the HZD set (the 32^3 Worley detail, `detailRecipe`, read
+   *  as gp7 p.108's wispy / billowy modifier); 'nubis3' = the pack's 128^3 Nubis Cubed noise (assets/clouds/noise: R/G LF/HF Curly-Alligator,
+   *  B/A LF/HF Alligator), which Guerrilla made because inverted Worley "looked like packed spheres". It is the runtime's up-rez noise, already
+   *  bound with the volume (cloudNoise), so no binding changes. With 'nubis3' the erosion is the deck's up-rez (density.wgsl.ts):
+   *  wispy = lerp(R, G, P), billowy = lerp(0.3 B, 0.3 A, P^0.25), noise = lerp(wispy, billowy, T) (+ the HHF fold near the camera), then
+   *  ValueErosion(P, noise) = sat((P - noise) / (1 - noise)) on the coarse density P (the dimensional profile after the coverage remap). The
+   *  veil, skirt, lobe rung, sheets and fractus keep reading the HZD detail texture. N1 step 3: 'nubis3' is the default (H1-F2: 'hzd'). */
+  noiseSet: 'hzd' | 'nubis3';
+  /** N1: world size (m) of one tile of the pack noise (the voxel path: 100 m, `uvw = p * 0.01`, s92). Ours: sky-scale bodies want larger. */
+  n3Tile: number;
+  /** N1: the erosion noise x this before the erosion (1 = the deck). */
+  n3Strength: number;
+  /** N1 detail type T (0 wispy, 1 billowy; ours, the deck reads it from the NVDF): T = sat(h / wispyHeight) x lerp(n3StratusType, 1,
+   *  sat(2 type)): wispy below wispyHeight in every column (hzd15 s37, gp7 p.108: wisps at the base, billows above; n3 s83-88: falling
+   *  density curls), and stratus (HZD type 0) partly wispy throughout, stratocumulus and cumulus billowy. */
+  n3StratusType: number;
+  /** N1: the HHF fold (s102-104: the HF channels folded twice, x4 frequency, no extra fetch) blends in over n3HhfDistance / 3 .. n3HhfDistance
+   *  metres from the camera (the deck: 50-150 m at the 100 m tile). 0 = off. */
+  n3HhfDistance: number;
+  /** N1: the deck's density scale S for the sharpen after the erosion, d = pow(d S^4, lerp(0.3, 0.6, S^4)) (s107, s109). 0 = no sharpen
+   *  (the eroded density as is); 1 = the deck at full density scale (pow 0.6). */
+  n3Sharpen: number;
+  /** N1: the curl displacement of the pack read, x the HZD detail's (curlStrength (1 - h)). 0 = none, as the deck (Curly-Alligator has its curl baked in). */
+  n3Curl: number;
+  /** N1 step 2: the shape noise's dilating Worley fBM (gp7 p.106: base = remap(R, -(1 - fbm), 1, 0, 1)). 'hzd' = the shape texture's G/B/A
+   *  Worley fBM (inverted Worley: round lobes, the body-scale "packed spheres"); 'nubis3' = the pack's billows instead, 1 - (0.625 B + 0.375 A)
+   *  (bright Alligator cells), read with an `n3ShapeTile` m tile and matched to the Worley fBM's mean and spread (0.69, 0.10; the pack's
+   *  0.608, 0.157), so the coverage threshold keeps its meaning. The Perlin-Worley R, the base lumps and the veil keep the HZD texture. */
+  shapeNoise: 'hzd' | 'nubis3';
+  n3ShapeTile: number;
+  // ---- end N1 ----
   ndf: HzdNdfSettings;
 }
 
@@ -506,9 +538,11 @@ export const HZD_FORM_DEFAULTS = {
   fractusDensity: 0, fractusTrail: 900, fractusDrop: 220, fractusBelly: 0.08, fractusScale: 3, fractusCurl: 2, fractusTaps: 3, fractusDistance: 15000,
 } satisfies Partial<HzdShape>;
 const FORM_CODE = { off: 0, altocumulus: 1, altostratus: 2, stratus: 3 } as const;
-/** ProcParams floats of the F1 block: 11 vec4 after hzShelf, then the 64x64 top, bottom and peak tables at 3 bytes per float. */
+/** ProcParams floats of the F1 block: 11 vec4 after hzShelf, then (N1) 2 vec4 of the Nubis Cubed noise, then the 64x64 top, bottom and
+ *  peak tables at 3 bytes per float. */
 export const PROC_HZD_FORMS_OFFSET = 188;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
+export const PROC_HZD_N3_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_N3_OFFSET + 8;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -540,6 +574,17 @@ export function packHzdForms(hz: HzdShape, out: Float32Array): void {
   out.set([Math.max(hz.fractusScale, 1e-3), hz.fractusCurl, Math.min(Math.max(Math.round(hz.fractusTaps), 1), 6), Math.max(hz.fractusDistance, 1)], o + 40);
   out.set(packHzdLut(), PROC_HZD_LUT_OFFSET);
 }
+/** N1 defaults (work/reports/N1.md): the Nubis Cubed noise erodes by default (step 3: closer to n3 s99/s101's billowed surfaces, no pellets
+ *  on the tops, skyLayer within run noise); noiseSet 'hzd' is the H1-F2 erosion. The shape noise stays HZD's (step 2: +6-10 ms, no clear gain). */
+export const HZD_N3_DEFAULTS = {
+  noiseSet: 'nubis3', n3Tile: 600, n3Strength: 1, n3StratusType: 0.5, n3HhfDistance: 900, n3Sharpen: 1, n3Curl: 0, shapeNoise: 'hzd', n3ShapeTile: 4000,
+} satisfies Partial<HzdShape>;
+/** Pack the N1 block (procedural/density.wgsl.ts hzN3, hzN3b). */
+export function packHzdN3(hz: HzdShape, out: Float32Array): void {
+  const o = PROC_HZD_N3_OFFSET;
+  out.set([hz.noiseSet === 'nubis3' ? 1 : 0, Math.max(hz.n3Tile, 1), Math.max(hz.n3Strength, 0), Math.min(Math.max(hz.n3StratusType, 0), 1)], o);
+  out.set([Math.max(hz.n3HhfDistance, 0), Math.min(Math.max(hz.n3Sharpen, 0), 1), hz.n3Curl, hz.shapeNoise === 'nubis3' ? Math.max(hz.n3ShapeTile, 1) : 0], o + 4);
+}
 /** The march shell of the HZD shaper with the F1 forms: the storm top, the sheets and the fractus below the base widen it. */
 export function hzdShell(hz: HzdShape): [number, number] {
   let lo = hz.layerBottom, hi = Math.max(hz.layerTop, hz.layerBottom + 1);
@@ -557,7 +602,7 @@ export const HZD_DEFAULTS: HzdShape = {
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -644,6 +689,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([Math.max(hz.lobeTile, 1), Math.max(hz.lobeStrength, 0), hz.lobeFull, hz.lobeCubic ? 1 : 0], 180);
   out.set([Math.max(hz.baseLump, 0), 0, 0, hz.lobeCoverage], 184);
   packHzdForms(hz, out);
+  packHzdN3(hz, out);
   return [minY, maxY];
 }
 
