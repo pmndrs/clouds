@@ -419,6 +419,12 @@ export interface HzdShape {
   n3Sharpen: number;
   /** N1: the curl displacement of the pack read, x the HZD detail's (curlStrength (1 - h)). 0 = none, as the deck (Curly-Alligator has its curl baked in). */
   n3Curl: number;
+  /** N1 step 2: the shape noise's dilating Worley fBM (gp7 p.106: base = remap(R, -(1 - fbm), 1, 0, 1)). 'hzd' = the shape texture's G/B/A
+   *  Worley fBM (inverted Worley: round lobes, the body-scale "packed spheres"); 'nubis3' = the pack's billows instead, 1 - (0.625 B + 0.375 A)
+   *  (bright Alligator cells), read with an `n3ShapeTile` m tile and matched to the Worley fBM's mean and spread (0.69, 0.10; the pack's
+   *  0.608, 0.157), so the coverage threshold keeps its meaning. The Perlin-Worley R, the base lumps and the veil keep the HZD texture. */
+  shapeNoise: 'hzd' | 'nubis3';
+  n3ShapeTile: number;
   // ---- end N1 ----
   ndf: HzdNdfSettings;
 }
@@ -570,13 +576,13 @@ export function packHzdForms(hz: HzdShape, out: Float32Array): void {
 }
 /** N1 defaults: the HZD noise stays the default noise set (see work/reports/N1.md for the A/B). */
 export const HZD_N3_DEFAULTS = {
-  noiseSet: 'hzd', n3Tile: 600, n3Strength: 1, n3StratusType: 0.5, n3HhfDistance: 900, n3Sharpen: 1, n3Curl: 0,
+  noiseSet: 'hzd', n3Tile: 600, n3Strength: 1, n3StratusType: 0.5, n3HhfDistance: 900, n3Sharpen: 1, n3Curl: 0, shapeNoise: 'hzd', n3ShapeTile: 4000,
 } satisfies Partial<HzdShape>;
 /** Pack the N1 block (procedural/density.wgsl.ts hzN3, hzN3b). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_N3_OFFSET;
   out.set([hz.noiseSet === 'nubis3' ? 1 : 0, Math.max(hz.n3Tile, 1), Math.max(hz.n3Strength, 0), Math.min(Math.max(hz.n3StratusType, 0), 1)], o);
-  out.set([Math.max(hz.n3HhfDistance, 0), Math.min(Math.max(hz.n3Sharpen, 0), 1), hz.n3Curl, 0], o + 4);
+  out.set([Math.max(hz.n3HhfDistance, 0), Math.min(Math.max(hz.n3Sharpen, 0), 1), hz.n3Curl, hz.shapeNoise === 'nubis3' ? Math.max(hz.n3ShapeTile, 1) : 0], o + 4);
 }
 /** The march shell of the HZD shaper with the F1 forms: the storm top, the sheets and the fractus below the base widen it. */
 export function hzdShell(hz: HzdShape): [number, number] {

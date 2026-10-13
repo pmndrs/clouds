@@ -377,7 +377,15 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   let cubic = full && shapeLod <= 0.0 && t < P.hzMisc.y;
   var A: vec4<f32>;
   if (cubic) { A = hzdCubic3(procNoiseA, qShape / P.hzScale.x); } else { A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, shapeLod); }
-  let lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
+  var lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
+  // N1 step 2 (shapeNoise 'nubis3'): the dilation from the pack's billows, 1 - (0.625 B + 0.375 A), mapped onto the Worley fBM's mean and
+  // spread (pack 0.608 / 0.157 -> 0.69 / 0.10), read with its own tile (P.hzN3b.w m), tricubic where the shape read is.
+  if (P.hzN3b.w > 0.0) {
+    let uS = qShape / P.hzN3b.w;
+    var S: vec4<f32>;
+    if (cubic) { S = hzdCubic3(cloudNoise, uS); } else { S = textureSampleLevel(cloudNoise, repeatSampler, uS, hzdLod(footprint, P.hzN3b.w, 128.0)); }
+    lowFbm = 0.69 + (0.392 - (0.625 * S.b + 0.375 * S.a)) * (0.10 / 0.157);
+  }
   // H7 base lumps (santa D3 / frog F10 "lit chin lobes hanging below a flat base"; the flat stratus slab and base shelves of H6): the base
   // ramp is read baseLump x (G - 0.69) / 0.10 higher in the column (G = the 600 m Worley fBM, mean 0.69, std 0.10), clamped to 0..2 baseLump,
   // so each Worley lobe hangs its own rounded underside instead of one plane per body (ours; HZD has one base per gradient).

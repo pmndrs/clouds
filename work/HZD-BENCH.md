@@ -58,6 +58,7 @@ The panel uses the shared Tweakpane panel, `examples/lab/tune/panel.ts`, the sam
 - **Storms and anvils**, **Mid-level layer and low deck**, **Fractus** (F1, all off by default).
 - **Shape noise and the coverage remap:** build `stage` (1, 2 or 3 = Fig 4.13, 4.14 or 4.16), extinction, shape tile and contrast, the cubic read, the coverage multiply, the density power, the noise bake options (which re-bake the noise).
 - **Erosion and detail:** the law and order, strength, wispy height, the detail tile and recipe, curl, wispy bottoms, the lobe rung.
+- **Erosion noise: Nubis Cubed** (N1): `noiseSet` (`hzd` = the HZD Worley detail, `nubis3` = the pack's Alligator / Curly-Alligator noise with the deck's up-rez), its tile, strength, the stratus type, the HHF fold distance, the sharpen and curl; `shapeNoise` takes the shape noise's dilating fBM from the pack too. See `work/reports/N1.md`.
 - **Connective veil and skirts:** H6's veil and H7's skirts.
 - **The horizon ring:** start, end, coverage, type, fade.
 - **Wind and motion:** the direction, the top lean, the map drift and the noise speeds, `animSpeed`, `windVelocity`.
@@ -139,7 +140,8 @@ The URL options are the same choices the sidebar and panel make, for links and c
 node scripts/gpu/capture.mjs --serve --page hzd/ --query "clean=1&motion=0" --shots "ground,gp7,horizon,sunset,above,high" --settle 300 --out work/captures/manual/hzd
 ```
 
-- Shots are view names or `ref:<id>`. They take `@` variants: `@sun:el:az @cov:c @exp:e @ref:<id> @mode:off|side|pip`.
+- Shots are view names or `ref:<id>`. They take `@` variants: `@sun:el:az @cov:c @exp:e @ref:<id> @mode:off|side|pip`, and (N1) a camera on top of the view: `@look:az:pitch @pos:x:y:z @fov:f`. The fov stays for later shots, so put close-ups last or give `@fov:50`.
+  - N1's close-ups: `tops=gp7@look:23:27@fov:12` (the top edge of the big body, where the pilling showed), `thin=gp7@look:16:8@fov:12` (thin, low-density bodies), `abovetop=above@look:2:-5.5@fov:15` (tops from inside the layer). `work/captures/N1/tools/runs.mjs` takes `alias=spec` shots and saves `<alias>.jpg`; `crops.py` makes 1:1 crops of one shot across arms.
   - For example, `--shots "gp7@ref:gp7-f4.16@mode:side,ref:n3-image55"`.
   - A reference in a capture is third-party or owner content, so keep those captures local (under `artifacts/`), never in `work/captures/`.
 - Settings go in the query: `--query "clean=1&motion=0&hz_stage=1&hz_veilWidth=0"`.

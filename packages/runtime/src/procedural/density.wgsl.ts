@@ -96,7 +96,7 @@ struct ProcParams {
   hzFrac2: vec4<f32>,    // F1 fractus: noise scale (x detail tile), curl gain, upwind taps, distance (m)
   // N1 Nubis Cubed noise (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packHzdN3)
   hzN3: vec4<f32>,       // N1: noise set (0 hzd, 1 nubis3), pack tile (m), strength, stratus billowy type
-  hzN3b: vec4<f32>,      // N1: HHF distance (m, 0 = off), sharpen density scale S (0 = off), curl gain, 0
+  hzN3b: vec4<f32>,      // N1: HHF distance (m, 0 = off), sharpen density scale S (0 = off), curl gain, step 2 pack shape tile (m; 0 = HZD shape fBM)
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }

@@ -1,0 +1,140 @@
+{
+ "shots": {
+  "ground": "ground",
+  "gp7": "gp7",
+  "horizon": "horizon",
+  "above": "above",
+  "tops": "gp7@look:23:27@fov:12",
+  "thin": "gp7@look:16:8@fov:12",
+  "abovetop": "above@look:2:-5.5@fov:15"
+ },
+ "reps": 2,
+ "arms": {
+  "hzd": "",
+  "n3": "hz_noiseSet=nubis3",
+  "n3sh2k": "hz_noiseSet=nubis3&hz_shapeNoise=nubis3&hz_n3ShapeTile=2000",
+  "n3sh4k": "hz_noiseSet=nubis3&hz_shapeNoise=nubis3"
+ },
+ "skyLayerMs": {
+  "hzd": {
+   "ground": [
+    15.61,
+    21.5
+   ],
+   "gp7": [
+    36.25,
+    27.72
+   ],
+   "horizon": [
+    26.2,
+    21.77
+   ],
+   "above": [
+    28.95,
+    26.33
+   ],
+   "tops": [
+    18.58,
+    16.25
+   ],
+   "thin": [
+    39.92,
+    39.8
+   ],
+   "abovetop": [
+    31.9,
+    29.28
+   ]
+  },
+  "n3": {
+   "ground": [
+    19.82,
+    18.84
+   ],
+   "gp7": [
+    27.02,
+    24.52
+   ],
+   "horizon": [
+    20.99,
+    18.75
+   ],
+   "above": [
+    25.59,
+    23.36
+   ],
+   "tops": [
+    14.62,
+    14.82
+   ],
+   "thin": [
+    36.55,
+    34.18
+   ],
+   "abovetop": [
+    26.73,
+    23.82
+   ]
+  },
+  "n3sh2k": {
+   "ground": [
+    31.83,
+    29.94
+   ],
+   "gp7": [
+    36.1,
+    34.05
+   ],
+   "horizon": [
+    28.99,
+    27.75
+   ],
+   "above": [
+    31.06,
+    30.31
+   ],
+   "tops": [
+    17.21,
+    16.27
+   ],
+   "thin": [
+    46.68,
+    45.07
+   ],
+   "abovetop": [
+    30.12,
+    29.1
+   ]
+  },
+  "n3sh4k": {
+   "ground": [
+    27.97,
+    25.46
+   ],
+   "gp7": [
+    33.4,
+    31.36
+   ],
+   "horizon": [
+    26.15,
+    24.39
+   ],
+   "above": [
+    28.32,
+    27.79
+   ],
+   "tops": [
+    16.05,
+    15.65
+   ],
+   "thin": [
+    45.02,
+    44.9
+   ],
+   "abovetop": [
+    28.26,
+    29.36
+   ]
+  }
+ }
+}
