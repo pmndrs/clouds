@@ -4,13 +4,13 @@ Every command used in the Decima parity work, in one place. Run them from the re
 
 ## The bench (by hand)
 
-Start the dev server. Port 5173 is often taken by the owner's other projects, and 5201 is never to be touched.
+Start the dev server: `pnpm dev` serves on port 5180 (5173 is often taken by the owner's other projects; 5201 is never to be touched).
 
 ```bash
-pnpm dev --port 5180
+pnpm dev
 ```
 
-Open `http://localhost:5173/decima/` in Chrome (it needs WebGPU), or use the Work section on the lab index.
+Open `http://localhost:5180/decima/` in Chrome (it needs WebGPU), or use the Work section on the lab index.
 
 Everything on the bench has a control in the sidebar: shots for both clouds, the look, compare mode and frame, matte, sky (painted or physical), quality, the far-pass resolution, hide UI and help. The URL follows the sidebar, so a copied link reopens the same view. The query options below are the same choices for links and captures; you never need to type them.
 

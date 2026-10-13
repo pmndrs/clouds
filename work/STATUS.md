@@ -1,6 +1,6 @@
 # Status: what's running, what's waiting on you, what landed
 
-The one page to check. Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5173/hzd/ (T opens the tune panel).
+The one page to check. Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5180/hzd/ (T opens the tune panel).
 
 Updated 2026-10-13.
 
@@ -14,17 +14,17 @@ No person or blind judge has picked these yet; the agent and the orchestrator ch
 
 | # | What changed | Who chose | Old look | New look |
 | --- | --- | --- | --- | --- |
-| A1 | Cloud-detail noise: Nubis Cubed (Alligator) replaces the HZD Worley noise, which fixes your "sprinkles" (N1) | agent + orchestrator, from close-ups | [old](http://localhost:5173/hzd/?view=gp7&hz_noiseSet=hzd) | [new](http://localhost:5173/hzd/?view=gp7) |
-| A2 | Weather map: Nubis 2017 layout (clusters with clear lanes) replaces the H6 even field (W1) | agent + orchestrator, from sheets | [old](http://localhost:5173/hzd/?view=high&hzn_recipe=h6) | [new](http://localhost:5173/hzd/?view=high) |
-| A3 | Cloud density (extinction) 0.5 → 0.8, to bring back surface texture with the tables (F2) | agent | [0.5](http://localhost:5173/hzd/?view=side&hz_extinction=0.5) | [0.8](http://localhost:5173/hzd/?view=side) |
-| A4 | Per-area cloud bases on the map: crisp under cumulus, soft under stratus (F2) | agent | [off](http://localhost:5173/hzd/?view=ground&hzn_bottomTypeRange=0) | [on](http://localhost:5173/hzd/?view=ground) |
+| A1 | Cloud-detail noise: Nubis Cubed (Alligator) replaces the HZD Worley noise, which fixes your "sprinkles" (N1) | agent + orchestrator, from close-ups | [old](http://localhost:5180/hzd/?view=gp7&hz_noiseSet=hzd) | [new](http://localhost:5180/hzd/?view=gp7) |
+| A2 | Weather map: Nubis 2017 layout (clusters with clear lanes) replaces the H6 even field (W1) | agent + orchestrator, from sheets | [old](http://localhost:5180/hzd/?view=high&hzn_recipe=h6) | [new](http://localhost:5180/hzd/?view=high) |
+| A3 | Cloud density (extinction) 0.5 → 0.8, to bring back surface texture with the tables (F2) | agent | [0.5](http://localhost:5180/hzd/?view=side&hz_extinction=0.5) | [0.8](http://localhost:5180/hzd/?view=side) |
+| A4 | Per-area cloud bases on the map: crisp under cumulus, soft under stratus (F2) | agent | [off](http://localhost:5180/hzd/?view=ground&hzn_bottomTypeRange=0) | [on](http://localhost:5180/hzd/?view=ground) |
 
 You already chose these: the profile tables as the default, and the 32 km map.
 
 ### B. One taste choice
 | # | Question | Try |
 | --- | --- | --- |
-| B1 | Cumulus height with the tables: standard (0.4, Nubis Evolved's value) or towering (0.6 / 0.75)? | [0.4](http://localhost:5173/hzd/?view=gp7) · [0.6](http://localhost:5173/hzd/?view=gp7&hz_tableTypeCumulus=0.6) · [0.75](http://localhost:5173/hzd/?view=gp7&hz_tableTypeCumulus=0.75) |
+| B1 | Cumulus height with the tables: standard (0.4, Nubis Evolved's value) or towering (0.6 / 0.75)? | [0.4](http://localhost:5180/hzd/?view=gp7) · [0.6](http://localhost:5180/hzd/?view=gp7&hz_tableTypeCumulus=0.6) · [0.75](http://localhost:5180/hzd/?view=gp7&hz_tableTypeCumulus=0.75) |
 
 ### C. Approve the next work (one yes covers the list, in order)
 1. **Nubis lighting for the HZD sky.** It is still lit by the Takram-style "octave" model by default. Nubis lighting exists but works from stand-ins (see below). Likely part of the "toon" look.

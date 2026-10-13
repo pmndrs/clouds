@@ -7,7 +7,7 @@ The reference images are third party or the owner's. The dev server reads them f
 ## The bench (by hand)
 
 ```bash
-pnpm dev --port 5180
+pnpm dev
 ```
 
 - Open `http://localhost:5180/hzd/` in Chrome (it needs WebGPU), or use the Work section on the lab index. Port 5173 is often taken by the owner's other projects, and 5201 is never to be touched.

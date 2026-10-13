@@ -48,7 +48,8 @@ export default defineConfig({
   // Runtime assets are served at /clouds/<name>/... and /nubis-voxel-clouds/... in dev and build.
   publicDir: fileURLToPath(new URL('./assets', import.meta.url)),
   // CLOUDS_NO_WATCH: capture runs (scripts/gpu/capture.mjs --serve) must not hot-reload when parallel agents save files.
-  server: { port: 5173, strictPort: true, fs: { allow: ['../..', ...researchDirs()] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
+  server: { port: 5180, strictPort: true, // 5173 is often taken by the owner's other projects
+    fs: { allow: ['../..', ...researchDirs()] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
   build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
     testDensity: fileURLToPath(new URL('./examples/lab/runtime-tests/density/index.html', import.meta.url)),
