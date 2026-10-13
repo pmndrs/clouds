@@ -248,6 +248,37 @@ fn hzdDetailFbm(q0: vec3<f32>, h: f32, footprint: f32, cubic: bool) -> f32 {
   return B.r * 0.625 + B.g * 0.25 + B.b * 0.125;
 }
 
+// N1 (n3 s89-109): the pack's Nubis Cubed noise (the runtime's up-rez noise, cloudNoise of volumeWgsl(0), bound in every pass that compiles
+// the procedural model): R/G LF/HF Curly-Alligator (wispy), B/A LF/HF Alligator (billowy), one tile per P.hzN3.y metres, read at the
+// footprint's mip. Returns the deck's noise composite (density.wgsl.ts cloudDensityShaped): wispy = lerp(R, G, P), billowy =
+// lerp(0.3 B, 0.3 A, P^0.25), lerp(wispy, billowy, T), and the twice-folded HHF octave blended in near the camera (s103-104, s109).
+fn hzdN3Noise(q0: vec3<f32>, h: f32, footprint: f32, t: f32, prof: f32, T: f32) -> f32 {
+  var q = q0;
+  if (P.hzN3b.z != 0.0) {
+    let curl = textureSampleLevel(procAux, procRepeat, q0.xz / P.hzScale.z, 0.0).xyz;
+    q += vec3(curl.x, 0.0, curl.y) * (P.hzScale.w * (1.0 - h) * P.hzN3b.z);
+  }
+  let n = textureSampleLevel(cloudNoise, repeatSampler, q / P.hzN3.y, hzdLod(footprint, P.hzN3.y, 128.0));
+  let wispy = mix(n.r, n.g, prof);
+  let billowy = mix(n.b * 0.3, n.a * 0.3, sqrt(sqrt(prof)));
+  var c = mix(wispy, billowy, T);
+  if (P.hzN3b.x > 0.0 && t < P.hzN3b.x) {
+    let tg = abs(abs(n.g * 2.0 - 1.0) * 2.0 - 1.0);
+    let ta = abs(abs(n.a * 2.0 - 1.0) * 2.0 - 1.0);
+    let tg2 = tg * tg;
+    let hhf = saturate(mix(1.0 - tg2 * tg2, ta * ta, T));
+    let e = P.hzN3b.x;
+    c = mix(hhf, c, hzdRemap(clamp(t, e / 3.0, e), e / 3.0, e, 0.9, 1.0));
+  }
+  return c;
+}
+// N1: the detail type T (0 wispy, 1 billowy) of an HZD column (ours): wispy below the wispy switch height, stratus partly wispy throughout.
+fn hzdN3Type(cloudType: f32, h: f32) -> f32 {
+  return saturate(h / P.hzExtra.z) * mix(P.hzN3.w, 1.0, saturate(2.0 * cloudType));
+}
+// N1: ValueErosion (the pack's definition, s107): sat((P - n) / (1 - n)).
+fn hzdValueErosion(prof: f32, n: f32) -> f32 { return saturate((prof - n) / max(1.0 - n, 1e-4)); }
+
 // F1: a world-anchored low-frequency field in -1..1 (the shape texture's Perlin-Worley read flat at a coarse mip, contrast x4; ours).
 fn hzdLowField(xz: vec2<f32>, tile: f32, z: f32) -> f32 {
   let r = textureSampleLevel(procNoiseA, procRepeat, vec3(xz / tile, z), 2.0).r;
@@ -418,7 +449,29 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   var density = d;
   let fade = 1.0 - smoothstep(0.75, 1.25, t / max(P.hzFade.z, 1.0) + (jitter - 0.5) * 0.1);
   var veilW = A.a;
-  if (full && stage >= 2.5 && fade > 0.0) {
+  let n3 = P.hzN3.x > 0.5;
+  if (full && stage >= 2.5 && fade > 0.0 && n3) {
+    // N1 'nubis3': the deck's up-rez on the coarse density (the dimensional profile): the composite frequency follows P = d, the type T
+    // follows the height and the HZD type; the erosion order 'hfw' erodes the base noise by the same composite before the profile and the
+    // coverage remap, 'gp7' erodes the profile itself (the deck's order).
+    let prof = saturate(d);
+    let T = hzdN3Type(n.topType + P.hzCov.y, h);
+    let comp = saturate(hzdN3Noise(qDetail, h, footprint, t, prof, T) * P.hzN3.z * fade);
+    if (P.hzExtra.w > 0.5) {
+      let be = hzdValueErosion(base, comp);
+      density = max(hzdRemap(be * gradient, 1.0 - cov, 1.0, 0.0, 1.0), 0.0) * covK * fadeK;
+    } else {
+      density = hzdValueErosion(prof, comp);
+    }
+    // s107 / s109: x S^4, then sharpen with pow(.., lerp(0.3, 0.6, S^4)); S = P.hzN3b.y (0 = off).
+    if (P.hzN3b.y > 0.0) {
+      let s2 = P.hzN3b.y * P.hzN3b.y;
+      let s4 = s2 * s2;
+      density = pow(max(density, 0.0) * s4, mix(0.3, 0.6, s4));
+    }
+    // The veil keeps its own noise (the HZD detail fBM, as the 'hzd' branch reads it).
+    if (P.hzVeil.x < 0.5 && veil > 0.0) { veilW = hzdDetailFbm(select(qDetail, qVeil, skirtOn), h, footprint, false); }
+  } else if (full && stage >= 2.5 && fade > 0.0) {
     let hfFbm = hzdDetailFbm(qDetail, h, footprint, t < P.hzMisc.w);
     if (P.hzVeil.x < 0.5) { veilW = hfFbm; if (skirtOn && veil > 0.0) { veilW = hzdDetailFbm(qVeil, h, footprint, false); } }
     let hag = P.hzCov.w > 0.5;

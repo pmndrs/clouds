@@ -14,7 +14,7 @@
 //   ?refpage=1 (whole page instead of the figure) ?refview=0 (picking a reference keeps the view) ?quality=ultra|high|... ?clean=1 (no UI, captures)
 //   settings: hz_<key> (the shaper), hzn_<key> (the NDF), proc_<key> (march and light), c_<key> (renderer), sky_<key> (sky layer), cirrus_<key>;
 //   arrays as comma lists, switches as 1 / 0. The same flags as the compare page.
-// Captures: bookmarks are view names or ref:<id>, with @ variants: @sun:el:az @cov:c @exp:e @ref:<id> @mode:off|side|pip, e.g. "gp7@ref:gp7-f4.16@mode:side".
+// Captures: bookmarks are view names or ref:<id>, with @ variants: @sun:el:az @cov:c @exp:e @ref:<id> @mode:off|side|pip @look:az:pitch @pos:x:y:z @fov:f, e.g. "gp7@ref:gp7-f4.16@mode:side".
 // Console: window.__tune (the tuning panel: snapshot, changes, set, apply), window.__paint (the painter's store and engine).
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
