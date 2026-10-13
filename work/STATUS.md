@@ -1,0 +1,58 @@
+# Status: what's running, what's waiting on you, what landed
+
+The one page to check. Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5173/hzd/ (T opens the tune panel).
+
+Updated 2026-10-13.
+
+## Running
+Nothing. No agents are working.
+
+## Waiting on you
+
+### A. Review the defaults that agents chose
+No person or blind judge has picked these yet; the agent and the orchestrator chose them from sheets against the papers. Each old value is one link away. Say "keep" or "revert" for each.
+
+| # | What changed | Who chose | Old look | New look |
+| --- | --- | --- | --- | --- |
+| A1 | Cloud-detail noise: Nubis Cubed (Alligator) replaces the HZD Worley noise, which fixes your "sprinkles" (N1) | agent + orchestrator, from close-ups | [old](http://localhost:5173/hzd/?view=gp7&hz_noiseSet=hzd) | [new](http://localhost:5173/hzd/?view=gp7) |
+| A2 | Weather map: Nubis 2017 layout (clusters with clear lanes) replaces the H6 even field (W1) | agent + orchestrator, from sheets | [old](http://localhost:5173/hzd/?view=high&hzn_recipe=h6) | [new](http://localhost:5173/hzd/?view=high) |
+| A3 | Cloud density (extinction) 0.5 → 0.8, to bring back surface texture with the tables (F2) | agent | [0.5](http://localhost:5173/hzd/?view=side&hz_extinction=0.5) | [0.8](http://localhost:5173/hzd/?view=side) |
+| A4 | Per-area cloud bases on the map: crisp under cumulus, soft under stratus (F2) | agent | [off](http://localhost:5173/hzd/?view=ground&hzn_bottomTypeRange=0) | [on](http://localhost:5173/hzd/?view=ground) |
+
+You already chose these: the profile tables as the default, and the 32 km map.
+
+### B. One taste choice
+| # | Question | Try |
+| --- | --- | --- |
+| B1 | Cumulus height with the tables: standard (0.4, Nubis Evolved's value) or towering (0.6 / 0.75)? | [0.4](http://localhost:5173/hzd/?view=gp7) · [0.6](http://localhost:5173/hzd/?view=gp7&hz_tableTypeCumulus=0.6) · [0.75](http://localhost:5173/hzd/?view=gp7&hz_tableTypeCumulus=0.75) |
+
+### C. Approve the next work (one yes covers the list, in order)
+1. **Nubis lighting for the HZD sky.** It is still lit by the Takram-style "octave" model by default. Nubis lighting exists but works from stand-ins (see below). Likely part of the "toon" look.
+2. **Cloud motion in the temporal blend.** Fixes the time-lapse smear; it's also the first step toward your upscaler (U1).
+3. **Altocumulus, altostratus and cirrus as 2.5D layers read from the map (L3).** Removes the visible layer edge, cheaper.
+4. **Influence painting (W2):** paint over part of the generated sky instead of replacing all of it, plus weather states.
+5. **Storm package:** an authored storm area, a proper anvil, storm lighting, rotation.
+
+Parked:
+- The Houdini camera rig (for the Decima work, when it resumes).
+- Footprint (connected or islands) and the motion policy: these are per-scene choices with fine defaults.
+
+## Where we differ from Nubis Evolved, and whether it's worse
+Status of each from `docs/research/ne22-coverage.md`, in plain terms:
+- **Painted maps replace the whole map; theirs blend over it with an influence mask.** Ours is worse: an influence mask can do everything replacing does, and also paint only a region. To do: C4.
+- **Density formula.** Ours is HZD's (GP7) remap; theirs subtracts the inverted profile from the noise. Neither is known to be worse; it's a look choice to A/B (later, with the lighting).
+- **Lighting from stand-ins.** The Nubis lighting needs to know how deep inside a cloud each sample is (the "profile"). Voxel clouds store that; our procedural sky estimates it, and by default doesn't use Nubis lighting at all. Theirs computes it exactly from the same height profile and coverage. Ours is worse, for historical reasons: the procedural path came from the Takram port. To do: C1.
+- **Storm.** Ours is one analytic cell at a set position. Theirs is a storm area painted into the map, with its own profile, anvil, rotation and lightning glow. Ours is a first version. To do: C5.
+- **Cirrus.** Ours has one type and coverage for the whole sky. Theirs reads coverage and type from the map, so it varies by area. Ours is worse. To do: C3.
+- **Mid-level layers.** Ours are volumes that show their edge at distance. Theirs are 2D / 2.5D. Ours is worse at distance. To do: C3.
+
+## Landed (newest first)
+| When | What | Tag / report |
+| --- | --- | --- |
+| 10-13 | N1: Nubis Cubed noise (the default), HZD noise kept | `stable-2026-10-13`, `work/reports/N1.md` |
+| 10-13 | Nubis Evolved audit and ranked plan | `docs/research/ne22-coverage.md` |
+| 10-12 | React HZD bench with the map painter (your other session) | `work/HZD-BENCH.md` |
+| 10-12 | F2: tables as default, fast; per-area bases; 32 km map | `stable-2026-10-12b`, `work/reports/F2.md` |
+| 10-12 | F1: storms, mid-level layers, fractus, tables (all off) | `work/reports/F1.md` |
+| 10-12 | W1: Nubis 2017 map, painted maps, motion policies | `work/reports/W1.md` |
+| 10-12 | The HZD bench | `work/HZD-BENCH.md` |
