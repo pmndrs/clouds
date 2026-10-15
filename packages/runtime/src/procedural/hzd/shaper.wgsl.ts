@@ -694,7 +694,16 @@ fn hzdFractusSample(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
 fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o = hzdMainSample(p, t, footprint, full, jitter);
   if (P.hzFrac.x > 0.0 && full && o.sigma <= 0.0) { o = hzdFractusSample(p, t, footprint); }
-  if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }
+  if (P.hzMid.x > 0.5) {
+    // L3: the mid slot's volume share: full close to the camera and fading out with distance in 'hybrid' (the 2.5D layer fades in), none in 'layer'.
+    var volW = select(1.0 - smoothstep(P.hzMix.y, P.hzMix.z, t), 0.0, P.hzMix.x > 1.5);
+    if (P.hzMix.x < 0.5) { volW = 1.0; }
+    if (volW > 0.0) {
+      var sh = hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full);
+      sh.sigma *= volW;
+      o = hzdMerge(o, sh);
+    }
+  }
   if (P.hzDeck.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzDeck, P.hzDeck2, p, t, footprint, full)); }
   return o;
 }

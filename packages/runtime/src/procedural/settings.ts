@@ -375,6 +375,20 @@ export interface HzdShape {
   midElongation: number;
   midExtinction: number;
   midErosion: number;
+  /** L3: how the mid slot's altocumulus / altostratus is drawn. 'volume' = F1's volume at every distance (clips at the march limit, ~15-35 km);
+   *  'layer' = only the 2.5D thin-cloud layer (cirrus/ model: baked round and wispy noises, sun taps, curvature) at the slot's altitude, type and coverage
+   *  read per area from the weather map; 'hybrid' = the volume close to the camera cross-fading to the layer between `midLayerFadeStart` and `midLayerFadeEnd`.
+   *  Applies to the mid slot's altocumulus / altostratus only (a stratus form there and the deck slot stay volumes). */
+  midLayerMode: 'volume' | 'layer' | 'hybrid';
+  /** L3: hybrid cross-fade distances (m, camera to the cloud): the volume is full inside the start and gone beyond the end; the layer the reverse. */
+  midLayerFadeStart: number;
+  midLayerFadeEnd: number;
+  /** L3: 0..1 how far the weather map (NDF) moves the layer's coverage (by its coverage), type and veil (by its top type: cumuliform = altocumulus cells, stratiform = a sheet). 0 = global values. */
+  midLayerNdf: number;
+  /** L3: the layer's vertical optical depth where the noise is 1 (the volume's is extinction x thickness, 20+, but only the cell cores reach it). */
+  midLayerOpticalDepth: number;
+  /** L3: added to midCoverage for the layer (the volume's coverage is a threshold on cells; the layer's is an exponent plus a fade-in, so it needs more for the same cover). */
+  midLayerCoverageBoost: number;
   deckForm: 'off' | 'altocumulus' | 'altostratus' | 'stratus';
   deckBottom: number;
   deckThickness: number;
@@ -537,6 +551,7 @@ export const HZD_FORM_DEFAULTS = {
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
   midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
+  midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
   deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
   fractusDensity: 0, fractusTrail: 900, fractusDrop: 220, fractusBelly: 0.08, fractusScale: 3, fractusCurl: 2, fractusTaps: 3, fractusDistance: 15000,
 } satisfies Partial<HzdShape>;
@@ -545,7 +560,9 @@ const FORM_CODE = { off: 0, altocumulus: 1, altostratus: 2, stratus: 3 } as cons
  *  peak tables at 3 bytes per float. */
 export const PROC_HZD_FORMS_OFFSET = 188;
 export const PROC_HZD_N3_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_N3_OFFSET + 8;
+/** L3: one more vec4 (hzMix) between the N1 block and the tables. */
+export const PROC_HZD_MIX_OFFSET = PROC_HZD_N3_OFFSET + 8;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_MIX_OFFSET + 4;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -582,7 +599,14 @@ export function packHzdForms(hz: HzdShape, out: Float32Array): void {
 export const HZD_N3_DEFAULTS = {
   noiseSet: 'nubis3', n3Tile: 600, n3Strength: 1, n3StratusType: 0.5, n3HhfDistance: 900, n3Sharpen: 1, n3Curl: 0, shapeNoise: 'hzd', n3ShapeTile: 4000,
 } satisfies Partial<HzdShape>;
-/** Pack the N1 block (procedural/density.wgsl.ts hzN3, hzN3b). */
+/** L3: the mid-layer mix (procedural/density.wgsl.ts hzMix). */
+export function packHzdMix(hz: HzdShape, out: Float32Array): void {
+  // x: the mid slot's volume share: 0 = full volume, 1 = fades with distance (hybrid), 2 = none (the layer draws it); only for the 2.5D-capable forms.
+  const alto = hz.midForm === 'altocumulus' || hz.midForm === 'altostratus';
+  const x = !alto ? 0 : hz.midLayerMode === 'layer' ? 2 : hz.midLayerMode === 'hybrid' ? 1 : 0;
+  out.set([x, hz.midLayerFadeStart, Math.max(hz.midLayerFadeEnd, hz.midLayerFadeStart + 1), 0], PROC_HZD_MIX_OFFSET);
+}
+/** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_N3_OFFSET;
   out.set([hz.noiseSet === 'nubis3' ? 1 : 0, Math.max(hz.n3Tile, 1), Math.max(hz.n3Strength, 0), Math.min(Math.max(hz.n3StratusType, 0), 1)], o);
@@ -593,7 +617,11 @@ export function hzdShell(hz: HzdShape): [number, number] {
   let lo = hz.layerBottom, hi = Math.max(hz.layerTop, hz.layerBottom + 1);
   if (hz.stormStrength > 0 || hz.stormTypeStart < 1) hi = Math.max(hi, hz.stormTop);
   for (const [f, b, t] of [[hz.midForm, hz.midBottom, hz.midThickness], [hz.deckForm, hz.deckBottom, hz.deckThickness]] as const) {
-    if (f !== 'off') { lo = Math.min(lo, b); hi = Math.max(hi, b + t); }
+    if (f !== 'off') {
+      // L3: the 2.5D layer alone draws the mid slot's altocumulus / altostratus, so it does not widen the march shell.
+      if (hz.midLayerMode === 'layer' && b === hz.midBottom && (f === 'altocumulus' || f === 'altostratus')) continue;
+      lo = Math.min(lo, b); hi = Math.max(hi, b + t);
+    }
   }
   if (hz.fractusDensity > 0) lo = Math.min(lo, hz.layerBottom - hz.fractusDrop);
   return [Math.max(lo, 0), hi];
@@ -693,6 +721,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([Math.max(hz.baseLump, 0), 0, 0, hz.lobeCoverage], 184);
   packHzdForms(hz, out);
   packHzdN3(hz, out);
+  packHzdMix(hz, out);
   return [minY, maxY];
 }
 

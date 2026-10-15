@@ -6,7 +6,7 @@ import { defaultDomeSettings, type CloudDome } from './dome';
 import { DOME_DEPTH_BINDING, DOME_FRAME_BINDING, DOME_LIGHT_GRID_BINDING, DOME_OUT_BINDING, DOME_PARAMS_BINDING, DOME_PARAM_BYTES, DOME_REFRESH_FRAMES, DOME_SKY_LIGHT_BINDING, DOME_SKY_PARAMS_BINDING, DOME_SKY_SAMPLER_BINDING, DOME_SKY_WEATHER_BINDING, DOME_WGSL, DOME_PROCEDURAL_BINDING, domeWgsl } from './shaders/dome.wgsl';
 import { uploadCloudNoise, uploadCloudVolume, type GpuCloudVolume } from './resources';
 import { COMMON_WGSL } from './shaders/common.wgsl';
-import { COMPOSITE_CIRRUS_BINDING, COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPLER_BINDING, COMPOSITE_SHADOW_BINDING, COMPOSITE_SKY_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
+import { COMPOSITE_CIRRUS_BINDING, COMPOSITE_MID_BINDING, COMPOSITE_LIGHT_GRID_BINDING, COMPOSITE_SAMPLER_BINDING, COMPOSITE_SHADOW_BINDING, COMPOSITE_SKY_BINDING, COMPOSITE_WGSL } from './shaders/composite.wgsl';
 import { createCloudShadowMap, type CloudShadowMap } from './shadow-map';
 import { controlledCost, describeDevice, DynamicScale, selectTier, type AutoQualityInfo, type AutoQualityOptions } from './auto-quality';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
@@ -467,6 +467,8 @@ export interface CloudRuntime {
   readonly skyLayer: SkyLayer;
   /** P9-E: the high cloud layer (cirrus, cirrostratus) at 8-10 km with its own wind, drawn behind the low clouds. Off by default; see `cirrus.settings`. */
   readonly cirrus: CirrusLayer;
+  /** L3: the mid-level (altocumulus / altostratus) 2.5D layer, driven by the procedural model's `midLayer` (HZD `midLayerMode` 'layer' | 'hybrid'). Its settings are rewritten from the model each frame. */
+  readonly midLayer: CirrusLayer;
   /**
    * Cloud shadow map (P10-A): optical depth along the sun ray over the voxel box and the sky layer's clouds, in two world-anchored cascades
    * (near 8 km at 8 m texels, far 64 km), refreshed a slice per frame. The composite shadows opaque scene pixels with it; adapters read it
@@ -794,7 +796,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   ] });
   const atmosphereLayout = options.atmosphereLayout ?? createAtmosphereBindGroupLayout(device);
   const cirrus = createCirrusLayer(device, atmosphereLayout);
+  const midLayer = createCirrusLayer(device, atmosphereLayout, { shareNoise: cirrus, name: 'midLayer' });
   let cirrusKey: object | null = null;
+  let midKey: object | null = null;
   const skyLightLayout = device.createBindGroupLayout({ label: 'cloud sky light', entries: [
     { binding: SKY_LIGHT_BINDING, visibility: C, buffer: { type: 'storage' } },
   ] });
@@ -815,6 +819,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     { binding: COMPOSITE_SAMPLER_BINDING + 1, visibility: C, sampler: { type: 'non-filtering' } },
     ...shadowMap.bindGroupLayoutEntries(COMPOSITE_SHADOW_BINDING, C),
     ...cirrus.compositeLayoutEntries(COMPOSITE_CIRRUS_BINDING, C),
+    ...midLayer.compositeLayoutEntries(COMPOSITE_MID_BINDING, C),
   ] });
   const pipeline = (label: string, code: string, group1: GPUBindGroupLayout, group2?: GPUBindGroupLayout) => device.createComputePipeline({
     label,
@@ -1059,6 +1064,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get nearRenderSize(): [number, number] { return [targets ? targets[0].rw : nearW, targets ? targets[0].rh : nearH]; },
     get skyLayer() { return skyLayer; },
     cirrus,
+    midLayer,
     shadowMap,
     get ready() { return !disposed && !!volumeGroup && !!output && !!targets && !!lightGrid; },
     get extent() { return volume ? volume.extentMeters : null; },
@@ -1408,6 +1414,22 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // P9-E: the high cloud layer at the composite's size; the composite merges it behind everything (in front from above it).
       cirrus.encode(encoder, { frameBuffer: frameUniforms[0], depth: frame.depth, skyLightBuffer, atmosphere: uniformLighting ? undefined : frame.atmosphere, width: outCW, height: outCH, cameraPosition: frame.cameraPosition, time: frame.time, timer });
       if (cirrus.bindKey !== cirrusKey) { cirrusKey = cirrus.bindKey; compositeGroups.fill(undefined); }
+      // L3: the mid-level 2.5D layer (the model's altocumulus / altostratus beyond the volume's reach), between the low clouds and the cirrus.
+      {
+        const m = procOn ? proc!.midLayer ?? null : null;
+        const ms = midLayer.settings;
+        if (m) {
+          if (!cirrus.settings.enabled) cirrus.bakeNoise(encoder, timer);
+          ms.enabled = true; ms.altitude = m.altitude; ms.thickness = m.thickness; ms.coverage = m.coverage; ms.type = m.type; ms.veil = m.veil;
+          ms.opticalDepth = m.opticalDepth; ms.scale = m.scale; ms.detail = m.detail; ms.coverageVariation = 0.4;
+          ms.windVelocity[0] = 0; ms.windVelocity[1] = 0; ms.windOffset[0] = m.windOffset[0]; ms.windOffset[1] = m.windOffset[1]; ms.streakAngle = m.streakAngle;
+          ms.ndfInfluence = m.ndfInfluence; ms.ndfTypeStratiform = m.typeStratiform; ms.ndfTypeCumuliform = m.typeCumuliform; ms.edgeSoftness = 0.08; ms.fadeStart = m.fadeStart; ms.fadeEnd = m.fadeEnd;
+          // Water droplets, not ice: a strong forward lobe with a weak backward one, no halo.
+          ms.phaseForward = 0.75; ms.phaseBroad = -0.15; ms.phaseForwardWeight = 0.55; ms.halo = 0; ms.multipleScattering = 1.6;
+        } else ms.enabled = false;
+        midLayer.encode(encoder, { frameBuffer: frameUniforms[0], depth: frame.depth, skyLightBuffer, atmosphere: uniformLighting ? undefined : frame.atmosphere, width: outCW, height: outCH, cameraPosition: frame.cameraPosition, time: frame.time, timer, ndf: m?.ndf ?? null });
+        if (midLayer.bindKey !== midKey) { midKey = midLayer.bindKey; compositeGroups.fill(undefined); }
+      }
       const composite = encoder.beginComputePass({ label: 'cloud composite', timestampWrites: timer?.passTimestampWrites('composite') });
       composite.setPipeline(compositePipeline);
       composite.setBindGroup(0, volumeGroup);
@@ -1427,6 +1449,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         { binding: COMPOSITE_SAMPLER_BINDING + 1, resource: compositeNearest },
         ...shadowMap.bindGroupEntries(COMPOSITE_SHADOW_BINDING),
         ...cirrus.compositeEntries(COMPOSITE_CIRRUS_BINDING),
+        ...midLayer.compositeEntries(COMPOSITE_MID_BINDING),
       ] }));
       composite.dispatchWorkgroups(Math.ceil(outCW / 8), Math.ceil(outCH / 8));
       composite.end();
@@ -1491,7 +1514,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
       volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); blueNoise.destroy(); skyLightBuffer.destroy();
-      skyLayer.dispose(); cirrus.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
+      skyLayer.dispose(); cirrus.dispose(); midLayer.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };
 }

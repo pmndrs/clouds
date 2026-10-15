@@ -3,6 +3,33 @@
 // The model owns its trace pipeline and bind group; the sky layer gives it its pass layout and resources and runs the pass, the resolve and the copy.
 // X3: the model also hands its density WGSL and resources to other passes (the cloud shadow map, the reflection dome), which build their own pipelines.
 
+/** L3: what the model asks the runtime to draw as the mid-level 2.5D layer (the cirrus layer's model at the mid slot's altitude). */
+export interface MidLayerState {
+  mode: 'layer' | 'hybrid';
+  form: 'altocumulus' | 'altostratus';
+  altitude: number;
+  thickness: number;
+  coverage: number;
+  type: number;
+  veil: number;
+  opticalDepth: number;
+  /** Noise tile size (m). */
+  scale: number;
+  detail: number;
+  windOffset: [number, number];
+  /** Streak / tile direction, degrees from +x toward +z. */
+  streakAngle: number;
+  /** Weather-map influence 0..1, and the map (a 2-layer 2D array) with its tile and drifted offset (m). */
+  ndfInfluence: number;
+  /** The layer type where the map's top type is stratiform (0) and cumuliform (1). */
+  typeStratiform: number;
+  typeCumuliform: number;
+  ndf: { view: GPUTextureView; tileMeters: number; offset: [number, number] } | null;
+  /** Hybrid cross-fade distances (m); 0, 0 in 'layer' mode. */
+  fadeStart: number;
+  fadeEnd: number;
+}
+
 export interface ProceduralDensityModel {
   /** True once its textures are loaded and its parameters can be written. */
   readonly ready: boolean;
@@ -18,6 +45,8 @@ export interface ProceduralDensityModel {
    * when the model changes (a history cut), not when only the view moves.
    */
   update(time: number, view: { camera: ArrayLike<number>; wind: ArrayLike<number> }): { version: number };
+  /** L3: the mid-level 2.5D layer to draw this frame, or null (volume mode, no alto form in the mid slot, other shapers). As of the last `update`. */
+  readonly midLayer?: MidLayerState | null;
   /** C2: the fraction of the wind offset the visible clouds follow (the temporal reprojection shifts its history by it). Absent = 1. */
   readonly motionSpeed?: number;
   /** X3: the version `update` last returned. */
