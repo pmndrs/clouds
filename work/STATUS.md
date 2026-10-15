@@ -5,7 +5,7 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-- **C3 / L3** altocumulus and altostratus as 2.5D layers read from the map (Sonnet agent).
+Nothing.
 
 A and B keep their current values until you answer.
 
@@ -21,6 +21,7 @@ No person or blind judge has picked these yet; the agent and the orchestrator ch
 | A3 | Cloud density (extinction) 0.5 → 0.8, to bring back surface texture with the tables (F2) | agent | [0.5](http://localhost:5180/hzd/?view=side&hz_extinction=0.5) | [0.8](http://localhost:5180/hzd/?view=side) |
 | A5 | Lighting: the HZD bench now lights with Nubis Evolved lighting from the exact profile, replacing the Takram-style octave model (C1). Bodies are greyer-blue with more shading and brighter rims; the exact and stand-in profiles look nearly the same at this scale. Sheet: `work/captures/C1/sheet-gp7.jpg` | agent + orchestrator, from sheets | [octave](http://localhost:5180/hzd/?view=gp7&light=octave) | [Nubis](http://localhost:5180/hzd/?view=gp7) |
 | A6 | Time-lapse: the sky's frame-to-frame blend now follows the wind (C2). The streaky smear is gone, but at fast time-lapse clouds are still softer and slightly blocky against a render without the blend. Sheet: `work/captures/C2/mid_off_on_notemporal.png` (off / on / no blend) | agent + orchestrator | [off](http://localhost:5180/hzd/?view=ground&sky_temporalCloudMotion=false) | [on](http://localhost:5180/hzd/?view=ground) |
+| A7 | Mid-level clouds: when altocumulus or altostratus is switched on (still off by default), they now use 'hybrid': the volume up close fading into a 2.5D layer read from the map at distance, which removes the clip line and saves ~2 ms (L3). Far away the layer is fainter and sparser than the volume. Sheet: `work/captures/L3/sheet.jpg` (volume / layer / hybrid) | agent | volume: add `&hz_midLayerMode=volume` | hybrid: default |
 | A4 | Per-area cloud bases on the map: crisp under cumulus, soft under stratus (F2) | agent | [off](http://localhost:5180/hzd/?view=ground&hzn_bottomTypeRange=0) | [on](http://localhost:5180/hzd/?view=ground) |
 
 You already chose these: the profile tables as the default, and the 32 km map.
@@ -33,7 +34,7 @@ You already chose these: the profile tables as the default, and the 32 km map.
 ### C. Approve the next work (one yes covers the list, in order)
 1. ~~**Nubis lighting for the HZD sky, from the exact profile.**~~ Done (C1), review as A5. The procedural sky knows each sample's height profile and map coverage exactly, so it can light like Nubis Evolved without the voxel data. Today it uses the Takram-style "octave" model by default; its Nubis option uses a stand-in that mixes in the noise. The NVDF sky layer already does it exactly (coverage × table, depth from the gradient); C1 moves that into the HZD sky. The octave model stays as an option. This is likely part of the "toon" look.
 2. ~~**Cloud motion in the temporal blend.**~~ Done (C2), review as A6. Follow-up: a sharper history fetch (bicubic) for the remaining softness at fast time-lapse. Fixes the time-lapse smear; it's also the first step toward your upscaler (U1).
-3. **Altocumulus, altostratus and cirrus as 2.5D layers read from the map (L3).** Removes the visible layer edge, cheaper.
+3. ~~**Altocumulus, altostratus and cirrus as 2.5D layers read from the map (L3).**~~ Done for altocumulus and altostratus (review as A7). Cirrus still uses one type for the whole sky; its fade is cov² where NE22 uses cov³ (option `cirrus.coverageFadeNe22`). Removes the visible layer edge, cheaper.
 4. **Influence painting (W2):** paint over part of the generated sky instead of replacing all of it, plus weather states.
 5. **Storm package:** an authored storm area, a proper anvil, storm lighting, rotation.
 
@@ -54,6 +55,7 @@ Status of each from `docs/research/ne22-coverage.md`, in plain terms:
 ## Landed (newest first)
 | When | What | Tag / report |
 | --- | --- | --- |
+| 10-15 | L3: mid-level clouds as 2.5D layers at distance | `work/reports/L3.md` |
 | 10-15 | C2: the temporal blend follows the wind | `work/reports/C2-temporal-motion.md` |
 | 10-15 | C1: Nubis lighting from the exact profile on the HZD bench | `work/reports/C1-hzd-light.md` |
 | 10-13 | All worktrees merged and removed; only `main` remains (plus this session's own checkout) | — |
