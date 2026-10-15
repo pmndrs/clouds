@@ -3,7 +3,7 @@
 import { DEFAULT_COVERAGE, type ViewState } from '../../compare/shared';
 import { HZD_REF_BY_ID } from '../refs';
 import { PREFIX, type SourceId } from '../tune';
-import { QUALITIES, REF_MODES, VIEWS, VIEW_NAMES, applyBookmark, applyRefView, type RefMode } from './views';
+import { QUALITIES, REF_MODES, STORM_PRESET, VIEWS, VIEW_NAMES, applyBookmark, applyRefView, type RefMode } from './views';
 
 export interface RefState { id: string; mode: RefMode; pip: 's' | 'm' | 'l'; corner: 'bl' | 'br'; page: boolean; follows: boolean }
 export type Sources = Record<SourceId, Record<string, unknown>>;
@@ -56,6 +56,8 @@ export function parseLike(old: unknown, raw: string): unknown {
 
 /** The URL's setting overrides, onto the live settings (after the tuner has taken its starting values). */
 export function applySettingOverrides(query: URLSearchParams, sources: Sources): void {
+  // STORM1: storm=1 sets the storm preset first, so explicit hz_ keys in the same link still win.
+  if (query.get('storm') === '1') for (const [k, v] of Object.entries(STORM_PRESET)) if (k in sources.hzd) sources.hzd[k] = v;
   for (const [k, raw] of query) {
     if (k === 'cirrus') { sources.cirrus.enabled = raw === '1'; continue; }
     if (k === 'phase') { sources.c.phaseModel = raw; continue; }

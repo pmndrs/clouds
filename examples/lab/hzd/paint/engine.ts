@@ -173,7 +173,7 @@ export class PaintEngine {
         if (!s) throw new Error('no autosave in this browser');
         f = new MapFields(s.n);
         const a = await this.decodePng(s.main), b = await this.decodePng(s.height);
-        writeImage(f, a.px, a.w, a.h, ['coverage', 'topType', 'bottomType']); writeImage(f, b.px, b.w, b.h, ['minHeight', 'maxHeight', null]);
+        writeImage(f, a.px, a.w, a.h, ['coverage', 'topType', 'bottomType']); writeImage(f, b.px, b.w, b.h, ['minHeight', 'maxHeight', 'storm']);
         if (s.mask) { const m = await this.decodePng(s.mask); writeImage(f, m.px, m.w, m.h, ['influence', null, null]); }
         label = 'the last painting';
       } else if (kind.startsWith('url:')) {

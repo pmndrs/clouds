@@ -11,7 +11,12 @@ export const VIEWS: Record<string, Bookmark & { about: string }> = {
   dusk: { ...BOOKMARKS.dusk, about: 'a 3° sun from the side (west), looking north' },
   afterglow: { ...BOOKMARKS.afterglow, about: 'the sun 1° below the horizon: clouds above about 0.5 km still lit from below' },
   above: { ...BOOKMARKS.above, about: 'from 3 km, inside the 1.5-5 km layer, looking slightly down' },
+  storm: { ...BOOKMARKS.ground, lookAz: 337, pitch: 14, sunAz: 290, sunEl: 35, about: 'STORM1: from the ground toward the storm area (4.5 km west, 10.5 km north) with the sun to the side; add storm=1 for the storm settings and fov=70 for F1\'s framing' },
   high: { ...BOOKMARKS.ground, position: [0, 4300, 0], pitch: -6, about: 'from 4.3 km, near the tops, pitch -6° (the H-reports\' high captures)' },
+};
+/** STORM1: the storm preset (URL storm=1): the storm on from the map's storm area, hag's anvil terms, the anvil cirrus and the storm lighting. Explicit hz_ keys win. */
+export const STORM_PRESET: Record<string, unknown> = {
+  stormStrength: 1, stormSource: 'map', anvilFlatten: 1, anvilDensityFix: 0.5, anvilCirrus: 0.008, stormDensity: 1.6, stormDark: 0.7,
 };
 export const VIEW_NAMES = Object.keys(VIEWS);
 export const MOTIONS: [string, number][] = [['frozen', 0], ['slow', 0.25], ['normal', 1], ['fast', 4], ['time-lapse', 20]];

@@ -285,6 +285,13 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         var lit: vec3<f32>;
         if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), vec4(P.octave.w, P.lit.z, 0.0, 0.0)); }
         else { lit = cloudInScatterMicro(max(profile, 1.0 / 255.0), -litDepth, saturate(s.h), tau, skyTau, phase, sunRelax, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, microOcc); }
+        // STORM1 internal lightning: the flash envelope at this point times the storm weight, relative to the scene's light (sun share + sky).
+        // STORM1 dark storm: the light inside the storm is dimmed by stormDark, most at the column and the anvil's underside (h < 0.8).
+        if (s.storm > 0.0 && P.hzStorm4.y > 0.0) { lit *= 1.0 - P.hzStorm4.y * s.storm * (0.25 + 0.6 * (1.0 - smoothstep(0.1, 0.8, s.h))); }
+        if (s.glow > 0.0) {
+          let fl = procFlash(p, frame.time);
+          if (fl > 0.0) { lit += vec3(0.8, 0.88, 1.0) * (s.glow * fl * (0.25 * dot(procSunRadiance(p), vec3(0.3, 0.6, 0.1)) + dot(ambientUp, vec3(0.3, 0.6, 0.1)))); }
+        }
         if (t < tSplit) { procPartAdd(&front, lit, t, stepT); } else { procPartAdd(&back, lit, t, stepT); }
         depthMax = max(depthMax, s.depth);
         if (firstHit < 0.0) { firstHit = t; firstProfile = profile; }

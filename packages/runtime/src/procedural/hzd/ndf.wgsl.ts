@@ -6,6 +6,9 @@
  *   minHeight   base of the column, as a fraction of the layer
  *   maxHeight   top of the column
  *
+ * STORM1: layer 1's B channel is the sixth field, the storm area (0 none .. 1 core), authored by the painter's storm channel or the generated default blob
+ * (HzdNdfSettings.stormBlob).
+ *
  * Storage (an implementation detail, hidden behind `ndfSample`): one rgba8unorm 2D array texture with two layers, layer 0 = (coverage, topType,
  * bottomType, reserved 0) as the spec's ndfA, layer 1 = (minHeight, maxHeight, 0, 0) for the spec's rg8unorm ndfB. The spec's two textures
  * would cost the procedural trace a 17th sampled texture (WebGPU's default per-stage limit is 16 and the trace pass already binds 16); the
@@ -15,14 +18,26 @@ import { HZD_NOISE_LIB_WGSL, HZD_WORLEY_SCALE } from './noise.wgsl';
 
 /** The sampling helper. Needs `procWeather: texture_2d_array<f32>`, `procRepeat` and `P` (ProcParams). Every HZD-era shaper reads the NDF through it. */
 export const HZD_NDF_SAMPLE_WGSL = /* wgsl */ `
-struct NdfSample { coverage: f32, topType: f32, bottomType: f32, minHeight: f32, maxHeight: f32 }
+struct NdfSample { coverage: f32, topType: f32, bottomType: f32, minHeight: f32, maxHeight: f32, storm: f32 }
 // W1 motion: the map moves with the wind offset times P.hzSpeed.x (0 for 'static'; settings.ts ndfMotion packs the policy into hzSpeed).
 fn ndfOffset() -> vec2<f32> { return P.drift.xz * P.hzSpeed.x; }
+// STORM1: the map tiles, a storm would repeat every tile: with P.hzStorm5.y set, the storm channel is windowed to the one tile around the world origin
+// (where the painter's map and the default blob sit), fading over the outer 12 % of it.
+fn ndfStormWindow(uv: vec2<f32>) -> f32 {
+  if (P.hzStorm5.y < 0.5) { return 1.0; }
+  let q = abs(uv);
+  return (1.0 - smoothstep(0.38, 0.5, q.x)) * (1.0 - smoothstep(0.38, 0.5, q.y));
+}
 fn ndfSample(xz: vec2<f32>) -> NdfSample {
   let uv = (xz - ndfOffset()) / P.hzLayer.z;
   let a = textureSampleLevel(procWeather, procRepeat, uv, 0, 0.0);
   let b = textureSampleLevel(procWeather, procRepeat, uv, 1, 0.0);
-  return NdfSample(a.r, a.g, a.b, b.r, b.g);
+  return NdfSample(a.r, a.g, a.b, b.r, b.g, b.b * ndfStormWindow(uv));
+}
+// STORM1: the storm channel alone (layer 1, B): 0 no storm, 1 a storm core. One read; the anvil and its cirrus patch sample it at a few points.
+fn ndfStorm(xz: vec2<f32>) -> f32 {
+  let uv = (xz - ndfOffset()) / P.hzLayer.z;
+  return textureSampleLevel(procWeather, procRepeat, uv, 1, 0.0).b * ndfStormWindow(uv);
 }
 `;
 
@@ -37,6 +52,7 @@ struct NdfGen {
   foot: vec4<f32>,      // H6: footprint (0 Perlin .. 1 Perlin-Worley, N17 p.56-57), Worley cells, F2 bottom-type correlation with the top type, 0
   n17: vec4<f32>,       // W1: recipe (0 h6, 1 n17), gate cells, gate lo, gate hi
   n17b: vec4<f32>,      // W1: footprint lo, footprint hi, type contrast, island gain
+  storm: vec4<f32>,     // STORM1: default blob centre (uv), radius (uv), amount (0 = no blob)
 }
 @group(0) @binding(0) var<uniform> G: NdfGen;
 @group(0) @binding(1) var ndfOut: texture_storage_2d_array<rgba8unorm, write>;
@@ -94,7 +110,16 @@ fn generate(@builtin(global_invocation_id) id: vec3<u32>) {
   var bottomType = G.types.z + G.foot.z * (tN - 0.5);
   if (G.types.w != 0.0) { bottomType += G.types.w * 1.6 * ndfFbm(uv, G.heights.w, 2u, seed + 701u); }
   textureStore(ndfOut, id.xy, 0, vec4(coverage, topType, saturate(bottomType), 0.0));
-  textureStore(ndfOut, id.xy, 1, vec4(minHeight, maxHeight, 0.0, 0.0));
+  // STORM1 default storm area: a ragged disc (the radius wobbles by a 2-octave fBM so it is not a perfect circle), smooth to 0 at its rim. The map
+  // tiles, so the distance wraps.
+  var stormV = 0.0;
+  if (G.storm.w > 0.0) {
+    var dq = uv - G.storm.xy;
+    dq -= round(dq);
+    let wob = 1.0 + 0.45 * ndfFbm(uv, 24.0, 2u, seed + 801u);
+    stormV = G.storm.w * (1.0 - smoothstep(0.15, 1.0, length(dq) / (G.storm.z * max(wob, 0.3))));
+  }
+  textureStore(ndfOut, id.xy, 1, vec4(minHeight, maxHeight, stormV, 0.0));
 }
 `;
 
@@ -117,7 +142,7 @@ fn overlay(@builtin(global_invocation_id) id: vec3<u32>) {
   let a = textureSampleLevel(imgA, imgSampler, uv, 0.0);
   let b = textureSampleLevel(imgB, imgSampler, uv, 0.0);
   if (flags.x > 0.5) { textureStore(ndfOut, id.xy, 0, vec4(a.rgb, 0.0)); }
-  if (flags.y > 0.5) { textureStore(ndfOut, id.xy, 1, vec4(b.r, max(b.g, min(b.r + 1.0 / 255.0, 1.0)), 0.0, 0.0)); }
+  if (flags.y > 0.5) { textureStore(ndfOut, id.xy, 1, vec4(b.r, max(b.g, min(b.r + 1.0 / 255.0, 1.0)), b.b, 0.0)); }   // STORM1: the height image's B is the storm area
 }
 `;
 
@@ -156,7 +181,7 @@ fn compose(@builtin(global_invocation_id) id: vec3<u32>) {
     let m = select(textureSampleLevel(ndfPaint, ndfSampler, uv, 2, 0.0).r, 1.0, U.m.z > 0.5);
     l0 = vec4(mix(l0.r, p0.r, saturate(m * U.gain.x)), mix(l0.g, p0.g, saturate(m * U.gain.y)), mix(l0.b, p0.b, saturate(m * U.gain.y)), 0.0);
     let hm = saturate(m * U.gain.z) * U.m.w;
-    l1 = vec4(mix(l1.r, p1.r, hm), mix(l1.g, p1.g, hm), 0.0, 0.0);
+    l1 = vec4(mix(l1.r, p1.r, hm), mix(l1.g, p1.g, hm), mix(l1.b, p1.b, hm), 0.0);   // STORM1: the storm area follows the height fields' mask
   }
   l1.g = max(l1.g, min(l1.r + 1.0 / 255.0, 1.0));
   textureStore(ndfOut, id.xy, 0, l0);
@@ -181,7 +206,7 @@ fn paintImages(@builtin(global_invocation_id) id: vec3<u32>) {
   let b = textureSampleLevel(imgB, imgSampler, uv, 0.0);
   let m = textureSampleLevel(imgM, imgSampler, uv, 0.0);
   textureStore(paintOut, id.xy, 0, vec4(a.rgb, 0.0));
-  textureStore(paintOut, id.xy, 1, vec4(b.r, max(b.g, min(b.r + 1.0 / 255.0, 1.0)), 0.0, 0.0));
+  textureStore(paintOut, id.xy, 1, vec4(b.r, max(b.g, min(b.r + 1.0 / 255.0, 1.0)), b.b, 0.0));
   textureStore(paintOut, id.xy, 2, vec4(select(1.0, m.r, flags.z > 0.5), 0.0, 0.0, 0.0));
 }
 `;

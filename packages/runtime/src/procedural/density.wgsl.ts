@@ -98,9 +98,13 @@ struct ProcParams {
   hzN3: vec4<f32>,       // N1: noise set (0 hzd, 1 nubis3), pack tile (m), strength, stratus billowy type
   hzN3b: vec4<f32>,      // N1: HHF distance (m, 0 = off), sharpen density scale S (0 = off), curl gain, step 2 pack shape tile (m; 0 = HZD shape fBM)
   hzMix: vec4<f32>,      // L3: mid slot volume share (0 full, 1 fades with distance, 2 none: the 2.5D layer draws it), fade start (m), fade end (m), 0
+  // STORM1 (packed by settings.ts packHzdStorm)
+  hzStorm3: vec4<f32>,   // STORM1: storm source (1 NDF storm channel, 0 the placed cell), anvil cirrus density (0 = off), its length downwind (m), its depth (m)
+  hzStorm4: vec4<f32>,   // STORM1: storm density scale (1 = off), dark (0..1: the storm's light is dimmed, most at the base), lightning glow (0 = off), flash rate (per s)
+  hzStorm5: vec4<f32>,   // STORM1: anvil cirrus fibre elongation along the wind, single-tile storm window (0/1), 0, 0
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
-struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
+struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32, storm: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
 const PROC_EARTH_M = 6371000.0;
 // Altitude above the flat world's ground with the planet's curvature about the camera (Sky Pro scShellHeight: a parabolic drop avoids
 // subtracting two 6371 km values in f32).
@@ -193,6 +197,7 @@ fn procHeightAlongRay(t: f32, dir: vec3<f32>, originHeight: f32) -> f32 {
   let altitude = originHeight + dir.y * t + dot(dir.xz, dir.xz) * t * t / (2.0 * PROC_EARTH_M);
   return (altitude - P.spShell.x) / P.spShell.y;
 }
+fn procFlash(p: vec3<f32>, time: f32) -> f32 { return 0.0; }   // STORM1: only the HZD shaper has internal lightning
 fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool {
   let turningPoint = -dir.y * PROC_EARTH_M / max(dot(dir.xz, dir.xz), 0.000001);
   let minHeight = procHeightAlongRay(clamp(turningPoint, t, end), dir, originHeight);
@@ -274,6 +279,7 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   }
   return o;
 }
+fn procFlash(p: vec3<f32>, time: f32) -> f32 { return 0.0; }   // STORM1: only the HZD shaper has internal lightning
 fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }
 const PROC_HAS_BOUNDS = false;
 fn procSigmaRef() -> f32 { return max(max(P.tkDensity.x, P.tkDensity.y), max(P.tkDensity.z, P.tkDensity.w)); }

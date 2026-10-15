@@ -56,7 +56,7 @@ export const paint = createStore<PaintState>(() => ({
   noiseCells: 12,
   noiseSeed: 7,
   ticked: Object.fromEntries(CHANNELS.map(c => [c, c === 'coverage'])) as Record<Channel, boolean>,
-  targets: { coverage: 0.55, topType: 1, bottomType: 0, minHeight: 0, maxHeight: 0.6, influence: 1 },
+  targets: { coverage: 0.55, topType: 1, bottomType: 0, minHeight: 0, maxHeight: 0.6, influence: 1, storm: 1 },
   viewChannel: 'coverage',
   display: ui.display === 'channel' ? 'channel' : 'composite',
   contour: ui.contour !== false,

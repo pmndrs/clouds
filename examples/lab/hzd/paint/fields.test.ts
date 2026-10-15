@@ -92,4 +92,23 @@ describe('weather-map painter fields', () => {
     const back = toPngPixels(f).main;
     expect(back[(2 * n + 3) * 4]).toBe(110);
   });
+
+  it('STORM1: the storm channel paints, rolls into the NDF, and goes to the height PNG\'s B and back', () => {
+    const n = 16, f = new MapFields(n);
+    dab(f, brush({ radius: 3 }), 8.5, 8.5, ['storm'], { storm: 1 });
+    expect(f.at('storm', 8, 8)).toBeCloseTo(1);
+    expect(f.at('coverage', 8, 8)).toBe(0);                 // other channels untouched
+    const nf = toNdfFields(f);
+    expect(nf.storm[0]).toBe(255);                          // the map centre is the NDF texel at the world origin
+    const png = toPngPixels(f).height;
+    expect(png[(8 * n + 8) * 4 + 2]).toBe(255);
+    const back = new MapFields(n);
+    writeImage(back, png, n, n, ['minHeight', 'maxHeight', 'storm']);
+    expect(back.at('storm', 8, 8)).toBeCloseTo(1);
+    expect(back.at('storm', 1, 1)).toBe(0);
+    // layer 1's B is the storm channel in the NDF layout
+    const l0 = new Uint8Array(n * n * 4), l1 = new Uint8Array(n * n * 4);
+    l1[(0 * n + 0) * 4 + 2] = 200;
+    expect(fromNdfLayers(n, l0, l1).at('storm', 8, 8)).toBeCloseTo(200 / 255);
+  });
 });
