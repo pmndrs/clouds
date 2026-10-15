@@ -437,7 +437,9 @@ export class PaintEngine {
 let engine: PaintEngine | null = null;
 /** One engine per page (StrictMode and Fast Refresh remount the dock; the painting and its history stay). */
 export function getEngine(host: PaintHost): PaintEngine {
-  return (engine ??= new PaintEngine(host));
+  engine ??= new PaintEngine(host);
+  (window as unknown as { __paint?: unknown }).__paint = { engine, store: paint };   // scripting hook (captures, console)
+  return engine;
 }
 export const currentEngine = () => engine;
 export type { Tool };

@@ -24,6 +24,7 @@ export const weather = createStore<WeatherUi>(() => ({ active: false, from: 'cum
 export const useWeather = <T,>(sel: (s: WeatherUi) => T): T => useStore(weather, sel);
 export const weatherScheduler = sched;
 
+let lastRt: BenchRuntime | null = null;
 let pushedT = NaN, pushedTo = '', pushedFrom = '', pushedActive = false, lastUi = 0;
 
 const mirror = () => weather.setState({ from: sched.from.name, to: sched.to.name, progress: sched.progress, auto: sched.auto, duration: sched.duration, hold: sched.hold });
@@ -65,6 +66,7 @@ export function weatherBookmark(args: string[]): void {
 
 /** Per frame (the sky's update job). Cheap when nothing moves: the runtime is only called when the eased position moved by 1/512 or a state changed. */
 export function weatherTick(dt: number, rt: BenchRuntime): void {
+  lastRt = rt;
   const ui = weather.getState();
   if (!ui.active) {
     if (pushedActive) { rt.proc.setWeather(null); pushedActive = false; pushedT = NaN; }
@@ -82,3 +84,19 @@ export function weatherTick(dt: number, rt: BenchRuntime): void {
   const now = performance.now();
   if (now - lastUi > 100 && (sched.moving || ui.progress !== sched.progress || ui.to !== sched.to.name)) { lastUi = now; mirror(); }
 }
+
+/** Scripting hook (captures, console): window.__weather.go('overcast', 12), .freeze('clear', 'overcast', 0.5), .off(), .state(). */
+(window as unknown as { __weather: unknown }).__weather = { go: weatherGo, freeze: weatherFreeze, off: weatherOff, auto: weatherAuto, state: () => ({ ...weather.getState(), progress: sched.progress }) };
+
+/** Cost of one compose (ms of GPU wall time per setWeather step, queue drained after each): window.__weather.cost(40). */
+async function composeCost(n = 40): Promise<{ msPerCompose: number; first: number }> {
+  const rt = lastRt, dev = (rt?.renderer as unknown as { backend?: { device?: GPUDevice } } | undefined)?.backend?.device;
+  if (!rt || !dev) throw new Error('no runtime / device');
+  const a = { ndf: {}, coverageBias: 0, typeBias: 0 }, b = { ndf: { maxHeight: 0.35 }, coverageBias: 0.4, typeBias: -0.7 };
+  rt.proc.setWeather({ from: a, to: b, t: 0 }); await dev.queue.onSubmittedWorkDone();
+  const t0 = performance.now();
+  for (let i = 0; i < n; i++) { rt.proc.setWeather({ from: a, to: b, t: (i + 1) / (n + 1) }); await dev.queue.onSubmittedWorkDone(); }
+  const per = (performance.now() - t0) / n;
+  return { msPerCompose: per, first: 0 };
+}
+(window as unknown as { __weather: Record<string, unknown> }).__weather.cost = composeCost;
