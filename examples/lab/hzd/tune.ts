@@ -141,7 +141,7 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
   { title: 'The horizon ring', about: 'HZD 2015 s45: far away (15-35 km) the map is pulled toward cumulus at about half cover so the horizon always has interesting clouds, and nothing is drawn past the ring\'s end. Ring start 0 turns it off.',
     keys: ['hzd.ringStart', 'hzd.ringEnd', 'hzd.ringCoverage', 'hzd.ringType', 'hzd.ringFadeStart'] },
   { title: 'Wind and motion', about: 'Which way the wind blows, how far the tops lean, and how the map and the noise move with time (the sidebar\'s motion sets the speed; 0 freezes everything).',
-    keys: ['hzd.windDirection', 'hzd.cloudTopOffset', 'hzd.upwardBias', 'hzd.ndfMotion', 'hzd.ndfDrift', 'hzd.shapeSpeed', 'hzd.detailSpeed', 'c.animSpeed', 'c.windVelocity'] },
+    keys: ['hzd.windDirection', 'hzd.cloudTopOffset', 'hzd.upwardBias', 'hzd.ndfMotion', 'hzd.ndfDrift', 'hzd.shapeSpeed', 'hzd.detailSpeed', 'c.animSpeed', 'c.windVelocity', 'sky.temporalCloudMotion'] },
   { title: 'Ray march', about: 'How each pixel\'s ray steps through the layer: step size and count, how far it goes, the sky layer\'s resolution and the temporal blend that cleans the noise up over frames.',
     keys: ['proc.stepMeters', 'proc.maxSteps', 'proc.maxDistance', 'sky.resolutionScale', 'sky.temporal', 'sky.temporalBlend', 'sky.transmittanceCutoff'] },
   { title: 'Light: the procedural model', about: 'The lighting the procedural trace computes per sample: the model (octave = Frostbite / Takram octaves, nubis = our N3 model), the sun taps, powder, the two-lobe phase, the sky ambient and the diffusion tail.',

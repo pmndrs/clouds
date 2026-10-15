@@ -18,6 +18,8 @@ export interface ProceduralDensityModel {
    * when the model changes (a history cut), not when only the view moves.
    */
   update(time: number, view: { camera: ArrayLike<number>; wind: ArrayLike<number> }): { version: number };
+  /** C2: the fraction of the wind offset the visible clouds follow (the temporal reprojection shifts its history by it). Absent = 1. */
+  readonly motionSpeed?: number;
   /** X3: the version `update` last returned. */
   readonly version: number;
   /** X3: the lowest and highest altitude (m) the model's clouds can reach, as of the last `update`. */
