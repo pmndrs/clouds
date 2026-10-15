@@ -42,6 +42,11 @@ export interface SkyLayerSettings {
   temporal: boolean;
   /** Weight of a fresh trace sample against the reprojected history (the jitter changes each cycle, so < 1 supersamples). */
   temporalBlend: number;
+  /**
+   * C2: the temporal reprojection follows the clouds' own motion (the wind offset's change since last frame, times the model's cloud speed), not only the camera's,
+   * and trusts the history less as the motion grows. Off = the camera-only reprojection (clouds smear when time is sped up). Procedural trace only.
+   */
+  temporalCloudMotion: boolean;
   /** Debug view (0 = off): 1 first-hit distance, 2 step count, 3 depthMax, 4 no billow, 5 profile at first hit, 6 no jitter, 7 depth at first hit. */
   debug: number;
   /**
@@ -179,7 +184,7 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, debug: 0, bakeRows: 24,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, debug: 0, bakeRows: 24,
   profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
@@ -338,6 +343,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   let needReset = true;
   let frames = 0, resets = 0;
   const prevViewProj = new Float32Array(16);
+  const prevWind = new Float32Array(3); let prevWindValid = false;
   const prevCam = new Float32Array(3), prevFwd = new Float32Array(3), prevSun = new Float32Array(3), fwd = new Float32Array(3);
   let prevValid = false;
 
@@ -568,6 +574,13 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       const period = SKY_TEMPORAL_PERIOD;
       p[36] = frames % period; p[37] = Math.floor(frames / period); p[38] = cut ? 1 : 0; p[39] = 0;
       p.set(prevViewProj, 40);
+      // C2: the clouds' displacement since last frame (procedural model only: the wind offset times its cloud speed; a cut or a first frame has none).
+      {
+        const w = a.wind, sp = proc?.motionSpeed ?? 1;
+        const on = !!proc && !!w && s.temporalCloudMotion && prevWindValid && !cut;
+        p[80] = on ? (w![0] - prevWind[0]) * sp : 0; p[81] = 0; p[82] = on ? (w![2] - prevWind[2]) * sp : 0; p[83] = on ? 1 : 0;
+        if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
+      }
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));

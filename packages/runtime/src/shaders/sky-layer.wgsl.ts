@@ -21,10 +21,10 @@ export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
 } as const;
 /**
- * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 6 vec4 = 80 floats, written every frame), then H4's static part written once at
+ * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 7 vec4 = 84 floats, written every frame), then H4's static part written once at
  * creation: the profile tables' top ends (16 vec4, 64 floats), the two N3 s18 tables and their column peaks (768 vec4<u32>: 3 x 64 x 64 bytes).
  */
-export const SKY_PARAM_FLOATS = 80;
+export const SKY_PARAM_FLOATS = 84;
 /** H4: word offsets of the static part (the tables' top ends, then the packed tables) in the params buffer. */
 export const SKY_TABLE_TOP_OFFSET = SKY_PARAM_FLOATS;
 export const SKY_LUT_OFFSET = SKY_TABLE_TOP_OFFSET + 64;
@@ -82,6 +82,7 @@ struct SkyParams {
   table: vec4<f32>,    // H4 (S3): x profile mode (1 = the N3 s18 top x bottom tables), y table height of the column's min height (the floor 17/64, or 0), z threshold tau, w top type (< 0: from the species row)
   tableB: vec4<f32>,   // H4: x bottom type (< 0: the world field), y / z the field's range, w the field's feature size (m)
   erosion: vec4<f32>,  // H4 (S4): x erosion law (0 ValueErosion, 1 HZD additive with inverted noise, 2 Nubis Evolved, 3 additive with the raw noise); yzw 0
+  cloudMotion: vec4<f32>, // C2: x, y, z the clouds' world displacement since the last frame (m; the wind offset's change times the cloud speed), w = 1 when the resolve follows it
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
@@ -991,7 +992,9 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
     let hd0 = textureLoad(histDepth, px, 0).x;
     if (rd <= 0.0) { rd = hd0; }
     if (rd <= 0.0) { rd = 1.0e5; }
-    let clip = SKY.prevViewProj * vec4(frame.cameraPos + dir * rd, 1.0);
+    // C2: the cloud moved with the wind since last frame: its history is where it was, one displacement back. cloudMotion.w = 0: the camera-only path.
+    let cloudShift = select(vec3(0.0), SKY.cloudMotion.xyz, SKY.cloudMotion.w > 0.5);
+    let clip = SKY.prevViewProj * vec4(frame.cameraPos + dir * rd - cloudShift, 1.0);
     var valid = SKY.prevCam.w > 0.5 && clip.w > 1e-3;
     var puv = vec2(0.0);
     if (valid) {
@@ -999,18 +1002,30 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
       puv = vec2(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
       valid = all(puv >= vec2(0.0)) && all(puv <= vec2(1.0));
     }
+    // C2: screen motion in layer pixels, camera and cloud motion together (the motion vector an external upscaler needs is puv - uv).
+    let motionPx = length((puv - uv) * frame.renderSize);
     if (valid) {
       // The clip guards against reprojection error; with the view still (the harness, a static camera) the converged history
       // is the better estimate, so it only bites as much as the pixel actually moved.
-      let moved = smoothstep(0.1, 0.6, length((puv - uv) * frame.renderSize));
+      // C2: with the cloud motion followed, the shifted history matches the cloud, so the clip bites only as much as the camera moved
+      // (a clip at every cloud-motion pixel would pull the history to the 4-pixel-spaced fresh samples and block the detail).
+      var movedPx = motionPx;
+      if (SKY.cloudMotion.w > 0.5) {
+        let c0 = SKY.prevViewProj * vec4(frame.cameraPos + dir * rd, 1.0);
+        let n0 = c0.xy / max(c0.w, 1e-3);
+        movedPx = length((vec2(n0.x * 0.5 + 0.5, 0.5 - n0.y * 0.5) - uv) * frame.renderSize);
+      }
+      let moved = smoothstep(0.1, 0.6, movedPx);
       let h0 = textureSampleLevel(histColor, histSampler, puv, 0.0);
       let hist = mix(h0, clamp(h0, lo, hi4), moved);
       let histB = textureSampleLevel(histBack, histSampler, puv, 0.0);
       let hdv = textureLoad(histDepth, clamp(vec2<i32>(puv * frame.renderSize), vec2<i32>(0), hi), 0);
       let hdist = hdv.x;
       if (fresh) {
-        out = mix(hist, tc, SKY.extra.w);
-        outB = mix(histB, tb, SKY.extra.w);
+        // C2: a fast-moving cloud (a time-lapse) trusts the history less: the fresh sample takes over as the motion grows past a few pixels.
+        let wFresh = select(SKY.extra.w, max(SKY.extra.w, smoothstep(6.0, 40.0, motionPx)), SKY.cloudMotion.w > 0.5);
+        out = mix(hist, tc, wFresh);
+        outB = mix(histB, tb, wFresh);
       } else {
         out = hist;
         outB = histB;

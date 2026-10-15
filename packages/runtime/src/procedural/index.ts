@@ -199,6 +199,11 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         { binding: B.sampler, resource: sampler },
       ];
     },
+    get motionSpeed() {
+      // C2: the weather map's speed (the silhouettes), else the mean of the two noises' speeds; Sky Pro's shape follows the wind fully.
+      if (settings.shaper !== 'hzd') return 1;
+      return params[140] > 0 ? params[140] : (params[141] + params[142]) * 0.5;
+    },
     update(time, view) {
       // A shaper switch or a new weather bake changes the resources.
       if (settings.shaper !== lastShaper || (settings.shaper === 'skypro' && skyproWeather && skyproWeather.key !== skyProWeatherKey(settings.skypro))) { lastShaper = settings.shaper; resourceKey = {}; }
