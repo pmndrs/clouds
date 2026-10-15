@@ -50,7 +50,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
   const PROCEDURAL = MODEL === 'procedural';
   // X3 lighting models: ?light=octave|nubis for the procedural model (default octave; X1's ?proc_lighting=0|1 still works), ?vlight=nubis|octave
   // for the voxel field and the NVDF sky layer (default nubis).
-  const procLight = query.get('light') ?? (query.get('proc_lighting') === '0' ? 'nubis' : query.get('proc_lighting') === '1' ? 'octave' : 'octave');
+  const procLight = query.get('light') ?? (query.get('proc_lighting') === '0' ? 'nubis' : query.get('proc_lighting') === '1' ? 'octave' : force?.shaper === 'hzd' ? 'nubis' : 'octave');
   let proc: ProceduralClouds | undefined;
   let procFrames = 0;
 
@@ -99,6 +99,7 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     proc = createProceduralClouds(device, { shaper });
     proc.settings.lightingModel = procLight === 'nubis' ? 'nubis' : 'octave';
     if (MODEL === 'hybrid') proc.settings.boxCarve = 400;
+    if (force?.shaper === 'hzd') proc.settings.hzd.lightProfile = 'exact';   // C1: the HZD bench lights with Nubis + the exact profile (?light=octave, ?hz_lightProfile=standin for the old)
     const num = (o: object, k: string, v: string) => {
       const r = o as Record<string, unknown>;
       if (typeof r[k] === 'number') r[k] = Number(v);

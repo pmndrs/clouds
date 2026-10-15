@@ -278,10 +278,13 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         let microOcc = exp(-frame.microShadow * (tauLocal + nearTau));
         // In-scatter probability (our lighting's 'profile'): rises with the depth below the surface over profileDepth metres, as the sky layer's
         // PACK_FIT ramp; the coarse (dimensional) density bounds it (NE p.54, p.59).
-        let profile = min(pow(saturate(s.depth / max(P.misc.w, 1.0)), 1.05), s.coarse);
+        var profile = min(pow(saturate(s.depth / max(P.misc.w, 1.0)), 1.05), s.coarse);
+        var litDepth = s.depth;
+        // C1 (HZD lightProfile 'exact'): the analytic dimensional profile and depth in cloud; samples without one (sheets, fractus) keep the stand-in.
+        if (P.lit.w > 0.5 && s.prof > 0.0) { profile = saturate(s.prof); litDepth = s.depthX; }
         var lit: vec3<f32>;
         if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), vec4(P.octave.w, P.lit.z, 0.0, 0.0)); }
-        else { lit = cloudInScatterMicro(max(profile, 1.0 / 255.0), -s.depth, saturate(s.h), tau, skyTau, phase, sunRelax, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, microOcc); }
+        else { lit = cloudInScatterMicro(max(profile, 1.0 / 255.0), -litDepth, saturate(s.h), tau, skyTau, phase, sunRelax, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, microOcc); }
         if (t < tSplit) { procPartAdd(&front, lit, t, stepT); } else { procPartAdd(&back, lit, t, stepT); }
         depthMax = max(depthMax, s.depth);
         if (firstHit < 0.0) { firstHit = t; firstProfile = profile; }

@@ -59,7 +59,7 @@ struct ProcParams {
   tkChannel: vec4<f32>,
   tkRepeat: vec4<f32>,   // weather tile (m), shape repeat (1/m), detail repeat (1/m), turbulence tiles per weather tile
   tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), turbulence on the shape lookup too (0/1; S6 default 0), 0
-  lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, 0
+  lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, C1 exact light profile (0/1, HZD shaper only)
   octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, diffusion tail weight
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
   drift: vec4<f32>,      // wind offset (CloudSettings.windOffset, m), 0         (likewise)
@@ -99,7 +99,7 @@ struct ProcParams {
   hzN3b: vec4<f32>,      // N1: HHF distance (m, 0 = off), sharpen density scale S (0 = off), curl gain, step 2 pack shape tile (m; 0 = HZD shape fBM)
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
-struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32 }
+struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
 const PROC_EARTH_M = 6371000.0;
 // Altitude above the flat world's ground with the planet's curvature about the camera (Sky Pro scShellHeight: a parabolic drop avoids
 // subtracting two 6371 km values in f32).

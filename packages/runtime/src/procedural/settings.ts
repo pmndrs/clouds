@@ -200,6 +200,9 @@ export interface HzdShape {
    *    'shape'  split: map and shape anchored, detail free (detailSpeed 0 = the detail stays in the world while the cloud moves through it).
    *    'detail' split, the reverse: map and detail anchored (the detail rides with the cloud), shape free (the forms evolve as they move). */
   ndfMotion: 'drift' | 'static' | 'rigid' | 'shape' | 'detail';
+  /** C1: what the Nubis lighting reads as the in-scatter profile and depth in cloud. 'standin' = min(pow(depth/profileDepth, 1.05), coarse) with the
+   *  proxy depth; 'exact' = the analytic dimensional profile (coverage x height gradient, NE22) and depth = (P - tau) / |dP/dy| (as the sky layer's f/|grad f|). */
+  lightProfile: 'standin' | 'exact';
   ndfDrift: number;
   shapeSpeed: number;
   detailSpeed: number;
@@ -598,7 +601,7 @@ export function hzdShell(hz: HzdShape): [number, number] {
 export const HZD_DEFAULTS: HzdShape = {
   layerBottom: 1500, layerTop: 5000, extinction: 0.8, coverageBias: 0, typeBias: 0, coverageMultiply: false, typeBlend: 'curves', // H7 'hybrid' kept as an option; judged 2026-10-10: H6 defaults restored
   shapeTile: 6000, detailTile: 300, curlTile: 3000, curlStrength: 150, detailDistance: 40000, mipBias: 0, baseFadeMin: 0.3, baseFadeHeight: 0.2,
-  erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
+  erosionLaw: 'gp7', windDirection: [2, 1], cloudTopOffset: 500, upwardBias: 0.1, ndfMotion: 'drift', lightProfile: 'standin', ndfDrift: 0.5, shapeSpeed: 1, detailSpeed: 1,
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
@@ -662,7 +665,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   lane(88, l => l.channel);
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
   out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, 0], 96);
-  out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, 0], 100);
+  out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, s.shaper === 'hzd' && hz.lightProfile === 'exact' ? 1 : 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
   out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), 0], 116);

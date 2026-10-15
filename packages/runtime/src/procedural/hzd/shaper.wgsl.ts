@@ -544,6 +544,19 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   o.h = h;
   // No surface distance in a per-sample model: the coarse density times the column height stands in (as the Takram shaper).
   o.depth = coarse * (top - bottom) * 0.25;
+  // C1 exact light profile (ne22 p.29/p.54; the sky layer's approach): the dimensional profile P = coverage x height gradient (no noise, no lumps), and
+  // the depth in cloud f / |df/dy| on the smooth level set f = 0.5 g - (1 - coverage) (the base noise at its mean 0.5), the gradient by a central
+  // difference of the type gradient. Read by the trace when ProcParams.lit.w is 1; the sheets and fractus leave 0 (the trace falls back to the stand-in).
+  if (P.lit.w > 0.5) {
+    let gT = n.topType + P.hzCov.y;
+    let g0 = hzdHeightGradientR(gT, h, h);
+    let dh = 0.02;
+    let dg = (hzdHeightGradientR(gT, h + dh, h + dh) - hzdHeightGradientR(gT, h - dh, h - dh)) / (2.0 * dh);
+    let fs = 0.5 * g0 - (1.0 - cov);
+    let span = top - bottom;
+    o.prof = cov * g0;
+    o.depthX = clamp(max(fs, 0.0) / max(0.5 * abs(dg), 1e-3) * span, 0.0, 0.5 * span);
+  }
   return o;
 }
 // F1 step 3: a sheet layer with its own form (photos §5-7, web18 Table 2, ne22 p.15-16; constants ours). A = (form, bottom m, thickness m,
@@ -604,6 +617,7 @@ fn hzdMerge(a: ProcSample, b: ProcSample) -> ProcSample {
   let w = b.sigma / s;
   var o: ProcSample;
   o.sigma = s; o.coarse = mix(a.coarse, b.coarse, w); o.depth = mix(a.depth, b.depth, w); o.h = mix(a.h, b.h, w);
+  o.prof = mix(a.prof, b.prof, w); o.depthX = mix(a.depthX, b.depthX, w);
   return o;
 }
 // F1 step 4: is there a body base over column xz? Returns (presence 0..1: the coarse body at the belly height fractusBelly, as the main chain

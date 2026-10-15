@@ -1,0 +1,178 @@
+{
+  "url": "http://127.0.0.1:5311/hzd/?light=octave",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T08:50:56.031Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/C1/octave/gp7.png",
+      "report": {
+        "view": "gp7",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 11.82608308823529,
+          "lightGridReduce": 0.036165,
+          "lightGrid": 0.015292,
+          "marchNear": 0.039348799999999996,
+          "marchFar": 0.10314013333333336,
+          "shadowMap": 0.3979686666666667,
+          "composite": 0.24813096666666665,
+          "dome": 0.3080446666666665,
+          "skyLayer": 18.849831766666664,
+          "skyResolve": 0.18353601666666666,
+          "cloudsTotal": 20.181458016666667,
+          "total": 32.00754110490196
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "ground",
+      "file": "work/captures/C1/octave/ground.png",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 5.939367566666667,
+          "lightGridReduce": 0.036165,
+          "lightGrid": 0.015292,
+          "marchNear": 0.042846683333333316,
+          "marchFar": 0.10859559999999999,
+          "shadowMap": 0.4165449166666667,
+          "composite": 0.2582058333333334,
+          "dome": 0.4134095999999999,
+          "skyLayer": 13.98043248333333,
+          "skyResolve": 0.18330978333333334,
+          "cloudsTotal": 15.454801899999996,
+          "total": 21.394169466666664
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "horizon",
+      "file": "work/captures/C1/octave/horizon.png",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 15,
+        "pitch": 1.5,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 1.9224011166666666,
+          "lightGridReduce": 0.036165,
+          "lightGrid": 0.03486857142857143,
+          "marchNear": 0.04333846666666667,
+          "marchFar": 0.11174183333333333,
+          "shadowMap": 0.4355515166666667,
+          "composite": 0.2528835666666667,
+          "dome": 0.5013728833333333,
+          "skyLayer": 14.781007883333334,
+          "skyResolve": 0.1707773,
+          "cloudsTotal": 16.367707021428572,
+          "total": 18.29010813809524
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/C1/octave/above.png",
+      "report": {
+        "view": "above",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 7.50136525,
+          "lightGridReduce": 0.036165,
+          "lightGrid": 0.023518846153846154,
+          "marchNear": 0.04368678333333333,
+          "marchFar": 0.10582331666666668,
+          "shadowMap": 0.4618261833333335,
+          "composite": 0.2780125833333333,
+          "dome": 0.34895916666666676,
+          "skyLayer": 20.031576983333334,
+          "skyResolve": 0.17926105000000006,
+          "cloudsTotal": 21.508829912820516,
+          "total": 29.010195162820516
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {}
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5311/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/c1/node_modules/.vite/deps/chunk-KURAALNQ.js?v=0a19eb2e:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5311/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/c1/node_modules/.vite/deps/chunk-KURAALNQ.js?v=0a19eb2e:1421:12)\n    at http://127.0.0.1:5311/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/c1/node_modules/.vite/deps/chunk-KURAALNQ.js?v=0a19eb2e:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
