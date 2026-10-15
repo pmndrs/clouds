@@ -5,7 +5,7 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-Nothing.
+- **C5 / STORM1** storm package: painted storm area, anvil, storm lighting (Sonnet agent).
 
 A and B keep their current values until you answer.
 
