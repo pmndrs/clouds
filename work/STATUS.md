@@ -5,7 +5,7 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-- **C5 / STORM1** storm package: painted storm area, anvil, storm lighting (Sonnet agent).
+Nothing. The approved list (C1–C5) is done; waiting on you.
 
 A and B keep their current values until you answer.
 
@@ -23,6 +23,7 @@ No person or blind judge has picked these yet; the agent and the orchestrator ch
 | A6 | Time-lapse: the sky's frame-to-frame blend now follows the wind (C2). The streaky smear is gone, but at fast time-lapse clouds are still softer and slightly blocky against a render without the blend. Sheet: `work/captures/C2/mid_off_on_notemporal.png` (off / on / no blend) | agent + orchestrator | [off](http://localhost:5180/hzd/?view=ground&sky_temporalCloudMotion=false) | [on](http://localhost:5180/hzd/?view=ground) |
 | A7 | Mid-level clouds: when altocumulus or altostratus is switched on (still off by default), they now use 'hybrid': the volume up close fading into a 2.5D layer read from the map at distance, which removes the clip line and saves ~2 ms (L3). Far away the layer is fainter and sparser than the volume. Sheet: `work/captures/L3/sheet.jpg` (volume / layer / hybrid) | agent | volume: add `&hz_midLayerMode=volume` | hybrid: default |
 | A8 | Painting: a painted map now blends over the generated sky through a painted influence mask (paint just a hole by the sun, the rest stays generated) instead of replacing it; 'replace' kept. Plus five weather states (clear, cumulus, towering, stratocumulus, overcast) with 10–30 s transitions and an auto cycle; their numbers are by eye (W2). Sheet: `work/captures/W2/W2-sheet.jpg` | agent | replace: `ndf.paintBlend` = replace in the tune panel | influence: default |
+| A9 | Storms (STORM1): a paintable storm area in the map, a downwind anvil plate and anvil cirrus, darker denser storm lighting and optional lightning. **Not made the default:** the anvil plate is less clean than F1's mushroom and the anvil cirrus reads as torn streaks, so storms still use F1's placed cell unless you choose 'map'. The `storm` view shows the new one. Sheet: `work/captures/STORM1/STORM1-sheet.jpg` | orchestrator kept the old default | [old cell](http://localhost:5180/hzd/?view=storm&hz_stormSource=cell) | [new map storm](http://localhost:5180/hzd/?view=storm) |
 | A4 | Per-area cloud bases on the map: crisp under cumulus, soft under stratus (F2) | agent | [off](http://localhost:5180/hzd/?view=ground&hzn_bottomTypeRange=0) | [on](http://localhost:5180/hzd/?view=ground) |
 
 You already chose these: the profile tables as the default, and the 32 km map.
@@ -37,7 +38,7 @@ You already chose these: the profile tables as the default, and the 32 km map.
 2. ~~**Cloud motion in the temporal blend.**~~ Done (C2), review as A6. Follow-up: a sharper history fetch (bicubic) for the remaining softness at fast time-lapse. Fixes the time-lapse smear; it's also the first step toward your upscaler (U1).
 3. ~~**Altocumulus, altostratus and cirrus as 2.5D layers read from the map (L3).**~~ Done for altocumulus and altostratus (review as A7). Cirrus still uses one type for the whole sky; its fade is cov² where NE22 uses cov³ (option `cirrus.coverageFadeNe22`). Removes the visible layer edge, cheaper.
 4. ~~**Influence painting (W2):**~~ Done (review as A8). Known gaps: hero shadow caches don't follow a transition. paint over part of the generated sky instead of replacing all of it, plus weather states.
-5. **Storm package:** an authored storm area, a proper anvil, storm lighting, rotation.
+5. ~~**Storm package:**~~ Steps 1–3 done (review as A9), rotation not started. Needs a better anvil shape before it becomes the default. an authored storm area, a proper anvil, storm lighting, rotation.
 
 Parked:
 - The Houdini camera rig (for the Decima work, when it resumes).
@@ -49,13 +50,14 @@ Status of each from `docs/research/ne22-coverage.md`, in plain terms:
 - **Painted maps:** now blend over the generated map with an influence mask, as theirs do (W2). Weather states exist; theirs are regional sets, ours are whole-sky states.
 - **Density formula.** Ours is HZD's (GP7) remap; theirs subtracts the inverted profile from the noise. Neither is known to be worse; it's a look choice to A/B (later, with the lighting).
 - **Lighting from stand-ins.** The Nubis lighting needs to know how deep inside a cloud each sample is (the "profile"). Voxel clouds store that; our procedural sky estimates it, and by default doesn't use Nubis lighting at all. Theirs computes it exactly from the same height profile and coverage. Ours is worse, for historical reasons: the procedural path came from the Takram port. To do: C1.
-- **Storm.** Ours is one analytic cell at a set position. Theirs is a storm area painted into the map, with its own profile, anvil, rotation and lightning glow. Ours is a first version. To do: C5.
+- **Storm.** Ours now has a painted storm area, anvil and lightning glow like theirs, but our anvil shape is worse than F1's old one and there is no rotation yet. Ours is worse.
 - **Cirrus.** Ours has one type and coverage for the whole sky. Theirs reads coverage and type from the map, so it varies by area. Ours is worse. To do: C3.
 - **Mid-level layers.** Ours are volumes that show their edge at distance. Theirs are 2D / 2.5D. Ours is worse at distance. To do: C3.
 
 ## Landed (newest first)
 | When | What | Tag / report |
 | --- | --- | --- |
+| 10-15 | STORM1: painted storm area, anvil, storm lighting (old cell stays the default) | `work/reports/STORM1.md` |
 | 10-15 | W2: influence painting and weather states | `work/reports/W2.md` |
 | 10-15 | L3: mid-level clouds as 2.5D layers at distance | `work/reports/L3.md` |
 | 10-15 | C2: the temporal blend follows the wind | `work/reports/C2-temporal-motion.md` |
