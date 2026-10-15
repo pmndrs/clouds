@@ -153,6 +153,14 @@ export interface HzdNdfSettings {
   paintCoverage: number;
   paintTypes: number;
   paintHeights: number;
+  // ---- STORM1: the default storm area written into the generated map (layer 1, B). ----
+  /** STORM1: amount (0..1) of the default storm blob in the generated map: a ragged disc, 1 at its core, 0 at its rim. 0 = none. It only DOES anything
+   *  when the HZD shaper's `stormStrength` > 0 and `stormSource` is 'map'. A painted storm channel (painter) or `heightImage`'s B replaces it where painted. */
+  stormBlob: number;
+  /** STORM1: the blob's centre (world metres in the map's own frame: it moves with the map under ndfMotion 'drift') and radius (m, to the rim). */
+  stormX: number;
+  stormZ: number;
+  stormRadius: number;
   // ---- F2: per-area cloud bases (work/reports/F2.md). Both recipes. ----
   /** F2: the bottom type varies by area: bottomType + bottomTypeRange x a 2-octave fBM (about +-0.5) from `bottomTypeCells` cells per tile,
    *  plus bottomTypeCorrelation x (the column's top type within typeMin..typeMax - 0.5), clamped 0..1. Negative correlation pairs crisp bases
@@ -375,6 +383,25 @@ export interface HzdShape {
   anvilSpread: number;
   anvilShear: number;
   stormTypeStart: number;
+  /** STORM1: where the storm column comes from. 'map' (default) = the NDF's storm channel (layer 1 B: the generated default blob `ndf.stormBlob`, or
+   *  the painter's storm channel), `stormStrength` is its gain (0 = off); the column narrows upward, the anvil spreads `anvilSpread` x `stormRadius`
+   *  sideways and `anvilShear` m downwind from it. 'cell' = F1's analytic placed cell at (stormX, stormZ), kept. In both, stormX/Z/Radius also place
+   *  the lightning glow. */
+  stormSource: 'map' | 'cell';
+  /** STORM1 anvil cirrus: a thin fibrous plate on top of the anvil, continuing the anvil's footprint `anvilCirrusLength` m further downwind (NE22
+   *  p.159-163: a cirrus formation centred on the storm). `anvilCirrus` is its density (0 = off), `anvilCirrusDepth` its thickness (m, from the
+   *  storm top down), `anvilCirrusFiber` the elongation of its fibres along the wind. Needs a storm (either source). */
+  anvilCirrus: number;
+  anvilCirrusLength: number;
+  anvilCirrusDepth: number;
+  anvilCirrusFiber: number;
+  /** STORM1 lighting: `stormDensity` scales the extinction inside the storm (1 = off; denser reads darker), `stormDark` (0..1) adds an extra scale
+   *  at the column base (dark underside), `stormGlow` (0 = off) is an internal lightning glow, flashing `stormFlashRate` times per second (a flash
+   *  term in the trace: a random place inside the storm, a short strobing envelope, radius 1.5 km). */
+  stormDensity: number;
+  stormDark: number;
+  stormGlow: number;
+  stormFlashRate: number;   // 0 = one flash held on (look development)
   /** F1 step 3: two sheet layers with their own forms (photos §5-7, web18 Table 2, ne22 p.15-16): 'altocumulus' = jittered cells (the shape
    *  texture's Worley fBM read flat, elongated `cellElongation`:1 along the wind, cell size `cellSize` m) under a large-scale coverage mask,
    *  flat bases and lumpy domed tops; 'altostratus' = a soft mottled sheet; 'stratus' = a flat-based low deck with a gently lumpy top.
@@ -547,6 +574,7 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
   recipe: 'n17', gateCells: 6, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '', paintBlend: 'influence', maskImage: '', paintCoverage: 1, paintTypes: 1, paintHeights: 1,
+  stormBlob: 1, stormX: -6000, stormZ: -15000, stormRadius: 3000,
   // F2 per-area bases (bottomType above is the field's centre)
   bottomTypeRange: 1.5, bottomTypeCells: 6, bottomTypeCorrelation: -0.6,
 };
@@ -562,6 +590,7 @@ export const HZD_FORM_DEFAULTS = {
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
+  stormSource: 'map', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7,
   midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
   midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
   deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
@@ -574,7 +603,9 @@ export const PROC_HZD_FORMS_OFFSET = 188;
 export const PROC_HZD_N3_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
 /** L3: one more vec4 (hzMix) between the N1 block and the tables. */
 export const PROC_HZD_MIX_OFFSET = PROC_HZD_N3_OFFSET + 8;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_MIX_OFFSET + 4;
+/** STORM1: three more vec4 (hzStorm3, hzStorm4, hzStorm5) between hzMix and the tables. */
+export const PROC_HZD_STORM_OFFSET = PROC_HZD_MIX_OFFSET + 4;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_STORM_OFFSET + 12;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -618,6 +649,13 @@ export function packHzdMix(hz: HzdShape, out: Float32Array): void {
   const x = !alto ? 0 : hz.midLayerMode === 'layer' ? 2 : hz.midLayerMode === 'hybrid' ? 1 : 0;
   out.set([x, hz.midLayerFadeStart, Math.max(hz.midLayerFadeEnd, hz.midLayerFadeStart + 1), 0], PROC_HZD_MIX_OFFSET);
 }
+/** STORM1: the storm source, anvil cirrus and storm lighting (hzStorm3 .. hzStorm5 in density.wgsl.ts). */
+export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
+  const o = PROC_HZD_STORM_OFFSET;
+  out.set([hz.stormSource === 'map' ? 1 : 0, Math.max(hz.anvilCirrus, 0), Math.max(hz.anvilCirrusLength, 0), Math.max(hz.anvilCirrusDepth, 1)], o);
+  out.set([Math.max(hz.stormDensity, 0), Math.min(Math.max(hz.stormDark, 0), 1), Math.max(hz.stormGlow, 0), Math.max(hz.stormFlashRate, 0)], o + 4);
+  out.set([Math.max(hz.anvilCirrusFiber, 1), 0, 0, 0], o + 8);
+}
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_N3_OFFSET;
@@ -627,7 +665,7 @@ export function packHzdN3(hz: HzdShape, out: Float32Array): void {
 /** The march shell of the HZD shaper with the F1 forms: the storm top, the sheets and the fractus below the base widen it. */
 export function hzdShell(hz: HzdShape): [number, number] {
   let lo = hz.layerBottom, hi = Math.max(hz.layerTop, hz.layerBottom + 1);
-  if (hz.stormStrength > 0 || hz.stormTypeStart < 1) hi = Math.max(hi, hz.stormTop);
+  if (hz.stormStrength > 0 || hz.stormTypeStart < 1) hi = Math.max(hi, hz.stormTop + (hz.anvilCirrus > 0 ? 200 : 0));
   for (const [f, b, t] of [[hz.midForm, hz.midBottom, hz.midThickness], [hz.deckForm, hz.deckBottom, hz.deckThickness]] as const) {
     if (f !== 'off') {
       // L3: the 2.5D layer alone draws the mid slot's altocumulus / altostratus, so it does not widen the march shell.
@@ -651,7 +689,7 @@ export const HZD_DEFAULTS: HzdShape = {
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
 export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.heightCells, n.footprint, n.worleyCells,
-  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation].join(',');
+  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation, n.stormBlob, n.stormX, n.stormZ, n.stormRadius].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
@@ -734,6 +772,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   packHzdForms(hz, out);
   packHzdN3(hz, out);
   packHzdMix(hz, out);
+  packHzdStorm(hz, out);
   return [minY, maxY];
 }
 

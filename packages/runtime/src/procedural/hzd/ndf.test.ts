@@ -4,10 +4,12 @@ import { HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL } from './ndf.wgsl';
 import { hzdNdfImageKey, packHzdNdfGen } from './ndf';
 
 describe('W1 weather map (NDF generator)', () => {
-  it('packs the generator uniform to the NdfGen struct (7 vec4) with the recipe switch', () => {
+  it('packs the generator uniform to the NdfGen struct (8 vec4) with the recipe switch', () => {
     const g = packHzdNdfGen(HZD_NDF_DEFAULTS);
-    expect(g.length).toBe(28);
-    expect((HZD_NDF_GEN_WGSL.match(/: vec4<f32>,/g) ?? []).length).toBe(7);
+    expect(g.length).toBe(32);
+    expect((HZD_NDF_GEN_WGSL.match(/: vec4<f32>,/g) ?? []).length).toBe(8);
+    // STORM1: the default blob in uv units (metres / tile), amount last
+    expect(Array.from(g.subarray(28, 32))).toEqual([Math.fround(HZD_NDF_DEFAULTS.stormX / HZD_NDF_DEFAULTS.tileMeters), Math.fround(HZD_NDF_DEFAULTS.stormZ / HZD_NDF_DEFAULTS.tileMeters), Math.fround(HZD_NDF_DEFAULTS.stormRadius / HZD_NDF_DEFAULTS.tileMeters), HZD_NDF_DEFAULTS.stormBlob]);
     expect(g[20]).toBe(HZD_NDF_DEFAULTS.recipe === 'n17' ? 1 : 0);
     expect(packHzdNdfGen({ ...HZD_NDF_DEFAULTS, recipe: 'h6' })[20]).toBe(0);
     expect(packHzdNdfGen({ ...HZD_NDF_DEFAULTS, recipe: 'n17', gateLo: 0.2, gateHi: 0.1 })[23]).toBeGreaterThan(0.2);   // gate hi kept above lo

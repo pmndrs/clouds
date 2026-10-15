@@ -4,7 +4,7 @@ import { hzdNdfKey } from '../settings';
 import { HZD_NDF_COMPOSE_WGSL, HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL, HZD_NDF_PAINT_IMAGE_WGSL } from './ndf.wgsl';
 
 export interface HzdNdf {
-  /** rgba8unorm 2D array, 2 layers: 0 = (coverage, topType, bottomType, 0), 1 = (minHeight, maxHeight, 0, 0). */
+  /** rgba8unorm 2D array, 2 layers: 0 = (coverage, topType, bottomType, 0), 1 = (minHeight, maxHeight, storm, 0). */
   texture: GPUTexture;
   /** hzdNdfKey of the settings it was generated from ('' for uploaded data). */
   key: string;
@@ -22,6 +22,8 @@ export function packHzdNdfGen(n: HzdNdfSettings): Float32Array<ArrayBuffer> {
     n.footprint, n.worleyCells, n.bottomTypeCorrelation, 0,
     n.recipe === 'n17' ? 1 : 0, n.gateCells, n.gateLo, Math.max(n.gateHi, n.gateLo + 1e-3),
     n.footLo, Math.max(n.footHi, n.footLo + 1e-3), n.typeContrast, n.islandGain,
+    // STORM1: the default storm blob in uv units (the generator's uv * tile = world metres)
+    n.stormX / n.tileMeters, n.stormZ / n.tileMeters, Math.max(n.stormRadius, 1) / n.tileMeters, Math.max(n.stormBlob, 0),
   ]);
 }
 
@@ -56,7 +58,9 @@ export function uploadHzdNdf(device: GPUDevice, size: number, fields: HzdNdfFiel
 
 export interface HzdNdfFields { coverage: Uint8Array; topType: Uint8Array; bottomType?: Uint8Array; minHeight?: Uint8Array; maxHeight?: Uint8Array;
   /** W2: the influence mask (size^2 bytes, 255 = painted). Only written into a paint texture (3 layers, see createHzdPaintTexture). */
-  influence?: Uint8Array }
+  influence?: Uint8Array;
+  /** STORM1: the storm area (size^2 bytes, 255 = a storm core), layer 1's B. Missing = 0 (no painted storm). */
+  storm?: Uint8Array }
 
 /** Write authored fields into an existing NDF texture of the same size, in place (the bench's map painter, one write per stroke update). */
 export function writeHzdNdf(device: GPUDevice, texture: GPUTexture, fields: HzdNdfFields): void {
@@ -64,7 +68,7 @@ export function writeHzdNdf(device: GPUDevice, texture: GPUTexture, fields: HzdN
   const a = new Uint8Array(size * size * 4), b = new Uint8Array(size * size * 4);
   for (let i = 0; i < size * size; i++) {
     a[i * 4] = fields.coverage[i]; a[i * 4 + 1] = fields.topType[i]; a[i * 4 + 2] = fields.bottomType?.[i] ?? 0;
-    b[i * 4] = fields.minHeight?.[i] ?? 0; b[i * 4 + 1] = fields.maxHeight?.[i] ?? 255;
+    b[i * 4] = fields.minHeight?.[i] ?? 0; b[i * 4 + 1] = fields.maxHeight?.[i] ?? 255; b[i * 4 + 2] = fields.storm?.[i] ?? 0;
   }
   device.queue.writeTexture({ texture, origin: [0, 0, 0] }, a, { bytesPerRow: size * 4, rowsPerImage: size }, [size, size, 1]);
   device.queue.writeTexture({ texture, origin: [0, 0, 1] }, b, { bytesPerRow: size * 4, rowsPerImage: size }, [size, size, 1]);
