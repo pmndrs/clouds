@@ -1,0 +1,69 @@
+{
+  "url": "http://127.0.0.1:5393/hzd/?view=ground&clean=1&c_animSpeed=0&hz_midForm=altostratus&hz_midBottom=5500&hz_midThickness=1000&hz_midCoverage=0.85&hz_midExtinction=0.03&hz_midErosion=0.1&hz_midLayerMode=layer",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T09:07:32.057Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/L3/as-ground-layer/view.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 22.65698216666667,
+          "lightGridReduce": 0.007625,
+          "lightGrid": 0.008291,
+          "marchNear": 0.07686204999999996,
+          "marchFar": 0.22373885000000004,
+          "shadowMap": 0.478071,
+          "composite": 0.5345661333333335,
+          "dome": 0.4666282833333334,
+          "skyLayer": 23.202585399999997,
+          "skyResolve": 0.3554183166666668,
+          "cirrusBake": 1.1409137906976745,
+          "midLayer": 0.5517312333333335,
+          "cloudsTotal": 27.04643105736434,
+          "total": 49.70341322403101
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.midForm": "altostratus",
+          "hzd.midBottom": 5500,
+          "hzd.midThickness": 1000,
+          "hzd.midCoverage": 0.85,
+          "hzd.midExtinction": 0.030000000000000002,
+          "hzd.midErosion": 0.09999999999999999,
+          "hzd.midLayerMode": "layer",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:1421:12)\n    at http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

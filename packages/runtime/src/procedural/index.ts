@@ -18,10 +18,10 @@ import { applyHzdNdfImages, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, writeH
 import { hzdNdfKey } from './settings';
 import { bakeSkyProWeather, loadSkyProNoise, loadTakramTextures, skyProWeatherKey, type SkyProWeather, type TakramTextures, type TakramTextureUrls } from './textures';
 import { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
-import type { ProceduralDensityModel } from './types';
+import type { MidLayerState, ProceduralDensityModel } from './types';
 
 export * from './settings';
-export type { ProceduralDensityModel } from './types';
+export type { MidLayerState, ProceduralDensityModel } from './types';
 export { bakeHzdNoise, type HzdNoise, type HzdNoiseOptions } from './hzd/noise';
 export { applyHzdNdfImages, generateHzdNdf, uploadHzdNdf, writeHzdNdf, type HzdNdf, type HzdNdfFields } from './hzd/ndf';
 export { HZD_GRADIENTS, hzdHeightGradient } from './hzd/shaper.wgsl';
@@ -81,6 +81,9 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   };
   let version = 0, resourceKey: object = {}, lastShaper: ProceduralShaper | null = null;
   let shell: [number, number] = [0, 1];
+  let midView: { tex: GPUTexture; view: GPUTextureView } | null = null;
+  const midNdfView = (tex: GPUTexture) => (midView?.tex === tex ? midView : (midView = { tex, view: tex.createView({ dimension: '2d-array' }) })).view;
+  let lastWind: [number, number, number] = [0, 0, 0];   // L3: the wind offset of the last update, for the mid-level layer
   // Trace pipelines by shaper and lighting mode (compiled asynchronously), the pass layout they share, and the cached bind groups (the pass
   // entries ping-pong with the voxel march's history, so a few are kept).
   const pipelines = new Map<string, GPUComputePipeline | 'pending'>();
@@ -199,6 +202,30 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         { binding: B.sampler, resource: sampler },
       ];
     },
+    get midLayer(): MidLayerState | null {
+      // L3: the HZD mid slot's altocumulus / altostratus as the 2.5D layer (layer or hybrid mode).
+      if (settings.shaper !== 'hzd' || !hzdNdf) return null;
+      const hz = settings.hzd;
+      if ((hz.midLayerMode !== 'layer' && hz.midLayerMode !== 'hybrid') || (hz.midForm !== 'altocumulus' && hz.midForm !== 'altostratus')) return null;
+      const cu = hz.midForm === 'altocumulus';
+      const hl = Math.hypot(hz.windDirection[0], hz.windDirection[1]) || 1;
+      const drift = lastWind;
+      return {
+        mode: hz.midLayerMode, form: hz.midForm, altitude: hz.midBottom + 0.5 * Math.max(hz.midThickness, 1), thickness: Math.max(hz.midThickness, 1),
+        // The volume's coverage is a threshold on cells (c = 0.5 fills about a third); the layer's is an exponent and fade-in, so it reads higher.
+        coverage: Math.min(1, Math.max(0, hz.midCoverage + hz.midLayerCoverageBoost)),
+        type: cu ? 1 : 0.5, veil: cu ? 0 : 1, opticalDepth: hz.midLayerOpticalDepth,
+        // The round noise has about 280 cells per tile: one cell is the slot's cell size.
+        scale: cu ? Math.min(Math.max(hz.midCellSize * 280, 20000), 250000) : 40000, detail: cu ? 0.35 : 0.2,
+        windOffset: [drift[0] * params[141], drift[2] * params[141]],
+        streakAngle: Math.atan2(hz.windDirection[1] / hl, hz.windDirection[0] / hl) * 180 / Math.PI,
+        ndfInfluence: Math.min(1, Math.max(0, hz.midLayerNdf)),
+        // Where the map is stratiform the altocumulus layer goes toward cell clumps joined up (type 0.8, still round) and the altostratus one toward a plain sheet (0.4); cumuliform: cells (1) / wispy (0.75).
+        typeStratiform: cu ? 0.8 : 0.4, typeCumuliform: cu ? 1 : 0.75,
+        ndf: { view: midNdfView(hzdNdf.texture), tileMeters: hz.ndf.tileMeters, offset: [drift[0] * params[140], drift[2] * params[140]] },
+        fadeStart: hz.midLayerMode === 'hybrid' ? hz.midLayerFadeStart : 0, fadeEnd: hz.midLayerMode === 'hybrid' ? Math.max(hz.midLayerFadeEnd, hz.midLayerFadeStart + 1) : 0,
+      };
+    },
     get motionSpeed() {
       // C2: the weather map's speed (the silhouettes), else the mean of the two noises' speeds; Sky Pro's shape follows the wind fully.
       if (settings.shaper !== 'hzd') return 1;
@@ -213,6 +240,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       for (let i = 0; i < PROC_PARAM_FLOATS; i++) if ((i < PROC_VIEW_FLOATS[0] || i >= PROC_VIEW_FLOATS[1]) && params[i] !== prev[i]) { changed = true; break; }
       if (changed) { version++; prev.set(params); }
       packProceduralView(view.camera, view.wind, params);
+      lastWind = [view.wind[0], view.wind[1], view.wind[2]];
       // Sky Pro's evolution: the shape noise slides along the wind relative to the weather (PRESET.wind.evolutionSpeed at Tidewater's 12 m/s).
       params[10] = time * 60.8 * 12 / 89;
       device.queue.writeBuffer(buffer, 0, params);

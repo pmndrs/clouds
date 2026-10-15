@@ -2,7 +2,7 @@ import { COMMON_WGSL } from '../shaders/common.wgsl';
 import { FRAME_WGSL } from '../shaders/frame.wgsl';
 import { atmosphereWgsl } from '../shaders/atmosphere.wgsl';
 
-export const CIRRUS_PARAM_BYTES = 6 * 16;
+export const CIRRUS_PARAM_BYTES = 9 * 16;
 export const CIRRUS_ATMOSPHERE_GROUP = 2;
 
 /**
@@ -39,6 +39,9 @@ struct CirrusParams {
   look: vec4<f32>,    // fine detail, coverage variation, ground shadow strength, halo
   fine: vec4<f32>,    // fine-detail offset x, z (m), sun gain, ambient gain
   misc: vec4<f32>,    // forward g, broad g, forward weight, multiple scattering
+  ndf: vec4<f32>,     // L3: weather-map influence (0 = off), map tile (m), map offset x, z (m)
+  ndf2: vec4<f32>,    // L3: type at stratiform (topType 0) and cumuliform (1) places, coverage gain, coverage centre (the map's typical coverage)
+  blend: vec4<f32>,   // L3: distance cross-fade with a volume: the layer is 0 inside start, 1 beyond end (m, to the layer hit); end <= start = always 1; z = edge softness; w = 1: NE22's cov^3 fade
 }
 // The output: one texel per composite pixel, row-major at the composite's width, rgba as two pack2x16float words (the composite is at the
 // per-stage sampled-texture limit, so it reads a storage buffer).
@@ -48,6 +51,7 @@ fn store(px: vec2<i32>, c: vec4<f32>) { outBuf[u32(px.y) * u32(frame.misc.z) + u
 @group(1) @binding(4) var noiseTex: texture_2d<f32>;
 @group(1) @binding(5) var noiseSampler: sampler;
 @group(1) @binding(6) var<storage, read> skyLight: array<vec4<f32>, 8>;
+@group(1) @binding(7) var ndfTex: texture_2d_array<f32>;   // L3: the HZD weather map (NDF); a 1x1 dummy while the influence is 0
 ${atm ? atmosphereWgsl(CIRRUS_ATMOSPHERE_GROUP) : ''}
 
 const CIRRUS_RADIANCE_LIMIT = 60000.0;
@@ -118,16 +122,28 @@ fn largeCoverage(p: vec3<f32>) -> f32 {
   return 0.65 * vnoise(q + 17.3) + 0.35 * vnoise(q * 2.5 + 41.7);
 }
 // NE p.65 with our coverage variation: n = baked (streaky, wispy, round, fine) at the main frequency, fine = the fine channel at 4x.
-fn cirrusDensity(n: vec4<f32>, fine: f32, veilBase: f32, cov: f32) -> f32 {
-  let type_ = cp.shape.y;
+fn cirrusDensity(n: vec4<f32>, fine: f32, veilBase: f32, cov: f32, type_: f32, veilAmt: f32) -> f32 {
   let d0 = mix(mix(n.x, n.y, saturate(type_ * 2.0)), n.z, saturate(type_ * 2.0 - 1.0));
   var d = pow(max(d0, 0.0), 1.0 - valueRemap(cov, 0.0, 1.0, -0.9, 0.9));
-  d *= valueRemap(cov * cov, 0.0, 0.36, 0.0, 1.0);
+  // L3: the coverage exponent amplifies the 8-bit noise's lowest steps (1/255 -> 0.08), a stair-step edge where the tile is magnified (a low layer): a ramp over the first few levels hides it. 0 = off (cirrus).
+  if (cp.blend.z > 0.0) { d *= smoothstep(0.0, cp.blend.z, d0); }
+  // Fade-in with coverage: ours reaches full at cov 0.6 (cov^2); NE22 p.65 is ValueRemap(cov^3, 0, 0.5) = full at cov 0.79 (cp.blend.w = 1).
+  d *= select(valueRemap(cov * cov, 0.0, 0.36, 0.0, 1.0), saturate(cov * cov * cov * 2.0), cp.blend.w > 0.5);
   d *= mix(1.0, saturate(0.35 + 1.3 * fine), cp.look.x);
   // Cirrostratus veil: a smooth sheet with faint fibres, its own coverage the same field.
   // It follows the large-scale coverage, so the sheet covers part of the sky and thins out elsewhere.
-  let veil = cp.shape.z * saturate(1.4 * veilBase - 0.1) * mix(1.0, 0.7 + 0.6 * fine, 0.5) * smoothstep(0.3, 0.85, cov);
+  let veil = veilAmt * saturate(1.4 * veilBase - 0.1) * mix(1.0, 0.7 + 0.6 * fine, 0.5) * smoothstep(0.3, 0.85, cov);
   return saturate(d + veil * (1.0 - d));
+}
+// L3: coverage, type and veil at the world point p: the layer's own values, moved by the weather map where its influence is on (altocumulus
+// cells where the map says cumuliform, a smooth altostratus sheet where it says stratiform; coverage follows the map's coverage).
+fn localLook(p: vec3<f32>, cov: f32) -> vec3<f32> {
+  if (cp.ndf.x <= 0.0) { return vec3(cov, cp.shape.y, cp.shape.z); }
+  let a = textureSampleLevel(ndfTex, noiseSampler, (p.xz - cp.ndf.zw) / cp.ndf.y, 0, 0.0);
+  let k = cp.ndf.x;
+  return vec3(saturate(cov + k * cp.ndf2.z * (a.r - cp.ndf2.w)),
+              mix(cp.shape.y, mix(cp.ndf2.x, cp.ndf2.y, a.g), k),
+              saturate(cp.shape.z * mix(1.0, 1.5 - a.g, k)));
 }
 fn hg(c: f32, g: f32) -> f32 {
   let g2 = g * g;
@@ -163,7 +179,7 @@ fn fetch(p: vec3<f32>, gx: vec2<f32>, gy: vec2<f32>) -> Sample {
   s.n = textureSampleGrad(noiseTex, noiseSampler, uv, gx, gy);
   s.fine = textureSampleGrad(noiseTex, noiseSampler, tileUv(p, cp.fine.xy, cp.layer.w * 0.25), gx * 4.0, gy * 4.0).a;
   s.veil = 0.0;
-  if (cp.shape.z > 0.0) { s.veil = textureSampleLevel(noiseTex, noiseSampler, uv * 0.5 + 0.31, 6.0).y; }
+  if (cp.shape.z > 0.0 || cp.ndf.x > 0.0) { s.veil = textureSampleLevel(noiseTex, noiseSampler, uv * 0.5 + 0.31, 6.0).y; }
   return s;
 }
 // Distance to the layer's mid surface only (the neighbour rays for the texture gradients): 0 = none.
@@ -209,8 +225,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         let n = textureSampleLevel(noiseTex, noiseSampler, tileUv(q, cp.wind.xy, cp.layer.w), 4.0);
         let fine = textureSampleLevel(noiseTex, noiseSampler, tileUv(q, cp.fine.xy, cp.layer.w * 0.25), 4.0).a;
         let veil = textureSampleLevel(noiseTex, noiseSampler, tileUv(q, cp.wind.xy, cp.layer.w) * 0.5 + 0.31, 6.0).y;
-        let cov = saturate(cp.shape.x + covVar * (largeCoverage(q) - 0.5) * 2.0);
-        let tau = cirrusDensity(n, fine, veil, cov) * cp.shape.w * hs.y / max(cp.layer.y, 1.0);
+        let lk = localLook(q, saturate(cp.shape.x + covVar * (largeCoverage(q) - 0.5) * 2.0));
+        let tau = cirrusDensity(n, fine, veil, lk.x, lk.y, lk.z) * cp.shape.w * hs.y / max(cp.layer.y, 1.0);
         s = mix(1.0, exp(-tau), cp.look.z);
       }
     }
@@ -226,13 +242,17 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let uv0 = tileUv(p, cp.wind.xy, cp.layer.w);
   var gx = select(vec2(0.05), tileUv(origin + dx * hx, cp.wind.xy, cp.layer.w) - uv0, hx > 0.0);
   var gy = select(vec2(0.05), tileUv(origin + dy * hy, cp.wind.xy, cp.layer.w) - uv0, hy > 0.0);
-  let cov = saturate(cp.shape.x + covVar * (largeCoverage(p) - 0.5) * 2.0);
+  let lk = localLook(p, saturate(cp.shape.x + covVar * (largeCoverage(p) - 0.5) * 2.0));
   let s0 = fetch(p, gx, gy);
-  let d = cirrusDensity(s0.n, s0.fine, s0.veil, cov);
+  let d = cirrusDensity(s0.n, s0.fine, s0.veil, lk.x, lk.y, lk.z);
   if (d <= 1e-4) { store(px, vec4(0.0, 0.0, 0.0, 1.0)); return; }
   let th = max(cp.layer.y, 1.0);
   let tauV = d * cp.shape.w;
-  let T = exp(-tauV * hit.y / th);
+  var T = exp(-tauV * hit.y / th);
+  // L3: cross-fade with a volume by the distance to the layer: 0 inside blend.x, 1 beyond blend.y (no fade when blend.y <= blend.x).
+  let wFade = select(1.0, smoothstep(cp.blend.x, cp.blend.y, hit.x), cp.blend.y > cp.blend.x);
+  if (wFade <= 0.0) { store(px, vec4(0.0, 0.0, 0.0, 1.0)); return; }
+  T = mix(1.0, T, wFade);
 
   // Toward the sun across the layer: two taps of the main noise at a coarser mip (no anisotropy; the fine and veil terms are this pixel's).
   // The path factor 1 / mu is capped: the layer is patchy, so a grazing sun reaches a fibre through gaps (a uniform slab would black it out).
@@ -244,8 +264,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let lod = clamp(log2(max(length(gx), length(gy)) * f32(textureDimensions(noiseTex).x)) + 1.5, 0.0, 10.0);
   let n1 = textureSampleLevel(noiseTex, noiseSampler, tileUv(p + sH * (0.35 * reach), cp.wind.xy, cp.layer.w), lod);
   let n2 = textureSampleLevel(noiseTex, noiseSampler, tileUv(p + sH * reach, cp.wind.xy, cp.layer.w), lod);
-  let d1 = cirrusDensity(n1, s0.fine, s0.veil, cov);
-  let d2 = cirrusDensity(n2, s0.fine, s0.veil, cov);
+  let d1 = cirrusDensity(n1, s0.fine, s0.veil, lk.x, lk.y, lk.z);
+  let d2 = cirrusDensity(n2, s0.fine, s0.veil, lk.x, lk.y, lk.z);
   let tauSun = (0.3 * d + 0.4 * d1 + 0.3 * d2) * cp.shape.w * 0.5 * min(1.0 / max(muS, 1e-3), SUN_PATH_MAX);
 
   let sunL = cirrusSun(p) * cp.fine.z;
@@ -255,7 +275,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let msL = cp.misc.w * (0.5 * exp(-0.5 * tauSun) + 0.25 * exp(-0.25 * tauSun)) * thick / (4.0 * PI);
   let direct = sunL * (icePhase(cosS) * exp(-tauSun) + msL);
   let ambient = (skyLight[1].xyz * 0.6 + skyLight[2].xyz * 0.4) * cp.fine.w;
-  var rgb = (direct + ambient) * (1.0 - T);
+  var rgb = (direct + ambient) * (1.0 - T);   // T already carries the fade, so the radiance fades with it
   ${atm ? `
   rgb = applyAerialPerspective(rgb, T, dir, hit.x);
   rgb = applyHorizonHaze(rgb, T, origin, dir, hit.x, frame.haze);` : ''}

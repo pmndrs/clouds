@@ -193,7 +193,7 @@ describe('HZD shaper F1: types and forms', () => {
     packProceduralParams(s, out);
     const o = PROC_HZD_N3_OFFSET;
     expect(o).toBe(PROC_HZD_FORMS_OFFSET + 44);
-    expect(PROC_HZD_LUT_OFFSET).toBe(o + 8);
+    expect(PROC_HZD_LUT_OFFSET).toBe(o + 12);   // L3: the hzMix vec4 sits between the N1 block and the tables
     expect(Array.from(out.subarray(o, o + 8))).toEqual([1, 600, 1, 0.5, 900, 1, 0, 0]);
     s.hzd.noiseSet = 'hzd'; s.hzd.shapeNoise = 'nubis3';
     packProceduralParams(s, out);
@@ -233,7 +233,7 @@ describe('HZD shaper F1: types and forms', () => {
     s.hzd.midForm = 'altostratus';
     packProceduralParams(s, out);
     expect(out[o + 20]).toBe(2);
-    expect(PROC_HZD_WGSL).toContain('if (P.hzMid.x > 0.5) { o = hzdMerge(o, hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)); }');
+    expect(PROC_HZD_WGSL).toContain('hzdSheetSample(P.hzMid, P.hzMid2, p, t, footprint, full)');
   });
   it('step 4: fractus is off by default, looks upwind for a body base and lowers the shell by its drop', () => {
     const s = defaultProceduralSettings('hzd');

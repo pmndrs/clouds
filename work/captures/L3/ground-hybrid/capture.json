@@ -1,0 +1,64 @@
+{
+  "url": "http://127.0.0.1:5393/hzd/?view=ground&clean=1&c_animSpeed=0&hz_midForm=altocumulus&hz_midLayerMode=hybrid",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T09:06:44.369Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/L3/ground-hybrid/view.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 14.14771045,
+          "lightGridReduce": 0.007792,
+          "lightGrid": 0.008417,
+          "marchNear": 0.054799150000000005,
+          "marchFar": 0.14538320000000002,
+          "shadowMap": 0.37926750000000004,
+          "composite": 0.39653846666666676,
+          "dome": 0.4340239000000001,
+          "skyLayer": 19.296688866666663,
+          "skyResolve": 0.2522273666666667,
+          "cirrusBake": 0.9705654249999999,
+          "midLayer": 0.4004688833333334,
+          "cloudsTotal": 22.34617175833333,
+          "total": 36.49388220833333
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.midForm": "altocumulus",
+          "hzd.midLayerMode": "hybrid",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:1421:12)\n    at http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

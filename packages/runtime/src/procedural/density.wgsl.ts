@@ -97,6 +97,7 @@ struct ProcParams {
   // N1 Nubis Cubed noise (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packHzdN3)
   hzN3: vec4<f32>,       // N1: noise set (0 hzd, 1 nubis3), pack tile (m), strength, stratus billowy type
   hzN3b: vec4<f32>,      // N1: HHF distance (m, 0 = off), sharpen density scale S (0 = off), curl gain, step 2 pack shape tile (m; 0 = HZD shape fBM)
+  hzMix: vec4<f32>,      // L3: mid slot volume share (0 full, 1 fades with distance, 2 none: the 2.5D layer draws it), fade start (m), fade end (m), 0
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers

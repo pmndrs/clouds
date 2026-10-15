@@ -50,12 +50,27 @@ export interface CirrusSettings {
   /** Art gains on the sun and the sky ambient the layer sees (1 = physical). */
   sunGain: number;
   ambientGain: number;
+  /** L3: 0..1 how far the HZD weather map (the NDF, given to `encode`) moves coverage, type and veil per area: coverage by `ndfCoverageGain` x (map coverage - `ndfCoverageCenter`),
+   *  type between `ndfTypeStratiform` and `ndfTypeCumuliform` by the map's top type (cumuliform = round cells, stratiform = a smoother sheet), the veil down where the map is cumuliform. 0 = off (the global values). */
+  ndfInfluence: number;
+  ndfTypeStratiform: number;
+  ndfTypeCumuliform: number;
+  ndfCoverageGain: number;
+  ndfCoverageCenter: number;
+  /** L3: cross-fade with a volume by distance (m, to the layer hit): the layer is absent inside `fadeStart` and full beyond `fadeEnd`. `fadeEnd` <= `fadeStart` = no fade (always full). */
+  fadeStart: number;
+  fadeEnd: number;
+  /** L3: 0..0.3 ramp over the noise's first levels that hides the 8-bit stair-step at the layer's edges where the tile is magnified (a low layer). 0 = off (the cirrus look). */
+  edgeSoftness: number;
+  /** L6 check: the coverage fade-in. false (default) = ours, cov^2 reaching full at cov 0.6; true = Nubis Evolved p.65, ValueRemap(cov^3, 0, 0.5, 0, 1), full at cov 0.79 (thinner at the same coverage). */
+  coverageFadeNe22: boolean;
 }
 
 export const CIRRUS_DEFAULTS: Readonly<Omit<CirrusSettings, 'windVelocity' | 'windOffset'>> & { windVelocity: readonly [number, number] } = {
   enabled: false, altitude: 9000, thickness: 600, coverage: 0.55, type: 0.15, veil: 0, opticalDepth: 1, scale: 80000, detail: 0.5,
   coverageVariation: 0.6, windVelocity: [22, -6], animSpeed: 1, streakAngle: null, shadowStrength: 0, halo: 0,
   phaseForward: 0.8, phaseBroad: 0.2, phaseForwardWeight: 0.45, multipleScattering: 1, sunGain: 1, ambientGain: 1,
+  ndfInfluence: 0, ndfTypeStratiform: 0.55, ndfTypeCumuliform: 1, ndfCoverageGain: 1.5, ndfCoverageCenter: 0.3, fadeStart: 0, fadeEnd: 0, edgeSoftness: 0, coverageFadeNe22: false,
 };
 
 export interface CirrusEncodeArgs {
@@ -72,12 +87,18 @@ export interface CirrusEncodeArgs {
   cameraPosition: ArrayLike<number>;
   time: number;
   timer?: GpuTimer;
+  /** L3: the HZD weather map (NDF: a 2-layer 2D array, layer 0 = coverage, top type, bottom type) with its tile size and the world offset it has drifted to. Used while settings.ndfInfluence > 0. */
+  ndf?: { view: GPUTextureView; tileMeters: number; offset: readonly [number, number] } | null;
 }
 
 export interface CirrusLayer {
   readonly settings: CirrusSettings;
   /** True once the noise tile is baked and the pipeline compiled; the layer renders from then on while enabled. */
   readonly ready: boolean;
+  /** L3: the baked noise tile, so a second layer (the mid-level one) can use it instead of baking its own (`createCirrusLayer(..., { shareNoise })`). */
+  readonly noise: { readonly view: GPUTextureView; readonly baked: boolean };
+  /** L3: advance the noise bake by one step without drawing (so a layer sharing this noise can render while this one is off). No-op once baked. */
+  bakeNoise(encoder: GPUCommandEncoder, timer?: GpuTimer): void;
   /** Renders the layer for this frame (bakes a tile slice first while not baked). Returns true when the output holds this frame's layer. */
   encode(encoder: GPUCommandEncoder, args: CirrusEncodeArgs): boolean;
   /** Composite hook: layout entries (the layer's storage buffer, two pack2x16float words per composite pixel, a 16-byte uniform: x = on, y = in front of the low clouds) at binding, binding + 1. */
@@ -94,12 +115,15 @@ const TILE = 2048;
 const BAKE_SLICES = 64;
 const MIP_LEVELS = 12;
 
-export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGroupLayout, options: { seed?: number } = {}): CirrusLayer {
+export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGroupLayout, options: { seed?: number; shareNoise?: CirrusLayer; /** GPU timer pass name (default 'cirrus'). */ name?: string } = {}): CirrusLayer {
   const settings: CirrusSettings = { ...CIRRUS_DEFAULTS, windVelocity: [...CIRRUS_DEFAULTS.windVelocity] as [number, number], windOffset: [0, 0] };
   const C = GPUShaderStage.COMPUTE;
   const seed = options.seed ?? 3;
-  const noise = device.createTexture({ label: 'cirrus noise tile', size: [TILE, TILE], mipLevelCount: MIP_LEVELS, format: 'rgba8unorm', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING });
-  const noiseView = noise.createView();
+  const shared = options.shareNoise ?? null;
+  const noise = shared ? null : device.createTexture({ label: 'cirrus noise tile', size: [TILE, TILE], mipLevelCount: MIP_LEVELS, format: 'rgba8unorm', usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING });
+  const noiseView = shared ? shared.noise.view : noise!.createView();
+  const ndfDummy = device.createTexture({ label: 'cirrus ndf dummy', size: [1, 1, 2], format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING });
+  const ndfDummyView = ndfDummy.createView({ dimension: '2d-array' });
   const sampler = device.createSampler({ label: 'cirrus noise', addressModeU: 'repeat', addressModeV: 'repeat', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', maxAnisotropy: 4 });
   const dummy = device.createBuffer({ label: 'cirrus dummy', size: 16, usage: GPUBufferUsage.STORAGE });
   const compositeParams = device.createBuffer({ label: 'cirrus composite params', size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -132,14 +156,14 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
     for (let i = 0; i < BAKE_SLICES; i++) { const b = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }); device.queue.writeBuffer(b, 0, u, i * 4, 4); sliceBuffers.push(b); }
   };
   const sliceBuffers: GPUBuffer[] = [];
-  const level0 = noise.createView({ baseMipLevel: 0, mipLevelCount: 1 });
+  const level0 = noise ? noise.createView({ baseMipLevel: 0, mipLevelCount: 1 }) : null;
   const stepBake = (encoder: GPUCommandEncoder, timer?: GpuTimer) => {
     if (!bakeStarted) startBake();
     if (!bakePipeline || !mipPipeline) return;
     const pass = encoder.beginComputePass({ label: 'cirrus bake', timestampWrites: timer?.passTimestampWrites('cirrusBake') });
     if (bakeSlice < BAKE_SLICES) {
       pass.setPipeline(bakePipeline);
-      pass.setBindGroup(0, device.createBindGroup({ layout: bakeLayout, entries: [{ binding: 0, resource: { buffer: sliceBuffers[bakeSlice] } }, { binding: 1, resource: level0 }] }));
+      pass.setBindGroup(0, device.createBindGroup({ layout: bakeLayout, entries: [{ binding: 0, resource: { buffer: sliceBuffers[bakeSlice] } }, { binding: 1, resource: level0! }] }));
       pass.dispatchWorkgroups(TILE / 8, TILE / BAKE_SLICES / 8);
       bakeSlice++;
     } else {
@@ -147,8 +171,8 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
       for (let l = 1; l < MIP_LEVELS; l++) {
         const size = Math.max(1, TILE >> l);
         pass.setBindGroup(0, device.createBindGroup({ layout: mipLayout, entries: [
-          { binding: 0, resource: noise.createView({ baseMipLevel: l - 1, mipLevelCount: 1 }) },
-          { binding: 1, resource: noise.createView({ baseMipLevel: l, mipLevelCount: 1 }) },
+          { binding: 0, resource: noise!.createView({ baseMipLevel: l - 1, mipLevelCount: 1 }) },
+          { binding: 1, resource: noise!.createView({ baseMipLevel: l, mipLevelCount: 1 }) },
         ] }));
         pass.dispatchWorkgroups(Math.ceil(size / 8), Math.ceil(size / 8));
       }
@@ -170,6 +194,7 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
     { binding: 4, visibility: C, texture: { sampleType: 'float' } },
     { binding: 5, visibility: C, sampler: { type: 'filtering' } },
     { binding: 6, visibility: C, buffer: { type: 'read-only-storage' } },
+    { binding: 7, visibility: C, texture: { sampleType: 'float', viewDimension: '2d-array' } },
   ] });
   const pipelines: { atmosphere: GPUComputePipeline | null; uniform: GPUComputePipeline | null } = { atmosphere: null, uniform: null };
   const requested = { atmosphere: false, uniform: false };
@@ -187,6 +212,7 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
   let bindKey: object = dummy;
   let group: GPUBindGroup | null = null;
   let groupKey: unknown[] = [];
+  const isBaked = () => (shared ? shared.noise.baked : baked);
   let lastTime = -1;
   const fineOffset = [0, 0];
 
@@ -200,9 +226,11 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
 
   const layer: CirrusLayer = {
     settings,
-    get ready() { return baked && !!pipelines.atmosphere; },
+    get ready() { return isBaked() && !!pipelines.atmosphere; },
+    get noise() { return { view: noiseView, baked: isBaked() }; },
     get bindKey() { return bindKey; },
-    get bytes() { return Math.round(TILE * TILE * 4 * 4 / 3) + (output ? outW * outH * 8 : 0); },
+    get bytes() { return (shared ? 0 : Math.round(TILE * TILE * 4 * 4 / 3)) + (output ? outW * outH * 8 : 0); },
+    bakeNoise(encoder, timer) { if (!shared && !baked) stepBake(encoder, timer); },
     encode(encoder, a) {
       const s = settings;
       const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, a.time - lastTime));
@@ -210,7 +238,7 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
       if (!s.enabled) { writeComposite(false, false); return false; }
       const mode = a.atmosphere ? 'atmosphere' : 'uniform';
       requestPipeline(mode);
-      if (!baked) { stepBake(encoder, a.timer); writeComposite(false, false); return false; }
+      if (!isBaked()) { if (!shared) stepBake(encoder, a.timer); writeComposite(false, false); return false; }
       const pipe = pipelines[mode];
       if (!pipe) { writeComposite(false, false); return false; }
       if (!output || outW !== a.width || outH !== a.height) {
@@ -233,8 +261,13 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
       f[12] = Math.min(1, Math.max(0, s.detail)); f[13] = Math.min(1, Math.max(0, s.coverageVariation)); f[14] = Math.min(1, Math.max(0, s.shadowStrength)); f[15] = Math.max(0, s.halo);
       f[16] = fineOffset[0]; f[17] = fineOffset[1]; f[18] = Math.max(0, s.sunGain); f[19] = Math.max(0, s.ambientGain);
       f[20] = s.phaseForward; f[21] = s.phaseBroad; f[22] = Math.min(1, Math.max(0, s.phaseForwardWeight)); f[23] = Math.max(0, s.multipleScattering);
+      const useNdf = s.ndfInfluence > 0 && !!a.ndf;
+      f[24] = useNdf ? Math.min(1, s.ndfInfluence) : 0; f[25] = a.ndf?.tileMeters ?? 1; f[26] = a.ndf?.offset[0] ?? 0; f[27] = a.ndf?.offset[1] ?? 0;
+      f[28] = s.ndfTypeStratiform; f[29] = s.ndfTypeCumuliform; f[30] = s.ndfCoverageGain; f[31] = s.ndfCoverageCenter;
+      f[32] = Math.max(0, s.fadeStart); f[33] = Math.max(0, s.fadeEnd); f[34] = Math.min(0.3, Math.max(0, s.edgeSoftness)); f[35] = s.coverageFadeNe22 ? 1 : 0;
       device.queue.writeBuffer(params, 0, f);
-      const key = [a.frameBuffer, a.depth, a.skyLightBuffer, output];
+      const ndfView = useNdf ? a.ndf!.view : ndfDummyView;
+      const key = [a.frameBuffer, a.depth, a.skyLightBuffer, output, ndfView];
       if (!group || key.some((v, i) => v !== groupKey[i])) {
         groupKey = key;
         group = device.createBindGroup({ label: 'cirrus render', layout: renderLayout, entries: [
@@ -245,9 +278,10 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
           { binding: 4, resource: noiseView },
           { binding: 5, resource: sampler },
           { binding: 6, resource: { buffer: a.skyLightBuffer } },
+          { binding: 7, resource: ndfView },
         ] });
       }
-      const pass = encoder.beginComputePass({ label: 'cirrus', timestampWrites: a.timer?.passTimestampWrites('cirrus') });
+      const pass = encoder.beginComputePass({ label: options.name ?? 'cirrus', timestampWrites: a.timer?.passTimestampWrites(options.name ?? 'cirrus') });
       pass.setPipeline(pipe);
       pass.setBindGroup(0, emptyGroup);
       pass.setBindGroup(1, group);
@@ -271,7 +305,7 @@ export function createCirrusLayer(device: GPUDevice, atmosphereLayout: GPUBindGr
       ];
     },
     dispose() {
-      noise.destroy(); dummy.destroy(); output?.destroy(); compositeParams.destroy(); params.destroy();
+      noise?.destroy(); ndfDummy.destroy(); dummy.destroy(); output?.destroy(); compositeParams.destroy(); params.destroy();
       for (const b of sliceBuffers) b.destroy();
     },
   };

@@ -18,6 +18,8 @@ export const COMPOSITE_SHADOW_BINDING = 14;
  * Off: x = 0 and a 1x1 placeholder, so the output is unchanged.
  */
 export const COMPOSITE_CIRRUS_BINDING = 17;
+/** L3: the mid-level (altocumulus / altostratus) 2.5D layer, same two bindings as the cirrus layer's at this one and +1; merged before the cirrus layer. */
+export const COMPOSITE_MID_BINDING = 19;
 /** Linear sampler (colour) at this binding, a non-filtering one (depth gather) at +1. */
 export const COMPOSITE_SAMPLER_BINDING = 12;
 
@@ -55,6 +57,8 @@ ${lightGridWgsl(1, COMPOSITE_LIGHT_GRID_BINDING)}
 ${cloudShadowMapWgsl(1, COMPOSITE_SHADOW_BINDING)}
 @group(1) @binding(${COMPOSITE_CIRRUS_BINDING}) var<storage, read> cirrusColor: array<vec2<u32>>;
 @group(1) @binding(${COMPOSITE_CIRRUS_BINDING + 1}) var<uniform> cirrusOn: vec4<f32>;
+@group(1) @binding(${COMPOSITE_MID_BINDING}) var<storage, read> midColor: array<vec2<u32>>;
+@group(1) @binding(${COMPOSITE_MID_BINDING + 1}) var<uniform> midOn: vec4<f32>;
 
 // The fallback: the light grid read where the sun ray enters the volume box (voxel region only).
 fn cloudShadowGridTau(p: vec3<f32>) -> f32 {
@@ -192,6 +196,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (frame.skyEnabled > 0.5) {
     // Distant sky layer (sky-layer.wgsl.ts): the part in front of the voxel box over the voxel result over the part behind it.
     result = mergeSky(result, uv, sceneT);
+  }
+  if (midOn.x > 0.5) {
+    // L3: the mid-level layer sits between the low clouds and the cirrus: behind the merged result, or in front of it when the camera is above it.
+    let w = midColor[gid.y * u32(cs.x) + gid.x];
+    let c = vec4(unpack2x16float(w.x), unpack2x16float(w.y));
+    if (midOn.y > 0.5) { result = vec4(c.rgb + c.a * result.rgb, c.a * result.a); }
+    else { result = vec4(result.rgb + result.a * c.rgb, result.a * c.a); }
   }
   if (cirrusOn.x > 0.5) {
     // P9-E: the high layer is the farthest cloud: behind everything merged so far, or in front of it all when the camera is above it.

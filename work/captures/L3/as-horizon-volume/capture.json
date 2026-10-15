@@ -1,0 +1,66 @@
+{
+  "url": "http://127.0.0.1:5393/hzd/?view=horizon&clean=1&c_animSpeed=0&hz_midForm=altostratus&hz_midBottom=5500&hz_midThickness=1000&hz_midCoverage=0.85&hz_midExtinction=0.03&hz_midErosion=0.1&hz_midLayerMode=volume",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T09:06:52.996Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/L3/as-horizon-volume/view.jpg",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 15,
+        "pitch": 1.5,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 13.017066699999997,
+          "lightGridReduce": 0.027417,
+          "lightGrid": 0.030166,
+          "marchNear": 0.05402894999999999,
+          "marchFar": 0.13919935000000003,
+          "shadowMap": 0.36642495238095246,
+          "composite": 0.36044238333333317,
+          "dome": 0.441814,
+          "skyLayer": 20.85248871666666,
+          "skyResolve": 0.24627424999999997,
+          "cloudsTotal": 22.518255602380943,
+          "total": 35.53532230238094
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.midForm": "altostratus",
+          "hzd.midBottom": 5500,
+          "hzd.midThickness": 1000,
+          "hzd.midCoverage": 0.85,
+          "hzd.midExtinction": 0.030000000000000002,
+          "hzd.midErosion": 0.09999999999999999,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:1421:12)\n    at http://127.0.0.1:5393/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a2ddefed926ef2aca/node_modules/.vite/deps/chunk-KURAALNQ.js?v=9aea0491:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
