@@ -1,0 +1,70 @@
+{
+  "url": "http://127.0.0.1:5391/hzd/?quality=ultra&motion=0&clean=1&coverage=0.2&view=storm&lookaz=5&fov=100&pitch=20&hz_ndfMotion=static&storm=1&hzn_image=/clouds/ndf/painted/storm1-east.png&hzn_heightImage=/clouds/ndf/painted/storm1-east-height.png&hzn_paintBlend=replace",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T10:22:06.170Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/STORM1/painted-replace/view.jpg",
+      "report": {
+        "view": "storm",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 5,
+        "pitch": 20,
+        "sunElevation": 35,
+        "sunAzimuth": 290,
+        "coverage": 0.2,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 68.396577,
+          "lightGridReduce": 0.0095,
+          "lightGrid": 0.012375,
+          "marchNear": 0.1394911,
+          "marchFar": 0.23260961666666669,
+          "shadowMap": 0.7299656500000002,
+          "composite": 0.4534528333333333,
+          "dome": 1.224188983333333,
+          "skyLayer": 28.01559333333333,
+          "skyResolve": 0.6498421499999999,
+          "cloudsTotal": 31.467018666666664,
+          "total": 99.86359566666665
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "ndf.image": "/clouds/ndf/painted/storm1-east.png",
+          "ndf.heightImage": "/clouds/ndf/painted/storm1-east-height.png",
+          "ndf.paintBlend": "replace",
+          "hzd.stormStrength": 1,
+          "hzd.anvilFlatten": 1,
+          "hzd.anvilDensityFix": 0.5,
+          "hzd.anvilCirrus": 0.008,
+          "hzd.stormDensity": 1.6,
+          "hzd.stormDark": 0.7000000000000001,
+          "hzd.ndfMotion": "static",
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:1421:12)\n    at http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

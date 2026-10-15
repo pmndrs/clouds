@@ -290,21 +290,23 @@ fn hzdStormMask(xz: vec2<f32>) -> f32 {
   return 1.0 - smoothstep(0.2 * P.hzStorm.z, 1.3 * P.hzStorm.z, length(xz - P.hzStorm.xy));
 }
 // STORM1: the anvil's footprint over a column: the storm area seen from upwind. The anvil spreads downwind (anvilShear, scaled by shear 0..1 with
-// height) and sideways (anvilSpread x stormRadius): the max of the storm area at points shifted upwind by that much, so a storm blob grows a
+// height) and sideways (anvilSpread x the blob radius): the soft union of the storm area at points shifted upwind by that much, so a storm blob grows a
 // sheared plate downwind of itself. Eight taps.
 fn hzdAnvilFootprint(xz: vec2<f32>, shear: f32) -> f32 {
   let w = normalize(vec2(P.hzWind.x, P.hzWind.y) + vec2(1e-6, 0.0));
   let side = vec2(-w.y, w.x);
   let sh = P.hzStorm2.z * shear;
   let lat = (P.hzStorm2.y - 1.0) * P.hzStorm.z * 0.8;
-  var f = hzdStormMask(xz - w * (sh * 0.3));
-  f = max(f, hzdStormMask(xz - w * (sh * 0.65)));
-  f = max(f, hzdStormMask(xz - w * sh));
-  f = max(f, hzdStormMask(xz - w * (sh * 0.6) + side * (lat * 0.5)));
-  f = max(f, hzdStormMask(xz - w * (sh * 0.6) - side * (lat * 0.5)));
-  f = max(f, 0.95 * hzdStormMask(xz - w * (sh * 0.7) + side * lat));
-  f = max(f, 0.95 * hzdStormMask(xz - w * (sh * 0.7) - side * lat));
-  f = max(f, 0.9 * hzdStormMask(xz - w * (sh * 1.3)));
+  // A soft union (1 - prod(1 - f_i)) rather than a max: the lobes of the individual taps merge into one rounded plate.
+  var keep = 1.0 - hzdStormMask(xz - w * (sh * 0.3));
+  keep *= 1.0 - hzdStormMask(xz - w * (sh * 0.65));
+  keep *= 1.0 - hzdStormMask(xz - w * sh);
+  keep *= 1.0 - hzdStormMask(xz - w * (sh * 0.6) + side * (lat * 0.5));
+  keep *= 1.0 - hzdStormMask(xz - w * (sh * 0.6) - side * (lat * 0.5));
+  keep *= 1.0 - 0.95 * hzdStormMask(xz - w * (sh * 0.7) + side * lat);
+  keep *= 1.0 - 0.95 * hzdStormMask(xz - w * (sh * 0.7) - side * lat);
+  keep *= 1.0 - 0.9 * hzdStormMask(xz - w * (sh * 1.3));
+  let f = 1.0 - keep;
   return f;
 }
 // STORM1 anvil cirrus (NE22 p.159-163): a thin fibrous plate on top of the anvil that carries the storm's footprint anvilCirrusLength m further downwind.
@@ -341,7 +343,7 @@ fn hzdAnvilCirrus(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
   o.sigma = d * P.hzStorm3.y; o.coarse = d; o.h = hc; o.depth = d * depth * 0.25;
   return o;
 }
-// STORM1 internal lightning: a flash envelope (a quick decay with a flicker) and its place, a random point inside the storm around (stormX, stormZ),
+// STORM1 internal lightning: a flash envelope (a quick decay with a flicker) and its place, a random point inside the storm around the storm centre,
 // for flash number floor(time x rate). rate 0 holds one flash on. The trace adds glow (the storm weight x stormGlow) x this to the radiance.
 fn hzdHash3(x: f32) -> vec3<f32> {
   var q = fract(vec3(x * 0.1031, x * 0.1030, x * 0.0973));
@@ -360,8 +362,8 @@ fn procFlash(p: vec3<f32>, time: f32) -> f32 {
   }
   if (e < 0.01) { return 0.0; }
   let r = hzdHash3(k + 11.0);
-  let c = vec3(P.hzStorm.x + (r.x - 0.5) * 2.0 * P.hzStorm.z, 0.0, P.hzStorm.y + (r.y - 0.5) * 2.0 * P.hzStorm.z);
-  let y = mix(P.hzLayer.x, P.hzStorm2.x, 0.25 + 0.4 * r.z);
+  let c = vec3(P.hzStorm.x + (r.x - 0.5) * 0.9 * P.hzStorm.z, 0.0, P.hzStorm.y + (r.y - 0.5) * 0.9 * P.hzStorm.z);
+  let y = mix(P.hzLayer.x, P.hzStorm2.x, 0.15 + 0.35 * r.z);
   let d = length(vec3(p.x - c.x, procAltitude(p) - y, p.z - c.z));
   let g = saturate(1.0 - d / 1500.0);
   return e * g * g;
@@ -419,7 +421,7 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
         // A wide fall-off (as the placed cell's) so the shape noise, not the radius, draws the cauliflower wall; the threshold rises with height.
         let thr = mix(0.04, 0.5, smoothstep(0.0, 0.7, hs));
         let c = smoothstep(thr, thr + 0.6, core);
-        let m = mix(c, max(c, smoothstep(0.04, 0.4, fp)), a);
+        let m = mix(c, max(c, smoothstep(0.1, 0.75, fp)), a);
         stormCov = 0.75 * m;
         se = saturate(P.hzStorm.w) * smoothstep(0.0, 0.2, stormCov);
         cov0 = mix(cov0, stormCov, se);
@@ -640,11 +642,12 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   // reads crisp instead of a wide haze.
   if (P.hzMisc.z != 1.0) { density = pow(density, P.hzMisc.z); }
   o.sigma = density * P.hzLayer.w;
-  // STORM1 storm lighting: the storm is denser (extinction x stormDensity, so it shades itself darker) and its base darker still (x up to 1 + 3 dark
-  // below h 0.3); the lightning glow rides along as a weight the trace multiplies by the flash envelope.
+  // STORM1 storm lighting: the storm is denser (extinction x stormDensity); the trace dims its light by stormDark (o.storm) and adds the lightning
+  // glow (o.glow x the flash envelope).
   if (hzdStormW > 0.0) {
-    o.sigma *= 1.0 + hzdStormW * ((P.hzStorm4.x - 1.0) + 3.0 * P.hzStorm4.y * (1.0 - smoothstep(0.0, 0.3, h)));
+    o.sigma *= 1.0 + hzdStormW * (P.hzStorm4.x - 1.0);
     o.glow = hzdStormW * P.hzStorm4.z;
+    o.storm = hzdStormW;
   }
   o.coarse = coarse;
   o.h = h;
@@ -723,7 +726,7 @@ fn hzdMerge(a: ProcSample, b: ProcSample) -> ProcSample {
   let w = b.sigma / s;
   var o: ProcSample;
   o.sigma = s; o.coarse = mix(a.coarse, b.coarse, w); o.depth = mix(a.depth, b.depth, w); o.h = mix(a.h, b.h, w);
-  o.prof = mix(a.prof, b.prof, w); o.depthX = mix(a.depthX, b.depthX, w); o.glow = mix(a.glow, b.glow, w);
+  o.prof = mix(a.prof, b.prof, w); o.depthX = mix(a.depthX, b.depthX, w); o.glow = mix(a.glow, b.glow, w); o.storm = mix(a.storm, b.storm, w);
   return o;
 }
 // F1 step 4: is there a body base over column xz? Returns (presence 0..1: the coarse body at the belly height fractusBelly, as the main chain

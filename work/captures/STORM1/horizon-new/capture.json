@@ -1,0 +1,66 @@
+{
+  "url": "http://127.0.0.1:5391/hzd/?quality=ultra&motion=0&clean=1&coverage=0.2&lookaz=338&view=horizon&fov=70&pitch=10&storm=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T10:24:12.748Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/STORM1/horizon-new/view.jpg",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 338,
+        "pitch": 10,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.2,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 67.28617131666667,
+          "lightGridReduce": 0.007792,
+          "lightGrid": 0.007957,
+          "marchNear": 0.2756035833333334,
+          "marchFar": 0.2266693666666667,
+          "shadowMap": 0.43847093333333337,
+          "composite": 0.5391586166666666,
+          "dome": 1.1231730500000006,
+          "skyLayer": 36.66739615000001,
+          "skyResolve": 0.7013699166666668,
+          "cloudsTotal": 39.98759061666667,
+          "total": 107.27376193333333
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.stormStrength": 1,
+          "hzd.anvilFlatten": 1,
+          "hzd.anvilDensityFix": 0.5,
+          "hzd.anvilCirrus": 0.008,
+          "hzd.stormDensity": 1.6,
+          "hzd.stormDark": 0.7000000000000001,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:1421:12)\n    at http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

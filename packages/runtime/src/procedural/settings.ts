@@ -384,9 +384,9 @@ export interface HzdShape {
   anvilShear: number;
   stormTypeStart: number;
   /** STORM1: where the storm column comes from. 'map' (default) = the NDF's storm channel (layer 1 B: the generated default blob `ndf.stormBlob`, or
-   *  the painter's storm channel), `stormStrength` is its gain (0 = off); the column narrows upward, the anvil spreads `anvilSpread` x `stormRadius`
-   *  sideways and `anvilShear` m downwind from it. 'cell' = F1's analytic placed cell at (stormX, stormZ), kept. In both, stormX/Z/Radius also place
-   *  the lightning glow. */
+   *  the painter's storm channel), `stormStrength` is its gain (0 = off); the column narrows upward, the anvil spreads `anvilSpread` x the blob radius
+   *  sideways and `anvilShear` m downwind from it; `ndf.stormX/Z/Radius` give the default blob's place and the lightning's. 'cell' = F1's analytic
+   *  placed cell at (stormX, stormZ) with `stormRadius`, kept. */
   stormSource: 'map' | 'cell';
   /** STORM1 anvil cirrus: a thin fibrous plate on top of the anvil, continuing the anvil's footprint `anvilCirrusLength` m further downwind (NE22
    *  p.159-163: a cirrus formation centred on the storm). `anvilCirrus` is its density (0 = off), `anvilCirrusDepth` its thickness (m, from the
@@ -395,13 +395,17 @@ export interface HzdShape {
   anvilCirrusLength: number;
   anvilCirrusDepth: number;
   anvilCirrusFiber: number;
-  /** STORM1 lighting: `stormDensity` scales the extinction inside the storm (1 = off; denser reads darker), `stormDark` (0..1) adds an extra scale
-   *  at the column base (dark underside), `stormGlow` (0 = off) is an internal lightning glow, flashing `stormFlashRate` times per second (a flash
+  /** STORM1 lighting: `stormDensity` scales the extinction inside the storm (1 = off; denser reads darker), `stormDark` (0..1) dims the light inside the storm
+   *  (up to 0.85 x: dark, most at the column and under the anvil), `stormGlow` (0 = off) is an internal lightning glow, flashing `stormFlashRate` times per second (a flash
    *  term in the trace: a random place inside the storm, a short strobing envelope, radius 1.5 km). */
   stormDensity: number;
   stormDark: number;
   stormGlow: number;
-  stormFlashRate: number;   // 0 = one flash held on (look development)
+  /** STORM1: flashes per second of the internal lightning (0 = one flash held on, for look development). */
+  stormFlashRate: number;
+  /** STORM1: the map tiles, so a storm in it would repeat every `ndf.tileMeters`. true (default) = the storm channel counts only in the one tile around
+   *  the world origin (fading over its outer 12 %); false = it repeats with the map. */
+  stormSingle: boolean;
   /** F1 step 3: two sheet layers with their own forms (photos §5-7, web18 Table 2, ne22 p.15-16): 'altocumulus' = jittered cells (the shape
    *  texture's Worley fBM read flat, elongated `cellElongation`:1 along the wind, cell size `cellSize` m) under a large-scale coverage mask,
    *  flat bases and lumpy domed tops; 'altostratus' = a soft mottled sheet; 'stratus' = a flat-based low deck with a gently lumpy top.
@@ -574,7 +578,7 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
   recipe: 'n17', gateCells: 6, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '', paintBlend: 'influence', maskImage: '', paintCoverage: 1, paintTypes: 1, paintHeights: 1,
-  stormBlob: 1, stormX: -6000, stormZ: -15000, stormRadius: 3000,
+  stormBlob: 1, stormX: -4500, stormZ: -10500, stormRadius: 3000,
   // F2 per-area bases (bottomType above is the field's centre)
   bottomTypeRange: 1.5, bottomTypeCells: 6, bottomTypeCorrelation: -0.6,
 };
@@ -590,7 +594,7 @@ export const HZD_FORM_DEFAULTS = {
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
-  stormSource: 'map', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7,
+  stormSource: 'map', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7, stormSingle: true,
   midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
   midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
   deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
@@ -627,7 +631,9 @@ export function packHzdForms(hz: HzdShape, out: Float32Array): void {
   out.set([hz.profileMode === 'tables' ? (hz.tableSource === 'uniform' ? 1 : 2) : 0, hz.tableTypeStratus, hz.tableTypeStratocumulus, hz.tableTypeCumulus], o);
   out.set([hz.bottomTypeBias, hz.bottomTypeVariation, Math.max(hz.bottomTypeTile, 1), Math.min(Math.max(hz.tableFloor, 0), 0.9)], o + 4);
   out.set([Math.max(hz.anvilBias, 0), hz.anvilClamp ? 1 : 0, Math.min(Math.max(hz.anvilFlatten, 0), 1), Math.min(Math.max(hz.anvilDensityFix, 0), 1)], o + 8);
-  out.set([hz.stormX, hz.stormZ, Math.max(hz.stormRadius, 1), Math.max(hz.stormStrength, 0)], o + 12);
+  // STORM1: the map source takes its centre and radius (anvil's sideways spread, lightning place) from the default blob, ndf.stormX/Z/Radius.
+  const fromMap = hz.stormSource === 'map';
+  out.set([fromMap ? hz.ndf.stormX : hz.stormX, fromMap ? hz.ndf.stormZ : hz.stormZ, Math.max(fromMap ? hz.ndf.stormRadius : hz.stormRadius, 1), Math.max(hz.stormStrength, 0)], o + 12);
   out.set([hz.stormTop, Math.max(hz.anvilSpread, 1), hz.anvilShear, hz.stormTypeStart], o + 16);
   out.set([FORM_CODE[hz.midForm] ?? 0, hz.midBottom, Math.max(hz.midThickness, 1), hz.midCoverage], o + 20);
   out.set([Math.max(hz.midCellSize, 1), Math.max(hz.midElongation, 0.1), hz.midExtinction, hz.midErosion], o + 24);
@@ -654,7 +660,7 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_STORM_OFFSET;
   out.set([hz.stormSource === 'map' ? 1 : 0, Math.max(hz.anvilCirrus, 0), Math.max(hz.anvilCirrusLength, 0), Math.max(hz.anvilCirrusDepth, 1)], o);
   out.set([Math.max(hz.stormDensity, 0), Math.min(Math.max(hz.stormDark, 0), 1), Math.max(hz.stormGlow, 0), Math.max(hz.stormFlashRate, 0)], o + 4);
-  out.set([Math.max(hz.anvilCirrusFiber, 1), 0, 0, 0], o + 8);
+  out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, 0, 0], o + 8);
 }
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {

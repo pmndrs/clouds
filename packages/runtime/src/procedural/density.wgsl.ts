@@ -100,11 +100,11 @@ struct ProcParams {
   hzMix: vec4<f32>,      // L3: mid slot volume share (0 full, 1 fades with distance, 2 none: the 2.5D layer draws it), fade start (m), fade end (m), 0
   // STORM1 (packed by settings.ts packHzdStorm)
   hzStorm3: vec4<f32>,   // STORM1: storm source (1 NDF storm channel, 0 the placed cell), anvil cirrus density (0 = off), its length downwind (m), its depth (m)
-  hzStorm4: vec4<f32>,   // STORM1: storm density scale (1 = off), dark base (0..1), lightning glow (0 = off), flash rate (per s)
-  hzStorm5: vec4<f32>,   // STORM1: anvil cirrus fibre elongation along the wind, 0, 0, 0
+  hzStorm4: vec4<f32>,   // STORM1: storm density scale (1 = off), dark (0..1: the storm's light is dimmed, most at the base), lightning glow (0 = off), flash rate (per s)
+  hzStorm5: vec4<f32>,   // STORM1: anvil cirrus fibre elongation along the wind, single-tile storm window (0/1), 0, 0
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
-struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
+struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32, storm: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
 const PROC_EARTH_M = 6371000.0;
 // Altitude above the flat world's ground with the planet's curvature about the camera (Sky Pro scShellHeight: a parabolic drop avoids
 // subtracting two 6371 km values in f32).

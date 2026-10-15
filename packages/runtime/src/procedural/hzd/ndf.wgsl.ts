@@ -21,15 +21,23 @@ export const HZD_NDF_SAMPLE_WGSL = /* wgsl */ `
 struct NdfSample { coverage: f32, topType: f32, bottomType: f32, minHeight: f32, maxHeight: f32, storm: f32 }
 // W1 motion: the map moves with the wind offset times P.hzSpeed.x (0 for 'static'; settings.ts ndfMotion packs the policy into hzSpeed).
 fn ndfOffset() -> vec2<f32> { return P.drift.xz * P.hzSpeed.x; }
+// STORM1: the map tiles, a storm would repeat every tile: with P.hzStorm5.y set, the storm channel is windowed to the one tile around the world origin
+// (where the painter's map and the default blob sit), fading over the outer 12 % of it.
+fn ndfStormWindow(uv: vec2<f32>) -> f32 {
+  if (P.hzStorm5.y < 0.5) { return 1.0; }
+  let q = abs(uv);
+  return (1.0 - smoothstep(0.38, 0.5, q.x)) * (1.0 - smoothstep(0.38, 0.5, q.y));
+}
 fn ndfSample(xz: vec2<f32>) -> NdfSample {
   let uv = (xz - ndfOffset()) / P.hzLayer.z;
   let a = textureSampleLevel(procWeather, procRepeat, uv, 0, 0.0);
   let b = textureSampleLevel(procWeather, procRepeat, uv, 1, 0.0);
-  return NdfSample(a.r, a.g, a.b, b.r, b.g, b.b);
+  return NdfSample(a.r, a.g, a.b, b.r, b.g, b.b * ndfStormWindow(uv));
 }
 // STORM1: the storm channel alone (layer 1, B): 0 no storm, 1 a storm core. One read; the anvil and its cirrus patch sample it at a few points.
 fn ndfStorm(xz: vec2<f32>) -> f32 {
-  return textureSampleLevel(procWeather, procRepeat, (xz - ndfOffset()) / P.hzLayer.z, 1, 0.0).b;
+  let uv = (xz - ndfOffset()) / P.hzLayer.z;
+  return textureSampleLevel(procWeather, procRepeat, uv, 1, 0.0).b * ndfStormWindow(uv);
 }
 `;
 

@@ -1,0 +1,67 @@
+{
+  "url": "http://127.0.0.1:5391/hzd/?quality=ultra&motion=0&clean=1&coverage=0.2&lookaz=338&view=storm&fov=75&pitch=22&pos=0,2,9000&hz_stormStrength=1&hz_stormSource=cell&hz_stormX=-4500&hz_stormZ=-10500&hz_stormRadius=3000&hz_anvilFlatten=1&hz_anvilDensityFix=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-10-15T10:19:51.428Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/STORM1/far-old/view.jpg",
+      "report": {
+        "view": "storm",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          9000
+        ],
+        "lookAz": 338,
+        "pitch": 22,
+        "sunElevation": 35,
+        "sunAzimuth": 290,
+        "coverage": 0.2,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 39.38592533333334,
+          "lightGridReduce": 0.013374,
+          "lightGrid": 0.081581,
+          "marchNear": 0.0996950166666667,
+          "marchFar": 0.30478693333333334,
+          "shadowMap": 0.9459754705882352,
+          "composite": 0.3370837333333333,
+          "dome": 1.1259008833333335,
+          "skyLayer": 35.58033276666665,
+          "skyResolve": 0.5042193333333335,
+          "cloudsTotal": 38.99294913725488,
+          "total": 78.37887447058822
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.stormStrength": 1,
+          "hzd.stormSource": "cell",
+          "hzd.stormX": -4500,
+          "hzd.stormZ": -10500,
+          "hzd.stormRadius": 3000,
+          "hzd.anvilFlatten": 1,
+          "hzd.anvilDensityFix": 1,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:1421:12)\n    at http://127.0.0.1:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a72617b7c27e6cdfe/node_modules/.vite/deps/chunk-KURAALNQ.js?v=6ac4a39f:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
