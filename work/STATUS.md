@@ -5,7 +5,7 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-Nothing.
+- **C3 / L3** altocumulus and altostratus as 2.5D layers read from the map (Sonnet agent).
 
 A and B keep their current values until you answer.
 
