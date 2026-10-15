@@ -5,7 +5,6 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-- **C1** Nubis lighting from the exact profile (Sonnet agent, own worktree).
 - **C2** cloud motion in the temporal blend (Sonnet agent, own worktree).
 
 A and B keep their current values until you answer.
@@ -20,6 +19,7 @@ No person or blind judge has picked these yet; the agent and the orchestrator ch
 | A1 | Cloud-detail noise: Nubis Cubed (Alligator) replaces the HZD Worley noise, which fixes your "sprinkles" (N1) | agent + orchestrator, from close-ups | [old](http://localhost:5180/hzd/?view=gp7&hz_noiseSet=hzd) | [new](http://localhost:5180/hzd/?view=gp7) |
 | A2 | Weather map: Nubis 2017 layout (clusters with clear lanes) replaces the H6 even field (W1) | agent + orchestrator, from sheets | [old](http://localhost:5180/hzd/?view=high&hzn_recipe=h6) | [new](http://localhost:5180/hzd/?view=high) |
 | A3 | Cloud density (extinction) 0.5 → 0.8, to bring back surface texture with the tables (F2) | agent | [0.5](http://localhost:5180/hzd/?view=side&hz_extinction=0.5) | [0.8](http://localhost:5180/hzd/?view=side) |
+| A5 | Lighting: the HZD bench now lights with Nubis Evolved lighting from the exact profile, replacing the Takram-style octave model (C1). Bodies are greyer-blue with more shading and brighter rims; the exact and stand-in profiles look nearly the same at this scale. Sheet: `work/captures/C1/sheet-gp7.jpg` | agent + orchestrator, from sheets | [octave](http://localhost:5180/hzd/?view=gp7&light=octave) | [Nubis](http://localhost:5180/hzd/?view=gp7) |
 | A4 | Per-area cloud bases on the map: crisp under cumulus, soft under stratus (F2) | agent | [off](http://localhost:5180/hzd/?view=ground&hzn_bottomTypeRange=0) | [on](http://localhost:5180/hzd/?view=ground) |
 
 You already chose these: the profile tables as the default, and the 32 km map.
@@ -30,7 +30,7 @@ You already chose these: the profile tables as the default, and the 32 km map.
 | B1 | Cumulus height with the tables: standard (0.4, Nubis Evolved's value) or towering (0.6 / 0.75)? | [0.4](http://localhost:5180/hzd/?view=gp7) · [0.6](http://localhost:5180/hzd/?view=gp7&hz_tableTypeCumulus=0.6) · [0.75](http://localhost:5180/hzd/?view=gp7&hz_tableTypeCumulus=0.75) |
 
 ### C. Approve the next work (one yes covers the list, in order)
-1. **Nubis lighting for the HZD sky, from the exact profile.** The procedural sky knows each sample's height profile and map coverage exactly, so it can light like Nubis Evolved without the voxel data. Today it uses the Takram-style "octave" model by default; its Nubis option uses a stand-in that mixes in the noise. The NVDF sky layer already does it exactly (coverage × table, depth from the gradient); C1 moves that into the HZD sky. The octave model stays as an option. This is likely part of the "toon" look.
+1. ~~**Nubis lighting for the HZD sky, from the exact profile.**~~ Done (C1), review as A5. The procedural sky knows each sample's height profile and map coverage exactly, so it can light like Nubis Evolved without the voxel data. Today it uses the Takram-style "octave" model by default; its Nubis option uses a stand-in that mixes in the noise. The NVDF sky layer already does it exactly (coverage × table, depth from the gradient); C1 moves that into the HZD sky. The octave model stays as an option. This is likely part of the "toon" look.
 2. **Cloud motion in the temporal blend.** Fixes the time-lapse smear; it's also the first step toward your upscaler (U1).
 3. **Altocumulus, altostratus and cirrus as 2.5D layers read from the map (L3).** Removes the visible layer edge, cheaper.
 4. **Influence painting (W2):** paint over part of the generated sky instead of replacing all of it, plus weather states.
@@ -53,6 +53,7 @@ Status of each from `docs/research/ne22-coverage.md`, in plain terms:
 ## Landed (newest first)
 | When | What | Tag / report |
 | --- | --- | --- |
+| 10-15 | C1: Nubis lighting from the exact profile on the HZD bench | `work/reports/C1-hzd-light.md` |
 | 10-13 | All worktrees merged and removed; only `main` remains (plus this session's own checkout) | — |
 | 10-13 | Culling / distance / LOD audit (read only) | `work/reports/PERF-LOD-audit.md` |
 | 10-13 | N1: Nubis Cubed noise (the default), HZD noise kept | `stable-2026-10-13`, `work/reports/N1.md` |
