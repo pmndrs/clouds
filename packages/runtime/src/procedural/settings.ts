@@ -141,6 +141,18 @@ export interface HzdNdfSettings {
    *  recipe's. Example maps: assets/clouds/ndf/ (served at /clouds/ndf/). */
   image: string;
   heightImage: string;
+  // ---- W2 influence mask (NE22 p.69, p.75): a painted map blended OVER the generated one. ----
+  /** W2: how a painted map (`image`, or the painter's live upload) meets the generated one. 'replace' = the painted fields replace the generated
+   *  layers outright (W1, kept). 'influence' (default) = blended over the generated map by a painted influence mask, per field: 0 = generated,
+   *  1 = painted. It only differs from 'replace' when a mask exists (`maskImage`, R channel, or the painter's influence channel); without a mask
+   *  the behaviour is 'replace', unchanged. */
+  paintBlend: 'replace' | 'influence';
+  /** W2: URL of the influence mask PNG (R channel, 8-bit linear; same centring and span as `image`). '' = none. */
+  maskImage: string;
+  /** W2: per-field gain on the mask (0..1): coverage, the two types, the heights. 1 = the mask as painted; 0 = that field stays generated. */
+  paintCoverage: number;
+  paintTypes: number;
+  paintHeights: number;
   // ---- F2: per-area cloud bases (work/reports/F2.md). Both recipes. ----
   /** F2: the bottom type varies by area: bottomType + bottomTypeRange x a 2-octave fBM (about +-0.5) from `bottomTypeCells` cells per tile,
    *  plus bottomTypeCorrelation x (the column's top type within typeMin..typeMax - 0.5), clamped 0..1. Negative correlation pairs crisp bases
@@ -534,7 +546,7 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   // W1 weather map
   // W1 step 1 (sheet artifacts/research/w1/step1-n17-recipe.jpg): 'n17' replaces 'h6' as the default (hzn_recipe=h6 restores H6). Gate open
   // over about 60 % of the map; footprint and gate ranges put the coverage percentiles near H6's (p50 0.30, p90 0.52, p99 0.67 vs 0.35/0.50/0.65).
-  recipe: 'n17', gateCells: 6, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '',
+  recipe: 'n17', gateCells: 6, gateLo: -0.2, gateHi: 0.05, footLo: -0.4, footHi: 0.6, islandGain: 1, typeContrast: 2, image: '', heightImage: '', paintBlend: 'influence', maskImage: '', paintCoverage: 1, paintTypes: 1, paintHeights: 1,
   // F2 per-area bases (bottomType above is the field's centre)
   bottomTypeRange: 1.5, bottomTypeCells: 6, bottomTypeCorrelation: -0.6,
 };

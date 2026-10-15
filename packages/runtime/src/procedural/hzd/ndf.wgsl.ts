@@ -120,3 +120,68 @@ fn overlay(@builtin(global_invocation_id) id: vec3<u32>) {
   if (flags.y > 0.5) { textureStore(ndfOut, id.xy, 1, vec4(b.r, max(b.g, min(b.r + 1.0 / 255.0, 1.0)), 0.0, 0.0)); }
 }
 `;
+
+/**
+ * W2 compose: the served NDF = two generated maps (a weather transition: A -> B at `t`, each with its own additive coverage and type bias) with the
+ * painted map blended over them by the influence mask (paint layer 2, R). Runs once per change, never per frame of the trace: the trace still reads one
+ * texture. The same math as weather/blend.ts (unit-tested).
+ *   m.x t, m.y paint present, m.z replace (1) or influence (0), m.w paint has heights
+ *   bias: A coverage, A type, B coverage, B type
+ *   gain: coverage, types, heights, 0
+ */
+export const HZD_NDF_COMPOSE_WGSL = /* wgsl */ `
+struct Compose { m: vec4<f32>, bias: vec4<f32>, gain: vec4<f32> }
+@group(0) @binding(0) var<uniform> U: Compose;
+@group(0) @binding(1) var ndfA: texture_2d_array<f32>;
+@group(0) @binding(2) var ndfB: texture_2d_array<f32>;
+@group(0) @binding(3) var ndfPaint: texture_2d_array<f32>;
+@group(0) @binding(4) var ndfSampler: sampler;
+@group(0) @binding(5) var ndfOut: texture_storage_2d_array<rgba8unorm, write>;
+@compute @workgroup_size(8, 8)
+fn compose(@builtin(global_invocation_id) id: vec3<u32>) {
+  let size = textureDimensions(ndfOut);
+  if (any(id.xy >= size)) { return; }
+  let uv = (vec2<f32>(id.xy) + 0.5) / vec2<f32>(size);
+  var a0 = textureSampleLevel(ndfA, ndfSampler, uv, 0, 0.0);
+  var b0 = textureSampleLevel(ndfB, ndfSampler, uv, 0, 0.0);
+  let a1 = textureSampleLevel(ndfA, ndfSampler, uv, 1, 0.0);
+  let b1 = textureSampleLevel(ndfB, ndfSampler, uv, 1, 0.0);
+  a0 = vec4(saturate(a0.r + U.bias.x), saturate(a0.g + U.bias.y), a0.b, 0.0);
+  b0 = vec4(saturate(b0.r + U.bias.z), saturate(b0.g + U.bias.w), b0.b, 0.0);
+  var l0 = mix(a0, b0, U.m.x);
+  var l1 = mix(a1, b1, U.m.x);
+  if (U.m.y > 0.5) {
+    let p0 = textureSampleLevel(ndfPaint, ndfSampler, uv, 0, 0.0);
+    let p1 = textureSampleLevel(ndfPaint, ndfSampler, uv, 1, 0.0);
+    let m = select(textureSampleLevel(ndfPaint, ndfSampler, uv, 2, 0.0).r, 1.0, U.m.z > 0.5);
+    l0 = vec4(mix(l0.r, p0.r, saturate(m * U.gain.x)), mix(l0.g, p0.g, saturate(m * U.gain.y)), mix(l0.b, p0.b, saturate(m * U.gain.y)), 0.0);
+    let hm = saturate(m * U.gain.z) * U.m.w;
+    l1 = vec4(mix(l1.r, p1.r, hm), mix(l1.g, p1.g, hm), 0.0, 0.0);
+  }
+  l1.g = max(l1.g, min(l1.r + 1.0 / 255.0, 1.0));
+  textureStore(ndfOut, id.xy, 0, l0);
+  textureStore(ndfOut, id.xy, 1, l1);
+}
+`;
+
+/** W2: like HZD_NDF_IMAGE_WGSL, but into a 3-layer paint texture (layer 2 = the influence mask's R), no generated layers underneath. */
+export const HZD_NDF_PAINT_IMAGE_WGSL = /* wgsl */ `
+@group(0) @binding(0) var<uniform> flags: vec4<f32>;   // x: image present, y: height image present, z: mask present
+@group(0) @binding(1) var imgA: texture_2d<f32>;
+@group(0) @binding(2) var imgB: texture_2d<f32>;
+@group(0) @binding(3) var imgM: texture_2d<f32>;
+@group(0) @binding(4) var imgSampler: sampler;
+@group(0) @binding(5) var paintOut: texture_storage_2d_array<rgba8unorm, write>;
+@compute @workgroup_size(8, 8)
+fn paintImages(@builtin(global_invocation_id) id: vec3<u32>) {
+  let size = textureDimensions(paintOut);
+  if (any(id.xy >= size)) { return; }
+  let uv = (vec2<f32>(id.xy) + 0.5) / vec2<f32>(size) + 0.5;
+  let a = textureSampleLevel(imgA, imgSampler, uv, 0.0);
+  let b = textureSampleLevel(imgB, imgSampler, uv, 0.0);
+  let m = textureSampleLevel(imgM, imgSampler, uv, 0.0);
+  textureStore(paintOut, id.xy, 0, vec4(a.rgb, 0.0));
+  textureStore(paintOut, id.xy, 1, vec4(b.r, max(b.g, min(b.r + 1.0 / 255.0, 1.0)), 0.0, 0.0));
+  textureStore(paintOut, id.xy, 2, vec4(select(1.0, m.r, flags.z > 0.5), 0.0, 0.0, 0.0));
+}
+`;

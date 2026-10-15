@@ -1,0 +1,63 @@
+{
+  "url": "http://127.0.0.1:5247/hzd/?view=high&hz_ndfMotion=static&hzn_image=/clouds/ndf/painted/w2-hole.png&hzn_heightImage=/clouds/ndf/painted/w2-hole-height.png&hzn_maskImage=/clouds/ndf/painted/w2-hole-mask.png",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-10-15T09:47:04.131Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/W2/a-influence/view.jpg",
+      "report": {
+        "view": "high",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          4300,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -6,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 0.22155085,
+          "lightGridReduce": 0.024917,
+          "lightGrid": 0.049498,
+          "marchNear": 0.1646252666666666,
+          "marchFar": 0.0917611,
+          "shadowMap": 0.6227746000000001,
+          "composite": 0.11862446666666668,
+          "dome": 2.0869652999999997,
+          "skyLayer": 8.037271216666669,
+          "skyResolve": 0.08737656666666663,
+          "cloudsTotal": 11.283813516666669,
+          "total": 11.505364366666669
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "ndf.image": "/clouds/ndf/painted/w2-hole.png",
+          "ndf.heightImage": "/clouds/ndf/painted/w2-hole-height.png",
+          "ndf.maskImage": "/clouds/ndf/painted/w2-hole-mask.png",
+          "hzd.ndfMotion": "static"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5247/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a55653b9bb186cd7c/node_modules/.vite/deps/chunk-KURAALNQ.js?v=b21d04ec:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5247/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a55653b9bb186cd7c/node_modules/.vite/deps/chunk-KURAALNQ.js?v=b21d04ec:1421:12)\n    at http://127.0.0.1:5247/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a55653b9bb186cd7c/node_modules/.vite/deps/chunk-KURAALNQ.js?v=b21d04ec:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

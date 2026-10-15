@@ -11,6 +11,7 @@ import type { ProceduralClouds } from '../../../../packages/runtime/src/procedur
 import { HZD_REF_BY_ID } from '../refs';
 import type { createHzdTuner } from '../tune';
 import { readStart, writeQuery, type RefState, type Sources } from './url';
+import { weatherBookmark } from './weather';
 import { REF_MODES, VIEWS, applyBookmark, applyRefView, type RefMode } from './views';
 
 export type Tuner = ReturnType<typeof createHzdTuner>;
@@ -163,6 +164,7 @@ export function bookmark(spec: string): void {
     else if (k === 'look') { view.lookAz = Number(a[0]); if (a[1] !== undefined) view.pitch = Number(a[1]); }
     else if (k === 'pos' && a.length === 3) view.position = [Number(a[0]), Number(a[1]), Number(a[2])];
     else if (k === 'fov') view.fov = Number(a[0]);
+    else if (k === 'wx') weatherBookmark(a);
   }
   get().rt?.core.resetTemporal();
   viewChanged();

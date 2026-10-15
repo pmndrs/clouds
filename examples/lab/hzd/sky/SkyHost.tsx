@@ -14,6 +14,7 @@ import type { CloudsHarness } from '../../harness/clouds-contract';
 import { applySettingOverrides, paneQuery, type Sources } from '../bench/url';
 import { START_QUERY, bench, bookmark, scheduleUrl, setRef, settingsChanged, viewChanged, type BenchRuntime } from '../bench/store';
 import { VIEWS } from '../bench/views';
+import { weatherFromQuery, weatherTick } from '../bench/weather';
 
 /** One sky per renderer: StrictMode and Fast Refresh remount components, but the pane attaches to the scene and lives as long as the page. */
 const started = new WeakMap<WebGPURenderer, Promise<BenchRuntime>>();
@@ -54,6 +55,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     tuner.start();
     applySettingOverrides(query, sources);
     tuner.refresh();
+    weatherFromQuery(query);
     (window as unknown as { __tune: unknown }).__tune = tuner;
     return { pane, clouds, proc, core, sources, renderer, tuner };
   })();
@@ -91,8 +93,9 @@ export function SkyHost({ harness }: { harness: CloudsHarness }) {
     view.position[1] = Math.max(0.5, view.position[1]);
   }, { id: 'bench-rig', phase: 'input' });
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const { rt, view } = bench.getState();
+    if (rt) weatherTick(dt, rt);
     rt?.pane.update(view);
   }, { id: 'bench-sky', phase: 'update' });
 
