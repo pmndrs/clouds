@@ -5,7 +5,7 @@ The one page to check. Updated by the orchestrator at every merge. Details live 
 Updated 2026-10-13.
 
 ## Running
-Nothing.
+- **C4 / W2** influence painting (paint over part of the generated sky) and weather states (Sonnet agent).
 
 A and B keep their current values until you answer.
 
