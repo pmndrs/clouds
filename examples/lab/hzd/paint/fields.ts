@@ -4,7 +4,7 @@
 //   right is east (+x), as the authored PNGs are. The map tiles, so every operation wraps.
 // Pure (no DOM, no GPU), so it is unit-tested (fields.test.ts).
 
-export const CHANNELS = ['coverage', 'topType', 'bottomType', 'minHeight', 'maxHeight'] as const;
+export const CHANNELS = ['coverage', 'topType', 'bottomType', 'minHeight', 'maxHeight', 'influence'] as const;
 export type Channel = (typeof CHANNELS)[number];
 export type Targets = Partial<Record<Channel, number>>;
 
@@ -48,7 +48,7 @@ export class MapFields {
       if (v instanceof Float32Array) { if (v.length !== n * n) throw new Error(`${c}: ${v.length} values for a ${n}^2 map`); return v.slice(); }
       return new Float32Array(n * n).fill(typeof v === 'number' ? v : d);
     };
-    this.data = { coverage: make('coverage', 0), topType: make('topType', 1), bottomType: make('bottomType', 0), minHeight: make('minHeight', 0), maxHeight: make('maxHeight', 1) };
+    this.data = { coverage: make('coverage', 0), topType: make('topType', 1), bottomType: make('bottomType', 0), minHeight: make('minHeight', 0), maxHeight: make('maxHeight', 1), influence: make('influence', 0) };
   }
   clone(): MapFields { return new MapFields(this.n, this.data); }
   copyFrom(o: MapFields, channels: readonly Channel[] = CHANNELS) { for (const c of channels) this.data[c].set(o.data[c]); }
@@ -218,9 +218,9 @@ const toByte = (v: number) => Math.round(clamp01(v) * 255);
  * The NDF texture's fields (procedural setNdf / uploadHzdNdf), rolled by half a map so the map's centre lands on the world origin (the NDF's texel
  * 0 is at world 0, the authored PNG's centre is). The top is kept at least 1/255 above the base, as the image path does.
  */
-export function toNdfFields(f: MapFields): { coverage: Uint8Array; topType: Uint8Array; bottomType: Uint8Array; minHeight: Uint8Array; maxHeight: Uint8Array } {
+export function toNdfFields(f: MapFields): { coverage: Uint8Array; topType: Uint8Array; bottomType: Uint8Array; minHeight: Uint8Array; maxHeight: Uint8Array; influence: Uint8Array } {
   const n = f.n, h = n >> 1;
-  const out = { coverage: new Uint8Array(n * n), topType: new Uint8Array(n * n), bottomType: new Uint8Array(n * n), minHeight: new Uint8Array(n * n), maxHeight: new Uint8Array(n * n) };
+  const out = { coverage: new Uint8Array(n * n), topType: new Uint8Array(n * n), bottomType: new Uint8Array(n * n), minHeight: new Uint8Array(n * n), maxHeight: new Uint8Array(n * n), influence: new Uint8Array(n * n) };
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     const src = ((y + h) % n) * n + ((x + h) % n), dst = y * n + x;
     for (const c of CHANNELS) out[c][dst] = toByte(f.data[c][src]);
@@ -238,6 +238,13 @@ export function fromNdfLayers(n: number, layer0: Uint8Array, layer1: Uint8Array)
     f.data.minHeight[dst] = layer1[src] / 255; f.data.maxHeight[dst] = layer1[src + 1] / 255;
   }
   return f;
+}
+
+/** W2: the influence mask's PNG pixels (R = influence, G and B 0, alpha 255). */
+export function toMaskPixels(f: MapFields): Uint8ClampedArray {
+  const n = f.n, out = new Uint8ClampedArray(n * n * 4), d = f.data.influence;
+  for (let i = 0; i < n * n; i++) { out[i * 4] = toByte(d[i]); out[i * 4 + 3] = 255; }
+  return out;
 }
 
 /** The authored-map PNGs' pixels (RGBA, n x n, alpha 255): the main map (R coverage, G top type, B bottom type) and the height map (R min, G max). */

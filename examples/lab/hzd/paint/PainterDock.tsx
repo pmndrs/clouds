@@ -15,7 +15,7 @@ import { Tip } from '../ui/components/tooltip';
 import { cn } from '../ui/lib/utils';
 import { bench, settingsChanged, useBench, viewChanged } from '../bench/store';
 import { ABOUT, LABEL, RECIPES, TOOLS, type Tool } from './constants';
-import { getEngine, type PaintEngine } from './engine';
+import { currentEngine, getEngine, type PaintEngine } from './engine';
 import { MapView } from './MapView';
 import { paint, saveUi, usePaint } from './store';
 
@@ -148,9 +148,9 @@ function SourcePanel() {
                 <SelectItem value="blank">blank (no cloud)</SelectItem>
                 {s.autosaveTime > 0 && <SelectItem value="autosave">{`last painting (${new Date(s.autosaveTime).toLocaleString()})`}</SelectItem>}
                 {s.maps.examples.length > 0 && <SelectGroup><SelectLabel>W1 example maps (assets/clouds/ndf)</SelectLabel>
-                  {s.maps.examples.map(m => <SelectItem key={m.url} value={`url:${m.url}|${m.heightUrl}`}>{`${m.name}${m.heightUrl ? ' + height' : ''}`}</SelectItem>)}</SelectGroup>}
+                  {s.maps.examples.map(m => <SelectItem key={m.url} value={`url:${m.url}|${m.heightUrl}|${m.maskUrl}`}>{`${m.name}${m.heightUrl ? ' + height' : ''}${m.maskUrl ? ' + mask' : ''}`}</SelectItem>)}</SelectGroup>}
                 {s.maps.painted.length > 0 && <SelectGroup><SelectLabel>painted (assets/clouds/ndf/painted)</SelectLabel>
-                  {s.maps.painted.map(m => <SelectItem key={m.url} value={`url:${m.url}|${m.heightUrl}`}>{`${m.name}${m.heightUrl ? ' + height' : ''}`}</SelectItem>)}</SelectGroup>}
+                  {s.maps.painted.map(m => <SelectItem key={m.url} value={`url:${m.url}|${m.heightUrl}|${m.maskUrl}`}>{`${m.name}${m.heightUrl ? ' + height' : ''}${m.maskUrl ? ' + mask' : ''}`}</SelectItem>)}</SelectGroup>}
                 <SelectItem value="file">a PNG from disk...</SelectItem>
               </SelectContent>
             </Select>
@@ -250,12 +250,25 @@ function ChannelRow({ c }: { c: Channel }) {
   );
 }
 
+function InfluenceToggle() {
+  const on = usePaint(s => s.influenceMode);
+  return (
+    <Tip text="W2 influence mask (NE22 p.69, p.75): strokes also stamp the influence channel, and the sky shows the painted map only where the influence is, the generated map elsewhere (ndf.paintBlend influence). Off: the painted map replaces the generated one everywhere" side="right">
+      <Label className="flex cursor-pointer items-center gap-1.5">
+        <Checkbox checked={on} onCheckedChange={v => { paint.setState({ influenceMode: v === true }); saveUi(); const e = currentEngine(); if (e) { e.dirtyMap = true; e.upload(); } }} aria-label="influence mode" />
+        influence mode: paint only a region over the generated sky
+      </Label>
+    </Tip>
+  );
+}
+
 function ChannelsPanel() {
   const engine = useEngine();
   return (
     <>
       <Sec>Channels</Sec>
       <Note>Tick the channels a stroke changes; each one's value is what paint, noise, gradient and fill go toward. Click a name to view it.</Note>
+      <InfluenceToggle />
       {CHANNELS.map(c => <ChannelRow key={c} c={c} />)}
       <Row>
         {RECIPES.map(([name, about, t]) => (

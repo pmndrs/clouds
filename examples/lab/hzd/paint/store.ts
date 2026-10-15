@@ -22,6 +22,8 @@ export interface PaintState {
   overlays: boolean;
   follow: boolean;
   liveMode: 'live' | 'release';
+  /** W2: blend the painted map over the generated one by the influence channel (strokes stamp it); off = the painted map replaces it. */
+  influenceMode: boolean;
   zoom: number;
   pan: [number, number];
   // Mirrors of the engine's state, for the controls.
@@ -54,13 +56,14 @@ export const paint = createStore<PaintState>(() => ({
   noiseCells: 12,
   noiseSeed: 7,
   ticked: Object.fromEntries(CHANNELS.map(c => [c, c === 'coverage'])) as Record<Channel, boolean>,
-  targets: { coverage: 0.55, topType: 1, bottomType: 0, minHeight: 0, maxHeight: 0.6 },
+  targets: { coverage: 0.55, topType: 1, bottomType: 0, minHeight: 0, maxHeight: 0.6, influence: 1 },
   viewChannel: 'coverage',
   display: ui.display === 'channel' ? 'channel' : 'composite',
   contour: ui.contour !== false,
   overlays: ui.overlays !== false,
   follow: ui.follow === true,
   liveMode: ui.liveMode === 'release' ? 'release' : 'live',
+  influenceMode: ui.influenceMode !== false,
   zoom: 1,
   pan: [0, 0],
   n: 0,
@@ -87,5 +90,5 @@ export function usePaint<T>(selector: (s: PaintState) => T): T {
 /** The view options, the dock's width and the save name persist in this browser (the vanilla painter's key). */
 export function saveUi(): void {
   const s = paint.getState();
-  try { localStorage.setItem(UI_STORE, JSON.stringify({ width: s.width, liveMode: s.liveMode, display: s.display, contour: s.contour, overlays: s.overlays, follow: s.follow, name: s.name.trim() })); } catch { /* storage off */ }
+  try { localStorage.setItem(UI_STORE, JSON.stringify({ width: s.width, liveMode: s.liveMode, influenceMode: s.influenceMode, display: s.display, contour: s.contour, overlays: s.overlays, follow: s.follow, name: s.name.trim() })); } catch { /* storage off */ }
 }

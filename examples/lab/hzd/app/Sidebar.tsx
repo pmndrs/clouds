@@ -11,6 +11,8 @@ import { MOTIONS, QUALITIES, REF_MODES, VIEWS, VIEW_NAMES, solar, type RefMode }
 import { applyRefViewNow, backToView, bench, goToView, setRef, setRefState, setUiHidden, settingsChanged, stepRef, useBench, viewChanged } from '../bench/store';
 import { Note, Row, Section, SunControl, ViewSlider, SliderRow } from './controls';
 import { currentEngine } from '../paint/engine';
+import { WEATHER_STATES } from '../../../../packages/runtime/src/procedural/weather/states';
+import { useWeather, weatherAuto, weatherGo, weatherOff, weatherSetDuration, weatherSetHold } from '../bench/weather';
 
 const REF_IDS = HZD_REFS.map(r => r.id);
 const REF_GROUPS = [...new Set(HZD_REFS.map(r => r.group))];
@@ -22,6 +24,7 @@ export function Sidebar() {
       <ViewsSection />
       <SunSection />
       <CloudsSection />
+      <WeatherSection />
       <ReferenceSection />
       <PanelSection />
     </aside>
@@ -89,6 +92,25 @@ function CloudsSection() {
           </Tip>
         </Row>
       )}
+    </Section>
+  );
+}
+
+function WeatherSection() {
+  const w = useWeather(s => s);
+  const pct = Math.round(w.progress * 100);
+  return (
+    <Section title="Weather states">
+      <ToggleGroup type="single" value={w.active ? w.to : ''} onValueChange={v => (v ? weatherGo(v) : undefined)}>
+        {WEATHER_STATES.map(s => <Tip key={s.name} text={s.about}><ToggleGroupItem value={s.name}>{s.name}</ToggleGroupItem></Tip>)}
+      </ToggleGroup>
+      <SliderRow name="transition" tip="seconds a change of state takes (a lerp of the two maps, no pop)" min={2} max={60} step={1} value={w.duration} onChange={weatherSetDuration} fmt={v => `${Math.round(v)} s`} />
+      <Row>
+        <Tip text="cycle the states automatically: after the hold, move to the next"><Label className="flex cursor-pointer items-center gap-1.5"><Checkbox checked={w.auto} onCheckedChange={v => weatherAuto(v === true)} />auto cycle</Label></Tip>
+        <Tip text="back to the unmodified generated map"><Button onClick={weatherOff}>off</Button></Tip>
+      </Row>
+      {w.auto && <SliderRow name="hold" tip="seconds a state holds before the cycle moves on" min={5} max={180} step={5} value={w.hold} onChange={weatherSetHold} fmt={v => `${Math.round(v)} s`} />}
+      <Note>{w.active ? (w.progress < 1 ? `${w.from} to ${w.to}: ${pct}%` : `${w.to}${w.frozen ? ' (frozen)' : ''}`) : 'off: the map as generated'}</Note>
     </Section>
   );
 }

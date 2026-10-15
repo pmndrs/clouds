@@ -6,7 +6,7 @@ import type { WebGPURenderer } from 'three/webgpu';
 import type { ViewState } from '../../compare/shared';
 import type { ProceduralClouds } from '../../../../packages/runtime/src/procedural';
 import { HZD_NDF_DEFAULTS } from '../../../../packages/runtime/src/procedural/settings';
-import { addNoise, blurAll, CHANNELS, dab, fill, fromNdfLayers, gradient, invert, MapFields, mapToWorld, strokePoints, toNdfFields, toPngPixels, worldToMap, writeImage, type Brush, type Channel } from './fields';
+import { addNoise, blurAll, CHANNELS, dab, fill, fromNdfLayers, gradient, invert, MapFields, mapToWorld, strokePoints, toMaskPixels, toNdfFields, toPngPixels, worldToMap, writeImage, type Brush, type Channel } from './fields';
 import { History, capture, dabRegion, fullRegion, union, type Region } from './history';
 import { AUTOSAVE, type Tool } from './constants';
 import { paint, saveUi } from './store';
@@ -32,7 +32,7 @@ const idb = (): Promise<IDBDatabase> => new Promise((resolve, reject) => {
   r.onsuccess = () => resolve(r.result);
   r.onerror = () => reject(r.error);
 });
-interface Saved { n: number; time: number; main: Blob; height: Blob }
+interface Saved { n: number; time: number; main: Blob; height: Blob; mask?: Blob }
 async function idbGet(): Promise<Saved | undefined> {
   const db = await idb();
   return new Promise((resolve, reject) => { const r = db.transaction('maps').objectStore('maps').get(AUTOSAVE); r.onsuccess = () => resolve(r.result as Saved | undefined); r.onerror = () => reject(r.error); });
@@ -74,6 +74,11 @@ export class PaintEngine {
   tile = () => Number(this.host.ndf.tileMeters) || HZD_NDF_DEFAULTS.tileMeters;
   layer = () => [Number(this.host.hzd.layerBottom) || 1500, Number(this.host.hzd.layerTop) || 5000] as const;
   chosen = (): Channel[] => { const t = paint.getState().ticked; return CHANNELS.filter(c => t[c]); };
+  /** W2 influence mode: a stroke that changes the map also stamps the influence mask under the brush (so only the painted region leaves the generated map). */
+  private stamps = (ch: Channel[]) => {
+    const s = paint.getState();
+    return s.influenceMode && !ch.includes('influence') && ch.length > 0 && (s.tool === 'paint' || s.tool === 'raise' || s.tool === 'lower' || s.tool === 'noise' || s.tool === 'smudge' || s.tool === 'gradient');
+  };
   /** The map's offset in the world now (the NDF drifts with the wind unless ndfMotion is 'static'; ndf.wgsl.ts ndfOffset). */
   drift = (): [number, number] => {
     const s = this.host.hzd.ndfMotion === 'static' ? 0 : Number(this.host.hzd.ndfDrift) || 0, w = this.host.core.settings.windOffset;
@@ -135,7 +140,7 @@ export class PaintEngine {
   /** Through the runtime's own path (generator, then ndf.image / heightImage resampled over it), then read back. */
   private async viaRuntime(image: string, heightImage: string): Promise<MapFields> {
     for (const u of [image, heightImage]) if (u && !u.startsWith('blob:')) { const r = await fetch(u, { method: 'HEAD' }); if (!r.ok) throw new Error(`${u}: HTTP ${r.status}`); }
-    this.host.ndf.image = image; this.host.ndf.heightImage = heightImage;
+    this.host.ndf.image = image; this.host.ndf.heightImage = heightImage; this.host.ndf.maskImage = '';
     this.host.proc.setNdf(null);
     await this.host.proc.load({ hzd: true });
     return this.readSky();
@@ -169,17 +174,20 @@ export class PaintEngine {
         f = new MapFields(s.n);
         const a = await this.decodePng(s.main), b = await this.decodePng(s.height);
         writeImage(f, a.px, a.w, a.h, ['coverage', 'topType', 'bottomType']); writeImage(f, b.px, b.w, b.h, ['minHeight', 'maxHeight', null]);
+        if (s.mask) { const m = await this.decodePng(s.mask); writeImage(f, m.px, m.w, m.h, ['influence', null, null]); }
         label = 'the last painting';
       } else if (kind.startsWith('url:')) {
-        const [main, height] = kind.slice(4).split('|');
+        const [main, height, mask] = kind.slice(4).split('|');
         f = await this.viaRuntime(main, height);
+        // W2: a map saved with an influence mask brings it back as the influence channel (and keeps ndf.maskImage, so the URL reopens it).
+        if (mask) { const m = await this.decodePng(mask); writeImage(f, m.px, m.w, m.h, ['influence', null, null]); }
         label = main.replace(/^.*\/clouds\/ndf\//, '');
       } else throw new Error(`unknown source ${kind}`);
       this.setMap(f, label);
       // A file source stays named in ndf.image (the URL reopens it until the first stroke); the others own the map from the first stroke.
       if (kind === 'sky') paint.setState({ owned: keepOwned });
-      else if (kind.startsWith('url:')) paint.setState({ owned: false });
-      else { ndf.image = ''; ndf.heightImage = ''; paint.setState({ owned: false }); if (kind === 'blank' || kind === 'autosave') this.upload(); }
+      else if (kind.startsWith('url:')) { paint.setState({ owned: false }); ndf.maskImage = kind.slice(4).split('|')[2] ?? ''; }
+      else { ndf.image = ''; ndf.heightImage = ''; ndf.maskImage = ''; paint.setState({ owned: false }); if (kind === 'blank' || kind === 'autosave') this.upload(); }
       this.host.onSettingsChange();
       this.note('');
     } catch (e) { this.note(`could not load: ${e instanceof Error ? e.message : String(e)}`); }
@@ -206,7 +214,8 @@ export class PaintEngine {
   // --- Painting ---
   upload(): void {
     if (!this.fields) return;
-    this.host.proc.setNdf({ size: this.fields.n, fields: toNdfFields(this.fields) });
+    const nf = toNdfFields(this.fields);
+    this.host.proc.setNdf({ size: this.fields.n, fields: paint.getState().influenceMode ? nf : { ...nf, influence: undefined } });
     this.dirtyUpload = false; this.lastUpload = performance.now();
     if (!paint.getState().owned) paint.setState({ owned: true });
   }
@@ -243,11 +252,12 @@ export class PaintEngine {
     }
     const ch = this.chosen();
     if (!ch.length) { this.note('tick a channel to paint'); return; }
-    this.begin(ch);
+    this.begin(this.stamps(ch) ? [...ch, 'influence'] : ch);
     if (s.tool === 'gradient') { this.grad = { a: p, b: p, src: f.clone() }; this.touch(fullRegion(f.n)); return; }
     this.stroke = { last: p, carry: 0 };
     const b = this.brushNow();
     dab(f, b, p[0], p[1], ch, s.targets, { base: this.base ?? undefined });
+    if (this.stamps(ch)) dab(f, { ...b, op: 'paint' }, p[0], p[1], ['influence'], { influence: 1 });
     this.touch(dabRegion(p[0], p[1], Math.max(0.5, b.radius)));
     this.changed(false);
   }
@@ -256,13 +266,14 @@ export class PaintEngine {
     const f = this.fields;
     if (!f) return;
     const s = paint.getState();
-    if (this.grad) { this.grad.b = p; gradient(f, this.grad.src, this.grad.a, this.grad.b, this.chosen(), s.targets, s.strength); this.changed(false); return; }
+    if (this.grad) { const ch = this.chosen(); gradient(f, this.grad.src, this.grad.a, (this.grad.b = p), this.stamps(ch) ? [...ch, 'influence'] : ch, s.targets, s.strength); this.changed(false); return; }
     if (!this.stroke) return;
     const b = this.brushNow(), spacing = Math.max(0.5, b.radius * 0.25), ch = this.chosen();
     const { points, carry } = strokePoints(this.stroke.last, p, spacing, this.stroke.carry);
     let prev = this.stroke.last;
     for (const q of points) {
       dab(f, b, q[0], q[1], ch, s.targets, { base: this.base ?? undefined, dx: q[0] - prev[0], dy: q[1] - prev[1] });
+      if (this.stamps(ch)) dab(f, { ...b, op: 'paint' }, q[0], q[1], ['influence'], { influence: 1 });
       this.touch(dabRegion(q[0], q[1], Math.max(0.5, b.radius)));
       prev = q;
     }
@@ -323,10 +334,12 @@ export class PaintEngine {
   }
 
   // --- Files ---
-  private async pngs(f: MapFields): Promise<{ main: Blob; height: Blob }> {
+  private async pngs(f: MapFields): Promise<{ main: Blob; height: Blob; mask: Blob | null }> {
     const { main, height } = toPngPixels(f);
     const enc = async (px: Uint8ClampedArray) => { const c = new OffscreenCanvas(f.n, f.n); c.getContext('2d')!.putImageData(new ImageData(px as Uint8ClampedArray<ArrayBuffer>, f.n, f.n), 0, 0); return c.convertToBlob({ type: 'image/png' }); };
-    return { main: await enc(main), height: await enc(height) };
+    // W2: the mask goes with the map when influence mode is on and something was painted into it.
+    const hasMask = paint.getState().influenceMode && f.data.influence.some(v => v > 0);
+    return { main: await enc(main), height: await enc(height), mask: hasMask ? await enc(toMaskPixels(f)) : null };
   }
 
   private scheduleAutosave(): void {
@@ -335,9 +348,9 @@ export class PaintEngine {
       const f = this.fields;
       if (!f) return;
       try {
-        const { main, height } = await this.pngs(f);
+        const { main, height, mask } = await this.pngs(f);
         const time = Date.now();
-        await idbPut({ n: f.n, time, main, height });
+        await idbPut({ n: f.n, time, main, height, ...(mask ? { mask } : {}) });
         paint.setState({ autosaveTime: time });
       } catch (e) { this.note(`autosave failed (save or download to keep this painting): ${e instanceof Error ? e.message : String(e)}`); }
     }, 1500);
@@ -349,20 +362,20 @@ export class PaintEngine {
     const name = paint.getState().name.trim().toLowerCase();
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(name) || name.endsWith('-height')) { this.note('name: lower-case letters, digits and dashes'); return; }
     try {
-      const { main, height } = await this.pngs(f);
+      const { main, height, mask } = await this.pngs(f);
       const put = async (kind: string, body: Blob) => {
         const r = await fetch(`/__hzd/ndf/save?name=${name}&kind=${kind}`, { method: 'POST', body });
         const j = await r.json() as { url?: string; path?: string; error?: string };
         if (!r.ok || !j.url) throw new Error(j.error ?? `HTTP ${r.status}`);
         return j;
       };
-      const a = await put('main', main), b = await put('height', height);
+      const a = await put('main', main), b = await put('height', height), c = mask ? await put('mask', mask) : null;
       // ndf.image names the saved files, so the page's URL reopens this sky. The painting stays bound (the same pixels).
-      this.host.ndf.image = a.url; this.host.ndf.heightImage = b.url;
+      this.host.ndf.image = a.url; this.host.ndf.heightImage = b.url; this.host.ndf.maskImage = c?.url ?? '';
       paint.setState({ edited: false, sourceLabel: `painted/${name}.png` });
       saveUi();
       this.host.onSettingsChange();
-      this.note(`saved ${a.path} and ${b.path}${this.tile() !== HZD_NDF_DEFAULTS.tileMeters ? ` (map size ${this.tile() / 1000} km: keep hzn_tileMeters with it)` : ''}`);
+      this.note(`saved ${a.path} and ${b.path}${c ? ` and ${c.path}` : ''}${this.tile() !== HZD_NDF_DEFAULTS.tileMeters ? ` (map size ${this.tile() / 1000} km: keep hzn_tileMeters with it)` : ''}`);
       void this.refreshSources();
     } catch (e) { this.note(`save failed (the dev server saves; a static build cannot): ${e instanceof Error ? e.message : String(e)}`); }
   }
@@ -371,8 +384,8 @@ export class PaintEngine {
     const f = this.fields;
     if (!f) return;
     const name = paint.getState().name.trim().toLowerCase() || 'painted-map';
-    const { main, height } = await this.pngs(f);
-    for (const [blob, file] of [[main, `${name}.png`], [height, `${name}-height.png`]] as const) {
+    const { main, height, mask } = await this.pngs(f);
+    for (const [blob, file] of [[main, `${name}.png`], [height, `${name}-height.png`], ...(mask ? [[mask, `${name}-mask.png`] as const] : [])] as const) {
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     }
   }
@@ -402,6 +415,7 @@ export class PaintEngine {
         const x = i % n, y = (i - x) / n, here = cov[i] >= thr;
         if (here !== (cov[y * n + ((x + 1) % n)] >= thr) || here !== (cov[((y + 1) % n) * n + x] >= thr)) { r = 255; g = 176; b = 64; }
       }
+      if (s.influenceMode && s.display === 'composite') { const m = f.data.influence[i]; if (m > 0.02) { r = r * (1 - 0.35 * m) + 255 * 0.35 * m; g = g * (1 - 0.35 * m) + 60 * 0.35 * m; b = b * (1 - 0.35 * m) + 200 * 0.35 * m; } }
       px[i * 4] = r; px[i * 4 + 1] = g; px[i * 4 + 2] = b; px[i * 4 + 3] = 255;
     }
     this.mapCanvas.getContext('2d')!.putImageData(this.mapImage, 0, 0);
@@ -416,7 +430,7 @@ export class PaintEngine {
     const x = Math.floor(p[0]), y = Math.floor(p[1]), [lb, lt] = this.layer(), m = (v: number) => Math.round(lb + v * (lt - lb));
     return `x ${((wx + ox) / 1000).toFixed(2)} km  z ${((wz + oz) / 1000).toFixed(2)} km (${Math.abs((wz + oz) / 1000).toFixed(1)} ${wz + oz <= 0 ? 'N' : 'S'})\n`
       + `coverage ${f.at('coverage', x, y).toFixed(2)}  top ${f.at('topType', x, y).toFixed(2)}  bottom ${f.at('bottomType', x, y).toFixed(2)}\n`
-      + `heights ${m(f.at('minHeight', x, y))}-${m(f.at('maxHeight', x, y))} m`;
+      + `heights ${m(f.at('minHeight', x, y))}-${m(f.at('maxHeight', x, y))} m${paint.getState().influenceMode ? `  influence ${f.at('influence', x, y).toFixed(2)}` : ''}`;
   }
 }
 
