@@ -2151,11 +2151,11 @@ Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H
   - Tables the default; re-check the interacting defaults; the 32 km tile (owner).
 - **Acceptance:** A/B sheets per step (ground, horizon, above, side, gp7), timings, every default change listed.
 
-### [ ] N1 Nubis Cubed noise for the procedural sky (Alligator / Curly-Alligator) · Opus (ready for review 2026-10-13: `hzd.noiseSet 'nubis3'` the default erosion, pack noise read through the volume group's `cloudNoise` (no binding change), deck up-rez with HHF and sharpen, `n3Tile` 600 m; `hz_noiseSet=hzd` restores F2; pack shape dilation `shapeNoise` kept as an option, off (+6-10 ms). Owner to judge the tops and thin parts) (report: work/reports/N1.md)
+### [x] N1 Nubis Cubed noise for the procedural sky (Alligator / Curly-Alligator) · Opus (ready for review 2026-10-13: `hzd.noiseSet 'nubis3'` the default erosion, pack noise read through the volume group's `cloudNoise` (no binding change), deck up-rez with HHF and sharpen, `n3Tile` 600 m; `hz_noiseSet=hzd` restores F2; pack shape dilation `shapeNoise` kept as an option, off (+6-10 ms). Owner to judge the tops and thin parts) (report: work/reports/N1.md)
 - **Why:** the owner sees "pilling", small orbs like sprinkles on low-density parts and cloud tops. The procedural sky still uses the HZD-era noise (Perlin-Worley shape plus a 32³ Worley detail). Guerrilla replaced that noise in Nubis Cubed because inverted Worley "looked like packed spheres" (`sources/n3.md`, s90). The voxel path already uses the pack's Alligator and Curly-Alligator noise.
 - **Does:** add the pack noise as a noise option for the `hzd` shaper's erosion and detail, with wispy and billowy by type as the up-rez does. Keep the HZD noise selectable. A/B sheets of the bench views, close-ups of tops and thin parts.
 
-### [ ] L3 Mid and high layers as 2D / 2.5D at distance · Opus (queued; owner, 2026-10-12)
+### [x] L3 Mid and high layers as 2D / 2.5D at distance · Opus (queued; owner, 2026-10-12)
 - **Why:** F1's mid volumes (altocumulus, altostratus) show the volume's clip boundary at distance. HZD 2015 renders alto and cirro as a flat 2D layer above 4 km, with tiling textures for cirrus fibres, the altostratus sheet and altocumulus cells (hzd15 s73, s87). Nubis Evolved uses a 2.5D thin-cloud model whose type blends streaky, wispy and round (ne22 p.62–68). Our cirrus layer already implements that model.
 - **Does:**
   - Altocumulus and altostratus through the 2.5D layer, mapped by the NDF, at their own altitudes.
@@ -2165,7 +2165,7 @@ Round H finished ranks 1–10 and 15–17 of `docs/research/topics/README.md` (H
 ### [ ] LOD1 Map and sky LOD · (later; owner, 2026-10-12)
 - The 32 km map tile stands until this lands. Distant sky representations: the horizon ring (hzd15 s45, 15/35 km), baked far views, 2D layers. See `docs/research/nubis-lod.md` and `nubis-classic-lod-notes.md`.
 
-### [ ] W2 Weather states, scheduler and the HZD bias panel [W3 + W4 rank 19] · Opus (after W1)
+### [x] W2 Weather states, scheduler and the HZD bias panel [W3 + W4 rank 19] · Opus (after W1)
 - **Owns:** new `procedural/weather/`, `examples/lab/compare/` (panel), `work/reports/W2.md`.
 - **Does:**
   - Weather states with 10–30 s lerps (coverage ±0.5, type ±1, cirrus density), and a scheduler.
