@@ -4,7 +4,7 @@ import type { RefView } from '../refs';
 
 /** The views: the compare bookmarks plus the two framings the H-reports used. */
 export const VIEWS: Record<string, Bookmark & { about: string }> = {
-  ground: { ...BOOKMARKS.ground, about: 'from the ground, 2 m, looking north (sun 40° in the south-east)' },
+  ground: { ...BOOKMARKS.ground, position: [0, 250, 0], about: 'from 250 m above the ground, looking north (sun 40° in the south-east), so the cloud shadows on the ground show; the altitude slider takes it back to 2 m' },
   gp7: { ...BOOKMARKS.ground, pitch: 25, about: 'GPU Pro 7 Fig 4.13-4.16 framing: the ground view tilted up 25° (the H-reports\' gp7 captures)' },
   horizon: { ...BOOKMARKS.horizon, about: 'from 40 m, nearly level: the horizon rows and the ring' },
   sunset: { ...BOOKMARKS.sunset, about: 'into a sun 4° high' },
