@@ -289,15 +289,45 @@ fn hzdStormMask(xz: vec2<f32>) -> f32 {
   if (P.hzStorm3.x > 0.5) { return ndfStorm(xz); }
   return 1.0 - smoothstep(0.2 * P.hzStorm.z, 1.3 * P.hzStorm.z, length(xz - P.hzStorm.xy));
 }
-// STORM1: the anvil's footprint over a column: the storm area seen from upwind. The anvil spreads downwind (anvilShear, scaled by shear 0..1 with
-// height) and sideways (anvilSpread x the blob radius): the soft union of the storm area at points shifted upwind by that much, so a storm blob grows a
-// sheared plate downwind of itself. Eight taps.
-fn hzdAnvilFootprint(xz: vec2<f32>, shear: f32) -> f32 {
+// STORM1/ST2: the anvil's footprint over a column: the storm area seen from upwind, as a blurred dilation. The mean of the storm channel over an
+// elliptical kernel (a Vogel disc of 16 taps) whose centre sits downwind of the column and whose size grows with k (0..1, the height ramp): a storm blob
+// grows a smooth teardrop plate that spreads downwind (anvilShear) and sideways (anvilSpread x the blob radius), wider at its downwind end. A mean, not a
+// union of a few taps: the taps average into one smooth field (no lobes), so the plate edge is a soft ramp. reach stretches the kernel downwind (the cirrus).
+// ST2: replaces the 8-tap soft union (lumpy, angular); the old one is kept below as hzdAnvilFootprintTaps.
+fn hzdAnvilBlur(xz: vec2<f32>, k: f32, reach: f32) -> f32 {
+  let w = normalize(vec2(P.hzWind.x, P.hzWind.y) + vec2(1e-6, 0.0));
+  let side = vec2(-w.y, w.x);
+  let R = P.hzStorm.z;
+  let sh = P.hzStorm2.z * k + reach;
+  let lat = (P.hzStorm2.y - 1.0) * R * 1.8 * k * (1.0 + reach / max(P.hzStorm2.z, 1.0) * 0.5);
+  let cA = sh * 0.65;
+  let A = sh * 0.45 + 1.25 * R * k;
+  // Three rings (6, 12, 18 taps, spacing about one blob radius) and the centre: even coverage of the kernel including its rim, so the dilated outline is
+  // not scalloped by a few widely spaced taps (a Vogel disc put 7 km between rim taps).
+  var acc = hzdStormMask(xz - w * cA);
+  for (var ring = 0; ring < 3; ring++) {
+    let n = 6 + 6 * ring;
+    let rr = 0.35 + 0.325 * f32(ring);
+    let ph = 0.5 * f32(ring);
+    for (var i = 0; i < n; i++) {
+      let th = (f32(i) + ph) * 6.2831853 / f32(n);
+      let dx = rr * cos(th);
+      let dy = rr * sin(th);
+      let lw = mix(0.5, 1.0, 0.5 + 0.5 * dx);
+      acc += hzdStormMask(xz - w * (cA + A * dx) - side * (lat * lw * dy));
+    }
+  }
+  // The mean is the overlap of the storm area with the kernel; scaled so a storm that fills a nominal share of the kernel reads 1 (a flat plate
+  // interior) and the rim is the ramp where the overlap falls off.
+  let ratio = max(A * (0.75 * lat + 0.5 * R * k) / (0.55 * R * R), 1.0);
+  return acc / 37.0 * ratio;
+}
+// STORM1: the first anvil footprint (kept, ST2): the storm area seen from upwind as a soft union of 8 taps shifted downwind and sideways.
+fn hzdAnvilFootprintTaps(xz: vec2<f32>, shear: f32) -> f32 {
   let w = normalize(vec2(P.hzWind.x, P.hzWind.y) + vec2(1e-6, 0.0));
   let side = vec2(-w.y, w.x);
   let sh = P.hzStorm2.z * shear;
   let lat = (P.hzStorm2.y - 1.0) * P.hzStorm.z * 0.8;
-  // A soft union (1 - prod(1 - f_i)) rather than a max: the lobes of the individual taps merge into one rounded plate.
   var keep = 1.0 - hzdStormMask(xz - w * (sh * 0.3));
   keep *= 1.0 - hzdStormMask(xz - w * (sh * 0.65));
   keep *= 1.0 - hzdStormMask(xz - w * sh);
@@ -306,11 +336,17 @@ fn hzdAnvilFootprint(xz: vec2<f32>, shear: f32) -> f32 {
   keep *= 1.0 - 0.95 * hzdStormMask(xz - w * (sh * 0.7) + side * lat);
   keep *= 1.0 - 0.95 * hzdStormMask(xz - w * (sh * 0.7) - side * lat);
   keep *= 1.0 - 0.9 * hzdStormMask(xz - w * (sh * 1.3));
-  let f = 1.0 - keep;
-  return f;
+  return 1.0 - keep;
+}
+// ST2: the footprint the shaper uses: the blurred dilation (stormAnvilShape 'smooth') or the first taps ('taps'), normalised to about 0..1.
+fn hzdAnvilFootprint(xz: vec2<f32>, k: f32) -> f32 {
+  if (P.hzStorm5.z > 0.5) { return hzdAnvilFootprintTaps(xz, k); }
+  return saturate(hzdAnvilBlur(xz, k, 0.0));
 }
 // STORM1 anvil cirrus (NE22 p.159-163): a thin fibrous plate on top of the anvil that carries the storm's footprint anvilCirrusLength m further downwind.
 // A = the slab: it spans [top - 0.35 depth, top + 0.65 depth], top = the storm top. The fibres are the Perlin-Worley read stretched along the wind.
+// ST2 (stormAnvilShape 'smooth'): the gate is the blurred dilation (one smooth sheet), the noise is lower frequency (sheets about a kilometre across, a
+// few long) with a fine fibre octave at low weight, and it modulates the density softly (no hard threshold) so it reads as fibrous sheets, not torn streaks.
 fn hzdAnvilCirrus(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
   var o: ProcSample;
   o.sigma = 0.0; o.coarse = 0.0; o.depth = 0.0; o.h = 0.0;
@@ -323,22 +359,35 @@ fn hzdAnvilCirrus(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
   let sh = P.hzStorm2.z;
   let L = P.hzStorm3.z;
   let lat = (P.hzStorm2.y - 1.0) * P.hzStorm.z * 0.8;
-  var g = hzdStormMask(p.xz - w * (sh * 0.6));
-  g = max(g, 0.9 * hzdStormMask(p.xz - w * (sh + L * 0.33)));
-  g = max(g, 0.75 * hzdStormMask(p.xz - w * (sh + L * 0.66) + side * lat * 0.5));
-  g = max(g, 0.75 * hzdStormMask(p.xz - w * (sh + L * 0.66) - side * lat * 0.5));
-  g = max(g, 0.55 * hzdStormMask(p.xz - w * (sh + L)));
+  var g = 0.0;
+  let soft = P.hzStorm5.z < 0.5;
+  if (soft) {
+    g = smoothstep(0.02, 0.4, hzdAnvilBlur(p.xz, 1.0, L * 0.9));
+  } else {
+    g = hzdStormMask(p.xz - w * (sh * 0.6));
+    g = max(g, 0.9 * hzdStormMask(p.xz - w * (sh + L * 0.33)));
+    g = max(g, 0.75 * hzdStormMask(p.xz - w * (sh + L * 0.66) + side * lat * 0.5));
+    g = max(g, 0.75 * hzdStormMask(p.xz - w * (sh + L * 0.66) - side * lat * 0.5));
+    g = max(g, 0.55 * hzdStormMask(p.xz - w * (sh + L)));
+  }
   g *= saturate(P.hzStorm.w);
   if (g <= 0.02) { return o; }
   let xz = p.xz - P.drift.xz * P.hzSpeed.y;
-  let T = 700.0;
+  let T = select(700.0, 3600.0, soft);
   let uv = vec2(dot(xz, w) / P.hzStorm5.x, dot(xz, side));
   let lod = hzdLod(footprint, T, 128.0);
   let N = textureSampleLevel(procNoiseA, procRepeat, vec3(uv / T, 0.17 + alt / (4.0 * T)), lod);
   let N2 = textureSampleLevel(procNoiseA, procRepeat, vec3(uv / (T * 0.3), 0.61 + alt / (4.0 * T)), max(lod - 1.0, 0.0));
-  let n = saturate(0.5 + (N.r - 0.5) * 1.7) * mix(0.55, 1.0, N2.g);
+  var d = 0.0;
   let vert = smoothstep(0.0, 0.3, hc) * smoothstep(1.0, 0.45, hc);
-  let d = saturate(hzdRemap(n * vert, 1.0 - g, 1.0, 0.0, 1.0));
+  if (soft) {
+    let n = saturate(N.r * 0.75 + N2.g * 0.25);
+    let lo = 0.3 + 0.35 * (1.0 - g);
+    d = 0.8 * smoothstep(lo, lo + 0.6, n) * smoothstep(0.0, 0.55, g) * vert;
+  } else {
+    let n = saturate(0.5 + (N.r - 0.5) * 1.7) * mix(0.55, 1.0, N2.g);
+    d = saturate(hzdRemap(n * vert, 1.0 - g, 1.0, 0.0, 1.0));
+  }
   if (d <= 0.0) { return o; }
   o.sigma = d * P.hzStorm3.y; o.coarse = d; o.h = hc; o.depth = d * depth * 0.25;
   return o;
@@ -415,13 +464,18 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       let hs = saturate((alt - bottom) / max(P.hzStorm2.x - bottom, 1.0));
       var core = n.storm;
       var fp = 0.0;
-      let a = smoothstep(0.7, 0.76, hs);
-      if (hs > 0.6 && P.hzStorm2.y > 1.0) { fp = hzdAnvilFootprint(p.xz, smoothstep(0.6, 1.0, hs)); }
+      let blurFp = P.hzStorm5.z < 0.5;
+      var a = smoothstep(0.7, 0.76, hs);
+      if (hs > 0.6 && P.hzStorm2.y > 1.0) {
+        fp = hzdAnvilFootprint(p.xz, smoothstep(0.6, select(1.0, 0.8, blurFp), hs));
+        // ST2: the plate is a lens: its underside rises toward the footprint's edge (an overhanging, thinning rim) instead of ending in a vertical wall.
+        if (blurFp) { let hb = mix(0.93, 0.78, smoothstep(0.05, 0.6, fp)); a = smoothstep(hb, hb + 0.1, hs); }
+      }
       if (core > 0.0 || fp > 0.0) {
         // A wide fall-off (as the placed cell's) so the shape noise, not the radius, draws the cauliflower wall; the threshold rises with height.
         let thr = mix(0.04, 0.5, smoothstep(0.0, 0.7, hs));
         let c = smoothstep(thr, thr + 0.6, core);
-        let m = mix(c, max(c, smoothstep(0.1, 0.75, fp)), a);
+        let m = mix(c, max(c, select(smoothstep(0.1, 0.75, fp), smoothstep(0.02, 1.0, fp), blurFp)), a);
         stormCov = 0.75 * m;
         se = saturate(P.hzStorm.w) * smoothstep(0.0, 0.2, stormCov);
         cov0 = mix(cov0, stormCov, se);
