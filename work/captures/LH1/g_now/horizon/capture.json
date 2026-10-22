@@ -1,0 +1,61 @@
+{
+  "url": "http://localhost:5391/hzd/?clean=1&view=horizon&motion=0&c_ambientSaturation=1",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-10-22T01:56:08.482Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/LH1/g_now/horizon/view.png",
+      "report": {
+        "view": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          40,
+          0
+        ],
+        "lookAz": 15,
+        "pitch": 1.5,
+        "sunElevation": 25,
+        "sunAzimuth": 70,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 27.332124727272728,
+          "lightGridReduce": 0.050832,
+          "lightGrid": 0.081039,
+          "marchNear": 0.43028925,
+          "marchFar": 0.26265225000000003,
+          "shadowMap": 0.8186646,
+          "composite": 0.5589825,
+          "dome": 0.8111271666666668,
+          "skyLayer": 23.524423533333334,
+          "skyResolve": 1.2697333499999999,
+          "cloudsTotal": 27.80774365,
+          "total": 55.13986837727273
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "c.ambientSaturation": 1
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://localhost:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a132829844bf6b0f6/node_modules/.vite/deps/chunk-KURAALNQ.js?v=dced54bd:1465:24)\n    at _Scheduler2.executeFrame (http://localhost:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a132829844bf6b0f6/node_modules/.vite/deps/chunk-KURAALNQ.js?v=dced54bd:1421:12)\n    at http://localhost:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a132829844bf6b0f6/node_modules/.vite/deps/chunk-KURAALNQ.js?v=dced54bd:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

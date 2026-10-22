@@ -43,6 +43,8 @@ const ITEMS: Item[] = [
     tip: 'Where a storm comes from. Old (still the default): F1\'s placed cell with the mushroom anvil. New: the map\'s storm area with the downwind anvil plate. Needs the storm on (switch below); best from the "storm" view. Tune panel: "Storms and anvils".' },
   { id: 'B1', title: 'cumulus height', src: 'hzd', key: 'tableTypeCumulus', options: [['0.4 standard', 0.4], ['0.6', 0.6], ['0.75 towering', 0.75]],
     tip: 'Where cumulus sits on the profile table: 0.4 is Nubis Evolved\'s value, higher gives taller towers. Tune panel: "Cloud types: profile tables".' },
+  { id: 'LH1', title: 'shade hue (Nubis)', src: 'c', key: 'ambientSaturation', options: [['old: sky blue (1)', 1], ['new: neutral (0.15)', 0.15]], slider: { min: 0, max: 1, step: 0.05 },
+    tip: 'The colour of the sky light a cloud body is lit by where the sun does not reach (the shaded bodies and undersides). Old: the sky\'s own saturated blue. New: mostly grey, a slightly cool grey like the photos\' shade. Only matters under Nubis lighting (A5). Tune panel: "Light: renderer settings" (ambientSaturation; diffuseSun adds warm diffused sunlight to the shade).' },
 ];
 
 export function ReviewSection() {
@@ -53,7 +55,7 @@ export function ReviewSection() {
   const S = rt.sources;
   const put = (src: SourceId, key: string, v: unknown) => { S[src][key] = v; settingsChanged({ refreshTuner: true }); };
   return (
-    <Section title="Review: old vs new (STATUS A1-A9, B1)">
+    <Section title="Review: old vs new (STATUS A1-A9, B1, LH1)">
       <Row>
         <Button onClick={() => setOpen(o => !o)}>{open ? 'hide' : 'show'} the switches</Button>
         <Tip text="time-lapse motion, to see A6"><Button onClick={() => { S.c.animSpeed = 20; settingsChanged({ refreshTuner: true }); }}>motion: time-lapse</Button></Tip>
