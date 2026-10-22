@@ -1,0 +1,6 @@
+[
+ {"name":"sparse map, skip off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25}},
+ {"name":"sparse map, skip exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"exact"}},
+ {"name":"sparse map, skip free","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"free"}},
+ {"name":"sparse map, skip off again","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25}}
+]

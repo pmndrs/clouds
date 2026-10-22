@@ -12,8 +12,9 @@ import { volumeWgsl } from '../shaders/volume.wgsl';
 import { SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
 import { defaultProceduralSettings, PROC_HZD_STORM_OFFSET, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
-import { createHzdLutBuffer, procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
+import { createHzdLutBuffer, HZD_BOUNDS_WORDS, HZD_LUT_WORDS, procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
+import { createHzdBounds, type HzdBounds } from './hzd/bounds';
 import { applyHzdNdfImages, applyHzdPaintImages, composeHzdNdf, createHzdComposedTexture, createHzdPaintTexture, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, writeHzdNdf, type HzdNdf } from './hzd/ndf';
 import type { HzdNdfSettings } from './settings';
 import { hzdNdfKey } from './settings';
@@ -47,6 +48,8 @@ export interface ProceduralClouds extends ProceduralDensityModel {
    * blends over the result.
    */
   setWeather(w: { from: WeatherNdf; to: WeatherNdf; t: number } | null): void;
+  /** PF1: the HZD bounds grid as the trace sees it (HZD_BOUNDS_GRID^2 words: max coverage, min base, max top, 0, as bytes), read back from the GPU. null until made (emptySkip off). */
+  readHzdBounds(fromWord?: number): Promise<Uint32Array | null>;
   /** H1: the HZD shaper's textures (debug views), null until baked. */
   readonly hzdTextures: { noise: HzdNoise; ndf: HzdNdf } | null;
 }
@@ -85,6 +88,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   /** Write the composed texture: the base map (or the weather pair) with the painted influence over it. */
   const recompose = (): void => {
     if (!hzdNdf || !composing()) return;
+    boundsDirty = true;
     const h = settings.hzd.ndf;
     const a = weather ? wxGen(weather.from.ndf) : hzdNdf, b = weather ? wxGen(weather.to.ndf) : a;
     if (weather) wxTrim([a, b]);
@@ -93,8 +97,23 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     composeHzdNdf(device, { a: a.texture, b: b.texture, t: weather?.t ?? 0, biasA: [weather?.from.coverageBias ?? 0, weather?.from.typeBias ?? 0], biasB: [weather?.to.coverageBias ?? 0, weather?.to.typeBias ?? 0],
       paint: hzdPaint, paintHeights, blend: h.paintBlend, gains: [h.paintCoverage, h.paintTypes, h.paintHeights], out: comp });
   };
-  // F2: the profile tables (constant; made on first use by the HZD shaper).
+  // F2: the profile tables (constant; made on first use by the HZD shaper). PF1: the weather map's bounds grid is in the same buffer.
   let hzdLut: GPUBuffer | null = null;
+  const lutBuffer = (): GPUBuffer => (hzdLut ??= createHzdLutBuffer(device));
+  let bounds: HzdBounds | null = null;
+  let boundsDirty = true, boundsSrc: GPUTexture | null = null, boundsMargin = -1;   // what the grid was last made from
+  /** PF1: remake the bounds grid when it is wanted (emptySkip on) and the served map, its content or the fractus margin changed. */
+  const boundsSync = (): void => {
+    const h = settings.hzd;
+    if (h.emptySkip === 'off') { boundsDirty = true; return; }
+    const n = served();
+    if (!n) return;
+    const size = n.texture.width;
+    const margin = h.fractusDensity > 0 ? Math.min(Math.ceil(Math.abs(h.fractusTrail) / Math.max(h.ndf.tileMeters, 1) * size) + 2, 256) : 0;
+    if (!boundsDirty && boundsSrc === n.texture && boundsMargin === margin) return;
+    (bounds ??= createHzdBounds(device)).run(n.texture, lutBuffer(), margin);
+    boundsDirty = false; boundsSrc = n.texture; boundsMargin = margin;
+  };
   // W1 authored map: the image load for the current NDF settings (load() awaits it; the generated map shows until it lands).
   let ndfImageJob: Promise<void> | null = null;
   let paintSource: 'none' | 'images' | 'painter' = 'none';   // W2: what the paint texture holds (ndf.image + maskImage, or the bench painter's live map)
@@ -128,7 +147,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         const target = hzdNdf;
         ndfImageJob = applyHzdNdfImages(device, target, { image: h.ndf.image, heightImage: h.ndf.heightImage }).then(done => {
           if (hzdNdf !== target) return;
-          target.key = done.key; resourceKey = {}; version++;
+          target.key = done.key; boundsDirty = true; resourceKey = {}; version++;
         }, e => console.error('procedural NDF image failed', e));
       } else {
         ndfImageJob = null;
@@ -176,6 +195,19 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     get lightingModel() { return settings.lightingModel; },
     get wgslKey() { return settings.shaper; },
     get resourceKey() { return resourceKey; },
+    async readHzdBounds(fromWord = HZD_LUT_WORDS) {
+      if (!hzdLut || boundsSrc === null) return null;
+      boundsDirty = true; boundsSync();   // PF1 debug: remake it now, so what is read is what the pass makes from the map as it is
+      const bytes = HZD_BOUNDS_WORDS * 4;
+      const staging = device.createBuffer({ label: 'hzd bounds readback', size: bytes, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+      const encoder = device.createCommandEncoder();
+      encoder.copyBufferToBuffer(hzdLut, fromWord * 4, staging, 0, bytes);
+      device.queue.submit([encoder.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const out = new Uint32Array(staging.getMappedRange().slice(0));
+      staging.destroy();
+      return out;
+    },
     get hzdTextures() { const n = served(); return hzdNoise && n ? { noise: hzdNoise, ndf: n } : null; },
     densityWgsl(group, base) {
       return PROC_PARAMS_WGSL + procShaperBindingsWgsl(settings.shaper, group, base) + procShaperWgsl(settings.shaper);
@@ -239,7 +271,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         return;
       }
       if (paintSource === 'painter') dropPaint();
-      if (ndf && hzdUploaded && hzdNdf && hzdNdf.texture.width === ndf.size) { writeHzdNdf(device, hzdNdf.texture, ndf.fields); version++; return; }
+      if (ndf && hzdUploaded && hzdNdf && hzdNdf.texture.width === ndf.size) { writeHzdNdf(device, hzdNdf.texture, ndf.fields); boundsDirty = true; version++; return; }
       const old = hzdNdf?.texture ?? null;
       hzdUploaded = !!ndf; ndfWant = '';
       hzdNdf = ndf ? uploadHzdNdf(device, ndf.size, ndf.fields) : null;
@@ -273,7 +305,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
           { binding: B.weather, resource: served()!.texture.createView({ dimension: '2d-array' }) },
           { binding: B.aux, resource: hzdNoise!.curl.createView() },
           { binding: B.sampler, resource: sampler },
-          { binding: base + O.lut, resource: { buffer: (hzdLut ??= createHzdLutBuffer(device)) } },
+          { binding: base + O.lut, resource: { buffer: lutBuffer() } },
         ];
       }
       const t = takram!;
@@ -329,6 +361,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       // A shaper switch or a new weather bake changes the resources.
       if (settings.shaper !== lastShaper || (settings.shaper === 'skypro' && skyproWeather && skyproWeather.key !== skyProWeatherKey(settings.skypro))) { lastShaper = settings.shaper; resourceKey = {}; }
       if (settings.shaper === 'hzd' && hzdSync()) resourceKey = {};
+      if (settings.shaper === 'hzd') boundsSync();
       shell = packProceduralParams(settings, params);
       let changed = false;
       for (let i = 0; i < PROC_PARAM_FLOATS; i++) if ((i < PROC_VIEW_FLOATS[0] || i >= PROC_VIEW_FLOATS[1]) && params[i] !== prev[i]) { changed = true; break; }
@@ -347,7 +380,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     dispose() {
       buffer.destroy(); dummy3d.destroy(); dummyWeather.destroy(); skyproNoise?.destroy(); skyproWeather?.map.destroy(); skyproWeather?.bounds.destroy();
       if (takram) for (const t of Object.values(takram)) t.destroy();
-      hzdNoise?.destroy(); hzdNdf?.texture.destroy(); hzdLut?.destroy();
+      hzdNoise?.destroy(); hzdNdf?.texture.destroy(); hzdLut?.destroy(); bounds?.dispose();
     },
   };
 }

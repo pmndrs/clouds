@@ -149,8 +149,8 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
     keys: ['hzd.ringStart', 'hzd.ringEnd', 'hzd.ringCoverage', 'hzd.ringType', 'hzd.ringFadeStart'] },
   { title: 'Wind and motion', about: 'Which way the wind blows, how far the tops lean, and how the map and the noise move with time (the sidebar\'s motion sets the speed; 0 freezes everything).',
     keys: ['hzd.windDirection', 'hzd.cloudTopOffset', 'hzd.upwardBias', 'hzd.ndfMotion', 'hzd.ndfDrift', 'hzd.shapeSpeed', 'hzd.detailSpeed', 'c.animSpeed', 'c.windVelocity', 'sky.temporalCloudMotion'] },
-  { title: 'Ray march', about: 'How each pixel\'s ray steps through the layer: step size and count, how far it goes, the sky layer\'s resolution and the temporal blend that cleans the noise up over frames.',
-    keys: ['proc.stepMeters', 'proc.maxSteps', 'proc.maxDistance', 'sky.resolutionScale', 'sky.temporal', 'sky.temporalBlend', 'sky.historyFilter', 'sky.transmittanceCutoff'] },
+  { title: 'Ray march', about: 'How each pixel\'s ray steps through the layer: step size and count, how far it goes, PF1 empty-space skipping from the weather map\'s bounds, the sky layer\'s resolution and the temporal blend that cleans the noise up over frames.',
+    keys: ['proc.stepMeters', 'proc.maxSteps', 'proc.maxDistance', 'hzd.emptySkip', 'hzd.emptySkipCoverage', 'sky.resolutionScale', 'sky.temporal', 'sky.temporalBlend', 'sky.historyFilter', 'sky.transmittanceCutoff'] },
   { title: 'Light: the procedural model', about: 'The lighting the procedural trace computes per sample: the model (octave = Frostbite / Takram octaves, nubis = our N3 model), the profile source for nubis (lightProfile: exact = coverage x height gradient and f/|grad f| depth as NE22; standin = the old proxy), the sun taps, powder, the two-lobe phase, the sky ambient and the diffusion tail.',
     keys: ['proc.lightingModel', 'hzd.lightProfile', 'proc.densityScale', 'proc.lightScale', 'proc.lightTaps', 'proc.fullLightingAlpha', 'proc.profileDepth', 'proc.powderScale', 'proc.octavePhase', 'proc.ambientGain', 'proc.octaveDiffuse'] },
   { title: 'Light: renderer settings', about: 'Renderer-wide light settings the procedural trace shares with the voxel clouds: the sky ambient and the ground bounce, the phase for the nubis model, the haze toward the horizon and the cloud shadow on the ground. Some act only in the nubis lighting model.',
@@ -159,7 +159,7 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
   { title: 'High cirrus layer', about: 'The 2.5D cirrus slab above the volume (NE 2022 p.64-68): streaky, wispy or round (cirrocumulus), with an optional cirrostratus veil and halo. Off by default.',
     keys: ['cirrus.enabled', 'cirrus.altitude', 'cirrus.thickness', 'cirrus.coverage', 'cirrus.type', 'cirrus.veil', 'cirrus.opticalDepth', 'cirrus.scale', 'cirrus.detail', 'cirrus.coverageVariation', 'cirrus.source', 'cirrus.mapScale', 'cirrus.mapCoverageGain', 'cirrus.mapTypeRange', 'cirrus.coverageFadeNe22', 'cirrus.halo', 'cirrus.shadowStrength', 'cirrus.windVelocity', 'cirrus.animSpeed'] },
   { title: 'Debug', about: 'Diagnostic views: the procedural trace\'s step count, hit distance or profile, the sky layer\'s own views, or one lighting term at a time.',
-    keys: ['proc.debug', 'sky.debug', 'c.lightDebug'] },
+    keys: ['proc.debug', 'sky.debug', 'sky.freezeCycle', 'c.lightDebug'] },
 ];
 /** Every setting the panel shows, as `<source>.<key>`. */
 export const TUNED_KEYS = GROUPS.flatMap(g => g.keys);

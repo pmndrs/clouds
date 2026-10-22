@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { defaultProceduralSettings, packProceduralParams, PROC_PARAM_FLOATS, hzdNdfKey, PROC_HZD_FORMS_OFFSET, PROC_HZD_N3_OFFSET, PROC_HZD_LUT_OFFSET, PROC_HZD_LUT_FLOATS } from '../settings';
 import { PROC_PARAMS_WGSL } from '../density.wgsl';
 import { profilePeaks, profileTablesSmoothed, sampleProfileTable } from '../../generate/profile-tables';
-import { HZD_GRADIENTS, HZD_LUT_WORDS, packHzdLutQuads, hzdHeightGradient, hzdTableProfile, hzdTableType, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
+import { HZD_GRADIENTS, HZD_LUT_BUFFER_WORDS, HZD_LUT_WORDS, packHzdLutQuads, hzdHeightGradient, hzdTableProfile, hzdTableType, PROC_HZD_WGSL, procShaperWgsl, procShaperBindingsWgsl } from './shaper.wgsl';
 import { HZD_DETAIL_GAINS, HZD_SHAPE_GAINS, hzdNoiseBakeWgsl, worleyLadder } from './noise.wgsl';
 import { HZD_NDF_SAMPLE_WGSL } from './ndf.wgsl';
 
@@ -152,7 +152,7 @@ describe('HZD shaper F1: types and forms', () => {
       expect(read(t, type, v)).toBeCloseTo(sampleProfileTable(tables[t], type, v), 6);
     }
     expect(PROC_HZD_WGSL).toContain('let c = unpack4x8unorm(procLut[t * 4096u + y0 * 64u + x0]);');
-    expect(procShaperBindingsWgsl('hzd', 1, 9)).toContain(`@binding(17) var<storage, read> procLut: array<u32, ${HZD_LUT_WORDS}>;`);
+    expect(procShaperBindingsWgsl('hzd', 1, 9)).toContain(`@binding(17) var<storage, read> procLut: array<u32, ${HZD_LUT_BUFFER_WORDS}>;`);
   });
   it('step 1: the table profile gives crisp bases at bottom type 0, ragged ones at 1, and taller tops with the top type', () => {
     // Bottom type 0 reaches most of its peak within 15 % of the column; bottom type 1 rises slowly.

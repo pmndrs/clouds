@@ -1,0 +1,8 @@
+[
+ {"name":"skip off","set":{}},
+ {"name":"skip exact","set":{"hzd.emptySkip":"exact"}},
+ {"name":"skip exact + coverage 0.1","set":{"hzd.emptySkip":"exact","hzd.emptySkipCoverage":0.1}},
+ {"name":"skip exact + coverage 0.2","set":{"hzd.emptySkip":"exact","hzd.emptySkipCoverage":0.2}},
+ {"name":"skip exact + coverage 0.3","set":{"hzd.emptySkip":"exact","hzd.emptySkipCoverage":0.3}},
+ {"name":"skip off again","set":{}}
+]

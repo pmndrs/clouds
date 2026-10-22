@@ -73,7 +73,7 @@ export function hzdBindingsWgsl(group: number, base: number): string {
 @group(${group}) @binding(${base + o.weather}) var procWeather: texture_2d_array<f32>;
 @group(${group}) @binding(${base + o.aux}) var procAux: texture_2d<f32>;
 @group(${group}) @binding(${base + o.sampler}) var procRepeat: sampler;
-@group(${group}) @binding(${base + o.lut}) var<storage, read> procLut: array<u32, ${HZD_LUT_WORDS}>;
+@group(${group}) @binding(${base + o.lut}) var<storage, read> procLut: array<u32, ${HZD_LUT_BUFFER_WORDS}>;
 `;
 }
 
@@ -81,6 +81,13 @@ export function hzdBindingsWgsl(group: number, base: number): string {
  *  (x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1), low byte first; clamped at the last row and column), so a filtered lookup is one load
  *  and an unpack4x8unorm. Tables t = 0 top, 1 bottom, 2 peaks (generate/profile-tables.ts, as P.hzLut), 64 x 64 each: 12288 words. */
 export const HZD_LUT_WORDS = 3 * PROFILE_TABLE_SIZE * PROFILE_TABLE_SIZE;
+/** PF1: the weather map's bounds grid lives in the same buffer, after the tables: HZD_BOUNDS_GRID^2 words, one per cell of the NDF tile, bytes
+ *  (max coverage, min base height, max top height, 0), each 0..255 over 0..1; written by hzd/bounds.ts, read by the trace to skip empty cells. */
+export const HZD_BOUNDS_GRID = 64;
+export const HZD_BOUNDS_WORDS = HZD_BOUNDS_GRID * HZD_BOUNDS_GRID;
+export const HZD_LUT_BUFFER_WORDS = HZD_LUT_WORDS + HZD_BOUNDS_WORDS;
+/** A bounds word that never skips (max coverage 1, heights 0..1): what a cell holds before the bounds pass has run. */
+export const HZD_BOUNDS_OPEN = 0x00FF00FF;
 let lutQuads: Uint32Array<ArrayBuffer> | null = null;
 export function packHzdLutQuads(): Uint32Array<ArrayBuffer> {
   if (!lutQuads) {
@@ -99,8 +106,10 @@ export function packHzdLutQuads(): Uint32Array<ArrayBuffer> {
  *  trace over the 16 sampled textures per shader stage of the default limits.) */
 export function createHzdLutBuffer(device: GPUDevice): GPUBuffer {
   const words = packHzdLutQuads();
-  const buf = device.createBuffer({ label: 'hzd profile tables', size: words.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buf, 0, words);
+  const buf = device.createBuffer({ label: 'hzd profile tables + bounds', size: HZD_LUT_BUFFER_WORDS * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC });
+  const all = new Uint32Array(HZD_LUT_BUFFER_WORDS);
+  all.set(words, 0); all.fill(HZD_BOUNDS_OPEN, HZD_LUT_WORDS);
+  device.queue.writeBuffer(buf, 0, all);
   return buf;
 }
 
@@ -907,8 +916,52 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   if (P.hzStorm3.y > 0.0 && P.hzStorm.w > 0.0) { o = hzdMerge(o, hzdAnvilCirrus(p, t, footprint)); }
   return o;
 }
-fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }
-const PROC_HAS_BOUNDS = false;
+// PF1 empty-space skipping (settings.ts emptySkip; hzd/bounds.ts makes the grid). The weather map's bounds grid (HZD_BOUNDS_GRID^2 cells over
+// one NDF tile, in the map's own space: it moves with ndfOffset) holds, per cell, the largest coverage and the lowest base and highest top over the
+// cell's texels and their bilinear neighbours (plus the fractus trail when fractus is on). A coarse-march stretch inside a cell is empty when the
+// main layer cannot be there: no coverage anywhere in the cell, or the stretch's altitudes are all above the cell's highest top or below its lowest
+// base, and no other contributor (the mid and deck sheets, fractus, storms) can be. Conservative by construction: any doubt returns false.
+const HZD_BOUNDS_BASE = ${HZD_LUT_WORDS}u;
+const HZD_BOUNDS_GRID = ${HZD_BOUNDS_GRID};
+struct ProcCell { data: vec4<f32>, length: f32 }
+// emptySkip: 0 off, 2 exact walk (the unskipped march's samples and step budget), 3 free walk (the budget is not charged: rays can reach further).
+fn procBoundsMode() -> u32 { return u32(P.hzMix.w); }
+fn procBoundsCell(origin: vec3<f32>, dir: vec3<f32>, t: f32) -> ProcCell {
+  let g = f32(HZD_BOUNDS_GRID);
+  let grid = ((origin.xz + dir.xz * t - ndfOffset()) / P.hzLayer.z) * g;
+  let cell = vec2<i32>(floor(grid));
+  let c = ((cell % HZD_BOUNDS_GRID) + HZD_BOUNDS_GRID) % HZD_BOUNDS_GRID;
+  let data = unpack4x8unorm(procLut[HZD_BOUNDS_BASE + u32(c.y * HZD_BOUNDS_GRID + c.x)]);
+  let dist = select(fract(grid), 1.0 - fract(grid), dir.xz >= vec2(0.0)) / max(abs(dir.xz) * g / P.hzLayer.z, vec2(0.0000001));
+  return ProcCell(data, max(min(dist.x, dist.y), 0.05));
+}
+fn hzdAltitudeAlong(t: f32, dir: vec3<f32>, originHeight: f32) -> f32 {
+  return originHeight + dir.y * t + dot(dir.xz, dir.xz) * t * t / (2.0 * PROC_EARTH_M);
+}
+fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, data: vec4<f32>) -> bool {
+  // A storm (placed cell, painted area, anvil cirrus) can put cloud where the map has none.
+  if (P.hzStorm.w > 0.0) { return false; }
+  let span = P.hzLayer.y - P.hzLayer.x;
+  let turningPoint = -dir.y * PROC_EARTH_M / max(dot(dir.xz, dir.xz), 0.000001);
+  let aMin = hzdAltitudeAlong(clamp(turningPoint, t, end), dir, originHeight);
+  let aMax = max(hzdAltitudeAlong(t, dir, originHeight), hzdAltitudeAlong(end, dir, originHeight));
+  // The sheets (they do not read the map): the mid slot's volume share (the 2.5D layer draws the rest) and the deck.
+  if (P.hzMid.x > 0.5 && P.hzMix.x < 1.5 && (P.hzMix.x < 0.5 || t < P.hzMix.z) && aMax > P.hzMid.y && aMin < P.hzMid.y + P.hzMid.z) { return false; }
+  if (P.hzDeck.x > 0.5 && aMax > P.hzDeck.y && aMin < P.hzDeck.y + P.hzDeck.z) { return false; }
+  // The horizon ring raises the coverage toward its target from ringStart out.
+  var cov = data.x;
+  if (P.hzRing.x > 0.0) {
+    let ringOn = 1.0 - saturate((procAltitude(P.origin.xyz) - 0.5 * P.hzLayer.x) / max(0.5 * P.hzLayer.x, 1.0));
+    if (ringOn > 0.0 && length(dir.xz) * end > P.hzRing.x) { cov = max(cov, P.hzRing.z); }
+  }
+  if (saturate(cov + P.hzCov.x) <= fract(P.hzMix.w) / 0.9) { return true; }   // emptySkipCoverage 0: no coverage anywhere in the cell
+  var bottom = P.hzLayer.x + max(data.y - 1.0 / 255.0, 0.0) * span;
+  var top = P.hzLayer.x + min(data.z + 1.0 / 255.0, 1.0) * span;
+  if (P.hzStorm2.w < 1.0) { top = max(top, P.hzStorm2.x); }   // storms by type lift the top to the storm top
+  if (P.hzFrac.x > 0.0) { bottom = min(bottom, P.hzLayer.x - P.hzFrac.z - 1.0); top = max(top, P.hzLayer.x + 0.45 * span); }   // fractus hangs below the base
+  return aMin >= top || aMax <= bottom;
+}
+const PROC_HAS_BOUNDS = true;
 // The trace re-uses a light tap while the density changes by under 8 % of this reference. The chain's densities stay under about 0.3 of the
 // extinction (coverage remap, * coverage, erosion), so the full extinction would re-use the light across whole flanks (visible terraces).
 fn procSigmaRef() -> f32 { return P.hzLayer.w * 0.25; }

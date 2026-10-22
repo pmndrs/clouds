@@ -1,0 +1,13 @@
+[
+ {"name":"base (skip off)","set":{}},
+ {"name":"skip exact","set":{"hzd.emptySkip":"exact"}},
+ {"name":"skip free","set":{"hzd.emptySkip":"free"}},
+ {"name":"veil off","set":{"hzd.veilWidth":0}},
+ {"name":"detail noise off (stage 2)","set":{"hzd.stage":2}},
+ {"name":"cirrus on","set":{"cirrus.enabled":true}},
+ {"name":"light taps 3","set":{"proc.lightTaps":3}},
+ {"name":"light taps 1","set":{"proc.lightTaps":1}},
+ {"name":"mid altocumulus on","set":{"hzd.midForm":"altocumulus"}},
+ {"name":"deck stratus on","set":{"hzd.deckForm":"stratus"}},
+ {"name":"base (skip off) again","set":{}}
+]

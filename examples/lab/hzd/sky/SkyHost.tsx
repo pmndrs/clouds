@@ -59,6 +59,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     weatherFromQuery(query);
     (window as unknown as { __tune: unknown }).__tune = tuner;
     (window as unknown as { __hzd: unknown }).__hzd = { core, proc };   // console / capture scripts: settings, shadow map info, the procedural model
+    (window as unknown as { __proc: unknown }).__proc = proc;   // debug: window.__proc.readHzdBounds()
     return { pane, clouds, proc, core, sources, renderer, tuner };
   })();
   started.set(renderer, p);
@@ -123,7 +124,7 @@ function reportReady(harness: CloudsHarness, renderer: WebGPURenderer) {
     report: () => {
       const s = bench.getState(), v = s.view;
       return { view: s.viewName, ref: s.ref.id, refMode: s.ref.mode, camera: [...v.position], lookAz: v.lookAz, pitch: v.pitch, sunElevation: v.sunEl, sunAzimuth: v.sunAz,
-        coverage: v.coverage, quality: s.quality, gpuMs: s.rt?.pane.stats().gpuMs ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
+        coverage: v.coverage, quality: s.quality, gpuMs: s.rt?.pane.stats().gpuMs ?? null, gpuLast: s.rt?.clouds.lastTimings ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
     },
   });
 }

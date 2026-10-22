@@ -1,0 +1,5 @@
+[
+ {"name":"steps-off","set":{"hzd.emptySkip":"off","proc.debug":1}},
+ {"name":"steps-exact","set":{"hzd.emptySkip":"exact","proc.debug":1}},
+ {"name":"steps-free","set":{"hzd.emptySkip":"free","proc.debug":1}}
+]
