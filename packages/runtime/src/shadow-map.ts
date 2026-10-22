@@ -3,7 +3,7 @@
 import type { GpuTimer } from './gpu-timer';
 import { COMMON_WGSL } from './shaders/common.wgsl';
 import type { ProceduralDensityModel } from './procedural/types';
-import { SHADOW_MAP_BINDINGS, SHADOW_MAP_PARAM_BYTES, cloudShadowMapWgsl, shadowMapWgsl } from './shaders/shadow-map.wgsl';
+import { SHADOW_BLEND_BINDINGS, SHADOW_BLEND_PARAM_BYTES, SHADOW_MAP_BINDINGS, SHADOW_MAP_PARAM_BYTES, cloudShadowMapWgsl, shadowBlendWgsl, shadowMapWgsl } from './shaders/shadow-map.wgsl';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
 
@@ -35,6 +35,10 @@ export interface CloudShadowMapSettings {
   advect: boolean;
   /** SH1: with `advect`, multiplier on how fast the stored shadow slides (1 = the clouds' own speed, the model's motionSpeed times the wind). Default 1. */
   advectSpeed: number;
+  /** SH1: with `advect`, frames one sweep takes (replaces `refreshFrames`; shorter = a fresher snapshot = less to ease, at proportionally more GPU time). Default 12. */
+  advectRefreshFrames: number;
+  /** SH1: with `advect`, frames over which the map eases from the old snapshot to a landed sweep (0 = switch at once, which pops where the clouds have changed shape). The next sweep starts after it. Default 6. */
+  advectBlendFrames: number;
   /** SH1: with `advect`, a new sweep starts once the clouds have moved this far (m) from the snapshot in the map. Default 16. */
   advectRefreshMeters: number;
   /** Tau of the debug contour. Default 0.3. */
@@ -44,7 +48,7 @@ export interface CloudShadowMapSettings {
 }
 
 export const SHADOW_MAP_DEFAULTS: CloudShadowMapSettings = {
-  enabled: true, nearExtent: 8192, farExtent: 65536, refreshFrames: 24, steps: 48, proceduralSteps: 64, groundHeight: 0, advect: true, advectSpeed: 1, advectRefreshMeters: 16, debug: 0, debugThreshold: 0.3, debugGain: 8,
+  enabled: true, nearExtent: 8192, farExtent: 65536, refreshFrames: 24, steps: 48, proceduralSteps: 64, groundHeight: 0, advect: true, advectSpeed: 1, advectRefreshFrames: 12, advectBlendFrames: 6, advectRefreshMeters: 16, debug: 0, debugThreshold: 0.3, debugGain: 8,
 };
 
 export interface ShadowMapSky {
@@ -147,6 +151,24 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, layout] }),
     compute: { module: device.createShaderModule({ label: 'cloud shadow map refresh', code: COMMON_WGSL + volumeWgsl(0) + shadowMapWgsl() }), entryPoint: 'main' },
   }).then(pl => { pipeline = pl; }, e => { console.error('cloud shadow map pipeline failed', e); });
+  // SH1: the blend pass (old snapshot -> new snapshot).
+  const blendLayout = device.createBindGroupLayout({ label: 'cloud shadow map blend', entries: [
+    { binding: SHADOW_BLEND_BINDINGS.params, visibility: C, buffer: { type: 'uniform' } },
+    { binding: SHADOW_BLEND_BINDINGS.prevNear, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: SHADOW_BLEND_BINDINGS.prevFar, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: SHADOW_BLEND_BINDINGS.freshNear, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: SHADOW_BLEND_BINDINGS.freshFar, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: SHADOW_BLEND_BINDINGS.outNear, visibility: C, storageTexture: { access: 'write-only', format: 'r32float' } },
+    { binding: SHADOW_BLEND_BINDINGS.outFar, visibility: C, storageTexture: { access: 'write-only', format: 'r32float' } },
+  ] });
+  let blendPipe: GPUComputePipeline | null = null;
+  void device.createComputePipelineAsync({
+    label: 'cloud shadow map blend',
+    layout: device.createPipelineLayout({ bindGroupLayouts: [blendLayout] }),
+    compute: { module: device.createShaderModule({ label: 'cloud shadow map blend', code: shadowBlendWgsl() }), entryPoint: 'main' },
+  }).then(pl => { blendPipe = pl; }, e => { console.error('cloud shadow map blend pipeline failed', e); });
+  const blendParams = device.createBuffer({ label: 'cloud shadow map blend params', size: SHADOW_BLEND_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const bp = new Float32Array(SHADOW_BLEND_PARAM_BYTES / 4);
   // X3: one pipeline per procedural shaper (the model's density WGSL), compiled on first use.
   const procPipelines = new Map<string, { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null }>();
   const procPipeline = (m: ProceduralDensityModel) => {
@@ -188,11 +210,22 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
   let backViews: GPUTextureView[] = [];
   const ensureBack = () => {
     if (!back) {
-      const u = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.COPY_SRC;
+      const u = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC;
       back = [device.createTexture({ label: 'cloud shadow map near (back)', size: [N, N], format: 'r32float', usage: u }), device.createTexture({ label: 'cloud shadow map far (back)', size: [N, N], format: 'r32float', usage: u })];
       backViews = [back[0].createView(), back[1].createView()];
     }
     return backViews;
+  };
+  // The old snapshot while the map eases to a landed sweep (a copy of the map as it was), and where that stands.
+  let prev: [GPUTexture, GPUTexture] | null = null;
+  const blend = { active: false, k: 0, frames: 0, prevWind: [0, 0], near: [0, 0] as [number, number], far: [0, 0] as [number, number], nearCell: 0, farCell: 0, farOn: false };
+  let blendGroup: GPUBindGroup | null = null;
+  const ensurePrev = () => {
+    if (!prev) {
+      const u = GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
+      prev = [device.createTexture({ label: 'cloud shadow map near (prev)', size: [N, N], format: 'r32float', usage: u }), device.createTexture({ label: 'cloud shadow map far (prev)', size: [N, N], format: 'r32float', usage: u })];
+    }
+    return prev;
   };
   let advectOn = false;       // the last encode ran with advect
   let pendingStale = false;   // advect: start another sweep as soon as the running one ends
@@ -217,12 +250,12 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       return [{ binding, resource: { buffer: paramsBuffer } }, { binding: binding + 1, resource: views[0] }, { binding: binding + 2, resource: views[1] }];
     },
     get info() {
-      return { valid, remainingRows: remaining, refreshes, sweeps, nearOrigin: [origin.near[0], origin.near[1]] as [number, number], farOrigin: [origin.far[0], origin.far[1]] as [number, number], bytes: (back ? 4 : 2) * N * N * 4, advect: advectOn, shiftMeters: advShift };
+      return { valid, remainingRows: remaining, refreshes, sweeps, nearOrigin: [origin.near[0], origin.near[1]] as [number, number], farOrigin: [origin.far[0], origin.far[1]] as [number, number], bytes: (2 + (back ? 2 : 0) + (prev ? 2 : 0)) * N * N * 4, advect: advectOn, shiftMeters: advShift };
     },
     invalidate(hard = false) {
       if (advectOn) {
         pendingStale = true;
-        if (hard) { hardPending = true; valid = false; origin.placed = false; }   // an unplaced map restarts the sweep at the next encode
+        if (hard) { hardPending = true; valid = false; origin.placed = false; blend.active = false; }   // an unplaced map restarts the sweep at the next encode
       } else {
         remaining = N;
         if (hard) { hardPending = true; valid = false; }
@@ -252,7 +285,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       const sp = (a.windSpeed ?? 1) * s.advectSpeed;
       const W0 = advectActive ? a.wind![0] * sp : 0, W1 = advectActive ? a.wind![2] * sp : 0;
       // A switch of mode rebuilds the map from nothing.
-      if (advectActive !== advectOn) { advectOn = advectActive; origin.placed = false; groups[0] = groups[1] = undefined; pendingStale = false; }
+      if (advectActive !== advectOn) { advectOn = advectActive; origin.placed = false; groups[0] = groups[1] = undefined; pendingStale = false; blend.active = false; }
 
       const skyOn = !!a.sky || !!proc;
       // ---- invalidation ----
@@ -289,7 +322,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       if (move > SUN_STALE_M) { stale = true; if (!advectActive) { mapSun[0] = sun[0]; mapSun[1] = sun[1]; mapSun[2] = sun[2]; } }
       if (move > SUN_JUMP_M) rate = 2;
       if (!origin.placed) { hard = true; stale = true; if (!advectActive) { mapSun[0] = sun[0]; mapSun[1] = sun[1]; mapSun[2] = sun[2]; } rate = 2; }
-      if (hard) { hardPending = true; valid = false; rate = 2; }
+      if (hard) { hardPending = true; valid = false; rate = 2; blend.active = false; }
 
       // ---- placement: the cascades follow the camera's foot point, projected onto the map plane along the sun ----
       const footOf = (sv: ArrayLike<number>) => {
@@ -325,7 +358,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
           if (place(s.nearExtent, ref.near, fx, fz, false).moved || (skyOn && place(s.farExtent, ref.far, fx, fz, false).moved)) pendingStale = true;
         }
         const drift = Math.hypot(W0 - frontWind[0], W1 - frontWind[1]);
-        if (hard || (remaining === 0 && (pendingStale || drift > s.advectRefreshMeters))) {
+        if (hard || (remaining === 0 && !blend.active && (pendingStale || drift > s.advectRefreshMeters))) {
           pendingStale = false;
           sweepSun[0] = sun[0]; sweepSun[1] = sun[1]; sweepSun[2] = sun[2];
           sweepWind[0] = W0; sweepWind[1] = W1;
@@ -339,18 +372,27 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       }
 
       // ---- the refresh slice ----
-      let rows = 0, landed = false;
+      let rows = 0, landed = false, softLanding = false;
       p[18] = 0; p[19] = 0;
       if (remaining > 0) {
-        const per = Math.ceil(N / Math.max(1, s.refreshFrames)) * rate;
+        const per = Math.ceil(N / Math.max(1, advectActive ? s.advectRefreshFrames : s.refreshFrames)) * rate;
         rows = Math.min(per, N - cursor, remaining);
         p[18] = cursor; p[19] = rows;
         remaining -= rows; cursor = (cursor + rows) % N;
         if (remaining <= 0) {
           remaining = 0; sweeps++; landed = true;
+          const first = hardPending;
           if (hardPending) { hardPending = false; valid = true; }
           if (advectActive) {
-            // The sweep is the map now: its windows, sun and moment (the copy is recorded after the pass, below).
+            // The sweep is the map now: its windows, sun and moment (the copy is recorded after the pass, below). With a map already showing, the old one
+            // is kept (copied, below) and the new one eased in over `advectBlendFrames` (the blend pass).
+            softLanding = !first && s.advectBlendFrames > 0 && !!blendPipe;
+            if (softLanding) {
+              blend.prevWind[0] = frontWind[0]; blend.prevWind[1] = frontWind[1];
+              blend.near[0] = origin.near[0]; blend.near[1] = origin.near[1]; blend.far[0] = origin.far[0]; blend.far[1] = origin.far[1];
+              blend.nearCell = frontNearCell; blend.farCell = frontFarCell; blend.farOn = frontFarOn;
+              blend.active = true; blend.k = 0; blend.frames = Math.max(1, Math.round(s.advectBlendFrames));
+            }
             origin.near[0] = ref.near[0]; origin.near[1] = ref.near[1]; origin.far[0] = ref.far[0]; origin.far[1] = ref.far[1];
             frontNearCell = ref.nearCell; frontFarCell = ref.farCell; frontFarOn = ref.farOn;
             mapSun[0] = sweepSun[0]; mapSun[1] = sweepSun[1]; mapSun[2] = sweepSun[2];
@@ -402,9 +444,36 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
         pass.end();
         refreshes++;
         if (advectActive && landed && back) {
-          encoder.copyTextureToTexture({ texture: back[0] }, { texture: textures[0] }, [N, N]);
-          encoder.copyTextureToTexture({ texture: back[1] }, { texture: textures[1] }, [N, N]);
+          if (softLanding) {
+            // Keep the old map; the blend pass below writes the map from it and the new sweep.
+            const pv = ensurePrev();
+            encoder.copyTextureToTexture({ texture: textures[0] }, { texture: pv[0] }, [N, N]);
+            encoder.copyTextureToTexture({ texture: textures[1] }, { texture: pv[1] }, [N, N]);
+          } else {
+            encoder.copyTextureToTexture({ texture: back[0] }, { texture: textures[0] }, [N, N]);
+            encoder.copyTextureToTexture({ texture: back[1] }, { texture: textures[1] }, [N, N]);
+          }
         }
+      }
+      if (advectActive && blend.active && back && prev && blendPipe) {
+        const t = Math.min(1, blend.k / blend.frames);
+        const w = (o: [number, number], cell: number, on: boolean, i: number) => { bp[i] = o[0]; bp[i + 1] = o[1]; bp[i + 2] = cell; bp[i + 3] = on ? N : 0; };
+        w(blend.near, blend.nearCell, true, 0); w(origin.near, frontNearCell, true, 4);
+        w(blend.far, blend.farCell, blend.farOn, 8); w(origin.far, frontFarCell, frontFarOn, 12);
+        bp[16] = frontWind[0] - blend.prevWind[0]; bp[17] = frontWind[1] - blend.prevWind[1]; bp[18] = t; bp[19] = 0;
+        device.queue.writeBuffer(blendParams, 0, bp);
+        blendGroup ??= device.createBindGroup({ label: 'cloud shadow map blend', layout: blendLayout, entries: [
+          { binding: SHADOW_BLEND_BINDINGS.params, resource: { buffer: blendParams } },
+          { binding: SHADOW_BLEND_BINDINGS.prevNear, resource: prev[0].createView() }, { binding: SHADOW_BLEND_BINDINGS.prevFar, resource: prev[1].createView() },
+          { binding: SHADOW_BLEND_BINDINGS.freshNear, resource: back[0].createView() }, { binding: SHADOW_BLEND_BINDINGS.freshFar, resource: back[1].createView() },
+          { binding: SHADOW_BLEND_BINDINGS.outNear, resource: views[0] }, { binding: SHADOW_BLEND_BINDINGS.outFar, resource: views[1] },
+        ] });
+        const bpass = encoder.beginComputePass({ label: 'cloud shadow map blend' });
+        bpass.setPipeline(blendPipe);
+        bpass.setBindGroup(0, blendGroup);
+        bpass.dispatchWorkgroups(N / 8, N / 8, 2);
+        bpass.end();
+        if (t >= 1) blend.active = false; else blend.k++;
       }
       return valid;
     },
@@ -412,6 +481,8 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
       disposed = true;
       textures[0].destroy(); textures[1].destroy(); paramsBuffer.destroy(); dummyWeather.destroy(); dummyParams.destroy();
       if (back) { back[0].destroy(); back[1].destroy(); }
+      if (prev) { prev[0].destroy(); prev[1].destroy(); }
+      blendParams.destroy();
     },
   };
 }
