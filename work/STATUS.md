@@ -4,14 +4,8 @@ The one page to check. Everything left to do, by track: `work/ROADMAP.md`. Updat
 
 Updated 2026-10-13.
 
-## Running (2026-10-22, before the weekly reset; agents make likely choices, you review at the end)
-- **SH1** cloud shadows jitter in time-lapse; sharper temporal history.
-- **CI1** cirrus type and coverage read from the map.
-- **ST2** a clean storm anvil, then rotation.
-- **LH1** the Nubis lighting's hue is too strong.
-- **PF1** a clean timing breakdown and skipping clear areas of the map.
-
-A and B keep their current values until you answer.
+## Running
+Nothing.
 
 ## Waiting on you
 
@@ -33,6 +27,21 @@ Your answers (2026-10-22): **A1 keep** (Alligator is better), **A2 keep**, **A3 
 | A9 ✅ trusted | Storms (STORM1): a paintable storm area in the map, a downwind anvil plate and anvil cirrus, darker denser storm lighting and optional lightning. **Not made the default:** the anvil plate is less clean than F1's mushroom and the anvil cirrus reads as torn streaks, so storms still use F1's placed cell unless you choose 'map'. The `storm` view shows the new one. Sheet: `work/captures/STORM1/STORM1-sheet.jpg` | orchestrator kept the old default | [old cell](http://localhost:5180/hzd/?view=storm&hz_stormSource=cell) | [new map storm](http://localhost:5180/hzd/?view=storm) |
 
 You already chose these: the profile tables as the default, and the 32 km map.
+
+### A2. New this round (2026-10-22): flip each in the bench sidebar's Review section
+Agents made likely choices; these are the defaults now unless noted.
+
+| # | What | Default now | Verdict |
+| --- | --- | --- | --- |
+| LH1 | Nubis shade hue: shaded sides lit by a much less saturated sky light (`ambientSaturation` 1 → 0.15 on the HZD bench). Shade went from strong blue to slightly cool grey, detail unchanged | new | fixes your "hue is super strong"; `diffuseSun` (tune panel) adds warm light to the shade if you want it greyer still |
+| SH1a | Cloud shadows on the ground slide with the wind between refreshes instead of stepping (`shadowMap.advect`) | new | fixes the jitter by the numbers (frame-to-frame change 0.25 → 0.01); judge by eye in time-lapse; shadow map costs ~0.7 ms more |
+| SH1b | Sharper frame-to-frame blend (Catmull-Rom history, `sky.historyFilter`) | new | less softening in fast motion, no ringing seen |
+| CI1 | Cirrus coverage and type vary per area from the weather map (`cirrus.source`) | new (cirrus itself is still off on the bench: the switch turns it on) | just different, not clearly better in one frame |
+| ST2a | Storm anvil: a smooth plate with a thinning rim and fibrous cirrus, replacing STORM1's lumpy one | new, for the map storm | better than STORM1, but **the old placed cell stays the storm default**: its mushroom still reads cleaner from far away |
+| ST2 | Storm rotation (NE22's rotating rings) | **off** | costs ~3.6 ms and the blend smears it until we have motion vectors |
+| PF1 | Skipping clear areas of the map in the ray march (`hzd.emptySkip`) | exact (pixel-identical) | no gain on the default map (97 % of it has some cloud), 10–20 % on sparse maps; 'free' reaches further but changes the far horizon |
+
+PF1 also timed the sky: the thin veil is 30–40 % of the sky pass and the detail noise 25–35 %; light taps are small. Those are the targets for the performance pass. See `work/reports/PF1.md`.
 
 ### B. One taste choice
 | # | Question | Try |
@@ -63,6 +72,8 @@ Status of each from `docs/research/ne22-coverage.md`, in plain terms:
 ## Landed (newest first)
 | When | What | Tag / report |
 | --- | --- | --- |
+| 10-22 | LH1, SH1, CI1, ST2, PF1 (hue, shadow jitter, sharper blend, cirrus from the map, anvil and rotation, clear-sky skipping) | `stable-2026-10-22`, `work/reports/{LH1,SH1,CI1,ST2,PF1}.md` |
+| 10-22 | Bench: Review section with switches; ground view at 250 m | — |
 | 10-15 | STORM1: painted storm area, anvil, storm lighting (old cell stays the default) | `work/reports/STORM1.md` |
 | 10-15 | W2: influence painting and weather states | `work/reports/W2.md` |
 | 10-15 | L3: mid-level clouds as 2.5D layers at distance | `work/reports/L3.md` |

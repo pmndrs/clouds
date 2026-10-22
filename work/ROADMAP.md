@@ -11,18 +11,19 @@ The procedural sky now has every big Nubis Evolved piece except the terrain-hugg
 | # | Item | Where we are | Size |
 | --- | --- | --- | --- |
 | P1 | Review the new defaults (STATUS A1–A9, B1) | Waiting on you | You |
-| P2 | Storm anvil shape | **Worse.** STORM1's anvil plate is lumpy and its cirrus torn; F1's older mushroom is still the default | M |
-| P3 | Storm rotation rings (NE22 p.147–158) | **Missing** | M |
+| P2 | Storm anvil shape | Better (ST2 smooth plate) but the old cell still reads cleaner far away; **worse.** STORM1's anvil plate is lumpy and its cirrus torn; F1's older mushroom is still the default | M |
+| P3 | Storm rotation rings (NE22 p.147–158) | Built (ST2), off: needs motion vectors (U1) to stop smearing | M |
 | P4 | Storm lighting tuning (absorption curves, ambient blend; NE22 p.164–172) | First version (STORM1: darker, denser, glow) | S |
-| P5 | Cirrus read from the map (type and coverage per area) | **Worse:** one type and coverage for the whole sky | S |
+| P5 | Cirrus read from the map (type and coverage per area) | Done (CI1); authored/painted maps have no cirrus fields yet | S |
 | P6 | Cirrus fade cov² vs NE22's cov³ | Different; NE22's is an option (`cirrus.coverageFadeNe22`) | XS, you choose |
-| P7 | Sharper history in the temporal blend (bicubic) | Fast time-lapse still a bit soft and blocky after C2 | S |
+| P7 | Sharper history in the temporal blend (bicubic) | Done (SH1b); shadow jitter fixed (SH1a) | S |
 | P8 | Density formula: HZD remap vs NE22's subtract-the-profile | Different, not known to be worse; A/B with the new lighting | S |
 | P9 | NDF generator closer to NE's output (regional sets: cumulus here, stratocumulus there) | Partial: two recipes (H6, N17) + weather states (whole sky) | M |
 | P10 | One shell with continuous type (stratus ↔ cumulus) instead of summed layers (board L2) | Missing | L |
 | P11 | Envelope clouds: terrain-hugging valley and mountain clouds (NE22 solver 3, p.84–127) | **Missing.** Needs a terrain input | L, later |
 | P12 | Lightning in the procedural sky | Missing here (exists in the voxel path) | S, low priority |
 | P13 | Metre-scale rim pass on lit edges (board R2) | Held until D1 settles edges | M |
+| P15 | Nubis shade hue | Fixed (LH1); fine-tune with `diffuseSun` |
 | P14 | Weather-state numbers and storm settings tuned by eye → by you | Agent-set | You |
 
 Notes: `docs/research/ne22-coverage.md` (the audit), STATUS "Where we differ".
@@ -49,8 +50,8 @@ Notes: `work/HANDOFF.md`, `work/D1-TOOLS.md`, `work/reports/D1.md`.
 ## F: performance (after parity)
 | # | Item | Where we are |
 | --- | --- | --- |
-| F1 | Clean timing breakdown (shape, detail, veil, lighting, horizon) on an idle GPU | Only scattered, noisy numbers |
-| F2 | Weather-map empty-space skipping for the HZD sky | **Missing** (Sky Pro path has it); likely the biggest cheap win |
+| F1 | Clean timing breakdown | First pass (PF1, loaded machine): veil 30–40 %, detail 25–35 % of the sky pass |
+| F2 | Weather-map empty-space skipping for the HZD sky | Done (PF1, exact); only helps sparse maps |
 | F3 | Keep detail at 4–12 km (it's filtered away now) | Worse: far clouds read soft |
 | F4 | Map and sky LOD beyond 32 km (board LOD1) | Missing |
 | F5 | Upscaler integration: your FSR3 port, with cloud motion vectors (U1) | C2 prepared the motion; not integrated |
