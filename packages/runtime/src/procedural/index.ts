@@ -10,7 +10,7 @@ import type { CloudVolumeAsset } from '../assets';
 import { COMMON_WGSL } from '../shaders/common.wgsl';
 import { volumeWgsl } from '../shaders/volume.wgsl';
 import { SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
-import { defaultProceduralSettings, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
+import { defaultProceduralSettings, PROC_HZD_STORM_OFFSET, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
 import { createHzdLutBuffer, procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
@@ -325,7 +325,11 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       lastWind = [view.wind[0], view.wind[1], view.wind[2]];
       // Sky Pro's evolution: the shape noise slides along the wind relative to the weather (PRESET.wind.evolutionSpeed at Tidewater's 12 m/s).
       params[10] = time * 60.8 * 12 / 89;
+      // ST2 storm rotation: the inner ring's phase (radians) in hzStorm5.w; written after the change check (it is not part of the model version), then restored so the next frame's check sees the packed flag.
+      const rotAt = PROC_HZD_STORM_OFFSET + 11, rotFlag = params[rotAt];
+      if (rotFlag > 0) params[rotAt] = 1e-4 + time * settings.hzd.stormRotation * (Math.PI / 180);
       device.queue.writeBuffer(buffer, 0, params);
+      params[rotAt] = rotFlag;
       return { version };
     },
     dispose() {

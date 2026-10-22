@@ -16,7 +16,7 @@ export const VIEWS: Record<string, Bookmark & { about: string }> = {
 };
 /** STORM1: the storm preset (URL storm=1): the storm on from the map's storm area, hag's anvil terms, the anvil cirrus and the storm lighting. Explicit hz_ keys win. */
 export const STORM_PRESET: Record<string, unknown> = {
-  stormStrength: 1, stormSource: 'map', anvilFlatten: 1, anvilDensityFix: 0.5, anvilCirrus: 0.0016, stormDensity: 1.6, stormDark: 0.7,
+  stormStrength: 1, stormSource: 'map', anvilFlatten: 1, anvilDensityFix: 0.5, anvilCirrus: 0.00006, stormDensity: 1.6, stormDark: 0.7,
 };
 export const VIEW_NAMES = Object.keys(VIEWS);
 export const MOTIONS: [string, number][] = [['frozen', 0], ['slow', 0.25], ['normal', 1], ['fast', 4], ['time-lapse', 20]];

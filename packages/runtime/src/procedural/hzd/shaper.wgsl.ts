@@ -302,7 +302,7 @@ fn hzdAnvilBlur(xz: vec2<f32>, k: f32, reach: f32) -> f32 {
   let lat = (P.hzStorm2.y - 1.0) * R * 1.8 * k * (1.0 + reach / max(P.hzStorm2.z, 1.0) * 0.5);
   let cA = sh * 0.65;
   let A = sh * 0.45 + 1.25 * R * k;
-  // Three rings (6, 12, 18 taps, spacing about one blob radius) and the centre: even coverage of the kernel including its rim, so the dilated outline is
+  // Three rings (6, 12, 18 taps) and the centre (37 taps; 19 taps with two rings show the separate lobes of the taps, 49 the same outline as 37): even coverage of the kernel including its rim, so the dilated outline is
   // not scalloped by a few widely spaced taps (a Vogel disc put 7 km between rim taps).
   var acc = hzdStormMask(xz - w * cA);
   for (var ring = 0; ring < 3; ring++) {
@@ -362,7 +362,7 @@ fn hzdAnvilCirrus(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
   var g = 0.0;
   let soft = P.hzStorm5.z < 0.5;
   if (soft) {
-    g = smoothstep(0.02, 0.4, hzdAnvilBlur(p.xz, 1.0, L * 0.9));
+    g = smoothstep(0.05, 0.9, hzdAnvilBlur(p.xz, 1.0, L * 0.45));
   } else {
     g = hzdStormMask(p.xz - w * (sh * 0.6));
     g = max(g, 0.9 * hzdStormMask(p.xz - w * (sh + L * 0.33)));
@@ -382,8 +382,8 @@ fn hzdAnvilCirrus(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
   let vert = smoothstep(0.0, 0.3, hc) * smoothstep(1.0, 0.45, hc);
   if (soft) {
     let n = saturate(N.r * 0.75 + N2.g * 0.25);
-    let lo = 0.3 + 0.35 * (1.0 - g);
-    d = 0.8 * smoothstep(lo, lo + 0.6, n) * smoothstep(0.0, 0.55, g) * vert;
+    // A continuous sheet (the gate, softly) with the fibres as a modulation of it (30..100 %), not a threshold that tears it into patches.
+    d = smoothstep(0.0, 0.6, g) * mix(0.3, 1.0, smoothstep(0.3, 0.8, n)) * vert;
   } else {
     let n = saturate(0.5 + (N.r - 0.5) * 1.7) * mix(0.55, 1.0, N2.g);
     d = saturate(hzdRemap(n * vert, 1.0 - g, 1.0, 0.0, 1.0));
@@ -391,6 +391,30 @@ fn hzdAnvilCirrus(p: vec3<f32>, t: f32, footprint: f32) -> ProcSample {
   if (d <= 0.0) { return o; }
   o.sigma = d * P.hzStorm3.y; o.coarse = d; o.h = hc; o.depth = d * depth * 0.25;
   return o;
+}
+// ST2 rotation (NE22 p.147-158 / hfw p.59-62): the detail noise lookup rotates about the storm centre in nested rings, each its own speed (falling
+// outward: the vortex turns faster in the middle), with a per-ring skew (a twist so the outer rings seem to drag against the inner ones) and a
+// blended overlap between neighbouring rings (the detail is read at both rotations and lerped). Six rings out to 1.6 x the storm radius, then a static
+// seventh (the rest of the sky). P.hzStorm5.w = the inner ring's phase in radians (time x stormRotation, set per frame by the runtime; 0 = off).
+// Returns the rotation offsets (x, z) of ring A and ring B; hzdSwirlW = the weight of ring B (0 outside the overlap bands).
+var<private> hzdSwirlW: f32 = 0.0;
+fn hzdSwirlRot(d: vec2<f32>, ang: f32) -> vec2<f32> {
+  let c = cos(ang);
+  let s = sin(ang);
+  return vec2(d.x * c - d.y * s, d.x * s + d.y * c) - d;
+}
+fn hzdSwirl(xz: vec2<f32>, amount: f32) -> vec4<f32> {
+  hzdSwirlW = 0.0;
+  let cen = P.hzStorm.xy + ndfOffset();
+  let d = xz - cen;
+  let f = length(d) / (1.6 * P.hzStorm.z / 6.0);
+  if (f >= 6.0) { return vec4(0.0); }
+  let i = floor(f);
+  let wB = smoothstep(0.78, 1.0, f - i);
+  let angA = P.hzStorm5.w * pow(0.6, i) + 0.12 * i;
+  let angB = select(P.hzStorm5.w * pow(0.6, i + 1.0) + 0.12 * (i + 1.0), 0.0, i + 1.0 >= 6.0);
+  hzdSwirlW = wB;
+  return vec4(hzdSwirlRot(d, angA), hzdSwirlRot(d, angB)) * amount;
 }
 // STORM1 internal lightning: a flash envelope (a quick decay with a flicker) and its place, a random point inside the storm around the storm centre,
 // for flash number floor(time x rate). rate 0 holds one flash on. The trace adds glow (the storm weight x stormGlow) x this to the radiance.
@@ -466,10 +490,10 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       var fp = 0.0;
       let blurFp = P.hzStorm5.z < 0.5;
       var a = smoothstep(0.7, 0.76, hs);
-      if (hs > 0.6 && P.hzStorm2.y > 1.0) {
+      if (hs > select(0.6, 0.77, blurFp) && P.hzStorm2.y > 1.0) {
         fp = hzdAnvilFootprint(p.xz, smoothstep(0.6, select(1.0, 0.8, blurFp), hs));
         // ST2: the plate is a lens: its underside rises toward the footprint's edge (an overhanging, thinning rim) instead of ending in a vertical wall.
-        if (blurFp) { let hb = mix(0.93, 0.78, smoothstep(0.05, 0.6, fp)); a = smoothstep(hb, hb + 0.1, hs); }
+        if (blurFp) { let hb = mix(0.87, 0.78, smoothstep(0.02, 0.45, fp)); a = smoothstep(hb, hb + 0.08, hs); }
       }
       if (core > 0.0 || fp > 0.0) {
         // A wide fall-off (as the placed cell's) so the shape noise, not the radius, draws the cauliflower wall; the threshold rises with height.
@@ -553,7 +577,7 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   var base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
   // F1 S7: the anvil plate follows the cell's footprint more than the shape noise (a smooth, flat-bottomed plate; its edge frays by the
   // detail erosion, wispy there), ours.
-  if (hzdStormW > 0.0) { base = mix(base, 0.75, 0.6 * hzdStormW * smoothstep(0.7, 0.78, h)); }
+  if (hzdStormW > 0.0) { base = mix(base, 0.75, select(0.6, 0.9, P.hzStorm5.z < 0.5 && P.hzStorm3.x > 0.5) * hzdStormW * smoothstep(0.7, 0.78, h)); }
   let baseCloud = base * gradient;   // 3 height gradient (gp7 p.106: hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0) * gradient)
 
   // 4 Coverage: threshold 1 - coverage (HFW p.17), then the gp7 multiply; 5 base fade before erosion (stage 2 and up).
@@ -583,7 +607,16 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     }
   }
   if (d <= 0.0 && veil <= 0.0) { return o; }
-  let qDetail = q - scroll * P.hzSpeed.z;
+  var qDetail = q - scroll * P.hzSpeed.z;
+  // ST2 rotation: ring A's rotation moves the detail lookup; qDetailB (ring B, blended by swirlW in the overlap bands) is read as well there.
+  var qDetailB = qDetail;
+  var swirlW = 0.0;
+  if (P.hzStorm5.w > 0.0 && hzdStormW > 0.0) {
+    let sw = hzdSwirl(p.xz, hzdStormW);
+    qDetailB = qDetail + vec3(sw.z, 0.0, sw.w);
+    qDetail += vec3(sw.x, 0.0, sw.y);
+    swirlW = hzdSwirlW;
+  }
   // H7: the skirt's wisps are stretched along the wind (skirtStretch : 1), streaks rather than blobs.
   var qVeil = qDetail;
   // The skirt's noise is read skirtScale x coarser than the detail (large, soft wisps instead of the 75 m cells: the cells read as foam).
@@ -620,7 +653,9 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     // coverage remap, 'gp7' erodes the profile itself (the deck's order).
     let prof = saturate(d);
     let T = hzdN3Type(n.topType + P.hzCov.y, h);
-    let comp = saturate(hzdN3Noise(qDetail, h, footprint, t, prof, T) * P.hzN3.z * fade);
+    var n3 = hzdN3Noise(qDetail, h, footprint, t, prof, T);
+    if (swirlW > 0.01) { n3 = mix(n3, hzdN3Noise(qDetailB, h, footprint, t, prof, T), swirlW); }
+    let comp = saturate(n3 * P.hzN3.z * fade);
     if (P.hzExtra.w > 0.5) {
       let be = hzdValueErosion(base, comp);
       density = max(hzdRemap(be * gradient, 1.0 - cov, 1.0, 0.0, 1.0), 0.0) * covK * fadeK;
@@ -636,7 +671,8 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     // The veil keeps its own noise (the HZD detail fBM, as the 'hzd' branch reads it).
     if (P.hzVeil.x < 0.5 && veil > 0.0) { veilW = hzdDetailFbm(select(qDetail, qVeil, skirtOn), h, footprint, false); }
   } else if (full && stage >= 2.5 && fade > 0.0) {
-    let hfFbm = hzdDetailFbm(qDetail, h, footprint, t < P.hzMisc.w);
+    var hfFbm = hzdDetailFbm(qDetail, h, footprint, t < P.hzMisc.w);
+    if (swirlW > 0.01) { hfFbm = mix(hfFbm, hzdDetailFbm(qDetailB, h, footprint, t < P.hzMisc.w), swirlW); }
     if (P.hzVeil.x < 0.5) { veilW = hfFbm; if (skirtOn && veil > 0.0) { veilW = hzdDetailFbm(qVeil, h, footprint, false); } }
     let hag = P.hzCov.w > 0.5;
     // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
