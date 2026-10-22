@@ -263,7 +263,9 @@ export class Clouds {
       const gpu = this.backend.tryTexture(tex[i]) ?? undefined;   // three may re-create the texture when a material first binds it: look it up every frame
       if (gpu !== this.shadowGpu[i]) { this.shadowGpu[i] = gpu; changed = true; }
     }
-    const refreshes = sm.info.refreshes;
+    // FX1: copy on every change of the map, not only on refresh slices: with SH1's advect the slices write a back buffer and the map changes by the
+    // landing copy and the blend pass, so the ground showed a blend frozen part-way (and caught up with a jump when the next sweep began).
+    const refreshes = sm.info.writes ?? sm.info.refreshes;
     if ((refreshes === this.shadowCopied && !changed) || !this.shadowGpu[0] || !this.shadowGpu[1]) return;
     this.shadowCopied = refreshes;
     for (let i = 0; i < 2; i++) encoder.copyTextureToTexture({ texture: sm.textures[i] }, { texture: this.shadowGpu[i]! }, [sm.resolution, sm.resolution]);
