@@ -1,0 +1,67 @@
+{
+  "url": "http://localhost:5617/hzd/?view=gp7&pitch=50&fov=75&clean=1&c_animSpeed=0&cirrus_animSpeed=0&cirrus=1&cirrus_source=global&wx=overcast",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-10-22T01:47:06.858Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/CI1/wx-overcast-global/view.jpg",
+      "report": {
+        "view": "gp7",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 50,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 1.1384958,
+          "lightGridReduce": 0.008958,
+          "lightGrid": 0.009167,
+          "marchNear": 0.17258123333333333,
+          "marchFar": 0.2239854500000001,
+          "shadowMap": 0.6683887692307692,
+          "composite": 0.5071198666666669,
+          "dome": 0.5220198,
+          "cirrusBake": 1.4153936666666669,
+          "skyLayer": 6.092759050000001,
+          "skyResolve": 0.3009438833333333,
+          "cirrus": 0.5751622166666664,
+          "cloudsTotal": 10.496478935897438,
+          "total": 11.634974735897437
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "cirrus.enabled": true,
+          "cirrus.coverage": 0.6,
+          "cirrus.veil": 0.6,
+          "cirrus.source": "global",
+          "cirrus.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://localhost:5617/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a960607f51fbf01e7/node_modules/.vite/deps/chunk-KURAALNQ.js?v=ac7c0e59:1465:24)\n    at _Scheduler2.executeFrame (http://localhost:5617/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a960607f51fbf01e7/node_modules/.vite/deps/chunk-KURAALNQ.js?v=ac7c0e59:1421:12)\n    at http://localhost:5617/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a960607f51fbf01e7/node_modules/.vite/deps/chunk-KURAALNQ.js?v=ac7c0e59:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1423,7 +1423,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           ms.enabled = true; ms.altitude = m.altitude; ms.thickness = m.thickness; ms.coverage = m.coverage; ms.type = m.type; ms.veil = m.veil;
           ms.opticalDepth = m.opticalDepth; ms.scale = m.scale; ms.detail = m.detail; ms.coverageVariation = 0.4;
           ms.windVelocity[0] = 0; ms.windVelocity[1] = 0; ms.windOffset[0] = m.windOffset[0]; ms.windOffset[1] = m.windOffset[1]; ms.streakAngle = m.streakAngle;
-          ms.ndfInfluence = m.ndfInfluence; ms.ndfTypeStratiform = m.typeStratiform; ms.ndfTypeCumuliform = m.typeCumuliform; ms.edgeSoftness = 0.08; ms.fadeStart = m.fadeStart; ms.fadeEnd = m.fadeEnd;
+          ms.source = 'global'; ms.ndfInfluence = m.ndfInfluence; ms.ndfTypeStratiform = m.typeStratiform; ms.ndfTypeCumuliform = m.typeCumuliform; ms.edgeSoftness = 0.08; ms.fadeStart = m.fadeStart; ms.fadeEnd = m.fadeEnd;
           // Water droplets, not ice: a strong forward lobe with a weak backward one, no halo.
           ms.phaseForward = 0.75; ms.phaseBroad = -0.15; ms.phaseForwardWeight = 0.55; ms.halo = 0; ms.multipleScattering = 1.6;
         } else ms.enabled = false;
