@@ -248,7 +248,26 @@ export function createTunePanel<P extends Preset>(opts: TunePanelOptions<P>) {
     } else if (typeof v === 'number') {
       const b = (c.base() as number) ?? v;
       const options = c.mode ?? (c.switch ? { off: 0, on: 1 } : undefined);
-      api = folder.addBinding(target, key, options ? { label: key, options } : { label: key, ...(rangeOf(c.doc, b) ?? {}), step: stepOf(b), ...(c.range ?? {}) });
+      if (options) {
+        api = folder.addBinding(target, key, { label: key, options });
+      } else {
+        // FX1: a slider clamps (and steps) the value it reads on every refresh and writes the clamped value back. A value set outside the slider's
+        // range from elsewhere (the Review section, the URL, the console) was silently pulled back to the range's end (LH1's 1 became 0.6, the
+        // guessed max 4 x 0.15). The binding goes through a holder that ignores those write-backs: only a real move of the slider changes the setting.
+        const o = { label: key, ...(rangeOf(c.doc, b) ?? {}), step: stepOf(b), ...(c.range ?? {}) } as { min?: number; max?: number; step: number };
+        const holder = {} as Record<string, number>;
+        Object.defineProperty(holder, 'v', {
+          enumerable: true,
+          get: () => target[key] as number,
+          set: (x: number) => {
+            const cur = target[key] as number;
+            const clamped = Math.min(o.max ?? Infinity, Math.max(o.min ?? -Infinity, cur));
+            if (Math.abs(x - clamped) <= o.step * 0.5 + 1e-9) return;   // the slider's own clamp / step of the current value, not a user move
+            target[key] = x;
+          },
+        });
+        api = folder.addBinding(holder, 'v', o);
+      }
       api.on('change', c.onChange);
     } else return undefined;
     return add(folder, {

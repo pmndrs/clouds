@@ -112,6 +112,9 @@ const RANGES: Record<string, { min?: number; max?: number; step?: number }> = {
   'shadow.advectRefreshMeters': { min: 2, max: 200, step: 1 }, 'shadow.refreshFrames': { min: 1, max: 96, step: 1 }, 'shadow.advectRefreshFrames': { min: 1, max: 96, step: 1 }, 'shadow.advectBlendFrames': { min: 0, max: 48, step: 1 }, 'shadow.advectSpeed': { min: 0, max: 3, step: 0.05 },
   'sky.resolutionScale': { min: 0.25, max: 1.5, step: 0.05 }, 'sky.temporalBlend': { min: 0.01, max: 1, step: 0.01 },
   'c.animSpeed': { min: 0, max: 50, step: 0.1 }, 'c.hazeBase': { min: -2000, max: 5000, step: 10 },
+  // FX1: the light settings the Review section and the URL set live get full ranges (a guessed range clamped them: LH1's 1 read back as 0.6).
+  'c.ambientStrength': { min: 0, max: 3, step: 0.01 }, 'c.ambientSaturation': { min: 0, max: 1, step: 0.01 }, 'c.ambientWarmth': { min: 0, max: 1, step: 0.01 },
+  'c.diffuseSun': { min: 0, max: 2, step: 0.01 }, 'c.diffuseFalloff': { min: 0, max: 1, step: 0.005 }, 'c.ambientFloor': { min: 0, max: 1, step: 0.01 },
   'cirrus.altitude': { min: 5000, max: 14000, step: 50 }, 'cirrus.coverage': { min: 0, max: 1, step: 0.01 }, 'cirrus.mapScale': { min: 1, max: 32, step: 0.5 }, 'cirrus.mapCoverageGain': { min: 0, max: 3, step: 0.05 }, 'cirrus.mapTypeRange': { min: 0, max: 0.6, step: 0.01 },
   'ndf.cirrusCells': { min: 1, max: 16, step: 1 }, 'ndf.cirrusTypeCells': { min: 1, max: 16, step: 1 }, 'ndf.cirrusContrast': { min: 0, max: 4, step: 0.05 },
 };
