@@ -5,7 +5,7 @@ The one page to check. Everything left to do, by track: `work/ROADMAP.md`. Updat
 Updated 2026-10-13.
 
 ## Running
-- **FX1** (Opus): the LH1 switch does nothing live (settings only read at page load: a bug); shadows still change quickly (crossfade over the whole refresh); new sparkle on cloud surfaces (find the cause).
+Nothing.
 
 Your notes (2026-10-22): LH1 no visible change (confirmed bug); SH1a shadows still change quickly, want a crossfade; SH1b no clear difference but new sparkle on ridges; storms trusted. **Shaping is drifting back toward foam, not clouds**: revisit as a tuning pass once the phases are through (ROADMAP P18).
 
@@ -45,6 +45,11 @@ Agents made likely choices; these are the defaults now unless noted.
 
 PF1 also timed the sky: the thin veil is 30–40 % of the sky pass and the detail noise 25–35 %; light taps are small. Those are the targets for the performance pass. See `work/reports/PF1.md`.
 
+### A3. FX1 fixes (2026-10-22), flip in the Review section
+- **LH1 now works live.** Two bugs: the tune panel clamped values to a guessed slider range and wrote them back (your 1 became 0.6), and changes faded in over ~100 frames because the sky layer's history wasn't reset. Every Review switch was clicked by a script and changes the frame at once.
+- **Shadows crossfade continuously** (FX1a–c): the fade now spans the whole 12-frame refresh, so the shadow always morphs and never lands in a step. Sliders for refresh and fade frames.
+- **The sparkle came from SH1b's sharper filter** (it doubled the specks at normal speed). New default `adaptive`: the old bilinear at normal speed (same speck level as before this week), the sharper one only in time-lapse. SH1b has all three options. Sheet: `work/captures/FX1/sparkle-ab-sheet.jpg`.
+
 ### B. One taste choice
 | # | Question | Try |
 | --- | --- | --- |
@@ -75,6 +80,7 @@ Status of each from `docs/research/ne22-coverage.md`, in plain terms:
 | When | What | Tag / report |
 | --- | --- | --- |
 | 10-22 | LH1, SH1, CI1, ST2, PF1 (hue, shadow jitter, sharper blend, cirrus from the map, anvil and rotation, clear-sky skipping) | `stable-2026-10-22`, `work/reports/{LH1,SH1,CI1,ST2,PF1}.md` |
+| 10-22 | FX1: live settings, shadow crossfade, sparkle fix | `work/reports/FX1.md` |
 | 10-22 | Bench: Review section with switches; ground view at 250 m | — |
 | 10-15 | STORM1: painted storm area, anvil, storm lighting (old cell stays the default) | `work/reports/STORM1.md` |
 | 10-15 | W2: influence painting and weather states | `work/reports/W2.md` |
