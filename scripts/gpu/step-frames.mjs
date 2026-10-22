@@ -24,6 +24,8 @@ const [width, height] = opt('size', '960x540').split('x').map(Number);
 const warm = Number(opt('warm', 150)), frames = Number(opt('frames', 40)), fps = Number(opt('fps', 60));
 const shot = opt('shot', '')                    // a bookmark name (a view, with @ variants) applied once ready
 const probe = opt('probe', '')                  // JS evaluated after the warm-up; its value is printed
+const settleMs = Number(opt('settleMs', 3000))  // real time to let pipelines compile before the frame loop is held (a cold run compiles for seconds)
+const windStart = opt('windStart', '')          // wind offset (m, "x,y,z") set right after the frame loop is held, so every run starts its warm-up from the same clouds
 const setup = opt('setup', ''), windOffset = opt('windOffset', '');
 const every = Number(opt('every', 1));          // capture every n-th frame (the loop still steps one frame at a time)
 const chrome = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -86,12 +88,21 @@ try {
   await cdp.send('Page.enable'); await cdp.send('Runtime.enable'); await cdp.send('Log.enable');
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
   await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: clock });
-  await cdp.send('Page.navigate', { url });
   const ev = expr => cdp.evaluate(expr);
-  await waitFor(() => ev(`(() => { const c = window.__clouds; if (!c) return null; if (c.error) return { error: String(c.error) }; return c.ready ? { ok: true } : null; })()`), 90000, 'window.__clouds.ready');
+  // The bench sometimes starts without its sky pass (no clouds, nothing to measure; seen on a loaded machine): reload until the pass reports a time.
+  for (let attempt = 1; ; attempt++) {
+    await cdp.send('Page.navigate', { url });
+    await waitFor(() => ev(`(() => { const c = window.__clouds; if (!c) return null; if (c.error) return { error: String(c.error) }; return c.ready ? { ok: true } : null; })()`), 90000, 'window.__clouds.ready');
+    await sleep(settleMs);
+    const alive = await ev(`(() => { const r = window.__clouds.report && window.__clouds.report(); return !!(r && r.gpuMs && r.gpuMs.skyLayer > 0); })()`).catch(() => false);
+    if (alive) break;
+    if (attempt >= 6) throw new Error('the sky pass never started (6 loads)');
+    console.error(`no sky pass on load ${attempt}; reloading`);
+  }
   const run = async n => { await ev(`window.__step.go(${n})`); await waitFor(() => ev('window.__step.left === 0'), 120000, 'frames'); await sleep(60); };
   await ev('window.__step.hold(true)');
   if (shot) await ev(`window.__clouds.bookmark(${JSON.stringify(shot)})`);
+  if (windStart) await ev(`__tune.set('c.windOffset', [${windStart}])`);
   if (setup) await ev(setup);
   await run(warm);
   if (probe) console.log('probe:', JSON.stringify(await ev(probe)));
