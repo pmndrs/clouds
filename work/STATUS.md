@@ -5,7 +5,9 @@ The one page to check. Everything left to do, by track: `work/ROADMAP.md`. Updat
 Updated 2026-10-13.
 
 ## Running
-Nothing.
+- **FX1** (Opus): the LH1 switch does nothing live (settings only read at page load: a bug); shadows still change quickly (crossfade over the whole refresh); new sparkle on cloud surfaces (find the cause).
+
+Your notes (2026-10-22): LH1 no visible change (confirmed bug); SH1a shadows still change quickly, want a crossfade; SH1b no clear difference but new sparkle on ridges; storms trusted. **Shaping is drifting back toward foam, not clouds**: revisit as a tuning pass once the phases are through (ROADMAP P18).
 
 ## Waiting on you
 

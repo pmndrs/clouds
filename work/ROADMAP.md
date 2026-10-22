@@ -26,6 +26,7 @@ The procedural sky now has every big Nubis Evolved piece except the terrain-hugg
 | P14 | Weather-state numbers and storm settings tuned by eye → by you | Agent-set | You |
 | P15 | Nubis shade hue | Fixed (LH1, shade grey instead of blue); fine-tune with `diffuseSun` | You |
 | P16 | Cirrus fields for painted / authored maps | Missing: they fall back to the global cirrus (CI1) | S |
+| P18 | Shaping drifting toward "foam" instead of clouds (owner, 2026-10-22) | Tuning pass after the current phases: erosion strength, noise scales, extinction | M |
 | P17 | Bench sometimes starts with a blank sky | Seen once by an agent (SH1), not reproduced | S |
 
 Notes: `docs/research/ne22-coverage.md` (the audit), STATUS "Where we differ".
