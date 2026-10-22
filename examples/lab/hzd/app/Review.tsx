@@ -57,6 +57,8 @@ const ITEMS: Item[] = [
     tip: 'NE22\'s nested rotating rings: the storm\'s detail noise turns about the storm centre in six rings, faster in the middle. Off by default: it costs about 3 ms and the sky\'s temporal blend smears the moving detail (the "pixel soup" NE fixes with motion vectors), so even 1 deg/s looks soft. Needs the storm on (switch below); best from the "storm" view. Tune panel: "Storms and anvils".' },
   { id: 'B1', title: 'cumulus height', src: 'hzd', key: 'tableTypeCumulus', options: [['0.4 standard', 0.4], ['0.6', 0.6], ['0.75 towering', 0.75]],
     tip: 'Where cumulus sits on the profile table: 0.4 is Nubis Evolved\'s value, higher gives taller towers. Tune panel: "Cloud types: profile tables".' },
+  { id: 'LH1', title: 'shade hue (Nubis)', src: 'c', key: 'ambientSaturation', options: [['old: sky blue (1)', 1], ['new: neutral (0.15)', 0.15]], slider: { min: 0, max: 1, step: 0.05 },
+    tip: 'The colour of the sky light a cloud body is lit by where the sun does not reach (the shaded bodies and undersides). Old: the sky\'s own saturated blue. New: mostly grey, a slightly cool grey like the photos\' shade. Only matters under Nubis lighting (A5). Tune panel: "Light: renderer settings" (ambientSaturation; diffuseSun adds warm diffused sunlight to the shade).' },
 ];
 
 export function ReviewSection() {

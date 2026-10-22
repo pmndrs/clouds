@@ -26,6 +26,8 @@ const volQuery = new URLSearchParams(location.search).get('vol')?.match(/^(\d+)x
 if (volQuery) { FIELD.dims = [Number(volQuery[1]), Number(volQuery[2]), Number(volQuery[3])]; FIELD.voxel = Number(volQuery[4]); }
 /** Exposure calibration: our own default (physical sun, ACES at 0.35); the other panes are matched to this one. */
 export const OURS_EXPOSURE = 0.35;
+/** LH1: the HZD bench's default ambientSaturation under Nubis lighting (the library default stays 1). */
+export const HZD_AMBIENT_SATURATION = 0.15;
 
 /** The pane's renderer objects, for pages that drive more than the shared view (the HZD bench's tuning panel). Set once `init` has resolved. */
 export interface OursInternals { clouds: Clouds; proc: ProceduralClouds | undefined; sky: Sky; renderer: WebGPURenderer; camera: PerspectiveCamera }
@@ -72,6 +74,9 @@ export function createOursPane(canvas: HTMLCanvasElement, query: URLSearchParams
     // ?c_<setting>=<number> overrides a runtime setting (as on the species page), e.g. c_lightDebug=2 shows only the ms term.
     if (query.get('phase') === 'mie') clouds.core.settings.phaseModel = 'mie';
     if (query.get('vlight') === 'octave') clouds.core.settings.lightingModel = 'octave';
+    // LH1: the HZD bench's Nubis lighting reads a bodies' shade as sky ambient alone (the sun terms die in the cloud's own shadow), so a shaded body is
+    // the sky's saturated blue (shade B/R about 2.0, photos 1.4-1.55). The M1 ambientSaturation takes the colour out of that ambient (1 = the old look). Before the c_ loop: ?c_ambientSaturation=1 wins.
+    if (force?.shaper === 'hzd' && procLight === 'nubis') clouds.core.settings.ambientSaturation = HZD_AMBIENT_SATURATION;
     for (const key of Object.keys(clouds.core.settings)) { const v = query.get('c_' + key); if (v !== null && typeof (clouds.core.settings as unknown as Record<string, unknown>)[key] === 'number') (clouds.core.settings as unknown as Record<string, number>)[key] = Number(v); }
     // P9-E high layer: ?cirrus=1 turns it on, ?cirrus_cov=0..1, ?cirrus_alt=<m>; ?cirrus_<setting>=N sets any other numeric setting (type, veil, opticalDepth, halo, ...).
     const ci = clouds.core.cirrus.settings as unknown as Record<string, unknown>;

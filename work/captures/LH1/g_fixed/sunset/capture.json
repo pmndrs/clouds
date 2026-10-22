@@ -1,0 +1,60 @@
+{
+  "url": "http://localhost:5391/hzd/?clean=1&view=sunset&motion=0",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-10-22T01:59:39.808Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/LH1/g_fixed/sunset/view.png",
+      "report": {
+        "view": "sunset",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          4,
+          0
+        ],
+        "lookAz": 355,
+        "pitch": 4,
+        "sunElevation": 4,
+        "sunAzimuth": 355,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 40.907135441176464,
+          "lightGridReduce": 5.08063,
+          "lightGrid": 0.094499,
+          "marchNear": 0.41076731666666677,
+          "marchFar": 0.6164231833333332,
+          "shadowMap": 0.5932542105263159,
+          "composite": 1.6712967499999998,
+          "dome": 0.8589778,
+          "skyLayer": 30.59296863333334,
+          "skyResolve": 2.330081166666667,
+          "cloudsTotal": 42.24889806052632,
+          "total": 83.15603350170278
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://localhost:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a132829844bf6b0f6/node_modules/.vite/deps/chunk-KURAALNQ.js?v=dced54bd:1465:24)\n    at _Scheduler2.executeFrame (http://localhost:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a132829844bf6b0f6/node_modules/.vite/deps/chunk-KURAALNQ.js?v=dced54bd:1421:12)\n    at http://localhost:5391/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a132829844bf6b0f6/node_modules/.vite/deps/chunk-KURAALNQ.js?v=dced54bd:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
