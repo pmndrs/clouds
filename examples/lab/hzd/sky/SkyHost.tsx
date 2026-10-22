@@ -36,6 +36,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
       c: core.settings as unknown as Record<string, unknown>,
       sky: core.skyLayer.settings as unknown as Record<string, unknown>,
       cirrus: core.cirrus.settings as unknown as Record<string, unknown>,
+      shadow: core.shadowMap.settings as unknown as Record<string, unknown>,
     };
     const get = bench.getState;
     const tuner = createHzdTuner({
@@ -57,6 +58,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     tuner.refresh();
     weatherFromQuery(query);
     (window as unknown as { __tune: unknown }).__tune = tuner;
+    (window as unknown as { __hzd: unknown }).__hzd = { core, proc };   // console / capture scripts: settings, shadow map info, the procedural model
     return { pane, clouds, proc, core, sources, renderer, tuner };
   })();
   started.set(renderer, p);

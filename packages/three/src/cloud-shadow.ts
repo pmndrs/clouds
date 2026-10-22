@@ -38,6 +38,7 @@ export function createCloudShadow(runtime: CloudRuntime): CloudShadowState {
   const uNear = uniform(new Vector4(0, 0, 8, 0)).setGroup(renderGroup);   // window min cell xy, cell size, window size (0 = absent)
   const uFar = uniform(new Vector4(0, 0, 64, 0)).setGroup(renderGroup);
   const uMisc = uniform(new Vector4(0, 16, 0.6, 0)).setGroup(renderGroup); // valid, blend cells, strength
+  const uAdv = uniform(new Vector4(0, 0, 0, 0)).setGroup(renderGroup);     // SH1: xy = how far the clouds have moved since the map's snapshot (m)
   
   // (tau, weight) of one cascade at plane point q.
   const cascade = (tex: StorageTexture, c: AnyNode, q: AnyNode) => {
@@ -55,7 +56,7 @@ export function createCloudShadow(runtime: CloudRuntime): CloudShadowState {
 
   const node = (positionNode: AnyNode = positionWorld) => Fn(() => {
     const p = positionNode;
-    const q = p.xz.add(uSun.xz.mul(uSun.w.sub(p.y).div(max(uSun.y, float(1e-3)))));
+    const q = p.xz.add(uSun.xz.mul(uSun.w.sub(p.y).div(max(uSun.y, float(1e-3))))).sub(uAdv.xy);
     const nr = cascade(textures.near, uNear, q);
     const fr = cascade(textures.far, uFar, q);
     const tau = nr.x.mul(nr.y).add(float(1).sub(nr.y).mul(fr.x).mul(fr.y));
@@ -71,6 +72,7 @@ export function createCloudShadow(runtime: CloudRuntime): CloudShadowState {
       (uNear.value as Vector4).set(p[4], p[5], p[6], p[7]);
       (uFar.value as Vector4).set(p[8], p[9], p[10], p[11]);
       (uMisc.value as Vector4).set(sm.info.valid ? 1 : 0, p[13], rt.settings.shadowStrength, 0);
+      (uAdv.value as Vector4).set(p[28], p[29], 0, 0);
     },
     dispose() { textures.near.dispose(); textures.far.dispose(); },
   };

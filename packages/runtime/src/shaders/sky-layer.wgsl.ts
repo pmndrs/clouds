@@ -21,10 +21,10 @@ export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
 } as const;
 /**
- * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 7 vec4 = 84 floats, written every frame), then H4's static part written once at
+ * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 8 vec4 = 88 floats, written every frame), then H4's static part written once at
  * creation: the profile tables' top ends (16 vec4, 64 floats), the two N3 s18 tables and their column peaks (768 vec4<u32>: 3 x 64 x 64 bytes).
  */
-export const SKY_PARAM_FLOATS = 84;
+export const SKY_PARAM_FLOATS = 88;
 /** H4: word offsets of the static part (the tables' top ends, then the packed tables) in the params buffer. */
 export const SKY_TABLE_TOP_OFFSET = SKY_PARAM_FLOATS;
 export const SKY_LUT_OFFSET = SKY_TABLE_TOP_OFFSET + 64;
@@ -83,6 +83,7 @@ struct SkyParams {
   tableB: vec4<f32>,   // H4: x bottom type (< 0: the world field), y / z the field's range, w the field's feature size (m)
   erosion: vec4<f32>,  // H4 (S4): x erosion law (0 ValueErosion, 1 HZD additive with inverted noise, 2 Nubis Evolved, 3 additive with the raw noise); yzw 0
   cloudMotion: vec4<f32>, // C2: x, y, z the clouds' world displacement since the last frame (m; the wind offset's change times the cloud speed), w = 1 when the resolve follows it
+  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp); yzw 0
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
@@ -947,6 +948,39 @@ ${SKY_PARAMS_WGSL}
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.histBack}) var histBack: texture_2d<f32>;
 @group(1) @binding(${SKY_RESOLVE_BINDINGS.histBackOut}) var histBackOut: texture_storage_2d<rgba16float, write>;
 
+// SH1b: the history at uv with a Catmull-Rom filter (the 5-tap form: bilinear taps at the 3x3 neighbourhood's weight-merged positions, corners dropped),
+// clamped to the range of the four nearest texels so the negative lobes cannot ring. A bilinear history fetch blurs a little more each frame the
+// clouds move by a fraction of a pixel (the history is resampled every frame); the cubic keeps the detail. With uv on a texel centre it returns that texel.
+fn historyCatmull(uv: vec2<f32>) -> vec4<f32> {
+  let size = frame.renderSize;
+  let pos = uv * size;
+  let t1 = floor(pos - 0.5) + 0.5;
+  let f = pos - t1;
+  let w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+  let w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+  let w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+  let w3 = f * f * (-0.5 + 0.5 * f);
+  let w12 = w1 + w2;
+  let t12 = t1 + w2 / w12;
+  let t0 = (t1 - 1.0) / size;
+  let t3 = (t1 + 2.0) / size;
+  let tc = t12 / size;
+  let c = textureSampleLevel(histColor, histSampler, vec2(tc.x, tc.y), 0.0) * (w12.x * w12.y)
+        + textureSampleLevel(histColor, histSampler, vec2(t0.x, tc.y), 0.0) * (w0.x * w12.y)
+        + textureSampleLevel(histColor, histSampler, vec2(t3.x, tc.y), 0.0) * (w3.x * w12.y)
+        + textureSampleLevel(histColor, histSampler, vec2(tc.x, t0.y), 0.0) * (w12.x * w0.y)
+        + textureSampleLevel(histColor, histSampler, vec2(tc.x, t3.y), 0.0) * (w12.x * w3.y);
+  let wsum = w12.x * w12.y + w0.x * w12.y + w3.x * w12.y + w12.x * w0.y + w12.x * w3.y;
+  let hi = vec2<i32>(size) - vec2<i32>(1);
+  let p0 = clamp(vec2<i32>(t1 - 0.5), vec2<i32>(0), hi);
+  let p1 = clamp(p0 + vec2<i32>(1), vec2<i32>(0), hi);
+  let a = textureLoad(histColor, p0, 0);
+  let b = textureLoad(histColor, vec2<i32>(p1.x, p0.y), 0);
+  let d = textureLoad(histColor, vec2<i32>(p0.x, p1.y), 0);
+  let e = textureLoad(histColor, p1, 0);
+  return clamp(c / wsum, min(min(a, b), min(d, e)), max(max(a, b), max(d, e)));
+}
+
 @compute @workgroup_size(8, 8)
 fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (any(vec2<f32>(gid.xy) >= frame.renderSize)) { return; }
@@ -1016,7 +1050,7 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
         movedPx = length((vec2(n0.x * 0.5 + 0.5, 0.5 - n0.y * 0.5) - uv) * frame.renderSize);
       }
       let moved = smoothstep(0.1, 0.6, movedPx);
-      let h0 = textureSampleLevel(histColor, histSampler, puv, 0.0);
+      let h0 = select(textureSampleLevel(histColor, histSampler, puv, 0.0), historyCatmull(puv), SKY.resolveOpts.x > 0.5);
       let hist = mix(h0, clamp(h0, lo, hi4), moved);
       let histB = textureSampleLevel(histBack, histSampler, puv, 0.0);
       let hdv = textureLoad(histDepth, clamp(vec2<i32>(puv * frame.renderSize), vec2<i32>(0), hi), 0);

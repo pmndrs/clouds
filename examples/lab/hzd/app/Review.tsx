@@ -1,4 +1,4 @@
-// The review section: one switch per default an agent chose (work/STATUS.md A1-A9, B1), old against new, so the owner can flip them
+// The review section: one switch per default an agent chose (work/STATUS.md A1-A9, B1; SH1a, SH1b), old against new, so the owner can flip them
 // on the live sky. Every switch sets the same setting the tune panel (T) has; the panel's group is named in each tip.
 import * as React from 'react';
 import { Button } from '../ui/components/button';
@@ -44,6 +44,10 @@ const ITEMS: Item[] = [
   { id: 'CI1', title: 'cirrus from the map', src: 'cirrus', key: 'source', options: [['old: global', 'global'], ['new: weather map (default)', 'map']],
     show: { label: 'cirrus on', src: 'cirrus', key: 'enabled', on: true, off: false },
     tip: 'Where the high cirrus gets its coverage and type. Old: one global setting plus a 50 km noise. New: the weather map\'s own thin-cloud fields (NE22) set coverage and type per area, around the same global mean (so weather states still work). Needs the cirrus on (switch below; it is off in the bench by default); look up from the "ground", "gp7" or "horizon" view. Tune panel: "High cirrus layer" (cirrus.source) and "Weather map" (ndf.cirrusCells).' },
+  { id: 'SH1a', title: 'ground shadow steadiness', src: 'shadow', key: 'advect', options: [['old: rows as refreshed', false], ['new: slides with the wind', true]],
+    tip: 'How the cloud shadow on the ground behaves while clouds move fast. Old: the map refreshes a slice per frame, each at its own moment, so the shadow steps and tears. New: a sweep is built from one moment, eased in when it lands, and the shadow slides with the wind in between. Set motion to time-lapse (button below) and look at the ground (the "ground" view). Tune panel: "Light: renderer settings" (shadow.advect*).' },
+  { id: 'SH1b', title: 'sky history filter', src: 'sky', key: 'historyFilter', options: [['old: bilinear', 'bilinear'], ['new: Catmull-Rom', 'catmull']],
+    tip: 'How the frame-to-frame blend resamples the previous frame. Old: bilinear, which softens the clouds a little more every frame they move. New: Catmull-Rom (clamped so it does not ring), which keeps the cloud detail. Best seen in time-lapse (button below). Tune panel: "Ray march" (sky.historyFilter).' },
   { id: 'B1', title: 'cumulus height', src: 'hzd', key: 'tableTypeCumulus', options: [['0.4 standard', 0.4], ['0.6', 0.6], ['0.75 towering', 0.75]],
     tip: 'Where cumulus sits on the profile table: 0.4 is Nubis Evolved\'s value, higher gives taller towers. Tune panel: "Cloud types: profile tables".' },
 ];
@@ -56,10 +60,10 @@ export function ReviewSection() {
   const S = rt.sources;
   const put = (src: SourceId, key: string, v: unknown) => { S[src][key] = v; settingsChanged({ refreshTuner: true }); };
   return (
-    <Section title="Review: old vs new (STATUS A1-A9, B1, CI1)">
+    <Section title="Review: old vs new (see work/STATUS.md)">
       <Row>
         <Button onClick={() => setOpen(o => !o)}>{open ? 'hide' : 'show'} the switches</Button>
-        <Tip text="time-lapse motion, to see A6"><Button onClick={() => { S.c.animSpeed = 20; settingsChanged({ refreshTuner: true }); }}>motion: time-lapse</Button></Tip>
+        <Tip text="time-lapse motion, to see A6, SH1a and SH1b"><Button onClick={() => { S.c.animSpeed = 20; settingsChanged({ refreshTuner: true }); }}>motion: time-lapse</Button></Tip>
       </Row>
       {open && ITEMS.map(it => {
         const cur = S[it.src]?.[it.key];

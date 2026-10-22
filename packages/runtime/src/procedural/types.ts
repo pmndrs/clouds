@@ -51,6 +51,8 @@ export interface ProceduralDensityModel {
   readonly ndfMap?: { view: GPUTextureView; tileMeters: number; offset: [number, number] } | null;
   /** C2: the fraction of the wind offset the visible clouds follow (the temporal reprojection shifts its history by it). Absent = 1. */
   readonly motionSpeed?: number;
+  /** SH1: the fraction of the wind offset the cloud bodies follow as the ground shadow sees them (HZD: the mean of the shape and detail noise speeds; the weather map's own, slower drift only gates where bodies form). The shadow map slides by it. Absent = motionSpeed. */
+  readonly shadowSpeed?: number;
   /** X3: the version `update` last returned. */
   readonly version: number;
   /** X3: the lowest and highest altitude (m) the model's clouds can reach, as of the last `update`. */

@@ -4,8 +4,8 @@ import { SKY_FIELD_WGSL, SKY_STRUCT_WGSL } from './sky-layer.wgsl';
 
 /** Refresh pass bindings (group 1). Group 0 is the volume. The light grid takes 3 and 4. */
 export const SHADOW_MAP_BINDINGS = { params: 0, outNear: 1, outFar: 2, lightGrid: 3, skyWeather: 5, skySampler: 6, skyParams: 7, procedural: 8 } as const;
-/** Bytes of the CloudShadowMap uniform: 7 vec4. */
-export const SHADOW_MAP_PARAM_BYTES = 112;
+/** Bytes of the CloudShadowMap uniform: 12 vec4. */
+export const SHADOW_MAP_PARAM_BYTES = 192;
 
 /**
  * Cloud shadow map (P10-A). A world-anchored 2D map of the cloud optical depth along the sun ray.
@@ -32,6 +32,11 @@ struct CloudShadowMap {
   work: vec4<f32>,   // refresh pass: extinction, light density scale, first row, row count
   work2: vec4<f32>,  // refresh pass: sky field on (0/1), shell height (m), march steps, debug gain
   work3: vec4<f32>,  // X3 refresh pass: procedural shell min y, max y (m), march steps (0 = no procedural model), 0
+  adv: vec4<f32>,    // SH1 lookup: xy = how far the clouds have moved since the stored snapshot was taken (m); the lookup reads the map at q - xy
+  rsun: vec4<f32>,   // SH1 refresh pass: the sun and plane height the rows are built with (equal to \`sun\` unless the refresh runs into a back buffer)
+  rnear: vec4<f32>,  // SH1 refresh pass: the window being written (cascade 0). Equal to \`near\` unless the refresh runs into a back buffer (advect)
+  rfar: vec4<f32>,   // the same for cascade 1
+  rshift: vec4<f32>, // SH1 refresh pass: xy = how far the clouds have moved since this sweep's snapshot time (m); the sun ray's start is moved by it
 }
 `;
 
@@ -102,7 +107,9 @@ fn cloudShadowPlanePoint(p: vec3<f32>) -> vec2<f32> {
   let s = csMap.sun.xyz;
   return p.xz + s.xz * ((csMap.sun.w - p.y) / s.y);
 }
-fn cloudShadowTauQ(q: vec2<f32>) -> f32 {
+fn cloudShadowTauQ(q0: vec2<f32>) -> f32 {
+  // SH1: the stored snapshot is older than now; the clouds have moved by adv.xy since, so what is at q now was at q - adv.xy then.
+  let q = q0 - csMap.adv.xy;
   let n = csCascade(csNearTex, csMap.near, q);
   var f = vec2(0.0);
   if (n.y < 1.0) { f = csCascadeCubic(csFarTex, csMap.far, q); }
@@ -149,8 +156,9 @@ ${procedural ?? ''}
 const CS_MAX_RAY = 60000.0;
 
 fn csIntegrate(q: vec2<f32>) -> f32 {
-  let sun = csMap.sun.xyz;
-  let p0 = vec3(q.x, csMap.sun.w, q.y);
+  let sun = csMap.rsun.xyz;
+  // SH1: with a snapshot time (rshift), the ray starts where the clouds were at that time: moved back by the displacement since.
+  let p0 = vec3(q.x + csMap.rshift.x, csMap.rsun.w, q.y + csMap.rshift.y);
   var tau = 0.0;
   // The voxel box: the light grid already holds the sun optical depth from every voxel to the box exit. Read it just inside the
   // entry point (one voxel and a half in, so the trilinear tap is not half clamped to the zero outside), as the old composite path did.
@@ -202,7 +210,7 @@ ${procedural ? `  // X3: the procedural model's clouds between its shell's base 
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let casc = gid.z;
-  let c = select(csMap.near, csMap.far, casc == 1u);
+  let c = select(csMap.rnear, csMap.rfar, casc == 1u);
   let n = i32(c.w);
   if (n < 2 || gid.x >= u32(n) || gid.y >= u32(csMap.work.w)) { return; }
   let sx = i32(gid.x);
@@ -215,6 +223,77 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let tau = csIntegrate(q);
   if (casc == 0u) { textureStore(csOutNear, vec2<i32>(sx, sy), vec4(tau, 0.0, 0.0, 0.0)); }
   else { textureStore(csOutFar, vec2<i32>(sx, sy), vec4(tau, 0.0, 0.0, 0.0)); }
+}
+`;
+}
+
+/** Bindings of the blend pass (group 0). */
+export const SHADOW_BLEND_BINDINGS = { params: 0, prevNear: 1, prevFar: 2, freshNear: 3, freshFar: 4, outNear: 5, outFar: 6 } as const;
+/** Bytes of the blend uniform: 5 vec4. */
+export const SHADOW_BLEND_PARAM_BYTES = 80;
+
+/**
+ * SH1 blend pass: after a sweep lands, the map eases from the old snapshot to the new one instead of switching (the switch would pop, the clouds
+ * having changed shape since). One thread per texel of each cascade (dispatch (N / 8, N / 8, cascades)): out = mix(prev(q - shift), fresh(q), t) where
+ * q is the texel's plane point in the new window, prev is the old snapshot (its own window and cell size, bilinear, toroidal) carried to the new
+ * snapshot's moment by `shift` (the clouds' displacement between the two moments), and fresh is the new snapshot (same window as the output).
+ * Where prev does not cover q the output is fresh. t = 1 copies fresh.
+ *   u.prevNear / u.prevFar / u.newNear / u.newFar: window min cell (x, z), cell size (m), window size (cells; 0 = cascade absent)
+ *   u.misc: xy = shift (m), z = t
+ */
+export function shadowBlendWgsl(): string {
+  return /* wgsl */ `
+struct ShadowBlend { prevNear: vec4<f32>, newNear: vec4<f32>, prevFar: vec4<f32>, newFar: vec4<f32>, misc: vec4<f32> }
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.params}) var<uniform> u: ShadowBlend;
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.prevNear}) var prevNearTex: texture_2d<f32>;
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.prevFar}) var prevFarTex: texture_2d<f32>;
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.freshNear}) var freshNearTex: texture_2d<f32>;
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.freshFar}) var freshFarTex: texture_2d<f32>;
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.outNear}) var outNear: texture_storage_2d<r32float, write>;
+@group(0) @binding(${SHADOW_BLEND_BINDINGS.outFar}) var outFar: texture_storage_2d<r32float, write>;
+
+// Bilinear tau of the old snapshot at plane point q, and whether its window covers q.
+fn prevTau(tex: texture_2d<f32>, pw: vec4<f32>, q: vec2<f32>) -> vec2<f32> {
+  let n = i32(pw.w);
+  if (n < 2) { return vec2(0.0); }
+  let uu = q / max(pw.z, 1e-3) - vec2(0.5);
+  let b = floor(uu);
+  let f = uu - b;
+  let bi = vec2<i32>(b);
+  let rel = bi - vec2<i32>(pw.xy);
+  if (any(rel < vec2<i32>(0)) || any(rel > vec2<i32>(n - 2))) { return vec2(0.0); }
+  let m = vec2<i32>(n - 1);
+  let i0 = bi & m;
+  let i1 = (bi + vec2<i32>(1)) & m;
+  let a = textureLoad(tex, vec2<i32>(i0.x, i0.y), 0).x;
+  let b1 = textureLoad(tex, vec2<i32>(i1.x, i0.y), 0).x;
+  let c1 = textureLoad(tex, vec2<i32>(i0.x, i1.y), 0).x;
+  let d = textureLoad(tex, vec2<i32>(i1.x, i1.y), 0).x;
+  return vec2(mix(mix(a, b1, f.x), mix(c1, d, f.x), f.y), 1.0);
+}
+
+@compute @workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let casc = gid.z;
+  let pw = select(u.prevNear, u.prevFar, casc == 1u);
+  let nw = select(u.newNear, u.newFar, casc == 1u);
+  let n = i32(nw.w);
+  if (n < 2 || gid.x >= u32(n) || gid.y >= u32(n)) { return; }
+  let s = vec2<i32>(gid.xy);
+  let m = vec2<i32>(nw.xy);
+  let mask = n - 1;
+  let cell = vec2<i32>(m.x + ((s.x - m.x) & mask), m.y + ((s.y - m.y) & mask));
+  let q = (vec2<f32>(cell) + 0.5) * nw.z;
+  var fresh = 0.0;
+  if (casc == 0u) { fresh = textureLoad(freshNearTex, s, 0).x; } else { fresh = textureLoad(freshFarTex, s, 0).x; }
+  var v = fresh;
+  let t = u.misc.z;
+  if (t < 1.0) {
+    var p = vec2(0.0);
+    if (casc == 0u) { p = prevTau(prevNearTex, pw, q - u.misc.xy); } else { p = prevTau(prevFarTex, pw, q - u.misc.xy); }
+    if (p.y > 0.5) { v = mix(p.x, fresh, t); }
+  }
+  if (casc == 0u) { textureStore(outNear, s, vec4(v, 0.0, 0.0, 0.0)); } else { textureStore(outFar, s, vec4(v, 0.0, 0.0, 0.0)); }
 }
 `;
 }

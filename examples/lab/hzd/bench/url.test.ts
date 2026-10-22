@@ -4,7 +4,7 @@ import { applySettingOverrides, isSettingKey, paneQuery, readStart, writeQuery, 
 const q = (s: string) => new URLSearchParams(s);
 const sources = (): Sources => ({
   proc: { lightingModel: 'octave' }, hzd: { ndfMotion: 'drift', coverageBias: 0 }, ndf: { seed: 3, tileMeters: 32000 },
-  c: { animSpeed: 1, phaseModel: 'hg', windDirection: [1, 0] }, sky: { temporalBlend: true }, cirrus: { enabled: false, coverage: 0.3 },
+  c: { animSpeed: 1, phaseModel: 'hg', windDirection: [1, 0] }, sky: { temporalBlend: true }, cirrus: { enabled: false, coverage: 0.3 }, shadow: { advect: true },
 });
 
 describe('the React bench URL', () => {
