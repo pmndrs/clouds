@@ -109,7 +109,8 @@ const RANGES: Record<string, { min?: number; max?: number; step?: number }> = {
   'proc.maxSteps': { min: 16, max: 1024, step: 1 }, 'proc.fullLightingAlpha': { min: 0, max: 1, step: 0.01 }, 'proc.octaveDiffuse': { min: 0, max: 2, step: 0.01 },
   'sky.resolutionScale': { min: 0.25, max: 1.5, step: 0.05 }, 'sky.temporalBlend': { min: 0.01, max: 1, step: 0.01 },
   'c.animSpeed': { min: 0, max: 50, step: 0.1 }, 'c.hazeBase': { min: -2000, max: 5000, step: 10 },
-  'cirrus.altitude': { min: 5000, max: 14000, step: 50 }, 'cirrus.coverage': { min: 0, max: 1, step: 0.01 },
+  'cirrus.altitude': { min: 5000, max: 14000, step: 50 }, 'cirrus.coverage': { min: 0, max: 1, step: 0.01 }, 'cirrus.mapScale': { min: 1, max: 32, step: 0.5 }, 'cirrus.mapCoverageGain': { min: 0, max: 3, step: 0.05 }, 'cirrus.mapTypeRange': { min: 0, max: 0.6, step: 0.01 },
+  'ndf.cirrusCells': { min: 1, max: 16, step: 1 }, 'ndf.cirrusTypeCells': { min: 1, max: 16, step: 1 }, 'ndf.cirrusContrast': { min: 0, max: 4, step: 0.05 },
 };
 
 // --- Groups, in pipeline order. `about` is the group's one-line explanation. ---
@@ -117,7 +118,7 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
   { title: 'Weather map (NDF)', about: 'The 2D map that says where clouds are and what kind: coverage, the top type (stratus 0 .. cumulus 1), the bottom type (F2: varies by area, crisp bases under cumulus, soft under stratiform), and each column\'s base and top height. One 32 km tile at 1024^2 (F2; 16 km at 512^2 with every cell count halved is the old tile). Generated from noise (changing these regenerates it). The overall coverage is the sidebar\'s coverage slider (it drives the coverage bias).',
     keys: ['ndf.seed', 'ndf.tileMeters', 'ndf.resolution', 'ndf.coverageCells', 'ndf.islandCells', 'ndf.islandWeight', 'ndf.coverageLo', 'ndf.coverageHi', 'ndf.footprint', 'ndf.worleyCells',
       'ndf.typeCells', 'ndf.typeMin', 'ndf.typeMax', 'hzd.typeBias', 'ndf.bottomType', 'ndf.bottomTypeRange', 'ndf.bottomTypeCells', 'ndf.bottomTypeCorrelation', 'ndf.minHeight', 'ndf.maxHeight', 'ndf.heightVariation', 'ndf.heightCells',
-      'ndf.recipe', 'ndf.gateCells', 'ndf.gateLo', 'ndf.gateHi', 'ndf.footLo', 'ndf.footHi', 'ndf.islandGain', 'ndf.typeContrast', 'ndf.image', 'ndf.heightImage', 'ndf.maskImage', 'ndf.paintBlend', 'ndf.paintCoverage', 'ndf.paintTypes', 'ndf.paintHeights'] },
+      'ndf.recipe', 'ndf.gateCells', 'ndf.gateLo', 'ndf.gateHi', 'ndf.footLo', 'ndf.footHi', 'ndf.islandGain', 'ndf.typeContrast', 'ndf.cirrusCells', 'ndf.cirrusTypeCells', 'ndf.cirrusContrast', 'ndf.image', 'ndf.heightImage', 'ndf.maskImage', 'ndf.paintBlend', 'ndf.paintCoverage', 'ndf.paintTypes', 'ndf.paintHeights'] },
   { title: 'Cloud types and height profiles', about: 'How tall the layer is and, with profileMode nutshell, the shape of each type\'s height gradient (the Nutshell trapezoids for stratus, stratocumulus and cumulus): how types blend, how round the tops are. Also where the base fades in. The default profile is the tables (next groups).',
     keys: ['hzd.layerBottom', 'hzd.layerTop', 'hzd.typeBlend', 'hzd.topRound', 'hzd.profileSmooth', 'hzd.heightFromCoverage', 'hzd.heightCoverageRef', 'hzd.baseFadeMin', 'hzd.baseFadeHeight', 'hzd.baseLump'] },
   { title: 'Shape noise and the coverage remap', about: 'The 3D low-frequency noise that forms the bodies, and how coverage carves it (cloud where noise x gradient > 1 - coverage). Also the density and the build stage, to compare with GPU Pro 7\'s figures.',
@@ -153,7 +154,7 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
     keys: ['c.ambientStrength', 'c.ambientFloor', 'c.ambientSkyBias', 'c.ambientSaturation', 'c.ambientWarmth', 'c.groundAlbedo', 'c.msStrength', 'c.microShadow', 'c.phaseModel', 'c.phaseG', 'c.silverG', 'c.silverStrength',
       'c.hazeDensity', 'c.hazeHeight', 'c.hazeBase', 'c.shadowStrength', 'c.compositeShadow'] },
   { title: 'High cirrus layer', about: 'The 2.5D cirrus slab above the volume (NE 2022 p.64-68): streaky, wispy or round (cirrocumulus), with an optional cirrostratus veil and halo. Off by default.',
-    keys: ['cirrus.enabled', 'cirrus.altitude', 'cirrus.thickness', 'cirrus.coverage', 'cirrus.type', 'cirrus.veil', 'cirrus.opticalDepth', 'cirrus.scale', 'cirrus.detail', 'cirrus.coverageVariation', 'cirrus.coverageFadeNe22', 'cirrus.halo', 'cirrus.shadowStrength', 'cirrus.windVelocity', 'cirrus.animSpeed'] },
+    keys: ['cirrus.enabled', 'cirrus.altitude', 'cirrus.thickness', 'cirrus.coverage', 'cirrus.type', 'cirrus.veil', 'cirrus.opticalDepth', 'cirrus.scale', 'cirrus.detail', 'cirrus.coverageVariation', 'cirrus.source', 'cirrus.mapScale', 'cirrus.mapCoverageGain', 'cirrus.mapTypeRange', 'cirrus.coverageFadeNe22', 'cirrus.halo', 'cirrus.shadowStrength', 'cirrus.windVelocity', 'cirrus.animSpeed'] },
   { title: 'Debug', about: 'Diagnostic views: the procedural trace\'s step count, hit distance or profile, the sky layer\'s own views, or one lighting term at a time.',
     keys: ['proc.debug', 'sky.debug', 'c.lightDebug'] },
 ];

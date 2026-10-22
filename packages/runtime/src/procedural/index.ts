@@ -143,6 +143,8 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   let shell: [number, number] = [0, 1];
   let midView: { tex: GPUTexture; view: GPUTextureView } | null = null;
   const midNdfView = (tex: GPUTexture) => (midView?.tex === tex ? midView : (midView = { tex, view: tex.createView({ dimension: '2d-array' }) })).view;
+  const mapViews = new WeakMap<GPUTexture, GPUTextureView>();   // CI1: ndfMap's views (the mid layer's single-entry cache above would thrash against a different texture)
+  const mapView = (tex: GPUTexture) => { let v = mapViews.get(tex); if (!v) { v = tex.createView({ dimension: '2d-array' }); mapViews.set(tex, v); } return v; };
   let lastWind: [number, number, number] = [0, 0, 0];   // L3: the wind offset of the last update, for the mid-level layer
   // Trace pipelines by shaper and lighting mode (compiled asynchronously), the pass layout they share, and the cached bind groups (the pass
   // entries ping-pong with the voxel march's history, so a few are kept).
@@ -283,6 +285,11 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         { binding: B.aux, resource: t.turbulence.createView() },
         { binding: B.sampler, resource: sampler },
       ];
+    },
+    get ndfMap() {
+      // CI1: the served map (weather transitions included), cached view.
+      const n = settings.shaper === 'hzd' ? served() : null;
+      return n ? { view: mapView(n.texture), tileMeters: settings.hzd.ndf.tileMeters, offset: [lastWind[0] * params[140], lastWind[2] * params[140]] as [number, number] } : null;
     },
     get midLayer(): MidLayerState | null {
       // L3: the HZD mid slot's altocumulus / altostratus as the 2.5D layer (layer or hybrid mode).

@@ -47,6 +47,8 @@ export interface ProceduralDensityModel {
   update(time: number, view: { camera: ArrayLike<number>; wind: ArrayLike<number> }): { version: number };
   /** L3: the mid-level 2.5D layer to draw this frame, or null (volume mode, no alto form in the mid slot, other shapers). As of the last `update`. */
   readonly midLayer?: MidLayerState | null;
+  /** CI1: the weather map as served now (generated, weather-composed, painted), for another pass that reads it per area (the cirrus layer's `source: 'map'`). Null for other shapers. */
+  readonly ndfMap?: { view: GPUTextureView; tileMeters: number; offset: [number, number] } | null;
   /** C2: the fraction of the wind offset the visible clouds follow (the temporal reprojection shifts its history by it). Absent = 1. */
   readonly motionSpeed?: number;
   /** X3: the version `update` last returned. */

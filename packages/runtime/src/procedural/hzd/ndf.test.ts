@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { defaultProceduralSettings, HZD_NDF_DEFAULTS, HZD_NDF_TILE_16KM, hzdNdfKey, packProceduralParams, PROC_PARAM_FLOATS } from '../settings';
-import { HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL } from './ndf.wgsl';
+import { HZD_NDF_COMPOSE_WGSL, HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL } from './ndf.wgsl';
 import { hzdNdfImageKey, packHzdNdfGen } from './ndf';
 
 describe('W1 weather map (NDF generator)', () => {
-  it('packs the generator uniform to the NdfGen struct (8 vec4) with the recipe switch', () => {
+  it('packs the generator uniform to the NdfGen struct (9 vec4) with the recipe switch', () => {
     const g = packHzdNdfGen(HZD_NDF_DEFAULTS);
-    expect(g.length).toBe(32);
-    expect((HZD_NDF_GEN_WGSL.match(/: vec4<f32>,/g) ?? []).length).toBe(8);
+    expect(g.length).toBe(36);
+    expect((HZD_NDF_GEN_WGSL.match(/: vec4<f32>,/g) ?? []).length).toBe(9);
     // STORM1: the default blob in uv units (metres / tile), amount last
     expect(Array.from(g.subarray(28, 32))).toEqual([Math.fround(HZD_NDF_DEFAULTS.stormX / HZD_NDF_DEFAULTS.tileMeters), Math.fround(HZD_NDF_DEFAULTS.stormZ / HZD_NDF_DEFAULTS.tileMeters), Math.fround(HZD_NDF_DEFAULTS.stormRadius / HZD_NDF_DEFAULTS.tileMeters), HZD_NDF_DEFAULTS.stormBlob]);
     expect(g[20]).toBe(HZD_NDF_DEFAULTS.recipe === 'n17' ? 1 : 0);
@@ -63,5 +63,13 @@ describe('W1 map-advection policy', () => {
     expect(speeds('rigid')).toEqual([0.5, 0.5, 0.5, 0]);
     expect(speeds('shape')).toEqual([0.5, 0.5, 0.8, 0.1]);
     expect(speeds('detail')).toEqual([0.5, 1, 0.5, 0.1]);
+  });
+  it('CI1: the cirrus fields are in the alphas, packed, keyed and passed through the compose pass', () => {
+    const g = packHzdNdfGen(HZD_NDF_DEFAULTS);
+    expect(Array.from(g.subarray(32, 35))).toEqual([HZD_NDF_DEFAULTS.cirrusCells, HZD_NDF_DEFAULTS.cirrusTypeCells, Math.fround(HZD_NDF_DEFAULTS.cirrusContrast)]);
+    for (const k of ['cirrusCells', 'cirrusTypeCells', 'cirrusContrast'] as const) expect(hzdNdfKey({ ...HZD_NDF_DEFAULTS, [k]: HZD_NDF_DEFAULTS[k] + 1 })).not.toBe(hzdNdfKey(HZD_NDF_DEFAULTS));
+    expect(HZD_NDF_GEN_WGSL).toContain('0.1 + 0.9 * cirType');
+    expect(HZD_NDF_COMPOSE_WGSL).toContain('a0.b, a0.a)');
+    expect(HZD_NDF_COMPOSE_WGSL).toContain('l1.a);');
   });
 });

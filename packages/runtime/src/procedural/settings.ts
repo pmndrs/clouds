@@ -170,6 +170,12 @@ export interface HzdNdfSettings {
   bottomTypeRange: number;
   bottomTypeCells: number;
   bottomTypeCorrelation: number;
+  // ---- CI1: the thin-cloud (cirrus) fields in the map's two spare alpha channels (NE22's own thin-cloud NDF). ----
+  /** CI1: the cirrus coverage field written into the map (layer 1, A): a 3-octave fBM from `cirrusCells` cells per sampled cirrus tile (the cirrus layer reads the map `cirrus.mapScale` times larger than the low clouds), 0.5 +- `cirrusContrast` x fBM. Read only while `cirrus.source` is 'map'. */
+  cirrusCells: number;
+  /** CI1: the cirrus type field (layer 0, A, stored as 0.1 + 0.9 x type so 0 means "no data"): a 2-octave fBM from `cirrusTypeCells` cells per sampled cirrus tile, the same contrast. The layer moves its type about its own `type` by `cirrus.mapTypeRange` x (field - 0.5) x 2. */
+  cirrusTypeCells: number;
+  cirrusContrast: number;
 }
 
 /** H1: the HZD reference shaper (GPU Pro 7 chain). Metres unless noted. */
@@ -581,6 +587,8 @@ export const HZD_NDF_DEFAULTS: HzdNdfSettings = {
   stormBlob: 1, stormX: -4500, stormZ: -10500, stormRadius: 3000,
   // F2 per-area bases (bottomType above is the field's centre)
   bottomTypeRange: 1.5, bottomTypeCells: 6, bottomTypeCorrelation: -0.6,
+  // CI1 thin-cloud fields
+  cirrusCells: 4, cirrusTypeCells: 3, cirrusContrast: 1.6,
 };
 /** F2: the 16 km tile at 512^2 (H1-W1's tile, F2 step 2's captures): `Object.assign(settings.hzd.ndf, HZD_NDF_TILE_16KM)`, or the URL
  *  hzn_tileMeters=16000&hzn_resolution=512&hzn_coverageCells=9&hzn_islandCells=2&hzn_typeCells=2&hzn_worleyCells=6&hzn_gateCells=3&hzn_bottomTypeCells=3&hzn_heightCells=3 */
@@ -695,7 +703,7 @@ export const HZD_DEFAULTS: HzdShape = {
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
 /** The NDF generator's inputs as a cache key: a new key re-generates the map. */
 export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverageCells, n.islandCells, n.islandWeight, n.coverageLo, n.coverageHi, n.typeCells, n.typeMin, n.typeMax, n.bottomType, n.minHeight, n.maxHeight, n.heightVariation, n.heightCells, n.footprint, n.worleyCells,
-  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation, n.stormBlob, n.stormX, n.stormZ, n.stormRadius].join(',');
+  n.recipe, n.gateCells, n.gateLo, n.gateHi, n.footLo, n.footHi, n.islandGain, n.typeContrast, n.bottomTypeRange, n.bottomTypeCells, n.bottomTypeCorrelation, n.stormBlob, n.stormX, n.stormZ, n.stormRadius, n.cirrusCells, n.cirrusTypeCells, n.cirrusContrast].join(',');
 
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {

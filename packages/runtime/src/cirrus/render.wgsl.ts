@@ -2,7 +2,7 @@ import { COMMON_WGSL } from '../shaders/common.wgsl';
 import { FRAME_WGSL } from '../shaders/frame.wgsl';
 import { atmosphereWgsl } from '../shaders/atmosphere.wgsl';
 
-export const CIRRUS_PARAM_BYTES = 9 * 16;
+export const CIRRUS_PARAM_BYTES = 10 * 16;
 export const CIRRUS_ATMOSPHERE_GROUP = 2;
 
 /**
@@ -42,6 +42,7 @@ struct CirrusParams {
   ndf: vec4<f32>,     // L3: weather-map influence (0 = off), map tile (m), map offset x, z (m)
   ndf2: vec4<f32>,    // L3: type at stratiform (topType 0) and cumuliform (1) places, coverage gain, coverage centre (the map's typical coverage)
   blend: vec4<f32>,   // L3: distance cross-fade with a volume: the layer is 0 inside start, 1 beyond end (m, to the layer hit); end <= start = always 1; z = edge softness; w = 1: NE22's cov^3 fade
+  cmap: vec4<f32>,    // CI1: x = 1: read the thin-cloud fields from the weather map (alphas), y = coverage gain, z = type range, w = map tiles per cirrus tile (the map is read this many times wider)
 }
 // The output: one texel per composite pixel, row-major at the composite's width, rgba as two pack2x16float words (the composite is at the
 // per-stage sampled-texture limit, so it reads a storage buffer).
@@ -138,6 +139,17 @@ fn cirrusDensity(n: vec4<f32>, fine: f32, veilBase: f32, cov: f32, type_: f32, v
 // L3: coverage, type and veil at the world point p: the layer's own values, moved by the weather map where its influence is on (altocumulus
 // cells where the map says cumuliform, a smooth altostratus sheet where it says stratiform; coverage follows the map's coverage).
 fn localLook(p: vec3<f32>, cov: f32) -> vec3<f32> {
+  // CI1: NE22's thin-cloud NDF: coverage (layer 1 alpha) and type (layer 0 alpha, stored 0.1 + 0.9 x type) per area, read at the layer's own wind, several tiles wide.
+  // They move the global coverage and type (the weather states set the mean). Alpha 0 = a map without the fields: the global look (with its 50 km variation).
+  if (cp.cmap.x > 0.5) {
+    let uv = (p.xz - cp.wind.xy) / (cp.ndf.y * cp.cmap.w);
+    let t0 = textureSampleLevel(ndfTex, noiseSampler, uv, 0, 0.0).a;
+    if (t0 > 0.05) {
+      let c1 = textureSampleLevel(ndfTex, noiseSampler, uv, 1, 0.0).a;
+      let ty = (t0 - 0.1) / 0.9;
+      return vec3(saturate(cp.shape.x + cp.cmap.y * (c1 - 0.5)), saturate(cp.shape.y + cp.cmap.z * 2.0 * (ty - 0.5)), cp.shape.z);
+    }
+  }
   if (cp.ndf.x <= 0.0) { return vec3(cov, cp.shape.y, cp.shape.z); }
   let a = textureSampleLevel(ndfTex, noiseSampler, (p.xz - cp.ndf.zw) / cp.ndf.y, 0, 0.0);
   let k = cp.ndf.x;

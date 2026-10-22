@@ -1412,7 +1412,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
 
       // P9-E: the high cloud layer at the composite's size; the composite merges it behind everything (in front from above it).
-      cirrus.encode(encoder, { frameBuffer: frameUniforms[0], depth: frame.depth, skyLightBuffer, atmosphere: uniformLighting ? undefined : frame.atmosphere, width: outCW, height: outCH, cameraPosition: frame.cameraPosition, time: frame.time, timer });
+      cirrus.encode(encoder, { frameBuffer: frameUniforms[0], depth: frame.depth, skyLightBuffer, atmosphere: uniformLighting ? undefined : frame.atmosphere, width: outCW, height: outCH, cameraPosition: frame.cameraPosition, time: frame.time, timer, ndf: cirrus.settings.source === 'map' && procOn ? proc!.ndfMap ?? null : null });
       if (cirrus.bindKey !== cirrusKey) { cirrusKey = cirrus.bindKey; compositeGroups.fill(undefined); }
       // L3: the mid-level 2.5D layer (the model's altocumulus / altostratus beyond the volume's reach), between the low clouds and the cirrus.
       {

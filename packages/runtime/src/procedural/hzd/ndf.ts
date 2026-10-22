@@ -4,7 +4,7 @@ import { hzdNdfKey } from '../settings';
 import { HZD_NDF_COMPOSE_WGSL, HZD_NDF_GEN_WGSL, HZD_NDF_IMAGE_WGSL, HZD_NDF_PAINT_IMAGE_WGSL } from './ndf.wgsl';
 
 export interface HzdNdf {
-  /** rgba8unorm 2D array, 2 layers: 0 = (coverage, topType, bottomType, 0), 1 = (minHeight, maxHeight, storm, 0). */
+  /** rgba8unorm 2D array, 2 layers: 0 = (coverage, topType, bottomType, cirrusType), 1 = (minHeight, maxHeight, storm, cirrusCoverage). CI1: the alphas are the thin-cloud fields (cirrusType stored 0.1 + 0.9 x type; 0 = no data, as in authored and image-overlaid maps). */
   texture: GPUTexture;
   /** hzdNdfKey of the settings it was generated from ('' for uploaded data). */
   key: string;
@@ -24,6 +24,8 @@ export function packHzdNdfGen(n: HzdNdfSettings): Float32Array<ArrayBuffer> {
     n.footLo, Math.max(n.footHi, n.footLo + 1e-3), n.typeContrast, n.islandGain,
     // STORM1: the default storm blob in uv units (the generator's uv * tile = world metres)
     n.stormX / n.tileMeters, n.stormZ / n.tileMeters, Math.max(n.stormRadius, 1) / n.tileMeters, Math.max(n.stormBlob, 0),
+    // CI1: the thin-cloud fields
+    n.cirrusCells, n.cirrusTypeCells, n.cirrusContrast, 0,
   ]);
 }
 
