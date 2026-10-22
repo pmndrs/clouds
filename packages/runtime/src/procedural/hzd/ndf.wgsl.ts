@@ -121,7 +121,7 @@ fn generate(@builtin(global_invocation_id) id: vec3<u32>) {
   if (G.storm.w > 0.0) {
     var dq = uv - G.storm.xy;
     dq -= round(dq);
-    let wob = 1.0 + 0.45 * ndfFbm(uv, 24.0, 2u, seed + 801u);
+    let wob = 1.0 + 0.2 * ndfFbm(uv, 12.0, 2u, seed + 801u);   // ST2: gentler and larger (was 0.45 at 24 cells): the anvil footprint dilates this outline, ragged edges made the plate lumpy
     stormV = G.storm.w * (1.0 - smoothstep(0.15, 1.0, length(dq) / (G.storm.z * max(wob, 0.3))));
   }
   textureStore(ndfOut, id.xy, 1, vec4(minHeight, maxHeight, stormV, cirCov));

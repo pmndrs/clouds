@@ -412,6 +412,13 @@ export interface HzdShape {
   /** STORM1: the map tiles, so a storm in it would repeat every `ndf.tileMeters`. true (default) = the storm channel counts only in the one tile around
    *  the world origin (fading over its outer 12 %); false = it repeats with the map. */
   stormSingle: boolean;
+  /** ST2: how the anvil plate's footprint is built from the storm area. 'smooth' (default) = a blurred dilation (16 taps averaged over an elliptical kernel
+   *  centred downwind: one smooth teardrop plate, a lens-thin overhanging edge); 'taps' = STORM1's soft union of 8 shifted taps (lumpy, kept). */
+  stormAnvilShape: 'smooth' | 'taps';
+  /** ST2 rotation (NE22 p.147-158, HFW p.59-62): the storm's detail noise turns about the storm centre in six nested rings, each its own speed (falling
+   *  outward, x0.6 per ring), a per-ring twist and a blended overlap between rings. This is the inner ring's speed in degrees per second (0 = off, the
+   *  default). Costs a second detail read in the overlap bands. Needs a storm; the sky's temporal blend smears fast rotation (HFW's "pixel soup"). */
+  stormRotation: number;
   /** F1 step 3: two sheet layers with their own forms (photos §5-7, web18 Table 2, ne22 p.15-16): 'altocumulus' = jittered cells (the shape
    *  texture's Worley fBM read flat, elongated `cellElongation`:1 along the wind, cell size `cellSize` m) under a large-scale coverage mask,
    *  flat bases and lumpy domed tops; 'altostratus' = a soft mottled sheet; 'stratus' = a flat-based low deck with a gently lumpy top.
@@ -602,7 +609,7 @@ export const HZD_FORM_DEFAULTS = {
   bottomTypeBias: 0, bottomTypeVariation: 0, bottomTypeTile: 24000, tableFloor: PROFILE_TABLE_FLOOR,
   anvilBias: 0, anvilClamp: true, anvilFlatten: 0, anvilDensityFix: 0,
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
-  stormSource: 'cell', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7, stormSingle: true,
+  stormSource: 'map', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7, stormSingle: true, stormAnvilShape: 'smooth', stormRotation: 0,
   midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
   midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
   deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
@@ -668,7 +675,7 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_STORM_OFFSET;
   out.set([hz.stormSource === 'map' ? 1 : 0, Math.max(hz.anvilCirrus, 0), Math.max(hz.anvilCirrusLength, 0), Math.max(hz.anvilCirrusDepth, 1)], o);
   out.set([Math.max(hz.stormDensity, 0), Math.min(Math.max(hz.stormDark, 0), 1), Math.max(hz.stormGlow, 0), Math.max(hz.stormFlashRate, 0)], o + 4);
-  out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, 0, 0], o + 8);
+  out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, hz.stormAnvilShape === 'taps' ? 1 : 0, hz.stormRotation > 0 ? 1e-4 : 0], o + 8);   // w: the rotation phase, written per frame by the runtime
 }
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
