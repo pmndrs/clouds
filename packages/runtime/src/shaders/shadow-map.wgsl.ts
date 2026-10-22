@@ -4,8 +4,8 @@ import { SKY_FIELD_WGSL, SKY_STRUCT_WGSL } from './sky-layer.wgsl';
 
 /** Refresh pass bindings (group 1). Group 0 is the volume. The light grid takes 3 and 4. */
 export const SHADOW_MAP_BINDINGS = { params: 0, outNear: 1, outFar: 2, lightGrid: 3, skyWeather: 5, skySampler: 6, skyParams: 7, procedural: 8 } as const;
-/** Bytes of the CloudShadowMap uniform: 7 vec4. */
-export const SHADOW_MAP_PARAM_BYTES = 112;
+/** Bytes of the CloudShadowMap uniform: 12 vec4. */
+export const SHADOW_MAP_PARAM_BYTES = 192;
 
 /**
  * Cloud shadow map (P10-A). A world-anchored 2D map of the cloud optical depth along the sun ray.
@@ -32,6 +32,11 @@ struct CloudShadowMap {
   work: vec4<f32>,   // refresh pass: extinction, light density scale, first row, row count
   work2: vec4<f32>,  // refresh pass: sky field on (0/1), shell height (m), march steps, debug gain
   work3: vec4<f32>,  // X3 refresh pass: procedural shell min y, max y (m), march steps (0 = no procedural model), 0
+  adv: vec4<f32>,    // SH1 lookup: xy = how far the clouds have moved since the stored snapshot was taken (m); the lookup reads the map at q - xy
+  rsun: vec4<f32>,   // SH1 refresh pass: the sun and plane height the rows are built with (equal to \`sun\` unless the refresh runs into a back buffer)
+  rnear: vec4<f32>,  // SH1 refresh pass: the window being written (cascade 0). Equal to \`near\` unless the refresh runs into a back buffer (advect)
+  rfar: vec4<f32>,   // the same for cascade 1
+  rshift: vec4<f32>, // SH1 refresh pass: xy = how far the clouds have moved since this sweep's snapshot time (m); the sun ray's start is moved by it
 }
 `;
 
@@ -102,7 +107,9 @@ fn cloudShadowPlanePoint(p: vec3<f32>) -> vec2<f32> {
   let s = csMap.sun.xyz;
   return p.xz + s.xz * ((csMap.sun.w - p.y) / s.y);
 }
-fn cloudShadowTauQ(q: vec2<f32>) -> f32 {
+fn cloudShadowTauQ(q0: vec2<f32>) -> f32 {
+  // SH1: the stored snapshot is older than now; the clouds have moved by adv.xy since, so what is at q now was at q - adv.xy then.
+  let q = q0 - csMap.adv.xy;
   let n = csCascade(csNearTex, csMap.near, q);
   var f = vec2(0.0);
   if (n.y < 1.0) { f = csCascadeCubic(csFarTex, csMap.far, q); }
@@ -149,8 +156,9 @@ ${procedural ?? ''}
 const CS_MAX_RAY = 60000.0;
 
 fn csIntegrate(q: vec2<f32>) -> f32 {
-  let sun = csMap.sun.xyz;
-  let p0 = vec3(q.x, csMap.sun.w, q.y);
+  let sun = csMap.rsun.xyz;
+  // SH1: with a snapshot time (rshift), the ray starts where the clouds were at that time: moved back by the displacement since.
+  let p0 = vec3(q.x + csMap.rshift.x, csMap.rsun.w, q.y + csMap.rshift.y);
   var tau = 0.0;
   // The voxel box: the light grid already holds the sun optical depth from every voxel to the box exit. Read it just inside the
   // entry point (one voxel and a half in, so the trilinear tap is not half clamped to the zero outside), as the old composite path did.
@@ -202,7 +210,7 @@ ${procedural ? `  // X3: the procedural model's clouds between its shell's base 
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let casc = gid.z;
-  let c = select(csMap.near, csMap.far, casc == 1u);
+  let c = select(csMap.rnear, csMap.rfar, casc == 1u);
   let n = i32(c.w);
   if (n < 2 || gid.x >= u32(n) || gid.y >= u32(csMap.work.w)) { return; }
   let sx = i32(gid.x);
