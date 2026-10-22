@@ -47,6 +47,12 @@ export interface SkyLayerSettings {
    * and trusts the history less as the motion grows. Off = the camera-only reprojection (clouds smear when time is sped up). Procedural trace only.
    */
   temporalCloudMotion: boolean;
+  /**
+   * SH1b: how the resolve fetches the reprojected history. 'bilinear': the hardware filter (the history is resampled every frame the view or the
+   * clouds move by a fraction of a pixel, and each resample softens it). 'catmull': a Catmull-Rom filter (5 taps) clamped to the four nearest texels,
+   * which keeps the detail. Same cost class (the resolve pass only). Default 'catmull'.
+   */
+  historyFilter: 'bilinear' | 'catmull';
   /** Debug view (0 = off): 1 first-hit distance, 2 step count, 3 depthMax, 4 no billow, 5 profile at first hit, 6 no jitter, 7 depth at first hit. */
   debug: number;
   /**
@@ -184,7 +190,7 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, debug: 0, bakeRows: 24,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'catmull', debug: 0, bakeRows: 24,
   profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
@@ -581,6 +587,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         p[80] = on ? (w![0] - prevWind[0]) * sp : 0; p[81] = 0; p[82] = on ? (w![2] - prevWind[2]) * sp : 0; p[83] = on ? 1 : 0;
         if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
       }
+      p[84] = s.historyFilter === 'catmull' ? 1 : 0; p[85] = 0; p[86] = 0; p[87] = 0;
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
