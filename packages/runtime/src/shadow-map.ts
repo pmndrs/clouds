@@ -33,6 +33,8 @@ export interface CloudShadowMapSettings {
    * behaviour: rows are written into the map as they are refreshed, each at its own moment. Default true.
    */
   advect: boolean;
+  /** SH1: with `advect`, multiplier on how fast the stored shadow slides (1 = the clouds' own speed, the model's motionSpeed times the wind). Default 1. */
+  advectSpeed: number;
   /** SH1: with `advect`, a new sweep starts once the clouds have moved this far (m) from the snapshot in the map. Default 16. */
   advectRefreshMeters: number;
   /** Tau of the debug contour. Default 0.3. */
@@ -42,7 +44,7 @@ export interface CloudShadowMapSettings {
 }
 
 export const SHADOW_MAP_DEFAULTS: CloudShadowMapSettings = {
-  enabled: true, nearExtent: 8192, farExtent: 65536, refreshFrames: 24, steps: 48, proceduralSteps: 64, groundHeight: 0, advect: true, advectRefreshMeters: 16, debug: 0, debugThreshold: 0.3, debugGain: 8,
+  enabled: true, nearExtent: 8192, farExtent: 65536, refreshFrames: 24, steps: 48, proceduralSteps: 64, groundHeight: 0, advect: true, advectSpeed: 1, advectRefreshMeters: 16, debug: 0, debugThreshold: 0.3, debugGain: 8,
 };
 
 export interface ShadowMapSky {
@@ -247,7 +249,7 @@ export function createCloudShadowMap(device: GPUDevice, volumeLayout: GPUBindGro
 
       // SH1: the clouds' displacement (m) this frame; only the procedural model's clouds are advected (the voxel box and the analytic layer have no model speed).
       const advectActive = !!(s.advect && proc && a.wind);
-      const sp = a.windSpeed ?? 1;
+      const sp = (a.windSpeed ?? 1) * s.advectSpeed;
       const W0 = advectActive ? a.wind![0] * sp : 0, W1 = advectActive ? a.wind![2] * sp : 0;
       // A switch of mode rebuilds the map from nothing.
       if (advectActive !== advectOn) { advectOn = advectActive; origin.placed = false; groups[0] = groups[1] = undefined; pendingStale = false; }

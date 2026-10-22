@@ -313,6 +313,11 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       if (settings.shaper !== 'hzd') return 1;
       return params[140] > 0 ? params[140] : (params[141] + params[142]) * 0.5;
     },
+    get shadowSpeed() {
+      // SH1: measured on the bench (landing pops of a rigidly slid shadow map are smallest there): the bodies' shadow follows the noises, not the slower map.
+      if (settings.shaper !== 'hzd') return 1;
+      return (params[141] + params[142]) * 0.5 || (params[140] > 0 ? params[140] : 1);
+    },
     update(time, view) {
       // A shaper switch or a new weather bake changes the resources.
       if (settings.shaper !== lastShaper || (settings.shaper === 'skypro' && skyproWeather && skyproWeather.key !== skyProWeatherKey(settings.skypro))) { lastShaper = settings.shaper; resourceKey = {}; }

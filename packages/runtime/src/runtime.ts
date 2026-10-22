@@ -1409,7 +1409,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           procedural: procOn ? proc : null,
           procKey: procOn ? [proc!.version, Math.round(settings.windOffset[0] / 8), Math.round(settings.windOffset[2] / 8)] : undefined,
           // SH1: with `advect` the map is built from one moment and its lookup slides with the clouds (the wind offset times the cloud speed).
-          procVersion: procOn ? proc!.version : undefined, wind: settings.windOffset, windSpeed: proc?.motionSpeed ?? 1,
+          procVersion: procOn ? proc!.version : undefined, wind: settings.windOffset, windSpeed: proc?.shadowSpeed ?? proc?.motionSpeed ?? 1,
         });
       }
 
