@@ -14,6 +14,7 @@ import { defaultProceduralSettings, packProceduralParams, packProceduralView, PR
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
 import { createHzdLutBuffer, procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
+import { createHzdBounds, type HzdBounds } from './hzd/bounds';
 import { applyHzdNdfImages, applyHzdPaintImages, composeHzdNdf, createHzdComposedTexture, createHzdPaintTexture, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, writeHzdNdf, type HzdNdf } from './hzd/ndf';
 import type { HzdNdfSettings } from './settings';
 import { hzdNdfKey } from './settings';
@@ -85,6 +86,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
   /** Write the composed texture: the base map (or the weather pair) with the painted influence over it. */
   const recompose = (): void => {
     if (!hzdNdf || !composing()) return;
+    boundsDirty = true;
     const h = settings.hzd.ndf;
     const a = weather ? wxGen(weather.from.ndf) : hzdNdf, b = weather ? wxGen(weather.to.ndf) : a;
     if (weather) wxTrim([a, b]);
@@ -93,8 +95,23 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     composeHzdNdf(device, { a: a.texture, b: b.texture, t: weather?.t ?? 0, biasA: [weather?.from.coverageBias ?? 0, weather?.from.typeBias ?? 0], biasB: [weather?.to.coverageBias ?? 0, weather?.to.typeBias ?? 0],
       paint: hzdPaint, paintHeights, blend: h.paintBlend, gains: [h.paintCoverage, h.paintTypes, h.paintHeights], out: comp });
   };
-  // F2: the profile tables (constant; made on first use by the HZD shaper).
+  // F2: the profile tables (constant; made on first use by the HZD shaper). PF1: the weather map's bounds grid is in the same buffer.
   let hzdLut: GPUBuffer | null = null;
+  const lutBuffer = (): GPUBuffer => (hzdLut ??= createHzdLutBuffer(device));
+  let bounds: HzdBounds | null = null;
+  let boundsDirty = true, boundsSrc: GPUTexture | null = null, boundsMargin = -1;   // what the grid was last made from
+  /** PF1: remake the bounds grid when it is wanted (emptySkip on) and the served map, its content or the fractus margin changed. */
+  const boundsSync = (): void => {
+    const h = settings.hzd;
+    if (h.emptySkip === 'off') { boundsDirty = true; return; }
+    const n = served();
+    if (!n) return;
+    const size = n.texture.width;
+    const margin = h.fractusDensity > 0 ? Math.min(Math.ceil(Math.abs(h.fractusTrail) / Math.max(h.ndf.tileMeters, 1) * size) + 2, 256) : 0;
+    if (!boundsDirty && boundsSrc === n.texture && boundsMargin === margin) return;
+    (bounds ??= createHzdBounds(device)).run(n.texture, lutBuffer(), margin);
+    boundsDirty = false; boundsSrc = n.texture; boundsMargin = margin;
+  };
   // W1 authored map: the image load for the current NDF settings (load() awaits it; the generated map shows until it lands).
   let ndfImageJob: Promise<void> | null = null;
   let paintSource: 'none' | 'images' | 'painter' = 'none';   // W2: what the paint texture holds (ndf.image + maskImage, or the bench painter's live map)
@@ -128,7 +145,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         const target = hzdNdf;
         ndfImageJob = applyHzdNdfImages(device, target, { image: h.ndf.image, heightImage: h.ndf.heightImage }).then(done => {
           if (hzdNdf !== target) return;
-          target.key = done.key; resourceKey = {}; version++;
+          target.key = done.key; boundsDirty = true; resourceKey = {}; version++;
         }, e => console.error('procedural NDF image failed', e));
       } else {
         ndfImageJob = null;
@@ -237,7 +254,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
         return;
       }
       if (paintSource === 'painter') dropPaint();
-      if (ndf && hzdUploaded && hzdNdf && hzdNdf.texture.width === ndf.size) { writeHzdNdf(device, hzdNdf.texture, ndf.fields); version++; return; }
+      if (ndf && hzdUploaded && hzdNdf && hzdNdf.texture.width === ndf.size) { writeHzdNdf(device, hzdNdf.texture, ndf.fields); boundsDirty = true; version++; return; }
       const old = hzdNdf?.texture ?? null;
       hzdUploaded = !!ndf; ndfWant = '';
       hzdNdf = ndf ? uploadHzdNdf(device, ndf.size, ndf.fields) : null;
@@ -271,7 +288,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
           { binding: B.weather, resource: served()!.texture.createView({ dimension: '2d-array' }) },
           { binding: B.aux, resource: hzdNoise!.curl.createView() },
           { binding: B.sampler, resource: sampler },
-          { binding: base + O.lut, resource: { buffer: (hzdLut ??= createHzdLutBuffer(device)) } },
+          { binding: base + O.lut, resource: { buffer: lutBuffer() } },
         ];
       }
       const t = takram!;
@@ -317,6 +334,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
       // A shaper switch or a new weather bake changes the resources.
       if (settings.shaper !== lastShaper || (settings.shaper === 'skypro' && skyproWeather && skyproWeather.key !== skyProWeatherKey(settings.skypro))) { lastShaper = settings.shaper; resourceKey = {}; }
       if (settings.shaper === 'hzd' && hzdSync()) resourceKey = {};
+      if (settings.shaper === 'hzd') boundsSync();
       shell = packProceduralParams(settings, params);
       let changed = false;
       for (let i = 0; i < PROC_PARAM_FLOATS; i++) if ((i < PROC_VIEW_FLOATS[0] || i >= PROC_VIEW_FLOATS[1]) && params[i] !== prev[i]) { changed = true; break; }
@@ -331,7 +349,7 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     dispose() {
       buffer.destroy(); dummy3d.destroy(); dummyWeather.destroy(); skyproNoise?.destroy(); skyproWeather?.map.destroy(); skyproWeather?.bounds.destroy();
       if (takram) for (const t of Object.values(takram)) t.destroy();
-      hzdNoise?.destroy(); hzdNdf?.texture.destroy(); hzdLut?.destroy();
+      hzdNoise?.destroy(); hzdNdf?.texture.destroy(); hzdLut?.destroy(); bounds?.dispose();
     },
   };
 }

@@ -423,6 +423,11 @@ export interface HzdShape {
    *  read per area from the weather map; 'hybrid' = the volume close to the camera cross-fading to the layer between `midLayerFadeStart` and `midLayerFadeEnd`.
    *  Applies to the mid slot's altocumulus / altostratus only (a stratus form there and the deck slot stay volumes). */
   midLayerMode: 'volume' | 'layer' | 'hybrid';
+  /** PF1: empty-space skipping in the coarse march, from a bounds grid of the weather map (64^2 cells of the map tile: the largest coverage and the lowest base and
+   *  highest top over each cell). A stretch of ray inside a cell where the main layer cannot be (no coverage, or all above the cell's tops or below its bases), and
+   *  no sheet, fractus or storm can be either, is walked without sampling. 'off' = every stride samples; 'exact' = the same strides and the same step budget as 'off', so
+   *  the image is the same and only the samples are saved; 'free' = also does not charge the skipped strides to maxSteps, so rays reach further (faster, can add far cloud). */
+  emptySkip: 'off' | 'exact' | 'free';
   /** L3: hybrid cross-fade distances (m, camera to the cloud): the volume is full inside the start and gone beyond the end; the layer the reverse. */
   midLayerFadeStart: number;
   midLayerFadeEnd: number;
@@ -596,7 +601,7 @@ export const HZD_FORM_DEFAULTS = {
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
   stormSource: 'cell', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7, stormSingle: true,
   midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
-  midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
+  emptySkip: 'off', midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
   deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
   fractusDensity: 0, fractusTrail: 900, fractusDrop: 220, fractusBelly: 0.08, fractusScale: 3, fractusCurl: 2, fractusTaps: 3, fractusDistance: 15000,
 } satisfies Partial<HzdShape>;
@@ -653,7 +658,8 @@ export function packHzdMix(hz: HzdShape, out: Float32Array): void {
   // x: the mid slot's volume share: 0 = full volume, 1 = fades with distance (hybrid), 2 = none (the layer draws it); only for the 2.5D-capable forms.
   const alto = hz.midForm === 'altocumulus' || hz.midForm === 'altostratus';
   const x = !alto ? 0 : hz.midLayerMode === 'layer' ? 2 : hz.midLayerMode === 'hybrid' ? 1 : 0;
-  out.set([x, hz.midLayerFadeStart, Math.max(hz.midLayerFadeEnd, hz.midLayerFadeStart + 1), 0], PROC_HZD_MIX_OFFSET);
+  // w: PF1 emptySkip (0 off, 2 exact walk, 3 free walk: the trace's procBoundsMode).
+  out.set([x, hz.midLayerFadeStart, Math.max(hz.midLayerFadeEnd, hz.midLayerFadeStart + 1), hz.emptySkip === 'exact' ? 2 : hz.emptySkip === 'free' ? 3 : 0], PROC_HZD_MIX_OFFSET);
 }
 /** STORM1: the storm source, anvil cirrus and storm lighting (hzStorm3 .. hzStorm5 in density.wgsl.ts). */
 export function packHzdStorm(hz: HzdShape, out: Float32Array): void {

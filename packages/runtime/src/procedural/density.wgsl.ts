@@ -97,7 +97,7 @@ struct ProcParams {
   // N1 Nubis Cubed noise (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packHzdN3)
   hzN3: vec4<f32>,       // N1: noise set (0 hzd, 1 nubis3), pack tile (m), strength, stratus billowy type
   hzN3b: vec4<f32>,      // N1: HHF distance (m, 0 = off), sharpen density scale S (0 = off), curl gain, step 2 pack shape tile (m; 0 = HZD shape fBM)
-  hzMix: vec4<f32>,      // L3: mid slot volume share (0 full, 1 fades with distance, 2 none: the 2.5D layer draws it), fade start (m), fade end (m), 0
+  hzMix: vec4<f32>,      // L3: mid slot volume share (0 full, 1 fades with distance, 2 none: the 2.5D layer draws it), fade start (m), fade end (m); PF1: empty-space skipping (0 off, 2 exact walk, 3 free walk)
   // STORM1 (packed by settings.ts packHzdStorm)
   hzStorm3: vec4<f32>,   // STORM1: storm source (1 NDF storm channel, 0 the placed cell), anvil cirrus density (0 = off), its length downwind (m), its depth (m)
   hzStorm4: vec4<f32>,   // STORM1: storm density scale (1 = off), dark (0..1: the storm's light is dimmed, most at the base), lightning glow (0 = off), flash rate (per s)
@@ -198,7 +198,20 @@ fn procHeightAlongRay(t: f32, dir: vec3<f32>, originHeight: f32) -> f32 {
   return (altitude - P.spShell.x) / P.spShell.y;
 }
 fn procFlash(p: vec3<f32>, time: f32) -> f32 { return 0.0; }   // STORM1: only the HZD shaper has internal lightning
-fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool {
+// PF1: the shapers' bounds hooks, as the trace calls them: the cell the ray is in (its data and the length of ray inside it) and the bounds mode
+// (0 off, 1 jump over an empty cell (Sky Pro), 2 and 3 the HZD exact walk).
+struct ProcCell { data: vec4<f32>, length: f32 }
+fn procBoundsMode() -> u32 { return 1u; }
+fn procBoundsCell(origin: vec3<f32>, dir: vec3<f32>, t: f32) -> ProcCell {
+  let size = vec2<i32>(textureDimensions(procAux));
+  let grid = (origin.xz + dir.xz * t - P.drift.xz) / P.spShape.x * vec2<f32>(size);
+  let cell = vec2<i32>(floor(grid));
+  let maximumWeather = textureLoad(procAux, ((cell % size) + size) % size, 0).r;
+  let dist = select(fract(grid), 1.0 - fract(grid), dir.xz >= vec2(0.0)) / max(abs(dir.xz) * vec2<f32>(size) / P.spShape.x, vec2(0.0000001));
+  return ProcCell(vec4(maximumWeather, 0.0, 0.0, 0.0), max(min(dist.x, dist.y), 0.05));
+}
+fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, data: vec4<f32>) -> bool {
+  let maximumWeather = data.x;
   let turningPoint = -dir.y * PROC_EARTH_M / max(dot(dir.xz, dir.xz), 0.000001);
   let minHeight = procHeightAlongRay(clamp(turningPoint, t, end), dir, originHeight);
   let maxHeight = max(procHeightAlongRay(t, dir, originHeight), procHeightAlongRay(end, dir, originHeight));
@@ -280,7 +293,10 @@ fn procSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> 
   return o;
 }
 fn procFlash(p: vec3<f32>, time: f32) -> f32 { return 0.0; }   // STORM1: only the HZD shaper has internal lightning
-fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, maximumWeather: f32) -> bool { return false; }
+struct ProcCell { data: vec4<f32>, length: f32 }
+fn procBoundsMode() -> u32 { return 0u; }
+fn procBoundsCell(origin: vec3<f32>, dir: vec3<f32>, t: f32) -> ProcCell { return ProcCell(vec4(1.0), 1.0e9); }
+fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, data: vec4<f32>) -> bool { return false; }
 const PROC_HAS_BOUNDS = false;
 fn procSigmaRef() -> f32 { return max(max(P.tkDensity.x, P.tkDensity.y), max(P.tkDensity.z, P.tkDensity.w)); }
 `;

@@ -121,7 +121,7 @@ function reportReady(harness: CloudsHarness, renderer: WebGPURenderer) {
     report: () => {
       const s = bench.getState(), v = s.view;
       return { view: s.viewName, ref: s.ref.id, refMode: s.ref.mode, camera: [...v.position], lookAz: v.lookAz, pitch: v.pitch, sunElevation: v.sunEl, sunAzimuth: v.sunAz,
-        coverage: v.coverage, quality: s.quality, gpuMs: s.rt?.pane.stats().gpuMs ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
+        coverage: v.coverage, quality: s.quality, gpuMs: s.rt?.pane.stats().gpuMs ?? null, gpuLast: s.rt?.clouds.lastTimings ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
     },
   });
 }

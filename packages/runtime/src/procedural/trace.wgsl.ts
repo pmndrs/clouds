@@ -189,22 +189,33 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     let fadeStart = 0.8 * P.shell.z;
     var t = interval.x + jitter * P.steps.x;
     var coarse = true; var emptyRun = 0u; var accumulated = 0.0; var refineEnd = -1.0;
-    var cellEnd = -1.0; var cellStart = -1.0; var maximumWeather = 1.0;
+    var cellEnd = -1.0; var cellStart = -1.0; var cellData = vec4(1.0);
+    let boundsMode = procBoundsMode();
     var shadowAt = -1.0e9; var shadowDensity = -1.0; var shadowTau = 0.0; var nearTau = 0.0; var skyTau = 0.0; var shadowCheap = false;
     let maxSteps = u32(P.steps.y);
     for (var i = 0u; i < maxSteps; i++) {
       if (t >= tEnd || T < SKY.steps.w) { break; }
       steps++;
-      if (coarse && PROC_HAS_BOUNDS) {
+      if (coarse && PROC_HAS_BOUNDS && boundsMode != 0u) {
         if (t >= cellEnd || t < cellStart) {
-          let size = vec2<i32>(textureDimensions(procAux));
-          let grid = (origin.xz + dir.xz * t - P.drift.xz) / P.spShape.x * vec2<f32>(size);
-          let cell = vec2<i32>(floor(grid));
-          maximumWeather = textureLoad(procAux, ((cell % size) + size) % size, 0).r;
-          let dist = select(fract(grid), 1.0 - fract(grid), dir.xz >= vec2(0.0)) / max(abs(dir.xz) * vec2<f32>(size) / P.spShape.x, vec2(0.0000001));
-          cellStart = t; cellEnd = min(tEnd, t + max(min(dist.x, dist.y), 0.05));
+          let cell = procBoundsCell(origin, dir, t);
+          cellData = cell.data;
+          cellStart = t; cellEnd = min(tEnd, t + cell.length);
         }
-        if (procCellIsEmpty(t, cellEnd, dir, origin.y, maximumWeather)) { t = cellEnd + 0.05; continue; }
+        if (procCellIsEmpty(t, cellEnd, dir, origin.y, cellData)) {
+          if (boundsMode == 1u) { t = cellEnd + 0.05; continue; }
+          // PF1 exact walk (HZD): the same coarse strides the march would take through the empty cell, without sampling it. The sample positions
+          // after the cell are the ones the unskipped march has. Mode 2 charges each stride to the step budget (the image is the unskipped
+          // march's); mode 3 does not (the ray can reach further past the budget).
+          var strides = 0u;
+          loop {
+            t += max(P.steps.x, t * stepConeAngle * 1.5) * 4.0;
+            strides++;
+            if (t >= cellEnd || t >= tEnd) { break; }
+          }
+          if (boundsMode == 2u) { i += strides - 1u; }
+          continue;
+        }
       }
       let footprint = t * pixelConeAngle;
       let fineStep = max(P.steps.x, t * stepConeAngle * 1.5);
