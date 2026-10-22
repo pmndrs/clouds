@@ -24,7 +24,7 @@ export const SKY_RESOLVE_BINDINGS = {
  * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 8 vec4 = 88 floats, written every frame), then H4's static part written once at
  * creation: the profile tables' top ends (16 vec4, 64 floats), the two N3 s18 tables and their column peaks (768 vec4<u32>: 3 x 64 x 64 bytes).
  */
-export const SKY_PARAM_FLOATS = 88;
+export const SKY_PARAM_FLOATS = 92;
 /** H4: word offsets of the static part (the tables' top ends, then the packed tables) in the params buffer. */
 export const SKY_TABLE_TOP_OFFSET = SKY_PARAM_FLOATS;
 export const SKY_LUT_OFFSET = SKY_TABLE_TOP_OFFSET + 64;
@@ -83,7 +83,8 @@ struct SkyParams {
   tableB: vec4<f32>,   // H4: x bottom type (< 0: the world field), y / z the field's range, w the field's feature size (m)
   erosion: vec4<f32>,  // H4 (S4): x erosion law (0 ValueErosion, 1 HZD additive with inverted noise, 2 Nubis Evolved, 3 additive with the raw noise); yzw 0
   cloudMotion: vec4<f32>, // C2: x, y, z the clouds' world displacement since the last frame (m; the wind offset's change times the cloud speed), w = 1 when the resolve follows it
-  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp); yzw 0
+  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); w 0
+  resolveOpts2: vec4<f32>, // FX1: x, y the adaptive filter's cloud-motion thresholds (m per frame); zw 0
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
@@ -1050,7 +1051,12 @@ fn resolve(@builtin(global_invocation_id) gid: vec3<u32>) {
         movedPx = length((vec2(n0.x * 0.5 + 0.5, 0.5 - n0.y * 0.5) - uv) * frame.renderSize);
       }
       let moved = smoothstep(0.1, 0.6, movedPx);
-      let h0 = select(textureSampleLevel(histColor, histSampler, puv, 0.0), historyCatmull(puv), SKY.resolveOpts.x > 0.5);
+      var h0 = textureSampleLevel(histColor, histSampler, puv, 0.0);
+      if (SKY.resolveOpts.x > 0.5) {
+        let windM = length(SKY.cloudMotion.xyz) * step(0.5, SKY.cloudMotion.w);
+        let wc = select(1.0, max(smoothstep(SKY.resolveOpts.y, SKY.resolveOpts.z, motionPx), smoothstep(SKY.resolveOpts2.x, SKY.resolveOpts2.y, windM)), SKY.resolveOpts.x > 1.5);
+        if (wc > 0.0) { h0 = mix(h0, historyCatmull(puv), wc); }
+      }
       let hist = mix(h0, clamp(h0, lo, hi4), moved);
       let histB = textureSampleLevel(histBack, histSampler, puv, 0.0);
       let hdv = textureLoad(histDepth, clamp(vec2<i32>(puv * frame.renderSize), vec2<i32>(0), hi), 0);
