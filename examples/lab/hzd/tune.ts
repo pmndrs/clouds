@@ -64,7 +64,7 @@ const UNIONS: Record<SourceId, Record<string, string[]>> = {
   hzd: parseUnions(block(settingsSource, 'HzdShape')),
   ndf: {},
   c: parseUnions(block(runtimeSource, 'CloudSettings')),
-  sky: parseUnions(block(skyLayerSource, 'SkyLayerSettings')), cirrus: {}, shadow: {},
+  sky: parseUnions(block(skyLayerSource, 'SkyLayerSettings')), cirrus: {}, shadow: parseUnions(block(shadowSource, 'CloudShadowMapSettings')),
 };
 
 // Numbers that are really modes, and their meaning.
@@ -158,7 +158,7 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
     keys: ['proc.lightingModel', 'hzd.lightProfile', 'proc.densityScale', 'proc.lightScale', 'proc.lightTaps', 'proc.fullLightingAlpha', 'proc.profileDepth', 'proc.powderScale', 'proc.octavePhase', 'proc.ambientGain', 'proc.octaveDiffuse'] },
   { title: 'Light: renderer settings', about: 'Renderer-wide light settings the procedural trace shares with the voxel clouds: the sky ambient and the ground bounce, the phase for the nubis model, the haze toward the horizon and the cloud shadow on the ground. Some act only in the nubis lighting model.',
     keys: ['c.ambientStrength', 'c.ambientFloor', 'c.ambientSkyBias', 'c.ambientSaturation', 'c.ambientWarmth', 'c.diffuseSun', 'c.diffuseFalloff', 'c.groundAlbedo', 'c.msStrength', 'c.microShadow', 'c.phaseModel', 'c.phaseG', 'c.silverG', 'c.silverStrength',
-      'c.hazeDensity', 'c.hazeHeight', 'c.hazeBase', 'c.shadowStrength', 'c.compositeShadow', 'shadow.advect', 'shadow.advectSpeed', 'shadow.advectRefreshFrames', 'shadow.advectBlendFrames', 'shadow.advectContinuous', 'shadow.advectRefreshMeters', 'shadow.refreshFrames'] },
+      'c.hazeDensity', 'c.hazeHeight', 'c.hazeBase', 'c.shadowStrength', 'c.compositeShadow', 'shadow.advect', 'shadow.advectSpeed', 'shadow.advectRefreshFrames', 'shadow.advectBlendFrames', 'shadow.advectContinuous', 'shadow.advectSnap', 'shadow.advectBlendFilter', 'shadow.advectRefreshMeters', 'shadow.refreshFrames'] },
   { title: 'High cirrus layer', about: 'The 2.5D cirrus slab above the volume (NE 2022 p.64-68): streaky, wispy or round (cirrocumulus), with an optional cirrostratus veil and halo. Off by default.',
     keys: ['cirrus.enabled', 'cirrus.altitude', 'cirrus.thickness', 'cirrus.coverage', 'cirrus.type', 'cirrus.veil', 'cirrus.opticalDepth', 'cirrus.scale', 'cirrus.detail', 'cirrus.coverageVariation', 'cirrus.source', 'cirrus.mapScale', 'cirrus.mapCoverageGain', 'cirrus.mapTypeRange', 'cirrus.coverageFadeNe22', 'cirrus.halo', 'cirrus.shadowStrength', 'cirrus.windVelocity', 'cirrus.animSpeed'] },
   { title: 'Debug', about: 'Diagnostic views: the procedural trace\'s step count, hit distance or profile, the sky layer\'s own views, or one lighting term at a time.',
