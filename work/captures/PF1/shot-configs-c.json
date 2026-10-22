@@ -1,0 +1,17 @@
+[
+ {"name":"sp-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25}},
+ {"name":"sp-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"exact"}},
+ {"name":"spfrac-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.fractusDensity":1}},
+ {"name":"spfrac-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.fractusDensity":1,"hzd.emptySkip":"exact"}},
+ {"name":"spsheets-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.midForm":"altocumulus","hzd.midLayerMode":"volume","hzd.deckForm":"stratus"}},
+ {"name":"spsheets-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.midForm":"altocumulus","hzd.midLayerMode":"volume","hzd.deckForm":"stratus","hzd.emptySkip":"exact"}},
+ {"name":"spnoring-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.ringStart":0}},
+ {"name":"spnoring-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.ringStart":0,"hzd.emptySkip":"exact"}},
+ {"name":"spbias-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.coverageBias":0.1,"hzd.typeBias":0.2}},
+ {"name":"spbias-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.coverageBias":0.1,"hzd.typeBias":0.2,"hzd.emptySkip":"exact"}},
+ {"name":"sptypestorm-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.stormTypeStart":0.6}},
+ {"name":"sptypestorm-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.stormTypeStart":0.6,"hzd.emptySkip":"exact"}},
+ {"name":"spstorm-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.stormStrength":1,"hzd.stormSource":"map"}},
+ {"name":"spstorm-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.stormStrength":1,"hzd.stormSource":"map","hzd.emptySkip":"exact"}},
+ {"name":"spcov10-lossy","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"exact","hzd.emptySkipCoverage":0.1}}
+]

@@ -428,6 +428,9 @@ export interface HzdShape {
    *  no sheet, fractus or storm can be either, is walked without sampling. 'off' = every stride samples; 'exact' = the same strides and the same step budget as 'off', so
    *  the image is the same and only the samples are saved; 'free' = also does not charge the skipped strides to maxSteps, so rays reach further (faster, can add far cloud). */
   emptySkip: 'off' | 'exact' | 'free';
+  /** PF1: with emptySkip on, a cell whose largest weather-map coverage is at most this counts as empty. 0 = only cells with no coverage at all (the skip cannot change the image).
+   *  Above 0 it is lossy: the thin wisps that a low coverage still lets through the noise's highest peaks are skipped too (0.1 skips about a tenth of the default map's cells). */
+  emptySkipCoverage: number;
   /** L3: hybrid cross-fade distances (m, camera to the cloud): the volume is full inside the start and gone beyond the end; the layer the reverse. */
   midLayerFadeStart: number;
   midLayerFadeEnd: number;
@@ -601,7 +604,7 @@ export const HZD_FORM_DEFAULTS = {
   stormX: -6000, stormZ: -15000, stormRadius: 2500, stormStrength: 0, stormTop: 10000, anvilSpread: 3, anvilShear: 4000, stormTypeStart: 2,
   stormSource: 'cell', anvilCirrus: 0, anvilCirrusLength: 8000, anvilCirrusDepth: 700, anvilCirrusFiber: 6, stormDensity: 1, stormDark: 0, stormGlow: 0, stormFlashRate: 0.7, stormSingle: true,
   midForm: 'off', midBottom: 5400, midThickness: 450, midCoverage: 0.5, midCellSize: 550, midElongation: 1.5, midExtinction: 0.05, midErosion: 0.3,
-  emptySkip: 'off', midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
+  emptySkip: 'exact', emptySkipCoverage: 0, midLayerMode: 'hybrid', midLayerFadeStart: 12000, midLayerFadeEnd: 22000, midLayerNdf: 1, midLayerOpticalDepth: 4, midLayerCoverageBoost: 0.4,
   deckForm: 'off', deckBottom: 600, deckThickness: 400, deckCoverage: 0.45, deckCellSize: 1800, deckElongation: 1.2, deckExtinction: 0.1, deckErosion: 0.25,
   fractusDensity: 0, fractusTrail: 900, fractusDrop: 220, fractusBelly: 0.08, fractusScale: 3, fractusCurl: 2, fractusTaps: 3, fractusDistance: 15000,
 } satisfies Partial<HzdShape>;
@@ -666,7 +669,7 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_STORM_OFFSET;
   out.set([hz.stormSource === 'map' ? 1 : 0, Math.max(hz.anvilCirrus, 0), Math.max(hz.anvilCirrusLength, 0), Math.max(hz.anvilCirrusDepth, 1)], o);
   out.set([Math.max(hz.stormDensity, 0), Math.min(Math.max(hz.stormDark, 0), 1), Math.max(hz.stormGlow, 0), Math.max(hz.stormFlashRate, 0)], o + 4);
-  out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, 0, 0], o + 8);
+  out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, Math.max(hz.emptySkipCoverage, 0), 0], o + 8);
 }
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {

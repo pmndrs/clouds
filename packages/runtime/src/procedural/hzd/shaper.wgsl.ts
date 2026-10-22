@@ -106,7 +106,7 @@ export function packHzdLutQuads(): Uint32Array<ArrayBuffer> {
  *  trace over the 16 sampled textures per shader stage of the default limits.) */
 export function createHzdLutBuffer(device: GPUDevice): GPUBuffer {
   const words = packHzdLutQuads();
-  const buf = device.createBuffer({ label: 'hzd profile tables + bounds', size: HZD_LUT_BUFFER_WORDS * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  const buf = device.createBuffer({ label: 'hzd profile tables + bounds', size: HZD_LUT_BUFFER_WORDS * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC });
   const all = new Uint32Array(HZD_LUT_BUFFER_WORDS);
   all.set(words, 0); all.fill(HZD_BOUNDS_OPEN, HZD_LUT_WORDS);
   device.queue.writeBuffer(buf, 0, all);
@@ -864,7 +864,7 @@ fn procCellIsEmpty(t: f32, end: f32, dir: vec3<f32>, originHeight: f32, data: ve
     let ringOn = 1.0 - saturate((procAltitude(P.origin.xyz) - 0.5 * P.hzLayer.x) / max(0.5 * P.hzLayer.x, 1.0));
     if (ringOn > 0.0 && length(dir.xz) * end > P.hzRing.x) { cov = max(cov, P.hzRing.z); }
   }
-  if (saturate(cov + P.hzCov.x) <= 0.0) { return true; }
+  if (saturate(cov + P.hzCov.x) <= P.hzStorm5.z) { return true; }   // emptySkipCoverage 0: no coverage anywhere in the cell
   var bottom = P.hzLayer.x + max(data.y - 1.0 / 255.0, 0.0) * span;
   var top = P.hzLayer.x + min(data.z + 1.0 / 255.0, 1.0) * span;
   if (P.hzStorm2.w < 1.0) { top = max(top, P.hzStorm2.x); }   // storms by type lift the top to the storm top

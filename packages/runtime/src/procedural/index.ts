@@ -49,7 +49,7 @@ export interface ProceduralClouds extends ProceduralDensityModel {
    */
   setWeather(w: { from: WeatherNdf; to: WeatherNdf; t: number } | null): void;
   /** PF1: the HZD bounds grid as the trace sees it (HZD_BOUNDS_GRID^2 words: max coverage, min base, max top, 0, as bytes), read back from the GPU. null until made (emptySkip off). */
-  readHzdBounds(): Promise<Uint32Array | null>;
+  readHzdBounds(fromWord?: number): Promise<Uint32Array | null>;
   /** H1: the HZD shaper's textures (debug views), null until baked. */
   readonly hzdTextures: { noise: HzdNoise; ndf: HzdNdf } | null;
 }
@@ -193,12 +193,13 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     get lightingModel() { return settings.lightingModel; },
     get wgslKey() { return settings.shaper; },
     get resourceKey() { return resourceKey; },
-    async readHzdBounds() {
+    async readHzdBounds(fromWord = HZD_LUT_WORDS) {
       if (!hzdLut || boundsSrc === null) return null;
+      boundsDirty = true; boundsSync();   // PF1 debug: remake it now, so what is read is what the pass makes from the map as it is
       const bytes = HZD_BOUNDS_WORDS * 4;
       const staging = device.createBuffer({ label: 'hzd bounds readback', size: bytes, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
       const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(hzdLut, HZD_LUT_WORDS * 4, staging, 0, bytes);
+      encoder.copyBufferToBuffer(hzdLut, fromWord * 4, staging, 0, bytes);
       device.queue.submit([encoder.finish()]);
       await staging.mapAsync(GPUMapMode.READ);
       const out = new Uint32Array(staging.getMappedRange().slice(0));

@@ -1,0 +1,9 @@
+[
+ {"name":"d-warm","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25}},
+ {"name":"d-off","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25}},
+ {"name":"d-exact","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"exact"}},
+ {"name":"d-off2","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25}},
+ {"name":"d-free","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"free"}},
+ {"name":"d-lossy10","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"exact","hzd.emptySkipCoverage":0.1}},
+ {"name":"d-lossy20","set":{"ndf.gateLo":0.05,"ndf.gateHi":0.25,"hzd.emptySkip":"exact","hzd.emptySkipCoverage":0.2}}
+]

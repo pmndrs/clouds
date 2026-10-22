@@ -1,0 +1,146 @@
+PF1 pixel differences (max channel difference 0-255 and counts, over the picture without the sidebar and HUD).
+Renders: sky.temporal off, clouds frozen (c.animSpeed 0), sky.freezeCycle 5: deterministic, so two identical settings give 0.
+
+## default map: off vs off again (the determinism floor)
+ground max 11 max(excl ui) 11 mean(excl ui) 0.0072 pixels>8: 3 pixels>0: 22610 of 1617000
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map: off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+ground max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+sunset max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map: off vs free
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+ground max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 112 max(excl ui) 112 mean(excl ui) 0.0212 pixels>8: 960 pixels>0: 1365 of 1617000
+above max 94 max(excl ui) 94 mean(excl ui) 0.0022 pixels>8: 124 pixels>0: 550 of 1617000
+sunset max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map + frac (see work/captures/PF1/shot-configs-b.json): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map + sheets (see work/captures/PF1/shot-configs-b.json): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map + noring (see work/captures/PF1/shot-configs-b.json): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map + storm (see work/captures/PF1/shot-configs-b.json): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map + bias (see work/captures/PF1/shot-configs-b.json): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## default map + bias2 (see work/captures/PF1/shot-configs-b.json): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map (ndf gateLo 0.05, gateHi 0.25): off vs exact
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+ground max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+sunset max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map (ndf gateLo 0.05, gateHi 0.25): off vs free
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+ground max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 117 max(excl ui) 117 mean(excl ui) 1.1396 pixels>8: 27416 pixels>0: 27631 of 1617000
+above max 106 max(excl ui) 106 mean(excl ui) 0.7875 pixels>8: 21295 pixels>0: 21588 of 1617000
+sunset max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map (ndf gateLo 0.05, gateHi 0.25): off vs lossy10
+gp7 max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+ground max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+sunset max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map (ndf gateLo 0.05, gateHi 0.25): off vs lossy20
+gp7 max 1 max(excl ui) 1 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 4 of 1617000
+ground max 1 max(excl ui) 1 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 5 of 1617000
+horizon max 2 max(excl ui) 2 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 17 of 1617000
+high max 2 max(excl ui) 2 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 8 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+sunset max 3 max(excl ui) 3 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 13 of 1617000
+
+
+## sparse map + sp (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map + spfrac (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map + spsheets (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map + spnoring (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map + spbias (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map + sptypestorm (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+
+
+## sparse map + spstorm (shot-configs-c.json): off vs exact
+horizon max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+high max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+above max 0 max(excl ui) 0 mean(excl ui) 0.0000 pixels>8: 0 pixels>0: 0 of 1617000
+

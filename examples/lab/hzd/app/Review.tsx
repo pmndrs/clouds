@@ -44,7 +44,7 @@ const ITEMS: Item[] = [
   { id: 'B1', title: 'cumulus height', src: 'hzd', key: 'tableTypeCumulus', options: [['0.4 standard', 0.4], ['0.6', 0.6], ['0.75 towering', 0.75]],
     tip: 'Where cumulus sits on the profile table: 0.4 is Nubis Evolved\'s value, higher gives taller towers. Tune panel: "Cloud types: profile tables".' },
   { id: 'PF1', title: 'empty-space skipping', src: 'hzd', key: 'emptySkip', options: [['old: off', 'off'], ['new: exact', 'exact'], ['free (faster, reaches further)', 'free']],
-    tip: 'The ray march skips stretches of clear sky using a coarse grid of the weather map (largest coverage, lowest base and highest top per 500 m cell). Exact: the same image as off (checked pixel for pixel), fewer samples, so faster. Free: also does not count the skipped strides against the step limit, so far rays can reach a little further. Tune panel: "Ray march" (emptySkip).' },
+    tip: 'The ray march skips stretches of clear sky using a coarse grid of the weather map (largest coverage, lowest base and highest top per 500 m cell). Exact: the same image as off (checked pixel for pixel), fewer samples; it pays off on maps with clear lanes (about 10-20 % of the sky pass) and does nothing on a map that has some cloud coverage everywhere. Free: also does not charge the skipped strides to the step limit, so far rays reach further: distant cloud bands that the old march ran out of steps before now show (best seen from the "above" view on a sparse map). Tune panel: "Ray march" (emptySkip, emptySkipCoverage).' },
 ];
 
 export function ReviewSection() {
