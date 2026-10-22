@@ -1412,7 +1412,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
 
       // P9-E: the high cloud layer at the composite's size; the composite merges it behind everything (in front from above it).
-      cirrus.encode(encoder, { frameBuffer: frameUniforms[0], depth: frame.depth, skyLightBuffer, atmosphere: uniformLighting ? undefined : frame.atmosphere, width: outCW, height: outCH, cameraPosition: frame.cameraPosition, time: frame.time, timer });
+      cirrus.encode(encoder, { frameBuffer: frameUniforms[0], depth: frame.depth, skyLightBuffer, atmosphere: uniformLighting ? undefined : frame.atmosphere, width: outCW, height: outCH, cameraPosition: frame.cameraPosition, time: frame.time, timer, ndf: cirrus.settings.source === 'map' && procOn ? proc!.ndfMap ?? null : null });
       if (cirrus.bindKey !== cirrusKey) { cirrusKey = cirrus.bindKey; compositeGroups.fill(undefined); }
       // L3: the mid-level 2.5D layer (the model's altocumulus / altostratus beyond the volume's reach), between the low clouds and the cirrus.
       {
@@ -1423,7 +1423,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           ms.enabled = true; ms.altitude = m.altitude; ms.thickness = m.thickness; ms.coverage = m.coverage; ms.type = m.type; ms.veil = m.veil;
           ms.opticalDepth = m.opticalDepth; ms.scale = m.scale; ms.detail = m.detail; ms.coverageVariation = 0.4;
           ms.windVelocity[0] = 0; ms.windVelocity[1] = 0; ms.windOffset[0] = m.windOffset[0]; ms.windOffset[1] = m.windOffset[1]; ms.streakAngle = m.streakAngle;
-          ms.ndfInfluence = m.ndfInfluence; ms.ndfTypeStratiform = m.typeStratiform; ms.ndfTypeCumuliform = m.typeCumuliform; ms.edgeSoftness = 0.08; ms.fadeStart = m.fadeStart; ms.fadeEnd = m.fadeEnd;
+          ms.source = 'global'; ms.ndfInfluence = m.ndfInfluence; ms.ndfTypeStratiform = m.typeStratiform; ms.ndfTypeCumuliform = m.typeCumuliform; ms.edgeSoftness = 0.08; ms.fadeStart = m.fadeStart; ms.fadeEnd = m.fadeEnd;
           // Water droplets, not ice: a strong forward lobe with a weak backward one, no halo.
           ms.phaseForward = 0.75; ms.phaseBroad = -0.15; ms.phaseForwardWeight = 0.55; ms.halo = 0; ms.multipleScattering = 1.6;
         } else ms.enabled = false;

@@ -41,6 +41,9 @@ const ITEMS: Item[] = [
   { id: 'A9', title: 'storm source', src: 'hzd', key: 'stormSource', options: [['old: placed cell', 'cell'], ['new: painted area', 'map']],
     show: { label: 'storm on', src: 'hzd', key: 'stormStrength', on: 1, off: 0 },
     tip: 'Where a storm comes from. Old (still the default): F1\'s placed cell with the mushroom anvil. New: the map\'s storm area with the downwind anvil plate. Needs the storm on (switch below); best from the "storm" view. Tune panel: "Storms and anvils".' },
+  { id: 'CI1', title: 'cirrus from the map', src: 'cirrus', key: 'source', options: [['old: global', 'global'], ['new: weather map (default)', 'map']],
+    show: { label: 'cirrus on', src: 'cirrus', key: 'enabled', on: true, off: false },
+    tip: 'Where the high cirrus gets its coverage and type. Old: one global setting plus a 50 km noise. New: the weather map\'s own thin-cloud fields (NE22) set coverage and type per area, around the same global mean (so weather states still work). Needs the cirrus on (switch below; it is off in the bench by default); look up from the "ground", "gp7" or "horizon" view. Tune panel: "High cirrus layer" (cirrus.source) and "Weather map" (ndf.cirrusCells).' },
   { id: 'B1', title: 'cumulus height', src: 'hzd', key: 'tableTypeCumulus', options: [['0.4 standard', 0.4], ['0.6', 0.6], ['0.75 towering', 0.75]],
     tip: 'Where cumulus sits on the profile table: 0.4 is Nubis Evolved\'s value, higher gives taller towers. Tune panel: "Cloud types: profile tables".' },
 ];
@@ -53,7 +56,7 @@ export function ReviewSection() {
   const S = rt.sources;
   const put = (src: SourceId, key: string, v: unknown) => { S[src][key] = v; settingsChanged({ refreshTuner: true }); };
   return (
-    <Section title="Review: old vs new (STATUS A1-A9, B1)">
+    <Section title="Review: old vs new (STATUS A1-A9, B1, CI1)">
       <Row>
         <Button onClick={() => setOpen(o => !o)}>{open ? 'hide' : 'show'} the switches</Button>
         <Tip text="time-lapse motion, to see A6"><Button onClick={() => { S.c.animSpeed = 20; settingsChanged({ refreshTuner: true }); }}>motion: time-lapse</Button></Tip>

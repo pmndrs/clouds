@@ -53,6 +53,7 @@ struct NdfGen {
   n17: vec4<f32>,       // W1: recipe (0 h6, 1 n17), gate cells, gate lo, gate hi
   n17b: vec4<f32>,      // W1: footprint lo, footprint hi, type contrast, island gain
   storm: vec4<f32>,     // STORM1: default blob centre (uv), radius (uv), amount (0 = no blob)
+  cirrus: vec4<f32>,    // CI1: cirrus coverage cells, cirrus type cells, contrast, 0
 }
 @group(0) @binding(0) var<uniform> G: NdfGen;
 @group(0) @binding(1) var ndfOut: texture_storage_2d_array<rgba8unorm, write>;
@@ -109,7 +110,11 @@ fn generate(@builtin(global_invocation_id) id: vec3<u32>) {
   let tN = saturate((topType - G.types.x) / max(G.types.y - G.types.x, 1e-3));
   var bottomType = G.types.z + G.foot.z * (tN - 0.5);
   if (G.types.w != 0.0) { bottomType += G.types.w * 1.6 * ndfFbm(uv, G.heights.w, 2u, seed + 701u); }
-  textureStore(ndfOut, id.xy, 0, vec4(coverage, topType, saturate(bottomType), 0.0));
+  // CI1: the thin-cloud (cirrus) fields, NE22's own thin-cloud NDF: independent low-frequency fBMs (the cirrus layer reads the map several tiles wide, so
+  // the cells are per sampled cirrus tile). Type is stored 0.1 + 0.9 x type so an authored map that leaves the alpha 0 reads as "no data".
+  let cirCov = saturate(0.5 + G.cirrus.z * ndfFbm(uv, G.cirrus.x, 3u, seed + 901u));
+  let cirType = saturate(0.5 + G.cirrus.z * ndfFbm(uv, G.cirrus.y, 2u, seed + 951u));
+  textureStore(ndfOut, id.xy, 0, vec4(coverage, topType, saturate(bottomType), 0.1 + 0.9 * cirType));
   // STORM1 default storm area: a ragged disc (the radius wobbles by a 2-octave fBM so it is not a perfect circle), smooth to 0 at its rim. The map
   // tiles, so the distance wraps.
   var stormV = 0.0;
@@ -119,7 +124,7 @@ fn generate(@builtin(global_invocation_id) id: vec3<u32>) {
     let wob = 1.0 + 0.45 * ndfFbm(uv, 24.0, 2u, seed + 801u);
     stormV = G.storm.w * (1.0 - smoothstep(0.15, 1.0, length(dq) / (G.storm.z * max(wob, 0.3))));
   }
-  textureStore(ndfOut, id.xy, 1, vec4(minHeight, maxHeight, stormV, 0.0));
+  textureStore(ndfOut, id.xy, 1, vec4(minHeight, maxHeight, stormV, cirCov));
 }
 `;
 
@@ -171,17 +176,17 @@ fn compose(@builtin(global_invocation_id) id: vec3<u32>) {
   var b0 = textureSampleLevel(ndfB, ndfSampler, uv, 0, 0.0);
   let a1 = textureSampleLevel(ndfA, ndfSampler, uv, 1, 0.0);
   let b1 = textureSampleLevel(ndfB, ndfSampler, uv, 1, 0.0);
-  a0 = vec4(saturate(a0.r + U.bias.x), saturate(a0.g + U.bias.y), a0.b, 0.0);
-  b0 = vec4(saturate(b0.r + U.bias.z), saturate(b0.g + U.bias.w), b0.b, 0.0);
+  a0 = vec4(saturate(a0.r + U.bias.x), saturate(a0.g + U.bias.y), a0.b, a0.a);   // CI1: the alphas (cirrus fields) pass through
+  b0 = vec4(saturate(b0.r + U.bias.z), saturate(b0.g + U.bias.w), b0.b, b0.a);
   var l0 = mix(a0, b0, U.m.x);
   var l1 = mix(a1, b1, U.m.x);
   if (U.m.y > 0.5) {
     let p0 = textureSampleLevel(ndfPaint, ndfSampler, uv, 0, 0.0);
     let p1 = textureSampleLevel(ndfPaint, ndfSampler, uv, 1, 0.0);
     let m = select(textureSampleLevel(ndfPaint, ndfSampler, uv, 2, 0.0).r, 1.0, U.m.z > 0.5);
-    l0 = vec4(mix(l0.r, p0.r, saturate(m * U.gain.x)), mix(l0.g, p0.g, saturate(m * U.gain.y)), mix(l0.b, p0.b, saturate(m * U.gain.y)), 0.0);
+    l0 = vec4(mix(l0.r, p0.r, saturate(m * U.gain.x)), mix(l0.g, p0.g, saturate(m * U.gain.y)), mix(l0.b, p0.b, saturate(m * U.gain.y)), l0.a);
     let hm = saturate(m * U.gain.z) * U.m.w;
-    l1 = vec4(mix(l1.r, p1.r, hm), mix(l1.g, p1.g, hm), mix(l1.b, p1.b, hm), 0.0);   // STORM1: the storm area follows the height fields' mask
+    l1 = vec4(mix(l1.r, p1.r, hm), mix(l1.g, p1.g, hm), mix(l1.b, p1.b, hm), l1.a);   // STORM1: the storm area follows the height fields' mask
   }
   l1.g = max(l1.g, min(l1.r + 1.0 / 255.0, 1.0));
   textureStore(ndfOut, id.xy, 0, l0);
