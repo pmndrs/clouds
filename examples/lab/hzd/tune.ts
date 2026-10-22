@@ -64,7 +64,7 @@ const UNIONS: Record<SourceId, Record<string, string[]>> = {
   hzd: parseUnions(block(settingsSource, 'HzdShape')),
   ndf: {},
   c: parseUnions(block(runtimeSource, 'CloudSettings')),
-  sky: parseUnions(block(skyLayerSource, 'SkyLayerSettings')), cirrus: {}, shadow: {},
+  sky: parseUnions(block(skyLayerSource, 'SkyLayerSettings')), cirrus: {}, shadow: parseUnions(block(shadowSource, 'CloudShadowMapSettings')),
 };
 
 // Numbers that are really modes, and their meaning.
@@ -109,9 +109,12 @@ const RANGES: Record<string, { min?: number; max?: number; step?: number }> = {
   'ndf.paintCoverage': { min: 0, max: 1, step: 0.01 }, 'ndf.paintTypes': { min: 0, max: 1, step: 0.01 }, 'ndf.paintHeights': { min: 0, max: 1, step: 0.01 },
   'hzd.ndfDrift': { min: 0, max: 2, step: 0.01 }, 'hzd.upwardBias': { min: 0, max: 1, step: 0.01 },
   'proc.maxSteps': { min: 16, max: 1024, step: 1 }, 'proc.fullLightingAlpha': { min: 0, max: 1, step: 0.01 }, 'proc.octaveDiffuse': { min: 0, max: 2, step: 0.01 },
-  'shadow.advectRefreshMeters': { min: 2, max: 200, step: 1 }, 'shadow.refreshFrames': { min: 1, max: 96, step: 1 }, 'shadow.advectRefreshFrames': { min: 1, max: 96, step: 1 }, 'shadow.advectBlendFrames': { min: 0, max: 48, step: 1 }, 'shadow.advectSpeed': { min: 0, max: 3, step: 0.05 },
-  'sky.resolutionScale': { min: 0.25, max: 1.5, step: 0.05 }, 'sky.temporalBlend': { min: 0.01, max: 1, step: 0.01 },
+  'shadow.advectRefreshMeters': { min: 2, max: 200, step: 1 }, 'shadow.refreshFrames': { min: 1, max: 96, step: 1 }, 'shadow.advectRefreshFrames': { min: 1, max: 96, step: 1 }, 'shadow.advectBlendFrames': { min: 0, max: 96, step: 1 }, 'shadow.advectSpeed': { min: 0, max: 3, step: 0.05 },
+  'sky.resolutionScale': { min: 0.25, max: 1.5, step: 0.05 }, 'sky.historySharpFrom': { min: 0, max: 8, step: 0.05 }, 'sky.historySharpFull': { min: 0, max: 16, step: 0.05 }, 'sky.historySharpWindFrom': { min: 0, max: 4, step: 0.01 }, 'sky.historySharpWindFull': { min: 0, max: 8, step: 0.01 }, 'sky.temporalBlend': { min: 0.01, max: 1, step: 0.01 },
   'c.animSpeed': { min: 0, max: 50, step: 0.1 }, 'c.hazeBase': { min: -2000, max: 5000, step: 10 },
+  // FX1: the light settings the Review section and the URL set live get full ranges (a guessed range clamped them: LH1's 1 read back as 0.6).
+  'c.ambientStrength': { min: 0, max: 3, step: 0.01 }, 'c.ambientSaturation': { min: 0, max: 1, step: 0.01 }, 'c.ambientWarmth': { min: 0, max: 1, step: 0.01 },
+  'c.diffuseSun': { min: 0, max: 2, step: 0.01 }, 'c.diffuseFalloff': { min: 0, max: 1, step: 0.005 }, 'c.ambientFloor': { min: 0, max: 1, step: 0.01 },
   'cirrus.altitude': { min: 5000, max: 14000, step: 50 }, 'cirrus.coverage': { min: 0, max: 1, step: 0.01 }, 'cirrus.mapScale': { min: 1, max: 32, step: 0.5 }, 'cirrus.mapCoverageGain': { min: 0, max: 3, step: 0.05 }, 'cirrus.mapTypeRange': { min: 0, max: 0.6, step: 0.01 },
   'ndf.cirrusCells': { min: 1, max: 16, step: 1 }, 'ndf.cirrusTypeCells': { min: 1, max: 16, step: 1 }, 'ndf.cirrusContrast': { min: 0, max: 4, step: 0.05 },
 };
@@ -150,12 +153,12 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
   { title: 'Wind and motion', about: 'Which way the wind blows, how far the tops lean, and how the map and the noise move with time (the sidebar\'s motion sets the speed; 0 freezes everything).',
     keys: ['hzd.windDirection', 'hzd.cloudTopOffset', 'hzd.upwardBias', 'hzd.ndfMotion', 'hzd.ndfDrift', 'hzd.shapeSpeed', 'hzd.detailSpeed', 'c.animSpeed', 'c.windVelocity', 'sky.temporalCloudMotion'] },
   { title: 'Ray march', about: 'How each pixel\'s ray steps through the layer: step size and count, how far it goes, PF1 empty-space skipping from the weather map\'s bounds, the sky layer\'s resolution and the temporal blend that cleans the noise up over frames.',
-    keys: ['proc.stepMeters', 'proc.maxSteps', 'proc.maxDistance', 'hzd.emptySkip', 'hzd.emptySkipCoverage', 'sky.resolutionScale', 'sky.temporal', 'sky.temporalBlend', 'sky.historyFilter', 'sky.transmittanceCutoff'] },
+    keys: ['proc.stepMeters', 'proc.maxSteps', 'proc.maxDistance', 'hzd.emptySkip', 'hzd.emptySkipCoverage', 'sky.resolutionScale', 'sky.temporal', 'sky.temporalBlend', 'sky.historyFilter', 'sky.historySharpFrom', 'sky.historySharpFull', 'sky.historySharpWindFrom', 'sky.historySharpWindFull', 'sky.transmittanceCutoff'] },
   { title: 'Light: the procedural model', about: 'The lighting the procedural trace computes per sample: the model (octave = Frostbite / Takram octaves, nubis = our N3 model), the profile source for nubis (lightProfile: exact = coverage x height gradient and f/|grad f| depth as NE22; standin = the old proxy), the sun taps, powder, the two-lobe phase, the sky ambient and the diffusion tail.',
     keys: ['proc.lightingModel', 'hzd.lightProfile', 'proc.densityScale', 'proc.lightScale', 'proc.lightTaps', 'proc.fullLightingAlpha', 'proc.profileDepth', 'proc.powderScale', 'proc.octavePhase', 'proc.ambientGain', 'proc.octaveDiffuse'] },
   { title: 'Light: renderer settings', about: 'Renderer-wide light settings the procedural trace shares with the voxel clouds: the sky ambient and the ground bounce, the phase for the nubis model, the haze toward the horizon and the cloud shadow on the ground. Some act only in the nubis lighting model.',
     keys: ['c.ambientStrength', 'c.ambientFloor', 'c.ambientSkyBias', 'c.ambientSaturation', 'c.ambientWarmth', 'c.diffuseSun', 'c.diffuseFalloff', 'c.groundAlbedo', 'c.msStrength', 'c.microShadow', 'c.phaseModel', 'c.phaseG', 'c.silverG', 'c.silverStrength',
-      'c.hazeDensity', 'c.hazeHeight', 'c.hazeBase', 'c.shadowStrength', 'c.compositeShadow', 'shadow.advect', 'shadow.advectSpeed', 'shadow.advectRefreshFrames', 'shadow.advectBlendFrames', 'shadow.advectRefreshMeters', 'shadow.refreshFrames'] },
+      'c.hazeDensity', 'c.hazeHeight', 'c.hazeBase', 'c.shadowStrength', 'c.compositeShadow', 'shadow.advect', 'shadow.advectSpeed', 'shadow.advectRefreshFrames', 'shadow.advectBlendFrames', 'shadow.advectContinuous', 'shadow.advectSnap', 'shadow.advectBlendFilter', 'shadow.advectRefreshMeters', 'shadow.refreshFrames'] },
   { title: 'High cirrus layer', about: 'The 2.5D cirrus slab above the volume (NE 2022 p.64-68): streaky, wispy or round (cirrocumulus), with an optional cirrostratus veil and halo. Off by default.',
     keys: ['cirrus.enabled', 'cirrus.altitude', 'cirrus.thickness', 'cirrus.coverage', 'cirrus.type', 'cirrus.veil', 'cirrus.opticalDepth', 'cirrus.scale', 'cirrus.detail', 'cirrus.coverageVariation', 'cirrus.source', 'cirrus.mapScale', 'cirrus.mapCoverageGain', 'cirrus.mapTypeRange', 'cirrus.coverageFadeNe22', 'cirrus.halo', 'cirrus.shadowStrength', 'cirrus.windVelocity', 'cirrus.animSpeed'] },
   { title: 'Debug', about: 'Diagnostic views: the procedural trace\'s step count, hit distance or profile, the sky layer\'s own views, or one lighting term at a time.',

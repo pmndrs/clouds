@@ -1,0 +1,69 @@
+# Sparkle: gp7, sun 40, 2036x1137, 6 consecutive frames after 120 at 1/60 s. HF = mean |laplacian|, flicker = temporal std of the high-pass, speck% = |laplacian| > 12
+# sig/noise: the high-pass split into the part two runs share (detail) and the rest (sampling noise)
+## motion 3 (= x1 at 20 fps): ada = FX1 adaptive, cat = SH1b catmull, bil = bilinear
+variant   lit ridge                         shade body                        small tops                        
+          HF   flicker  speck%              HF   flicker  speck%              HF   flicker  speck%              
+ada1      2.26  0.152   3.22                1.95  0.131   2.21                2.36  0.124   1.82                
+ada2      2.24  0.154   3.21                1.82  0.138   1.80                2.50  0.127   2.42                
+cat1      3.24  0.156   6.38                2.87  0.142   4.61                2.70  0.131   2.68                
+cat2      2.97  0.163   5.41                2.38  0.154   2.93                2.84  0.138   3.31                
+bil1      2.25  0.148   3.18                1.93  0.127   2.05                2.32  0.122   1.71                
+bil2      2.15  0.152   2.93                1.71  0.137   1.40                2.51  0.129   2.46                
+pair            lit ridge               shade body              small tops              
+ada1/ada2       sig 1.05 noise 1.04     sig 0.70 noise 0.74     sig 0.97 noise 0.91     
+cat1/cat2       sig 1.13 noise 1.48     sig 0.73 noise 1.09     sig 1.03 noise 1.02     
+bil1/bil2       sig 0.98 noise 1.07     sig 0.66 noise 0.76     sig 0.96 noise 0.91     
+## motion 3: before this week (ce204a6, old) vs SH1b catmull vs bilinear vs n3Sharpen 0
+variant   lit ridge                         shade body                        small tops                        
+          HF   flicker  speck%              HF   flicker  speck%              HF   flicker  speck%              
+old1      2.18  0.151   3.03                1.69  0.134   1.31                2.47  0.120   2.32                
+old2      2.32  0.157   3.47                1.94  0.131   2.10                2.41  0.146   2.03                
+cat1      3.17  0.141   6.27                2.72  0.139   4.10                2.71  0.133   2.79                
+cat2      3.19  0.153   6.19                2.72  0.148   4.14                2.72  0.137   2.82                
+bil1      2.30  0.141   3.47                1.82  0.127   1.74                2.41  0.121   2.00                
+bil2      2.31  0.151   3.43                1.81  0.131   1.69                2.43  0.127   2.07                
+sh0       2.40  0.134   3.75                1.96  0.126   1.61                2.27  0.126   1.63                
+pair            lit ridge               shade body              small tops              
+old1/old2       sig 0.93 noise 1.16     sig 0.52 noise 0.88     sig 0.95 noise 0.94     
+cat1/cat2       sig 0.96 noise 1.65     sig 0.47 noise 1.25     sig 1.06 noise 0.97     
+bil1/bil2       sig 0.91 noise 1.23     sig 0.47 noise 0.91     sig 1.02 noise 0.85     
+## motion 20 (time-lapse)
+variant   lit ridge                         shade body                        small tops                        
+          HF   flicker  speck%              HF   flicker  speck%              HF   flicker  speck%              
+ada1      2.14  0.232   2.66                1.72  0.220   1.37                2.42  0.175   2.05                
+ada2      2.25  0.235   3.00                1.80  0.216   1.53                2.47  0.193   2.08                
+cat1      2.22  0.229   2.90                1.76  0.210   1.43                2.41  0.173   2.02                
+cat2      2.29  0.234   3.11                1.83  0.209   1.65                2.39  0.190   1.99                
+bil1      1.51  0.220   1.09                1.29  0.205   0.41                1.81  0.174   0.62                
+bil2      1.54  0.235   1.16                1.33  0.222   0.50                1.84  0.192   0.65                
+pair            lit ridge               shade body              small tops              
+ada1/ada2       sig 0.82 noise 1.11     sig 0.55 noise 0.79     sig 0.81 noise 0.96     
+cat1/cat2       sig 0.84 noise 1.11     sig 0.56 noise 0.75     sig 0.81 noise 0.95     
+bil1/bil2       sig 0.62 noise 0.75     sig 0.38 noise 0.53     sig 0.70 noise 0.69     
+## motion 1: the other candidates one at a time (base2 = base repeated)
+variant   lit ridge                         shade body                        small tops                        
+          HF   flicker  speck%              HF   flicker  speck%              HF   flicker  speck%              
+base      3.12  0.148   5.98                2.61  0.142   3.53                2.90  0.123   3.47                
+base2     3.39  0.155   6.83                2.83  0.142   4.37                2.77  0.154   2.97                
+bilinear  3.01  0.145   5.75                2.51  0.122   3.95                2.56  0.144   2.56                
+skipoff   3.23  0.147   6.26                2.74  0.146   3.93                2.87  0.118   3.37                
+sat1      3.41  0.154   6.99                2.99  0.140   4.90                2.87  0.154   3.33                
+ext05     3.23  0.145   6.09                2.61  0.137   3.69                2.87  0.125   3.26                
+hhf0      3.37  0.148   6.82                2.92  0.137   4.60                2.81  0.152   3.03                
+sharp0    2.51  0.105   3.98                2.17  0.105   2.29                2.20  0.095   1.31                
+## motion 0 (frozen): before this week vs now
+variant   lit ridge                         shade body                        small tops                        
+          HF   flicker  speck%              HF   flicker  speck%              HF   flicker  speck%              
+old1      3.25  0.134   6.68                2.41  0.121   3.77                2.67  0.126   2.92                
+old2      3.51  0.134   7.61                2.72  0.113   4.92                2.72  0.123   3.09                
+cat1      3.12  0.155   6.13                2.73  0.141   4.66                2.75  0.138   3.04                
+cat2      3.16  0.148   6.25                2.74  0.137   4.65                2.73  0.130   2.97                
+bil1      3.24  0.143   6.61                2.57  0.132   4.34                2.73  0.131   3.31                
+bil2      3.15  0.131   6.30                2.50  0.116   4.17                2.74  0.116   3.29                
+sh01      2.32  0.098   3.59                2.02  0.101   2.00                2.20  0.090   1.48                
+sh02      2.16  0.112   3.04                1.82  0.118   1.34                2.32  0.096   1.81                
+pair            lit ridge               shade body              small tops              
+cat1/cat2       sig 1.15 noise 1.52     sig 0.62 noise 1.28     sig 1.06 noise 0.98     
+bil1/bil2       sig 1.27 noise 1.58     sig 0.65 noise 1.21     sig 1.21 noise 0.94     
+sh01/sh02       sig 1.21 noise 1.07     sig 0.54 noise 0.72     sig 1.10 noise 0.67     
+old1/old2       sig 1.48 noise 1.50     sig 0.83 noise 1.14     sig 1.12 noise 0.97     

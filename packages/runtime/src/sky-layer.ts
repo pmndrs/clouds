@@ -50,9 +50,23 @@ export interface SkyLayerSettings {
   /**
    * SH1b: how the resolve fetches the reprojected history. 'bilinear': the hardware filter (the history is resampled every frame the view or the
    * clouds move by a fraction of a pixel, and each resample softens it). 'catmull': a Catmull-Rom filter (5 taps) clamped to the four nearest texels,
-   * which keeps the detail. Same cost class (the resolve pass only). Default 'catmull'.
+   * which keeps the detail. Same cost class (the resolve pass only).
+   * FX1 'adaptive' (default): bilinear while the clouds drift slowly, Catmull-Rom in a time-lapse (the clouds' displacement per frame past
+   * `historySharpWindFrom` .. `historySharpWindFull` m) or a fast camera turn (screen motion past `historySharpFrom` .. `historySharpFull` layer px).
+   * At normal speed Catmull-Rom kept only the march's per-pixel sampling noise that the bilinear resample had been averaging away (same shared
+   * detail, 35 % more noise, twice the isolated specks at 2036x1137): lit and shaded surfaces sparkled at motion x1. In a time-lapse it does keep
+   * more real detail (SH1b's reason). SH1b's default was 'catmull'.
    */
-  historyFilter: 'bilinear' | 'catmull';
+  historyFilter: 'bilinear' | 'catmull' | 'adaptive';
+  /** FX1: with historyFilter 'adaptive', screen motion (layer pixels per frame, camera and clouds) from which Catmull-Rom starts to take over. Default 0.5. */
+  historySharpFrom: number;
+  /** FX1: with historyFilter 'adaptive', screen motion (layer pixels per frame) at which the history is fetched with Catmull-Rom alone. Default 1.5. */
+  historySharpFull: number;
+  /** FX1: with historyFilter 'adaptive', the clouds' displacement per frame (m, the C2 cloud motion) from which Catmull-Rom starts to take over.
+   *  Default 0.15 (the HZD bench's wind at motion x1 moves them 0.03 m per frame at 60 fps, 0.08 at 20 fps; a x20 time-lapse 0.56 at 60 fps). */
+  historySharpWindFrom: number;
+  /** FX1: with historyFilter 'adaptive', the clouds' displacement per frame (m) at which the history is fetched with Catmull-Rom alone. Default 0.4. */
+  historySharpWindFull: number;
   /** PF1 test hook: >= 0 fixes the temporal frame phase (the pixel jitter and the 4x4 position) at that frame number, so renders of different settings can be compared pixel for pixel (with temporal off, and the clouds not moving). -1 = off. */
   freezeCycle: number;
   /** Debug view (0 = off): 1 first-hit distance, 2 step count, 3 depthMax, 4 no billow, 5 profile at first hit, 6 no jitter, 7 depth at first hit. */
@@ -192,7 +206,7 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'catmull', freezeCycle: -1, debug: 0, bakeRows: 24,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'adaptive', historySharpFrom: 0.5, historySharpFull: 1.5, historySharpWindFrom: 0.15, historySharpWindFull: 0.4, freezeCycle: -1, debug: 0, bakeRows: 24,
   profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
@@ -563,7 +577,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       // H4: profile table (S3) and erosion law (S4).
       p[68] = s.profileMode; p[69] = s.tableFloor > 0.5 ? PROFILE_TABLE_FLOOR : 0; p[70] = s.tableThreshold; p[71] = s.topType;
       p[72] = s.bottomType; p[73] = s.bottomTypeLo; p[74] = s.bottomTypeHi; p[75] = s.bottomTypeCell;
-      p[76] = s.erosionLaw; p[77] = 0; p[78] = 0; p[79] = 0;
+      p[76] = s.erosionLaw; p[79] = 0;
       }
       procWasActive = !!proc;
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
@@ -590,7 +604,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         p[80] = on ? (w![0] - prevWind[0]) * sp : 0; p[81] = 0; p[82] = on ? (w![2] - prevWind[2]) * sp : 0; p[83] = on ? 1 : 0;
         if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
       }
-      p[84] = s.historyFilter === 'catmull' ? 1 : 0; p[85] = 0; p[86] = 0; p[87] = 0;
+      p[84] = s.historyFilter === 'catmull' ? 1 : s.historyFilter === 'adaptive' ? 2 : 0; p[85] = s.historySharpFrom; p[86] = Math.max(s.historySharpFull, s.historySharpFrom + 1e-3); p[87] = 0;
+      p[88] = s.historySharpWindFrom; p[89] = Math.max(s.historySharpWindFull, s.historySharpWindFrom + 1e-3); p[90] = 0; p[91] = 0;   // FX1: resolveOpts2
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));

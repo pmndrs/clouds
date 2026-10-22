@@ -453,7 +453,7 @@ export interface CloudRuntime {
   setBudget(ms: number): void;
   /** GPU memory this runtime holds, bytes (history and trace targets, sky targets, output if owned, dome, light grid). The volume and noise assets are not counted. */
   readonly memory: CloudMemory;
-  /** Drop the temporal history: the next frame traces every pixel of both march passes. Call on a cut the runtime cannot see (a sky or lighting jump). */
+  /** Drop the temporal history: the next frame traces every pixel of both march passes and the sky layer. Call on a cut the runtime cannot see (a sky or lighting jump, a setting change). */
   resetTemporal(): void;
   /** Temporal amortization state, for tooling: the rates in effect, history resets so far and the memory the history costs. */
   readonly temporalInfo: { near: TemporalRate; far: TemporalRate; resets: number; frames: number; bytes: number };
@@ -1144,7 +1144,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     setProceduralModel(model) { procModel = model; needReset = true; },
     get proceduralModel() { return procModel; },
     get flashLevel() { return flashLevelNow; },
-    resetTemporal() { needReset = true; },
+    // FX1: the sky layer's history too. A lighting setting (ambientSaturation, diffuseSun, ...) is not in the layer's model params, so the layer
+    // could not see the change and dissolved to it over ~100 frames (blend 0.3 per 16-frame cycle): a live switch looked like it did nothing.
+    resetTemporal() { needReset = true; skyLayer.reset(); },
     get temporalInfo() {
       const m = memory();
       return { near: snapRate(settings.temporalNear), far: snapRate(settings.temporalFar), resets: temporalResets, frames: temporalFrames, bytes: m.history + m.trace };

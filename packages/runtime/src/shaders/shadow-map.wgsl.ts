@@ -272,6 +272,43 @@ fn prevTau(tex: texture_2d<f32>, pw: vec4<f32>, q: vec2<f32>) -> vec2<f32> {
   return vec2(mix(mix(a, b1, f.x), mix(c1, d, f.x), f.y), 1.0);
 }
 
+// FX1: the old snapshot read with Catmull-Rom (16 loads), clamped to the 2x2 neighbours' range so it cannot ring. Bilinear softened the whole old
+// snapshot by up to half a texel the moment a sweep landed (a visible blur step at every landing); Catmull-Rom is near the identity at any offset.
+// Falls back to bilinear in the window's outer texel ring.
+fn prevTauCubic(tex: texture_2d<f32>, pw: vec4<f32>, q: vec2<f32>) -> vec2<f32> {
+  let n = i32(pw.w);
+  if (n < 4) { return prevTau(tex, pw, q); }
+  let uu = q / max(pw.z, 1e-3) - vec2(0.5);
+  let b = floor(uu);
+  let f = uu - b;
+  let bi = vec2<i32>(b);
+  let rel = bi - vec2<i32>(pw.xy);
+  if (any(rel < vec2<i32>(1)) || any(rel > vec2<i32>(n - 3))) { return prevTau(tex, pw, q); }
+  let m = vec2<i32>(n - 1);
+  let f2 = f * f;
+  let f3 = f2 * f;
+  let w0 = -0.5 * f3 + f2 - 0.5 * f;
+  let w1 = 1.5 * f3 - 2.5 * f2 + vec2(1.0);
+  let w2 = -1.5 * f3 + 2.0 * f2 + 0.5 * f;
+  let w3 = 0.5 * f3 - 0.5 * f2;
+  var acc = 0.0;
+  var lo = 1e30;
+  var hi = -1e30;
+  for (var j = 0; j < 4; j++) {
+    let wy = select(select(select(w3.y, w2.y, j == 2), w1.y, j == 1), w0.y, j == 0);
+    var row = 0.0;
+    for (var i = 0; i < 4; i++) {
+      let wx = select(select(select(w3.x, w2.x, i == 2), w1.x, i == 1), w0.x, i == 0);
+      let c = (bi + vec2<i32>(i - 1, j - 1)) & m;
+      let v = textureLoad(tex, c, 0).x;
+      row += wx * v;
+      if ((i == 1 || i == 2) && (j == 1 || j == 2)) { lo = min(lo, v); hi = max(hi, v); }
+    }
+    acc += wy * row;
+  }
+  return vec2(clamp(acc, lo, hi), 1.0);
+}
+
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let casc = gid.z;
@@ -290,7 +327,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let t = u.misc.z;
   if (t < 1.0) {
     var p = vec2(0.0);
-    if (casc == 0u) { p = prevTau(prevNearTex, pw, q - u.misc.xy); } else { p = prevTau(prevFarTex, pw, q - u.misc.xy); }
+    if (u.misc.w > 0.5) {
+      if (casc == 0u) { p = prevTauCubic(prevNearTex, pw, q - u.misc.xy); } else { p = prevTauCubic(prevFarTex, pw, q - u.misc.xy); }
+    } else {
+      if (casc == 0u) { p = prevTau(prevNearTex, pw, q - u.misc.xy); } else { p = prevTau(prevFarTex, pw, q - u.misc.xy); }
+    }
     if (p.y > 0.5) { v = mix(p.x, fresh, t); }
   }
   if (casc == 0u) { textureStore(outNear, s, vec4(v, 0.0, 0.0, 0.0)); } else { textureStore(outFar, s, vec4(v, 0.0, 0.0, 0.0)); }
