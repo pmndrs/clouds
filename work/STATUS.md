@@ -4,8 +4,12 @@ The one page to check. Everything left to do, by track: `work/ROADMAP.md`. Updat
 
 Updated 2026-10-13.
 
-## Running
-Nothing. The approved list (C1–C5) is done; waiting on you.
+## Running (2026-10-22, before the weekly reset; agents make likely choices, you review at the end)
+- **SH1** cloud shadows jitter in time-lapse; sharper temporal history.
+- **CI1** cirrus type and coverage read from the map.
+- **ST2** a clean storm anvil, then rotation.
+- **LH1** the Nubis lighting's hue is too strong.
+- **PF1** a clean timing breakdown and skipping clear areas of the map.
 
 A and B keep their current values until you answer.
 
