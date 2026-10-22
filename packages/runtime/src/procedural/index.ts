@@ -12,7 +12,7 @@ import { volumeWgsl } from '../shaders/volume.wgsl';
 import { SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
 import { defaultProceduralSettings, packProceduralParams, packProceduralView, PROC_PARAM_BYTES, PROC_PARAM_FLOATS, PROC_VIEW_FLOATS, type ProceduralSettings, type ProceduralShaper } from './settings';
 import { PROC_BINDING_OFFSETS, PROC_PARAMS_WGSL } from './density.wgsl';
-import { createHzdLutBuffer, procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
+import { createHzdLutBuffer, HZD_BOUNDS_WORDS, HZD_LUT_WORDS, procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import { bakeHzdNoise, hzdNoiseKey, type HzdNoise } from './hzd/noise';
 import { createHzdBounds, type HzdBounds } from './hzd/bounds';
 import { applyHzdNdfImages, applyHzdPaintImages, composeHzdNdf, createHzdComposedTexture, createHzdPaintTexture, generateHzdNdf, hzdNdfImageKey, uploadHzdNdf, writeHzdNdf, type HzdNdf } from './hzd/ndf';
@@ -48,6 +48,8 @@ export interface ProceduralClouds extends ProceduralDensityModel {
    * blends over the result.
    */
   setWeather(w: { from: WeatherNdf; to: WeatherNdf; t: number } | null): void;
+  /** PF1: the HZD bounds grid as the trace sees it (HZD_BOUNDS_GRID^2 words: max coverage, min base, max top, 0, as bytes), read back from the GPU. null until made (emptySkip off). */
+  readHzdBounds(): Promise<Uint32Array | null>;
   /** H1: the HZD shaper's textures (debug views), null until baked. */
   readonly hzdTextures: { noise: HzdNoise; ndf: HzdNdf } | null;
 }
@@ -191,6 +193,18 @@ export function createProceduralClouds(device: GPUDevice, options: { shaper?: Pr
     get lightingModel() { return settings.lightingModel; },
     get wgslKey() { return settings.shaper; },
     get resourceKey() { return resourceKey; },
+    async readHzdBounds() {
+      if (!hzdLut || boundsSrc === null) return null;
+      const bytes = HZD_BOUNDS_WORDS * 4;
+      const staging = device.createBuffer({ label: 'hzd bounds readback', size: bytes, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+      const encoder = device.createCommandEncoder();
+      encoder.copyBufferToBuffer(hzdLut, HZD_LUT_WORDS * 4, staging, 0, bytes);
+      device.queue.submit([encoder.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const out = new Uint32Array(staging.getMappedRange().slice(0));
+      staging.destroy();
+      return out;
+    },
     get hzdTextures() { const n = served(); return hzdNoise && n ? { noise: hzdNoise, ndf: n } : null; },
     densityWgsl(group, base) {
       return PROC_PARAMS_WGSL + procShaperBindingsWgsl(settings.shaper, group, base) + procShaperWgsl(settings.shaper);

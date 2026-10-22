@@ -155,7 +155,7 @@ const GROUPS: { title: string; about: string; keys: string[] }[] = [
   { title: 'High cirrus layer', about: 'The 2.5D cirrus slab above the volume (NE 2022 p.64-68): streaky, wispy or round (cirrocumulus), with an optional cirrostratus veil and halo. Off by default.',
     keys: ['cirrus.enabled', 'cirrus.altitude', 'cirrus.thickness', 'cirrus.coverage', 'cirrus.type', 'cirrus.veil', 'cirrus.opticalDepth', 'cirrus.scale', 'cirrus.detail', 'cirrus.coverageVariation', 'cirrus.coverageFadeNe22', 'cirrus.halo', 'cirrus.shadowStrength', 'cirrus.windVelocity', 'cirrus.animSpeed'] },
   { title: 'Debug', about: 'Diagnostic views: the procedural trace\'s step count, hit distance or profile, the sky layer\'s own views, or one lighting term at a time.',
-    keys: ['proc.debug', 'sky.debug', 'c.lightDebug'] },
+    keys: ['proc.debug', 'sky.debug', 'sky.freezeCycle', 'c.lightDebug'] },
 ];
 /** Every setting the panel shows, as `<source>.<key>`. */
 export const TUNED_KEYS = GROUPS.flatMap(g => g.keys);

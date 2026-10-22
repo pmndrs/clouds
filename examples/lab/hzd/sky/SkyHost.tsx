@@ -56,7 +56,8 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     applySettingOverrides(query, sources);
     tuner.refresh();
     weatherFromQuery(query);
-    (window as unknown as { __tune: unknown }).__tune = tuner;
+    (window as unknown as { __tune: unknown; __proc: unknown }).__tune = tuner;
+    (window as unknown as { __proc: unknown }).__proc = proc;   // debug: window.__proc.readHzdBounds()
     return { pane, clouds, proc, core, sources, renderer, tuner };
   })();
   started.set(renderer, p);

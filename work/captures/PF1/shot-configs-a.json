@@ -1,0 +1,6 @@
+[
+ {"name":"A-off","set":{"hzd.emptySkip":"off"}},
+ {"name":"A-off2","set":{"hzd.emptySkip":"off"}},
+ {"name":"A-exact","set":{"hzd.emptySkip":"exact"}},
+ {"name":"A-free","set":{"hzd.emptySkip":"free"}}
+]

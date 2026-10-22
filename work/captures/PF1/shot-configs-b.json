@@ -1,0 +1,14 @@
+[
+ {"name":"frac-off","set":{"hzd.fractusDensity":1}},
+ {"name":"frac-exact","set":{"hzd.fractusDensity":1,"hzd.emptySkip":"exact"}},
+ {"name":"sheets-off","set":{"hzd.midForm":"altocumulus","hzd.midLayerMode":"volume","hzd.deckForm":"stratus"}},
+ {"name":"sheets-exact","set":{"hzd.midForm":"altocumulus","hzd.midLayerMode":"volume","hzd.deckForm":"stratus","hzd.emptySkip":"exact"}},
+ {"name":"noring-off","set":{"hzd.ringStart":0}},
+ {"name":"noring-exact","set":{"hzd.ringStart":0,"hzd.emptySkip":"exact"}},
+ {"name":"storm-off","set":{"hzd.stormStrength":1,"hzd.stormSource":"map"}},
+ {"name":"storm-exact","set":{"hzd.stormStrength":1,"hzd.stormSource":"map","hzd.emptySkip":"exact"}},
+ {"name":"bias-off","set":{"hzd.coverageBias":-0.1,"hzd.typeBias":0.2}},
+ {"name":"bias-exact","set":{"hzd.coverageBias":-0.1,"hzd.typeBias":0.2,"hzd.emptySkip":"exact"}},
+ {"name":"bias2-off","set":{"hzd.coverageBias":0.15}},
+ {"name":"bias2-exact","set":{"hzd.coverageBias":0.15,"hzd.emptySkip":"exact"}}
+]

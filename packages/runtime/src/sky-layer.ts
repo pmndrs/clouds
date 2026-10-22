@@ -47,6 +47,8 @@ export interface SkyLayerSettings {
    * and trusts the history less as the motion grows. Off = the camera-only reprojection (clouds smear when time is sped up). Procedural trace only.
    */
   temporalCloudMotion: boolean;
+  /** PF1 test hook: >= 0 fixes the temporal frame phase (the pixel jitter and the 4x4 position) at that frame number, so renders of different settings can be compared pixel for pixel (with temporal off, and the clouds not moving). -1 = off. */
+  freezeCycle: number;
   /** Debug view (0 = off): 1 first-hit distance, 2 step count, 3 depthMax, 4 no billow, 5 profile at first hit, 6 no jitter, 7 depth at first hit. */
   debug: number;
   /**
@@ -184,7 +186,7 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, debug: 0, bakeRows: 24,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, freezeCycle: -1, debug: 0, bakeRows: 24,
   profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
@@ -572,7 +574,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       }
       if (cut && s.temporal) resets++;
       const period = SKY_TEMPORAL_PERIOD;
-      p[36] = frames % period; p[37] = Math.floor(frames / period); p[38] = cut ? 1 : 0; p[39] = 0;
+      const phase = s.freezeCycle >= 0 ? Math.floor(s.freezeCycle) : frames;
+      p[36] = phase % period; p[37] = Math.floor(phase / period); p[38] = cut ? 1 : 0; p[39] = 0;
       p.set(prevViewProj, 40);
       // C2: the clouds' displacement since last frame (procedural model only: the wind offset times its cloud speed; a cut or a first frame has none).
       {
