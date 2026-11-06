@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebGPU Clouds Compass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a manager's one-pager. Summary band, then track health, style contract,
+   library family, render levels, goals with measures, phased plan, decisions you answer in place. */
+:root {
+  --paper: #f3f5f7;
+  --card: #ffffff;
+  --ink: #17202a;
+  --muted: #5b6774;
+  --rule: #d9dfe5;
+  --accent: #2c5a86;      /* dusk blue */
+  --sun: #b7791f;         /* low-sun gold, for "proposed / needs you" */
+  --good: #2f7d4f;
+  --warn: #a8690c;
+  --bad: #b23b32;
+  --idle: #7b8794;
+  --display: "Newsreader", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171d; --card: #1a2129; --ink: #e5eaef; --muted: #9aa6b2; --rule: #2c3540;
+    --accent: #7fb0de; --sun: #e0a94a; --good: #5cbf83; --warn: #e2a443; --bad: #ec7a70; --idle: #8a96a3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171d; --card: #1a2129; --ink: #e5eaef; --muted: #9aa6b2; --rule: #2c3540;
+  --accent: #7fb0de; --sun: #e0a94a; --good: #5cbf83; --warn: #e2a443; --bad: #ec7a70; --idle: #8a96a3;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 80px; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 38px; }
+h2 { font-size: 26px; }
+h3 { font-size: 17px; font-family: var(--body); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.88em; }
+.num { font-variant-numeric: tabular-nums; }
+.lede { font-size: 17px; color: var(--muted); max-width: 72ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: 13px; }
+section { display: grid; gap: 16px; }
+.sec-head { display: grid; gap: 6px; border-top: 2px solid var(--ink); padding-top: 12px; }
+.sec-head p { color: var(--muted); }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.toc a { text-decoration: none; font-size: 13px; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 999px; background: var(--card); color: var(--ink); }
+nav.toc a:hover, nav.toc a:focus-visible { border-color: var(--accent); outline: none; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.card.stripe { border-left: 4px solid var(--idle); }
+.stripe.good { border-left-color: var(--good); } .stripe.warn { border-left-color: var(--warn); }
+.stripe.bad { border-left-color: var(--bad); } .stripe.idle { border-left-color: var(--idle); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.pill { font-size: 11.5px; font-weight: 600; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.good { color: var(--good); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); }
+.pill.idle { color: var(--idle); } .pill.sun { color: var(--sun); } .pill.accent { color: var(--accent); }
+.card ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.small { font-size: 13.5px; color: var(--muted); }
+.callout { background: var(--card); border: 1px solid var(--rule); border-left: 4px solid var(--sun); border-radius: 8px; padding: 14px 18px; display: grid; gap: 6px; }
+.tablewrap { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 720px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td strong { font-weight: 600; }
+.two { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.tiers { display: grid; gap: 0; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; background: var(--card); }
+.tier { padding: 14px 16px; display: grid; gap: 6px; border-right: 1px solid var(--rule); align-content: start; }
+.tier:last-child { border-right: 0; }
+.tier .big { font-family: var(--mono); font-size: 20px; }
+.phases { display: grid; gap: 10px; }
+.phase { display: grid; grid-template-columns: 54px 1fr; gap: 14px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.phase .tag { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 500; padding-top: 2px; }
+.phase .body { display: grid; gap: 6px; }
+.lane { font-size: 12px; color: var(--muted); }
+.decision { display: grid; gap: 10px; }
+.decision fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.decision legend { position: absolute; left: -9999px; }
+.opt { position: relative; }
+.opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.opt span { display: inline-block; font-size: 13px; padding: 5px 11px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); cursor: pointer; }
+.opt input:checked + span { border-color: var(--accent); background: var(--accent); color: var(--card); }
+.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.decision textarea { width: 100%; min-height: 56px; font: 14px/1.45 var(--body); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; resize: vertical; }
+.decision textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.decision .rec { font-size: 13px; color: var(--muted); }
+.decision .rec b { color: var(--sun); font-weight: 600; }
+.saved { font-size: 12px; color: var(--muted); min-height: 1em; }
+.dbstate { font-size: 13px; color: var(--muted); }
+.keep-fix { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.log li { margin-bottom: 4px; }
+@media (max-width: 480px) { h1 { font-size: 30px; } .phase { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+
+<header style="display:grid;gap:14px">
+  <div class="meta"><span>Living plan · owner: Dennis Smolek</span><span class="num">Updated 2026-11-06</span><span>Draft 1: every goal below is a proposal until you answer the decisions at the bottom</span></div>
+  <h1>WebGPU Clouds Compass</h1>
+  <p class="lede">Where the project stands after five weeks of building, and a proposed reset: one look target with its own style, one volume library, an upscaler-first pipeline, and goals you can score by eye.</p>
+  <nav class="toc" aria-label="Sections">
+    <a href="#audit">Where we are</a><a href="#style">The Horizon look</a><a href="#family">Library family</a>
+    <a href="#levels">Render levels</a><a href="#goals">Goals and measures</a><a href="#plan">Plan</a>
+    <a href="#decisions">Decisions for you</a><a href="#log">Change log</a>
+  </nav>
+</header>
+
+<section id="audit">
+  <div class="sec-head">
+    <h2>Where we are</h2>
+    <p>551 commits from 16 Sep to 22 Oct 2026, then a two-week pause. The engine is broad; the look is not yet locked, and the process grew heavier than the work.</p>
+  </div>
+  <div class="callout">
+    <h3>The short read</h3>
+    <p>We built nearly every piece of the Nubis Evolved 2022 procedural sky and a renderer-agnostic WebGPU runtime (about 25k lines, with a test that forbids three.js imports). What we do not have is a look you sign off on: your last note (22 Oct) says the shaping is drifting back toward foam. Speed was deliberately left for later and is 4 to 6 times over the game's budget. Volumes still come in through an offline Houdini script and a vendored copy of WebVDB, while WebVDB itself is release-ready in its own repo.</p>
+  </div>
+  <div class="grid" id="tracks"></div>
+</section>
+
+<section id="style">
+  <div class="sec-head">
+    <h2>The Horizon look is a style, not a defect list</h2>
+    <p>Nubis clouds are art-directed. Some things that look odd next to photos or other engines are Guerrilla's choices. Proposal: we write those down as a style contract, stop "fixing" them, and spend effort only on real defects. Edit this list with me; it becomes the yardstick for every look round.</p>
+  </div>
+  <div class="keep-fix">
+    <div class="card stripe good">
+      <div class="row"><h3>Style: keep it, match it</h3><span class="pill sun">proposed</span></div>
+      <ul>
+        <li>Big, cohesive, simplified bodies with readable silhouettes at distance, rather than photo-accurate fractal detail</li>
+        <li>Bright, almost painted lit tops; billows stay crisp on the lit side</li>
+        <li>Shade that goes grey-warm, not blue (you fixed the hue in LH1)</li>
+        <li>Strong silver lining and dark-edge effect at low sun</li>
+        <li>Soft, wispy bases and thin parts; clean cauliflower hierarchy on towers</li>
+        <li>Wide, uncluttered sky with clear lanes between clusters (the Nubis 2017 map)</li>
+        <li>Slow, stately motion; time-lapse is a feature</li>
+      </ul>
+    </div>
+    <div class="card stripe bad">
+      <div class="row"><h3>Defects: always fix</h3><span class="pill bad">bugs</span></div>
+      <ul>
+        <li>Foam, sprinkles and pitting: small puffs where a body should read as one mass</li>
+        <li>Sparkle on ridges, temporal smear, ghosting behind fast motion</li>
+        <li>Pops and blank frames when streaming, at layer edges or on load</li>
+        <li>Shadows that jump or jitter as they update</li>
+        <li>Banding and blockiness that the upscaler cannot hide</li>
+        <li>Anything that only looks right at ultra and falls apart at the level we ship</li>
+      </ul>
+    </div>
+  </div>
+  <p class="small">Your photos stay the reference for cloud anatomy (where bases sit, how towers grow, what stratocumulus looks like). Decima frames are the reference for the treatment (light, colour, detail level). When they disagree, the treatment follows Horizon.</p>
+</section>
+
+<section id="family">
+  <div class="sec-head">
+    <h2>The library family</h2>
+    <p>You already maintain most of the pieces a cloud system needs around it. Proposal: clouds stops carrying its own copies and becomes one member of the family, with a clear contract to each.</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Library</th><th>State today</th><th>Role for clouds</th><th>Proposed move</th></tr></thead>
+    <tbody id="family-rows"></tbody>
+  </table></div>
+</section>
+
+<section id="levels">
+  <div class="sec-head">
+    <h2>Render levels: upscaler first</h2>
+    <p>If every project ships with the upscaler, clouds should never be designed for native resolution. The cloud pass renders at an internal size, hands the upscaler colour, alpha, depth, motion vectors and a reactive mask, and the upscaler is the output path. That also unblocks storm rotation, which needs motion vectors.</p>
+  </div>
+  <div class="tiers" id="tiers"></div>
+  <p class="small">The ms targets are proposals for the cloud pass on your laptop at 1440p output, measured in the HZD bench sky. Today's sky is 13 to 22 ms at ultra; Nubis Evolved quotes 2 to 4 ms on a PS4-class GPU. Judging rule change: look rounds are judged at Desktop as well as at Cinematic, because a look that only holds at ultra is not done.</p>
+</section>
+
+<section id="goals">
+  <div class="sec-head">
+    <h2>Goals and how we measure them</h2>
+    <p>The old phase gates (P0 to P7) passed on numbers while the look failed your eye. Proposal: six goals, each with a measure you can check in minutes. Your score on a fixed shot set is the main measure; numbers are guards.</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Goal</th><th>Measure of success</th><th>Today</th><th>Target</th></tr></thead>
+    <tbody id="goal-rows"></tbody>
+  </table></div>
+  <div class="card">
+    <h3>The reference shot set (to freeze in phase 0)</h3>
+    <p class="small">Eight fixed bench bookmarks, each paired with its reference image. Every look round re-renders all eight at Cinematic and Desktop, and you score each 1 to 5 for "reads as Horizon". The scorecard history lives on this page.</p>
+    <ol class="small" style="margin:0;padding-left:18px;display:grid;gap:2px">
+      <li>HZD GP7 cloudscape from the ground, midday (HZD 2015 deck)</li>
+      <li>Same sky at low sun: silver lining and dark edges</li>
+      <li>From above the layer, flying (plains flight)</li>
+      <li>Towering cumulus line: Santa's Sleigh</li>
+      <li>Storm with anvil from 20 km (Nubis Evolved storm slides)</li>
+      <li>Stratocumulus overcast to clear transition (weather state)</li>
+      <li>Voxel hero up close: Parkouring against Decima's p213</li>
+      <li>Artist VDB inside the procedural sky: the Frog or an EmberGen cloud</li>
+    </ol>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="sec-head">
+    <h2>Plan</h2>
+    <p>Two lanes run side by side: the clouds repo, and WebVDB in its own repo. Phases end on a scored round, not on a date.</p>
+  </div>
+  <div class="phases" id="phases"></div>
+</section>
+
+<section id="decisions">
+  <div class="sec-head">
+    <h2>Decisions for you</h2>
+    <p>Pick an option and add a note; answers save to this page and I read them from here. The recommended option is first.</p>
+    <p class="dbstate" id="dbstate">Connecting to the page's database…</p>
+  </div>
+  <div class="grid" id="decision-cards"></div>
+</section>
+
+<section id="log">
+  <div class="sec-head"><h2>Change log</h2></div>
+  <ul class="log small" style="margin:0;padding-left:18px">
+    <li><span class="num">2026-11-06</span>: First draft after the audit. Supersedes the tracking role of <code>work/ROADMAP.md</code> and the rounds overview once you approve; <code>work/STATUS.md</code> stays as the per-merge log.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+const TRACKS = [
+  { name: "Procedural sky", health: "warn", label: "main path, look not locked",
+    lines: ["Has every big Nubis Evolved piece except terrain-hugging envelope clouds: five-field map, profile tables, Nubis Cubed noise, exact-profile Nubis lighting, 2.5D mid layers, cirrus from the map, painting, weather states, storms.",
+            "Your 22 Oct note: shaping drifting toward foam.",
+            "A1 to A9 kept or trusted; the 22 Oct round (LH1, SH1, CI1, ST2, PF1) still waits for your flip-through."] },
+  { name: "Decima parity", health: "bad", label: "paused since 11 Oct",
+    lines: ["Our render of Guerrilla's pack clouds against their frames. Round 12 was never judged.",
+            "Cameras are fitted from silhouettes, so distance and FOV are confounded; the Houdini camera rig is parked.",
+            "Needs a call: resume, or keep it as a reference check only."] },
+  { name: "Volumes and VDB", health: "warn", label: "works, wrong home",
+    lines: ["The runtime renders Nubis NVDF voxels and direct density VDBs (EmberGen, Pyro) with a Karma-fitted material.",
+            "Import is offline: Houdini hython scripts write dense .bin files; a copy of WebVDB is vendored in scripts/vdb.",
+            "Voxel heroes inside the procedural sky exist as pieces but not as a composed scene."] },
+  { name: "Performance", health: "idle", label: "deferred on purpose",
+    lines: ["Sky is 13 to 22 ms at ultra against 2 to 4 ms in Nubis Evolved. Veil and detail noise are most of it (PF1).",
+            "The upscaler is a dev dependency but not in the cloud output path; the scheduler is not used yet.",
+            "Clear-sky skipping landed (PF1); LOD past 32 km is missing."] },
+  { name: "Library and API", health: "warn", label: "solid core, unpublished",
+    lines: ["@clouds/runtime talks only to WebGPU; @clouds/three and @clouds/react are thin. All packages are private and unnamed.",
+            "A legacy package (7k lines) and an 18k-line lab sit beside it; 3.2 GB of assets and 11 GB of research artifacts locally."] },
+  { name: "How we work", health: "bad", label: "too much paperwork",
+    lines: ["124 reports, 101 capture folders, about ten planning docs (AUDIT, two PLANs, ROADMAP, STATUS, BOARD, HANDOFF…) and four review pages.",
+            "You told me on 13 Oct you got lost in it. Gates passed on numbers while the look failed your eye (Decima D0).",
+            "Proposal: this page plus STATUS, one change per look round, scored on the fixed shot set."] },
+];
+
+const FAMILY = [
+  { lib: "WebVDB<br><span class='small'>nanovdb-wgsl · three-nanovdb · vdb-web-tools</span>",
+    state: "0.1.0 packed, not published. Sparse NanoVDB traversal in WGSL (from the PicoVDB author's webgpu-nanovdb), pure-TS .vdb parse/build/quantize, sequence playback. 249 unit tests; WDAS cloud at 104 fps, 1080p.",
+    role: "The volume layer: load .vdb/.nvdb in the browser, sample sparsely on the GPU, stream EmberGen sequences.",
+    move: "<strong>Adopt.</strong> Publish 0.1, add the cloud needs there (NVDF channels, SDF for sphere tracing, HDDA skipping, bricks). Clouds depends on it and drops the vendored copy; hython stays an authoring tool only." },
+  { lib: "three.js VDB loader<br><span class='small'>community example, Oct 2026</span>",
+    state: "New in three.js examples.",
+    role: "None directly.",
+    move: "<strong>Don't adopt.</strong> Bound to three, dense by design. Worth a short note in WebVDB's README on how it differs." },
+  { lib: "@pmndrs/upscaler",
+    state: "0.5.0 published, active (last commit 25 Oct). In this repo only as a dev dependency and a reconstruction adapter.",
+    role: "The output path for clouds at every level.",
+    move: "<strong>Make it required.</strong> Clouds emits motion vectors and a reactive mask; levels are defined by internal size." },
+  { lib: "Denoiser<br><span class='small'>OIDN networks · FFX shadows and reflections</span>",
+    state: "v2 on WebGPU, last update 20 Oct. Composes with the upscaler on one GPUDevice.",
+    role: "Candidates: cloud shadows on terrain (FFX shadow denoiser), a low-sample far march, offline-quality stills.",
+    move: "<strong>Explore later</strong>, after the upscaler is in. One spike: does FFX shadows clean our cloud-shadow map cheaper than more samples?" },
+  { lib: "@pmndrs/scheduler",
+    state: "0.2.0, fixed-timestep jobs.",
+    role: "Spread slow work across frames: generation, evolution, lighting at 30 Hz, shadow-map updates.",
+    move: "<strong>Adopt in the perf phase.</strong> Add time-sliced GPU jobs to the scheduler itself, as you wanted." },
+  { lib: "BVH<br><span class='small'>CPU and GPU build, not tied to three</span>",
+    state: "Lives in another project (I found a built copy under homefig). Faster than three-mesh-bvh.",
+    role: "Scene and terrain queries: envelope clouds hugging terrain, ray queries for the showcase scenes.",
+    move: "<strong>Showcase only for now.</strong> Not on the clouds core path. Tell me where its source lives." },
+  { lib: "DDGI<br><span class='small'>gitestbench probe volume</span>",
+    state: "Probe baker and TSL node (last commit Aug).",
+    role: "Lighting the ground under the clouds: sky irradiance and cloud shadows feeding the probes.",
+    move: "<strong>Contract only.</strong> Clouds publishes sky irradiance and its shadow map; DDGI consumes them in the onsen and plains demos." },
+  { lib: "Atmosphere<br><span class='small'>@pmndrs/sky · Takram · SebH sky</span>",
+    state: "In use for the sky and aerial perspective.",
+    role: "Sun, sky and haze the clouds sit in.",
+    move: "<strong>Keep.</strong> Pick one default atmosphere for the shot set so look rounds don't drift with it." },
+];
+
+const TIERS = [
+  { name: "Cinematic", internal: "native", ms: "no cap", use: "Judge the look, stills, the shot set. Today's ultra." },
+  { name: "Desktop", internal: "½ res clouds", ms: "≤ 4 ms", use: "Default for the demos. Upscaled to 1440p; lighting every frame." },
+  { name: "Laptop", internal: "¼ res clouds", ms: "≤ 3 ms", use: "Lighting and shadows at 30 Hz, shaping amortised over frames." },
+  { name: "Phone", internal: "⅛ res, layer sky", ms: "later", use: "Deferred until desktop is done (your call from October)." },
+];
+
+const GOALS = [
+  { g: "<strong>G1 Reads as Horizon</strong>", m: "Your 1–5 score on the eight reference shots, at Cinematic and Desktop.", now: "No fixed set; last verdict: drifting to foam", target: "Every shot ≥ 4 at both levels" },
+  { g: "<strong>G2 Holds up in motion</strong>", m: "Three clips (flight, time-lapse, orbit): no sparkle, smear, pops or shadow jumps. Pass/fail by you.", now: "Sparkle and shadow jitter fixed in FX1, unreviewed", target: "All three pass" },
+  { g: "<strong>G3 Fits the frame</strong>", m: "GPU time of the cloud pass on your laptop, 1440p output, worst shot of the set.", now: "13–22 ms at ultra, no upscaler", target: "Desktop ≤ 4 ms, Laptop ≤ 3 ms" },
+  { g: "<strong>G4 Artist volumes</strong>", m: "Drop any EmberGen or Houdini .vdb in the browser; it renders lit like the sky, inside the sky.", now: "Offline hython convert; hero not composed in the sky", target: "Frog and one EmberGen cloud in shot 8, via WebVDB" },
+  { g: "<strong>G5 Drop-in library</strong>", m: "Lines to add clouds to a fresh three.js, raw WebGPU and R3F scene; packages on npm.", now: "9 lines (three); private", target: "≤ 15 lines each; published" },
+  { g: "<strong>G6 Showcases</strong>", m: "Open water, plains flight, onsen valley run live at Desktop level.", now: "Early versions in the lab", target: "Three demos you'd post" },
+];
+
+const PHASES = [
+  { tag: "R0", title: "Reset", lane: "this week · clouds repo",
+    text: "Answer the decisions below. Freeze the eight shots and their references. Write the style contract into the bench docs. Archive BOARD, the two October PLANs and HANDOFF behind this page. Flip through the 22 Oct review round." },
+  { tag: "R1", title: "Lock the look", lane: "clouds repo",
+    text: "Fix the foam (ROADMAP P18: erosion strength, noise scales, extinction), one change per round with A/B sheets. Score the shot set. Decide Decima parity per your answer." },
+  { tag: "R2", title: "Upscaler-first pipeline", lane: "clouds repo",
+    text: "Motion vectors and a reactive mask from the cloud pass; internal-size levels; the upscaler as the output. Re-score the shot set at Desktop. Turns on storm rotation." },
+  { tag: "V1", title: "WebVDB as the volume layer", lane: "WebVDB repo, in parallel with R1–R2",
+    text: "Publish 0.1. Add cloud channels (NVDF profile, detail type, density scale), SDF for sphere tracing, HDDA skipping. Clouds imports it and drops scripts/vdb/vendor. Shot 7 and 8 load through it." },
+  { tag: "R3", title: "Speed", lane: "clouds repo, with the scheduler",
+    text: "Amortise shaping, lighting at 30 Hz, LOD beyond 32 km, keep detail at 4–12 km. Hit the G3 numbers without losing a point on G1." },
+  { tag: "R4", title: "Hybrid scenes and showcases", lane: "clouds + DDGI + BVH",
+    text: "Voxel heroes inside the procedural sky (Santa's Sleigh line, Frog). Ground lit by DDGI from cloud-shadowed sky. The three demos." },
+  { tag: "R5", title: "Release", lane: "clouds repo",
+    text: "Name and publish the packages, docs site, the drop-in examples. Phones only after this." },
+];
+
+const DECISIONS = [
+  { id: "d1", q: "Is the Horizon / Nubis treatment the look target, with your photos as the reference for cloud anatomy?",
+    opts: ["Yes, Horizon treatment wins", "Photos win", "Both, case by case"], rec: "Gives every look round one yardstick and stops us fixing their style." },
+  { id: "d2", q: "Decima parity (paused since 11 Oct): resume it, or keep it as a quick reference check?",
+    opts: ["Reference check only", "Resume as a track", "Drop it"], rec: "The procedural sky is the web path; parity rounds cost a lot of judging for the voxel path." },
+  { id: "d3", q: "Move all VDB handling to WebVDB and do focused volume work in that repo?",
+    opts: ["Yes, publish and adopt", "Yes, but keep it unpublished", "Not yet"], rec: "It is already sparse, renderer-agnostic and tested; clouds carries a stale copy." },
+  { id: "d4", q: "Upscaler always on, and look rounds judged at the Desktop level as well as Cinematic?",
+    opts: ["Yes to both", "Upscaler yes, judge at Cinematic only", "Keep it optional"], rec: "A look that only holds at native isn't shippable, and every project you start uses it." },
+  { id: "d5", q: "BVH and DDGI: showcase-only, or part of the cloud core? And where does the BVH source live?",
+    opts: ["Showcase only", "Core (envelope clouds, GI)", "Out of scope"], rec: "Clouds needs a terrain input for envelope clouds, which can come from a height map first." },
+  { id: "d6", q: "Denoiser: worth one spike on cloud shadows and a low-sample far march?",
+    opts: ["Spike after the upscaler", "Spike now", "Not for clouds"], rec: "Cheap to test once motion vectors exist; no reason to block on it." },
+  { id: "d7", q: "Process: this page plus STATUS as the only trackers; the board and plans go to the archive?",
+    opts: ["Yes", "Keep the board too", "Something else"], rec: "You got lost in the sprawl; one page you can skim beats ten." },
+  { id: "d8", q: "The ms targets per level (Desktop ≤ 4, Laptop ≤ 3): right ballpark?",
+    opts: ["Yes", "Tighter", "Looser"], rec: "Roughly 20% of a 60 fps frame after the upscaler, in line with your earlier budget rule." },
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+document.getElementById("tracks").innerHTML = TRACKS.map(t => `
+  <div class="card stripe ${t.health}">
+    <div class="row"><h3>${t.name}</h3><span class="pill ${t.health}">${t.label}</span></div>
+    <ul class="small">${t.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+  </div>`).join("");
+
+document.getElementById("family-rows").innerHTML = FAMILY.map(f => `
+  <tr><td><strong>${f.lib}</strong></td><td>${f.state}</td><td>${f.role}</td><td>${f.move}</td></tr>`).join("");
+
+document.getElementById("tiers").innerHTML = TIERS.map(t => `
+  <div class="tier"><h3>${t.name}</h3><div class="big num">${t.ms}</div>
+  <div class="small"><span class="mono">${t.internal}</span></div><p class="small">${t.use}</p></div>`).join("");
+
+document.getElementById("goal-rows").innerHTML = GOALS.map(g => `
+  <tr><td>${g.g}</td><td>${g.m}</td><td class="small">${g.now}</td><td>${g.target}</td></tr>`).join("");
+
+document.getElementById("phases").innerHTML = PHASES.map(p => `
+  <div class="phase"><div class="tag">${p.tag}</div><div class="body">
+  <div class="row"><h3>${p.title}</h3><span class="lane">${p.lane}</span></div><p class="small">${p.text}</p></div></div>`).join("");
+
+document.getElementById("decision-cards").innerHTML = DECISIONS.map(d => `
+  <div class="card decision" data-id="${d.id}">
+    <div class="row"><h3>${d.id.toUpperCase()}</h3><span class="pill sun" id="${d.id}-pill">open</span></div>
+    <p>${esc(d.q)}</p>
+    <p class="rec"><b>Recommended: ${esc(d.opts[0])}.</b> ${esc(d.rec)}</p>
+    <fieldset><legend>${esc(d.q)}</legend>
+      ${d.opts.map((o, i) => `<label class="opt"><input type="radio" name="${d.id}" id="${d.id}-o${i}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join("")}
+    </fieldset>
+    <label for="${d.id}-note" class="small">Note</label>
+    <textarea id="${d.id}-note" placeholder="Anything I should know"></textarea>
+    <div class="saved" id="${d.id}-saved"></div>
+  </div>`).join("");
+
+const state = document.getElementById("dbstate");
+function setControls(enabled) {
+  document.querySelectorAll(".decision input, .decision textarea").forEach(el => { el.disabled = !enabled; });
+}
+setControls(false);
+
+(async () => {
+  const timer = setTimeout(() => { state.textContent = "Answers can't be saved in this view. Open the page on claude.ai while signed in, or tell me in chat."; }, 10000);
+  let db = null;
+  try { db = window.claude && await window.claude.use("db"); } catch (e) { db = null; }
+  if (!db) { clearTimeout(timer); state.textContent = "Answers can't be saved in this view. Open the page on claude.ai while signed in, or tell me in chat."; return; }
+
+  const docs = {};
+  const apply = (id, data) => {
+    if (!data) return;
+    const card = document.querySelector(`.decision[data-id="${id}"]`);
+    if (!card) return;
+    if (data.choice) { const r = [...card.querySelectorAll("input")].find(i => i.value === data.choice); if (r) r.checked = true; }
+    const ta = card.querySelector("textarea"); if (document.activeElement !== ta) ta.value = data.note || "";
+    const pill = document.getElementById(id + "-pill");
+    pill.textContent = data.choice ? "answered" : "open"; pill.className = "pill " + (data.choice ? "good" : "sun");
+    if (data.at) document.getElementById(id + "-saved").textContent = "Saved " + new Date(data.at).toLocaleString();
+  };
+  try {
+    db.collection("decisions").onSnapshot(snap => {
+      clearTimeout(timer);
+      state.textContent = "Answers save to this page as you choose.";
+      setControls(true);
+      const list = snap.docs || snap || [];
+      list.forEach(d => { const data = typeof d.data === "function" ? d.data() : d.data; docs[d.id] = data; apply(d.id, data); });
+    }, err => { clearTimeout(timer); state.textContent = "Couldn't load saved answers (" + (err && err.message || "unknown error") + "). Tell me in chat instead."; });
+  } catch (e) { clearTimeout(timer); state.textContent = "Couldn't load saved answers. Tell me in chat instead."; return; }
+
+  const save = async (id) => {
+    const card = document.querySelector(`.decision[data-id="${id}"]`);
+    const checked = card.querySelector("input:checked");
+    const data = { choice: checked ? checked.value : "", note: card.querySelector("textarea").value.trim(), at: Date.now() };
+    const prev = docs[id];
+    if (prev && prev.choice === data.choice && (prev.note || "") === data.note) return;
+    const out = document.getElementById(id + "-saved");
+    out.textContent = "Saving…";
+    try { await db.doc("decisions/" + id).set(data); docs[id] = data; out.textContent = "Saved " + new Date(data.at).toLocaleString(); }
+    catch (e) { out.textContent = "Not saved: " + (e && e.message || "you may not have write access") + ". Try again or tell me in chat."; }
+  };
+  document.querySelectorAll(".decision").forEach(card => {
+    const id = card.dataset.id;
+    card.querySelectorAll("input").forEach(i => i.addEventListener("change", () => save(id)));
+    card.querySelector("textarea").addEventListener("blur", () => save(id));
+  });
+})();
+</script>
+</body>
+</html>
