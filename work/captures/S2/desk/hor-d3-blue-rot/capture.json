@@ -1,0 +1,195 @@
+{
+  "url": "http://127.0.0.1:62062/hzd/?clean=1&motion=0&style=horizon&level=desktop&proc_surfaceRefine=3&sky_jitterNoise=blue&sky_subPixelRotate=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:54:55.403Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/S2/desk/hor-d3-blue-rot/ground.png",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 98.64656479999998,
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.014208,
+          "marchNear": 0.34667673333333315,
+          "marchFar": 0.6998295333333331,
+          "shadowMap": 5.328059,
+          "composite": 1.4155193000000006,
+          "dome": 0.7274006166666669,
+          "skyLayer": 44.59671038333334,
+          "skyResolve": 0.7149398333333334,
+          "upscale": 0.2705380000000001,
+          "cloudsTotal": 54.12258940000001,
+          "total": 152.7691542
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.014208,
+          "marchNear": 0.171164,
+          "marchFar": 0.291038,
+          "shadowMap": 22.90011,
+          "composite": 0.138457,
+          "dome": 0.631699,
+          "skyLayer": 49.065959,
+          "skyResolve": 0.17583,
+          "upscale": 0.270538
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "sky.jitterNoise": "blue",
+          "sky.subPixelRotate": true,
+          "c.renderLevel": "desktop"
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/S2/desk/hor-d3-blue-rot/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 97.88680776666662,
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.014208,
+          "marchNear": 0.5846743333333336,
+          "marchFar": 0.4419480833333333,
+          "shadowMap": 5.328059,
+          "composite": 1.6986429000000003,
+          "dome": 0.9428085500000001,
+          "skyLayer": 53.20060765,
+          "skyResolve": 0.5333459666666663,
+          "upscale": 0.2705380000000001,
+          "cloudsTotal": 63.023540483333335,
+          "total": 160.91034824999997
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.014208,
+          "marchNear": 0.105082,
+          "marchFar": 0.145413,
+          "shadowMap": 22.90011,
+          "composite": 0.103999,
+          "dome": 0.398911,
+          "skyLayer": 41.348578,
+          "skyResolve": 0.199497,
+          "upscale": 0.270538
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "sky.jitterNoise": "blue",
+          "sky.subPixelRotate": true,
+          "c.renderLevel": "desktop"
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/S2/desk/hor-d3-blue-rot/above.png",
+      "report": {
+        "view": "above",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 87.74523740000001,
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.0156035,
+          "marchNear": 0.13259384999999999,
+          "marchFar": 0.6091913999999998,
+          "shadowMap": 6.31205872,
+          "composite": 1.1860277666666674,
+          "dome": 0.9390336833333331,
+          "skyLayer": 66.08696655,
+          "skyResolve": 0.78737415,
+          "upscale": 0.18241399999999977,
+          "cloudsTotal": 76.25997162,
+          "total": 164.00520902
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.0115,
+          "marchNear": 0.19033,
+          "marchFar": 0.130498,
+          "shadowMap": 11.752945,
+          "composite": 0.235954,
+          "dome": 0.492452,
+          "skyLayer": 91.436979,
+          "skyResolve": 0.131331,
+          "upscale": 0.182414
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "sky.jitterNoise": "blue",
+          "sky.subPixelRotate": true,
+          "c.renderLevel": "desktop"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:62062/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:62062/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1421:12)\n    at http://127.0.0.1:62062/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

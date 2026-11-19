@@ -15,7 +15,7 @@ def lap(a):
 
 for c in sys.argv[1:]:
     label, d = c.split('=', 1)
-    files = sorted(glob.glob(f'{d}/f*.png'))
+    files = sorted(sorted(glob.glob(f'{d}/f*.png') + glob.glob(f'{d}/f*.jpg')))
     if not files: print(f'{label:16s} (no frames)'); continue
     hfs, sp, highs = [], [], []
     for f in files:

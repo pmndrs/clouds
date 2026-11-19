@@ -1,0 +1,15 @@
+{
+  "url": "http://127.0.0.1:60050/hzd/?clean=1&view=gp7&style=horizon&level=desktop&motion=20&proc_surfaceRefine=0&c_levelSubPixelSpan=-1",
+  "size": [
+    1280,
+    720
+  ],
+  "warm": 420,
+  "frames": 6,
+  "fps": 60,
+  "setup": "",
+  "windOffset": "",
+  "wind": [],
+  "errors": [],
+  "info": 4
+}

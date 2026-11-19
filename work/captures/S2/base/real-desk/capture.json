@@ -1,0 +1,189 @@
+{
+  "url": "http://127.0.0.1:51903/hzd/?clean=1&motion=0&style=real&level=desktop",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:32:13.961Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/S2/base/real-desk/ground.png",
+      "report": {
+        "view": "ground",
+        "style": "real",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 3.4397823833333327,
+          "lightGridReduce": 0.021542,
+          "lightGrid": 0.019125,
+          "marchNear": 0.6042408166666664,
+          "marchFar": 0.7774935500000002,
+          "shadowMap": 0.09294104761904763,
+          "composite": 0.7770917333333335,
+          "dome": 0.05260476666666669,
+          "cloudsTotal": 2.3450389142857144,
+          "total": 5.784821297619047
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.021542,
+          "lightGrid": 0.019125,
+          "marchNear": 0.049333,
+          "marchFar": 0.140539,
+          "shadowMap": 0.008167,
+          "composite": 0.918361,
+          "dome": 0.018791
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "c.renderLevel": "desktop"
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/S2/base/real-desk/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "real",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 4.924622716666667,
+          "lightGridReduce": 0.021542,
+          "lightGrid": 0.019125,
+          "marchNear": 0.5352710500000001,
+          "marchFar": 0.5768334833333333,
+          "shadowMap": 1.1352481481481482,
+          "composite": 1.133628483333333,
+          "dome": 0.3420983000000001,
+          "skyLayer": 63.63424663888889,
+          "skyResolve": 0.7907009722222221,
+          "cloudsTotal": 68.18869407592592,
+          "total": 73.11331679259258
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.021542,
+          "lightGrid": 0.019125,
+          "marchNear": 0.089374,
+          "marchFar": 0.276621,
+          "shadowMap": 1.485603,
+          "composite": 0.466533,
+          "dome": 0.511242,
+          "skyLayer": 38.86399,
+          "skyResolve": 5.023673
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "c.renderLevel": "desktop"
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/S2/base/real-desk/above.png",
+      "report": {
+        "view": "above",
+        "style": "real",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 2.2195480000000023,
+          "lightGridReduce": 0.021542,
+          "lightGrid": 0.019868,
+          "marchNear": 0.5817092333333334,
+          "marchFar": 0.6029511666666668,
+          "shadowMap": 2.0911581219512194,
+          "composite": 1.350936283333333,
+          "dome": 0.7618251666666667,
+          "skyLayer": 56.19234393333331,
+          "skyResolve": 0.3965100166666669,
+          "cloudsTotal": 62.0188439219512,
+          "total": 64.2383919219512
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.021542,
+          "lightGrid": 0.00725,
+          "marchNear": 0.075165,
+          "marchFar": 0.252662,
+          "shadowMap": 1.423604,
+          "composite": 0.418285,
+          "dome": 0.516242,
+          "skyLayer": 72.099566,
+          "skyResolve": 0.115373
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "c.renderLevel": "desktop"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:51903/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:51903/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1421:12)\n    at http://127.0.0.1:51903/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:540:12 font-weight: bold;",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Buffer \"GpuTimer readback 0\"].Unmap().\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Buffer \"GpuTimer readback 2\"].Unmap().\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Buffer \"buffer_timestamp_result_render\"].Unmap().\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Device].CreateCommandEncoder([CommandEncoderDescriptor \"\"computeGroup_1060\"\"]).\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While finishing [Invalid CommandEncoder \"computeGroup_1060\"].\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"computeGroup_1060\"]])\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n    at ValidateIsAlive (../../third_party/dawn/src/dawn/native/Device.cpp:888)\n",
+    "error: THREE.THREE.WebGPURenderer: WebGPU Device Lost:\n\nMessage: Metal command buffer failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory) (domain=MTLCommandBufferErrorDomain, code=8)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at operator() (../../third_party/dawn/src/dawn/native/metal/QueueMTL.mm:215)\n\nReason: unknown",
+    "error: THREE.Error resolving queries: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': [Device] is lost.",
+    "error: THREE.Error resolving queries: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': [Device] is lost."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

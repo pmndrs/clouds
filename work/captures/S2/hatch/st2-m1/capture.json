@@ -1,0 +1,126 @@
+{
+  "url": "http://127.0.0.1:54394/hzd/?clean=1&motion=0&hz_stage=2&proc_surfaceRefine=3&proc_surfaceRefineMode=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T20:21:15.257Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/S2/hatch/st2-m1/ground.png",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 6.1629015833333325,
+          "lightGridReduce": 0.009167,
+          "lightGrid": 0.010625,
+          "marchNear": 0.5318545333333333,
+          "marchFar": 1.5130338500000005,
+          "shadowMap": 0.1007601111111111,
+          "composite": 1.4289504333333332,
+          "dome": 0.09510696666666665,
+          "cloudsTotal": 3.689497894444445,
+          "total": 9.852399477777777
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.009167,
+          "lightGrid": 0.010625,
+          "marchNear": 0.074374,
+          "marchFar": 12.538684,
+          "shadowMap": 0.008125,
+          "composite": 0.111291,
+          "dome": 0.010542
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.stage": 2,
+          "c.animSpeed": 0,
+          "proc.surfaceRefine": 3
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/S2/hatch/st2-m1/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 65.85201251666668,
+          "lightGridReduce": 0.009167,
+          "lightGrid": 0.010625,
+          "marchNear": 0.48541686666666667,
+          "marchFar": 0.7092759166666666,
+          "shadowMap": 1.493468625,
+          "composite": 2.0751134666666666,
+          "dome": 1.1772833000000003,
+          "skyLayer": 105.36083393333334,
+          "skyResolve": 3.1107039333333337,
+          "cloudsTotal": 114.43188804166668,
+          "total": 180.28390055833336
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.009167,
+          "lightGrid": 0.010625,
+          "marchNear": 0.688447,
+          "marchFar": 0.139581,
+          "shadowMap": 3.805192,
+          "composite": 0.311163,
+          "dome": 0.560908,
+          "skyLayer": 111.718629,
+          "skyResolve": 2.388964
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.stage": 2,
+          "c.animSpeed": 0,
+          "proc.surfaceRefine": 3
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:54394/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:54394/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1421:12)\n    at http://127.0.0.1:54394/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

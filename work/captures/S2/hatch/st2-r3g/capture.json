@@ -1,0 +1,126 @@
+{
+  "url": "http://127.0.0.1:51617/hzd/?clean=1&motion=0&hz_stage=2&proc_surfaceRefine=3",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T20:11:32.673Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/S2/hatch/st2-r3g/ground.png",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 13.607079266666668,
+          "lightGridReduce": 0.010166,
+          "lightGrid": 0.122289,
+          "marchNear": 0.9656900500000003,
+          "marchFar": 0.6731389666666666,
+          "shadowMap": 0.023421800000000003,
+          "composite": 0.8126931666666668,
+          "dome": 0.0748419,
+          "cloudsTotal": 2.6822408833333338,
+          "total": 16.28932015
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.010166,
+          "lightGrid": 0.122289,
+          "marchNear": 0.07204,
+          "marchFar": 0.142665,
+          "shadowMap": 0.043791,
+          "composite": 0.425661,
+          "dome": 0.01075
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.stage": 2,
+          "c.animSpeed": 0,
+          "proc.surfaceRefine": 3
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/S2/hatch/st2-r3g/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 112.86973470000004,
+          "lightGridReduce": 0.010166,
+          "lightGrid": 0.122289,
+          "marchNear": 0.25387309999999996,
+          "marchFar": 1.2473171666666667,
+          "shadowMap": 1.5422700476190474,
+          "composite": 0.9544576666666666,
+          "dome": 0.7239555666666667,
+          "skyLayer": 104.19246851666666,
+          "skyResolve": 1.9756942166666662,
+          "cloudsTotal": 111.02249128095238,
+          "total": 223.89222598095242
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.010166,
+          "lightGrid": 0.122289,
+          "marchNear": 0.053707,
+          "marchFar": 0.582866,
+          "shadowMap": 4.099188,
+          "composite": 0.34737,
+          "dome": 0.482827,
+          "skyLayer": 100.075973,
+          "skyResolve": 0.517658
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.stage": 2,
+          "c.animSpeed": 0,
+          "proc.surfaceRefine": 3
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:51617/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:51617/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1421:12)\n    at http://127.0.0.1:51617/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

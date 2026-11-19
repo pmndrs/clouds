@@ -1,0 +1,126 @@
+{
+  "url": "http://127.0.0.1:60463/hzd/?clean=1&motion=0&hz_n3Strength=0.4&hz_n3Tile=1500",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:52:03.684Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/S2/hatch/e2-r0/ground.png",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 15.503148249999999,
+          "lightGridReduce": 0.023125,
+          "lightGrid": 0.022833,
+          "marchNear": 1.0014595999999996,
+          "marchFar": 1.4708332000000008,
+          "shadowMap": 0.21960220000000003,
+          "composite": 1.309246733333333,
+          "dome": 0.1378735833333333,
+          "cloudsTotal": 4.184973316666667,
+          "total": 19.688121566666666
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.023125,
+          "lightGrid": 0.022833,
+          "marchNear": 0.048333,
+          "marchFar": 0.215413,
+          "shadowMap": 0.009208,
+          "composite": 0.092124,
+          "dome": 0.009708
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.n3Tile": 1500,
+          "hzd.n3Strength": 0.4,
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "gp7",
+      "file": "work/captures/S2/hatch/e2-r0/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 125.25234353333335,
+          "lightGridReduce": 0.023125,
+          "lightGrid": 0.022833,
+          "marchNear": 0.7632801166666667,
+          "marchFar": 1.5131900666666669,
+          "shadowMap": 1.9927537727272726,
+          "composite": 0.54037095,
+          "dome": 0.9022348666666669,
+          "skyLayer": 134.5537453666667,
+          "skyResolve": 0.8240361833333331,
+          "cloudsTotal": 141.13556932272732,
+          "total": 266.38791285606067
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.023125,
+          "lightGrid": 0.022833,
+          "marchNear": 0.074499,
+          "marchFar": 0.205289,
+          "shadowMap": 9.515272,
+          "composite": 0.422327,
+          "dome": 0.481575,
+          "skyLayer": 118.933102,
+          "skyResolve": 0.259955
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.n3Tile": 1500,
+          "hzd.n3Strength": 0.4,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:60463/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:60463/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:1421:12)\n    at http://127.0.0.1:60463/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a1f8315a98f82ba50/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=d35faa69:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
