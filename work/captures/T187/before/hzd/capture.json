@@ -1,0 +1,70 @@
+{
+  "url": "http://127.0.0.1:52115/hzd/?view=gp7",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-19T18:39:41.059Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": ".claude/worktrees/agent-ab586e85d4f9b54ec/work/captures/T187/before/hzd/view.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 21.08914908333333,
+          "lightGridReduce": 0.023541,
+          "lightGrid": 0.028291,
+          "marchNear": 0.12824115,
+          "marchFar": 0.17856805,
+          "shadowMap": 2.0781955161290315,
+          "composite": 0.3072036166666667,
+          "dome": 0.9489667166666665,
+          "skyLayer": 25.73036296666667,
+          "skyResolve": 0.2115141666666666,
+          "cloudsTotal": 29.6348841827957,
+          "total": 50.72403326612903
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.023541,
+          "lightGrid": 0.028291,
+          "marchNear": 0.043291,
+          "marchFar": 0.092957,
+          "shadowMap": 1.432936,
+          "composite": 0.156998,
+          "dome": 0.479118,
+          "skyLayer": 19.277914,
+          "skyResolve": 0.134123
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {}
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:52115/@fs/Users/dex/Developer/WebGPUClouds/node_modules/.vite/deps/chunk-WZMX733Z.js?v=585f2b9b:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:52115/@fs/Users/dex/Developer/WebGPUClouds/node_modules/.vite/deps/chunk-WZMX733Z.js?v=585f2b9b:1421:12)\n    at http://127.0.0.1:52115/@fs/Users/dex/Developer/WebGPUClouds/node_modules/.vite/deps/chunk-WZMX733Z.js?v=585f2b9b:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

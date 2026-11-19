@@ -1,0 +1,80 @@
+{
+  "url": "http://127.0.0.1:53426/plains-flight/",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-19T17:13:32.887Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": ".claude/worktrees/agent-ab586e85d4f9b54ec/work/captures/T187/before/plains-flight/view.png",
+      "report": {
+        "gpuMs": {
+          "scene": 0.1834693,
+          "skyWeather": 0.23974851666666658,
+          "lightGridReduce": 0.134871,
+          "lightGrid": 0.21768894117647064,
+          "marchNear": 0.05736170000000001,
+          "marchFar": 1.09312095,
+          "shadowMap": 0.37243545762711866,
+          "composite": 0.25735781666666674,
+          "dome": 0.5673801,
+          "resolveNear": 0.0255447,
+          "resolveFar": 0.04528460000000001,
+          "skyWeatherMips": 0.081124,
+          "skyLayer": 1.7216363333333329,
+          "skyResolve": 0.0786577166666667,
+          "cloudsTotal": 4.892211832136923,
+          "cloudsMarch": 4.539651890960452,
+          "total": 5.075681132136922
+        },
+        "frameMs": {
+          "p50": 16.699999999999818,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "bookmark": "start",
+        "simT": 0,
+        "frames": 509,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2048,
+          "z": 2048,
+          "y": 2,
+          "yaw": 0,
+          "pitch": 0.6702689359975338
+        },
+        "windowCentre": [
+          2048,
+          2048
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 509,
+          "bytes": 6136620
+        },
+        "swapEvents": [],
+        "swapGpu": [],
+        "stream": {
+          "windows": 1,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 2.600000023841858,
+          "generations": []
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
