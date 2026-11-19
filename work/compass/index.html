@@ -111,15 +111,26 @@ td strong { font-weight: 600; }
 <main>
 
 <header style="display:grid;gap:14px">
-  <div class="meta"><span>Living plan · owner: Dennis Smolek</span><span class="num">Updated 2026-11-06</span><span>Draft 1: every goal below is a proposal until you answer the decisions at the bottom</span></div>
+  <div class="meta"><span>Living plan · owner: Dennis Smolek</span><span class="num">Updated 2026-11-20</span><span>Draft 2: your d1–d8 answers are in; the library refactor and styles work are running</span></div>
   <h1>WebGPU Clouds Compass</h1>
-  <p class="lede">Where the project stands after five weeks of building, and a proposed reset: one look target with its own style, one volume library, an upscaler-first pipeline, and goals you can score by eye.</p>
+  <p class="lede">Where the project stands, and the reset you approved on 20 Nov: several switchable looks with Horizon as one of them, the sibling libraries instead of our own copies, an upscaler-first pipeline on three r187, and goals you can score by eye.</p>
   <nav class="toc" aria-label="Sections">
-    <a href="#audit">Where we are</a><a href="#style">The Horizon look</a><a href="#family">Library family</a>
+    <a href="#now">Tonight</a><a href="#audit">Where we are</a><a href="#style">Styles</a><a href="#family">Library family</a>
     <a href="#levels">Render levels</a><a href="#goals">Goals and measures</a><a href="#plan">Plan</a>
     <a href="#decisions">Decisions for you</a><a href="#log">Change log</a>
   </nav>
 </header>
+
+<section id="now">
+  <div class="sec-head">
+    <h2>Tonight (20 Nov)</h2>
+    <p>Work started after your answers. Each item lands on <code>main</code> only after I’ve looked at the frames. The tag <code>stable-2026-11-20-pre-refactor</code> marks the state before any of it.</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Item</th><th>What</th><th>State</th></tr></thead>
+    <tbody id="now-rows"></tbody>
+  </table></div>
+</section>
 
 <section id="audit">
   <div class="sec-head">
@@ -135,12 +146,16 @@ td strong { font-weight: 600; }
 
 <section id="style">
   <div class="sec-head">
-    <h2>The Horizon look is a style, not a defect list</h2>
-    <p>Nubis clouds are art-directed. Some things that look odd next to photos or other engines are Guerrilla's choices. Proposal: we write those down as a style contract, stop "fixing" them, and spend effort only on real defects. Edit this list with me; it becomes the yardstick for every look round.</p>
+    <h2>Styles: Horizon is one of them</h2>
+    <p>Your d1 answer was "both, case by case": “Horizon gets us there but they have a vibe. The clouds are real and a better weight in some cases.” The early September raymarch looks were excellent, and they stay. So style is a switch on the same sky, not a single target. Each style has its own contract, and the defects list applies to all of them.</p>
+  </div>
+  <div class="grid" id="styles"></div>
+  <div class="sec-head" style="border-top:0;padding-top:0">
+    <p>The Horizon contract, kept from draft 1:</p>
   </div>
   <div class="keep-fix">
     <div class="card stripe good">
-      <div class="row"><h3>Style: keep it, match it</h3><span class="pill sun">proposed</span></div>
+      <div class="row"><h3>Horizon: keep it, match it</h3><span class="pill good">style</span></div>
       <ul>
         <li>Big, cohesive, simplified bodies with readable silhouettes at distance, rather than photo-accurate fractal detail</li>
         <li>Bright, almost painted lit tops; billows stay crisp on the lit side</li>
@@ -152,7 +167,7 @@ td strong { font-weight: 600; }
       </ul>
     </div>
     <div class="card stripe bad">
-      <div class="row"><h3>Defects: always fix</h3><span class="pill bad">bugs</span></div>
+      <div class="row"><h3>Defects: always fix, every style</h3><span class="pill bad">bugs</span></div>
       <ul>
         <li>Foam, sprinkles and pitting: small puffs where a body should read as one mass</li>
         <li>Sparkle on ridges, temporal smear, ghosting behind fast motion</li>
@@ -163,7 +178,7 @@ td strong { font-weight: 600; }
       </ul>
     </div>
   </div>
-  <p class="small">Your photos stay the reference for cloud anatomy (where bases sit, how towers grow, what stratocumulus looks like). Decima frames are the reference for the treatment (light, colour, detail level). When they disagree, the treatment follows Horizon.</p>
+  <p class="small">Your photos stay the reference for anatomy and weight in every style. We are adding a path-traced reference of the same cloud, using your pathtracer’s volume path (validated against pbrt and Mitsuba). It shows which oddities are Horizon’s treatment and which are our approximation errors.</p>
 </section>
 
 <section id="family">
@@ -214,7 +229,7 @@ td strong { font-weight: 600; }
 <section id="plan">
   <div class="sec-head">
     <h2>Plan</h2>
-    <p>Two lanes run side by side: the clouds repo, and WebVDB in its own repo. Phases end on a scored round, not on a date.</p>
+    <p>Reassessed on 20 Nov. The clouds repo uses the sibling libraries, and WebVDB and the others keep their own lanes. Phases end on a scored round, not on a date.</p>
   </div>
   <div class="phases" id="phases"></div>
 </section>
@@ -231,6 +246,7 @@ td strong { font-weight: 600; }
 <section id="log">
   <div class="sec-head"><h2>Change log</h2></div>
   <ul class="log small" style="margin:0;padding-left:18px">
+    <li><span class="num">2026-11-20</span>: Draft 2. Recorded your d1–d8 answers. Added a Styles section (Horizon, Early, Real weight). Rewrote the library family from a survey of each sibling, and reassessed the phases around the refactor. Moved the October BOARD, HANDOFF, ROADMAP and plans to <code>work/archive/</code> and <code>docs/archive/</code> (d7). Tonight’s work is listed at the top.</li>
     <li><span class="num">2026-11-06</span>: First draft after the audit. Supersedes the tracking role of <code>work/ROADMAP.md</code> and the rounds overview once you approve; <code>work/STATUS.md</code> stays as the per-merge log.</li>
   </ul>
 </section>
@@ -243,60 +259,76 @@ const TRACKS = [
     lines: ["Has every big Nubis Evolved piece except terrain-hugging envelope clouds: five-field map, profile tables, Nubis Cubed noise, exact-profile Nubis lighting, 2.5D mid layers, cirrus from the map, painting, weather states, storms.",
             "Your 22 Oct note: shaping drifting toward foam.",
             "A1 to A9 kept or trusted; the 22 Oct round (LH1, SH1, CI1, ST2, PF1) still waits for your flip-through."] },
-  { name: "Decima parity", health: "bad", label: "paused since 11 Oct",
+  { name: "Decima parity", health: "idle", label: "reference check only (d2)",
     lines: ["Our render of Guerrilla's pack clouds against their frames. Round 12 was never judged.",
             "Cameras are fitted from silhouettes, so distance and FOV are confounded; the Houdini camera rig is parked.",
-            "Needs a call: resume, or keep it as a reference check only."] },
-  { name: "Volumes and VDB", health: "warn", label: "works, wrong home",
+            "Your call (d2): reference check only. No more parity rounds."] },
+  { name: "Volumes and VDB", health: "warn", label: "moving to @pmndrs/vdb (d3)",
     lines: ["The runtime renders Nubis NVDF voxels and direct density VDBs (EmberGen, Pyro) with a Karma-fitted material.",
             "Import is offline: Houdini hython scripts write dense .bin files; a copy of WebVDB is vendored in scripts/vdb.",
             "Voxel heroes inside the procedural sky exist as pieces but not as a composed scene."] },
-  { name: "Performance", health: "idle", label: "deferred on purpose",
+  { name: "Performance", health: "warn", label: "upscaler levels starting",
     lines: ["Sky is 13 to 22 ms at ultra against 2 to 4 ms in Nubis Evolved. Veil and detail noise are most of it (PF1).",
             "The upscaler is a dev dependency but not in the cloud output path; the scheduler is not used yet.",
             "Clear-sky skipping landed (PF1); LOD past 32 km is missing."] },
   { name: "Library and API", health: "warn", label: "solid core, unpublished",
     lines: ["@clouds/runtime talks only to WebGPU; @clouds/three and @clouds/react are thin. All packages are private and unnamed.",
             "A legacy package (7k lines) and an 18k-line lab sit beside it; 3.2 GB of assets and 11 GB of research artifacts locally."] },
-  { name: "How we work", health: "bad", label: "too much paperwork",
+  { name: "How we work", health: "good", label: "Compass + STATUS only (d7)",
     lines: ["124 reports, 101 capture folders, about ten planning docs (AUDIT, two PLANs, ROADMAP, STATUS, BOARD, HANDOFF…) and four review pages.",
             "You told me on 13 Oct you got lost in it. Gates passed on numbers while the look failed your eye (Decima D0).",
-            "Proposal: this page plus STATUS, one change per look round, scored on the fixed shot set."] },
+            "Since 20 Nov: this page plus STATUS. BOARD, HANDOFF, ROADMAP and the October plans are archived. One change per look round, scored on the fixed shot set."] },
 ];
 
 const FAMILY = [
-  { lib: "WebVDB<br><span class='small'>nanovdb-wgsl · three-nanovdb · vdb-web-tools</span>",
-    state: "0.1.0 packed, not published. Sparse NanoVDB traversal in WGSL (from the PicoVDB author's webgpu-nanovdb), pure-TS .vdb parse/build/quantize, sequence playback. 249 unit tests; WDAS cloud at 104 fps, 1080p.",
-    role: "The volume layer: load .vdb/.nvdb in the browser, sample sparsely on the GPU, stream EmberGen sequences.",
-    move: "<strong>Adopt.</strong> Publish 0.1, add the cloud needs there (NVDF channels, SDF for sphere tracing, HDDA skipping, bricks). Clouds depends on it and drops the vendored copy; hython stays an authoring tool only." },
-  { lib: "three.js VDB loader<br><span class='small'>community example, Oct 2026</span>",
-    state: "New in three.js examples.",
-    role: "None directly.",
-    move: "<strong>Don't adopt.</strong> Bound to three, dense by design. Worth a short note in WebVDB's README on how it differs." },
-  { lib: "@pmndrs/upscaler",
-    state: "0.5.0 published, active (last commit 25 Oct). In this repo only as a dev dependency and a reconstruction adapter.",
-    role: "The output path for clouds at every level.",
-    move: "<strong>Make it required.</strong> Clouds emits motion vectors and a reactive mask; levels are defined by internal size." },
-  { lib: "Denoiser<br><span class='small'>OIDN networks · FFX shadows and reflections</span>",
-    state: "v2 on WebGPU, last update 20 Oct. Composes with the upscaler on one GPUDevice.",
-    role: "Candidates: cloud shadows on terrain (FFX shadow denoiser), a low-sample far march, offline-quality stills.",
-    move: "<strong>Explore later</strong>, after the upscaler is in. One spike: does FFX shadows clean our cloud-shadow map cheaper than more samples?" },
-  { lib: "@pmndrs/scheduler",
-    state: "0.2.0, fixed-timestep jobs.",
-    role: "Spread slow work across frames: generation, evolution, lighting at 30 Hz, shadow-map updates.",
-    move: "<strong>Adopt in the perf phase.</strong> Add time-sliced GPU jobs to the scheduler itself, as you wanted." },
-  { lib: "BVH<br><span class='small'>CPU and GPU build, not tied to three</span>",
-    state: "Lives in another project (I found a built copy under homefig). Faster than three-mesh-bvh.",
-    role: "Scene and terrain queries: envelope clouds hugging terrain, ray queries for the showcase scenes.",
-    move: "<strong>Showcase only for now.</strong> Not on the clouds core path. Tell me where its source lives." },
-  { lib: "DDGI<br><span class='small'>gitestbench probe volume</span>",
-    state: "Probe baker and TSL node (last commit Aug).",
-    role: "Lighting the ground under the clouds: sky irradiance and cloud shadows feeding the probes.",
-    move: "<strong>Contract only.</strong> Clouds publishes sky irradiance and its shadow map; DDGI consumes them in the onsen and plains demos." },
-  { lib: "Atmosphere<br><span class='small'>@pmndrs/sky · Takram · SebH sky</span>",
-    state: "In use for the sky and aerial perspective.",
-    role: "Sun, sky and haze the clouds sit in.",
-    move: "<strong>Keep.</strong> Pick one default atmosphere for the shot set so look rounds don't drift with it." },
+  { lib: "@pmndrs/vdb <span class='small'>WebVDB v2, “universal VDB”</span>",
+    state: "Ready to publish, not on npm yet (you publish 0.1.0 by hand). Engine-free core, a pure-TS tools subpath (parse .vdb, build/quantize/write NanoVDB, .wvdb), a WGSL module generator (vdbSample, HDDA) and a three adapter with the fast froxel renderer. The three adapter needs three r187.",
+    role: "The volume layer for artist clouds: import, quantize, stream and sample VDBs. The froxel renderer and the dense path are its fast routes (in its own numbers, dense beats sparse traversal).",
+    move: "<span class='pill good'>adopting tonight</span> Clouds links it and deletes both vendored copies (about 18k lines). Next: artist VDB clouds lit by the sky, via its sample module or the froxel renderer." },
+  { lib: "three r187",
+    state: "0.187.0 on npm. We were on 0.186.1.",
+    role: "Base for the three adapter, the R3F demos and the vdb/bvh three adapters.",
+    move: "<span class='pill good'>upgrading tonight</span>" },
+  { lib: "@pmndrs/upscaler <span class='small'>0.5.0</span>",
+    state: "Published. A raw-WebGPU core (UpscalerCore) shares our GPUDevice: colour, depth, velocity and reactive in, display-size output. Branches from today carry motion-vector and reset fixes.",
+    role: "The output path for clouds at every level except Cinematic.",
+    move: "<span class='pill good'>wiring tonight</span> Render levels in the cloud pass, with cloud depth and velocity as inputs." },
+  { lib: "@pmndrs/motion-vectors <span class='small'>0.1.0</span>",
+    state: "Published. Camera motion from depth, a cut detector, and a three MRT velocity node. It has no volumetric motion.",
+    role: "Velocity for scene geometry, plus camera-cut resets. Cloud velocity comes from our own representative cloud depth and wind.",
+    move: "Adopt with the upscaler, for the scene side and cut detection." },
+  { lib: "@pmndrs/downsampler <span class='small'>0.1.0</span>",
+    state: "Published 18 Nov. SPD-style compute mips, Hi-Z min/max pyramids, tile statistics, whole-image reductions.",
+    role: "Scene-depth pyramids at the cloud render size, tile culling, and the auto-exposure average.",
+    move: "Adopt as the upscaler work needs it." },
+  { lib: "@pmndrs/scheduler <span class='small'>0.3.0 on npm</span>",
+    state: "Fixed-timestep jobs (step, maxSteps, alpha). CPU frame scheduling only, no GPU time-slicing. We pin 0.2.0.",
+    role: "Cadence for shaping, lighting at 30 Hz and shadow refresh in the speed phase.",
+    move: "Bump to 0.3 in the speed phase. GPU slicing stays ours, or goes upstream." },
+  { lib: "Denoiser",
+    state: "Large progress: FFX shadow and reflection denoisers ported to WGSL (shadows about 0.5 ms at 1080p), experimental SVGF-family realtime denoisers, and OIDN for stills. All are surface-based; none is volumetric.",
+    role: "Cloud shadows on the ground (FFX shadows), and OIDN for path-traced reference stills.",
+    move: "Spike after the upscaler (your d6). For noisy cloud colour, the upscaler’s temporal path is the better fit." },
+  { lib: "pathtracer",
+    state: "WebGPU path tracer with a validated volume path (delta tracking, majorant bricks, pbrt and Mitsuba parity on smoke.vdb).",
+    role: "Ground-truth render of our clouds, to tell Horizon’s treatment from our approximation errors.",
+    move: "<span class='pill good'>spike tonight</span> A reference page with the same cloud: path traced vs our two lighting models." },
+  { lib: "@pmndrs/bvh <span class='small'>0.1.0</span>",
+    state: "Published. CPU tinybvh and GPU H-PLOC/LBVH builders, WGSL trace module. Its three adapter needs r187. Triangles only.",
+    role: "Terrain and scene ray queries in the showcases.",
+    move: "Showcase only (your d5): pulled into the onsen and plains demos." },
+  { lib: "DDGI <span class='small'>gitestbench, webgpu-ddgi</span>",
+    state: "Probe volumes; sibling repos.",
+    role: "Ground lit by the cloud-shadowed sky.",
+    move: "Showcase only (d5). Clouds publishes sky irradiance and its shadow map." },
+  { lib: "@pmndrs/impostors",
+    state: "Octahedral impostors for meshes. Billboard clouds are only a post-v1 note.",
+    role: "None for clouds yet. Possibly trees in the showcases.",
+    move: "Not for clouds." },
+  { lib: "Atmosphere <span class='small'>@pmndrs/sky · Takram · SebH</span>",
+    state: "In use.",
+    role: "The sun, sky and haze the clouds sit in.",
+    move: "Keep @pmndrs/sky as the default for the shot set." },
 ];
 
 const TIERS = [
@@ -307,29 +339,33 @@ const TIERS = [
 ];
 
 const GOALS = [
-  { g: "<strong>G1 Reads as Horizon</strong>", m: "Your 1–5 score on the eight reference shots, at Cinematic and Desktop.", now: "No fixed set; last verdict: drifting to foam", target: "Every shot ≥ 4 at both levels" },
-  { g: "<strong>G2 Holds up in motion</strong>", m: "Three clips (flight, time-lapse, orbit): no sparkle, smear, pops or shadow jumps. Pass/fail by you.", now: "Sparkle and shadow jitter fixed in FX1, unreviewed", target: "All three pass" },
-  { g: "<strong>G3 Fits the frame</strong>", m: "GPU time of the cloud pass on your laptop, 1440p output, worst shot of the set.", now: "13–22 ms at ultra, no upscaler", target: "Desktop ≤ 4 ms, Laptop ≤ 3 ms" },
-  { g: "<strong>G4 Artist volumes</strong>", m: "Drop any EmberGen or Houdini .vdb in the browser; it renders lit like the sky, inside the sky.", now: "Offline hython convert; hero not composed in the sky", target: "Frog and one EmberGen cloud in shot 8, via WebVDB" },
-  { g: "<strong>G5 Drop-in library</strong>", m: "Lines to add clouds to a fresh three.js, raw WebGPU and R3F scene; packages on npm.", now: "9 lines (three); private", target: "≤ 15 lines each; published" },
-  { g: "<strong>G6 Showcases</strong>", m: "Open water, plains flight, onsen valley run live at Desktop level.", now: "Early versions in the lab", target: "Three demos you'd post" },
+  { g: "<strong>G1</strong> Reads as a real cloud, in its style", m: "Your 1–5 score on the eight reference shots, per style, at Cinematic and Desktop.", now: "Horizon: drifting to foam (22 Oct). Early: legacy pages only", target: "Every shot ≥ 4 in Horizon and one other style" },
+  { g: "<strong>G2</strong> Holds up in motion", m: "Three clips (flight, time-lapse, orbit) with no sparkle, smear, pops or shadow jumps. You judge pass or fail.", now: "Sparkle and shadow jitter fixed in FX1; not yet reviewed", target: "All three pass at Desktop" },
+  { g: "<strong>G3</strong> Fits the frame", m: "GPU time of the cloud pass on your laptop, at 1440p output, on the worst shot of the set.", now: "31 ms at 720p ultra (20 Nov, HZD gp7)", target: "Desktop ≤ 4 ms, Laptop ≤ 3 ms" },
+  { g: "<strong>G4</strong> Artist volumes", m: "Drop any EmberGen or Houdini .vdb in the browser, and it renders lit like the sky, inside the sky.", now: "Import via our vendored copy; not composed in the sky", target: "Frog and one EmberGen cloud in shot 8, via @pmndrs/vdb" },
+  { g: "<strong>G5</strong> Drop-in library", m: "Lines of code to add clouds to a fresh three.js, raw WebGPU or R3F scene; packages on npm.", now: "9 lines (three); private", target: "≤ 15 lines each; published" },
+  { g: "<strong>G6</strong> Showcases", m: "Open water, plains flight and the onsen valley run live at Desktop level.", now: "Early versions in the lab", target: "Three demos you’d post" },
 ];
 
 const PHASES = [
-  { tag: "R0", title: "Reset", lane: "this week · clouds repo",
-    text: "Answer the decisions below. Freeze the eight shots and their references. Write the style contract into the bench docs. Archive BOARD, the two October PLANs and HANDOFF behind this page. Flip through the 22 Oct review round." },
-  { tag: "R1", title: "Lock the look", lane: "clouds repo",
-    text: "Fix the foam (ROADMAP P18: erosion strength, noise scales, extinction), one change per round with A/B sheets. Score the shot set. Decide Decima parity per your answer." },
-  { tag: "R2", title: "Upscaler-first pipeline", lane: "clouds repo",
-    text: "Motion vectors and a reactive mask from the cloud pass; internal-size levels; the upscaler as the output. Re-score the shot set at Desktop. Turns on storm rotation." },
-  { tag: "V1", title: "WebVDB as the volume layer", lane: "WebVDB repo, in parallel with R1–R2",
-    text: "Publish 0.1. Add cloud channels (NVDF profile, detail type, density scale), SDF for sphere tracing, HDDA skipping. Clouds imports it and drops scripts/vdb/vendor. Shot 7 and 8 load through it." },
+  { tag: "R0", title: "Reset", lane: "done 20 Nov",
+    text: "You answered d1–d8. Archived the October trackers. Surveyed every sibling library. Tagged stable-2026-11-20-pre-refactor. Still to do: freeze the shot set (now scored per style)." },
+  { tag: "L1", title: "Library refactor", lane: "tonight · clouds repo",
+    text: "@pmndrs/vdb replaces the vendored WebVDB. Move to three r187. The upscaler becomes the output path, with Cinematic, Desktop and Laptop render levels; cloud depth and velocity feed it. motion-vectors and downsampler come in where the upscaler needs them. The scheduler waits for the speed phase." },
+  { tag: "S1", title: "Styles", lane: "tonight · clouds repo",
+    text: "Style becomes a switch on the procedural sky: Horizon (today’s look), Early (the September raymarch treatment: soft, bright, cohesive) and Real weight (your photos). The legacy pages stay live as they are. A path-traced reference shows what is style and what is error." },
+  { tag: "R1", title: "Lock the looks", lane: "clouds repo",
+    text: "For each style, score the shot set at Cinematic and Desktop. Foam fixes go one change per round with A/B sheets. Decima parity is a reference check only (d2)." },
+  { tag: "V1", title: "Artist volumes through WebVDB", lane: "WebVDB repo + clouds",
+    text: "You publish 0.1. Clouds renders artist VDB clouds (Frog, EmberGen) lit like the sky and inside it, through vdb’s sample module or froxel renderer. Cloud-specific needs (NVDF channels, majorants) go upstream." },
+  { tag: "D1", title: "Denoiser spike", lane: "after L1",
+    text: "FFX shadow denoiser on the cloud shadow map, and a low-sample far march cleaned by the upscaler’s temporal path. Keep only what pays (d6)." },
   { tag: "R3", title: "Speed", lane: "clouds repo, with the scheduler",
-    text: "Amortise shaping, lighting at 30 Hz, LOD beyond 32 km, keep detail at 4–12 km. Hit the G3 numbers without losing a point on G1." },
-  { tag: "R4", title: "Hybrid scenes and showcases", lane: "clouds + DDGI + BVH",
-    text: "Voxel heroes inside the procedural sky (Santa's Sleigh line, Frog). Ground lit by DDGI from cloud-shadowed sky. The three demos." },
+    text: "Amortise shaping, light at 30 Hz, LOD beyond 32 km. Reach Desktop ≤ 4 ms and Laptop ≤ 3 ms (d8) without losing a point on the looks." },
+  { tag: "R4", title: "Showcases", lane: "clouds + BVH + DDGI",
+    text: "Open water, plains flight and the onsen valley at Desktop level. Voxel heroes (the Santa’s Sleigh line, the Frog) inside the procedural sky. Ground lit by DDGI, with BVH for terrain (showcase only, d5)." },
   { tag: "R5", title: "Release", lane: "clouds repo",
-    text: "Name and publish the packages, docs site, the drop-in examples. Phones only after this." },
+    text: "Name and publish the packages, the docs site and the drop-in examples. Phones come after this." },
 ];
 
 const DECISIONS = [
@@ -385,6 +421,37 @@ document.getElementById("decision-cards").innerHTML = DECISIONS.map(d => `
     <textarea id="${d.id}-note" placeholder="Anything I should know"></textarea>
     <div class="saved" id="${d.id}-saved"></div>
   </div>`).join("");
+
+const STYLES = [
+  { name: "Horizon", pill: "good", label: "today’s bench",
+    text: "Nubis Evolved shaping, Nubis Cubed noise, Nubis lighting from the profile. Art-directed: painted lit tops, strong silver lining, uncluttered lanes. Its risk is foam.",
+    where: "HZD bench, style = horizon" },
+  { name: "Early", pill: "warn", label: "being ported",
+    text: "The September voxel raymarch: soft, bright, cohesive bodies with smooth big lobes and real weight. It still runs on the legacy pages; the port brings its treatment to the procedural sky.",
+    where: "legacy/cloudscape · legacy/clouds · HZD bench, style = early" },
+  { name: "Real weight", pill: "warn", label: "first draft",
+    text: "Aimed at your photos: denser cores, darker, greyer bases and heavier bodies, with less surface foam. Lit ridges stay crisp.",
+    where: "HZD bench, style = real" },
+  { name: "Sky Pro, Takram", pill: "idle", label: "comparison only",
+    text: "Single-type reference skies, kept on the compare page. Never a target.",
+    where: "compare/" },
+];
+const NOW = [
+  { item: "Archive", what: "October BOARD, HANDOFF, ROADMAP and plans moved to the archive (d7)", state: ["good", "landed"] },
+  { item: "@pmndrs/vdb", what: "Link WebVDB and drop both vendored copies (d3)", state: ["warn", "running"] },
+  { item: "three r187", what: "Upgrade; unblocks vdb/three and bvh/three", state: ["warn", "running"] },
+  { item: "Render levels", what: "Upscaler core as the cloud output: Cinematic, Desktop, Laptop (d4)", state: ["warn", "running"] },
+  { item: "Styles", what: "Horizon, Early and Real weight as switchable presets on the bench (d1)", state: ["warn", "running"] },
+  { item: "Path-traced reference", what: "Same cloud through your pathtracer vs our lighting", state: ["warn", "running"] },
+  { item: "Demos page", what: "One page of the best live demos per style, with stills", state: ["idle", "after the above"] },
+];
+document.getElementById("styles").innerHTML = STYLES.map(t => `
+  <div class="card stripe ${t.pill}">
+    <div class="row"><h3>${t.name}</h3><span class="pill ${t.pill}">${t.label}</span></div>
+    <p class="small">${esc(t.text)}</p><p class="small"><span class="mono">${esc(t.where)}</span></p>
+  </div>`).join("");
+document.getElementById("now-rows").innerHTML = NOW.map(n => `
+  <tr><td><strong>${n.item}</strong></td><td>${esc(n.what)}</td><td><span class="pill ${n.state[0]}">${n.state[1]}</span></td></tr>`).join("");
 
 const state = document.getElementById("dbstate");
 function setControls(enabled) {
