@@ -1,0 +1,244 @@
+{
+  "url": "http://127.0.0.1:52703/reference-pt/?clean=1&spp=1024&voxel=1.25",
+  "size": [
+    1600,
+    900
+  ],
+  "startedAt": "2026-11-19T17:50:59.115Z",
+  "shots": [
+    {
+      "name": "alpha-noon",
+      "file": "work/captures/PT1/var-voxel125/alpha-noon.png",
+      "report": {
+        "view": "alpha-noon",
+        "status": "sun noon: ready",
+        "camera": {
+          "position": [
+            554.5590985160661,
+            120,
+            1007.4543196855368
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3516,
+            31.8945
+          ],
+          "ambientUp": [
+            0.3896,
+            0.7775,
+            1.693
+          ],
+          "ambientDown": [
+            1.1461,
+            1.0671,
+            0.9674
+          ],
+          "envMapUp": [
+            0.3875,
+            0.7719,
+            1.6787
+          ],
+          "envMapDown": [
+            1.1297,
+            1.0519,
+            0.9537
+          ]
+        },
+        "grid": {
+          "resolution": [
+            602,
+            250,
+            602
+          ],
+          "voxel": 1.25,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376.5,
+            868.5,
+            376.5
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06692954823898191,
+          "bakeMs": 925.3000000119209
+        },
+        "pt": {
+          "samples": 1,
+          "target": 1024,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 783.9000000357628,
+          "compileMs": 3885.400000035763,
+          "kernelBytes": 51471,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 353
+      }
+    },
+    {
+      "name": "pt-noon",
+      "file": "work/captures/PT1/var-voxel125/pt-noon.png",
+      "report": {
+        "view": "pt-noon",
+        "status": "sun noon: ready",
+        "camera": {
+          "position": [
+            554.5590985160661,
+            120,
+            1007.4543196855368
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3516,
+            31.8945
+          ],
+          "ambientUp": [
+            0.3896,
+            0.7775,
+            1.693
+          ],
+          "ambientDown": [
+            1.1461,
+            1.0671,
+            0.9674
+          ],
+          "envMapUp": [
+            0.3875,
+            0.7719,
+            1.6787
+          ],
+          "envMapDown": [
+            1.1297,
+            1.0519,
+            0.9537
+          ]
+        },
+        "grid": {
+          "resolution": [
+            602,
+            250,
+            602
+          ],
+          "voxel": 1.25,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376.5,
+            868.5,
+            376.5
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06692954823898191,
+          "bakeMs": 925.3000000119209
+        },
+        "pt": {
+          "samples": 1024,
+          "target": 1024,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 43.519999992847445,
+          "compileMs": 3885.400000035763,
+          "kernelBytes": 51471,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 3859
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

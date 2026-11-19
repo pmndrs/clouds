@@ -139,6 +139,45 @@ def main():
         print('wrote', out, sheet.size)
     (d / 'stats.json').write_text(json.dumps(stats, indent=1))
     print('wrote', d / 'stats.json')
+    variants(d, suns)
+
+
+# PT controls (subdirectories of the capture, same shots): the phase (g 0.46 = our dual lobe's mean cosine), the albedo, the bake resolution.
+VARIANTS = [('', 'PT g 0.8, albedo 0.99, 2 m'), ('var-g046', 'PT g 0.46 (our mean cosine)'), ('var-albedo0999', 'PT albedo 0.999'), ('var-voxel125', 'PT 1.25 m bake (noon only)')]
+
+
+def variants(d, suns):
+    rows = []
+    for sun in suns:
+        alpha = d / f'alpha-{sun}.png'
+        if not alpha.exists():
+            continue
+        a = load(alpha)[..., 0]
+        ys, xs = np.nonzero(a > 0.02)
+        box = (max(0, xs.min() - 30), max(0, ys.min() - 30), min(a.shape[1], xs.max() + 30), min(a.shape[0], ys.max() + 30))
+        cells = []
+        for sub, label in VARIANTS:
+            p = (d / sub / f'pt-{sun}.png') if sub else d / f'pt-{sun}.png'
+            cells.append((label, Image.open(p).convert('RGB').crop(box) if p.exists() else None))
+        rows.append((sun, cells))
+    if not rows:
+        return
+    cw = max(c.size[0] for _, cells in rows for _, c in cells if c)
+    pad, lh = 10, 22
+    heights = [max(c.size[1] for _, c in cells if c) for _, cells in rows]
+    sheet = Image.new('RGB', (pad + len(VARIANTS) * (cw + pad), 40 + sum(h + lh + pad for h in heights)), (18, 18, 20))
+    dr = ImageDraw.Draw(sheet)
+    dr.text((pad, 10), 'PT1 controls: what moves the path-traced reference (same density, sun, sky, camera)', fill=(230, 230, 230), font=font(18))
+    y = 40
+    for (sun, cells), h in zip(rows, heights):
+        for i, (label, c) in enumerate(cells):
+            x = pad + i * (cw + pad)
+            dr.text((x, y), f'{sun}: {label}', fill=(210, 210, 210), font=font(14))
+            if c:
+                sheet.paste(c, (x, y + lh))
+        y += h + lh + pad
+    sheet.save(d / 'sheet-controls.jpg', quality=92)
+    print('wrote', d / 'sheet-controls.jpg', sheet.size)
 
 
 if __name__ == '__main__':
