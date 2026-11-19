@@ -196,6 +196,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     var shadowAt = -1.0e9; var shadowDensity = -1.0; var shadowTau = 0.0; var nearTau = 0.0; var skyTau = 0.0; var shadowCheap = false;
     // S2: the last fine sample that was empty (< 0: none since the last sample inside), for the surface bisection (P.hybrid.w steps).
     var lastEmpty = -1.0;
+    var sinceEntry = 99u;   // S2: fine samples since the last bisected cloud entry (99: none)
     let refineSteps = u32(P.hybrid.w + 0.5);
     let maxSteps = u32(P.steps.y);
     for (var i = 0u; i < maxSteps; i++) {
@@ -258,12 +259,17 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
           if (sm.sigma > 0.0) { hi = m; s = sm; } else { lo = m; }
         }
         t = hi; p = origin + dir * t;
+        sinceEntry = 0u;
       }
       lastEmpty = -1.0;
       emptyRun = 0u; refineEnd = -1.0;
       let fade = 1.0 - smoothstep(fadeStart, P.shell.z, t);
       let sigmaT = s.sigma * densityScale * fade * procCarve(p);
-      let surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
+      var surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
+      // S2: the bisected entry sits where the density has only just begun, so 0.5 / sigma there is a full fine step, which would jump over the surface
+      // layer the bisection found (and print the step as contour lines). Grow the step from the surface minimum instead: 0.15, 0.3, 0.6 of a fine step.
+      if (sinceEntry < 3u) { surfaceStep = min(surfaceStep, fineStep * 0.15 * f32(1u << sinceEntry)); }
+      sinceEntry = min(sinceEntry + 1u, 99u);
       let stepLength = min(mix(surfaceStep, fineStep * 3.0, smoothstep(1.0, 3.0, accumulated)), tEnd - t);
       let stepT = exp(-sigmaT * stepLength);
       if (sigmaT * stepLength > 2.0e-3) {

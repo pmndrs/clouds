@@ -222,6 +222,8 @@ export interface SkyEncodeArgs {
   wind?: ArrayLike<number>;
   /** X3 (procedural trace only): the voxel march's near and far history depth textures (r32uint words) this frame, for the hybrid split. */
   voxelDepth?: { near: GPUTexture; far: GPUTexture };
+  /** S2: overrides settings.subPixelSpan this frame (the runtime's levelSubPixelSpan at the reduced render levels). */
+  subPixelSpan?: number;
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
@@ -633,7 +635,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
       }
       p[84] = s.historyFilter === 'catmull' ? 1 : s.historyFilter === 'adaptive' ? 2 : 0; p[85] = s.historySharpFrom; p[86] = Math.max(s.historySharpFull, s.historySharpFrom + 1e-3); p[87] = 0;
-      p[88] = s.historySharpWindFrom; p[89] = Math.max(s.historySharpWindFull, s.historySharpWindFrom + 1e-3); p[90] = Math.max(0, s.subPixelSpan); p[91] = s.subPixelRotate ? 1 : 0;   // FX1, S2: resolveOpts2
+      p[88] = s.historySharpWindFrom; p[89] = Math.max(s.historySharpWindFull, s.historySharpWindFrom + 1e-3); p[90] = Math.max(0, a.subPixelSpan ?? s.subPixelSpan); p[91] = s.subPixelRotate ? 1 : 0;   // FX1, S2: resolveOpts2
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
