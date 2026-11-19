@@ -73,5 +73,5 @@ describe('fine hero import (P13-H4)', () => {
     expect(Buffer.compare(Buffer.from(back), Buffer.from(fine.profile))).toBe(0);
     expect(bytesEqual(exportFineNvdb({ ...fine, profile: back }).buffer, a.buffer)).toBe(true);
     console.log(`disney eighth at 4 m: fine ${fine.dims.join('x')} (${set} set), coarse ${coarse.dims.join('x')}, convert ${(t1 - t0).toFixed(0)} ms (parse ${conv.info.timings.parseMs.toFixed(0)}, resample ${conv.info.timings.resampleMs.toFixed(0)}, channels ${conv.info.timings.channelsMs.toFixed(0)}), split ${(t2 - t1).toFixed(0)} ms, fine.nvdb ${(a.buffer.byteLength / 1048576).toFixed(2)} MB, ${a.leaves} leaves`);
-  });
+   }, 300_000); // the channel step alone is ~14 s idle and over 100 s on a busy machine; the default 30 s flaked
 });
