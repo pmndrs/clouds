@@ -127,8 +127,6 @@ fn procPartAdd(part: ptr<function, ProcPart>, lit: vec3<f32>, t: f32, stepT: f32
   (*part).rad += lit * w; (*part).depthSum += t * w; (*part).depthSqSum += t * t * w; (*part).weightSum += w;
 }
 const PROC_FAR_TAPS = 4u;
-// S2: the surface bisection runs where the first sample inside would make its fine step at least this optically thick.
-const SURFACE_REFINE_TAU = 0.5;
 const PROC_FAR_REACH = 20000.0;
 fn heat(x0: f32) -> vec3<f32> {
   let x = saturate(x0);
@@ -255,14 +253,13 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       // S2: entering a cloud from an empty fine sample: halve the gap refineSteps times and start at the first point found inside, so the first sample
       // sits within a fraction of the step under the surface wherever the jitter put the step grid (else a hard lit face takes the colour of a point
       // up to a step deep, set by the per-pixel jitter: S1's hatch).
-      // Only where the entry is hard (the step past the surface would be optically thick at this density): there the first sample's depth sets the
-      // colour; on a soft rim the step sees little density whatever its phase, and halving it there only moved samples onto the faint edge.
-      if (refineSteps > 0u && lastEmpty >= 0.0 && lastEmpty < t && s.sigma * densityScale * fineStep > SURFACE_REFINE_TAU) {
+      // P.spWind.w (surfaceRefineTau): only where the entry is that hard (the fine step at the first sample's density at least that optically thick).
+      if (refineSteps > 0u && lastEmpty >= 0.0 && lastEmpty < t && s.sigma * densityScale * fineStep > P.spWind.w) {
         var lo = lastEmpty; var hi = t;
         for (var k = 0u; k < refineSteps; k++) {
           let m = 0.5 * (lo + hi);
           let sm = procSample(origin + dir * m, m, m * pixelConeAngle, true, jitter);
-          if (sm.sigma > 0.0) { hi = m; s = sm; } else { lo = m; }
+          if (sm.sigma > 0.0) { hi = m; if (P.spHorizon.w < 0.5) { s = sm; } } else { lo = m; }
         }
         t = hi; p = origin + dir * t;
         sinceEntry = 0u;

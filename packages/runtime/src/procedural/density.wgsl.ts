@@ -52,8 +52,8 @@ struct ProcParams {
   spShape: vec4<f32>,    // weather scale, base scale, base strength, erosion scale multiplier
   spErosion: vec4<f32>,  // erosion strength base, peak, shape, base weather height end
   spBase: vec4<f32>,     // base weather strength, edge softness, edge falloff (log2 * thickness km), base weather height start
-  spHorizon: vec4<f32>,  // horizon coverage start, ramp, amount, 0
-  spWind: vec4<f32>,     // wind direction x, z, skew (m per shell height), 0
+  spHorizon: vec4<f32>,  // horizon coverage start, ramp, amount, S2 surfaceRefineMode (all shapers)
+  spWind: vec4<f32>,     // wind direction x, z, skew (m per shell height), S2 surfaceRefineTau (all shapers)
   tkMinH: vec4<f32>, tkMaxH: vec4<f32>, tkDensity: vec4<f32>, tkShape: vec4<f32>, tkDetail: vec4<f32>, tkWeatherExp: vec4<f32>,
   tkBias: vec4<f32>, tkFilter: vec4<f32>, tkExpTerm: vec4<f32>, tkExponent: vec4<f32>, tkLinear: vec4<f32>, tkConstant: vec4<f32>,
   tkChannel: vec4<f32>,

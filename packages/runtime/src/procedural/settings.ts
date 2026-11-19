@@ -566,6 +566,10 @@ export interface ProceduralSettings {
   surfaceRefine: number;
   /** S2: after a bisected entry, grow the step from the surface (0.15, 0.3, 0.6 of a fine step) instead of the 0.5 / sigma rule (a full step where the density has just begun). */
   surfaceGrow: boolean;
+  /** S2 diagnostic: 0 = the bisected entry takes the sample found at the surface; 1 = it keeps the first sample inside (only the position moves). */
+  surfaceRefineMode: number;
+  /** S2: bisect only where the first sample inside makes its fine step at least this optically thick (0 = every entry from an empty sample). */
+  surfaceRefineTau: number;
   skypro: SkyProShape;
   takram: TakramShape;
   hzd: HzdShape;
@@ -736,7 +740,7 @@ export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverag
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 0, surfaceGrow: true,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 0, surfaceGrow: true, surfaceRefineMode: 0, surfaceRefineTau: 0,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
     hzd: hzdDefaults(),
@@ -772,9 +776,9 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([sp.weatherScale, sp.baseScale, sp.baseStrength, sp.erosionScaleBaseMultiplier], 20);
   out.set([sp.erosionStrengthBase, sp.erosionStrengthPeak, sp.erosionShape, sp.baseWeatherHeightEnd], 24);
   out.set([sp.baseWeatherStrength, sp.edgeSoftness, Math.log2(Math.max(sp.edgeSoftnessFalloff, 0.001)) * sp.thickness * 0.001, sp.baseWeatherHeightStart], 28);
-  out.set([sp.horizonCoverageStart, sp.horizonCoverageRamp, sp.horizonCoverageAmount, 0], 32);
+  out.set([sp.horizonCoverageStart, sp.horizonCoverageRamp, sp.horizonCoverageAmount, s.surfaceRefineMode], 32);   // .w: S2 surfaceRefineMode (a free lane)
   const wl = Math.hypot(sp.windDirection[0], sp.windDirection[1]) || 1;
-  out.set([sp.windDirection[0] / wl, sp.windDirection[1] / wl, sp.windSkew, 0], 36);
+  out.set([sp.windDirection[0] / wl, sp.windDirection[1] / wl, sp.windSkew, Math.max(0, s.surfaceRefineTau)], 36);   // .w: S2 surfaceRefineTau (a free lane)
   // Takram (CloudLayers.packValues order, one layer per lane).
   const L = [0, 1, 2, 3].map(i => tk.layers[i] ?? takramLayer({ channel: 3, densityScale: 0 }));
   const lane = (o: number, f: (l: TakramLayer) => number) => { for (let i = 0; i < 4; i++) out[o + i] = f(L[i]); };
