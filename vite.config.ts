@@ -46,12 +46,16 @@ export default defineConfig({
     '@clouds/legacy-three': fileURLToPath(new URL('./packages/legacy/three/src/index.ts', import.meta.url)),
     // PT1: the owner's sibling path tracer (TS sources, no dist), for the reference-pt lab page only. See pathtracerDir().
     ...pathtracerAliases(),
-  } },
+    // V1: the owner's sibling @pmndrs/vdb (built dist/). The `link:` dependency resolves only from the main checkout; see vdbDir().
+    ...vdbAliases(),
+  },
+  // V1: @pmndrs/vdb's dist imports three from its own checkout's node_modules: one three (ours, with patches/three@0.187.0.patch) for every module.
+  dedupe: ['three'] },
   // Runtime assets are served at /clouds/<name>/... and /nubis-voxel-clouds/... in dev and build.
   publicDir: fileURLToPath(new URL('./assets', import.meta.url)),
   // CLOUDS_NO_WATCH: capture runs (scripts/gpu/capture.mjs --serve) must not hot-reload when parallel agents save files.
   server: { port: 5180, strictPort: true, // 5173 is often taken by the owner's other projects
-    fs: { allow: ['../..', ...researchDirs(), ...[pathtracerDir()].filter((d): d is string => !!d)] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
+    fs: { allow: ['../..', ...researchDirs(), ...[pathtracerDir(), vdbDir()].filter((d): d is string => !!d)] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
   build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
     testDensity: fileURLToPath(new URL('./examples/lab/runtime-tests/density/index.html', import.meta.url)),
@@ -74,6 +78,7 @@ export default defineConfig({
     species: fileURLToPath(new URL('./examples/lab/species/index.html', import.meta.url)),
     sunset: fileURLToPath(new URL('./examples/lab/sunset/index.html', import.meta.url)),
     vdbDrop: fileURLToPath(new URL('./examples/lab/vdb-drop/index.html', import.meta.url)),
+    ...(vdbDir() ? { vdbSky: fileURLToPath(new URL('./examples/lab/vdb-sky/index.html', import.meta.url)) } : {}),
     r3f: fileURLToPath(new URL('./examples/lab/r3f/index.html', import.meta.url)),
     evolve: fileURLToPath(new URL('./examples/lab/evolve/index.html', import.meta.url)),
     compare: fileURLToPath(new URL('./examples/lab/compare/index.html', import.meta.url)),
@@ -132,5 +137,30 @@ function pathtracerAliases(): Record<string, string> {
     '@pmndrs/pathtracer': `${dir}/packages/pathtracer/src/index.ts`,
     '@pmndrs/raytracer': `${dir}/packages/raytracer/src/index.ts`,
     '@pmndrs/bvh': `${dir}/packages/raytracer/node_modules/@pmndrs/bvh/dist/index.js`,
+  } : {};
+}
+
+// V1: the owner's @pmndrs/vdb checkout (~/Developer/WebVDB beside ~/Developer/WebGPUClouds). package.json links it with a relative
+// `link:../WebVDB/packages/vdb`, which a worktree (.claude/worktrees/<name>/) cannot follow, so walk up from this file until a directory has
+// `WebVDB/packages/vdb/dist/core/index.js` in it. VDB_DIR (the package directory) overrides. The aliases point at its built dist/ (the export
+// map), subpaths first (first match wins). Its `fflate` resolves from its own node_modules; three is deduped to ours (resolve.dedupe).
+function vdbDir(): string | null {
+  const env = process.env.VDB_DIR;
+  if (env) return existsSync(`${env}/dist/core/index.js`) ? env : null;
+  let dir = fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
+  for (let i = 0; i < 8 && dir.length > 1; i++) {
+    const parent = dir.slice(0, dir.lastIndexOf('/')) || '/';
+    if (existsSync(`${parent}/WebVDB/packages/vdb/dist/core/index.js`)) return `${parent}/WebVDB/packages/vdb`;
+    dir = parent;
+  }
+  return null;
+}
+function vdbAliases(): Record<string, string> {
+  const dir = vdbDir();
+  return dir ? {
+    '@pmndrs/vdb/three': `${dir}/dist/three/index.js`,
+    '@pmndrs/vdb/tools': `${dir}/dist/tools/index.js`,
+    '@pmndrs/vdb/pnanovdb.wgsl': `${dir}/vendor/pnanovdb.wgsl`,
+    '@pmndrs/vdb': `${dir}/dist/core/index.js`,
   } : {};
 }
