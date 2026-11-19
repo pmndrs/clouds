@@ -2,14 +2,39 @@
 
 The one page to check. The plan: the Compass (https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1). Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5180/hzd/ (T opens the tune panel).
 
-Updated 2026-10-13.
+Updated 2026-11-20.
 
 ## Running
-Nothing.
+- **S2**: fix the fine hatch on hard lit faces, and make Desktop hold up next to Cinematic (the 4x4 hatch, softer ridges).
+- **V1**: an artist VDB cloud (WDAS, EmberGen) through `@pmndrs/vdb`, lit by our sky and inside it (new page `vdb-sky/`).
 
-Your notes (2026-10-22): LH1 no visible change (confirmed bug); SH1a shadows still change quickly, want a crossfade; SH1b no clear difference but new sparkle on ridges; storms trusted. **Shaping is drifting back toward foam, not clouds**: revisit as a tuning pass once the phases are through (ROADMAP P18).
+## Tonight (2026-11-20): the refactor and the styles
 
-## Waiting on you
+What landed on `main`. The tag `stable-2026-11-20-pre-refactor` is the state before any of it; `stable-2026-11-20` is after the merges below.
+
+| | What | Report |
+| --- | --- | --- |
+| Archive | BOARD, HANDOFF, ROADMAP and the October plans moved to `work/archive/` and `docs/archive/` (your d7) | |
+| L1 | `@pmndrs/vdb` linked from `../WebVDB/packages/vdb`; both vendored WebVDB copies deleted (about 13k lines). The import parser fork (about 3k lines) stays until WebVDB takes branch `clouds/parse-select` (see below) | |
+| T187 | three 0.187.0, postprocessing 6.39.6. **Needs a local patch** (`patches/three@0.187.0.patch`): r187's `compileAsync` regression renders most pages black when `@pmndrs/sky` compiles several things at once. Fixed upstream in r188; remove the patch then | |
+| PT1 | **Path-traced reference**: the Parkouring cloud through your pathtracer (validated volume path) beside our Nubis and octave lighting. Page `reference-pt/` | `work/reports/PT1-pathtraced-reference.md`, sheets `work/captures/PT1/` |
+| S1 | **Style switch** on the HZD bench: `horizon` (unchanged, pixel-identical), `early` (the September raymarch treatment), `real` (photo weight, nudged toward the path-traced reference). Sidebar "Style" section, `?style=` | `work/reports/S1-styles.md`, sheets `work/captures/S1/final/` |
+| U2 | **Render levels**: `cinematic` (default, the old path), `desktop` (½ res sky layer through the upscaler core), `laptop` (¼). Review switch U2 and a tune-panel group | `work/reports/U2-upscaler-levels.md`, sheet `work/captures/U2/U2-sheet.jpg` |
+
+What we learned:
+- **"Is it just Horizon?" Mostly not.** The path tracer shows the same cloud as soft, heavy and cohesive. Our lighting shades every small pit (1.6–1.9x too much small-scale texture on lit faces, the "foam"), paints thin fringes solid white, darkens backlit bodies (phase too weak forward) and turns shade blue (Nubis) or brown (octave). Daytime brightness is right. The early September look you liked is closer to the reference than the current bench.
+- **Styles:** at gp7 and ground, `real` and `early` both beat `horizon` to my eye; at sunset `early` draws a cut-paper outline and `horizon` is most natural; from `above` both new styles read flat. So: case by case, as you said (d1).
+- **Levels:** desktop roughly halves the sky cost and laptop cuts it 3–5x, but **no level is near the 4 / 3 ms targets**: the sky trace itself is the cost, so the speed phase is still needed. Desktop is softer than cinematic at 1:1 with a faint 4x4 hatch; laptop at ¼ is mushy. S2 is on it.
+- All ms tonight are noisy: the machine ran at load averages of 40–330 (other projects' sessions, many Chrome instances), and the WebGPU device was lost in about half the desktop/laptop runs ("Insufficient Memory"). Please try `?level=desktop` on a quiet machine.
+
+## Waiting on you (new tonight)
+1. **WebVDB branch `clouds/parse-select`** (in `/Users/dex/Developer/WebVDB-clouds-parse`, not pushed): `parseVdb(buffer, { select })` plus per-grid descriptors, so we can list grids cheaply and decode only the chosen ones. Merge it into `v2` when you like; our branch `l1b-parse-upstream` then deletes the last vendored parser.
+2. **Publish `@pmndrs/vdb` 0.1.0** (d3) when ready; we switch from `link:` to the npm version.
+3. **`@pmndrs/upscaler`:** the npm 0.5.0 has no `./core` entry, so U2 vendored your local build as `vendor/pmndrs-upscaler-0.5.0-f38e9ac.tgz`. A 0.5.1 with `./core` lets us drop it.
+4. **`@pmndrs/sky` on r187:** the proper fix for the black-page bug is for the sky to compile its pipelines one at a time (or wait for r188). Our three patch covers it locally only.
+5. **Flip through:** HZD bench Style section (`?view=gp7&style=real`, `early`) and Review switch U2 (`?level=desktop`). The lab index has chips for both.
+
+## Waiting on you (from October)
 
 ### A. Review the defaults that agents chose
 **Flip them on the bench:** the sidebar's "Review: old vs new" section has an old/new switch for each (hover a name for what it does and which tune-panel group has it). The links below open the same states. Say "keep" or "revert" for each.
