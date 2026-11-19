@@ -26,7 +26,9 @@ const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const num = (k: string, d: number) => (query.has(k) && Number.isFinite(Number(query.get(k))) ? Number(query.get(k)) : d);
 
-const RENDERERS = ['pt', 'nubis', 'octave'] as const;
+// alpha: the PT side's opacity mask of the baked grid (1 - exp(-optical depth)), for the sheet's statistics.
+// rtalpha: the runtime's own opacity (1 - the march's transmittance, read back from its output after the settle): checks the bake against the march.
+const RENDERERS = ['pt', 'nubis', 'octave', 'alpha', 'rtalpha'] as const;
 type RendererName = (typeof RENDERERS)[number];
 // Sun setups: time of day (lat 40, as the flagship) and the camera's ring angle from the sun's azimuth (0 = sun behind the camera).
 const SUNS = { noon: { time: 13, ring: 70 }, low: { time: 17.6, ring: 70 }, backlit: { time: 17.6, ring: 140 } } as const;
@@ -128,7 +130,7 @@ try {
     frameData.atmosphere = skyBridge.bindGroup;
     bridge.syncOutput();
     bridge.renderScene(scene, camera);
-    if (state.renderer !== 'pt') {
+    if (state.renderer === 'nubis' || state.renderer === 'octave' || state.renderer === 'rtalpha') {
       bridge.fillFrame(camera, frameData);
       frameData.time = (now - t0) / 1000; frameData.frameIndex = frame;
       const encoder = device.createCommandEncoder({ label: 'pt1 runtime' });
@@ -203,15 +205,16 @@ try {
   }
 
   function showView(): void {
-    const isPt = state.renderer === 'pt';
+    const isPt = state.renderer === 'pt' || state.renderer === 'alpha';
     ptCanvas.style.display = isPt ? 'block' : 'none';
     renderer.domElement.style.display = isPt ? 'none' : 'block';
-    if (state.renderer !== 'pt') runtime.settings.lightingModel = state.renderer;
+    if (state.renderer === 'nubis' || state.renderer === 'octave') runtime.settings.lightingModel = state.renderer;
+    if (state.renderer === 'rtalpha') runtime.settings.lightingModel = 'nubis';
   }
 
   async function setView(name: string): Promise<void> {
     const [r, s] = name.split('-');
-    if (!RENDERERS.includes(r as RendererName) || !(s in SUNS)) throw new Error(`unknown view ${name}: <pt|nubis|octave>-<${Object.keys(SUNS).join('|')}>`);
+    if (!RENDERERS.includes(r as RendererName) || !(s in SUNS)) throw new Error(`unknown view ${name}: <pt|nubis|octave|alpha>-<${Object.keys(SUNS).join('|')}>`);
     state.renderer = r as RendererName;
     showView();
     busy = busy.then(() => applyScene(s as SunName));
@@ -219,6 +222,7 @@ try {
     state.sun = s as SunName;
     syncPanel();
     if (state.renderer === 'pt') void ptLoop();
+    if (state.renderer === 'alpha' && camNow) await pt.presentAlpha({ position: camNow.position, target: camNow.target, up: [0, 1, 0], yFovDeg: FOV_Y });
   }
 
   // ---- panel ----
@@ -264,6 +268,22 @@ try {
       exposure: settings.exposure, frames: frame,
     }),
   });
+  // The runtime output (rgba16float premultiplied radiance, a = transmittance) read back from its device, shown raw on the PT canvas as 1 - a.
+  async function showRuntimeAlpha(): Promise<void> {
+    const tex = runtime.output!;
+    const w = tex.width, h = tex.height, bpr = Math.ceil((w * 8) / 256) * 256;
+    const buf = device.createBuffer({ size: bpr * h, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder(); enc.copyTextureToBuffer({ texture: tex }, { buffer: buf, bytesPerRow: bpr }, [w, h]); device.queue.submit([enc.finish()]);
+    await buf.mapAsync(GPUMapMode.READ);
+    const halves = new Uint16Array(buf.getMappedRange());
+    const out = new Float32Array(w * h * 4);
+    const half = (b: number) => { const e = (b >> 10) & 31, m = b & 1023, s = b >> 15 ? -1 : 1; return e === 0 ? s * m * 2 ** -24 : e === 31 ? NaN : s * (1 + m / 1024) * 2 ** (e - 15); };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const a = 1 - half(halves[(y * bpr) / 2 + x * 4 + 3]); const o = (y * w + x) * 4; out[o] = out[o + 1] = out[o + 2] = a; out[o + 3] = 1; }
+    buf.unmap(); buf.destroy();
+    pt.presentRaw(out, w, h);
+    ptCanvas.style.display = "block"; renderer.domElement.style.display = "none";
+    await frames(2);
+  }
   // settle(n): the PT view waits for its sample target (n is ignored), the runtime views for n frames.
   (window.__clouds as Record<string, unknown>).settle = async (n: number) => {
     await busy;
@@ -273,7 +293,8 @@ try {
       pt.present(settings.exposure);
       await frames(2);
     } else {
-      await frames(n);
+      await frames(state.renderer === "alpha" ? 2 : n);
+      if (state.renderer === "rtalpha") await showRuntimeAlpha();
     }
   };
 } catch (e) {

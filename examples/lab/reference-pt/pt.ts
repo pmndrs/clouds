@@ -43,7 +43,35 @@ fn srgb(c: vec3<f32>) -> vec3<f32> {
   let px = min(vec2<u32>(in.uv * vec2<f32>(display.size)), display.size - 1u);
   let s = accum[px.y * display.size.x + px.x];
   let L = s.rgb / max(s.w, 1.0);
+  if (display.mode == 1u) { return vec4(L, 1.0); }   // the alpha mask: raw
   return vec4(srgb(aces(L, display.exposure)), 1.0);
+}
+`;
+
+// The cloud's opacity along each camera ray (1 - exp(-optical depth) through the baked grid, nearest voxel, 1 m steps): a mask for the
+// sheet's statistics (which pixels are cloud, thin edge or thick body). Written in the accumulator's format (rgb = alpha, w = 1).
+const ALPHA_WGSL = /* wgsl */ `
+struct AlphaParams { origin: vec3<f32>, ext: f32, forward: vec3<f32>, voxel: f32, right: vec3<f32>, w: u32, up: vec3<f32>, h: u32, gmin: vec3<f32>, _a: f32, gmax: vec3<f32>, _b: f32 }
+@group(0) @binding(0) var<uniform> P: AlphaParams;
+@group(0) @binding(1) var grid: texture_3d<f32>;
+@group(0) @binding(2) var<storage, read_write> outAlpha: array<vec4<f32>>;
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  if (gid.x >= P.w || gid.y >= P.h) { return; }
+  let ndc = vec2((f32(gid.x) + 0.5) / f32(P.w) * 2.0 - 1.0, 1.0 - (f32(gid.y) + 0.5) / f32(P.h) * 2.0);
+  let d = normalize(P.forward + P.right * ndc.x + P.up * ndc.y);
+  let inv = 1.0 / d;
+  let t0 = (P.gmin - P.origin) * inv; let t1 = (P.gmax - P.origin) * inv;
+  let tn = max(max(min(t0.x, t1.x), min(t0.y, t1.y)), max(min(t0.z, t1.z), 0.0));
+  let tf = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
+  var tau = 0.0;
+  let dims = vec3<i32>(textureDimensions(grid));
+  for (var t = tn + 0.5; t < tf; t += 1.0) {
+    let g = vec3<i32>(floor((P.origin + d * t - P.gmin) / P.voxel));
+    if (all(g >= vec3(0)) && all(g < dims)) { tau += textureLoad(grid, g, 0).r; }
+  }
+  let a = 1.0 - exp(-tau * P.ext);
+  outAlpha[gid.y * P.w + gid.x] = vec4(a, a, a, 1.0);
 }
 `;
 
@@ -114,6 +142,7 @@ export class PtReference {
   async setMedium(grid: DensityGrid, medium: PtMediumParams, scene: PtSceneParams): Promise<void> {
     const t0 = performance.now();
     this.grid = grid; this.medium = { ...medium };
+    this.gridTexture?.destroy(); this.gridTexture = null;
     if (!this.trace) {
       // The medium's boundary is the grid box. Trace scene: one static instance.
       const mesh = boxMesh(grid.min, grid.max);
@@ -198,13 +227,59 @@ export class PtReference {
   present(exposure: number): void {
     const accum = this.kernel?.accumulator;
     if (!accum) return;
-    const p = new ArrayBuffer(16); new Uint32Array(p).set([this.width, this.height], 0); new Float32Array(p)[2] = exposure;
-    this.device.queue.writeBuffer(this.displayParams, 0, p);
     this.displayGroup ??= this.device.createBindGroup({ layout: this.displayLayout, entries: [{ binding: 0, resource: { buffer: accum, size: this.width * this.height * 16 } }, { binding: 1, resource: { buffer: this.displayParams } }] });
+    this.draw(this.displayGroup, exposure, 0);
+  }
+
+  private draw(group: GPUBindGroup, exposure: number, mode: number, size: [number, number] = [this.width, this.height]): void {
+    const p = new ArrayBuffer(16); new Uint32Array(p).set(size, 0); new Float32Array(p)[2] = exposure; new Uint32Array(p)[3] = mode;
+    this.device.queue.writeBuffer(this.displayParams, 0, p);
     const enc = this.device.createCommandEncoder();
     const pass = enc.beginRenderPass({ colorAttachments: [{ view: this.context.getCurrentTexture().createView(), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 1 } }] });
-    pass.setPipeline(this.pipeline); pass.setBindGroup(0, this.displayGroup); pass.draw(3); pass.end();
+    pass.setPipeline(this.pipeline); pass.setBindGroup(0, group); pass.draw(3); pass.end();
     this.device.queue.submit([enc.finish()]);
+  }
+
+  /** Shows `data` (accumulator format, rgb = value, w = 1, row 0 = top) raw: the runtime's own opacity read back from its device. */
+  presentRaw(data: Float32Array<ArrayBuffer>, width: number, height: number): void {
+    const buffer = this.device.createBuffer({ size: data.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    this.device.queue.writeBuffer(buffer, 0, data);
+    this.draw(this.device.createBindGroup({ layout: this.displayLayout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: { buffer: this.displayParams } }] }), 1, 1, [width, height]);
+    void this.device.queue.onSubmittedWorkDone().then(() => buffer.destroy());
+  }
+
+  private gridTexture: GPUTexture | null = null;
+  private alphaPipeline: GPUComputePipeline | null = null;
+  /** The opacity mask of the current grid from `camera` (same film), shown raw (alpha as grey). */
+  async presentAlpha(camera: PtLookAtCamera): Promise<void> {
+    const grid = this.grid!, device = this.device;
+    if (!this.gridTexture) {
+      this.gridTexture = device.createTexture({ label: 'pt1 alpha grid', size: grid.resolution, dimension: '3d', format: 'r32float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+      device.queue.writeTexture({ texture: this.gridTexture }, grid.density as Float32Array<ArrayBuffer>, { bytesPerRow: grid.resolution[0] * 4, rowsPerImage: grid.resolution[1] }, grid.resolution);
+    }
+    this.alphaPipeline ??= await device.createComputePipelineAsync({ layout: 'auto', compute: { module: device.createShaderModule({ label: 'pt1 alpha', code: ALPHA_WGSL }), entryPoint: 'main' } });
+    const sub = (a: readonly number[], b: readonly number[]) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    const norm = (a: number[]) => { const l = Math.hypot(a[0], a[1], a[2]); return a.map(v => v / l); };
+    const cross = (a: number[], b: readonly number[]) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const f = norm(sub(camera.target, camera.position)), r = norm(cross(f, camera.up)), u = cross(r, f);
+    const th = Math.tan((camera.yFovDeg * Math.PI) / 360), aspect = this.width / this.height;
+    const p = new ArrayBuffer(96), pf = new Float32Array(p), pu = new Uint32Array(p);
+    pf.set(camera.position, 0); pf[3] = this.medium.extinction; pf.set(f, 4); pf[7] = grid.voxel;
+    pf.set(r.map(v => v * th * aspect), 8); pu[11] = this.width; pf.set(u.map(v => v * th), 12); pu[15] = this.height;
+    pf.set(grid.min, 16); pf.set(grid.max, 20);
+    const params = device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(params, 0, p);
+    const out = device.createBuffer({ size: this.width * this.height * 16, usage: GPUBufferUsage.STORAGE });
+    const enc = device.createCommandEncoder();
+    const pass = enc.beginComputePass();
+    pass.setPipeline(this.alphaPipeline);
+    pass.setBindGroup(0, device.createBindGroup({ layout: this.alphaPipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: params } }, { binding: 1, resource: this.gridTexture.createView() }, { binding: 2, resource: { buffer: out } }] }));
+    pass.dispatchWorkgroups(Math.ceil(this.width / 8), Math.ceil(this.height / 8));
+    pass.end();
+    device.queue.submit([enc.finish()]);
+    this.draw(device.createBindGroup({ layout: this.displayLayout, entries: [{ binding: 0, resource: { buffer: out } }, { binding: 1, resource: { buffer: this.displayParams } }] }), 1, 1);
+    await device.queue.onSubmittedWorkDone();
+    params.destroy(); out.destroy();
   }
 
   /** Mean linear radiance of the image (for the report): reads the accumulator back. */
