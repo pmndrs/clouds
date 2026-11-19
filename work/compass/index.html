@@ -438,12 +438,14 @@ const STYLES = [
 ];
 const NOW = [
   { item: "Archive", what: "October BOARD, HANDOFF, ROADMAP and plans moved to the archive (d7)", state: ["good", "landed"] },
-  { item: "@pmndrs/vdb", what: "Link WebVDB and drop both vendored copies (d3)", state: ["warn", "running"] },
-  { item: "three r187", what: "Upgrade; unblocks vdb/three and bvh/three", state: ["warn", "running"] },
-  { item: "Render levels", what: "Upscaler core as the cloud output: Cinematic, Desktop, Laptop (d4)", state: ["warn", "running"] },
-  { item: "Styles", what: "Horizon, Early and Real weight as switchable presets on the bench (d1)", state: ["warn", "running"] },
-  { item: "Path-traced reference", what: "Same cloud through your pathtracer vs our lighting", state: ["warn", "running"] },
-  { item: "Demos page", what: "One page of the best live demos per style, with stills", state: ["idle", "after the above"] },
+  { item: "@pmndrs/vdb", what: "Linked; both vendored copies deleted. The last parser fork goes once you merge WebVDB branch clouds/parse-select (d3)", state: ["good", "landed"] },
+  { item: "three r187", what: "Landed with a local patch for r187’s compileAsync bug (pages render black without it); remove on r188", state: ["good", "landed"] },
+  { item: "Render levels", what: "Cinematic (default), Desktop ½, Laptop ¼ through the upscaler core (d4). About 0.55× and 0.2× the sky cost; not yet at the ms targets; Desktop softer with a faint hatch", state: ["good", "landed"] },
+  { item: "Styles", what: "Horizon, Early and Real weight on the bench (d1). Real is best at midday; Horizon is best at sunset", state: ["good", "landed"] },
+  { item: "Path-traced reference", what: "The foam is our lighting, not Horizon: 1.6–1.9× too much small-scale texture on lit faces", state: ["good", "landed"] },
+  { item: "Demos page", what: "Cloud Demos: https://claude.ai/artifact/CBmpwoqtrh1srJPJKXX8Yf", state: ["good", "published"] },
+  { item: "S2", what: "Fix the hatch on hard lit faces; make Desktop hold up beside Cinematic", state: ["warn", "running"] },
+  { item: "V1", what: "Artist VDB cloud through @pmndrs/vdb, lit by and inside our sky", state: ["warn", "running"] },
 ];
 document.getElementById("styles").innerHTML = STYLES.map(t => `
   <div class="card stripe ${t.pill}">
