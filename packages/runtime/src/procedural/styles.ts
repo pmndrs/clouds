@@ -42,6 +42,16 @@ export const PROCEDURAL_STYLES: Readonly<Record<ProceduralStyle, ProceduralStyle
   real: {
     label: 'photo weight',
     about: 'Aimed at the owner\'s photos: denser cores, darker greyer bases, heavier bodies, less fine surface foam; lit ridges stay crisp. First draft.',
+    // Steps r3 + r3x (work/captures/S1/real-r2): the photos' cumulus have dome-scale cauliflower lobes and crisp white rims, not a fine foam.
+    // HZD Worley detail at half of gp7's strength plus H7's lobe rung (one billowy octave between body and grain, 1050 m tile) gives the
+    // domes; extinction 0.8 -> 1.3 gives the denser cores and the crisp rim. Tried first and not kept: the Nubis Cubed noise at 0.6
+    // (real-r1: less foam but a torn, hatched surface).
+    hzd: { noiseSet: 'hzd', erosionStrength: 0.15, lobeStrength: 0.6, extinction: 1.3 },
+    // Step r4 (real-r3): less sky light in the shade (ambientStrength 1 -> 0.6): darker bases and shaded flanks against the same lit rims.
+    // Tried and not kept: deepScatter 0.6 (darker but bluer, no clear gain), ambientSaturation 0 (no visible change: the shade's blue is the
+    // atmosphere's aerial perspective, B/R 1.9 with it and 1.1 without), diffuseSun 0.3 (greyer but lighter: the opposite of heavier),
+    // hazeDensity 0 (B/R 1.94 -> 1.90).
+    cloud: { ambientStrength: 0.6 },
   },
 };
 
