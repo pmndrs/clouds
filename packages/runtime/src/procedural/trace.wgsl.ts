@@ -2,7 +2,7 @@ import { atmosphereWgsl } from '../shaders/atmosphere.wgsl';
 import { FRAME_WGSL } from '../shaders/frame.wgsl';
 import { LIGHTING_WGSL } from '../shaders/lighting.wgsl';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_RADIANCE_LIMIT, SKY_LIGHT_ENTRIES, SUN_HEIGHT_WGSL } from '../shaders/march.wgsl';
-import { SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAMS_WGSL, SKY_SAMPLER_BINDING, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING } from '../shaders/sky-layer.wgsl';
+import { SKY_BACK_BINDING, SKY_BLUE_NOISE_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAMS_WGSL, SKY_SAMPLER_BINDING, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING, SKY_JITTER_WGSL } from '../shaders/sky-layer.wgsl';
 import { PROC_PARAMS_WGSL } from './density.wgsl';
 import { procShaperBindingsWgsl, procShaperWgsl } from './hzd/shaper.wgsl';
 import type { ProceduralShaper } from './settings';
@@ -48,6 +48,8 @@ ${SUN_HEIGHT_WGSL}
 @group(1) @binding(${SKY_BACK_BINDING}) var skyBackOut: texture_storage_2d<rgba16float, write>;
 @group(1) @binding(${SKY_VOXEL_DEPTH_BINDING}) var voxNearDepth: texture_2d<u32>;
 @group(1) @binding(${SKY_VOXEL_DEPTH_BINDING + 1}) var voxFarDepth: texture_2d<u32>;
+@group(1) @binding(${SKY_BLUE_NOISE_BINDING}) var<storage, read> skyBlueNoise: array<u32, 4096>;
+${SKY_JITTER_WGSL}
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
 ${PROC_PARAMS_WGSL}
@@ -142,12 +144,14 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let origin = frame.cameraPos;
   // Sub-pixel jitter per cycle (as the sky layer, P7-E): the history converges to the pixel's average.
   let cycle = u32(SKY.temporal.y);
-  let subPx = (vec2(radicalInverse(1u + cycle % 16u, 2u), radicalInverse(1u + cycle % 16u, 3u)) - 0.5) * 2.0;
+  let subPx = skySubPixel(px, cycle);   // S2: span and per-pixel rotation from sky.subPixelSpan / subPixelRotate
   let dir = normalize(unprojectDepth((vec2<f32>(px) + 0.5 + subPx) / frame.renderSize, 1.0) - origin);
   // Cone angles (Sky Pro): one layer pixel for the step, one output pixel for the texture LOD.
   let dirY = normalize(unprojectDepth((vec2<f32>(px) + vec2(0.5, 1.5)) / frame.renderSize, 1.0) - origin);
   let stepConeAngle = length(dirY - normalize(unprojectDepth(uv, 1.0) - origin));
-  let pixelConeAngle = stepConeAngle * frame.renderSize.y / frame.outputSize.y;
+  // S2: SKY.resolveOpts.w moves the texture LOD from the output pixel (0, the pre-S2 cone) toward the layer pixel (1): at the reduced render levels a
+  // layer pixel is 2-4 output pixels and the upscaler gets no jitter, so noise read at the output pixel's LOD aliases in the layer (a fixed moire).
+  let pixelConeAngle = stepConeAngle * pow(frame.renderSize.y / frame.outputSize.y, 1.0 - saturate(SKY.resolveOpts.w));
   let interval = procCloudInterval(dir, origin.y);
   let tEnd = min(interval.y, sceneEnd);
 
@@ -159,7 +163,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   var depthMax = 0.0;
   var steps = 0u; var firstHit = -1.0; var firstProfile = 0.0;
   if (tEnd > interval.x) {
-    let jitter = ign(vec2<f32>(px), cycle);
+    let jitter = skyJitter(px, cycle);   // S2: IGN or blue noise (sky.jitterNoise)
     let L = frame.sunDir;
     let cosSun = dot(dir, L);
     let phase = cloudPhase(cosSun);
@@ -192,6 +196,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     var cellEnd = -1.0; var cellStart = -1.0; var cellData = vec4(1.0);
     let boundsMode = procBoundsMode();
     var shadowAt = -1.0e9; var shadowDensity = -1.0; var shadowTau = 0.0; var nearTau = 0.0; var skyTau = 0.0; var shadowCheap = false;
+    // S2: the last fine sample that was empty (< 0: none since the last sample inside), for the surface bisection (P.hybrid.w steps).
+    var lastEmpty = -1.0;
+    var sinceEntry = 99u;   // S2: fine samples since the last bisected cloud entry (99: none)
+    let refineSteps = u32(P.hybrid.w + 0.5);
     let maxSteps = u32(P.steps.y);
     for (var i = 0u; i < maxSteps; i++) {
       if (t >= tEnd || T < SKY.steps.w) { break; }
@@ -219,32 +227,52 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       }
       let footprint = t * pixelConeAngle;
       let fineStep = max(P.steps.x, t * stepConeAngle * 1.5);
-      let p = origin + dir * t;
+      var p = origin + dir * t;
       if (coarse) {
         let c = procSample(p, t, footprint, true, jitter);
         if (c.sigma > 0.0) {
           refineEnd = t;
           t = max(interval.x, t - fineStep * 4.0) + fineStep;
           t = min(t, refineEnd);
-          coarse = false; emptyRun = 0u;
+          coarse = false; emptyRun = 0u; lastEmpty = -1.0;
           continue;
         }
         t += fineStep * 4.0;
         continue;
       }
-      let s = procSample(p, t, footprint, true, jitter);
+      var s = procSample(p, t, footprint, true, jitter);
       if (s.sigma <= 0.0) {
         shadowAt = -1.0e9;
+        lastEmpty = t;
         emptyRun++;
         if (t < refineEnd) { t = min(t + fineStep, refineEnd); continue; }
         if (emptyRun >= 4u) { coarse = true; }
         t += select(fineStep, fineStep * 4.0, coarse);
         continue;
       }
+      // S2: entering a cloud from an empty fine sample: halve the gap refineSteps times and start at the first point found inside, so the first sample
+      // sits within a fraction of the step under the surface wherever the jitter put the step grid (else a hard lit face takes the colour of a point
+      // up to a step deep, set by the per-pixel jitter: S1's hatch).
+      // P.spWind.w (surfaceRefineTau): only where the entry is that hard (the fine step at the first sample's density at least that optically thick).
+      if (refineSteps > 0u && lastEmpty >= 0.0 && lastEmpty < t && s.sigma * densityScale * fineStep > P.spWind.w) {
+        var lo = lastEmpty; var hi = t;
+        for (var k = 0u; k < refineSteps; k++) {
+          let m = 0.5 * (lo + hi);
+          let sm = procSample(origin + dir * m, m, m * pixelConeAngle, true, jitter);
+          if (sm.sigma > 0.0) { hi = m; if (P.spHorizon.w < 0.5) { s = sm; } } else { lo = m; }
+        }
+        t = hi; p = origin + dir * t;
+        sinceEntry = 0u;
+      }
+      lastEmpty = -1.0;
       emptyRun = 0u; refineEnd = -1.0;
       let fade = 1.0 - smoothstep(fadeStart, P.shell.z, t);
       let sigmaT = s.sigma * densityScale * fade * procCarve(p);
-      let surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
+      var surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
+      // S2: the bisected entry sits where the density has only just begun, so 0.5 / sigma there is a full fine step, which would jump over the surface
+      // layer the bisection found (and print the step as contour lines). Grow the step from the surface minimum instead: 0.15, 0.3, 0.6 of a fine step.
+      if (sinceEntry < 3u && P.tkTurb.w > 0.5) { surfaceStep = min(surfaceStep, fineStep * 0.15 * f32(1u << sinceEntry)); }
+      sinceEntry = min(sinceEntry + 1u, 99u);
       let stepLength = min(mix(surfaceStep, fineStep * 3.0, smoothstep(1.0, 3.0, accumulated)), tEnd - t);
       let stepT = exp(-sigmaT * stepLength);
       if (sigmaT * stepLength > 2.0e-3) {

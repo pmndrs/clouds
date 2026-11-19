@@ -16,6 +16,39 @@ export const SKY_PARAMS_BINDING = 7;
 export const SKY_BACK_BINDING = 8;
 /** X3: the procedural trace's extra pass bindings: the voxel march's near and far history depth words (r32uint) at this binding and +1 (after the model's 9..14). */
 export const SKY_VOXEL_DEPTH_BINDING = 15;
+/** S2: the 128^2 blue-noise mask for the trace's step jitter (both trace kinds; 17 is the HZD shaper's table buffer): a read-only storage buffer of
+ *  4096 u32, four 8-bit ranks per word, row-major (a texture would be the procedural trace's 17th sampled texture, over the default limit of 16). */
+export const SKY_BLUE_NOISE_BINDING = 18;
+/**
+ * S2: the trace's per-pixel step jitter. SKY.temporal.w = 0: interleaved gradient noise of the pixel and the cycle (the pre-S2 jitter). 1: a blue-noise
+ * mask per pixel plus the golden-ratio sequence per cycle (the voxel march's D1 round 5 jitter, marchJitter). Each pixel is traced once per 16-frame
+ * cycle and the history keeps temporalBlend (0.3) of its newest sample, so it never converges: what it keeps is a function of the per-pixel phase. With
+ * IGN that is IGN's own lattice (a fine diagonal hatch on every hard lit face, where the first sample's depth below the surface sets the colour); with
+ * blue noise it is a fine grain with no direction. Needs the including shader to declare `SKY` and `skyBlueNoise`.
+ */
+export const SKY_JITTER_WGSL = /* wgsl */ `
+fn skyBlue(px: vec2<i32>) -> f32 {
+  let q = vec2<u32>(px & vec2<i32>(127));
+  let i = q.y * 128u + q.x;
+  return (f32((skyBlueNoise[i >> 2u] >> ((i & 3u) * 8u)) & 255u) + 0.5) / 256.0;
+}
+fn skyJitter(px: vec2<i32>, cycle: u32) -> f32 {
+  if (SKY.temporal.w > 0.5) {
+    let g = f32((cycle * 2654435769u) >> 8u) * (1.0 / 16777216.0);
+    return fract(skyBlue(px) + g);
+  }
+  return ign(vec2<f32>(px), cycle);
+}
+// S2: the ray's sub-pixel offset (layer pixels). P7-E: a Halton (2, 3) point per 16-frame cycle, the same for every pixel, over SKY.resolveOpts2.z
+// pixels (2 = the pre-S2 span: the history averages a 2 x 2 pixel box). resolveOpts2.w = 1: each pixel's Halton sequence is rotated by its own blue-noise
+// value (Cranley-Patterson), so the pixels refreshed this cycle and the ones still holding the last cycle's offset are not two shifted copies of the
+// image laid out in the 4 x 4 Bayer order.
+fn skySubPixel(px: vec2<i32>, cycle: u32) -> vec2<f32> {
+  var h = vec2(radicalInverse(1u + cycle % 16u, 2u), radicalInverse(1u + cycle % 16u, 3u));
+  if (SKY.resolveOpts2.w > 0.5) { h = fract(h + vec2(skyBlue(px), skyBlue(px + vec2<i32>(64, 37)))); }
+  return (h - 0.5) * SKY.resolveOpts2.z;
+}
+`;
 /** Group 1 bindings of the resolve pass (0 Frame, 1 scene depth as above). */
 export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
@@ -74,7 +107,7 @@ struct SkyParams {
   steps: vec4<f32>,    // stepMin (m), stepRel (per m of distance), maxSteps, transmittance cutoff
   billow: vec4<f32>,   // generator billow: amplitude, first cell (m), seed (as given to the generator), debug view
   extra: vec4<f32>,    // voxel size (m, profile noise scale), profileSigma, billow LOD scale, temporal blend of a fresh sample
-  temporal: vec4<f32>, // phase (0..15), cycle (jitter seed), full trace (1 = every pixel), 0
+  temporal: vec4<f32>, // phase (0..15), cycle (jitter seed), full trace (1 = every pixel), S2 step jitter (0 IGN, 1 blue noise + golden ratio)
   prevViewProj: mat4x4<f32>,
   prevCam: vec4<f32>,  // previous camera position, w = 1 when the history is valid
   wOrigin: vec4<f32>,  // P7-E: world position (x, z) of the weather map's uv origin: the billow and shape noise are anchored there (default: the box min corner); zw: wind-shear lean (P9-B2)
@@ -83,8 +116,8 @@ struct SkyParams {
   tableB: vec4<f32>,   // H4: x bottom type (< 0: the world field), y / z the field's range, w the field's feature size (m)
   erosion: vec4<f32>,  // H4 (S4): x erosion law (0 ValueErosion, 1 HZD additive with inverted noise, 2 Nubis Evolved, 3 additive with the raw noise); yzw 0
   cloudMotion: vec4<f32>, // C2: x, y, z the clouds' world displacement since the last frame (m; the wind offset's change times the cloud speed), w = 1 when the resolve follows it
-  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); w 0
-  resolveOpts2: vec4<f32>, // FX1: x, y the adaptive filter's cloud-motion thresholds (m per frame); zw 0
+  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); S2 w: the procedural trace's texture LOD, 0 the output pixel .. 1 the layer pixel
+  resolveOpts2: vec4<f32>, // FX1: x, y the adaptive filter's cloud-motion thresholds (m per frame); S2: z the trace's sub-pixel jitter span (layer px), w per-pixel rotation (0/1)
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
@@ -659,12 +692,12 @@ ${SKY_PARAMS_WGSL}
 ${SUN_HEIGHT_WGSL}
 @group(1) @binding(${SKY_PARAMS_BINDING}) var<uniform> SKY: SkyParams;
 @group(1) @binding(${SKY_BACK_BINDING}) var skyBackOut: texture_storage_2d<rgba16float, write>;
+@group(1) @binding(${SKY_BLUE_NOISE_BINDING}) var<storage, read> skyBlueNoise: array<u32, 4096>;
+${SKY_JITTER_WGSL}
 ${atm ? atmosphereWgsl(MARCH_ATMOSPHERE_GROUP) : ''}
 ${LIGHTING_WGSL}
 ${BILLOW_WGSL}
 
-const SKY_HALTON_BASE = 1u;
-const SKY_SUBPIXEL_SPAN = 2.0;   // jitter range in layer pixels
 fn radicalInverse(i0: u32, base: u32) -> f32 {
   var i = i0; var f = 1.0; var r = 0.0;
   let b = f32(base);
@@ -757,7 +790,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let origin = frame.cameraPos;
   // P7-E: the pixel is point-sampled at a Halton offset that changes every cycle, so the resolved history converges to the average over
   // the layer pixel instead of one point per pixel: thin stacked layers near the horizon (sub-pixel in height) otherwise alias to bricks.
-  let subPx = (vec2<f32>(radicalInverse(SKY_HALTON_BASE + u32(SKY.temporal.y) % 16u, 2u), radicalInverse(SKY_HALTON_BASE + u32(SKY.temporal.y) % 16u, 3u)) - 0.5) * SKY_SUBPIXEL_SPAN;
+  let subPx = skySubPixel(px, u32(SKY.temporal.y));   // S2: span and per-pixel rotation from sky.subPixelSpan / subPixelRotate
   let dir = normalize(unprojectDepth((vec2<f32>(px) + 0.5 + select(subPx, vec2<f32>(0.0), SKY.billow.w == 6.0)) / frame.renderSize, 1.0) - origin);
   // Shell: slab between shell.x and shell.y. (Curvature is applied to the sample, not the slab: it is a few tens of metres.)
   var t0 = 0.0;
@@ -784,7 +817,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (t0 < tEnd) {
     let dbg = u32(SKY.billow.w);
     // The jitter changes every amortization cycle: the resolved history converges to the jitter average.
-    var jitter = ign(vec2<f32>(px), u32(SKY.temporal.y));
+    var jitter = skyJitter(px, u32(SKY.temporal.y));
     if (dbg == 6u) { jitter = 0.5; }
     var firstHit = -1.0; var firstF = 0.0; var firstCov = 0.0; var stepsUsed = 0u; var firstTau = -1.0; var firstUp = 0.0;
     let cosSun = dot(dir, frame.sunDir);

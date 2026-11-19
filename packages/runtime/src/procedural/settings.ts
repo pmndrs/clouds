@@ -557,6 +557,23 @@ export interface ProceduralSettings {
    * integrates the model's density toward the sun, so a hero under a procedural cloud is shadowed by it. A number so pages can A/B it (?proc_heroShadow=0).
    */
   heroShadow: number;
+  /**
+   * S2: bisection steps where the fine march enters a cloud from an empty sample (0 = off, the pre-S2 march). The march point-samples once per step
+   * and the jitter sets where the first sample inside lands: anywhere up to a fine step (25 m and more) under a hard surface, so the colour of a
+   * hard lit face followed the per-pixel jitter (S1's hatch). n halvings of the last empty step put the first sample within step / 2^n of the
+   * surface, at n full samples per cloud entry.
+   */
+  surfaceRefine: number;
+  /** S2: after a bisected entry, grow the step from the surface (0.15, 0.3, 0.6 of a fine step) instead of the 0.5 / sigma rule (a full step where the density has just begun). */
+  surfaceGrow: boolean;
+  /**
+   * S2: what the bisected entry integrates from the surface it found. 1 (default): the first sample inside (its density, depth and height), only the
+   * position (and so the light taps) moved to the surface. 0: the sample at the surface itself; its density has only just begun, and with the step growth
+   * its weak, unshadowed light was reused by the denser samples after it: bright one-pixel specks on smooth shaded bases (S2 report).
+   */
+  surfaceRefineMode: number;
+  /** S2: bisect only where the first sample inside makes its fine step at least this optically thick (0 = every entry from an empty sample). */
+  surfaceRefineTau: number;
   skypro: SkyProShape;
   takram: TakramShape;
   hzd: HzdShape;
@@ -727,7 +744,7 @@ export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverag
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 3, surfaceGrow: true, surfaceRefineMode: 1, surfaceRefineTau: 0,   // S2 (agent-chosen): the hatch fix on; surfaceRefine 0 = the old march
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
     hzd: hzdDefaults(),
@@ -763,9 +780,9 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([sp.weatherScale, sp.baseScale, sp.baseStrength, sp.erosionScaleBaseMultiplier], 20);
   out.set([sp.erosionStrengthBase, sp.erosionStrengthPeak, sp.erosionShape, sp.baseWeatherHeightEnd], 24);
   out.set([sp.baseWeatherStrength, sp.edgeSoftness, Math.log2(Math.max(sp.edgeSoftnessFalloff, 0.001)) * sp.thickness * 0.001, sp.baseWeatherHeightStart], 28);
-  out.set([sp.horizonCoverageStart, sp.horizonCoverageRamp, sp.horizonCoverageAmount, 0], 32);
+  out.set([sp.horizonCoverageStart, sp.horizonCoverageRamp, sp.horizonCoverageAmount, s.surfaceRefineMode], 32);   // .w: S2 surfaceRefineMode (a free lane)
   const wl = Math.hypot(sp.windDirection[0], sp.windDirection[1]) || 1;
-  out.set([sp.windDirection[0] / wl, sp.windDirection[1] / wl, sp.windSkew, 0], 36);
+  out.set([sp.windDirection[0] / wl, sp.windDirection[1] / wl, sp.windSkew, Math.max(0, s.surfaceRefineTau)], 36);   // .w: S2 surfaceRefineTau (a free lane)
   // Takram (CloudLayers.packValues order, one layer per lane).
   const L = [0, 1, 2, 3].map(i => tk.layers[i] ?? takramLayer({ channel: 3, densityScale: 0 }));
   const lane = (o: number, f: (l: TakramLayer) => number) => { for (let i = 0; i < 4; i++) out[o + i] = f(L[i]); };
@@ -775,11 +792,11 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   lane(72, l => l.densityProfile[0]); lane(76, l => l.densityProfile[1]); lane(80, l => l.densityProfile[2]); lane(84, l => l.densityProfile[3]);
   lane(88, l => l.channel);
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
-  out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, 0], 96);
+  out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, s.surfaceGrow ? 1 : 0], 96);
   out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, s.shaper === 'hzd' && hz.lightProfile === 'exact' ? 1 : 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
-  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), 0], 116);
+  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), Math.max(0, Math.min(8, Math.round(s.surfaceRefine)))], 116);
   // H1 HZD shaper (PROC_HZD_WGSL): hzLayer, hzScale, hzCov, hzFade, hzWind, hzSpeed, hzMisc.
   out.set([hz.layerBottom, Math.max(hz.layerTop, hz.layerBottom + 1), hz.ndf.tileMeters, hz.extinction], 120);
   out.set([hz.shapeTile, hz.detailTile, hz.curlTile, hz.curlStrength], 124);

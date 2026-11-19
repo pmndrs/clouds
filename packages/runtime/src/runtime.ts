@@ -245,6 +245,16 @@ export interface CloudSettings {
   /** U2: the depth the upscaler sees: 'cloud' (default) the opacity-weighted mean distance of the cloud (far plane where clear), 'flat' the far plane everywhere (no depth edges, so its disocclusion test never fires; colour clipping alone guards the history). */
   upscaleDepth: 'cloud' | 'flat';
   /**
+   * S2: the sky trace's sub-pixel ray span (layer pixels, as sky.subPixelSpan) at the desktop and laptop levels; < 0 = sky.subPixelSpan. A layer pixel
+   * there is 2-4 output pixels, so the pre-S2 span of 2 averages a 4-8 output-pixel box into the layer's history before the upscaler sees it.
+   */
+  levelSubPixelSpan: number;
+  /**
+   * S2: the procedural trace's noise LOD at the desktop and laptop levels (sky.lodLayerPixel there): 0 the output pixel's LOD (pre-S2), 1 the layer
+   * pixel's; < 0 = sky.lodLayerPixel. The upscaler runs without jitter, so it cannot resolve noise finer than the layer pixel: it aliases instead.
+   */
+  levelLodLayerPixel: number;
+  /**
    * X3: the lighting model of the voxel march and the NVDF sky layer. 'nubis' (default): the N3 model (SDF depth, in-scatter profile, glow,
    * deep octaves, C1 low-sun handoff). 'octave': the per-sample Frostbite / Takram model (Wrenninge octaves, two-lobe HG, sky irradiance
    * along a height gradient, powder; LIGHTING_WGSL cloudOctaveLight). The procedural model has its own (ProceduralSettings.lightingModel).
@@ -793,7 +803,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     microDist: startPreset.microDist, stepScale: startPreset.stepScale, // Q-1 (Nubis neutral: microDist 0, stepScale 1)
     fineDistance: startPreset.fineDistance, lightDebug: 0,
     densityModel: 'nvdf', lightingModel: 'nubis',
-    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0, upscaleColorScale: 1 / 64,   // U2 (agent-chosen: sharpness 0.5)
+    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0, upscaleColorScale: 1 / 64, levelSubPixelSpan: 1, levelLodLayerPixel: -1,   // U2 (agent-chosen: sharpness 0.5); S2 (agent-chosen): levelSubPixelSpan 1, a one-pixel sub-pixel box at desktop/laptop (-1 = sky.subPixelSpan 2, the pre-S2 box)
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
@@ -1446,7 +1456,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
 
       if (skyActive) {
         skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null, time: frame.time,
-          wind: settings.windOffset, voxelDepth: { near: near.hist[cur].depth, far: far.hist[cur].depth } });
+          wind: settings.windOffset, voxelDepth: { near: near.hist[cur].depth, far: far.hist[cur].depth },
+          subPixelSpan: settings.renderLevel !== 'cinematic' && settings.levelSubPixelSpan >= 0 ? settings.levelSubPixelSpan : undefined,
+          lodLayerPixel: settings.renderLevel !== 'cinematic' && settings.levelLodLayerPixel >= 0 ? settings.levelLodLayerPixel : undefined });
       }
       // U2: below the cinematic level the layer (the whole cloud in 'procedural' mode) goes through the upscaler to the composite's size, and the
       // composite reads the upscaled colour per output pixel (frame.skyEnabled 2) with the layer's own depth words for the scene occlusion.

@@ -52,18 +52,18 @@ struct ProcParams {
   spShape: vec4<f32>,    // weather scale, base scale, base strength, erosion scale multiplier
   spErosion: vec4<f32>,  // erosion strength base, peak, shape, base weather height end
   spBase: vec4<f32>,     // base weather strength, edge softness, edge falloff (log2 * thickness km), base weather height start
-  spHorizon: vec4<f32>,  // horizon coverage start, ramp, amount, 0
-  spWind: vec4<f32>,     // wind direction x, z, skew (m per shell height), 0
+  spHorizon: vec4<f32>,  // horizon coverage start, ramp, amount, S2 surfaceRefineMode (all shapers)
+  spWind: vec4<f32>,     // wind direction x, z, skew (m per shell height), S2 surfaceRefineTau (all shapers)
   tkMinH: vec4<f32>, tkMaxH: vec4<f32>, tkDensity: vec4<f32>, tkShape: vec4<f32>, tkDetail: vec4<f32>, tkWeatherExp: vec4<f32>,
   tkBias: vec4<f32>, tkFilter: vec4<f32>, tkExpTerm: vec4<f32>, tkExponent: vec4<f32>, tkLinear: vec4<f32>, tkConstant: vec4<f32>,
   tkChannel: vec4<f32>,
   tkRepeat: vec4<f32>,   // weather tile (m), shape repeat (1/m), detail repeat (1/m), turbulence tiles per weather tile
-  tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), turbulence on the shape lookup too (0/1; S6 default 0), 0
+  tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), turbulence on the shape lookup too (0/1; S6 default 0), S2 surface step growth after a bisected entry (0/1)
   lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, C1 exact light profile (0/1, HZD shaper only)
   octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, diffusion tail weight
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
   drift: vec4<f32>,      // wind offset (CloudSettings.windOffset, m), 0         (likewise)
-  hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1); X4: hero shadow strength (light grid), 0
+  hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1); X4: hero shadow strength (light grid), S2: surface bisection steps (0 = off)
   // H1 HZD shaper (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packProceduralParams)
   hzLayer: vec4<f32>,    // layer bottom, layer top (m), NDF tile (m), extinction (1/m)
   hzScale: vec4<f32>,    // shape tile, detail tile, curl tile (m), curl strength (m)
