@@ -178,7 +178,7 @@ export function createSkyUpscale(device: GPUDevice): SkyUpscale {
       if (key !== config) {
         // configure() reallocates the output and drops the history; prepare() compiles the path's pipelines (async).
         config = key;
-        core.configure({ displayWidth: a.displayWidth, displayHeight: a.displayHeight, renderWidth: w, renderHeight: h, path: a.path, jitter: false });
+          core.configure({ displayWidth: a.displayWidth, displayHeight: a.displayHeight, renderWidth: w, renderHeight: h, path: a.path, jitter: false });
         const p = preparing = core.prepare().then(() => { if (preparing === p) readyKey = key; }, e => { console.error('cloud upscaler prepare failed', e); });
         prevValid = false;
       }

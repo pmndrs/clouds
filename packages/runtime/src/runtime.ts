@@ -1452,9 +1452,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // composite reads the upscaled colour per output pixel (frame.skyEnabled 2) with the layer's own depth words for the scene occlusion.
       let skyUp: GPUTexture | null = null;
       upscaleWarm = skyActive && procMode === 'procedural' ? upscaleWarm + 1 : 0;
-      // The upscaler is created (its pipelines compiled, its targets allocated) only once the layer has run for a while: created in the first
-      // frames, during the page's start-up work (the procedural model's noise bakes, the trace pipelines compiling), it lost the device with
-      // "Insufficient Memory" on a loaded machine in most runs. Until then the reduced layer is composited the old way.
+      // The upscaler is created (its pipelines compiled, its targets allocated) once the layer has run for UPSCALE_WARM_FRAMES, out of the
+      // page's start-up compiles; until then the reduced layer is composited the old way (bilinear). U2 open problem: on the shared, heavily
+      // loaded test machine Metal lost the device ("Insufficient Memory") within a few frames of the upscaler's start in about half of the
+      // runs, at any start frame tried (see the U2 report); runs that got past those frames never failed.
       if (skyActive && settings.renderLevel !== 'cinematic' && procMode === 'procedural' && (skyUpscale || upscaleWarm > UPSCALE_WARM_FRAMES)) {
         skyUpscale ??= createSkyUpscale(device);
         // A frame without the upscaler in between (another level, the layer off) leaves its history stale: reset it.
