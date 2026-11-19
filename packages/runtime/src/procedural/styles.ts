@@ -51,7 +51,13 @@ export const PROCEDURAL_STYLES: Readonly<Record<ProceduralStyle, ProceduralStyle
     // Tried and not kept: deepScatter 0.6 (darker but bluer, no clear gain), ambientSaturation 0 (no visible change: the shade's blue is the
     // atmosphere's aerial perspective, B/R 1.9 with it and 1.1 without), diffuseSun 0.3 (greyer but lighter: the opposite of heavier),
     // hazeDensity 0 (B/R 1.94 -> 1.90).
-    cloud: { ambientStrength: 0.6 },
+    // Steps p1, p2, p4 (work/captures/S1/real-pt), after PT1's path-traced reference (work/reports/PT1-pathtraced-reference.md): our lit faces
+    // carry 1.6-1.9x the physical 4-16 px texture (multiple scattering fills the pits our sun-shadow taps shade), backlit bodies are too dark
+    // (phase too weak forward) and Nubis shade too blue. p1 microShadow 1 -> 0.5: lit-face detail 0.0170 -> 0.0155 (gp7; horizon 0.0206).
+    // p2 silverStrength 0.4 -> 0.65 (silver g 0.85): brighter backlit rims (sunset view), no change front-lit. p4 diffuseSun 0 -> 0.3: shade
+    // B/R 1.93 -> 1.58 (greyer) and lifted 0.38 -> 0.45 luma, lit-face detail -> 0.0142. Not kept: p3 glowBoost 12 -> 0 (as a global it darkens
+    // the backlit body, the opposite of PT1's finding 4; PT1 asks for no boost on thin material only, which needs a shader option).
+    cloud: { ambientStrength: 0.6, microShadow: 0.5, silverStrength: 0.65, diffuseSun: 0.3 },
   },
 };
 
