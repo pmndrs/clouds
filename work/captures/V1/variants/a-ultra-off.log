@@ -1,0 +1,2 @@
+captured near -> work/captures/V1/variants/a-ultra-off/near.jpg  gpu {"scene":16.057856366666673,"lightGridReduce":0.176248,"lightGrid":0.914736,"marchNear":0.3946689666666666,"marchFar":2.8997564666666666,"shadowMap":0.36018340000000004,"composite":1.2220467333333331,"dome":0.10052838333333332,"cloudsTotal":6.06816795,"total":22.126024316666673}
+OK -> work/captures/V1/variants/a-ultra-off/capture.json

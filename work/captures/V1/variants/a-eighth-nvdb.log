@@ -1,0 +1,2 @@
+captured near -> work/captures/V1/variants/a-eighth-nvdb/near.jpg  gpu {"scene":13.327722999999999,"lightGridReduce":0.081706,"lightGrid":1.181732,"marchNear":0.32019443333333336,"marchFar":0.9875620499999999,"shadowMap":0.07320713333333333,"composite":1.5378250500000001,"dome":0.05599358333333335,"resolveNear":0.2386137166666667,"resolveFar":0.5784301,"cloudsTotal":5.055264066666667,"total":18.382987066666665}
+OK -> work/captures/V1/variants/a-eighth-nvdb/capture.json

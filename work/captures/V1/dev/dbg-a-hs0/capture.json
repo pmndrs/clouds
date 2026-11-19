@@ -1,0 +1,178 @@
+{
+  "url": "http://127.0.0.1:58318/vdb-sky/?proc_heroShadow=0",
+  "size": [
+    960,
+    540
+  ],
+  "startedAt": "2026-11-19T19:45:20.568Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/dbg-a-hs0/near.jpg",
+      "report": {
+        "route": "a",
+        "asset": "wdas-eighth",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 38,
+          "azimuth": 150
+        },
+        "gpuMs": {
+          "scene": 27.132314383333327,
+          "lightGridReduce": 0.324329,
+          "lightGrid": 0.46812481666666667,
+          "marchNear": 0.12860629999999998,
+          "marchFar": 0.8383066666666665,
+          "shadowMap": 3.9954750500000014,
+          "composite": 0.41027903333333327,
+          "dome": 0.9353080000000001,
+          "resolveNear": 0.11718225000000002,
+          "resolveFar": 0.24846710000000005,
+          "skyLayer": 14.57286231666667,
+          "skyResolve": 0.11653451666666668,
+          "cloudsTotal": 22.155475050000007,
+          "total": 49.28778943333333
+        },
+        "frameMs": {
+          "p50": 33.40000000000873,
+          "p95": 66.79999999998836
+        },
+        "renderSize": [
+          960,
+          540
+        ],
+        "quality": "high",
+        "frames": 1912,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 10032545,
+          "voxels": 3122022,
+          "fetchMs": 669.8999999761581,
+          "parseMs": 266.4000000357628,
+          "buildMs": 144.39999997615814,
+          "poolAddMs": 11.800000011920929,
+          "poolBytes": 17300608,
+          "gridType": "float"
+        },
+        "direct": {
+          "dims": [
+            253,
+            308,
+            175
+          ],
+          "voxelSize": 6,
+          "taps": 1,
+          "densityRef": 0.920166015625,
+          "max": 1,
+          "occupied": 2845387,
+          "sizeMeters": [
+            1518,
+            1050,
+            1848
+          ],
+          "timings": {
+            "resampleGpuMs": 94,
+            "packMs": 421.5,
+            "uploadSdfMs": 1067.3999999761581
+          },
+          "gpuBytes": 109093600
+        },
+        "setVolumeMs": 2732.300000011921,
+        "worldScale": 3.517915393319893,
+        "voxel": 6,
+        "error": null,
+        "directDensity": 0.6
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/V1/dbg-a-hs0/above.jpg",
+      "report": {
+        "route": "a",
+        "asset": "wdas-eighth",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "above",
+        "sun": {
+          "elevation": 45,
+          "azimuth": 160
+        },
+        "gpuMs": {
+          "scene": 30.56083708333333,
+          "lightGridReduce": 0.324329,
+          "lightGrid": 0.17562163333333336,
+          "marchNear": 0.1082220333333333,
+          "marchFar": 0.5234497,
+          "shadowMap": 4.8566203166666675,
+          "composite": 0.20730940000000003,
+          "dome": 0.789337983333333,
+          "resolveNear": 0.17978535000000004,
+          "resolveFar": 0.1327500833333334,
+          "skyLayer": 22.810682550000003,
+          "skyResolve": 0.1449158166666666,
+          "cloudsTotal": 30.253023866666673,
+          "total": 60.813860950000006
+        },
+        "frameMs": {
+          "p50": 49.90000000000873,
+          "p95": 100
+        },
+        "renderSize": [
+          960,
+          540
+        ],
+        "quality": "high",
+        "frames": 2072,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 10032545,
+          "voxels": 3122022,
+          "fetchMs": 669.8999999761581,
+          "parseMs": 266.4000000357628,
+          "buildMs": 144.39999997615814,
+          "poolAddMs": 11.800000011920929,
+          "poolBytes": 17300608,
+          "gridType": "float"
+        },
+        "direct": {
+          "dims": [
+            253,
+            308,
+            175
+          ],
+          "voxelSize": 6,
+          "taps": 1,
+          "densityRef": 0.920166015625,
+          "max": 1,
+          "occupied": 2845387,
+          "sizeMeters": [
+            1518,
+            1050,
+            1848
+          ],
+          "timings": {
+            "resampleGpuMs": 94,
+            "packMs": 421.5,
+            "uploadSdfMs": 1067.3999999761581
+          },
+          "gpuBytes": 109093600
+        },
+        "setVolumeMs": 2732.300000011921,
+        "worldScale": 3.517915393319893,
+        "voxel": 6,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

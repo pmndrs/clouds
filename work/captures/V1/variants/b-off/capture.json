@@ -1,0 +1,130 @@
+{
+  "url": "http://127.0.0.1:62272/vdb-sky/?route=b&sky=off",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:55:27.039Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/variants/b-off/near.jpg",
+      "report": {
+        "route": "b",
+        "asset": "wdas-eighth",
+        "sky": "off",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 121.11222555,
+          "lightGridReduce": 0.056333,
+          "lightGrid": 0.056083,
+          "marchNear": 0.24542668333333334,
+          "marchFar": 0.16219413333333335,
+          "shadowMap": 1.0297734375,
+          "composite": 0.9705719999999995,
+          "dome": 0.037918833333333346,
+          "resolveNear": 0.3437190833333333,
+          "resolveFar": 0.47188651666666687,
+          "cloudsTotal": 3.3739066874999994,
+          "total": 124.4861322375
+        },
+        "frameMs": {
+          "p50": 50,
+          "p95": 100
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 318,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 10032545,
+          "voxels": 3122022,
+          "fetchMs": 243.4000000357628,
+          "parseMs": 265.5,
+          "buildMs": 152.39999997615814,
+          "poolAddMs": 11.800000011920929,
+          "poolBytes": 17300608,
+          "gridType": "float"
+        },
+        "direct": null,
+        "worldScale": 3.517915393319893,
+        "voxel": 6,
+        "error": null,
+        "directDensity": 0.6
+      }
+    },
+    {
+      "name": "far",
+      "file": "work/captures/V1/variants/b-off/far.jpg",
+      "report": {
+        "route": "b",
+        "asset": "wdas-eighth",
+        "sky": "off",
+        "surface": "water",
+        "bookmark": "far",
+        "sun": {
+          "elevation": 30,
+          "azimuth": 120
+        },
+        "gpuMs": {
+          "scene": 39.50132476666666,
+          "lightGridReduce": 0.056333,
+          "lightGrid": 0.21353866666666665,
+          "marchNear": 0.3374253166666667,
+          "marchFar": 0.5866889166666668,
+          "shadowMap": 0.49776208823529433,
+          "composite": 1.2371040666666664,
+          "dome": 0.17485916666666668,
+          "resolveNear": 0.3739908,
+          "resolveFar": 0.1557928,
+          "cloudsTotal": 3.6334948215686276,
+          "total": 43.13481958823529
+        },
+        "frameMs": {
+          "p50": 33.299999999995634,
+          "p95": 50.099999999998545
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 629,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 10032545,
+          "voxels": 3122022,
+          "fetchMs": 243.4000000357628,
+          "parseMs": 265.5,
+          "buildMs": 152.39999997615814,
+          "poolAddMs": 11.800000011920929,
+          "poolBytes": 17300608,
+          "gridType": "float"
+        },
+        "direct": null,
+        "worldScale": 3.517915393319893,
+        "voxel": 6,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [
+    "warning: @pmndrs/vdb/three: this WebGPURenderer created its own GPUDevice, so renderer.dispose() destroys that device and every buffer on it, the VDBGridPool's included. For a pool that outlives the renderer, create the device yourself (adapter.requestDevice({ requiredLimits: VDBGridPool.requiredLimits(adapter) })) and pass new WebGPURenderer({ device })."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

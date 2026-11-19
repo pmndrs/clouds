@@ -1,0 +1,76 @@
+{
+  "url": "http://127.0.0.1:65351/vdb-sky/?route=b&asset=cloudpack-02",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T20:04:28.839Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/variants/b-cloudpack-02/near.jpg",
+      "report": {
+        "route": "b",
+        "asset": "cloudpack-02",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 95.71101305,
+          "lightGridReduce": 0.017834,
+          "lightGrid": 0.09356863333333329,
+          "marchNear": 0.5267661833333335,
+          "marchFar": 0.18047154999999998,
+          "shadowMap": 5.594574466666669,
+          "composite": 0.9462188833333336,
+          "dome": 0.8361366166666667,
+          "resolveNear": 0.40737434999999994,
+          "resolveFar": 0.2598112333333333,
+          "skyLayer": 47.103693116666655,
+          "skyResolve": 0.5319919333333333,
+          "cloudsTotal": 56.49844096666666,
+          "total": 152.20945401666665
+        },
+        "frameMs": {
+          "p50": 83.30000000000291,
+          "p95": 150
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 1104,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 20159892,
+          "voxels": 5699272,
+          "fetchMs": 957.1999999880791,
+          "parseMs": 306.5,
+          "buildMs": 243.5999999642372,
+          "poolAddMs": 16,
+          "poolBytes": 37937088,
+          "gridType": "float"
+        },
+        "direct": null,
+        "worldScale": 4.008438818565401,
+        "voxel": 4,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [
+    "warning: @pmndrs/vdb/three: this WebGPURenderer created its own GPUDevice, so renderer.dispose() destroys that device and every buffer on it, the VDBGridPool's included. For a pool that outlives the renderer, create the device yourself (adapter.requestDevice({ requiredLimits: VDBGridPool.requiredLimits(adapter) })) and pass new WebGPURenderer({ device })."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

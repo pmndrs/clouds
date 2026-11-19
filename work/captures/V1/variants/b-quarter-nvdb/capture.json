@@ -1,0 +1,134 @@
+{
+  "url": "http://127.0.0.1:63557/vdb-sky/?route=b&asset=wdas-quarter-nvdb",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:59:24.319Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/variants/b-quarter-nvdb/near.jpg",
+      "report": {
+        "route": "b",
+        "asset": "wdas-quarter-nvdb",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 186.4920215,
+          "lightGridReduce": 0.030541,
+          "lightGrid": 0.43563910000000033,
+          "marchNear": 0.3671124499999999,
+          "marchFar": 0.21283986666666668,
+          "shadowMap": 6.795028866666666,
+          "composite": 1.3015705166666662,
+          "dome": 2.0849468,
+          "resolveNear": 0.48513633333333317,
+          "resolveFar": 0.31903751666666674,
+          "skyLayer": 45.061736766666655,
+          "skyResolve": 0.9670803666666666,
+          "cloudsTotal": 58.06066958333332,
+          "total": 244.55269108333331
+        },
+        "frameMs": {
+          "p50": 116.60000000000582,
+          "p95": 216.60000000000582
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 652,
+        "cloudsReady": true,
+        "load": {
+          "kind": "nvdb",
+          "fileBytes": 29042664,
+          "voxels": 24063202,
+          "fetchMs": 316.5,
+          "parseMs": 0.7999999523162842,
+          "buildMs": 0,
+          "poolAddMs": 843.8000000119209,
+          "poolBytes": 29042464,
+          "gridType": "fp8"
+        },
+        "direct": null,
+        "worldScale": 3.523654243879958,
+        "voxel": 4.6875,
+        "error": null,
+        "directDensity": 0.6
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/V1/variants/b-quarter-nvdb/sunset.jpg",
+      "report": {
+        "route": "b",
+        "asset": "wdas-quarter-nvdb",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "sunset",
+        "sun": {
+          "elevation": 4,
+          "azimuth": 290
+        },
+        "gpuMs": {
+          "scene": 53.217894216666664,
+          "lightGridReduce": 0.030541,
+          "lightGrid": 0.3036223666666666,
+          "marchNear": 0.3948070833333333,
+          "marchFar": 0.5579602333333334,
+          "shadowMap": 2.7639431833333337,
+          "composite": 2.0912078,
+          "dome": 1.0763995833333335,
+          "resolveNear": 0.20758996666666668,
+          "resolveFar": 0.7218992999999999,
+          "skyLayer": 54.412891850000015,
+          "skyResolve": 0.7891323333333333,
+          "cloudsTotal": 63.34999470000002,
+          "total": 116.56788891666667
+        },
+        "frameMs": {
+          "p50": 83.39999999999418,
+          "p95": 183.39999999999418
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 961,
+        "cloudsReady": true,
+        "load": {
+          "kind": "nvdb",
+          "fileBytes": 29042664,
+          "voxels": 24063202,
+          "fetchMs": 316.5,
+          "parseMs": 0.7999999523162842,
+          "buildMs": 0,
+          "poolAddMs": 843.8000000119209,
+          "poolBytes": 29042464,
+          "gridType": "fp8"
+        },
+        "direct": null,
+        "worldScale": 3.523654243879958,
+        "voxel": 4.6875,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [
+    "warning: @pmndrs/vdb/three: this WebGPURenderer created its own GPUDevice, so renderer.dispose() destroys that device and every buffer on it, the VDBGridPool's included. For a pool that outlives the renderer, create the device yourself (adapter.requestDevice({ requiredLimits: VDBGridPool.requiredLimits(adapter) })) and pass new WebGPURenderer({ device })."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
