@@ -17,7 +17,9 @@ export function hzdRefs(root: string): Plugin {
       server.middlewares.use('/__hzd/ref', (req, res) => {
         const id = decodeURIComponent((req.url ?? '').replace(/^\//, '').split('?')[0]);
         const ref = HZD_REF_BY_ID.get(id);
-        const file = ref ? research.map(d => join(d, ref.file)).find(f => existsSync(f)) : undefined;
+        // S1: repo files (work/captures/...) are read from this checkout or, in a worktree, from the main checkout.
+        const dirs = ref?.file.startsWith('work/') ? [root, join(root, '../../..')] : research;
+        const file = ref ? dirs.map(d => join(d, ref.file)).find(f => existsSync(f)) : undefined;
         if (!ref || !file) { res.statusCode = 404; res.end(`no reference image for ${id}`); return; }
         res.setHeader('content-type', TYPES[file.split('.').pop()!.toLowerCase()] ?? 'application/octet-stream'); res.setHeader('cache-control', 'no-store');
         createReadStream(file).pipe(res);
