@@ -58,7 +58,7 @@ async function assetUrl(file: string): Promise<string> {
 /** The cloud's base centre: 6 km north of the origin, base at 900 m (a fair-weather cumulus base). */
 const CLOUD_AT = { x: 0, base: 900, z: -6000 };
 const BOOKMARKS = {
-  near: { pos: [400, 30, -3000], look: [0, 1500, -6000], sunEl: 38, sunAz: 150 },
+  near: { pos: [400, 30, -3000], look: [0, 1500, -6000], sunEl: 60, sunAz: 200 },
   far: { pos: [-1400, 25, 1000], look: [0, 1300, -6000], sunEl: 30, sunAz: 120 },
   sunset: { pos: [900, 25, -1500], look: [0, 1300, -6000], sunEl: 4, sunAz: 290 },
   above: { pos: [2600, 2600, -2600], look: [0, 1200, -6000], sunEl: 45, sunAz: 160 },
@@ -284,7 +284,7 @@ try {
 
   // ---- panel (every review item has a visible control)
   const css = (el: HTMLElement, text: string) => { el.style.cssText = text; return el; };
-  const hud = css(document.createElement('pre'), 'position:fixed;left:8px;top:8px;margin:0;padding:4px 6px;background:#0009;color:#fff;font:12px/1.35 monospace;pointer-events:none;max-width:56vw;white-space:pre-wrap');
+  const hud = css(document.createElement('pre'), 'position:fixed;left:8px;bottom:8px;margin:0;padding:4px 6px;background:#0008;color:#fff;font:11px/1.3 monospace;pointer-events:none;max-width:56vw;white-space:pre-wrap');
   const panel = css(document.createElement('div'), 'position:fixed;right:8px;top:8px;display:flex;flex-direction:column;gap:4px;padding:6px 8px;background:#000a;color:#fff;font:12px system-ui;border-radius:4px;min-width:240px');
   document.body.append(hud, panel);
   if (query.get('clean') === '1') { hud.style.display = 'none'; panel.style.display = 'none'; }
@@ -311,7 +311,10 @@ try {
     if (current?.route === 'a') clouds.core.settings.directDensity = state.density;
     if (current?.froxel) current.froxel.volume.extinction = def.extinction * v;
   });
-  const qualSel = select('quality', ['low', 'medium', 'high', 'ultra'].map(q => [q, q]), clouds.quality, v => clouds.setQuality(v as CloudQuality));
+  // X4 heroShadow: route A's light grid integrates the procedural clouds toward the sun (the VDB in their shadow). Route B has no such term.
+  const shadowSel = select('sky shadow on VDB (A)', [['1', 'on (1)'], ['0.5', 'half'], ['0', 'off']], String(num('proc_heroShadow', 1)), v => { if (proc) proc.settings.heroShadow = Number(v); });
+  void shadowSel;
+  const qualSel = select('quality',['low', 'medium', 'high', 'ultra'].map(q => [q, q]), clouds.quality, v => clouds.setQuality(v as CloudQuality));
   const bmRow = document.createElement('div'); bmRow.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap';
   for (const name of Object.keys(BOOKMARKS)) { const b = document.createElement('button'); b.textContent = name; b.onclick = () => applyBookmark(name); bmRow.append(b); }
   panel.append(bmRow);
