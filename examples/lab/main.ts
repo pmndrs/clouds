@@ -37,7 +37,9 @@ const STORM = ['s206', 's214', 's33t3', 's33t6', 's33t9'];
 const shot = (b: string, cloud: string) => `<a class="chip" href="decima/?cloud=${cloud}&bookmark=${b}&compare=wipe">${b}</a>`;
 const HZD_VIEWS = ['ground', 'gp7', 'horizon', 'sunset', 'dusk', 'afterglow', 'above', 'high'];
 const HZD_REFS: [string, string][] = [['gp7-f4.16', 'GP7 Fig 4.16'], ['hzd15-p039', 'HZD15 erosion'], ['n3-image55', 'HFW sunset'], ['ne22-p023', 'NE cumulus'], ['photo-20220701-151538_DSC00139', 'humilis photo']];
+const STYLES = ['horizon', 'early', 'real'];
 const REVIEWS: [string, string][] = [
+  ['Compass (the plan)', 'https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1'],
   ['Decima parity review', 'https://claude.ai/artifact/UfkrDuARTKY61vDBUXfmBt'],
   ['Rounds overview', 'https://claude.ai/artifact/VqPT2dzg3uFNXpcvnMQRQw'],
   ['Round H review', 'https://claude.ai/artifact/RPabtz6qpXTh9nS9nfGMu5'],
@@ -58,11 +60,17 @@ const work = `
       <p>Our procedural Horizon Zero Dawn sky beside Guerrilla's papers and the owner's photos (side by side or picture in picture). T = every setting, grouped, with presets; M = paint the weather map; R = reference mode; , . = step references. The URL keeps the view and every changed setting. React + R3F.</p>
       <div class="marks"><span class="marks-label">Views</span>${HZD_VIEWS.map(v => `<a class="chip" href="hzd/?view=${v}">${v}</a>`).join('')}</div>
       <div class="marks"><span class="marks-label">Against</span>${HZD_REFS.map(([id, t]) => `<a class="chip" href="hzd/?ref=${id}&refmode=side">${t}</a>`).join('')}</div>
+      <div class="marks"><span class="marks-label">Style</span>${STYLES.map(st => `<a class="chip" href="hzd/?view=gp7&style=${st}">${st}</a>`).join('')}</div>
+    </article>
+    <article class="wcard">
+      <h3><a href="reference-pt/">Path-traced reference</a></h3>
+      <p>The Parkouring cloud path traced by the pathtracer sibling (ground truth: multiple scattering, validated against pbrt and Mitsuba) beside our Nubis and octave lighting, same sun, sky and camera. Settles over minutes. Shows what is Horizon's style and what is our approximation.</p>
+      <div class="marks"><a class="chip" href="legacy/cloudscape/">early raymarch: cloudscape</a><a class="chip" href="legacy/clouds/">early raymarch: first voxel</a></div>
     </article>
     <article class="wcard">
       <h3><a href="docs/">Docs</a></h3>
       <p>Every note in docs/ and work/, rendered and searchable: the handoff, the tools guide, round reports, judging results, research.</p>
-      <div class="marks"><a class="chip" href="docs/#work%2FHANDOFF.md">handoff</a><a class="chip" href="docs/#work%2FD1-TOOLS.md">tools</a><a class="chip" href="docs/#work%2FHZD-BENCH.md">HZD bench</a><a class="chip" href="docs/#work%2Freports%2FD1.md">D1 report</a><a class="chip" href="docs/#work%2FBOARD.md">board</a><a class="chip" href="docs/#docs%2Fresearch%2Ftopics%2FREADME.md">research</a></div>
+      <div class="marks"><a class="chip" href="docs/#work%2FSTATUS.md">status</a><a class="chip" href="docs/#work%2FD1-TOOLS.md">tools</a><a class="chip" href="docs/#work%2FHZD-BENCH.md">HZD bench</a><a class="chip" href="docs/#work%2Freports%2FD1.md">D1 report</a><a class="chip" href="docs/#work%2Freports%2FPT1-pathtraced-reference.md">PT1</a><a class="chip" href="docs/#work%2Freports%2FS1-styles.md">styles</a><a class="chip" href="docs/#docs%2Fresearch%2Ftopics%2FREADME.md">research</a></div>
     </article>
     <article class="wcard">
       <h3>Other benches</h3>
