@@ -172,6 +172,12 @@ export interface SkyLayer {
   readonly domeResources: { weather: GPUTexture; sampler: GPUSampler; params: GPUBuffer } | null;
   /** Drop the temporal history: the next frame traces every pixel. Call on a cut the layer cannot detect itself. */
   reset(): void;
+  /**
+   * U2: what the last `encode` did, for an upscaler after it: `cut` = the history was dropped (a camera jump, a model or setting change);
+   * `motion` = the clouds' world displacement since the frame before (m, the procedural model's wind offset change times its cloud speed;
+   * zero on a cut, a first frame, or for the layer's own field). Independent of `temporalCloudMotion`.
+   */
+  readonly lastEncode: { cut: boolean; motion: Float32Array };
   dispose(): void;
 }
 export interface SkyBox { minCorner: ArrayLike<number>; extent: ArrayLike<number> }
@@ -368,6 +374,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
   const prevWind = new Float32Array(3); let prevWindValid = false;
   const prevCam = new Float32Array(3), prevFwd = new Float32Array(3), prevSun = new Float32Array(3), fwd = new Float32Array(3);
   let prevValid = false;
+  const lastEncode = { cut: true, motion: new Float32Array(3) };
 
   const compile = (mode: 'atmosphere' | 'uniform') => {
     pipelines[mode] = 'pending';
@@ -515,6 +522,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     },
     get domeResources() { return live && settings.enabled && options && !disposed && !procActive ? { weather: live.texture, sampler, params: paramBuffer } : null; },
     reset() { needReset = true; },
+    lastEncode,
     prepare(encoder, box, uniformLighting, timer, procedural) {
       procActive = !!procedural;
       if (procedural && !disposed) {
@@ -602,6 +610,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         const w = a.wind, sp = proc?.motionSpeed ?? 1;
         const on = !!proc && !!w && s.temporalCloudMotion && prevWindValid && !cut;
         p[80] = on ? (w![0] - prevWind[0]) * sp : 0; p[81] = 0; p[82] = on ? (w![2] - prevWind[2]) * sp : 0; p[83] = on ? 1 : 0;
+        const moved = !!proc && !!w && prevWindValid && !cut;
+        lastEncode.cut = cut; lastEncode.motion[0] = moved ? (w![0] - prevWind[0]) * sp : 0; lastEncode.motion[1] = 0; lastEncode.motion[2] = moved ? (w![2] - prevWind[2]) * sp : 0;
         if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
       }
       p[84] = s.historyFilter === 'catmull' ? 1 : s.historyFilter === 'adaptive' ? 2 : 0; p[85] = s.historySharpFrom; p[86] = Math.max(s.historySharpFull, s.historySharpFrom + 1e-3); p[87] = 0;

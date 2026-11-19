@@ -151,6 +151,37 @@ fn mergeSky(voxel: vec4<f32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
   return nearest;
 }
 
+// U2 (frame.skyEnabled 2): the layer went through the upscaler (upscale.ts): skyColor is its output at this pass's size, front and back already
+// merged (no voxel box in between). The scene occlusion still comes from the layer's own depth words (skyDepth, at the layer's size): the
+// share of the cloud in front of this pixel's surface, as mergeSky's C2 test, per tap of the four nearest layer texels and bilinearly
+// weighted; taps that saw no cloud do not vote (at a silhouette their empty sky would otherwise let the upscaled cloud bleed over the surface).
+fn mergeSkyUpscaled(voxel: vec4<f32>, px: vec2<i32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
+  var c = textureLoad(skyColor, min(px, vec2<i32>(textureDimensions(skyColor)) - vec2<i32>(1)), 0);
+  c = vec4(max(c.rgb, vec3(0.0)), saturate(c.a));
+  if (sceneT < FAR_T) {
+    let size = vec2<f32>(textureDimensions(skyDepth));
+    let m = uv * size - 0.5;
+    let b = floor(m);
+    let f = m - b;
+    let hi = vec2<i32>(size) - vec2<i32>(1);
+    var acc = 0.0;
+    var wsum = 0.0;
+    for (var i = 0; i < 4; i++) {
+      let o = vec2<f32>(f32(i & 1), f32(i >> 1));
+      let w = mix(1.0 - f.x, f.x, o.x) * mix(1.0 - f.y, f.y, o.y);
+      let d = textureLoad(skyDepth, clamp(vec2<i32>(b + o), vec2<i32>(0), hi), 0);
+      if (d.z <= 0.0) { continue; }
+      acc += saturate(0.5 + 0.4 * (sceneT * 1.02 + 1.0 - d.z) / max(d.w, 1.0)) * w;
+      wsum += w;
+    }
+    if (wsum > 1e-4) {
+      let inFront = acc / wsum;
+      c = vec4(c.rgb * inFront, 1.0 - (1.0 - c.a) * inFront);
+    }
+  }
+  return vec4(c.rgb + c.a * voxel.rgb, c.a * voxel.a);
+}
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // frame.misc.zw = the composite's own size (P5-C: a tier may composite below the scene's resolution; the consumer upsamples). Its pixel covers
@@ -193,7 +224,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       result = vec4(near.rgb + near.a * far.rgb, near.a * far.a);
     }
   }
-  if (frame.skyEnabled > 0.5) {
+  if (frame.skyEnabled > 1.5) {
+    result = mergeSkyUpscaled(result, vec2<i32>(gid.xy), uv, sceneT);
+  } else if (frame.skyEnabled > 0.5) {
     // Distant sky layer (sky-layer.wgsl.ts): the part in front of the voxel box over the voxel result over the part behind it.
     result = mergeSky(result, uv, sceneT);
   }

@@ -12,7 +12,7 @@ export interface StartState { quality: string; clean: boolean; viewName: string;
 
 const SETTING_PREFIXES = Object.entries(PREFIX) as [SourceId, string][];
 /** Settings the bench reads from the URL itself (not passed to the pane), so their starting values are the code defaults. */
-export const isSettingKey = (k: string) => SETTING_PREFIXES.some(([, p]) => k.startsWith(p)) || k === 'cirrus' || k === 'phase' || k === 'vlight';
+export const isSettingKey = (k: string) => SETTING_PREFIXES.some(([, p]) => k.startsWith(p)) || k === 'cirrus' || k === 'phase' || k === 'vlight' || k === 'level';
 
 /** The pane's own query: everything but the settings, with the quality. */
 export function paneQuery(query: URLSearchParams, quality: string): URLSearchParams {
@@ -61,6 +61,8 @@ export function applySettingOverrides(query: URLSearchParams, sources: Sources):
   for (const [k, raw] of query) {
     if (k === 'cirrus') { sources.cirrus.enabled = raw === '1'; continue; }
     if (k === 'phase') { sources.c.phaseModel = raw; continue; }
+    // U2: ?level=cinematic|desktop|laptop, the render level (captures); the page writes it back as c_renderLevel.
+    if (k === 'level') { if (raw === 'cinematic' || raw === 'desktop' || raw === 'laptop') sources.c.renderLevel = raw; continue; }
     for (const [s, p] of SETTING_PREFIXES) {
       if (!k.startsWith(p)) continue;
       const key = k.slice(p.length);

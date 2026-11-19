@@ -63,6 +63,16 @@ export class GpuTimer {
     return { querySet: this.querySet!, beginningOfPassWriteIndex: i * 2, endOfPassWriteIndex: i * 2 + 1 };
   }
 
+  /**
+   * U2: one named span over several passes the caller does not open itself (a library's own compute passes): encode an empty compute pass with
+   * `begin` before them and one with `end` after them.
+   */
+  spanTimestampWrites(name: string): { begin: GPUComputePassTimestampWrites; end: GPUComputePassTimestampWrites } | undefined {
+    const w = this.passTimestampWrites(name);
+    if (!w) return undefined;
+    return { begin: { querySet: w.querySet, beginningOfPassWriteIndex: w.beginningOfPassWriteIndex }, end: { querySet: w.querySet, endOfPassWriteIndex: w.endOfPassWriteIndex } };
+  }
+
   /** Record the resolve + copy into `encoder`. The caller must submit the encoder. */
   endFrame(encoder: GPUCommandEncoder): void {
     const slot = this.current;

@@ -32,6 +32,9 @@
     "README.md",
     "LICENSE"
   ],
+  "dependencies": {
+    "@pmndrs/upscaler": "file:../../vendor/pmndrs-upscaler-0.5.0-f38e9ac.tgz"
+  },
   "peerDependencies": {
     "@webgpu/types": ">=0.1.60"
   },
