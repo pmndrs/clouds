@@ -1,0 +1,81 @@
+{
+  "url": "http://127.0.0.1:5377/hzd/?level=laptop&c_levelScaleLaptop=0.3333&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T18:32:55.891Z",
+  "shots": [
+    {
+      "name": "ground",
+      "file": "work/captures/U2/laptop-third/ground.jpg",
+      "report": {
+        "view": "ground",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 9.036862999999995,
+          "lightGridReduce": 0.009167,
+          "lightGrid": 0.010916,
+          "marchNear": 0.12293076666666666,
+          "marchFar": 0.25124616666666666,
+          "shadowMap": 1.4783582857142856,
+          "composite": 0.6597232666666667,
+          "dome": 0.6644017166666668,
+          "skyLayer": 12.19410633333333,
+          "skyResolve": 0.20603936666666672,
+          "cloudsTotal": 15.59688890238095,
+          "total": 24.633751902380943
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.009167,
+          "lightGrid": 0.010916,
+          "marchNear": 0.054374,
+          "marchFar": 0.152123,
+          "shadowMap": 1.280813,
+          "composite": 2.750625,
+          "dome": 0.583116,
+          "skyLayer": 11.59574,
+          "skyResolve": 0.175497
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.renderLevel": "laptop",
+          "c.levelScaleLaptop": 0.3333
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5377/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5f201ecff482fd53/node_modules/.vite/deps/chunk-DF36IFFG.js?v=d7149839:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5377/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5f201ecff482fd53/node_modules/.vite/deps/chunk-DF36IFFG.js?v=d7149839:1421:12)\n    at http://127.0.0.1:5377/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5f201ecff482fd53/node_modules/.vite/deps/chunk-DF36IFFG.js?v=d7149839:540:12 font-weight: bold;",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Buffer \"GpuTimer readback 1\"].Unmap().\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Buffer \"buffer_timestamp_result_render\"].Unmap().\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Device].CreateCommandEncoder([CommandEncoderDescriptor \"\"computeGroup_1254\"\"]).\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While finishing [Invalid CommandEncoder \"computeGroup_1254\"].\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"computeGroup_1254\"]])\n",
+    "error: THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Device] is lost.\n    at ValidateIsAlive (../../third_party/dawn/src/dawn/native/Device.cpp:888)\n",
+    "error: THREE.THREE.WebGPURenderer: WebGPU Device Lost:\n\nMessage: Metal command buffer failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory) (domain=MTLCommandBufferErrorDomain, code=8)\n - While handling unexpected error type Internal when allowed errors are Validation.\n    at operator() (../../third_party/dawn/src/dawn/native/metal/QueueMTL.mm:215)\n\nReason: unknown",
+    "error: THREE.Error resolving queries: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': [Device] is lost.",
+    "error: THREE.Error resolving queries: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': [Device] is lost."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

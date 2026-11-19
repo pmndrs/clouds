@@ -1,0 +1,73 @@
+{
+  "url": "http://127.0.0.1:5377/hzd/?level=desktop&clean=1",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T18:28:39.116Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/U2/desktop/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 36.045859099999994,
+          "lightGridReduce": 0.030708,
+          "lightGrid": 0.022375,
+          "marchNear": 0.16890076666666667,
+          "marchFar": 0.3266345333333333,
+          "shadowMap": 1.8116793636363635,
+          "composite": 0.2934747666666667,
+          "dome": 0.6444054666666665,
+          "skyLayer": 20.719226983333332,
+          "skyResolve": 0.34570023333333333,
+          "upscale": 0.3373290000000003,
+          "cloudsTotal": 24.700434113636362,
+          "total": 60.746293213636356
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.030708,
+          "lightGrid": 0.022375,
+          "marchNear": 0.052374,
+          "marchFar": 0.14408,
+          "shadowMap": 1.351813,
+          "composite": 0.287995,
+          "dome": 0.621782,
+          "skyLayer": 19.749366,
+          "skyResolve": 0.338161,
+          "upscale": 0.337329
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.renderLevel": "desktop"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5377/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5f201ecff482fd53/node_modules/.vite/deps/chunk-DF36IFFG.js?v=d7149839:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5377/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5f201ecff482fd53/node_modules/.vite/deps/chunk-DF36IFFG.js?v=d7149839:1421:12)\n    at http://127.0.0.1:5377/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5f201ecff482fd53/node_modules/.vite/deps/chunk-DF36IFFG.js?v=d7149839:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
