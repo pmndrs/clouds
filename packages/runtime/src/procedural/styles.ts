@@ -29,6 +29,10 @@ export const PROCEDURAL_STYLES: Readonly<Record<ProceduralStyle, ProceduralStyle
   early: {
     label: 'early raymarch',
     about: 'The early September raymarch (legacy cloudscape / realism pages) on the same sky: soft, bright, cohesive bodies with smooth large lobes.',
+    // Step e1 (work/captures/S1/early-r2): the legacy pages eroded a smooth base boundary lightly at a large scale (realism: erosion 0.7 x
+    // 0.2-1.1 over a 600 m cellular noise, then a smoothstep edge; cloudscape: smooth voxel forms and a 0.16 sine). Here: the HZD Worley
+    // detail (A1 'old') at a third of gp7's strength. The Nubis Cubed Alligator at 0.4 (early-r1) left a march hatch on the bared surfaces.
+    hzd: { noiseSet: 'hzd', erosionStrength: 0.1 },
   },
   real: {
     label: 'photo weight',
