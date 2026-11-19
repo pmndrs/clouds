@@ -28,8 +28,8 @@ export class CDP {
             this.socket.send(JSON.stringify({ id, method, params }));
         });
     }
-    async evaluate(expression) {
-        const result = await this.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
+    async evaluate(expression, timeoutMs = 45000) {
+        const result = await this.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, timeoutMs);
         if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description ?? result.exceptionDetails.text);
         return result.result.value;
     }

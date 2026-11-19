@@ -28,7 +28,8 @@ if (flag('help')) {
 --serve             start the vite dev server for the run
 --headed            show the browser window
 --timeout <s>       ready timeout in seconds (default 60)
---no-contract       page has no window.__clouds: stub it after load and just settle frames`);
+--no-contract       page has no window.__clouds: stub it after load and just settle frames
+--eval-timeout <s>  per page call (bookmark, settle, report) in seconds (default 45; a path-traced settle can take minutes)`);
   process.exit(0);
 }
 const root = resolve(new URL('../..', import.meta.url).pathname);
@@ -38,6 +39,7 @@ const settleFrames = Number(opt('settle', 90));
 const format = opt('format', 'jpeg');
 const quality = Number(opt('quality', 88));
 const timeoutMs = Number(opt('timeout', 60)) * 1000;
+const evalTimeoutMs = Number(opt('eval-timeout', 45)) * 1000;
 const shots = (opt('shots', '') || '').split(',').filter(Boolean);
 const chrome = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
@@ -85,7 +87,7 @@ try {
   await cdp.send('Page.enable'); await cdp.send('Runtime.enable'); await cdp.send('Log.enable');
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
   await cdp.send('Page.navigate', { url });
-  const eval_ = expr => cdp.evaluate(expr);
+  const eval_ = expr => cdp.evaluate(expr, evalTimeoutMs);
   // --no-contract: pages without window.__clouds (the legacy labs) get a stub once the document has loaded, then the usual frame settle.
   if (flag('no-contract')) await waitFor(() => eval_(`document.readyState === 'complete' && (window.__clouds ??= { ready: true }, true)`), timeoutMs, 'document load');
   const ready = await waitFor(() => eval_(`(() => { const c = window.__clouds; if (!c) return null; if (c.error) return { error: String(c.error) }; return c.ready ? { ok: true } : null; })()`), timeoutMs, 'window.__clouds.ready')
