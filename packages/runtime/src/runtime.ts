@@ -803,7 +803,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     microDist: startPreset.microDist, stepScale: startPreset.stepScale, // Q-1 (Nubis neutral: microDist 0, stepScale 1)
     fineDistance: startPreset.fineDistance, lightDebug: 0,
     densityModel: 'nvdf', lightingModel: 'nubis',
-    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0, upscaleColorScale: 1 / 64, levelSubPixelSpan: -1, levelLodLayerPixel: -1,   // U2 (agent-chosen: sharpness 0.5)
+    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0, upscaleColorScale: 1 / 64, levelSubPixelSpan: 1, levelLodLayerPixel: -1,   // U2 (agent-chosen: sharpness 0.5); S2 (agent-chosen): levelSubPixelSpan 1, a one-pixel sub-pixel box at desktop/laptop (-1 = sky.subPixelSpan 2, the pre-S2 box)
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
