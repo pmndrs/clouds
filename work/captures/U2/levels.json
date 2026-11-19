@@ -1,8 +1,8 @@
 [
  { "name": "cinematic", "set": { "c.renderLevel": "cinematic" } },
  { "name": "desktop", "set": { "c.renderLevel": "desktop" } },
+ { "name": "desktop bilinear", "set": { "c.renderLevel": "desktop", "c.upscalePath": "bilinear" } },
  { "name": "laptop 1/4", "set": { "c.renderLevel": "laptop" } },
  { "name": "laptop 1/3", "set": { "c.renderLevel": "laptop", "c.levelScaleLaptop": 0.3333 } },
- { "name": "desktop bilinear", "set": { "c.renderLevel": "desktop", "c.upscalePath": "bilinear" } },
  { "name": "cinematic again", "set": { "c.renderLevel": "cinematic" } }
 ]
