@@ -6,7 +6,6 @@ Updated 2026-11-20.
 
 ## Running
 - **S2**: fix the fine hatch on hard lit faces, and make Desktop hold up next to Cinematic (the 4x4 hatch, softer ridges).
-- **V1**: an artist VDB cloud (WDAS, EmberGen) through `@pmndrs/vdb`, lit by our sky and inside it (new page `vdb-sky/`).
 
 ## Tonight (2026-11-20): the refactor and the styles
 
@@ -19,6 +18,7 @@ What landed on `main`. The tag `stable-2026-11-20-pre-refactor` is the state bef
 | T187 | three 0.187.0, postprocessing 6.39.6. **Needs a local patch** (`patches/three@0.187.0.patch`): r187's `compileAsync` regression renders most pages black when `@pmndrs/sky` compiles several things at once. Fixed upstream in r188; remove the patch then | |
 | PT1 | **Path-traced reference**: the Parkouring cloud through your pathtracer (validated volume path) beside our Nubis and octave lighting. Page `reference-pt/` | `work/reports/PT1-pathtraced-reference.md`, sheets `work/captures/PT1/` |
 | S1 | **Style switch** on the HZD bench: `horizon` (unchanged, pixel-identical), `early` (the September raymarch treatment), `real` (photo weight, nudged toward the path-traced reference). Sidebar "Style" section, `?style=` | `work/reports/S1-styles.md`, sheets `work/captures/S1/final/` |
+| V1 | **Artist VDB clouds in the sky** through `@pmndrs/vdb` (route A: resampled on the GPU into our runtime, lit and shadowed by the sky; 1.3 s load vs 48 s with our importer). WebVDB's froxel renderer tried as route B: flat, no depth or sky shadows. Page `vdb-sky/` | `work/reports/V1-vdb-sky.md`, `work/captures/V1/` |
 | U2 | **Render levels**: `cinematic` (default, the old path), `desktop` (½ res sky layer through the upscaler core), `laptop` (¼). Review switch U2 and a tune-panel group | `work/reports/U2-upscaler-levels.md`, sheet `work/captures/U2/U2-sheet.jpg` |
 
 What we learned:

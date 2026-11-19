@@ -85,7 +85,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
   <div class="eyebrow">WebGPU Clouds · 20 November 2026 · overnight</div>
   <h1>Cloud Demos</h1>
   <p class="lede">Frames from the current main branch after the overnight refactor: three switchable cloud styles on the procedural sky, a path-traced ground truth to judge them against, the early raymarch looks you wanted kept, the showcase scenes on three r187, and the first upscaler render levels.</p>
-  <nav aria-label="Sections"><a href="#truth">Horizon or us?</a><a href="#styles">Styles</a><a href="#early">Early raymarch</a><a href="#scenes">Scenes</a><a href="#levels">Render levels</a><a href="#next">Still running</a><a href="#live">Run it live</a></nav>
+  <nav aria-label="Sections"><a href="#truth">Horizon or us?</a><a href="#styles">Styles</a><a href="#early">Early raymarch</a><a href="#scenes">Scenes</a><a href="#vdb">Artist VDB</a><a href="#levels">Render levels</a><a href="#next">Still running</a><a href="#live">Run it live</a></nav>
 </header>
 
 <figure class="hero">
@@ -160,6 +160,17 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
   </div>
 </section>
 
+<section id="vdb">
+  <div class="head">
+    <div class="eyebrow">Goal G4</div>
+    <h2>Artist clouds inside the sky</h2>
+    <p>EmberGen and Disney VDB clouds loaded through <code>@pmndrs/vdb</code>, resampled on the GPU into our runtime, and lit by the same sun, sky and haze as the procedural clouds around them. They cast and receive the sky's shadows, and show in the water. Loading Disney's cloud takes about 1.3 s of work, where our old importer took 48 s.</p>
+  </div>
+  <figure><img src="img/vdb-cloudpack-sunset.jpg" alt="An EmberGen cumulus at sunset among procedural clouds over the sea, lit warm like its neighbours" loading="lazy" width="1600" height="633"><figcaption><b>JangaFX CloudPack 02</b> (EmberGen .vdb) at sunset, right of centre, among the procedural sky. It takes the same warm light as its neighbours. <code>vdb-sky/</code></figcaption></figure>
+  <figure><img src="img/vdb-wdas-near.jpg" alt="Disney's cloud in the middle of a midday cumulus sky, in the shadow of the deck above it" loading="lazy" width="1600" height="818"><figcaption><b>Disney WDAS cloud</b> (⅛ resolution, 6 m voxels), near view at midday. It sits in the shadow of the sky's overhead deck, which is correct, and reads softer and greyer than the procedural clouds. Sky shadow can be switched off in the page's panel.</figcaption></figure>
+  <p class="muted">WebVDB's own froxel renderer was tried as well: about 10× slower here, flat and over-bright, with no depth or sky shadows, so our runtime is the path for clouds. The gaps to close upstream (resample tool, multi-channel grids, majorants, worker parsing) are in <code>work/reports/V1-vdb-sky.md</code>.</p>
+</section>
+
 <section id="levels">
   <div class="head">
     <div class="eyebrow">Upscaler first</div>
@@ -187,7 +198,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
     <thead><tr><th>Work</th><th>Aim</th><th>State</th></tr></thead>
     <tbody>
       <tr><td><b>S2</b></td><td>Remove the fine hatch on hard lit faces, and make Desktop hold up beside Cinematic (render the sky layer under the upscaler's jitter).</td><td><span class="pill run">running</span></td></tr>
-      <tr><td><b>V1</b></td><td>An artist VDB cloud (Disney's WDAS cloud, an EmberGen cloud) through <code>@pmndrs/vdb</code>, lit by our sky and inside it. New page <code>vdb-sky/</code>.</td><td><span class="pill run">running</span></td></tr>
+      <tr><td><b>V1</b></td><td>Artist VDB clouds through <code>@pmndrs/vdb</code>, inside our sky. Page <code>vdb-sky/</code>.</td><td><span class="pill ok">landed</span></td></tr>
     </tbody>
   </table></div>
 </section>
@@ -205,6 +216,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
       <tr><td>HZD bench, levels</td><td class="num">/hzd/?view=gp7&amp;level=desktop</td><td><code>level=cinematic|desktop|laptop</code>, or Review switch U2</td></tr>
       <tr><td>Path-traced reference</td><td class="num">/reference-pt/</td><td>noon, low and backlit buttons; settles over a few minutes</td></tr>
       <tr><td>Early raymarch</td><td class="num">/legacy/cloudscape/</td><td>Play 40-second flight; also <code>/legacy/clouds/</code></td></tr>
+      <tr><td>Artist VDB in the sky</td><td class="num">/vdb-sky/</td><td>near, far, sunset, above; asset and route switches; drop any .vdb or .nvdb</td></tr>
       <tr><td>Open water</td><td class="num">/open-water/</td><td>shore, horizon, sunset, cruise, flight</td></tr>
       <tr><td>Onsen valley</td><td class="num">/onsen/</td><td>vantage, valley, sunset</td></tr>
       <tr><td>Plains flight</td><td class="num">/plains-flight/</td><td>t0 to t40 bookmarks</td></tr>
