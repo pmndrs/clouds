@@ -66,7 +66,7 @@ export interface DirectInfo {
   occupied: number;
   /** World-axis size of the box (x, y-up, z), metres. */
   sizeMeters: [number, number, number];
-  /** Where the VDB's world origin lands relative to the volume's min corner (metres, world axes): for placing route B identically. */
+  /** ms: the GPU resample to readback, the CPU pack (densityRef, half floats, NVDF), the texture upload and SDF jump flood. */
   timings: { resampleGpuMs: number; packMs: number; uploadSdfMs: number };
   gpuBytes: number;
 }

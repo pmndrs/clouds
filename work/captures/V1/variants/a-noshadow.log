@@ -1,0 +1,2 @@
+captured near -> work/captures/V1/variants/a-noshadow/near.jpg  gpu {"scene":86.4217262833333,"lightGridReduce":0.120332,"lightGrid":0.9636741333333332,"marchNear":0.8244888500000002,"marchFar":5.4117721666666645,"shadowMap":9.082319083333333,"composite":2.4784024000000002,"dome":5.0995805,"resolveNear":1.6831000333333335,"resolveFar":1.6791562500000006,"skyLayer":91.09871136666669,"skyResolve":3.0446828666666663,"cloudsTotal":121.48621965000002,"total":207.90794593333334}
+OK -> work/captures/V1/variants/a-noshadow/capture.json

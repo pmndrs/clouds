@@ -1,0 +1,74 @@
+{
+  "url": "http://127.0.0.1:62651/vdb-sky/?route=b&sky=off",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:56:33.195Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/variants/b-off-2/near.jpg",
+      "report": {
+        "route": "b",
+        "asset": "wdas-eighth",
+        "sky": "off",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 104.82121168333332,
+          "lightGridReduce": 0.044749,
+          "lightGrid": 0.067291,
+          "marchNear": 0.5620192833333332,
+          "marchFar": 1.1433353166666669,
+          "shadowMap": 1.2367519999999994,
+          "composite": 0.8699526666666666,
+          "dome": 0.26071833333333316,
+          "resolveNear": 0.5270196666666662,
+          "resolveFar": 0.7478567666666666,
+          "cloudsTotal": 5.4596940333333315,
+          "total": 110.28090571666665
+        },
+        "frameMs": {
+          "p50": 50,
+          "p95": 100
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 315,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 10032545,
+          "voxels": 3122022,
+          "fetchMs": 190.39999997615814,
+          "parseMs": 214.89999997615814,
+          "buildMs": 126,
+          "poolAddMs": 10.5,
+          "poolBytes": 17300608,
+          "gridType": "float"
+        },
+        "direct": null,
+        "worldScale": 3.517915393319893,
+        "voxel": 6,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [
+    "warning: @pmndrs/vdb/three: this WebGPURenderer created its own GPUDevice, so renderer.dispose() destroys that device and every buffer on it, the VDBGridPool's included. For a pool that outlives the renderer, create the device yourself (adapter.requestDevice({ requiredLimits: VDBGridPool.requiredLimits(adapter) })) and pass new WebGPURenderer({ device })."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

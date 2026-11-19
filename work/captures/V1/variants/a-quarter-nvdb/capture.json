@@ -1,0 +1,178 @@
+{
+  "url": "http://127.0.0.1:63023/vdb-sky/?route=a&asset=wdas-quarter-nvdb",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T19:57:22.776Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/variants/a-quarter-nvdb/near.jpg",
+      "report": {
+        "route": "a",
+        "asset": "wdas-quarter-nvdb",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 71.8384728,
+          "lightGridReduce": 0.145332,
+          "lightGrid": 3.370731233333333,
+          "marchNear": 0.4398988,
+          "marchFar": 1.4417523833333332,
+          "shadowMap": 5.653106866666669,
+          "composite": 1.4840044000000001,
+          "dome": 1.2137987999999997,
+          "resolveNear": 0.2292215166666666,
+          "resolveFar": 0.5121525333333335,
+          "skyLayer": 52.34908256666665,
+          "skyResolve": 1.3021391499999997,
+          "cloudsTotal": 68.14122024999999,
+          "total": 139.97969304999998
+        },
+        "frameMs": {
+          "p50": 83.30000000000291,
+          "p95": 166.6999999999971
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 1044,
+        "cloudsReady": true,
+        "load": {
+          "kind": "nvdb",
+          "fileBytes": 29042664,
+          "voxels": 24063202,
+          "fetchMs": 332.30000001192093,
+          "parseMs": 0.8999999761581421,
+          "buildMs": 0,
+          "poolAddMs": 10.300000011920929,
+          "poolBytes": 29042464,
+          "gridType": "fp8"
+        },
+        "direct": {
+          "dims": [
+            320,
+            392,
+            220
+          ],
+          "voxelSize": 4.6875,
+          "taps": 2,
+          "densityRef": 0.9196778440091293,
+          "max": 1.0000001192092896,
+          "occupied": 5974487,
+          "sizeMeters": [
+            1500,
+            1031.25,
+            1837.5
+          ],
+          "timings": {
+            "resampleGpuMs": 671.4000000357628,
+            "packMs": 553.3999999761581,
+            "uploadSdfMs": 848.6999999880791
+          },
+          "gpuBytes": 220774400
+        },
+        "setVolumeMs": 45,
+        "worldScale": 3.523654243879958,
+        "voxel": 4.6875,
+        "error": null,
+        "directDensity": 0.6
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/V1/variants/a-quarter-nvdb/sunset.jpg",
+      "report": {
+        "route": "a",
+        "asset": "wdas-quarter-nvdb",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "sunset",
+        "sun": {
+          "elevation": 4,
+          "azimuth": 290
+        },
+        "gpuMs": {
+          "scene": 89.8354882,
+          "lightGridReduce": 0.145332,
+          "lightGrid": 5.812896066666667,
+          "marchNear": 0.31517081666666674,
+          "marchFar": 1.0211428499999997,
+          "shadowMap": 2.6356320000000006,
+          "composite": 1.14200335,
+          "dome": 1.0796828500000002,
+          "resolveNear": 0.2615065333333334,
+          "resolveFar": 0.4755142333333334,
+          "skyLayer": 49.825329133333334,
+          "skyResolve": 0.8549328000000003,
+          "cloudsTotal": 63.569142633333335,
+          "total": 153.40463083333333
+        },
+        "frameMs": {
+          "p50": 83.39999999999418,
+          "p95": 166.6999999999971
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 1354,
+        "cloudsReady": true,
+        "load": {
+          "kind": "nvdb",
+          "fileBytes": 29042664,
+          "voxels": 24063202,
+          "fetchMs": 332.30000001192093,
+          "parseMs": 0.8999999761581421,
+          "buildMs": 0,
+          "poolAddMs": 10.300000011920929,
+          "poolBytes": 29042464,
+          "gridType": "fp8"
+        },
+        "direct": {
+          "dims": [
+            320,
+            392,
+            220
+          ],
+          "voxelSize": 4.6875,
+          "taps": 2,
+          "densityRef": 0.9196778440091293,
+          "max": 1.0000001192092896,
+          "occupied": 5974487,
+          "sizeMeters": [
+            1500,
+            1031.25,
+            1837.5
+          ],
+          "timings": {
+            "resampleGpuMs": 671.4000000357628,
+            "packMs": 553.3999999761581,
+            "uploadSdfMs": 848.6999999880791
+          },
+          "gpuBytes": 220774400
+        },
+        "setVolumeMs": 45,
+        "worldScale": 3.523654243879958,
+        "voxel": 4.6875,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

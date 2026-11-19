@@ -1,0 +1,97 @@
+{
+  "url": "http://127.0.0.1:50414/vdb-sky/?route=a&proc_heroShadow=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T20:08:16.259Z",
+  "shots": [
+    {
+      "name": "near",
+      "file": "work/captures/V1/variants/a-noshadow/near.jpg",
+      "report": {
+        "route": "a",
+        "asset": "wdas-eighth",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 86.4217262833333,
+          "lightGridReduce": 0.120332,
+          "lightGrid": 0.9636741333333332,
+          "marchNear": 0.8244888500000002,
+          "marchFar": 5.4117721666666645,
+          "shadowMap": 9.082319083333333,
+          "composite": 2.4784024000000002,
+          "dome": 5.0995805,
+          "resolveNear": 1.6831000333333335,
+          "resolveFar": 1.6791562500000006,
+          "skyLayer": 91.09871136666669,
+          "skyResolve": 3.0446828666666663,
+          "cloudsTotal": 121.48621965000002,
+          "total": 207.90794593333334
+        },
+        "frameMs": {
+          "p50": 216.60000000000582,
+          "p95": 250
+        },
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "quality": "high",
+        "frames": 614,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 10032545,
+          "voxels": 3122022,
+          "fetchMs": 451.69999998807907,
+          "parseMs": 253.80000001192093,
+          "buildMs": 153.0999999642372,
+          "poolAddMs": 10.600000023841858,
+          "poolBytes": 17300608,
+          "gridType": "float"
+        },
+        "direct": {
+          "dims": [
+            253,
+            308,
+            175
+          ],
+          "voxelSize": 6,
+          "taps": 1,
+          "densityRef": 0.920166015625,
+          "max": 1,
+          "occupied": 2845387,
+          "sizeMeters": [
+            1518,
+            1050,
+            1848
+          ],
+          "timings": {
+            "resampleGpuMs": 127.09999996423721,
+            "packMs": 408.30000001192093,
+            "uploadSdfMs": 383.10000002384186
+          },
+          "gpuBytes": 109093600
+        },
+        "setVolumeMs": 182.5,
+        "worldScale": 3.517915393319893,
+        "voxel": 6,
+        "error": null,
+        "directDensity": 0.6
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

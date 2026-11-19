@@ -1,0 +1,2 @@
+captured near -> work/captures/V1/variants/a-quarter-vdb/near.jpg  gpu {"scene":7.487098249999999,"lightGridReduce":0.4772,"lightGrid":12.419935,"marchNear":0.2355775666666666,"marchFar":0.9723601666666667,"shadowMap":0.032897812500000005,"composite":1.0211434499999998,"dome":0.10621291666666662,"resolveNear":0.34264193333333337,"resolveFar":0.8782803333333332,"cloudsTotal":16.486249179166666,"total":23.973347429166665}
+OK -> work/captures/V1/variants/a-quarter-vdb/capture.json
