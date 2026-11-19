@@ -58,7 +58,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     tuner.refresh();
     weatherFromQuery(query);
     (window as unknown as { __tune: unknown }).__tune = tuner;
-    (window as unknown as { __hzd: unknown }).__hzd = { core, proc };   // console / capture scripts: settings, shadow map info, the procedural model
+    (window as unknown as { __hzd: unknown }).__hzd = { core, proc, bench };   // console / capture scripts: settings, shadow map info, the procedural model, the bench store (U2: scripted camera motion)
     (window as unknown as { __proc: unknown }).__proc = proc;   // debug: window.__proc.readHzdBounds()
     return { pane, clouds, proc, core, sources, renderer, tuner };
   })();

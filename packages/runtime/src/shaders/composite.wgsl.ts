@@ -151,13 +151,14 @@ fn mergeSky(voxel: vec4<f32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
   return nearest;
 }
 
-// U2 (frame.skyEnabled 2): the layer went through the upscaler (upscale.ts): skyColor is its output at this pass's size, front and back already
+// U2 (frame.skyEnabled > 1.5): the layer went through the upscaler (upscale.ts): skyColor is its output at this pass's size, front and back already
 // merged (no voxel box in between). The scene occlusion still comes from the layer's own depth words (skyDepth, at the layer's size): the
 // share of the cloud in front of this pixel's surface, as mergeSky's C2 test, per tap of the four nearest layer texels and bilinearly
 // weighted; taps that saw no cloud do not vote (at a silhouette their empty sky would otherwise let the upscaled cloud bleed over the surface).
 fn mergeSkyUpscaled(voxel: vec4<f32>, px: vec2<i32>, uv: vec2<f32>, sceneT: f32) -> vec4<f32> {
   var c = textureLoad(skyColor, min(px, vec2<i32>(textureDimensions(skyColor)) - vec2<i32>(1)), 0);
-  c = vec4(max(c.rgb, vec3(0.0)), saturate(c.a));
+  // frame.skyEnabled - 1 undoes the colour scale the upscaler's input was given (runtime.ts upscaleColorScale).
+  c = vec4(max(c.rgb, vec3(0.0)) * (frame.skyEnabled - 1.0), saturate(c.a));
   if (sceneT < FAR_T) {
     let size = vec2<f32>(textureDimensions(skyDepth));
     let m = uv * size - 0.5;

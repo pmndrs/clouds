@@ -230,11 +230,18 @@ export interface CloudSettings {
   /** U2: the upscaler's RCAS sharpening, 0..1 (its own default is 0.8). Default 0.5. */
   upscaleSharpness: number;
   /**
-   * U2: the upscaler's conditioning exposure (it divides it back out, so the brightness does not change). 0 = its auto exposure, which on the
-   * mostly black premultiplied cloud colour sits at its 8x cap and makes its tonemap non-linear: dark rims and stair-stepped cloud edges.
-   * Default 0.05: the tonemap stays near linear for the cloud's radiance.
+   * U2: a fixed conditioning exposure for the upscaler (it divides it back out, so the brightness does not change), passed as its exposure
+   * texture; 0 (default) = its auto exposure with upscaleColorScale. Its auto exposure alone, on the mostly black premultiplied cloud colour,
+   * sits at its 8x cap and makes its tonemap non-linear: dark rims and stair-stepped cloud edges. A fixed value lost the device on start-up
+   * in some runs (see upscale.ts), so it is the option, not the default.
    */
   upscaleExposure: number;
+  /**
+   * U2: the colour going into the upscaler is multiplied by this and divided back out in the composite (upscaleExposure 0 only). The upscaler's
+   * auto exposure tops out at 8x on the mostly black cloud colour, so 1/64 conditions it at an effective 1/8: its invertible tonemap stays near
+   * linear across cloud edges (no dark rims or stair steps) while its auto-exposure path, the stable one, stays in use. Default 1/64.
+   */
+  upscaleColorScale: number;
   /** U2: the depth the upscaler sees: 'cloud' (default) the opacity-weighted mean distance of the cloud (far plane where clear), 'flat' the far plane everywhere (no depth edges, so its disocclusion test never fires; colour clipping alone guards the history). */
   upscaleDepth: 'cloud' | 'flat';
   /**
@@ -582,6 +589,8 @@ const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
 const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99];
+/** U2: frames the procedural layer runs before the upscaler is created (see encode). */
+const UPSCALE_WARM_FRAMES = 240;
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
@@ -784,7 +793,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     microDist: startPreset.microDist, stepScale: startPreset.stepScale, // Q-1 (Nubis neutral: microDist 0, stepScale 1)
     fineDistance: startPreset.fineDistance, lightDebug: 0,
     densityModel: 'nvdf', lightingModel: 'nubis',
-    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0.05,   // U2 (agent-chosen: sharpness 0.5)
+    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0, upscaleColorScale: 1 / 64,   // U2 (agent-chosen: sharpness 0.5)
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
@@ -999,7 +1008,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   /** U2: the upscaler (created the first time a level below cinematic is used) and the key of the composite groups' sky bindings. */
   let skyUpscale: SkyUpscale | null = null;
   let compositeSkyKey: GPUTexture | null = null;
-  let upscaleLastTime = -1;
+  let upscaleLastTime = -1, upscaleWarm = 0, upColorScale = 1;
   // Bind groups are cached by (pass, light-grid slot, history parity, direct) and created on first use after any rebuild.
   const marchGroups: (GPUBindGroup | undefined)[] = new Array(16).fill(undefined);
   const resolveGroups: (GPUBindGroup | undefined)[] = new Array(4).fill(undefined);
@@ -1442,21 +1451,29 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // U2: below the cinematic level the layer (the whole cloud in 'procedural' mode) goes through the upscaler to the composite's size, and the
       // composite reads the upscaled colour per output pixel (frame.skyEnabled 2) with the layer's own depth words for the scene occlusion.
       let skyUp: GPUTexture | null = null;
-      if (skyActive && settings.renderLevel !== 'cinematic' && procMode === 'procedural') {
+      upscaleWarm = skyActive && procMode === 'procedural' ? upscaleWarm + 1 : 0;
+      // The upscaler is created (its pipelines compiled, its targets allocated) only once the layer has run for a while: created in the first
+      // frames, during the page's start-up work (the procedural model's noise bakes, the trace pipelines compiling), it lost the device with
+      // "Insufficient Memory" on a loaded machine in most runs. Until then the reduced layer is composited the old way.
+      if (skyActive && settings.renderLevel !== 'cinematic' && procMode === 'procedural' && (skyUpscale || upscaleWarm > UPSCALE_WARM_FRAMES)) {
         skyUpscale ??= createSkyUpscale(device);
-        const dt = upscaleLastTime < 0 ? 1 / 60 : Math.min(0.25, Math.max(1e-4, frame.time - upscaleLastTime));
+        // A frame without the upscaler in between (another level, the layer off) leaves its history stale: reset it.
+        const resume = upscaleLastTime < 0;
+        const dt = resume ? 1 / 60 : Math.min(0.25, Math.max(1e-4, frame.time - upscaleLastTime));
         upscaleLastTime = frame.time;
         const last = skyLayer.lastEncode;
+        upColorScale = settings.upscaleExposure > 0 ? 1 : Math.min(1, Math.max(1 / 4096, settings.upscaleColorScale));
         skyUp = skyUpscale.encode(encoder, {
           front: skyTarget!.color, back: skyTarget!.back, dist: skyTarget!.depth, displayWidth: outCW, displayHeight: outCH,
-          path: settings.upscalePath, sharpness: settings.upscaleSharpness, depthMode: settings.upscaleDepth, exposure: settings.upscaleExposure,
+          path: settings.upscalePath, sharpness: settings.upscaleSharpness, depthMode: settings.upscaleDepth, exposure: settings.upscaleExposure, colorScale: upColorScale,
           inverseViewProjection: frame.inverseViewProjection, viewProjection: frame.viewProjection, cameraPosition: frame.cameraPosition,
-          cloudMotion: last.motion, reset: last.cut, deltaTime: dt, timer,
+          cloudMotion: last.motion, reset: last.cut || resume, deltaTime: dt, timer,
         });
       } else upscaleLastTime = -1;
       if (skyUp) {
-        // The frame uniforms were written before the layer ran; only the composite reads skyEnabled.
-        f[53] = 2;
+        // The frame uniforms were written before the layer ran; only the composite reads skyEnabled. Above 1.5 it is 1 + the factor that undoes
+        // the colour scale the upscaler input was given.
+        f[53] = 1 + 1 / upColorScale;
         device.queue.writeBuffer(frameUniforms[0], 53 * 4, f, 53, 1);
       }
       const skyColorTex = skyUp ?? skyTarget!.color;

@@ -106,7 +106,7 @@ export class Clouds {
     this.device = this.backend.device;
     this.layout = createAtmosphereBindGroupLayout(this.device);
     this.runtime = createCloudRuntime(this.device, { quality: options.quality ?? 'high', atmosphereLayout: this.layout, budgetMs: options.budgetMs, expectedPixels: options.expectedPixels, auto: options.auto, adapter: options.adapter });
-    this.timer = new GpuTimer(this.device, { maxPasses: 16 });   // U2: the upscaler's two spans pushed a full frame past the default 16
+    this.timer = new GpuTimer(this.device);
     if (!options.sky) {
       this.uniformLighting = createUniformLighting(this.device, this.layout, options.lighting);
       this.lighting = this.uniformLighting.values;

@@ -31,7 +31,7 @@ struct Prep {
   forward: vec4<f32>,       // camera forward (unit), w unused
   motion: vec4<f32>,        // the clouds' world displacement since the last frame (m), w unused
   nearFar: vec4<f32>,       // near, far, render width, render height
-  opts: vec4<f32>,          // x: depth mode (0 the cloud's representative depth, 1 every pixel at the far plane), yzw 0
+  opts: vec4<f32>,          // x: depth mode (0 the cloud's representative depth, 1 every pixel at the far plane), y: colour scale (rgb), zw 0
 }
 @group(0) @binding(0) var<uniform> U: Prep;
 @group(0) @binding(1) var front: texture_2d<f32>;
@@ -60,11 +60,14 @@ fn unproject(uv: vec2<f32>) -> vec3<f32> {
   let b = textureLoad(back, px, 0);
   let d = textureLoad(dist, px, 0);
   var o: FOut;
-  o.color = vec4(max(f.rgb + f.a * b.rgb, vec3(0.0)), saturate(f.a * b.a));
+  // Non-finite inputs never reach the upscaler (a NaN in its history or its exposure reduction would stay there).
+  let c = vec4(f.rgb + f.a * b.rgb, f.a * b.a);
+  o.color = select(vec4(0.0, 0.0, 0.0, 1.0), vec4(max(c.rgb, vec3(0.0)) * U.opts.y, saturate(c.a)), all(abs(c) < vec4(65000.0)));
   let near = U.nearFar.x; let far = U.nearFar.y;
   let dir = normalize(unproject(uv) - U.cameraPos.xyz);
   // The representative distance: the opacity-weighted mean over the whole ray (d.z), else the first part's mean (d.x), else none.
   var t = select(d.x, d.z, d.z > 0.0);
+  if (!(abs(t) < 1.0e7)) { t = 0.0; }
   let cloud = t > 0.0 && o.color.a < 0.999;
   var shift = U.motion.xyz;
   if (!cloud) { t = far * 0.5; shift = vec3(0.0); }
@@ -80,7 +83,7 @@ fn unproject(uv: vec2<f32>) -> vec3<f32> {
       vel = cur - prev.xy / prev.w;
     }
   }
-  o.velocity = vec4(vel, 0.0, 0.0);
+  o.velocity = vec4(select(vec2(0.0), clamp(vel, vec2(-4.0), vec2(4.0)), all(abs(vel) < vec2(1.0e6))), 0.0, 0.0);
   return o;
 }
 `;
@@ -99,6 +102,12 @@ export interface SkyUpscaleEncodeArgs {
    * interpolated transmittance (a dark rim) and steepens the edge (stair steps). A small fixed exposure keeps the tonemap near linear.
    */
   exposure?: number;
+  /**
+   * Multiplies the colour before the upscaler (the caller divides it back out). With the upscaler's auto exposure, which tops out at 8x on the
+   * mostly black cloud colour, 1/64 makes its effective conditioning 1/8: its tonemap stays near linear across a cloud edge (see `exposure`)
+   * without its fixed-exposure mode. Default 1.
+   */
+  colorScale?: number;
   /** 'cloud' (default): the representative cloud depth; 'flat': every pixel at the far plane (no depth edges for the upscaler's disocclusion test). */
   depthMode?: 'cloud' | 'flat';
   inverseViewProjection: ArrayLike<number>;
@@ -143,6 +152,8 @@ export function createSkyUpscale(device: GPUDevice): SkyUpscale {
   let preparing: Promise<void> | null = null;
   let readyKey = '';
   let disposed = false;
+  const exposureTex = device.createTexture({ label: 'cloud upscale exposure', size: [1, 1], format: 'rgba16float', usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING });
+  let exposureValue = 0;
 
   const ensureTargets = (w: number, h: number) => {
     if (targets && targets.w === w && targets.h === h) return;
@@ -187,7 +198,7 @@ export function createSkyUpscale(device: GPUDevice): SkyUpscale {
       u[36] = fx; u[37] = fy; u[38] = fz; u[39] = 0;
       u[40] = a.cloudMotion[0]; u[41] = a.cloudMotion[1]; u[42] = a.cloudMotion[2]; u[43] = 0;
       u[44] = UPSCALE_NEAR; u[45] = UPSCALE_FAR; u[46] = w; u[47] = h;
-      u[48] = a.depthMode === 'flat' ? 1 : 0; u[49] = 0; u[50] = 0; u[51] = 0;
+      u[48] = a.depthMode === 'flat' ? 1 : 0; u[49] = a.colorScale ?? 1; u[50] = 0; u[51] = 0;
       device.queue.writeBuffer(uniform, 0, u);
       prevVP.set(Array.from(a.viewProjection).slice(0, 16)); prevValid = true;
       if (!group || groupKey[0] !== a.front || groupKey[1] !== a.back || groupKey[2] !== a.dist) {
@@ -216,10 +227,16 @@ export function createSkyUpscale(device: GPUDevice): SkyUpscale {
       pass.draw(3);
       pass.end();
       core.settings.sharpness = Math.min(1, Math.max(0, a.sharpness));
+      // A fixed exposure goes in as the app-supplied exposure texture (1x1, cleared to the value when it changes), with the upscaler's auto
+      // exposure left on underneath: its own fixed mode (autoExposure false) lost the device ("Insufficient Memory") within a few frames when
+      // started while the sky was still empty, in every run (U2 report).
       const ex = a.exposure ?? 0;
-      core.settings.autoExposure = !(ex > 0);
-      if (ex > 0) core.settings.exposure = ex;
-      core.encode(encoder, { color: t.color, depth: t.depth, velocity: t.velocity, deltaTime: a.deltaTime, reset: a.reset }, { near: UPSCALE_NEAR, far: UPSCALE_FAR, perspective: true });
+      core.settings.autoExposure = true;
+      if (ex > 0 && ex !== exposureValue) {
+        exposureValue = ex;
+        encoder.beginRenderPass({ label: 'cloud upscale exposure', colorAttachments: [{ view: exposureTex.createView(), loadOp: 'clear', storeOp: 'store', clearValue: { r: ex, g: ex, b: ex, a: 1 } }] }).end();
+      }
+      core.encode(encoder, { color: t.color, depth: t.depth, velocity: t.velocity, deltaTime: a.deltaTime, reset: a.reset, ...(ex > 0 ? { exposureTexture: exposureTex } : {}) }, { near: UPSCALE_NEAR, far: UPSCALE_FAR, perspective: true });
       if (span) encoder.beginComputePass({ label: 'cloud upscale end', timestampWrites: span.end }).end();
       return core.output;
     },
@@ -227,7 +244,7 @@ export function createSkyUpscale(device: GPUDevice): SkyUpscale {
       disposed = true;
       core.dispose();
       targets?.color.destroy(); targets?.velocity.destroy(); targets?.depth.destroy(); targets = null;
-      uniform.destroy();
+      uniform.destroy(); exposureTex.destroy();
     },
   };
 }
