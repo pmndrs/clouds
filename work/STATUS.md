@@ -5,7 +5,7 @@ The one page to check. The plan: the Compass (https://claude.ai/artifact/CnMaoMG
 Updated 2026-11-20.
 
 ## Running
-- **S2**: fix the fine hatch on hard lit faces, and make Desktop hold up next to Cinematic (the 4x4 hatch, softer ridges).
+Nothing.
 
 ## Tonight (2026-11-20): the refactor and the styles
 
@@ -19,6 +19,7 @@ What landed on `main`. The tag `stable-2026-11-20-pre-refactor` is the state bef
 | PT1 | **Path-traced reference**: the Parkouring cloud through your pathtracer (validated volume path) beside our Nubis and octave lighting. Page `reference-pt/` | `work/reports/PT1-pathtraced-reference.md`, sheets `work/captures/PT1/` |
 | S1 | **Style switch** on the HZD bench: `horizon` (unchanged, pixel-identical), `early` (the September raymarch treatment), `real` (photo weight, nudged toward the path-traced reference). Sidebar "Style" section, `?style=` | `work/reports/S1-styles.md`, sheets `work/captures/S1/final/` |
 | V1 | **Artist VDB clouds in the sky** through `@pmndrs/vdb` (route A: resampled on the GPU into our runtime, lit and shadowed by the sky; 1.3 s load vs 48 s with our importer). WebVDB's froxel renderer tried as route B: flat, no depth or sky shadows. Page `vdb-sky/` | `work/reports/V1-vdb-sky.md`, `work/captures/V1/` |
+| S2 | **Hatch fix and Desktop quality.** Cause: one sample per march step plus a diagonal-lattice jitter on hard faces. Fix: `proc.surfaceRefine` 3 (bisects the entry step; about +10 % trace), Review **S2a** (0 = old march). Desktop softness came from the layer's own 2-pixel sub-pixel jitter: `c.levelSubPixelSpan` 1 at reduced levels, Review **S2b**. Desktop ridges now hold up beside Cinematic | `work/reports/S2-hatch-desktop.md`, sheets `work/captures/S2/sheets/` |
 | U2 | **Render levels**: `cinematic` (default, the old path), `desktop` (½ res sky layer through the upscaler core), `laptop` (¼). Review switch U2 and a tune-panel group | `work/reports/U2-upscaler-levels.md`, sheet `work/captures/U2/U2-sheet.jpg` |
 
 What we learned:
@@ -33,8 +34,9 @@ What we learned:
 3. **`@pmndrs/upscaler`:** the npm 0.5.0 has no `./core` entry, so U2 vendored your local build as `vendor/pmndrs-upscaler-0.5.0-f38e9ac.tgz`. A 0.5.1 with `./core` lets us drop it.
 4. **`@pmndrs/sky` on r187:** the proper fix for the black-page bug is for the sky to compile its pipelines one at a time (or wait for r188). Our three patch covers it locally only.
 5. **Demos page:** https://claude.ai/artifact/CBmpwoqtrh1srJPJKXX8Yf (source `work/demos/`; republish with the Artifact tool from that folder).
-6. **Known defect, new:** `style=real` at the `afterglow` view is muddy (near-black bodies, harsh red rims). Horizon's afterglow is unaffected.
-7. **Flip through:** HZD bench Style section (`?view=gp7&style=real`, `early`) and Review switch U2 (`?level=desktop`). The lab index has chips for both.
+6. **Agent-chosen defaults to confirm (S2):** surface refine 3 is on for every level, so **Horizon at Cinematic is no longer pixel-identical** to before (flip S2a to compare). On `style=real`, lit faces now show fine streaks following the curl-distorted detail noise, which the old jitter used to blur; they can read as wood grain at 1:1. Laptop scale stays 0.25; the agent recommends 0.33 (clearly crisper for about 1.6x the trace).
+7. **Known defect, new:** `style=real` at the `afterglow` view is muddy (near-black bodies, harsh red rims). Horizon's afterglow is unaffected.
+8. **Flip through:** HZD bench Style section (`?view=gp7&style=real`, `early`) and Review switch U2 (`?level=desktop`). The lab index has chips for both.
 
 ## Waiting on you (from October)
 

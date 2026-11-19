@@ -85,7 +85,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
   <div class="eyebrow">WebGPU Clouds · 20 November 2026 · overnight</div>
   <h1>Cloud Demos</h1>
   <p class="lede">Frames from the current main branch after the overnight refactor: three switchable cloud styles on the procedural sky, a path-traced ground truth to judge them against, the early raymarch looks you wanted kept, the showcase scenes on three r187, and the first upscaler render levels.</p>
-  <nav aria-label="Sections"><a href="#truth">Horizon or us?</a><a href="#styles">Styles</a><a href="#early">Early raymarch</a><a href="#scenes">Scenes</a><a href="#vdb">Artist VDB</a><a href="#levels">Render levels</a><a href="#next">Still running</a><a href="#live">Run it live</a></nav>
+  <nav aria-label="Sections"><a href="#truth">Horizon or us?</a><a href="#styles">Styles</a><a href="#early">Early raymarch</a><a href="#scenes">Scenes</a><a href="#vdb">Artist VDB</a><a href="#levels">Render levels</a><a href="#next">Status</a><a href="#live">Run it live</a></nav>
 </header>
 
 <figure class="hero">
@@ -178,12 +178,13 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
     <p>Your d4 answer: upscaler always on, and looks judged at Desktop too. The sky layer now renders at an internal size and goes through your upscaler's raw-WebGPU core, with cloud depth and wind-aware velocity. Cinematic stays the default and is the old path.</p>
   </div>
   <figure><img src="img/levels-sheet.jpg" alt="Comparison of cinematic, desktop and laptop render levels with 1:1 crops" loading="lazy" width="1800" height="1568"><figcaption><b>Cinematic · Desktop (½) · Laptop (¼).</b> Full frames read the same. At 1:1, Desktop is a little softer with a faint 4×4 hatch; Laptop at ¼ goes mushy on lit ridges.</figcaption></figure>
+  <figure><img src="img/s2-real-gp7.jpg" alt="Before and after the S2 fix at cinematic, desktop and laptop levels, with lit ridge and base crops" loading="lazy" width="1800" height="838"><figcaption><b>After S2, Real weight style, midday.</b> Before | after at Cinematic, Desktop and Laptop. The march now finds the cloud surface before integrating (it used to land up to a 25 m step deep), which removes the diagonal hatch. Desktop no longer pre-blurs its own pixels. Lit faces in this style now show fine streaks from the detail noise that the old jitter used to blur: your call whether they read as structure or wood grain.</figcaption></figure>
   <div class="tablewrap"><table>
     <thead><tr><th>Level</th><th>Sky layer res</th><th>Sky cost vs Cinematic</th><th>Target (d8)</th><th>State</th></tr></thead>
     <tbody>
       <tr><td><b>Cinematic</b></td><td class="num">1×</td><td class="num">1.0</td><td>no cap</td><td><span class="pill ok">default</span></td></tr>
-      <tr><td><b>Desktop</b></td><td class="num">½</td><td class="num">≈ 0.55</td><td class="num">≤ 4 ms</td><td>softer, faint hatch; S2 fixing</td></tr>
-      <tr><td><b>Laptop</b></td><td class="num">¼ (⅓ tested)</td><td class="num">≈ 0.2 (0.3)</td><td class="num">≤ 3 ms</td><td>too soft at ¼; ⅓ looks better</td></tr>
+      <tr><td><b>Desktop</b></td><td class="num">½</td><td class="num">≈ 0.55</td><td class="num">≤ 4 ms</td><td>ridges now hold up beside Cinematic (S2); faint checker left from above</td></tr>
+      <tr><td><b>Laptop</b></td><td class="num">¼ (⅓ tested)</td><td class="num">≈ 0.2 (0.3)</td><td class="num">≤ 3 ms</td><td>still soft at ¼; ⅓ clearly crisper for 1.6× the trace</td></tr>
     </tbody>
   </table></div>
   <p class="muted">No level is near the ms targets yet: the sky trace itself is the cost, so the speed phase (amortisation, 30 Hz lighting, LOD) is still needed. All timings tonight are ratios from a heavily loaded machine; the WebGPU device was also lost in about half of the Desktop runs, which looks like memory pressure. Please try <code>?level=desktop</code> on a quiet machine.</p>
@@ -192,12 +193,12 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
 <section id="next">
   <div class="head">
     <div class="eyebrow">In progress</div>
-    <h2>Still running</h2>
+    <h2>Overnight work, all landed</h2>
   </div>
   <div class="tablewrap"><table>
     <thead><tr><th>Work</th><th>Aim</th><th>State</th></tr></thead>
     <tbody>
-      <tr><td><b>S2</b></td><td>Remove the fine hatch on hard lit faces, and make Desktop hold up beside Cinematic (render the sky layer under the upscaler's jitter).</td><td><span class="pill run">running</span></td></tr>
+      <tr><td><b>S2</b></td><td>Hatch on hard lit faces fixed; Desktop holds up beside Cinematic. Review switches S2a and S2b.</td><td><span class="pill ok">landed</span></td></tr>
       <tr><td><b>V1</b></td><td>Artist VDB clouds through <code>@pmndrs/vdb</code>, inside our sky. Page <code>vdb-sky/</code>.</td><td><span class="pill ok">landed</span></td></tr>
     </tbody>
   </table></div>
