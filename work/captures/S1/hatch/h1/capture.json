@@ -1,0 +1,75 @@
+{
+  "url": "http://127.0.0.1:55723/hzd/?clean=1&motion=0&hz_n3Strength=0.4&hz_n3Tile=1500&hz_n3Sharpen=0",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T17:19:29.396Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/S1/hatch/h1/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 82.98298603333335,
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.008665,
+          "marchNear": 0.6255967166666669,
+          "marchFar": 1.3025238666666668,
+          "shadowMap": 7.230519111111111,
+          "composite": 1.4376712,
+          "dome": 1.9256289833333324,
+          "skyLayer": 63.463903200000004,
+          "skyResolve": 1.6988241166666673,
+          "cloudsTotal": 77.70204019444445,
+          "total": 160.6850262277778
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.008708,
+          "lightGrid": 0.008665,
+          "marchNear": 1.101317,
+          "marchFar": 0.620491,
+          "shadowMap": 1.434561,
+          "composite": 0.365035,
+          "dome": 2.890873,
+          "skyLayer": 65.454335,
+          "skyResolve": 0.763655
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.n3Tile": 1500,
+          "hzd.n3Strength": 0.4,
+          "hzd.n3Sharpen": 0,
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:55723/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:55723/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:1421:12)\n    at http://127.0.0.1:55723/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
