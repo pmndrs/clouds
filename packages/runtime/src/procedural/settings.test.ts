@@ -21,9 +21,18 @@ describe('procedural settings (X1)', () => {
     const s = defaultProceduralSettings('takram');
     const out = new Float32Array(PROC_PARAM_FLOATS);
     packProceduralParams(s, out);
-    expect(Array.from(out.subarray(116, 120))).toEqual([0, 1, 1, 0]);   // defaults: union, voxels in the light taps, full hero shadow
-    Object.assign(s, { boxCarve: 400, voxelShadow: false, heroShadow: 0.5 });
+    expect(Array.from(out.subarray(116, 120))).toEqual([0, 1, 1, 3]);   // defaults: union, voxels in the light taps, full hero shadow; S2 surface bisection 3
+    Object.assign(s, { boxCarve: 400, voxelShadow: false, heroShadow: 0.5, surfaceRefine: 0 });
     packProceduralParams(s, out);
     expect(Array.from(out.subarray(116, 120))).toEqual([400, 0, 0.5, 0]);
+  });
+  it('packs the S2 surface bisection words in their lanes (refine steps, growth, sample mode, hard-entry gate)', () => {
+    const s = defaultProceduralSettings('hzd');
+    const out = new Float32Array(PROC_PARAM_FLOATS);
+    packProceduralParams(s, out);
+    expect([out[119], out[99], out[35], out[39]]).toEqual([3, 1, 1, 0]);
+    Object.assign(s, { surfaceRefine: 20, surfaceGrow: false, surfaceRefineMode: 0, surfaceRefineTau: 0.5 });
+    packProceduralParams(s, out);
+    expect([out[119], out[99], out[35], out[39]]).toEqual([8, 0, 0, 0.5]);   // refine steps clamped to 8
   });
 });

@@ -566,7 +566,11 @@ export interface ProceduralSettings {
   surfaceRefine: number;
   /** S2: after a bisected entry, grow the step from the surface (0.15, 0.3, 0.6 of a fine step) instead of the 0.5 / sigma rule (a full step where the density has just begun). */
   surfaceGrow: boolean;
-  /** S2 diagnostic: 0 = the bisected entry takes the sample found at the surface; 1 = it keeps the first sample inside (only the position moves). */
+  /**
+   * S2: what the bisected entry integrates from the surface it found. 1 (default): the first sample inside (its density, depth and height), only the
+   * position (and so the light taps) moved to the surface. 0: the sample at the surface itself; its density has only just begun, and with the step growth
+   * its weak, unshadowed light was reused by the denser samples after it: bright one-pixel specks on smooth shaded bases (S2 report).
+   */
   surfaceRefineMode: number;
   /** S2: bisect only where the first sample inside makes its fine step at least this optically thick (0 = every entry from an empty sample). */
   surfaceRefineTau: number;
@@ -740,7 +744,7 @@ export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverag
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 0, surfaceGrow: true, surfaceRefineMode: 0, surfaceRefineTau: 0,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 3, surfaceGrow: true, surfaceRefineMode: 1, surfaceRefineTau: 0,   // S2 (agent-chosen): the hatch fix on; surfaceRefine 0 = the old march
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
     hzd: hzdDefaults(),
