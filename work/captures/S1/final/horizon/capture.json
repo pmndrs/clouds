@@ -1,0 +1,234 @@
+{
+  "url": "http://127.0.0.1:57998/hzd/?clean=1&motion=0&style=horizon",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T18:04:18.065Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/S1/final/horizon/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 29.214006250000004,
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.036207,
+          "marchNear": 0.0965596833333333,
+          "marchFar": 0.19471165000000004,
+          "shadowMap": 0.9950013999999999,
+          "composite": 0.40478896666666664,
+          "dome": 0.5389084333333333,
+          "skyLayer": 29.56407793333334,
+          "skyResolve": 0.3505516833333335,
+          "cloudsTotal": 32.197471750000005,
+          "total": 61.41147800000001
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.036207,
+          "marchNear": 0.078958,
+          "marchFar": 0.601783,
+          "shadowMap": 1.600975,
+          "composite": 0.354994,
+          "dome": 0.646907,
+          "skyLayer": 29.793545,
+          "skyResolve": 0.25558
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "ground",
+      "file": "work/captures/S1/final/horizon/ground.jpg",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 21.932464483333327,
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.036207,
+          "marchNear": 0.10636010000000001,
+          "marchFar": 0.18918450000000003,
+          "shadowMap": 0.9950013999999999,
+          "composite": 0.46030958333333327,
+          "dome": 0.53490155,
+          "skyLayer": 25.399035333333327,
+          "skyResolve": 0.32849425000000004,
+          "cloudsTotal": 28.06615871666666,
+          "total": 49.99862319999998
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.036207,
+          "marchNear": 0.052374,
+          "marchFar": 0.140539,
+          "shadowMap": 1.600975,
+          "composite": 0.873028,
+          "dome": 0.471827,
+          "skyLayer": 24.250089,
+          "skyResolve": 0.251246
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "above",
+      "file": "work/captures/S1/final/horizon/above.jpg",
+      "report": {
+        "view": "above",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          3000,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": -9,
+        "sunElevation": 50,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 23.705242399999996,
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.042332666666666664,
+          "marchNear": 0.0763578,
+          "marchFar": 0.14819923333333332,
+          "shadowMap": 1.3657552083333335,
+          "composite": 0.4401258166666667,
+          "dome": 0.4403113000000001,
+          "skyLayer": 26.7036418,
+          "skyResolve": 0.36466735000000006,
+          "cloudsTotal": 29.598056175,
+          "total": 53.303298575
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.008292,
+          "marchNear": 0.04975,
+          "marchFar": 0.13079,
+          "shadowMap": 1.482269,
+          "composite": 1.475519,
+          "dome": 0.442076,
+          "skyLayer": 27.135919,
+          "skyResolve": 0.577532
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0
+        }
+      }
+    },
+    {
+      "name": "sunset",
+      "file": "work/captures/S1/final/horizon/sunset.jpg",
+      "report": {
+        "view": "sunset",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          4,
+          0
+        ],
+        "lookAz": 355,
+        "pitch": 4,
+        "sunElevation": 4,
+        "sunAzimuth": 355,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 23.6849232,
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.027109181818181817,
+          "marchNear": 0.14036796666666665,
+          "marchFar": 0.15936361666666662,
+          "shadowMap": 1.2432881578947368,
+          "composite": 0.42581008333333314,
+          "dome": 0.5890180499999998,
+          "skyLayer": 29.075914766666667,
+          "skyResolve": 0.4197554333333331,
+          "cloudsTotal": 32.09729225637959,
+          "total": 55.78221545637959
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.016665,
+          "lightGrid": 0.008208,
+          "marchNear": 0.043374,
+          "marchFar": 0.114332,
+          "shadowMap": 0.777155,
+          "composite": 0.353285,
+          "dome": 0.378787,
+          "skyLayer": 22.276452,
+          "skyResolve": 0.208581
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "c.animSpeed": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:57998/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:57998/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:1421:12)\n    at http://127.0.0.1:57998/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

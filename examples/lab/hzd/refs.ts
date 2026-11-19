@@ -52,6 +52,11 @@ const photo = (group: string, path: string, title: string, view?: RefView): HzdR
   id: `photo-${path.split('/').pop()!.replace(/\.\w+$/, '').replace(/^[AB]_/, '')}`, group, title, source: `owner photo: ${path}`, file: `${P}/${path}`, view,
 });
 
+/** S1: a PT1 sheet (work/captures/PT1, in the repo: `file` starting with work/ is read from the checkout, not the research folder). */
+const ptRef = (setup: string, title: string, view?: RefView): HzdRef => ({
+  id: `pt1-${setup}`, group: 'Path-traced reference (PT1)', title, source: `work/captures/PT1/sheet-${setup}.jpg`, file: `work/captures/PT1/sheet-${setup}.jpg`, view,
+});
+
 export const HZD_REFS: HzdRef[] = ([] as HzdRef[]).concat([
   // --- HZD 2015 build steps and maps (hzd15) ---
   hzd15(37, 'Base shape: low-frequency noise x height gradient (view about 30° above the horizon)', { from: 'ground', pitch: 30 }),
@@ -204,6 +209,11 @@ export const HZD_REFS: HzdRef[] = ([] as HzdRef[]).concat([
   photo('Hero targets', 'santasSleigh/middle.jpg', 'Santa\'s Sleigh: middle', { from: 'ground', pitch: 12, sunEl: 35, coverage: 0.6 }),
   photo('Hero targets', 'santasSleigh/end.jpg', 'Santa\'s Sleigh: end (the H6 sheets\' photo)', { from: 'ground', pitch: 12, sunEl: 35, coverage: 0.6 }),
   photo('Hero targets', 'Frog Cloud/FrogFace.png', 'Frog cloud: the face', { from: 'ground', pitch: 15, sunEl: 40, coverage: 0.6 }),
+  // --- S1: PT1's path-traced ground truth (the owner's path tracer on Parkouring's density; sheets: path traced | Nubis | octave). Another
+  // cloud than the HZD sky, so the view is only the sun setup: compare softness, fringes, shade colour and backlit glow, not shapes. ---
+  ptRef('noon', 'Path traced vs ours, noon (sun 69°): soft lit faces, see-through bluish fringes', { from: 'gp7', sunEl: 69 }),
+  ptRef('low', 'Path traced vs ours, low sun (19.5°): shade colour', { from: 'gp7', sunEl: 19.5 }),
+  ptRef('backlit', 'Path traced vs ours, backlit: the body glows through', { from: 'sunset', sunEl: 19.5 }),
 ]).map((r, i, all) => (all.findIndex(o => o.id === r.id) < i ? { ...r, id: `${r.id}-${i}` } : r));   // a photo used in two sets keeps one id each
 
 export const HZD_REF_BY_ID = new Map(HZD_REFS.map(r => [r.id, r]));

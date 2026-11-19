@@ -12,6 +12,7 @@ import { HZD_REF_BY_ID } from '../refs';
 import type { createHzdTuner } from '../tune';
 import { readStart, writeQuery, type RefState, type Sources } from './url';
 import { weatherBookmark } from './weather';
+import type { ProceduralStyle } from '../../../../packages/runtime/src/procedural/styles';
 import { REF_MODES, VIEWS, applyBookmark, applyRefView, type RefMode } from './views';
 
 export type Tuner = ReturnType<typeof createHzdTuner>;
@@ -42,6 +43,8 @@ export interface BenchState {
   viewTick: number;
   settingsTick: number;
   hud: string;
+  /** S1: the look (procedural/styles.ts; bench/style.ts applies it). */
+  style: ProceduralStyle;
 }
 
 /** The query the page opened with: the sky's settings are read from it once the pane has started (the URL is rewritten as the state changes). */
@@ -63,6 +66,7 @@ export const bench = createStore<BenchState>(() => ({
   viewTick: 0,
   settingsTick: 0,
   hud: 'starting the HZD sky...',
+  style: START.style,
 }));
 
 export function useBench<T>(selector: (s: BenchState) => T): T {
@@ -78,7 +82,7 @@ export function scheduleUrl(): void {
   clearTimeout(urlTimer);
   urlTimer = window.setTimeout(() => {
     const s = get();
-    const q = writeQuery({ viewName: s.viewName, view: s.view, ref: s.ref, quality: s.quality, clean: s.clean, changes: s.rt?.tuner.changes() ?? {} });
+    const q = writeQuery({ viewName: s.viewName, view: s.view, ref: s.ref, quality: s.quality, clean: s.clean, changes: s.rt?.tuner.changes() ?? {}, style: s.style });
     history.replaceState(null, '', `?${q}`);
   }, 250);
 }

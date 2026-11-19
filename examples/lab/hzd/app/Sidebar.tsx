@@ -11,6 +11,7 @@ import { MOTIONS, QUALITIES, REF_MODES, VIEWS, VIEW_NAMES, solar, type RefMode }
 import { applyRefViewNow, backToView, bench, goToView, setRef, setRefState, setUiHidden, settingsChanged, stepRef, useBench, viewChanged } from '../bench/store';
 import { Note, Row, Section, SunControl, ViewSlider, SliderRow } from './controls';
 import { ReviewSection } from './Review';
+import { StyleSection } from './StyleSection';
 import { currentEngine } from '../paint/engine';
 import { WEATHER_STATES } from '../../../../packages/runtime/src/procedural/weather/states';
 import { useWeather, weatherAuto, weatherGo, weatherOff, weatherSetDuration, weatherSetHold } from '../bench/weather';
@@ -23,6 +24,7 @@ export function Sidebar() {
   return (
     <aside className="pointer-events-auto fixed top-2 right-2 z-[6] grid max-h-[calc(100vh-16px)] w-[min(250px,calc(100vw-16px))] grid-cols-[minmax(0,1fr)] content-start gap-1.5 overflow-x-hidden overflow-y-auto rounded-sm bg-black/70 p-2">
       <ViewsSection />
+      <StyleSection />
       <ReviewSection />
       <SunSection />
       <CloudsSection />

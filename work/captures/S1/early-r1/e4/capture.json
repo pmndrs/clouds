@@ -1,0 +1,134 @@
+{
+  "url": "http://127.0.0.1:54940/hzd/?clean=1&motion=0&hz_n3Strength=0.4&hz_n3Tile=1500&hz_extinction=0.4&c_ambientFloor=0.6",
+  "size": [
+    1920,
+    1080
+  ],
+  "startedAt": "2026-11-19T17:17:13.874Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/S1/early-r1/e4/gp7.jpg",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 26.287080316666657,
+          "lightGridReduce": 0.008208,
+          "lightGrid": 0.030415,
+          "marchNear": 0.14378046666666672,
+          "marchFar": 0.2313762500000001,
+          "shadowMap": 0.6127449,
+          "composite": 0.6481727833333332,
+          "dome": 0.5382820333333334,
+          "skyLayer": 28.171061083333328,
+          "skyResolve": 0.5732760166666665,
+          "cloudsTotal": 30.95731653333333,
+          "total": 57.24439684999999
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.008208,
+          "lightGrid": 0.030415,
+          "marchNear": 0.098248,
+          "marchFar": 0.307204,
+          "shadowMap": 1.181149,
+          "composite": 0.557701,
+          "dome": 0.457785,
+          "skyLayer": 28.633688,
+          "skyResolve": 0.288413
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.extinction": 0.4,
+          "hzd.n3Tile": 1500,
+          "hzd.n3Strength": 0.4,
+          "c.animSpeed": 0,
+          "c.ambientFloor": 0.6
+        }
+      }
+    },
+    {
+      "name": "ground",
+      "file": "work/captures/S1/early-r1/e4/ground.jpg",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "gpuMs": {
+          "scene": 24.87446781666667,
+          "lightGridReduce": 0.008208,
+          "lightGrid": 0.030415,
+          "marchNear": 0.1625120333333333,
+          "marchFar": 0.2605321,
+          "shadowMap": 0.6127449,
+          "composite": 0.4564319166666664,
+          "dome": 0.5281148833333333,
+          "skyLayer": 23.663732733333322,
+          "skyResolve": 0.43124488333333333,
+          "cloudsTotal": 26.15393644999999,
+          "total": 51.028404266666655
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.008208,
+          "lightGrid": 0.030415,
+          "marchNear": 0.046165,
+          "marchFar": 0.13354,
+          "shadowMap": 1.181149,
+          "composite": 0.328787,
+          "dome": 0.56445,
+          "skyLayer": 27.872283,
+          "skyResolve": 0.284079
+        },
+        "frameMs": {},
+        "renderSize": [
+          1920,
+          1080
+        ],
+        "changed": {
+          "hzd.extinction": 0.4,
+          "hzd.n3Tile": 1500,
+          "hzd.n3Strength": 0.4,
+          "c.animSpeed": 0,
+          "c.ambientFloor": 0.6
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:54940/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:54940/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:1421:12)\n    at http://127.0.0.1:54940/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a63f6e674b2497d13/node_modules/.vite/deps/chunk-DF36IFFG.js?v=14e45d79:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
