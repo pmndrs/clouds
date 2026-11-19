@@ -564,6 +564,8 @@ export interface ProceduralSettings {
    * surface, at n full samples per cloud entry.
    */
   surfaceRefine: number;
+  /** S2: after a bisected entry, grow the step from the surface (0.15, 0.3, 0.6 of a fine step) instead of the 0.5 / sigma rule (a full step where the density has just begun). */
+  surfaceGrow: boolean;
   skypro: SkyProShape;
   takram: TakramShape;
   hzd: HzdShape;
@@ -734,7 +736,7 @@ export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverag
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 0,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 0, surfaceGrow: true,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
     hzd: hzdDefaults(),
@@ -782,7 +784,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   lane(72, l => l.densityProfile[0]); lane(76, l => l.densityProfile[1]); lane(80, l => l.densityProfile[2]); lane(84, l => l.densityProfile[3]);
   lane(88, l => l.channel);
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
-  out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, 0], 96);
+  out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, s.surfaceGrow ? 1 : 0], 96);
   out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, s.shaper === 'hzd' && hz.lightProfile === 'exact' ? 1 : 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).

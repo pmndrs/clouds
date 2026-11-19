@@ -116,7 +116,7 @@ struct SkyParams {
   tableB: vec4<f32>,   // H4: x bottom type (< 0: the world field), y / z the field's range, w the field's feature size (m)
   erosion: vec4<f32>,  // H4 (S4): x erosion law (0 ValueErosion, 1 HZD additive with inverted noise, 2 Nubis Evolved, 3 additive with the raw noise); yzw 0
   cloudMotion: vec4<f32>, // C2: x, y, z the clouds' world displacement since the last frame (m; the wind offset's change times the cloud speed), w = 1 when the resolve follows it
-  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); w 0
+  resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); S2 w: the procedural trace's texture LOD, 0 the output pixel .. 1 the layer pixel
   resolveOpts2: vec4<f32>, // FX1: x, y the adaptive filter's cloud-motion thresholds (m per frame); S2: z the trace's sub-pixel jitter span (layer px), w per-pixel rotation (0/1)
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)

@@ -127,6 +127,8 @@ fn procPartAdd(part: ptr<function, ProcPart>, lit: vec3<f32>, t: f32, stepT: f32
   (*part).rad += lit * w; (*part).depthSum += t * w; (*part).depthSqSum += t * t * w; (*part).weightSum += w;
 }
 const PROC_FAR_TAPS = 4u;
+// S2: the surface bisection runs where the first sample inside would make its fine step at least this optically thick.
+const SURFACE_REFINE_TAU = 0.5;
 const PROC_FAR_REACH = 20000.0;
 fn heat(x0: f32) -> vec3<f32> {
   let x = saturate(x0);
@@ -149,7 +151,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Cone angles (Sky Pro): one layer pixel for the step, one output pixel for the texture LOD.
   let dirY = normalize(unprojectDepth((vec2<f32>(px) + vec2(0.5, 1.5)) / frame.renderSize, 1.0) - origin);
   let stepConeAngle = length(dirY - normalize(unprojectDepth(uv, 1.0) - origin));
-  let pixelConeAngle = stepConeAngle * frame.renderSize.y / frame.outputSize.y;
+  // S2: SKY.resolveOpts.w moves the texture LOD from the output pixel (0, the pre-S2 cone) toward the layer pixel (1): at the reduced render levels a
+  // layer pixel is 2-4 output pixels and the upscaler gets no jitter, so noise read at the output pixel's LOD aliases in the layer (a fixed moire).
+  let pixelConeAngle = stepConeAngle * pow(frame.renderSize.y / frame.outputSize.y, 1.0 - saturate(SKY.resolveOpts.w));
   let interval = procCloudInterval(dir, origin.y);
   let tEnd = min(interval.y, sceneEnd);
 
@@ -251,7 +255,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       // S2: entering a cloud from an empty fine sample: halve the gap refineSteps times and start at the first point found inside, so the first sample
       // sits within a fraction of the step under the surface wherever the jitter put the step grid (else a hard lit face takes the colour of a point
       // up to a step deep, set by the per-pixel jitter: S1's hatch).
-      if (refineSteps > 0u && lastEmpty >= 0.0 && lastEmpty < t) {
+      // Only where the entry is hard (the step past the surface would be optically thick at this density): there the first sample's depth sets the
+      // colour; on a soft rim the step sees little density whatever its phase, and halving it there only moved samples onto the faint edge.
+      if (refineSteps > 0u && lastEmpty >= 0.0 && lastEmpty < t && s.sigma * densityScale * fineStep > SURFACE_REFINE_TAU) {
         var lo = lastEmpty; var hi = t;
         for (var k = 0u; k < refineSteps; k++) {
           let m = 0.5 * (lo + hi);
@@ -268,7 +274,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       var surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
       // S2: the bisected entry sits where the density has only just begun, so 0.5 / sigma there is a full fine step, which would jump over the surface
       // layer the bisection found (and print the step as contour lines). Grow the step from the surface minimum instead: 0.15, 0.3, 0.6 of a fine step.
-      if (sinceEntry < 3u) { surfaceStep = min(surfaceStep, fineStep * 0.15 * f32(1u << sinceEntry)); }
+      if (sinceEntry < 3u && P.tkTurb.w > 0.5) { surfaceStep = min(surfaceStep, fineStep * 0.15 * f32(1u << sinceEntry)); }
       sinceEntry = min(sinceEntry + 1u, 99u);
       let stepLength = min(mix(surfaceStep, fineStep * 3.0, smoothstep(1.0, 3.0, accumulated)), tEnd - t);
       let stepT = exp(-sigmaT * stepLength);

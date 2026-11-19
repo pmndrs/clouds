@@ -72,6 +72,8 @@ export interface SkyLayerSettings {
   subPixelSpan: number;
   /** S2: rotate each pixel's sub-pixel sequence by its own blue-noise value, so this cycle's refreshed pixels and last cycle's are not two offset copies in the Bayer order. */
   subPixelRotate: boolean;
+  /** S2 (procedural trace): the noise LOD's pixel, 0 = the output pixel (pre-S2) .. 1 = the layer pixel (log blend). */
+  lodLayerPixel: number;
   /** FX1: with historyFilter 'adaptive', screen motion (layer pixels per frame, camera and clouds) from which Catmull-Rom starts to take over. Default 0.5. */
   historySharpFrom: number;
   /** FX1: with historyFilter 'adaptive', screen motion (layer pixels per frame) at which the history is fetched with Catmull-Rom alone. Default 1.5. */
@@ -224,11 +226,13 @@ export interface SkyEncodeArgs {
   voxelDepth?: { near: GPUTexture; far: GPUTexture };
   /** S2: overrides settings.subPixelSpan this frame (the runtime's levelSubPixelSpan at the reduced render levels). */
   subPixelSpan?: number;
+  /** S2: overrides settings.lodLayerPixel this frame (the runtime's levelLodLayerPixel at the reduced render levels). */
+  lodLayerPixel?: number;
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'adaptive', historySharpFrom: 0.5, historySharpFull: 1.5, historySharpWindFrom: 0.15, historySharpWindFull: 0.4, jitterNoise: 'ign', subPixelSpan: 2, subPixelRotate: false, freezeCycle: -1, debug: 0, bakeRows: 24,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'adaptive', historySharpFrom: 0.5, historySharpFull: 1.5, historySharpWindFrom: 0.15, historySharpWindFull: 0.4, jitterNoise: 'ign', subPixelSpan: 2, subPixelRotate: false, lodLayerPixel: 0, freezeCycle: -1, debug: 0, bakeRows: 24,
   profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
@@ -634,7 +638,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         lastEncode.cut = cut; lastEncode.motion[0] = moved ? (w![0] - prevWind[0]) * sp : 0; lastEncode.motion[1] = 0; lastEncode.motion[2] = moved ? (w![2] - prevWind[2]) * sp : 0;
         if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
       }
-      p[84] = s.historyFilter === 'catmull' ? 1 : s.historyFilter === 'adaptive' ? 2 : 0; p[85] = s.historySharpFrom; p[86] = Math.max(s.historySharpFull, s.historySharpFrom + 1e-3); p[87] = 0;
+      p[84] = s.historyFilter === 'catmull' ? 1 : s.historyFilter === 'adaptive' ? 2 : 0; p[85] = s.historySharpFrom; p[86] = Math.max(s.historySharpFull, s.historySharpFrom + 1e-3); p[87] = Math.min(1, Math.max(0, a.lodLayerPixel ?? s.lodLayerPixel));
       p[88] = s.historySharpWindFrom; p[89] = Math.max(s.historySharpWindFull, s.historySharpWindFrom + 1e-3); p[90] = Math.max(0, a.subPixelSpan ?? s.subPixelSpan); p[91] = s.subPixelRotate ? 1 : 0;   // FX1, S2: resolveOpts2
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);

@@ -58,7 +58,7 @@ struct ProcParams {
   tkBias: vec4<f32>, tkFilter: vec4<f32>, tkExpTerm: vec4<f32>, tkExponent: vec4<f32>, tkLinear: vec4<f32>, tkConstant: vec4<f32>,
   tkChannel: vec4<f32>,
   tkRepeat: vec4<f32>,   // weather tile (m), shape repeat (1/m), detail repeat (1/m), turbulence tiles per weather tile
-  tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), turbulence on the shape lookup too (0/1; S6 default 0), 0
+  tkTurb: vec4<f32>,     // turbulence displacement (m), detail distance (m), turbulence on the shape lookup too (0/1; S6 default 0), S2 surface step growth after a bisected entry (0/1)
   lit: vec4<f32>,        // lighting model (0 nubis, 1 octave), powder scale, octave ambient gain, C1 exact light profile (0/1, HZD shaper only)
   octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, diffusion tail weight
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
