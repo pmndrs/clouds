@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { bloscDecompress, lz4DecompressBlock } from '../../vendor/vdb-web-tools/src/blosc';
-import type { VdbGrid, VdbTile } from '../../vendor/vdb-web-tools/src/index';
+import type { VdbFloatGrid } from '@pmndrs/vdb/tools';
 import { convertVdb, inspectVdb, VdbImportError } from './convert';
 import { planLattice, resampleGrid } from './grid-read';
 import { gaussianBlur, heightFractions, packProfile, smoothNoise } from './pack-fit';
@@ -17,39 +16,23 @@ const CLOUD0001 = find('vdbs/cloud.0001.vdb');
 const DISNEY = find('disney-cloud/wdas_cloud_eighth.vdb');
 const load = (p: string): ArrayBuffer => { const b = readFileSync(p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; };
 
-function fakeGrid(background: number, leaves: { origin: [number, number, number]; fill: number }[], tiles: VdbTile[] = []): VdbGrid {
+interface FakeTile { origin: [number, number, number]; dim: 8 | 128 | 4096; value: number; active: boolean }
+function fakeGrid(background: number, leaves: { origin: [number, number, number]; fill: number }[], tiles: FakeTile[] = []): VdbFloatGrid {
   return {
-    background, tiles,
+    background,
+    *iterTiles() { for (const t of tiles) if (t.active) yield { origin: t.origin, dim: t.dim, value: t.value }; },
+    *iterInactiveTiles() { for (const t of tiles) if (!t.active) yield { origin: t.origin, dim: t.dim, value: t.value }; },
     *iterLeaves() {
       for (const l of leaves) yield { origin: l.origin, values: new Float32Array(512).fill(l.fill), valueMask: new Uint32Array(16).fill(0xffffffff) };
     },
-  } as unknown as VdbGrid;
+  } as unknown as VdbFloatGrid;
 }
 
-describe('blosc / lz4', () => {
-  it('decodes an lz4 block with a match and a memcpy chunk', () => {
-    // "abcabcabc": literals "abc", then match offset 3 length 6 -> token 0x32 (3 literals, matchlen 2+4), offset 3, then end.
-    const src = Uint8Array.from([0x32, 0x61, 0x62, 0x63, 0x03, 0x00]);
-    const dst = new Uint8Array(9);
-    lz4DecompressBlock(src, 0, src.length, dst, 0, 9);
-    expect(new TextDecoder().decode(dst)).toBe('abcabcabc');
-    const chunk = new Uint8Array(16 + 4);
-    new DataView(chunk.buffer).setUint32(4, 4, true); new DataView(chunk.buffer).setUint32(8, 4, true); new DataView(chunk.buffer).setUint32(12, 20, true);
-    chunk[2] = 0x2; chunk[3] = 1; chunk.set([1, 2, 3, 4], 16);
-    expect([...bloscDecompress(chunk)]).toEqual([1, 2, 3, 4]);
-  });
-  it('names the codec when it is not lz4', () => {
-    const chunk = new Uint8Array(32);
-    const v = new DataView(chunk.buffer);
-    v.setUint32(4, 8, true); v.setUint32(8, 8, true); v.setUint32(12, 32, true);
-    chunk[2] = 4 << 5; chunk[3] = 1;
-    expect(() => bloscDecompress(chunk)).toThrow(/zstd/);
-  });
-});
+// The Blosc and LZ4 block decoders are tested upstream (@pmndrs/vdb test/tools/blosc*.test.ts).
 
 describe('resampleGrid', () => {
   it('keeps constants (tiles and leaves) under 2:1 and 1:1 resampling', () => {
-    const grid = fakeGrid(0, [{ origin: [0, 0, 0], fill: 1 }], [{ origin: [8, 0, 0], size: 8, value: 1, active: true }]);
+    const grid = fakeGrid(0, [{ origin: [0, 0, 0], fill: 1 }], [{ origin: [8, 0, 0], dim: 8, value: 1, active: true }]);
     const plan2 = planLattice([0, 0, 0], [16, 8, 8], [2, 2, 2]);
     const out2 = resampleGrid(grid, plan2);
     expect(plan2.dims).toEqual([8, 4, 4]);

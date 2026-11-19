@@ -33,7 +33,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@pmndrs/vdb": "link:../../../WebVDB/packages/vdb"
+    "@pmndrs/vdb": "link:/Users/dex/Developer/WebVDB-clouds-parse/packages/vdb"
   },
   "peerDependencies": {
     "@webgpu/types": ">=0.1.60"

@@ -21,7 +21,7 @@
     "@pmndrs/scheduler": "0.2.0",
     "@pmndrs/sky": "0.5.0",
     "@pmndrs/upscaler": "0.5.0",
-    "@pmndrs/vdb": "link:../WebVDB/packages/vdb",
+    "@pmndrs/vdb": "link:/Users/dex/Developer/WebVDB-clouds-parse/packages/vdb",
     "@react-three/fiber": "10.0.0-canary.fbc659b",
     "@react-three/tsl": "10.0.0-canary.fbc659b",
     "@tailwindcss/vite": "4.3.3",

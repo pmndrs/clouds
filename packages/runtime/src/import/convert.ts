@@ -3,7 +3,7 @@
 //
 // This is a port of scripts/vdb/vdb_to_nvdf.py (Houdini side replaced by packages/runtime/vendor/vdb-web-tools) and scripts/vdb/nvdf_math.py.
 // Axes: a VDB is y-up with index (X, Y, Z). The runtime texture is (x = VDB X, map row = VDB Z, slice/up = VDB Y), see assets/clouds/README.md.
-import { parseVdb, VdbUnsupportedError, type VdbFile, type VdbGrid, type VdbGridDescriptor } from '../../vendor/vdb-web-tools/src/index';
+import { parseVdb, VDBUnsupportedError, type VdbFile, type VdbFloatGrid, type VdbGridDescriptor } from '@pmndrs/vdb/tools';
 import { signedDistanceCpu } from '../generate/cpu-edt';
 import { activeBounds, planLattice, resampleGrid, type Vec3 } from './grid-read';
 import { clamp01, gaussianBlur, heightFractions, packDetail, packProfile, packScale, PACK_FIT, quantizeUnorm8, smoothNoise } from './pack-fit';
@@ -142,11 +142,11 @@ function wrapParseError(e: unknown): Error {
   if (e instanceof VdbImportError) return e;
   const message = e instanceof Error ? e.message : String(e);
   if (/blosc/i.test(message)) {
-    const codec = /codec "([^"]+)"/.exec(message)?.[1];
+    const codec = /codec "?([\w#]+)"? is not supported/.exec(message)?.[1]?.toLowerCase();
     return new VdbImportError(codec ? 'unsupported-codec' : 'blosc',
       `This .vdb is Blosc-compressed with ${codec ? `the "${codec}" codec, which is` : 'a variant that is'} not supported by the in-browser reader (lz4 Blosc, ZIP and uncompressed are). ${BLOSC_HELP}`);
   }
-  if (e instanceof VdbUnsupportedError) return new VdbImportError('unsupported-grid', message);
+  if (e instanceof VDBUnsupportedError) return new VdbImportError('unsupported-grid', message);
   return new VdbImportError('format', message);
 }
 
@@ -228,7 +228,7 @@ export function convertVdb(buffer: ArrayBuffer, options: VdbImportOptions = {}):
   const sel = selectGrids(first.descriptors, options);
   let file: VdbFile;
   try { file = parseVdb(buffer, { select: d => sel.needed.has(d.name) }); } catch (e) { throw wrapParseError(e); }
-  const grid = (name: string): VdbGrid | undefined => file.grids.find(g => g.name === name);
+  const grid = (name: string): VdbFloatGrid | undefined => file.grids.find((g): g is VdbFloatGrid => g.name === name && g.valueType === 'float');
   const base = grid(sel.base.name)!;
   const t1 = now();
 

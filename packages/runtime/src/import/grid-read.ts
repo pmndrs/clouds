@@ -4,7 +4,7 @@
 //
 // Axes here are the VDB's own ("hou" axes: X, Y up, Z). Target arrays are laid out (jy * nz + jz) * nx + jx, which is exactly
 // the runtime texture order (x fastest, then map row = VDB Z, then slice = VDB Y).
-import type { VdbGrid } from '../../vendor/vdb-web-tools/src/index';
+import type { VdbFloatGrid } from '@pmndrs/vdb/tools';
 
 export type Vec3 = [number, number, number];
 
@@ -12,7 +12,7 @@ export type Vec3 = [number, number, number];
 export interface IndexBounds { min: Vec3; max: Vec3 }
 
 /** Active-voxel bounds of a grid (leaf masks plus active tiles), or null when nothing is active. */
-export function activeBounds(grid: VdbGrid): IndexBounds | null {
+export function activeBounds(grid: VdbFloatGrid): IndexBounds | null {
   const mn: Vec3 = [Infinity, Infinity, Infinity], mx: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const leaf of grid.iterLeaves()) {
     const m = leaf.valueMask;
@@ -29,9 +29,8 @@ export function activeBounds(grid: VdbGrid): IndexBounds | null {
       }
     }
   }
-  for (const t of grid.tiles) {
-    if (!t.active) continue;
-    for (let a = 0; a < 3; a++) { mn[a] = Math.min(mn[a], t.origin[a]); mx[a] = Math.max(mx[a], t.origin[a] + t.size); }
+  for (const t of grid.iterTiles()) {
+    for (let a = 0; a < 3; a++) { mn[a] = Math.min(mn[a], t.origin[a]); mx[a] = Math.max(mx[a], t.origin[a] + t.dim); }
   }
   return mx[0] > mn[0] ? { min: mn, max: mx } : null;
 }
@@ -93,7 +92,7 @@ class AxisTable {
  * Resample `grid` onto the plan's lattice. Unset voxels read as the grid background; output = background + filtered (value - background),
  * times `valueScale` (use the world scale for distance fields).
  */
-export function resampleGrid(grid: VdbGrid, plan: LatticePlan, valueScale = 1): Float32Array {
+export function resampleGrid(grid: VdbFloatGrid, plan: LatticePlan, valueScale = 1): Float32Array {
   const [nx, ny, nz] = plan.dims;
   const bg = grid.background;
   const tx = new AxisTable(plan.lo[0], plan.hi[0], plan.ratio[0], plan.origin[0], nx);
@@ -135,7 +134,9 @@ export function resampleGrid(grid: VdbGrid, plan: LatticePlan, valueScale = 1): 
   }
 
   // Constant tiles: separable box weights per axis.
-  if (grid.tiles.length) {
+  // Active tiles plus inactive tiles with a stored value (a level set's interior), as the vendored fork's `tiles` held.
+  const tiles = [...grid.iterTiles(), ...grid.iterInactiveTiles()];
+  if (tiles.length) {
     const boxWeights = (t: AxisTable, i0: number, i1: number, out: Float64Array): [number, number] => {
       out.fill(0);
       let jlo = Infinity, jhi = -Infinity;
@@ -151,10 +152,10 @@ export function resampleGrid(grid: VdbGrid, plan: LatticePlan, valueScale = 1): 
       return [jlo, jhi];
     };
     const wxs = new Float64Array(nx), wys = new Float64Array(ny), wzs = new Float64Array(nz);
-    for (const tile of grid.tiles) {
+    for (const tile of tiles) {
       const d = tile.value - bg;
       if (d === 0) continue;
-      const [ox, oy, oz] = tile.origin, s = tile.size;
+      const [ox, oy, oz] = tile.origin, s = tile.dim;
       if (ox + s <= lx || oy + s <= ly || oz + s <= lz || ox >= hx || oy >= hy || oz >= hz) continue;
       const [x0, x1] = boxWeights(tx, ox, ox + s, wxs), [y0, y1] = boxWeights(ty, oy, oy + s, wys), [z0, z1] = boxWeights(tz, oz, oz + s, wzs);
       for (let jy = y0; jy <= y1; jy++) {
