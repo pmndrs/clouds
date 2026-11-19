@@ -1,0 +1,6 @@
+{
+  "gp7": [[1000, 330, 320, 170, "lit ridge"], [700, 720, 320, 160, "soft base"], [960, 870, 320, 110, "distant small clouds"]],
+  "ground": [[1150, 20, 320, 170, "lit ridge"], [760, 400, 320, 140, "base underside"], [300, 560, 320, 140, "distant clouds over the terrain edge"]],
+  "above": [[800, 440, 320, 170, "lit tops"], [440, 700, 320, 200, "soft edge over the ground"]],
+  "sunset": [[1200, 180, 320, 140, "lit rims"], [620, 400, 320, 140, "soft distant bases"]]
+}

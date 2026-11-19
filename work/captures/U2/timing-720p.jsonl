@@ -1,0 +1,9 @@
+{"level":"desktop","view":"gp7","size":"1280x720","try":1,"r":{"lost":false,"frameMs":26.28,"sky":17.94,"resolve":0.08,"upscale":null,"composite":0.13,"clouds":16.77,"n":202}}
+{"level":"desktop","view":"above","size":"1280x720","try":1,"r":{"lost":false,"frameMs":35.27,"sky":19.94,"resolve":0.08,"upscale":0.18,"composite":0.12,"clouds":25.04,"n":169}}
+{"level":"laptop","view":"gp7","size":"1280x720","try":1,"r":{"lost":false,"frameMs":19.79,"sky":6.05,"resolve":0.07,"upscale":0.15,"composite":0.07,"clouds":8.83,"n":174}}
+# laptop above try 1 lost
+{"level":"laptop","view":"above","size":"1280x720","try":2,"r":{"lost":false,"frameMs":20.97,"sky":8.03,"resolve":0.07,"upscale":1.58,"composite":0.13,"clouds":14.54,"n":168}}
+{"level":"laptop-third","view":"gp7","size":"1280x720","try":1,"r":{"lost":false,"frameMs":22.46,"sky":8.95,"resolve":0.08,"upscale":0.1,"composite":0.08,"clouds":14.6,"n":167}}
+{"level":"laptop-third","view":"above","size":"1280x720","try":1,"r":{"lost":false,"frameMs":26.63,"sky":12.25,"resolve":0.08,"upscale":3.01,"composite":0.12,"clouds":21.72,"n":175}}
+{"level":"cinematic","view":"gp7","size":"1280x720","try":1,"r":{"lost":false,"frameMs":44,"sky":33.09,"resolve":0.16,"upscale":null,"composite":0.16,"clouds":37.07,"n":168}}
+{"level":"cinematic","view":"above","size":"1280x720","try":1,"r":{"lost":false,"frameMs":47.34,"sky":37.59,"resolve":0.15,"upscale":null,"composite":0.2,"clouds":42.92,"n":171}}

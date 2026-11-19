@@ -1,0 +1,15 @@
+{
+  "url": "http://127.0.0.1:5377/hzd/?view=gp7&clean=1&level=cinematic&motion=1",
+  "size": [
+    1280,
+    720
+  ],
+  "warm": 420,
+  "frames": 8,
+  "fps": 60,
+  "setup": "",
+  "windOffset": "",
+  "wind": [],
+  "errors": [],
+  "info": 0
+}

@@ -60,7 +60,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     tuner.refresh();
     weatherFromQuery(query);
     (window as unknown as { __tune: unknown }).__tune = tuner;
-    (window as unknown as { __hzd: unknown }).__hzd = { core, proc };   // console / capture scripts: settings, shadow map info, the procedural model
+    (window as unknown as { __hzd: unknown }).__hzd = { core, proc, bench };   // console / capture scripts: settings, shadow map info, the procedural model, the bench store (U2: scripted camera motion)
     (window as unknown as { __proc: unknown }).__proc = proc;   // debug: window.__proc.readHzdBounds()
     return { pane, clouds, proc, core, sources, renderer, tuner };
   })();
@@ -135,8 +135,9 @@ const f1 = (n: number) => n.toFixed(1);
 function hudText(renderer: WebGPURenderer): string {
   const s = bench.getState(), v = s.view, rt = s.rt!, canvas = renderer.domElement as HTMLCanvasElement;
   const st = rt.pane.stats(), gpu = st.gpuMs?.total, sky = st.gpuMs?.skyLayer;
+  const level = String(rt.sources.c.renderLevel ?? 'cinematic'), up = level !== 'cinematic' && st.gpuMs?.upscale != null ? st.gpuMs.upscale : null;
   return `HZD sky · ${s.viewName}${rt.pane.ready() ? '' : ' (loading...)'}  q ${s.quality}  style ${s.style}\n`
     + `cam ${v.position.map(x => Math.round(x)).join(', ')}  az ${Math.round(v.lookAz)}  pitch ${f1(v.pitch)}  fov ${Math.round(v.fov)}\n`
     + `sun el ${f1(v.sunEl)} az ${Math.round(v.sunAz)}  coverage ${v.coverage.toFixed(2)}  motion ×${rt.sources.c.animSpeed}\n`
-    + `${gpu != null ? `gpu ${f1(gpu)} ms` : ''}${sky != null ? `  sky layer ${f1(sky)} ms` : ''}  ${canvas.width}x${canvas.height}${s.ref.id ? `\nvs ${s.ref.id}` : ''}`;
+    + `${gpu != null ? `gpu ${f1(gpu)} ms` : ''}${sky != null ? `  sky layer ${f1(sky)} ms` : ''}${up != null ? `  upscale ${f1(up)} ms` : ''}  ${canvas.width}x${canvas.height}  level ${level}${s.ref.id ? `\nvs ${s.ref.id}` : ''}`;
 }

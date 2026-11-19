@@ -65,6 +65,18 @@ describe('GpuTimer', () => {
     expect(timer.passTimestampWrites('a')).toBeDefined();
   });
 
+  it('splits one named span into a begin-only and an end-only write (U2)', () => {
+    const { device } = mockDevice(['timestamp-query']);
+    const timer = new GpuTimer(device);
+    timer.beginFrame();
+    timer.passTimestampWrites('a');
+    const span = timer.spanTimestampWrites('upscale')!;
+    expect(span.begin).toMatchObject({ beginningOfPassWriteIndex: 2 });
+    expect(span.end).toMatchObject({ endOfPassWriteIndex: 3 });
+    expect('endOfPassWriteIndex' in span.begin).toBe(false);
+    expect('beginningOfPassWriteIndex' in span.end).toBe(false);
+  });
+
   it('caps passes per frame', () => {
     const { device } = mockDevice(['timestamp-query']);
     const timer = new GpuTimer(device, { maxPasses: 1 });

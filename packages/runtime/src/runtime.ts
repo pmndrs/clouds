@@ -18,6 +18,7 @@ import { blueNoiseBytes, BLUE_NOISE_SIZE } from './blue-noise';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_BLUE_NOISE_BINDING, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_BYTES, SKY_LIGHT_ENTRIES, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
 import { createSkyLayer, type SkyLayer } from './sky-layer';
 import { createCirrusLayer, type CirrusLayer } from './cirrus';
+import { createSkyUpscale, type CloudRenderLevel, type SkyUpscale } from './upscale';
 import type { ProceduralDensityModel } from './procedural/types';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, heroUniformData, volumeUniformData, volumeWgsl, HERO_UNIFORM_BYTES, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
@@ -211,6 +212,38 @@ export interface CloudSettings {
    * orders them (front over voxel over back). Where the two overlap their densities add; the procedural light taps also see the voxel field.
    */
   densityModel: 'nvdf' | 'procedural' | 'hybrid';
+  /**
+   * U2 render levels (work/compass "Render levels"): 'cinematic' (default) is the path before U2, unchanged: the sky layer at its own
+   * resolutionScale, upsampled bilinearly by the composite. 'desktop' renders the sky layer at levelScaleDesktop (0.5) of the output and
+   * 'laptop' at levelScaleLaptop (0.25), and @pmndrs/upscaler (upscale.ts; upscalePath, default its temporal path) brings it to the output
+   * size, where the composite merges it over the scene with the full-size scene depth. Needs densityModel 'procedural' (the layer is then
+   * the whole cloud); with a voxel box ('nvdf', 'hybrid') the levels only change the layer's size. Until the upscaler's pipelines are
+   * compiled (a few frames) the reduced layer is composited the old way.
+   */
+  renderLevel: CloudRenderLevel;
+  /** U2: the sky layer's size at the 'desktop' level, relative to the output (linear). Default 0.5. */
+  levelScaleDesktop: number;
+  /** U2: the sky layer's size at the 'laptop' level, relative to the output (linear). Default 0.25 (1/3 is the softer alternative). */
+  levelScaleLaptop: number;
+  /** U2: the upscaler's path at the desktop and laptop levels: 'temporal' (FSR2/3-style, default), 'spatial' (FSR1 EASU + RCAS) or 'bilinear' (a plain blit, for comparison). */
+  upscalePath: 'temporal' | 'spatial' | 'bilinear';
+  /** U2: the upscaler's RCAS sharpening, 0..1 (its own default is 0.8). Default 0.5. */
+  upscaleSharpness: number;
+  /**
+   * U2: a fixed conditioning exposure for the upscaler (it divides it back out, so the brightness does not change), passed as its exposure
+   * texture; 0 (default) = its auto exposure with upscaleColorScale. Its auto exposure alone, on the mostly black premultiplied cloud colour,
+   * sits at its 8x cap and makes its tonemap non-linear: dark rims and stair-stepped cloud edges. A fixed value lost the device on start-up
+   * in some runs (see upscale.ts), so it is the option, not the default.
+   */
+  upscaleExposure: number;
+  /**
+   * U2: the colour going into the upscaler is multiplied by this and divided back out in the composite (upscaleExposure 0 only). The upscaler's
+   * auto exposure tops out at 8x on the mostly black cloud colour, so 1/64 conditions it at an effective 1/8: its invertible tonemap stays near
+   * linear across cloud edges (no dark rims or stair steps) while its auto-exposure path, the stable one, stays in use. Default 1/64.
+   */
+  upscaleColorScale: number;
+  /** U2: the depth the upscaler sees: 'cloud' (default) the opacity-weighted mean distance of the cloud (far plane where clear), 'flat' the far plane everywhere (no depth edges, so its disocclusion test never fires; colour clipping alone guards the history). */
+  upscaleDepth: 'cloud' | 'flat';
   /**
    * X3: the lighting model of the voxel march and the NVDF sky layer. 'nubis' (default): the N3 model (SDF depth, in-scatter profile, glow,
    * deep octaves, C1 low-sun handoff). 'octave': the per-sample Frostbite / Takram model (Wrenninge octaves, two-lobe HG, sky irradiance
@@ -465,6 +498,8 @@ export interface CloudRuntime {
   readonly dome: CloudDome;
   /** Distant sky layer (P3-C1, Nubis vertical-profile 2.5D): cloud cover from the voxel region to the horizon. Off by default; see `skyLayer.configure`. */
   readonly skyLayer: SkyLayer;
+  /** U2: the render level's upscaler state (null until a level below cinematic was used): ready, and the upscaler's own settings. */
+  readonly upscale: { ready: boolean; renderSize: [number, number]; displaySize: [number, number]; settings: SkyUpscale['core']['settings'] } | null;
   /** P9-E: the high cloud layer (cirrus, cirrostratus) at 8-10 km with its own wind, drawn behind the low clouds. Off by default; see `cirrus.settings`. */
   readonly cirrus: CirrusLayer;
   /** L3: the mid-level (altocumulus / altostratus) 2.5D layer, driven by the procedural model's `midLayer` (HZD `midLayerMode` 'layer' | 'hybrid'). Its settings are rewritten from the model each frame. */
@@ -554,6 +589,8 @@ const TEMPORAL_CLIP_SIGMA = 1.75;
 const TEMPORAL_CLIP_MARGIN = 0.03;
 /** Frame uniform floats whose change invalidates the history: the cloud model, lighting and march settings (not camera, time, wind, jitter or composite-only knobs). */
 const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99];
+/** U2: frames the procedural layer runs before the upscaler is created (see encode). */
+const UPSCALE_WARM_FRAMES = 240;
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
@@ -756,6 +793,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     microDist: startPreset.microDist, stepScale: startPreset.stepScale, // Q-1 (Nubis neutral: microDist 0, stepScale 1)
     fineDistance: startPreset.fineDistance, lightDebug: 0,
     densityModel: 'nvdf', lightingModel: 'nubis',
+    renderLevel: 'cinematic', levelScaleDesktop: 0.5, levelScaleLaptop: 0.25, upscalePath: 'temporal', upscaleSharpness: 0.5, upscaleDepth: 'cloud', upscaleExposure: 0, upscaleColorScale: 1 / 64,   // U2 (agent-chosen: sharpness 0.5)
     directDensity: 0.6,   // V2: matches the V1 Karma rig's density_mult
     diffuseSun: 0, diffuseFalloff: 0.11, ambientSaturation: 1, ambientWarmth: 0, directInScatterFlat: 0,   // M1 material balance: neutral; a direct volume gets DIRECT_VOLUME_SETTINGS
     inlineLightScale: 1, jitterStatic: 0, inlineProfile: 0, lightMipBias: 0,   // D1: in-line sun taps at the view extinction on the up-rezzed density; jitter animated everywhere
@@ -961,6 +999,16 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   let prevValid = false, needReset = true, temporalFrames = 0, temporalResets = 0;
   const passFull = [true, true];
   let skyTarget: { w: number; h: number; color: GPUTexture; depth: GPUTexture; back: GPUTexture; scale: number } | null = null;
+  /** U2: the sky layer's size relative to the output: its own resolutionScale at the cinematic level, the level's scale otherwise. */
+  const skyScale = () => {
+    const l = settings.renderLevel;
+    const s = l === 'desktop' ? settings.levelScaleDesktop : l === 'laptop' ? settings.levelScaleLaptop : skyLayer.settings.resolutionScale;
+    return Math.min(1.5, Math.max(0.0625, s));
+  };
+  /** U2: the upscaler (created the first time a level below cinematic is used) and the key of the composite groups' sky bindings. */
+  let skyUpscale: SkyUpscale | null = null;
+  let compositeSkyKey: GPUTexture | null = null;
+  let upscaleLastTime = -1, upscaleWarm = 0, upColorScale = 1;
   // Bind groups are cached by (pass, light-grid slot, history parity, direct) and created on first use after any rebuild.
   const marchGroups: (GPUBindGroup | undefined)[] = new Array(16).fill(undefined);
   const resolveGroups: (GPUBindGroup | undefined)[] = new Array(4).fill(undefined);
@@ -1015,8 +1063,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     nearW = near.w; nearH = near.h; farW = far.w; farH = far.h;
     targets = [near, far];
     needReset = true;
-    const sky = make('sky', skyLayer.settings.resolutionScale);
-    skyTarget = { w: sky.w, h: sky.h, color: sky.color, depth: sky.depth, back: device.createTexture({ label: 'cloud sky back', size: [sky.w, sky.h], format: 'rgba16float', usage }), scale: skyLayer.settings.resolutionScale };
+    const sky = make('sky', skyScale());
+    skyTarget = { w: sky.w, h: sky.h, color: sky.color, depth: sky.depth, back: device.createTexture({ label: 'cloud sky back', size: [sky.w, sky.h], format: 'rgba16float', usage }), scale: skyScale() };
     ownsOutput = !externalOutput;
     output = externalOutput ?? device.createTexture({ label: 'cloud composite', size: [outCW, outCH], format: 'rgba16float', usage });
   };
@@ -1063,6 +1111,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get renderSize(): [number, number] { return [targets ? targets[1].rw : farW, targets ? targets[1].rh : farH]; },
     get nearRenderSize(): [number, number] { return [targets ? targets[0].rw : nearW, targets ? targets[0].rh : nearH]; },
     get skyLayer() { return skyLayer; },
+    get upscale() { return skyUpscale ? { ready: skyUpscale.ready, renderSize: [skyUpscale.core.renderWidth, skyUpscale.core.renderHeight] as [number, number], displaySize: [skyUpscale.core.displayWidth, skyUpscale.core.displayHeight] as [number, number], settings: skyUpscale.core.settings } : null; },
     cirrus,
     midLayer,
     shadowMap,
@@ -1176,12 +1225,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         autoFrames++;
         if (autoFrames > 20) settings.renderScale = dynamic.update(controlledCost(timer.last()));
       }
-      if (skyTarget && skyTarget.scale !== skyLayer.settings.resolutionScale) {
+      if (skyTarget && skyTarget.scale !== skyScale()) {
         // Only the sky targets change; the composite groups reference them.
         skyTarget.color.destroy(); skyTarget.depth.destroy(); skyTarget.back.destroy();
-        const w = Math.max(1, Math.round(outW * skyLayer.settings.resolutionScale)), h = Math.max(1, Math.round(outH * skyLayer.settings.resolutionScale));
+        const sc = skyScale();
+        const w = Math.max(1, Math.round(outW * sc)), h = Math.max(1, Math.round(outH * sc));
         const usage = GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST;
-        skyTarget = { w, h, scale: skyLayer.settings.resolutionScale, color: device.createTexture({ label: 'cloud sky colour', size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: 'cloud sky depth', size: [w, h], format: 'rgba32float', usage }), back: device.createTexture({ label: 'cloud sky back', size: [w, h], format: 'rgba16float', usage }) };
+        skyTarget = { w, h, scale: sc, color: device.createTexture({ label: 'cloud sky colour', size: [w, h], format: 'rgba16float', usage }), depth: device.createTexture({ label: 'cloud sky depth', size: [w, h], format: 'rgba32float', usage }), back: device.createTexture({ label: 'cloud sky back', size: [w, h], format: 'rgba16float', usage }) };
         compositeGroups.fill(undefined);
       }
       if (frame.depth !== boundDepth) { forgetGroups(); boundDepth = frame.depth; }
@@ -1398,6 +1448,37 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null, time: frame.time,
           wind: settings.windOffset, voxelDepth: { near: near.hist[cur].depth, far: far.hist[cur].depth } });
       }
+      // U2: below the cinematic level the layer (the whole cloud in 'procedural' mode) goes through the upscaler to the composite's size, and the
+      // composite reads the upscaled colour per output pixel (frame.skyEnabled 2) with the layer's own depth words for the scene occlusion.
+      let skyUp: GPUTexture | null = null;
+      upscaleWarm = skyActive && procMode === 'procedural' ? upscaleWarm + 1 : 0;
+      // The upscaler is created (its pipelines compiled, its targets allocated) once the layer has run for UPSCALE_WARM_FRAMES, out of the
+      // page's start-up compiles; until then the reduced layer is composited the old way (bilinear). U2 open problem: on the shared, heavily
+      // loaded test machine Metal lost the device ("Insufficient Memory") within a few frames of the upscaler's start in about half of the
+      // runs, at any start frame tried (see the U2 report); runs that got past those frames never failed.
+      if (skyActive && settings.renderLevel !== 'cinematic' && procMode === 'procedural' && (skyUpscale || upscaleWarm > UPSCALE_WARM_FRAMES)) {
+        skyUpscale ??= createSkyUpscale(device);
+        // A frame without the upscaler in between (another level, the layer off) leaves its history stale: reset it.
+        const resume = upscaleLastTime < 0;
+        const dt = resume ? 1 / 60 : Math.min(0.25, Math.max(1e-4, frame.time - upscaleLastTime));
+        upscaleLastTime = frame.time;
+        const last = skyLayer.lastEncode;
+        upColorScale = settings.upscaleExposure > 0 ? 1 : Math.min(1, Math.max(1 / 4096, settings.upscaleColorScale));
+        skyUp = skyUpscale.encode(encoder, {
+          front: skyTarget!.color, back: skyTarget!.back, dist: skyTarget!.depth, displayWidth: outCW, displayHeight: outCH,
+          path: settings.upscalePath, sharpness: settings.upscaleSharpness, depthMode: settings.upscaleDepth, exposure: settings.upscaleExposure, colorScale: upColorScale,
+          inverseViewProjection: frame.inverseViewProjection, viewProjection: frame.viewProjection, cameraPosition: frame.cameraPosition,
+          cloudMotion: last.motion, reset: last.cut || resume, deltaTime: dt, timer,
+        });
+      } else upscaleLastTime = -1;
+      if (skyUp) {
+        // The frame uniforms were written before the layer ran; only the composite reads skyEnabled. Above 1.5 it is 1 + the factor that undoes
+        // the colour scale the upscaler input was given.
+        f[53] = 1 + 1 / upColorScale;
+        device.queue.writeBuffer(frameUniforms[0], 53 * 4, f, 53, 1);
+      }
+      const skyColorTex = skyUp ?? skyTarget!.color;
+      if (skyColorTex !== compositeSkyKey) { compositeSkyKey = skyColorTex; compositeGroups.fill(undefined); }
 
       // Cloud shadow map: the sun-ray optical depth over the box and (with the layer on) out to the horizon, one slice per frame.
       {
@@ -1446,7 +1527,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         { binding: 5, resource: far.hist[cur].color.createView() },
         { binding: 6, resource: far.hist[cur].depth.createView() },
         ...grid.bindGroupEntries(COMPOSITE_LIGHT_GRID_BINDING, gridStep.front),
-        { binding: COMPOSITE_SKY_BINDING, resource: skyTarget!.color.createView() },
+        { binding: COMPOSITE_SKY_BINDING, resource: skyColorTex.createView() },
         { binding: COMPOSITE_SKY_BINDING + 1, resource: skyTarget!.depth.createView() },
         { binding: COMPOSITE_SKY_BINDING + 2, resource: skyTarget!.back.createView() },
         { binding: COMPOSITE_SAMPLER_BINDING, resource: compositeLinear },
@@ -1518,6 +1599,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
       volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); blueNoise.destroy(); skyLightBuffer.destroy();
+      skyUpscale?.dispose(); skyUpscale = null;
       skyLayer.dispose(); cirrus.dispose(); midLayer.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },
   };

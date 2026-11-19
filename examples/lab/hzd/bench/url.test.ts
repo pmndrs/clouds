@@ -69,4 +69,15 @@ describe('the React bench URL', () => {
     expect(w.get('style')).toBe('early');
     expect(writeQuery({ viewName: s.viewName, view: s.view, ref: s.ref, quality: s.quality, clean: s.clean, changes: {}, style: 'horizon' }).has('style')).toBe(false);
   });
+
+  it('reads the render level from ?level= (U2) and ignores unknown levels', () => {
+    expect(isSettingKey('level')).toBe(true);
+    const src = { ...sources(), c: { ...sources().c, renderLevel: 'cinematic' } };
+    applySettingOverrides(q('level=desktop'), src);
+    expect(src.c.renderLevel).toBe('desktop');
+    applySettingOverrides(q('level=phone'), src);
+    expect(src.c.renderLevel).toBe('desktop');
+    applySettingOverrides(q('c_renderLevel=laptop'), src);
+    expect(src.c.renderLevel).toBe('laptop');
+  });
 });
