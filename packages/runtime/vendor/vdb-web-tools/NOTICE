@@ -23,3 +23,6 @@ Changes from upstream (made for the Nubis cloud importer, P4-H):
   is -background decode correctly; lz4 Blosc chunks are decoded through the new blosc.ts instead of raising an error.
 - blosc.ts (new, not from upstream): Blosc 1.x chunk decoder, lz4 codec, with byte shuffle and split streams. Other codecs
   (blosclz, snappy, zlib, zstd) and bit shuffle raise VdbUnsupportedError naming the codec.
+
+L1: the src/nanovdb/ writer was dropped (exportFineNvdb now uses @pmndrs/vdb/tools). Only the importer's parser fork remains here: it adds
+parseVdb's `select`/descriptor pass and tile/compression handling that @pmndrs/vdb/tools does not have yet.

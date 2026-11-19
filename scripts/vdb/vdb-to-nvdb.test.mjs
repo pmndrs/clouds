@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { checkAgainstLattice, decodeToU8 } from './vdb-to-nvdb.mjs';
-import * as webvdb from './vendor/webvdb/webvdb.mjs';
+import { vdbBuildFromDense, vdbQuantize, writeNvdb } from '@pmndrs/vdb/tools';
 
 /** Pseudo-random sparse profile lattice (x fastest, then y, then z), values 0 or 1..255, with solid blobs and noisy shells. */
 function makeLattice(nx, ny, nz, seed) {
@@ -21,8 +21,8 @@ function makeLattice(nx, ny, nz, seed) {
 function writeNvdbOf(u8, [nx, ny, nz], path) {
   const f = new Float32Array(nx * ny * nz); // buildFromDense is x-major: (x * ny + y) * nz + z
   for (let z = 0; z < nz; z++) for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) f[(x * ny + y) * nz + z] = u8[x + nx * (y + ny * z)] / 255;
-  const img = webvdb.quantize(webvdb.buildFromDense(f, [nx, ny, nz], { voxelSize: 4, background: 0, gridName: 'profile' }), 'fp8');
-  writeFileSync(path, new Uint8Array(webvdb.writeNvdb([img])));
+  const img = vdbQuantize(vdbBuildFromDense(f, [nx, ny, nz], { voxelSize: 4, background: 0, gridName: 'profile', collapse: false }), 'fp8');
+  writeFileSync(path, new Uint8Array(writeNvdb([img])));
 }
 
 describe('vdb-to-nvdb', () => {

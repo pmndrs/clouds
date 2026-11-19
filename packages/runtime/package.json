@@ -32,6 +32,9 @@
     "README.md",
     "LICENSE"
   ],
+  "dependencies": {
+    "@pmndrs/vdb": "link:../../../WebVDB/packages/vdb"
+  },
   "peerDependencies": {
     "@webgpu/types": ">=0.1.60"
   },

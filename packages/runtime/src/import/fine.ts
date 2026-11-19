@@ -1,7 +1,7 @@
 // Fine hero layers from the in-browser importer (P13-H4, work/specs/P8-hero-vdb.md section 5.3): the coarse lattice by the P8 reduction of the
-// fine one, and `fine.nvdb` export through WebVDB's dense builder, Fp8 quantizer and writer (vendored, packages/runtime/vendor/vdb-web-tools).
+// fine one, and `fine.nvdb` export through @pmndrs/vdb/tools' dense builder, Fp8 quantizer and writer.
 import { reduceFineLattice } from '../hero/bricks';
-import { buildFromDenseDetailed, quantize, writeNvdb } from '../../vendor/vdb-web-tools/src/nanovdb/index';
+import { vdbBuildFromDenseDetailed, vdbQuantize, writeNvdb } from '@pmndrs/vdb/tools';
 
 /** A fine profile lattice: uint8, texture axes (x, map row, up), x fastest. Nested in a coarse lattice `ratio` times coarser, same min corner. */
 export interface FineProfile {
@@ -47,10 +47,11 @@ export function exportFineNvdb(fine: FineProfile, options: ExportFineNvdbOptions
   }
   const o = options.originMeters ?? [0, 0, 0];
   // worldOrigin is the world position of index (0, 0, 0)'s centre in NanoVDB's cell-centred Map.
-  const built = buildFromDenseDetailed(values, [nx, nz, ny], {
+  const built = vdbBuildFromDenseDetailed(values, [nx, nz, ny], {
     voxelSize: fine.voxelSize, worldOrigin: [o[0] + fine.voxelSize / 2, o[1] + fine.voxelSize / 2, o[2] + fine.voxelSize / 2],
     gridName: options.gridName ?? 'profile', gridClass: 'FogVolume',
+    collapse: false, // upstream collapses uniform leaves into tiles by default; the shipped fine.nvdb keeps every leaf
   });
-  const image = quantize(built, 'fp8');
+  const image = vdbQuantize(built, 'fp8');
   return { buffer: writeNvdb([image]), leaves: built.nodeCounts.leaf, activeVoxels: built.voxelCount };
 }
