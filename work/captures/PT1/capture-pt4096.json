@@ -1,0 +1,696 @@
+{
+  "url": "http://127.0.0.1:57393/reference-pt/?clean=1&spp=4096",
+  "size": [
+    1600,
+    900
+  ],
+  "startedAt": "2026-11-19T17:24:28.334Z",
+  "shots": [
+    {
+      "name": "alpha-noon",
+      "file": "work/captures/PT1/alpha-noon.png",
+      "report": {
+        "view": "alpha-noon",
+        "status": "sun noon: ready",
+        "camera": {
+          "position": [
+            554.5590985160661,
+            120,
+            1007.4543196855368
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3516,
+            31.8945
+          ],
+          "ambientUp": [
+            0.3896,
+            0.7775,
+            1.693
+          ],
+          "ambientDown": [
+            1.1461,
+            1.0671,
+            0.9674
+          ],
+          "envMapUp": [
+            0.3875,
+            0.7719,
+            1.6787
+          ],
+          "envMapDown": [
+            1.1297,
+            1.0519,
+            0.9537
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714786211129296,
+          "bakeMs": 369.9000000357628
+        },
+        "pt": {
+          "samples": 4,
+          "target": 4096,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 35.133333345254265,
+          "compileMs": 835.3000000119209,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 128
+      }
+    },
+    {
+      "name": "pt-noon",
+      "file": "work/captures/PT1/pt-noon.png",
+      "report": {
+        "view": "pt-noon",
+        "status": "sun noon: ready",
+        "camera": {
+          "position": [
+            554.5590985160661,
+            120,
+            1007.4543196855368
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3516,
+            31.8945
+          ],
+          "ambientUp": [
+            0.3896,
+            0.7775,
+            1.693
+          ],
+          "ambientDown": [
+            1.1461,
+            1.0671,
+            0.9674
+          ],
+          "envMapUp": [
+            0.3875,
+            0.7719,
+            1.6787
+          ],
+          "envMapDown": [
+            1.1297,
+            1.0519,
+            0.9537
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714786211129296,
+          "bakeMs": 369.9000000357628
+        },
+        "pt": {
+          "samples": 4096,
+          "target": 4096,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 82.35000002384186,
+          "compileMs": 835.3000000119209,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 24406
+      }
+    },
+    {
+      "name": "alpha-low",
+      "file": "work/captures/PT1/alpha-low.png",
+      "report": {
+        "view": "alpha-low",
+        "status": "sun low: ready",
+        "camera": {
+          "position": [
+            -655.1806629929126,
+            120,
+            945.1128497910539
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06716672434156307,
+          "bakeMs": 218
+        },
+        "pt": {
+          "samples": 0,
+          "target": 4096,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 82.35000002384186,
+          "compileMs": 185.80000001192093,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 24583
+      }
+    },
+    {
+      "name": "pt-low",
+      "file": "work/captures/PT1/pt-low.png",
+      "report": {
+        "view": "pt-low",
+        "status": "sun low: ready",
+        "camera": {
+          "position": [
+            -655.1806629929126,
+            120,
+            945.1128497910539
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06716672434156307,
+          "bakeMs": 218
+        },
+        "pt": {
+          "samples": 4096,
+          "target": 4096,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 73.33333333333333,
+          "compileMs": 185.80000001192093,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 43340
+      }
+    },
+    {
+      "name": "alpha-backlit",
+      "file": "work/captures/PT1/alpha-backlit.png",
+      "report": {
+        "view": "alpha-backlit",
+        "status": "sun backlit: ready",
+        "camera": {
+          "position": [
+            664.0305864975516,
+            120,
+            938.9160666405267
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714713664089796,
+          "bakeMs": 252.39999997615814
+        },
+        "pt": {
+          "samples": 0,
+          "target": 4096,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 73.33333333333333,
+          "compileMs": 235.10000002384186,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 43524
+      }
+    },
+    {
+      "name": "pt-backlit",
+      "file": "work/captures/PT1/pt-backlit.png",
+      "report": {
+        "view": "pt-backlit",
+        "status": "sun backlit: ready",
+        "camera": {
+          "position": [
+            664.0305864975516,
+            120,
+            938.9160666405267
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1600,
+          900
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714713664089796,
+          "bakeMs": 252.39999997615814
+        },
+        "pt": {
+          "samples": 4096,
+          "target": 4096,
+          "film": [
+            1600,
+            900
+          ],
+          "msPerPass": 38.33999999761581,
+          "compileMs": 235.10000002384186,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          }
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1
+        },
+        "exposure": 0.35,
+        "frames": 57395
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

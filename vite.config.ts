@@ -44,12 +44,14 @@ export default defineConfig({
     '@clouds/runtime': fileURLToPath(new URL('./packages/runtime/src/full.ts', import.meta.url)),
     '@clouds/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
     '@clouds/legacy-three': fileURLToPath(new URL('./packages/legacy/three/src/index.ts', import.meta.url)),
+    // PT1: the owner's sibling path tracer (TS sources, no dist), for the reference-pt lab page only. See pathtracerDir().
+    ...pathtracerAliases(),
   } },
   // Runtime assets are served at /clouds/<name>/... and /nubis-voxel-clouds/... in dev and build.
   publicDir: fileURLToPath(new URL('./assets', import.meta.url)),
   // CLOUDS_NO_WATCH: capture runs (scripts/gpu/capture.mjs --serve) must not hot-reload when parallel agents save files.
   server: { port: 5180, strictPort: true, // 5173 is often taken by the owner's other projects
-    fs: { allow: ['../..', ...researchDirs()] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
+    fs: { allow: ['../..', ...researchDirs(), ...[pathtracerDir()].filter((d): d is string => !!d)] }, ...(process.env.CLOUDS_NO_WATCH ? { watch: null, hmr: false } : {}) },
   build: { target: 'es2022', outDir: '../../dist/lab', emptyOutDir: true, rollupOptions: { input: {
     flagship: fileURLToPath(new URL('./examples/lab/flagship/index.html', import.meta.url)),
     testDensity: fileURLToPath(new URL('./examples/lab/runtime-tests/density/index.html', import.meta.url)),
@@ -93,6 +95,8 @@ export default defineConfig({
     lighting: fileURLToPath(new URL('./examples/lab/legacy/lighting/index.html', import.meta.url)),
     cloudscape: fileURLToPath(new URL('./examples/lab/legacy/cloudscape/index.html', import.meta.url)),
     layer: fileURLToPath(new URL('./examples/lab/legacy/layer-only/index.html', import.meta.url)),
+    // PT1: only when the sibling path tracer checkout is there (its sources are imported, not a package).
+    ...(pathtracerDir() ? { referencePt: fileURLToPath(new URL('./examples/lab/reference-pt/index.html', import.meta.url)) } : {}),
   } } },
 });
 
@@ -103,4 +107,30 @@ function researchDirs(): string[] {
   const root = fileURLToPath(new URL('.', import.meta.url));
   const candidates = [process.env.CLOUDS_RESEARCH_DIR, `${root}artifacts/research`, `${root}../../../artifacts/research`].filter(Boolean) as string[];
   return candidates.filter(d => existsSync(d));
+}
+
+// PT1: the owner's path tracer repo (`@pmndrs/pathtracer` + `@pmndrs/raytracer`, TS sources, no dist) lives next to the main checkout
+// (~/Developer/pathtracer beside ~/Developer/WebGPUClouds). A worktree sits deeper (.claude/worktrees/<name>/), so walk up from this
+// file until a directory has `pathtracer/packages/pathtracer/src/index.ts` in it. PATHTRACER_DIR overrides. Its own imports
+// (`@pmndrs/bvh`, `@pmndrs/downsampler`) resolve from its node_modules, so that checkout must have had `pnpm install`.
+function pathtracerDir(): string | null {
+  const env = process.env.PATHTRACER_DIR;
+  if (env) return existsSync(`${env}/packages/pathtracer/src/index.ts`) ? env : null;
+  let dir = fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
+  for (let i = 0; i < 8 && dir.length > 1; i++) {
+    const parent = dir.slice(0, dir.lastIndexOf('/')) || '/';
+    if (existsSync(`${parent}/pathtracer/packages/pathtracer/src/index.ts`)) return `${parent}/pathtracer`;
+    dir = parent;
+  }
+  return null;
+}
+function pathtracerAliases(): Record<string, string> {
+  const dir = pathtracerDir();
+  // `@pmndrs/bvh` (published, 0.1.0) is not a dependency of this repo: the page takes the copy the path tracer's raytracer resolves, so both
+  // sides of the scene upload are built by the same bvh.
+  return dir ? {
+    '@pmndrs/pathtracer': `${dir}/packages/pathtracer/src/index.ts`,
+    '@pmndrs/raytracer': `${dir}/packages/raytracer/src/index.ts`,
+    '@pmndrs/bvh': `${dir}/packages/raytracer/node_modules/@pmndrs/bvh/dist/index.js`,
+  } : {};
 }
