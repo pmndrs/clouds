@@ -27,7 +27,8 @@ if (flag('help')) {
 --quality <n>       jpeg quality (default 88; 100 for judged crops: q88's 8x8 blocking reads as contour banding at 1:1)
 --serve             start the vite dev server for the run
 --headed            show the browser window
---timeout <s>       ready timeout in seconds (default 60)`);
+--timeout <s>       ready timeout in seconds (default 60)
+--no-contract       page has no window.__clouds: stub it after load and just settle frames`);
   process.exit(0);
 }
 const root = resolve(new URL('../..', import.meta.url).pathname);
@@ -85,6 +86,8 @@ try {
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
   await cdp.send('Page.navigate', { url });
   const eval_ = expr => cdp.evaluate(expr);
+  // --no-contract: pages without window.__clouds (the legacy labs) get a stub once the document has loaded, then the usual frame settle.
+  if (flag('no-contract')) await waitFor(() => eval_(`document.readyState === 'complete' && (window.__clouds ??= { ready: true }, true)`), timeoutMs, 'document load');
   const ready = await waitFor(() => eval_(`(() => { const c = window.__clouds; if (!c) return null; if (c.error) return { error: String(c.error) }; return c.ready ? { ok: true } : null; })()`), timeoutMs, 'window.__clouds.ready')
     .catch(e => ({ error: e.message }));
   report.gpu = await eval_(`(async () => { const a = await navigator.gpu?.requestAdapter(); return a ? { vendor: a.info?.vendor, architecture: a.info?.architecture } : null; })()`).catch(() => null);
