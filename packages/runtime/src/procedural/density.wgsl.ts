@@ -63,7 +63,7 @@ struct ProcParams {
   octave: vec4<f32>,     // octave model: forward g, back g, back-lobe weight, diffusion tail weight
   origin: vec4<f32>,     // camera position (the curvature reference), 0       (written every frame, not part of the model version)
   drift: vec4<f32>,      // wind offset (CloudSettings.windOffset, m), 0         (likewise)
-  hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1); X4: hero shadow strength (light grid), 0
+  hybrid: vec4<f32>,     // X3: box carve rim (m; 0 = density union with the voxel box), voxel density in the light taps (0/1); X4: hero shadow strength (light grid), S2: surface bisection steps (0 = off)
   // H1 HZD shaper (procedural/hzd/shaper.wgsl.ts; packed by settings.ts packProceduralParams)
   hzLayer: vec4<f32>,    // layer bottom, layer top (m), NDF tile (m), extinction (1/m)
   hzScale: vec4<f32>,    // shape tile, detail tile, curl tile (m), curl strength (m)

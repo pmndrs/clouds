@@ -4,6 +4,7 @@
 // P9-B2: the weather window is baked in row tiles over frames (`bakeRows` per frame, then one frame for the max mips) while the previous
 // window keeps rendering; the new window, with the shaping it was configured with, replaces it in one frame once it is complete, and the
 // temporal history dissolves to it over one 16-frame cycle (no full-resolution reset trace).
+import { blueNoiseBytes, BLUE_NOISE_SIZE } from './blue-noise';
 import { createWeatherBake, type ProceduralWeatherOptions, type WeatherBake } from './generate/weather';
 import { PROFILE_TABLE_FLOOR, packProfileTables, profileTopEnds } from './generate/profile-tables';
 import type { ProceduralDensityModel } from './procedural/types';
@@ -13,7 +14,7 @@ import { COMMON_WGSL } from './shaders/common.wgsl';
 import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { MARCH_ATMOSPHERE_GROUP } from './shaders/march.wgsl';
 import {
-  SKY_BACK_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAM_BYTES, SKY_PARAM_FLOATS, SKY_RESOLVE_BINDINGS,
+  SKY_BACK_BINDING, SKY_BLUE_NOISE_BINDING, SKY_COLOR_BINDING, SKY_DEPTH_BINDING, SKY_LIGHT_STORAGE_BINDING, SKY_PARAMS_BINDING, SKY_PARAM_BYTES, SKY_PARAM_FLOATS, SKY_RESOLVE_BINDINGS,
   SKY_RESOLVE_WGSL, SKY_SAMPLER_BINDING, SKY_TEMPORAL_PERIOD, SKY_VOXEL_DEPTH_BINDING, SKY_WEATHER_BINDING, SKY_LUT_OFFSET, SKY_TABLE_TOP_OFFSET, skyLayerWgsl,
 } from './shaders/sky-layer.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
@@ -58,6 +59,19 @@ export interface SkyLayerSettings {
    * more real detail (SH1b's reason). SH1b's default was 'catmull'.
    */
   historyFilter: 'bilinear' | 'catmull' | 'adaptive';
+  /**
+   * S2: the trace's per-pixel step jitter (both trace kinds). 'ign': interleaved gradient noise of the pixel and the 16-frame cycle (the pre-S2 jitter).
+   * 'blue': a 128^2 blue-noise mask plus the golden-ratio sequence per cycle (the voxel march's D1 round 5 jitter). The history keeps 0.3 of each
+   * newest sample, so the jitter's spatial pattern stays in the image; IGN's is a fine diagonal hatch on hard lit faces (S1), blue noise's a fine grain.
+   */
+  jitterNoise: 'ign' | 'blue';
+  /**
+   * S2: the trace's sub-pixel ray offset per 16-frame cycle (P7-E), its span in layer pixels: 2 (the pre-S2 value) averages a 2 x 2 layer-pixel box
+   * into the history (soft at the reduced render levels, where a layer pixel is 2-4 output pixels); 1 a one-pixel box.
+   */
+  subPixelSpan: number;
+  /** S2: rotate each pixel's sub-pixel sequence by its own blue-noise value, so this cycle's refreshed pixels and last cycle's are not two offset copies in the Bayer order. */
+  subPixelRotate: boolean;
   /** FX1: with historyFilter 'adaptive', screen motion (layer pixels per frame, camera and clouds) from which Catmull-Rom starts to take over. Default 0.5. */
   historySharpFrom: number;
   /** FX1: with historyFilter 'adaptive', screen motion (layer pixels per frame) at which the history is fetched with Catmull-Rom alone. Default 1.5. */
@@ -212,7 +226,7 @@ export interface SkyEncodeArgs {
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
   enabled: false, densityScale: 1, maxDistance: 30000, maxSteps: 256, transmittanceCutoff: 0.05, stepMin: 8, stepRel: 0.006, lodScale: 0.7, curvature: 0,
-  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'adaptive', historySharpFrom: 0.5, historySharpFull: 1.5, historySharpWindFrom: 0.15, historySharpWindFull: 0.4, freezeCycle: -1, debug: 0, bakeRows: 24,
+  resolutionScale: 0.25, temporal: true, temporalBlend: 0.3, temporalCloudMotion: true, historyFilter: 'adaptive', historySharpFrom: 0.5, historySharpFull: 1.5, historySharpWindFrom: 0.15, historySharpWindFull: 0.4, jitterNoise: 'ign', subPixelSpan: 2, subPixelRotate: false, freezeCycle: -1, debug: 0, bakeRows: 24,
   profileMode: 0, topType: -1, bottomType: -1, bottomTypeLo: 0, bottomTypeHi: 0.7, bottomTypeCell: 6000, tableFloor: 1, tableThreshold: 0.1, erosionLaw: 0,
 };
 
@@ -288,8 +302,12 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
     { binding: SKY_LIGHT_STORAGE_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
     { binding: SKY_PARAMS_BINDING, visibility: C, buffer: { type: 'uniform' } },
     { binding: SKY_BACK_BINDING, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
+    { binding: SKY_BLUE_NOISE_BINDING, visibility: C, buffer: { type: 'read-only-storage' } },
   ];
   const layout = device.createBindGroupLayout({ label: 'cloud sky trace', entries: layoutEntries });
+  // S2: the step jitter's blue-noise mask (the voxel march's 128^2 mask, 16 KB) as a storage buffer: four 8-bit ranks per word.
+  const blueNoise = device.createBuffer({ label: 'cloud sky blue noise', size: BLUE_NOISE_SIZE * BLUE_NOISE_SIZE, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(blueNoise, 0, blueNoiseBytes());
   // X3: the procedural trace's pass entries also carry the voxel march's depth words (the hybrid split).
   const procLayoutEntries: GPUBindGroupLayoutEntry[] = [
     ...layoutEntries,
@@ -603,7 +621,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       if (cut && s.temporal) resets++;
       const period = SKY_TEMPORAL_PERIOD;
       const phase = s.freezeCycle >= 0 ? Math.floor(s.freezeCycle) : frames;
-      p[36] = phase % period; p[37] = Math.floor(phase / period); p[38] = cut ? 1 : 0; p[39] = 0;
+      p[36] = phase % period; p[37] = Math.floor(phase / period); p[38] = cut ? 1 : 0; p[39] = s.jitterNoise === 'blue' ? 1 : 0;
       p.set(prevViewProj, 40);
       // C2: the clouds' displacement since last frame (procedural model only: the wind offset times its cloud speed; a cut or a first frame has none).
       {
@@ -615,7 +633,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         if (w) { prevWind[0] = w[0]; prevWind[1] = w[1]; prevWind[2] = w[2]; prevWindValid = true; } else prevWindValid = false;
       }
       p[84] = s.historyFilter === 'catmull' ? 1 : s.historyFilter === 'adaptive' ? 2 : 0; p[85] = s.historySharpFrom; p[86] = Math.max(s.historySharpFull, s.historySharpFrom + 1e-3); p[87] = 0;
-      p[88] = s.historySharpWindFrom; p[89] = Math.max(s.historySharpWindFull, s.historySharpWindFrom + 1e-3); p[90] = 0; p[91] = 0;   // FX1: resolveOpts2
+      p[88] = s.historySharpWindFrom; p[89] = Math.max(s.historySharpWindFull, s.historySharpWindFrom + 1e-3); p[90] = Math.max(0, s.subPixelSpan); p[91] = s.subPixelRotate ? 1 : 0;   // FX1, S2: resolveOpts2
       p[56] = prevCam[0]; p[57] = prevCam[1]; p[58] = prevCam[2]; p[59] = prevValid && !cut ? 1 : 0;
       device.queue.writeBuffer(paramBuffer, 0, p);
       prevModel.set(p.subarray(0, MODEL_PARAM_FLOATS));
@@ -637,6 +655,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
         { binding: SKY_LIGHT_STORAGE_BINDING, resource: { buffer: a.skyLightBuffer } },
         { binding: SKY_PARAMS_BINDING, resource: { buffer: paramBuffer } },
         { binding: SKY_BACK_BINDING, resource: tmp.traceBack.createView() },
+        { binding: SKY_BLUE_NOISE_BINDING, resource: { buffer: blueNoise } },
       ];
       const gk = groupKey;
       if (proc) {
@@ -663,7 +682,7 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       for (const r of retired) r();
       retired = [];
       pending?.bake.destroy(); pending = null;
-      live?.texture.destroy(); live = null; paramBuffer.destroy(); group = null; releaseTemporal();
+      live?.texture.destroy(); live = null; paramBuffer.destroy(); blueNoise.destroy(); group = null; releaseTemporal();
     },
   };
 }

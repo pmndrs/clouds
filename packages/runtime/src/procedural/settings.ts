@@ -557,6 +557,13 @@ export interface ProceduralSettings {
    * integrates the model's density toward the sun, so a hero under a procedural cloud is shadowed by it. A number so pages can A/B it (?proc_heroShadow=0).
    */
   heroShadow: number;
+  /**
+   * S2: bisection steps where the fine march enters a cloud from an empty sample (0 = off, the pre-S2 march). The march point-samples once per step
+   * and the jitter sets where the first sample inside lands: anywhere up to a fine step (25 m and more) under a hard surface, so the colour of a
+   * hard lit face followed the per-pixel jitter (S1's hatch). n halvings of the last empty step put the first sample within step / 2^n of the
+   * surface, at n full samples per cloud entry.
+   */
+  surfaceRefine: number;
   skypro: SkyProShape;
   takram: TakramShape;
   hzd: HzdShape;
@@ -727,7 +734,7 @@ export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverag
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1,
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 0,
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
     hzd: hzdDefaults(),
@@ -779,7 +786,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, s.shaper === 'hzd' && hz.lightProfile === 'exact' ? 1 : 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
-  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), 0], 116);
+  out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), Math.max(0, Math.min(8, Math.round(s.surfaceRefine)))], 116);
   // H1 HZD shaper (PROC_HZD_WGSL): hzLayer, hzScale, hzCov, hzFade, hzWind, hzSpeed, hzMisc.
   out.set([hz.layerBottom, Math.max(hz.layerTop, hz.layerBottom + 1), hz.ndf.tileMeters, hz.extinction], 120);
   out.set([hz.shapeTile, hz.detailTile, hz.curlTile, hz.curlStrength], 124);
