@@ -1,0 +1,80 @@
+{
+  "url": "http://127.0.0.1:59902/plains-flight/",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-19T18:08:36.342Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/T187/after/plains-flight/view.png",
+      "report": {
+        "gpuMs": {
+          "scene": 2.2852604166666666,
+          "skyWeather": 0.4688082333333333,
+          "lightGridReduce": 0.126998,
+          "lightGrid": 0.6632690588235295,
+          "marchNear": 0.1005886833333333,
+          "marchFar": 1.1188787500000004,
+          "shadowMap": 0.37431096666666674,
+          "composite": 0.5969061833333333,
+          "dome": 0.3660749666666666,
+          "resolveNear": 0.1810500666666667,
+          "resolveFar": 0.1665975,
+          "skyWeatherMips": 0.21208,
+          "skyLayer": 1.8879524833333334,
+          "skyResolve": 0.5017165833333335,
+          "cloudsTotal": 6.765231475490198,
+          "cloudsMarch": 5.974964416666669,
+          "total": 9.050491892156865
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "bookmark": "start",
+        "simT": 0,
+        "frames": 510,
+        "cloudsReady": true,
+        "pose": {
+          "x": 2048,
+          "z": 2048,
+          "y": 2,
+          "yaw": 0,
+          "pitch": 0.6702689359975338
+        },
+        "windowCentre": [
+          2048,
+          2048
+        ],
+        "playback": null,
+        "temporal": {
+          "near": 4,
+          "far": 4,
+          "resets": 1,
+          "frames": 510,
+          "bytes": 6136620
+        },
+        "swapEvents": [],
+        "swapGpu": [],
+        "stream": {
+          "windows": 1,
+          "jobsPerFrame": 2,
+          "worstEncodeSubmitMs": 0.699999988079071,
+          "generations": []
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

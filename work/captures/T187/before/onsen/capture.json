@@ -1,0 +1,59 @@
+{
+  "url": "http://127.0.0.1:53615/onsen/",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-19T17:13:44.901Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": ".claude/worktrees/agent-ab586e85d4f9b54ec/work/captures/T187/before/onsen/view.png",
+      "report": {
+        "gpuMs": {
+          "scene": 0.6805346166666666,
+          "lightGridReduce": 0.180623,
+          "lightGrid": 2.344672,
+          "marchNear": 0.044509099999999996,
+          "marchFar": 2.005920016666667,
+          "shadowMap": 0.008137283333333334,
+          "composite": 0.06351706666666669,
+          "dome": 0.10259491666666666,
+          "resolveNear": 0.019047,
+          "resolveFar": 0.02579761666666667,
+          "cloudsTotal": 4.794818,
+          "total": 5.475352616666667
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "bookmark": "vantage",
+        "frames": 415,
+        "cloudsReady": true,
+        "sun": {
+          "elevation": 6.084230284890225,
+          "azimuth": 291.3712403801185
+        },
+        "terrain": {
+          "visible": true,
+          "vertices": 526081
+        },
+        "clouds": {
+          "buildMs": 3215.5,
+          "stamps": 16
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

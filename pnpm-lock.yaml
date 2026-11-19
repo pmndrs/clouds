@@ -8,6 +8,11 @@ overrides:
   '@react-three/fiber': 10.0.0-canary.fbc659b
   '@react-three/tsl': 10.0.0-canary.fbc659b
 
+patchedDependencies:
+  three@0.187.0:
+    hash: 4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518
+    path: patches/three@0.187.0.patch
+
 importers:
 
   .:
@@ -17,31 +22,31 @@ importers:
         version: 0.2.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@pmndrs/sky':
         specifier: 0.5.0
-        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@pmndrs/upscaler':
         specifier: 0.5.0
-        version: 0.5.0(three@0.186.1)
+        version: 0.5.0(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@pmndrs/vdb':
         specifier: link:../WebVDB/packages/vdb
         version: link:../WebVDB/packages/vdb
       '@react-three/fiber':
         specifier: 10.0.0-canary.fbc659b
-        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@react-three/tsl':
         specifier: 10.0.0-canary.fbc659b
-        version: 10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))
+        version: 10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(@types/react@19.2.8)(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))(use-sync-external-store@1.7.0(react@19.2.3))
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@6.4.3(@types/node@22.19.15)(jiti@2.7.0)(lightningcss@1.32.0))
       '@takram/three-atmosphere':
         specifier: 0.19.1
-        version: 0.19.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(postprocessing@6.39.5(three@0.186.1))(react@19.2.3)(three@0.186.1)
+        version: 0.19.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(postprocessing@6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@takram/three-clouds':
         specifier: 0.7.6
-        version: 0.7.6(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(postprocessing@6.39.5(three@0.186.1))(react@19.2.3)(three@0.186.1)
+        version: 0.7.6(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(postprocessing@6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@takram/three-geospatial':
         specifier: 0.9.1
-        version: 0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react@19.2.3)(three@0.186.1)
+        version: 0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@tweakpane/core':
         specifier: 2.0.5
         version: 2.0.5
@@ -55,8 +60,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.8)
       '@types/three':
-        specifier: 0.186.0
-        version: 0.186.0
+        specifier: 0.187.0
+        version: 0.187.0
       '@vitejs/plugin-react':
         specifier: 4.7.0
         version: 4.7.0(vite@6.4.3(@types/node@22.19.15)(jiti@2.7.0)(lightningcss@1.32.0))
@@ -76,8 +81,8 @@ importers:
         specifier: 1.48.0
         version: 1.48.0(react@19.2.3)
       postprocessing:
-        specifier: 6.39.5
-        version: 6.39.5(three@0.186.1)
+        specifier: 6.39.6
+        version: 6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       radix-ui:
         specifier: 1.6.7
         version: 1.6.7(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -94,8 +99,8 @@ importers:
         specifier: 4.3.3
         version: 4.3.3
       three:
-        specifier: 0.186.1
-        version: 0.186.1
+        specifier: 0.187.0
+        version: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
       tw-animate-css:
         specifier: 1.4.0
         version: 1.4.0
@@ -130,7 +135,7 @@ importers:
         version: link:../three
       '@react-three/fiber':
         specifier: 10.0.0-canary.fbc659b
-        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.0)
+        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       react:
         specifier: '>=19.0 <19.3'
         version: 19.2.3
@@ -138,8 +143,8 @@ importers:
         specifier: '>=19.0 <19.3'
         version: 19.2.3(react@19.2.3)
       three:
-        specifier: 0.186.0
-        version: 0.186.0
+        specifier: '>=0.186.0'
+        version: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
 
   packages/legacy/three:
     dependencies:
@@ -148,10 +153,10 @@ importers:
         version: link:../../core
       '@pmndrs/upscaler':
         specifier: '>=0.5.0'
-        version: 0.5.0(three@0.186.0)
+        version: 0.5.0(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       three:
-        specifier: 0.186.0
-        version: 0.186.0
+        specifier: '>=0.186.0'
+        version: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
 
   packages/react:
     dependencies:
@@ -163,13 +168,13 @@ importers:
         version: link:../three
       '@pmndrs/sky':
         specifier: '>=0.5.0'
-        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@react-three/fiber':
         specifier: 10.0.0-canary.fbc659b
-        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        version: 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@react-three/tsl':
         specifier: 10.0.0-canary.fbc659b
-        version: 10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))
+        version: 10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(@types/react@19.2.8)(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))(use-sync-external-store@1.7.0(react@19.2.3))
       '@webgpu/types':
         specifier: '>=0.1.60'
         version: 0.1.71
@@ -178,7 +183,7 @@ importers:
         version: 19.2.3
       three:
         specifier: '>=0.186.0'
-        version: 0.186.1
+        version: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
 
   packages/runtime:
     dependencies:
@@ -196,13 +201,13 @@ importers:
         version: link:../runtime
       '@pmndrs/sky':
         specifier: '>=0.5.0'
-        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+        version: 0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       '@webgpu/types':
         specifier: '>=0.1.60'
         version: 0.1.71
       three:
         specifier: '>=0.186.0'
-        version: 0.186.1
+        version: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
 
   packages/tools:
     dependencies:
@@ -1577,8 +1582,8 @@ packages:
   '@types/stats.js@0.17.4':
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
 
-  '@types/three@0.186.0':
-    resolution: {integrity: sha512-mxYSBpDC+D0pLfSP6sW4WZTcT+nrtmZcimMqnVmy36Hte3XpeYSrvgg4TRdaM1GemGog1AWzI5qL2VoIfMXbJQ==}
+  '@types/three@0.187.0':
+    resolution: {integrity: sha512-v+vKNarUtk4n2QRZ4+CN5ygMM0ARUjXjIQl0R/unMUfmStFeVqGbgqarbrpoGTXRZoulSH16ePrVJVxPJEbMUA==}
 
   '@types/webxr@0.5.24':
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
@@ -1894,10 +1899,10 @@ packages:
     resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postprocessing@6.39.5:
-    resolution: {integrity: sha512-YmH+t74J2X1lwYjKzK/tgs9C9kqWWPB9JwZiDF5mEf4BdCEAmEFbO8lXBA7NM0/j4g+x6FgD/Tt5/kT7ogbEDA==}
+  postprocessing@6.39.6:
+    resolution: {integrity: sha512-HIVhnU8R9tF2YBMXOF2x+TKt3ia+caSHGsycSqrfkd426vH/jwm7w19YQCWsA8jMQJXvAsniLYMiJaNugxUFtA==}
     peerDependencies:
-      three: '>= 0.168.0 < 0.187.0'
+      three: '>= 0.168.0 < 0.188.0'
 
   radix-ui@1.6.7:
     resolution: {integrity: sha512-QBdhh1arIEUvPC0dQ5+nwWAxt7+N+oP/9jPwjJkGFoSk/sqxg32gJtSXGtFh8frAIcS6oC9cx2Q+7KYCQLOAeA==}
@@ -2022,11 +2027,8 @@ packages:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
 
-  three@0.186.0:
-    resolution: {integrity: sha512-cr/fIM2ddMSVbYVgkfD4jLJv7Fh/8ZTjvo+7gQeSVGUZHxpx9FDwoL5iC7hUz/LiRA8wMbqfnb90xKfm1/HHkQ==}
-
-  three@0.186.1:
-    resolution: {integrity: sha512-blFeqb49wRCSGUGj7gtpfnSGHy2lwDk94RhUmS1c/hTby70kvChbWpkJ4Pm1390LqzzvTmzgXKHPEafJwCb8jA==}
+  three@0.187.0:
+    resolution: {integrity: sha512-Qiu7R+Cmh8CstZsY1uJOSWnVlfo7ZtNLV7mF8Jltk3LB3AtDu9cRZlcnRKkAk8Y4z6KKw35z7Y7Urd7jWY8etA==}
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
@@ -2455,21 +2457,17 @@ snapshots:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 
-  '@pmndrs/sky@0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)':
+  '@pmndrs/sky@0.5.0(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))':
     dependencies:
-      three: 0.186.1
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
     optionalDependencies:
-      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 
-  '@pmndrs/upscaler@0.5.0(three@0.186.0)':
+  '@pmndrs/upscaler@0.5.0(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))':
     dependencies:
-      three: 0.186.0
-
-  '@pmndrs/upscaler@0.5.0(three@0.186.1)':
-    dependencies:
-      three: 0.186.1
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
 
   '@radix-ui/number@1.1.3': {}
 
@@ -3218,7 +3216,7 @@ snapshots:
 
   '@radix-ui/rect@1.1.3': {}
 
-  '@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.0)':
+  '@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))':
     dependencies:
       '@babel/runtime': 7.29.7
       '@pmndrs/scheduler': 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -3228,7 +3226,7 @@ snapshots:
       react-use-measure: 2.1.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       scheduler: 0.28.0
       suspend-react: 0.1.3(react@19.2.3)
-      three: 0.186.0
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
       use-sync-external-store: 1.7.0(react@19.2.3)
       zustand: 5.0.15(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
     optionalDependencies:
@@ -3237,31 +3235,12 @@ snapshots:
       - '@types/react'
       - immer
 
-  '@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)':
+  '@react-three/tsl@10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(@types/react@19.2.8)(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))(use-sync-external-store@1.7.0(react@19.2.3))':
     dependencies:
-      '@babel/runtime': 7.29.7
-      '@pmndrs/scheduler': 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      dequal: 2.0.3
-      its-fine: 2.1.1(@types/react@19.2.8)(react@19.2.3)
-      react: 19.2.3
-      react-use-measure: 2.1.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      scheduler: 0.28.0
-      suspend-react: 0.1.3(react@19.2.3)
-      three: 0.186.1
-      use-sync-external-store: 1.7.0(react@19.2.3)
-      zustand: 5.0.15(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
-    optionalDependencies:
-      react-dom: 19.2.3(react@19.2.3)
-    transitivePeerDependencies:
-      - '@types/react'
-      - immer
-
-  '@react-three/tsl@10.0.0-canary.fbc659b(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(@types/react@19.2.8)(react@19.2.3)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.2.3))':
-    dependencies:
-      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       dequal: 2.0.3
       react: 19.2.3
-      three: 0.186.1
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
       zustand: 5.0.15(@types/react@19.2.8)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
     transitivePeerDependencies:
       - '@types/react'
@@ -3413,37 +3392,37 @@ snapshots:
       tailwindcss: 4.3.3
       vite: 6.4.3(@types/node@22.19.15)(jiti@2.7.0)(lightningcss@1.32.0)
 
-  '@takram/three-atmosphere@0.19.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(postprocessing@6.39.5(three@0.186.1))(react@19.2.3)(three@0.186.1)':
+  '@takram/three-atmosphere@0.19.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(postprocessing@6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))':
     dependencies:
-      '@takram/three-geospatial': 0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react@19.2.3)(three@0.186.1)
+      '@takram/three-geospatial': 0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       astronomy-engine: 2.1.19
-      postprocessing: 6.39.5(three@0.186.1)
+      postprocessing: 6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       react-merge-refs: 3.0.2(react@19.2.3)
-      three: 0.186.1
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
       tiny-invariant: 1.3.3
       url-join: 5.0.0
     optionalDependencies:
-      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       react: 19.2.3
 
-  '@takram/three-clouds@0.7.6(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(postprocessing@6.39.5(three@0.186.1))(react@19.2.3)(three@0.186.1)':
+  '@takram/three-clouds@0.7.6(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(postprocessing@6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))':
     dependencies:
-      '@takram/three-atmosphere': 0.19.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(postprocessing@6.39.5(three@0.186.1))(react@19.2.3)(three@0.186.1)
-      '@takram/three-geospatial': 0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react@19.2.3)(three@0.186.1)
-      postprocessing: 6.39.5(three@0.186.1)
-      three: 0.186.1
+      '@takram/three-atmosphere': 0.19.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(postprocessing@6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
+      '@takram/three-geospatial': 0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
+      postprocessing: 6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
       tiny-invariant: 1.3.3
       type-fest: 5.10.0
     optionalDependencies:
-      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       react: 19.2.3
 
-  '@takram/three-geospatial@0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1))(react@19.2.3)(three@0.186.1)':
+  '@takram/three-geospatial@0.9.1(@react-three/fiber@10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))':
     dependencies:
       '@petamoriken/float16': 3.9.3
-      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.186.1)
+      '@react-three/fiber': 10.0.0-canary.fbc659b(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518))
       react: 19.2.3
-      three: 0.186.1
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
       tiny-invariant: 1.3.3
       type-fest: 5.10.0
 
@@ -3499,7 +3478,7 @@ snapshots:
 
   '@types/stats.js@0.17.4': {}
 
-  '@types/three@0.186.0':
+  '@types/three@0.187.0':
     dependencies:
       '@dimforge/rapier3d-compat': 0.12.0
       '@tweenjs/tween.js': 23.1.3
@@ -3783,9 +3762,9 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postprocessing@6.39.5(three@0.186.1):
+  postprocessing@6.39.6(three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)):
     dependencies:
-      three: 0.186.1
+      three: 0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518)
 
   radix-ui@1.6.7(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
@@ -3958,9 +3937,7 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  three@0.186.0: {}
-
-  three@0.186.1: {}
+  three@0.187.0(patch_hash=4e99b4808f94000ea301d8029f37a89b65b8cb3f18e6680808769d41f710d518): {}
 
   tiny-invariant@1.3.3: {}
 

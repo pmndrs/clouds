@@ -1,0 +1,57 @@
+{
+  "url": "http://127.0.0.1:60268/r3f/",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-19T18:09:45.168Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/T187/after/r3f/view.png",
+      "report": {
+        "gpuMs": {
+          "scene": 0.3738701666666667,
+          "lightGridReduce": 0.023083,
+          "lightGrid": 0.02375,
+          "marchNear": 0.023522533333333335,
+          "marchFar": 0.5249502666666667,
+          "composite": 0.26919166666666666,
+          "dome": 0.11211578333333334,
+          "resolveNear": 0.04385008333333334,
+          "resolveFar": 0.6245245166666668,
+          "shadowMap": 0.010069863636363637
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.799999999999272
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "bookmark": "ground",
+        "timeOfDay": 14,
+        "haze": null,
+        "frames": 406,
+        "cloudsReady": true,
+        "gpu": {
+          "liveTextures": 54,
+          "liveBuffers": 83,
+          "texturesCreated": 66,
+          "buffersCreated": 108,
+          "errors": [],
+          "devicesLost": 0
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:60268/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-ab586e85d4f9b54ec/node_modules/.vite/deps/chunk-6RVWOV37.js?v=c42f0ef7:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:60268/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-ab586e85d4f9b54ec/node_modules/.vite/deps/chunk-6RVWOV37.js?v=c42f0ef7:1421:12)\n    at http://127.0.0.1:60268/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-ab586e85d4f9b54ec/node_modules/.vite/deps/chunk-6RVWOV37.js?v=c42f0ef7:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

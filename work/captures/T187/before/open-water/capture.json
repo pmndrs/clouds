@@ -1,0 +1,58 @@
+{
+  "url": "http://127.0.0.1:53193/open-water/",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-19T17:13:15.348Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": ".claude/worktrees/agent-ab586e85d4f9b54ec/work/captures/T187/before/open-water/view.png",
+      "report": {
+        "gpuMs": {
+          "scene": 0.3576603500000001,
+          "lightGridReduce": 0.093249,
+          "lightGrid": 0.18345570588235297,
+          "marchNear": 0.0349884,
+          "marchFar": 1.1795952833333332,
+          "shadowMap": 0.25253906666666665,
+          "composite": 0.1360520666666667,
+          "dome": 0.32045558333333335,
+          "skyWeather": 0.4961931499999999,
+          "resolveNear": 0.01895455,
+          "resolveFar": 0.02574338333333333,
+          "skyWeatherMips": 0.087708,
+          "skyLayer": 1.520416433333333,
+          "skyResolve": 0.04740265,
+          "cloudsTotal": 4.39675327254902,
+          "total": 4.75441362254902
+        },
+        "frameMs": {
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "bookmark": "shore",
+        "frames": 674,
+        "cloudsReady": true,
+        "generation": {
+          "source": "generated",
+          "frames": 48,
+          "jobsPerFrame": 2,
+          "wallMs": 2649.099999964237,
+          "encodeSubmitMsTotal": 2.9999998211860657
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

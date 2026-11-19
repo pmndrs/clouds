@@ -1,0 +1,312 @@
+diff --git a/build/three.webgpu.js b/build/three.webgpu.js
+index f8fc49fe7df98cbac4609603a1f2a2c6aea79675..a4c7191a1de6a22c52511a4fcd4bb3d66b0736fa 100644
+--- a/build/three.webgpu.js
++++ b/build/three.webgpu.js
+@@ -23248,7 +23248,66 @@ class Renderer {
+ 	 * @param {onProgressCallback} [onProgress] - Executed while the compilation is in progress.
+ 	 * @return {Promise} A Promise that resolves when the compile has been finished.
+ 	 */
+-	async compileAsync( scene, camera, targetScene = null, onProgress = null ) {
++	// [WebGPUClouds patch for three r187, drop on r188] Overlapping compileAsync() calls shared `_precompilationState` and threw
++	// (three#35315), and each work item set the call's render target back across awaits, so frames rendered meanwhile drew
++	// into it (three#35327). Calls now run one after another, each with the render target, MRT, depth and stencil it was
++	// made with, and every work item restores the renderer state it found.
++	compileAsync( scene, camera, targetScene = null, onProgress = null ) {
++
++		const call = { target: this._renderTarget, face: this._activeCubeFace, mip: this._activeMipmapLevel, mrt: this._mrt, depth: this.depth, stencil: this.stencil };
++
++		const run = async () => {
++
++			if ( this._initialized === false ) await this.init();
++
++			const saved = { target: this._renderTarget, face: this._activeCubeFace, mip: this._activeMipmapLevel, mrt: this._mrt, depth: this.depth, stencil: this.stencil };
++
++			this.setRenderTarget( call.target, call.face, call.mip );
++			this.setMRT( call.mrt );
++			this.depth = call.depth;
++			this.stencil = call.stencil;
++
++			try {
++
++				return this._compileAsyncSerial( scene, camera, targetScene, onProgress );
++
++			} finally {
++
++				const active = this._precompilationState;
++
++				if ( active !== null ) {
++
++					// the first work item is still being built (across a microtask) and needs its state until it finishes:
++					// it puts back the caller's state then, not the state of this call
++
++					active.restoreTarget = saved.target;
++					active.restoreCubeFace = saved.face;
++					active.restoreMipmapLevel = saved.mip;
++					active.restoreMRT = saved.mrt;
++					active.restoreDepth = saved.depth;
++					active.restoreStencil = saved.stencil;
++
++				} else {
++
++					this.setRenderTarget( saved.target, saved.face, saved.mip );
++					this.setMRT( saved.mrt );
++					this.depth = saved.depth;
++					this.stencil = saved.stencil;
++
++				}
++
++			}
++
++		};
++
++		const result = ( this._compileQueue || Promise.resolve() ).then( run );
++		this._compileQueue = result.catch( () => {} );
++
++		return result;
++
++	}
++
++	async _compileAsyncSerial( scene, camera, targetScene = null, onProgress = null ) {
+ 
+ 		if ( this._isDeviceLost === true ) return;
+ 
+@@ -23531,6 +23590,15 @@ class Renderer {
+ 
+ 		const { useFrameBufferTarget, renderTarget, mrt, renderContext, item } = precompilationState;
+ 
++		// [WebGPUClouds patch] remember the state this work item finds, `_finishPreCompile()` puts it back
++
++		precompilationState.restoreTarget = this._renderTarget;
++		precompilationState.restoreCubeFace = this._activeCubeFace;
++		precompilationState.restoreMipmapLevel = this._activeMipmapLevel;
++		precompilationState.restoreMRT = this._mrt;
++		precompilationState.restoreDepth = undefined;
++		precompilationState.restoreStencil = undefined;
++
+ 		if ( useFrameBufferTarget === true ) this.setRenderTarget( renderTarget );
+ 		this.setMRT( mrt );
+ 
+@@ -23563,10 +23631,12 @@ class Renderer {
+ 	 */
+ 	_finishPreCompile() {
+ 
+-		const { useFrameBufferTarget, outputRenderTarget, activeCubeFace, activeMipmapLevel, outputMRT, previousRenderContext, item, materialSide } = this._precompilationState;
++		const { useFrameBufferTarget, restoreTarget, restoreCubeFace, restoreMipmapLevel, restoreMRT, restoreDepth, restoreStencil, previousRenderContext, item, materialSide } = this._precompilationState;
+ 
+-		if ( useFrameBufferTarget === true ) this.setRenderTarget( outputRenderTarget, activeCubeFace, activeMipmapLevel );
+-		this.setMRT( outputMRT );
++		if ( useFrameBufferTarget === true || restoreDepth !== undefined ) this.setRenderTarget( restoreTarget, restoreCubeFace, restoreMipmapLevel );
++		this.setMRT( restoreMRT );
++		if ( restoreDepth !== undefined ) this.depth = restoreDepth;
++		if ( restoreStencil !== undefined ) this.stencil = restoreStencil;
+ 
+ 		if ( item !== null ) item.material.side = materialSide;
+ 
+diff --git a/build/three.webgpu.nodes.js b/build/three.webgpu.nodes.js
+index 39c897cb2f5f2092419c2cd4f464a88f1151d7d0..915afa30ed5397a9058ee6fb56b2717a1df13d3a 100644
+--- a/build/three.webgpu.nodes.js
++++ b/build/three.webgpu.nodes.js
+@@ -64450,7 +64450,66 @@ class Renderer {
+ 	 * @param {onProgressCallback} [onProgress] - Executed while the compilation is in progress.
+ 	 * @return {Promise} A Promise that resolves when the compile has been finished.
+ 	 */
+-	async compileAsync( scene, camera, targetScene = null, onProgress = null ) {
++	// [WebGPUClouds patch for three r187, drop on r188] Overlapping compileAsync() calls shared `_precompilationState` and threw
++	// (three#35315), and each work item set the call's render target back across awaits, so frames rendered meanwhile drew
++	// into it (three#35327). Calls now run one after another, each with the render target, MRT, depth and stencil it was
++	// made with, and every work item restores the renderer state it found.
++	compileAsync( scene, camera, targetScene = null, onProgress = null ) {
++
++		const call = { target: this._renderTarget, face: this._activeCubeFace, mip: this._activeMipmapLevel, mrt: this._mrt, depth: this.depth, stencil: this.stencil };
++
++		const run = async () => {
++
++			if ( this._initialized === false ) await this.init();
++
++			const saved = { target: this._renderTarget, face: this._activeCubeFace, mip: this._activeMipmapLevel, mrt: this._mrt, depth: this.depth, stencil: this.stencil };
++
++			this.setRenderTarget( call.target, call.face, call.mip );
++			this.setMRT( call.mrt );
++			this.depth = call.depth;
++			this.stencil = call.stencil;
++
++			try {
++
++				return this._compileAsyncSerial( scene, camera, targetScene, onProgress );
++
++			} finally {
++
++				const active = this._precompilationState;
++
++				if ( active !== null ) {
++
++					// the first work item is still being built (across a microtask) and needs its state until it finishes:
++					// it puts back the caller's state then, not the state of this call
++
++					active.restoreTarget = saved.target;
++					active.restoreCubeFace = saved.face;
++					active.restoreMipmapLevel = saved.mip;
++					active.restoreMRT = saved.mrt;
++					active.restoreDepth = saved.depth;
++					active.restoreStencil = saved.stencil;
++
++				} else {
++
++					this.setRenderTarget( saved.target, saved.face, saved.mip );
++					this.setMRT( saved.mrt );
++					this.depth = saved.depth;
++					this.stencil = saved.stencil;
++
++				}
++
++			}
++
++		};
++
++		const result = ( this._compileQueue || Promise.resolve() ).then( run );
++		this._compileQueue = result.catch( () => {} );
++
++		return result;
++
++	}
++
++	async _compileAsyncSerial( scene, camera, targetScene = null, onProgress = null ) {
+ 
+ 		if ( this._isDeviceLost === true ) return;
+ 
+@@ -64733,6 +64792,15 @@ class Renderer {
+ 
+ 		const { useFrameBufferTarget, renderTarget, mrt, renderContext, item } = precompilationState;
+ 
++		// [WebGPUClouds patch] remember the state this work item finds, `_finishPreCompile()` puts it back
++
++		precompilationState.restoreTarget = this._renderTarget;
++		precompilationState.restoreCubeFace = this._activeCubeFace;
++		precompilationState.restoreMipmapLevel = this._activeMipmapLevel;
++		precompilationState.restoreMRT = this._mrt;
++		precompilationState.restoreDepth = undefined;
++		precompilationState.restoreStencil = undefined;
++
+ 		if ( useFrameBufferTarget === true ) this.setRenderTarget( renderTarget );
+ 		this.setMRT( mrt );
+ 
+@@ -64765,10 +64833,12 @@ class Renderer {
+ 	 */
+ 	_finishPreCompile() {
+ 
+-		const { useFrameBufferTarget, outputRenderTarget, activeCubeFace, activeMipmapLevel, outputMRT, previousRenderContext, item, materialSide } = this._precompilationState;
++		const { useFrameBufferTarget, restoreTarget, restoreCubeFace, restoreMipmapLevel, restoreMRT, restoreDepth, restoreStencil, previousRenderContext, item, materialSide } = this._precompilationState;
+ 
+-		if ( useFrameBufferTarget === true ) this.setRenderTarget( outputRenderTarget, activeCubeFace, activeMipmapLevel );
+-		this.setMRT( outputMRT );
++		if ( useFrameBufferTarget === true || restoreDepth !== undefined ) this.setRenderTarget( restoreTarget, restoreCubeFace, restoreMipmapLevel );
++		this.setMRT( restoreMRT );
++		if ( restoreDepth !== undefined ) this.depth = restoreDepth;
++		if ( restoreStencil !== undefined ) this.stencil = restoreStencil;
+ 
+ 		if ( item !== null ) item.material.side = materialSide;
+ 
+diff --git a/src/renderers/common/Renderer.js b/src/renderers/common/Renderer.js
+index fb1255af55606f4ab915e2798a9174e9e00ee209..56c606ca597785d7545ffae8f52e46e0cb07cf14 100644
+--- a/src/renderers/common/Renderer.js
++++ b/src/renderers/common/Renderer.js
+@@ -1016,7 +1016,66 @@ class Renderer {
+ 	 * @param {onProgressCallback} [onProgress] - Executed while the compilation is in progress.
+ 	 * @return {Promise} A Promise that resolves when the compile has been finished.
+ 	 */
+-	async compileAsync( scene, camera, targetScene = null, onProgress = null ) {
++	// [WebGPUClouds patch for three r187, drop on r188] Overlapping compileAsync() calls shared `_precompilationState` and threw
++	// (three#35315), and each work item set the call's render target back across awaits, so frames rendered meanwhile drew
++	// into it (three#35327). Calls now run one after another, each with the render target, MRT, depth and stencil it was
++	// made with, and every work item restores the renderer state it found.
++	compileAsync( scene, camera, targetScene = null, onProgress = null ) {
++
++		const call = { target: this._renderTarget, face: this._activeCubeFace, mip: this._activeMipmapLevel, mrt: this._mrt, depth: this.depth, stencil: this.stencil };
++
++		const run = async () => {
++
++			if ( this._initialized === false ) await this.init();
++
++			const saved = { target: this._renderTarget, face: this._activeCubeFace, mip: this._activeMipmapLevel, mrt: this._mrt, depth: this.depth, stencil: this.stencil };
++
++			this.setRenderTarget( call.target, call.face, call.mip );
++			this.setMRT( call.mrt );
++			this.depth = call.depth;
++			this.stencil = call.stencil;
++
++			try {
++
++				return this._compileAsyncSerial( scene, camera, targetScene, onProgress );
++
++			} finally {
++
++				const active = this._precompilationState;
++
++				if ( active !== null ) {
++
++					// the first work item is still being built (across a microtask) and needs its state until it finishes:
++					// it puts back the caller's state then, not the state of this call
++
++					active.restoreTarget = saved.target;
++					active.restoreCubeFace = saved.face;
++					active.restoreMipmapLevel = saved.mip;
++					active.restoreMRT = saved.mrt;
++					active.restoreDepth = saved.depth;
++					active.restoreStencil = saved.stencil;
++
++				} else {
++
++					this.setRenderTarget( saved.target, saved.face, saved.mip );
++					this.setMRT( saved.mrt );
++					this.depth = saved.depth;
++					this.stencil = saved.stencil;
++
++				}
++
++			}
++
++		};
++
++		const result = ( this._compileQueue || Promise.resolve() ).then( run );
++		this._compileQueue = result.catch( () => {} );
++
++		return result;
++
++	}
++
++	async _compileAsyncSerial( scene, camera, targetScene = null, onProgress = null ) {
+ 
+ 		if ( this._isDeviceLost === true ) return;
+ 
+@@ -1299,6 +1358,15 @@ class Renderer {
+ 
+ 		const { useFrameBufferTarget, renderTarget, mrt, renderContext, item } = precompilationState;
+ 
++		// [WebGPUClouds patch] remember the state this work item finds, `_finishPreCompile()` puts it back
++
++		precompilationState.restoreTarget = this._renderTarget;
++		precompilationState.restoreCubeFace = this._activeCubeFace;
++		precompilationState.restoreMipmapLevel = this._activeMipmapLevel;
++		precompilationState.restoreMRT = this._mrt;
++		precompilationState.restoreDepth = undefined;
++		precompilationState.restoreStencil = undefined;
++
+ 		if ( useFrameBufferTarget === true ) this.setRenderTarget( renderTarget );
+ 		this.setMRT( mrt );
+ 
+@@ -1331,10 +1399,12 @@ class Renderer {
+ 	 */
+ 	_finishPreCompile() {
+ 
+-		const { useFrameBufferTarget, outputRenderTarget, activeCubeFace, activeMipmapLevel, outputMRT, previousRenderContext, item, materialSide } = this._precompilationState;
++		const { useFrameBufferTarget, restoreTarget, restoreCubeFace, restoreMipmapLevel, restoreMRT, restoreDepth, restoreStencil, previousRenderContext, item, materialSide } = this._precompilationState;
+ 
+-		if ( useFrameBufferTarget === true ) this.setRenderTarget( outputRenderTarget, activeCubeFace, activeMipmapLevel );
+-		this.setMRT( outputMRT );
++		if ( useFrameBufferTarget === true || restoreDepth !== undefined ) this.setRenderTarget( restoreTarget, restoreCubeFace, restoreMipmapLevel );
++		this.setMRT( restoreMRT );
++		if ( restoreDepth !== undefined ) this.depth = restoreDepth;
++		if ( restoreStencil !== undefined ) this.stencil = restoreStencil;
+ 
+ 		if ( item !== null ) item.material.side = materialSide;
+ 

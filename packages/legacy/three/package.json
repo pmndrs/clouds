@@ -35,7 +35,7 @@
     }
   },
   "peerDependencies": {
-    "three": "0.186.0",
+    "three": ">=0.186.0",
     "@pmndrs/upscaler": ">=0.5.0"
   },
   "dependencies": {
