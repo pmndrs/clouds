@@ -33,6 +33,11 @@ export const PROCEDURAL_STYLES: Readonly<Record<ProceduralStyle, ProceduralStyle
     // 0.2-1.1 over a 600 m cellular noise, then a smoothstep edge; cloudscape: smooth voxel forms and a 0.16 sine). Here: the HZD Worley
     // detail (A1 'old') at a third of gp7's strength. The Nubis Cubed Alligator at 0.4 (early-r1) left a march hatch on the bared surfaces.
     hzd: { noiseSet: 'hzd', erosionStrength: 0.1 },
+    // Step e6 (early-r3): the legacy march lit every sample with a constant sky ambient (cloudscape 0.28/0.34/0.43 against a 10.5 sun x HG
+    // 0.45: shaded sides about 40 % of the lit ones), so its bodies read bright and cohesive. The Nubis ambient dies with the summed density
+    // above to ambientFloor (0.15); 0.35 lifts the shaded body toward that. Tried and not kept: 0.6 (flat grey, shows the shape's contour
+    // lines), msStrength 0.7 (no visible gain), extinction 0.4 (blurry everywhere and 2-3x the sky cost).
+    cloud: { ambientFloor: 0.35 },
   },
   real: {
     label: 'photo weight',
