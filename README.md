@@ -9,8 +9,8 @@ development asset set.
 Three packages: [`@clouds/runtime`](packages/runtime/README.md) (the core, WebGPU only),
 [`@clouds/three`](packages/three/README.md) (three.js adapter) and
 [`@clouds/react`](packages/react/README.md) (React Three Fiber v10). They are workspace
-packages for now; the npm names are not decided. The phase plan is in
-[`docs/AUDIT-2026-10.md`](docs/AUDIT-2026-10.md).
+packages for now; the npm names are not decided. The plan is the living Compass page
+(https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1, source [`work/compass/index.html`](work/compass/index.html)).
 
 <!-- doc-preamble
 import type { WebGPURenderer, RenderPipeline } from 'three/webgpu';
@@ -69,8 +69,8 @@ which is git-ignored.
   [Authoring clouds](docs/guide/authoring.mdx) ·
   [Demos](docs/guide/demos.mdx) ·
   [Credits](docs/guide/credits.mdx).
-- [`docs/AUDIT-2026-10.md`](docs/AUDIT-2026-10.md): the plan, phases and success measures.
-- [`work/README.md`](work/README.md) and [`work/BOARD.md`](work/BOARD.md): how work is split, reviewed and reported, and the task list.
+- The Compass (https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1, source [`work/compass/index.html`](work/compass/index.html)): goals, phases, decisions. October plans are in [`docs/archive/`](docs/archive/).
+- [`work/README.md`](work/README.md) and [`work/STATUS.md`](work/STATUS.md): how work is done, and what landed.
 - [`docs/research/nubis-sources.md`](docs/research/nubis-sources.md): formulas and constants, with slide references.
 - [`assets/nubis-voxel-clouds/NOTICE.md`](assets/nubis-voxel-clouds/NOTICE.md): credits and licence notice for the Nubis pack.
 

@@ -1,6 +1,6 @@
 # Status: what's running, what's waiting on you, what landed
 
-The one page to check. Everything left to do, by track: `work/ROADMAP.md`. Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5180/hzd/ (T opens the tune panel).
+The one page to check. The plan: the Compass (https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1). Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5180/hzd/ (T opens the tune panel).
 
 Updated 2026-10-13.
 

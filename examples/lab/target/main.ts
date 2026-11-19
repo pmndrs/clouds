@@ -1,4 +1,4 @@
-// L1: target page for the target-driven authoring loop (docs/PLAN-2026-10-next.md, "Authoring loop").
+// L1: target page for the target-driven authoring loop (docs/archive/PLAN-2026-10-next.md, "Authoring loop").
 // Renders ONE candidate cloud from a camera that matches the target photo's framing and sun, so the render can be scored against
 // the photo's target card (scripts/targets/card.py, scripts/targets/match.py).  Default target: the hero tower of "Texas afternoon".
 //

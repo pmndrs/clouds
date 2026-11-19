@@ -18,14 +18,12 @@ const read = async (p: string) => { if (!cache.has(p)) cache.set(p, await files.
 // What to read first, in order.
 const START: [string, string][] = [
   ['work/STATUS.md', 'Start here: what is running, what is waiting on you, what landed'],
-  ['work/ROADMAP.md', 'Everything left to do, by track, and where we fall short'],
-  ['work/HANDOFF.md', 'Where everything stands, and what to do next'],
   ['work/D1-TOOLS.md', 'Every bench, capture and measuring command'],
   ['work/HZD-BENCH.md', 'The HZD bench: our procedural sky against the papers and photos'],
   ['work/reports/D1.md', 'The Decima parity rounds, in full'],
   ['work/calibration/d1k-results.md', 'The latest judged round'],
   ['work/reports/D1-florets.md', 'Why the cauliflower bumps were missing'],
-  ['work/BOARD.md', 'All tasks, past and planned'],
+  ['work/archive/BOARD.md', 'Archived: all October tasks'],
   ['docs/research/topics/README.md', 'Research map and the top 20'],
   ['docs/research/README.md', 'Research index'],
   ['work/README.md', 'How the agents work'],

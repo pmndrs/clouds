@@ -1,10 +1,9 @@
 # How work gets done here
 
-The current roadmap is [`docs/PLAN-2026-10-next.md`](../docs/PLAN-2026-10-next.md). Task definitions are in [`docs/PLAN-2026-10-variety.md`](../docs/PLAN-2026-10-variety.md), and the history and early phases in [`docs/AUDIT-2026-10.md`](../docs/AUDIT-2026-10.md).
+The plan is the living Compass page (https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1, source `work/compass/index.html`); `work/STATUS.md` is the per-merge log. October's BOARD, HANDOFF, ROADMAP and plans are archived in `work/archive/` and `docs/archive/`.
 **Research: read [`docs/research/README.md`](../docs/research/README.md) first.** It indexes every source and note: what each is good for, what is already extracted, and what is unread. Formulas and constants are in [`docs/research/nubis-sources.md`](../docs/research/nubis-sources.md). When you scan a new source, add a row to the index.
 This folder is the working surface:
 
-- `BOARD.md` is the task list.
 - `reports/` holds one short report per task.
 - `captures/` holds screenshots and timing JSON from the GPU harness.
 
