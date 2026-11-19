@@ -3,12 +3,13 @@
 import { DEFAULT_COVERAGE, type ViewState } from '../../compare/shared';
 import { HZD_REF_BY_ID } from '../refs';
 import { PREFIX, type SourceId } from '../tune';
+import { isProceduralStyle, type ProceduralStyle } from '../../../../packages/runtime/src/procedural/styles';
 import { QUALITIES, REF_MODES, STORM_PRESET, VIEWS, VIEW_NAMES, applyBookmark, applyRefView, type RefMode } from './views';
 
 export interface RefState { id: string; mode: RefMode; pip: 's' | 'm' | 'l'; corner: 'bl' | 'br'; page: boolean; follows: boolean }
 export type Sources = Record<SourceId, Record<string, unknown>>;
 
-export interface StartState { quality: string; clean: boolean; viewName: string; view: ViewState; ref: RefState }
+export interface StartState { quality: string; clean: boolean; viewName: string; view: ViewState; ref: RefState; style: ProceduralStyle }
 
 const SETTING_PREFIXES = Object.entries(PREFIX) as [SourceId, string][];
 /** Settings the bench reads from the URL itself (not passed to the pane), so their starting values are the code defaults. */
@@ -43,7 +44,9 @@ export function readStart(query: URLSearchParams): StartState {
     page: query.get('refpage') === '1',
     follows: query.get('refview') !== '0',
   };
-  return { quality, clean: query.get('clean') === '1', viewName, view, ref };
+  // S1: the look (procedural/styles.ts); unknown names open the default.
+  const style = isProceduralStyle(query.get('style')) ? (query.get('style') as ProceduralStyle) : 'horizon';
+  return { quality, clean: query.get('clean') === '1', viewName, view, ref, style };
 }
 
 export function parseLike(old: unknown, raw: string): unknown {
@@ -73,7 +76,7 @@ export function applySettingOverrides(query: URLSearchParams, sources: Sources):
   if (query.has('motion') && Number.isFinite(Number(query.get('motion')))) sources.c.animSpeed = Number(query.get('motion'));
 }
 
-export interface UrlSnapshot { viewName: string; view: ViewState; ref: RefState; quality: string; clean: boolean; changes: Record<string, unknown> }
+export interface UrlSnapshot { viewName: string; view: ViewState; ref: RefState; quality: string; clean: boolean; changes: Record<string, unknown>; style?: ProceduralStyle }
 
 /** What the page writes: the view and only what differs from it, the reference, the quality, and every changed setting. */
 export function writeQuery(s: UrlSnapshot): URLSearchParams {
@@ -97,6 +100,7 @@ export function writeQuery(s: UrlSnapshot): URLSearchParams {
   if (!ref.follows) q.set('refview', '0');
   if (s.quality !== 'ultra') q.set('quality', s.quality);
   if (s.clean) q.set('clean', '1');
+  if (s.style && s.style !== 'horizon') q.set('style', s.style);
   for (const [k, v] of Object.entries(s.changes)) {
     const [src, key] = [k.slice(0, k.indexOf('.')) as SourceId, k.slice(k.indexOf('.') + 1)];
     // Six significant digits: Tweakpane's step snapping leaves 0.19999999999999998 for 0.2 (the vanilla bench wrote that into its links).

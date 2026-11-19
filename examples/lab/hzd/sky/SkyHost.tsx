@@ -15,6 +15,7 @@ import { applySettingOverrides, paneQuery, type Sources } from '../bench/url';
 import { START_QUERY, bench, bookmark, scheduleUrl, setRef, settingsChanged, viewChanged, type BenchRuntime } from '../bench/store';
 import { VIEWS } from '../bench/views';
 import { weatherFromQuery, weatherTick } from '../bench/weather';
+import { startStyle } from '../bench/style';
 
 /** One sky per renderer: StrictMode and Fast Refresh remount components, but the pane attaches to the scene and lives as long as the page. */
 const started = new WeakMap<WebGPURenderer, Promise<BenchRuntime>>();
@@ -54,6 +55,7 @@ function startSky(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCam
     });
     // The tuner's starting values are the code defaults; the URL's overrides go on top (so a link's changes show amber).
     tuner.start();
+    startStyle(sources, tuner, bench.getState().style);   // S1: the look first, so a link's own setting keys win over it
     applySettingOverrides(query, sources);
     tuner.refresh();
     weatherFromQuery(query);
@@ -123,7 +125,7 @@ function reportReady(harness: CloudsHarness, renderer: WebGPURenderer) {
     bookmark,
     report: () => {
       const s = bench.getState(), v = s.view;
-      return { view: s.viewName, ref: s.ref.id, refMode: s.ref.mode, camera: [...v.position], lookAz: v.lookAz, pitch: v.pitch, sunElevation: v.sunEl, sunAzimuth: v.sunAz,
+      return { view: s.viewName, style: s.style, ref: s.ref.id, refMode: s.ref.mode, camera: [...v.position], lookAz: v.lookAz, pitch: v.pitch, sunElevation: v.sunEl, sunAzimuth: v.sunAz,
         coverage: v.coverage, quality: s.quality, gpuMs: s.rt?.pane.stats().gpuMs ?? null, gpuLast: s.rt?.clouds.lastTimings ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
     },
   });
@@ -133,7 +135,7 @@ const f1 = (n: number) => n.toFixed(1);
 function hudText(renderer: WebGPURenderer): string {
   const s = bench.getState(), v = s.view, rt = s.rt!, canvas = renderer.domElement as HTMLCanvasElement;
   const st = rt.pane.stats(), gpu = st.gpuMs?.total, sky = st.gpuMs?.skyLayer;
-  return `HZD sky · ${s.viewName}${rt.pane.ready() ? '' : ' (loading...)'}  q ${s.quality}\n`
+  return `HZD sky · ${s.viewName}${rt.pane.ready() ? '' : ' (loading...)'}  q ${s.quality}  style ${s.style}\n`
     + `cam ${v.position.map(x => Math.round(x)).join(', ')}  az ${Math.round(v.lookAz)}  pitch ${f1(v.pitch)}  fov ${Math.round(v.fov)}\n`
     + `sun el ${f1(v.sunEl)} az ${Math.round(v.sunAz)}  coverage ${v.coverage.toFixed(2)}  motion ×${rt.sources.c.animSpeed}\n`
     + `${gpu != null ? `gpu ${f1(gpu)} ms` : ''}${sky != null ? `  sky layer ${f1(sky)} ms` : ''}  ${canvas.width}x${canvas.height}${s.ref.id ? `\nvs ${s.ref.id}` : ''}`;

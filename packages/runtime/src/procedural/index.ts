@@ -28,6 +28,7 @@ export { bakeHzdNoise, type HzdNoise, type HzdNoiseOptions } from './hzd/noise';
 export { applyHzdNdfImages, generateHzdNdf, uploadHzdNdf, writeHzdNdf, type HzdNdf, type HzdNdfFields } from './hzd/ndf';
 export * from './weather/blend';
 export * from './weather/states';
+export * from './styles';
 export { HZD_GRADIENTS, hzdHeightGradient } from './hzd/shaper.wgsl';
 export { PROC_BINDINGS, proceduralTraceWgsl } from './trace.wgsl';
 

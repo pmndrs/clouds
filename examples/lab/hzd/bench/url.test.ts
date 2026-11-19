@@ -59,4 +59,14 @@ describe('the React bench URL', () => {
     expect(src.sky.temporalBlend).toBe(false);
     expect('nope' in src.ndf).toBe(false);
   });
+
+  it('S1: reads and writes the style (horizon is the default and is not written)', () => {
+    expect(readStart(q('view=gp7')).style).toBe('horizon');
+    expect(readStart(q('view=gp7&style=nope')).style).toBe('horizon');
+    const s = readStart(q('view=gp7&style=early'));
+    expect(s.style).toBe('early');
+    const w = writeQuery({ viewName: s.viewName, view: s.view, ref: s.ref, quality: s.quality, clean: s.clean, changes: {}, style: s.style });
+    expect(w.get('style')).toBe('early');
+    expect(writeQuery({ viewName: s.viewName, view: s.view, ref: s.ref, quality: s.quality, clean: s.clean, changes: {}, style: 'horizon' }).has('style')).toBe(false);
+  });
 });
