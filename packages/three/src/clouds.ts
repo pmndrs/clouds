@@ -7,7 +7,7 @@
 // The node's updateBefore (NodeUpdateType.FRAME) runs after scenePass rendered: it records the runtime's compute passes into
 // its own command encoder with three's device and submits it, then the fragment shader blends `color * a + rgb`.
 import { HalfFloatType, Matrix4, Vector3, type PerspectiveCamera } from 'three';
-import { NodeUpdateType, StorageTexture, TempNode, type WebGPURenderer } from 'three/webgpu';
+import { Node, NodeUpdateType, StorageTexture, type WebGPURenderer } from 'three/webgpu';
 import { Fn, abs, float, max, mix, smoothstep, texture, uniform, vec2, vec3, vec4 } from 'three/tsl';
 import {
   createAtmosphereBindGroupLayout, createCloudRuntime, GpuTimer, loadCloudNoise, loadCloudVolume,
@@ -321,7 +321,7 @@ export class Clouds {
   }
 }
 
-class CloudsNode extends TempNode<'vec4'> {
+class CloudsNode extends Node<'vec4'> { // TempNode is deprecated in r187
   constructor(private readonly clouds: Clouds, private readonly color: AnyNode, private readonly scenePass: AnyNode) {
     super('vec4');
     (this as unknown as { updateBeforeType: unknown }).updateBeforeType = NodeUpdateType.FRAME;

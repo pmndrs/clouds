@@ -1,5 +1,5 @@
-/** Preview API. Three r186 / conventional WebGPU depth; the host owns the frame loop. */
-export const CLOUDS_THREE_REVISION = '0.186.0';
+/** Preview API. Three r187 / conventional WebGPU depth; the host owns the frame loop. */
+export const CLOUDS_THREE_REVISION = '0.187.0';
 export { createCloudscape } from './cloudscape';
 export type Cloudscape = ReturnType<typeof import('./cloudscape').createCloudscape>;
 export type CloudscapeSettings = Cloudscape['settings'];
