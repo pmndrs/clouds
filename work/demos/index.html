@@ -1,0 +1,239 @@
+<title>WebGPU Clouds Demos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a contact-sheet reel. Each section is one question, answered with frames at full width; captions carry the facts (sun, view, level). */
+:root {
+  --sky: #eef2f6;        /* page ground: overcast paper with a blue bias */
+  --card: #ffffff;
+  --ink: #18222e;
+  --muted: #5a6878;
+  --rule: #d6dde5;
+  --accent: #2f5f8f;     /* zenith blue */
+  --sun: #b4741c;        /* low sun */
+  --good: #2d7a4d;
+  --frame: #0f151c;      /* behind images */
+  --display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky: #0f141a; --card: #171e26; --ink: #e4e9ef; --muted: #98a5b3; --rule: #28323d;
+    --accent: #86b4e0; --sun: #e3aa52; --good: #62c08a; --frame: #070a0d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sky: #0f141a; --card: #171e26; --ink: #e4e9ef; --muted: #98a5b3; --rule: #28323d;
+  --accent: #86b4e0; --sun: #e3aa52; --good: #62c08a; --frame: #070a0d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--sky); color: var(--ink); font: 15.5px/1.6 var(--body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.05; text-wrap: balance; }
+h1 { font-size: clamp(44px, 7vw, 76px); letter-spacing: -0.01em; }
+h2 { font-size: clamp(30px, 4vw, 42px); }
+h3 { font: 600 15px/1.3 var(--body); margin: 0; }
+p { margin: 0; max-width: 70ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.muted { color: var(--muted); }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 14px; }
+.lede { font-size: 18px; color: var(--muted); max-width: 64ch; }
+nav { display: flex; flex-wrap: wrap; gap: 6px; }
+nav a { font-size: 13px; text-decoration: none; color: var(--ink); border: 1px solid var(--rule); background: var(--card); padding: 4px 11px; border-radius: 999px; }
+nav a:hover, nav a:focus-visible { border-color: var(--accent); outline: none; }
+section { display: grid; gap: 18px; }
+.head { display: grid; gap: 8px; border-top: 1px solid var(--ink); padding-top: 14px; }
+.head p { color: var(--muted); }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; background: var(--frame); border-radius: 4px; cursor: zoom-in; }
+figcaption { font-size: 13px; color: var(--muted); }
+figcaption b { color: var(--ink); font-weight: 600; }
+.hero img { border-radius: 6px; }
+.row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.row.two { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+.findings { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.finding { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.finding .k { font: 500 12px/1 var(--mono); color: var(--sun); letter-spacing: .04em; }
+.switch { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.switch span { font-size: 13px; color: var(--muted); margin-right: 4px; }
+.switch button { font: 500 13px var(--body); color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.switch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--card); }
+.switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.verdict { font-size: 14px; background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; max-width: none; }
+.tablewrap { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 640px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+th { font: 500 11.5px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; }
+.pill { font: 600 11.5px/1 var(--body); padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.run { color: var(--sun); } .pill.ok { color: var(--good); }
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
+dialog::backdrop { background: rgba(5, 8, 12, .86); }
+dialog img { max-width: 96vw; max-height: 94vh; display: block; border-radius: 4px; cursor: zoom-out; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">WebGPU Clouds · 20 November 2026 · overnight</div>
+  <h1>Cloud Demos</h1>
+  <p class="lede">Frames from the current main branch after the overnight refactor: three switchable cloud styles on the procedural sky, a path-traced ground truth to judge them against, the early raymarch looks you wanted kept, the showcase scenes on three r187, and the first upscaler render levels.</p>
+  <nav aria-label="Sections"><a href="#truth">Horizon or us?</a><a href="#styles">Styles</a><a href="#early">Early raymarch</a><a href="#scenes">Scenes</a><a href="#levels">Render levels</a><a href="#next">Still running</a><a href="#live">Run it live</a></nav>
+</header>
+
+<figure class="hero">
+  <img src="img/hero-real-gp7.jpg" alt="Cumulus field from the ground at midday in the new Real weight style: heavy grey-based clouds with crisp bright tops" width="1920" height="1080">
+  <figcaption><b>Real weight style</b>, HZD bench, view gp7 (from the ground, sun 40° elevation), Cinematic level. Denser cores, greyer bases, less surface foam than Horizon, with the lit tops kept crisp.</figcaption>
+</figure>
+
+<section id="truth">
+  <div class="head">
+    <div class="eyebrow">Question 1</div>
+    <h2>Is the odd feel just Horizon?</h2>
+    <p>Mostly not. Your pathtracer rendered the Parkouring cloud from the same density, sun, sky, camera and tone map as our realtime renderer. Left in each sheet: path traced, 4096 samples. Middle: our Nubis lighting. Right: our octave lighting.</p>
+  </div>
+  <figure><img src="img/pt-noon.jpg" alt="Three renders of the same cloud at noon: path traced, Nubis lighting, octave lighting, with crops of top, body and base" loading="lazy" width="1800" height="1036"><figcaption><b>Noon.</b> Brightness matches within 1–2 % for Nubis. The path-traced faces are smooth: light bouncing inside the cloud fills the small pits that our sun-shadow terms darken one by one.</figcaption></figure>
+  <figure><img src="img/pt-backlit.jpg" alt="Three renders of the same cloud backlit: path traced is bright and soft, Nubis goes blue, octave goes brown and dark" loading="lazy" width="1800" height="1058"><figcaption><b>Backlit.</b> The reference stays bright and creamy. Nubis lighting turns the body blue-grey and comes in at 0.86× the reference brightness; octave lighting goes brown and comes in at 0.6×. Our phase function scatters too little forward.</figcaption></figure>
+  <div class="findings">
+    <div class="finding"><div class="k">Foam</div><p>Lit faces carry 1.6–1.9× too much small-scale texture (4–20 m pits). That is the foam you kept seeing. A finer bake adds no detail, so it is the lighting, not resolution.</p></div>
+    <div class="finding"><div class="k">Thin edges</div><p>In the reference, thin fringes are see-through and faintly blue. Ours are painted solid white, and the reference shows no dark powder rim at these angles.</p></div>
+    <div class="finding"><div class="k">Shade colour</div><p>Nubis shade is too blue (blue/red 2.2 against 1.3–1.8); octave is too brown. Most of the blue in the bench's bases comes from the atmosphere's aerial perspective.</p></div>
+    <div class="finding"><div class="k">The early look</div><p>The September raymarch you liked is closer to the reference than the current bench: soft, heavy, cohesive. Your eye was right about its weight.</p></div>
+  </div>
+</section>
+
+<section id="styles">
+  <div class="head">
+    <div class="eyebrow">Question 2</div>
+    <h2>Three styles on one sky</h2>
+    <p>Your d1 answer: both, case by case. Style is now a switch on the HZD bench: <b>Horizon</b> (unchanged), <b>Early</b> (the September treatment) and <b>Real weight</b> (your photos, nudged toward the path-traced reference). Same map, sun and camera in every frame.</p>
+  </div>
+  <div class="switch" role="group" aria-label="View"><span>View</span>
+    <button type="button" id="v-gp7" data-view="gp7" aria-pressed="true">Midday</button>
+    <button type="button" id="v-ground" data-view="ground" aria-pressed="false">Ground</button>
+    <button type="button" id="v-sunset" data-view="sunset" aria-pressed="false">Sunset</button>
+  </div>
+  <div class="row">
+    <figure><img data-style="horizon" src="img/style-horizon-gp7.jpg" alt="Horizon style" loading="lazy" width="1000" height="562"><figcaption><b>Horizon</b> · <code>?style=horizon</code></figcaption></figure>
+    <figure><img data-style="early" src="img/style-early-gp7.jpg" alt="Early style" loading="lazy" width="1000" height="562"><figcaption><b>Early</b> · <code>?style=early</code></figcaption></figure>
+    <figure><img data-style="real" src="img/style-real-gp7.jpg" alt="Real weight style" loading="lazy" width="1000" height="562"><figcaption><b>Real weight</b> · <code>?style=real</code></figcaption></figure>
+  </div>
+  <p class="verdict" id="style-verdict">Midday and ground: both new styles read as masses rather than foam, and Real weight is closest to the reference. Sunset: Early draws a cut-paper outline around every body, and Horizon is the most natural. From above (not shown), both new styles flatten into a white sheet. So it really is case by case.</p>
+  <figure><img src="img/styles-gp7-sheet.jpg" alt="Comparison sheet of the three styles at midday with 1:1 crops of a lit ridge and a base" loading="lazy" width="1800" height="1052"><figcaption><b>1:1 crops, midday.</b> Lit ridge (middle row) and base (bottom row). Horizon's ridge is all florets; Early and Real weight keep the silhouette crisp and the faces calm.</figcaption></figure>
+</section>
+
+<section id="early">
+  <div class="head">
+    <div class="eyebrow">Kept</div>
+    <h2>The early raymarch looks</h2>
+    <p>The September prototypes still run, untouched, as the legacy pages. They are linked from the lab index and now capturable by the harness. The Early style ports their treatment to the procedural sky; these pages stay as the originals.</p>
+  </div>
+  <div class="row">
+    <figure><img src="img/legacy-cloudscape.jpg" alt="Field of soft white towering clouds over green plain" loading="lazy" width="940" height="490"><figcaption><b>Cloudscape</b> (P2, 17 Sep) · <code>legacy/cloudscape/</code></figcaption></figure>
+    <figure><img src="img/legacy-clouds.jpg" alt="Single soft cumulus with a ground shadow" loading="lazy" width="940" height="490"><figcaption><b>First voxel</b> (P1, 17 Sep) · <code>legacy/clouds/</code></figcaption></figure>
+    <figure><img src="img/legacy-realism.jpg" alt="Close-up of eroded cloud volumes in grey" loading="lazy" width="940" height="490"><figcaption><b>Cloud layer realism study</b> · <code>legacy/realism/</code></figcaption></figure>
+  </div>
+</section>
+
+<section id="scenes">
+  <div class="head">
+    <div class="eyebrow">Showcases</div>
+    <h2>Scenes on three r187</h2>
+    <p>The demo scenes after the move to three 0.187 (with a local patch for r187's compile bug, which otherwise renders these pages black). Captured with the UI hidden.</p>
+  </div>
+  <div class="row two">
+    <figure><img src="img/scene-ow-horizon.jpg" alt="Open ocean from the shore with cumulus reflected in the water" loading="lazy" width="1600" height="900"><figcaption><b>Open water</b> · shore · <code>open-water/</code></figcaption></figure>
+    <figure><img src="img/scene-ow-sunset.jpg" alt="Open ocean at sunset under clouds" loading="lazy" width="1600" height="900"><figcaption><b>Open water</b> · sunset</figcaption></figure>
+    <figure><img src="img/scene-onsen-vantage.jpg" alt="Mountain valley with a hot spring and towering clouds" loading="lazy" width="1600" height="900"><figcaption><b>Onsen valley</b> · valley · <code>onsen/</code></figcaption></figure>
+    <figure><img src="img/scene-onsen-sunset.jpg" alt="Mountain valley at sunset with clouds and valley fog" loading="lazy" width="1600" height="900"><figcaption><b>Onsen valley</b> · sunset</figcaption></figure>
+    <figure><img src="img/scene-plains.jpg" alt="Flight over plains under scattered cumulus" loading="lazy" width="1600" height="900"><figcaption><b>Plains flight</b> · 10 s in · <code>plains-flight/</code></figcaption></figure>
+    <figure><img src="img/scene-flagship.jpg" alt="A single voxel cumulus seen from the ground" loading="lazy" width="1600" height="900"><figcaption><b>Flagship</b> · a Nubis voxel cloud from the ground · <code>flagship/</code></figcaption></figure>
+    <figure><img src="img/hzd-real-horizon.jpg" alt="Procedural sky toward the horizon in the Real weight style" loading="lazy" width="1600" height="900"><figcaption><b>HZD bench, Real weight</b> · horizon view</figcaption></figure>
+    <figure><img src="img/hzd-real-sunset.jpg" alt="Procedural sky at sunset in the Real weight style, rims lit gold" loading="lazy" width="1600" height="900"><figcaption><b>HZD bench, Real weight</b> · sunset. (Its afterglow view is still muddy: near-black bodies with harsh red rims. That is on the list.)</figcaption></figure>
+  </div>
+</section>
+
+<section id="levels">
+  <div class="head">
+    <div class="eyebrow">Upscaler first</div>
+    <h2>Render levels</h2>
+    <p>Your d4 answer: upscaler always on, and looks judged at Desktop too. The sky layer now renders at an internal size and goes through your upscaler's raw-WebGPU core, with cloud depth and wind-aware velocity. Cinematic stays the default and is the old path.</p>
+  </div>
+  <figure><img src="img/levels-sheet.jpg" alt="Comparison of cinematic, desktop and laptop render levels with 1:1 crops" loading="lazy" width="1800" height="1568"><figcaption><b>Cinematic · Desktop (½) · Laptop (¼).</b> Full frames read the same. At 1:1, Desktop is a little softer with a faint 4×4 hatch; Laptop at ¼ goes mushy on lit ridges.</figcaption></figure>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Level</th><th>Sky layer res</th><th>Sky cost vs Cinematic</th><th>Target (d8)</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><b>Cinematic</b></td><td class="num">1×</td><td class="num">1.0</td><td>no cap</td><td><span class="pill ok">default</span></td></tr>
+      <tr><td><b>Desktop</b></td><td class="num">½</td><td class="num">≈ 0.55</td><td class="num">≤ 4 ms</td><td>softer, faint hatch; S2 fixing</td></tr>
+      <tr><td><b>Laptop</b></td><td class="num">¼ (⅓ tested)</td><td class="num">≈ 0.2 (0.3)</td><td class="num">≤ 3 ms</td><td>too soft at ¼; ⅓ looks better</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">No level is near the ms targets yet: the sky trace itself is the cost, so the speed phase (amortisation, 30 Hz lighting, LOD) is still needed. All timings tonight are ratios from a heavily loaded machine; the WebGPU device was also lost in about half of the Desktop runs, which looks like memory pressure. Please try <code>?level=desktop</code> on a quiet machine.</p>
+</section>
+
+<section id="next">
+  <div class="head">
+    <div class="eyebrow">In progress</div>
+    <h2>Still running</h2>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Work</th><th>Aim</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><b>S2</b></td><td>Remove the fine hatch on hard lit faces, and make Desktop hold up beside Cinematic (render the sky layer under the upscaler's jitter).</td><td><span class="pill run">running</span></td></tr>
+      <tr><td><b>V1</b></td><td>An artist VDB cloud (Disney's WDAS cloud, an EmberGen cloud) through <code>@pmndrs/vdb</code>, lit by our sky and inside it. New page <code>vdb-sky/</code>.</td><td><span class="pill run">running</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="live">
+  <div class="head">
+    <div class="eyebrow">Live</div>
+    <h2>Run it live</h2>
+    <p>From the repo: <code>pnpm dev</code>, then open <code>http://localhost:5180/</code>. The lab index links all of these. On the HZD bench, T opens every setting and the sidebar has the Style and Review switches.</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Page</th><th>Address</th><th>Try</th></tr></thead>
+    <tbody>
+      <tr><td>HZD bench, styles</td><td class="num">/hzd/?view=gp7&amp;style=real</td><td><code>style=horizon|early|real</code>; views ground, gp7, sunset, above</td></tr>
+      <tr><td>HZD bench, levels</td><td class="num">/hzd/?view=gp7&amp;level=desktop</td><td><code>level=cinematic|desktop|laptop</code>, or Review switch U2</td></tr>
+      <tr><td>Path-traced reference</td><td class="num">/reference-pt/</td><td>noon, low and backlit buttons; settles over a few minutes</td></tr>
+      <tr><td>Early raymarch</td><td class="num">/legacy/cloudscape/</td><td>Play 40-second flight; also <code>/legacy/clouds/</code></td></tr>
+      <tr><td>Open water</td><td class="num">/open-water/</td><td>shore, horizon, sunset, cruise, flight</td></tr>
+      <tr><td>Onsen valley</td><td class="num">/onsen/</td><td>vantage, valley, sunset</td></tr>
+      <tr><td>Plains flight</td><td class="num">/plains-flight/</td><td>t0 to t40 bookmarks</td></tr>
+      <tr><td>Flagship</td><td class="num">/flagship/?cloud=parkouring</td><td>ground, backlit, inside</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>The plan and your decisions: <a href="https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1">WebGPU Clouds Compass</a>. What landed tonight and what waits on you: <code>work/STATUS.md</code>. Reports: <code>work/reports/PT1-pathtraced-reference.md</code>, <code>S1-styles.md</code>, <code>U2-upscaler-levels.md</code>.</footer>
+</div>
+
+<dialog id="zoom" aria-label="Full-size image"><img id="zoom-img" alt=""></dialog>
+
+<script>
+const VERDICTS = {
+  gp7: "Midday and ground: both new styles read as masses rather than foam, and Real weight is closest to the reference. Sunset: Early draws a cut-paper outline around every body, and Horizon is the most natural. From above (not shown), both new styles flatten into a white sheet. So it really is case by case.",
+  ground: "Ground: the same story as midday. Early is the softest and brightest; Real weight keeps more structure in the bodies and greyer, heavier bases.",
+  sunset: "Sunset (backlit): Horizon is the most natural here. Early outlines every body with a uniform bright rim, which reads as cut paper; Real weight is about even with Horizon, with slightly brighter rims."
+};
+document.querySelectorAll('.switch button').forEach(btn => btn.addEventListener('click', () => {
+  const v = btn.dataset.view;
+  document.querySelectorAll('.switch button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  document.querySelectorAll('img[data-style]').forEach(img => { img.src = `img/style-${img.dataset.style}-${v}.jpg`; });
+  document.getElementById('style-verdict').textContent = VERDICTS[v];
+}));
+const dlg = document.getElementById('zoom'), zimg = document.getElementById('zoom-img');
+document.querySelectorAll('figure img').forEach(img => img.addEventListener('click', () => {
+  zimg.src = img.currentSrc || img.src; zimg.alt = img.alt;
+  if (typeof dlg.showModal === 'function') dlg.showModal();
+}));
+dlg.addEventListener('click', () => dlg.close());
+</script>

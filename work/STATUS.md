@@ -32,7 +32,9 @@ What we learned:
 2. **Publish `@pmndrs/vdb` 0.1.0** (d3) when ready; we switch from `link:` to the npm version.
 3. **`@pmndrs/upscaler`:** the npm 0.5.0 has no `./core` entry, so U2 vendored your local build as `vendor/pmndrs-upscaler-0.5.0-f38e9ac.tgz`. A 0.5.1 with `./core` lets us drop it.
 4. **`@pmndrs/sky` on r187:** the proper fix for the black-page bug is for the sky to compile its pipelines one at a time (or wait for r188). Our three patch covers it locally only.
-5. **Flip through:** HZD bench Style section (`?view=gp7&style=real`, `early`) and Review switch U2 (`?level=desktop`). The lab index has chips for both.
+5. **Demos page:** https://claude.ai/artifact/CBmpwoqtrh1srJPJKXX8Yf (source `work/demos/`; republish with the Artifact tool from that folder).
+6. **Known defect, new:** `style=real` at the `afterglow` view is muddy (near-black bodies, harsh red rims). Horizon's afterglow is unaffected.
+7. **Flip through:** HZD bench Style section (`?view=gp7&style=real`, `early`) and Review switch U2 (`?level=desktop`). The lab index has chips for both.
 
 ## Waiting on you (from October)
 
