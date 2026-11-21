@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 608;
+export const FRAME_UNIFORM_BYTES = 640;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -79,6 +79,10 @@ struct Frame {
   // P1.4b: x = fitMsPow (ms falloff 1 / (1 + fitK tau)^x; 1 = P1.2c), y = fitGroundAtten (1 = the ground term also / (1 + fitKUp tauUp)),
   // z (P1.4c) = fitMsTauSmooth (the ms term's tau: mix(tau, light grid alone at the sample, z); voxel march only), w 0.
   fit4: vec4<f32>,
+  // P1.6a: two ranges of scattered light (fitMsForm 1): x = fitMsNear, y = fitMsNearFwd (forward share), z = fitKNear, w = fitMsForm (0 = fit.z / fit.w single curve).
+  fit5: vec4<f32>,
+  // P1.6a: x = fitMsFar, y = fitMsFarFwd, z = fitKFar, w 0.
+  fit6: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

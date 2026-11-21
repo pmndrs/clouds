@@ -510,6 +510,20 @@ export interface CloudSettings {
    * alone read at the sample (half the volume's resolution or coarser: multiply scattered light does not see a crease a few tens of metres wide);
    * the direct term keeps the exact tau. 0 = P1.4b. */
   fitMsTauSmooth: number;
+  /** P1.6a 'fit' model: 0 = one ms curve (fitMs, fitK, fitMsPow), 1 = two ranges: near (fitMsNear / (1 + fitKNear tau)^2) plus far (fitMsFar / (1 + fitKFar tau)). */
+  fitMsForm: number;
+  /** P1.6a (fitMsForm 1): gain of the near range (the first optical depths: bright return off a lit face). */
+  fitMsNear: number;
+  /** P1.6a: forward share of the near range's phase (HG g fitMsG). */
+  fitMsNearFwd: number;
+  /** P1.6a: falloff of the near range, / (1 + fitKNear tau)^2. */
+  fitKNear: number;
+  /** P1.6a (fitMsForm 1): gain of the far range (deep diffusion: weak, long reach). */
+  fitMsFar: number;
+  /** P1.6a: forward share of the far range's phase. */
+  fitMsFarFwd: number;
+  /** P1.6a: falloff of the far range, / (1 + fitKFar tau). */
+  fitKFar: number;
 }
 
 /**
@@ -936,7 +950,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
     sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
-    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.47, fitK: 0.2, fitAmbient: 0.62, fitKUp: 0.3, fitDirect: 1, fitMsFwd: 0.38, fitMsG: 0.5, fitGround: 0.61, fitAmbientForm: 1, fitMsPow: 2, fitGroundAtten: 0, fitMsTauSmooth: 1,   // P1.4c: ms tau from the light grid alone, refitted (P1.4b: fitMs 2.42, fitMsTauSmooth 0; the rest unchanged); P1.4b: refitted on 4 suns x 2 clouds (P1.2c: ms 2.58, K 0.4, ambient 0.33, kUp 0.05, msFwd 0.2, ground 0.31, msPow 1); P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
+    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.47, fitK: 0.2, fitAmbient: 0.608, fitKUp: 0.3, fitDirect: 1, fitMsFwd: 0.38, fitMsG: 0.5, fitGround: 0.663, fitAmbientForm: 1, fitMsPow: 2, fitGroundAtten: 0, fitMsTauSmooth: 1, fitMsForm: 1, fitMsNear: 3.22, fitMsNearFwd: 0.321, fitKNear: 0.3, fitMsFar: 0, fitMsFarFwd: 0, fitKFar: 0.1,   // P1.6a: two-range ms refitted on 10 frames (sky, embergen02 x 4 suns, tower noon, low); the far range fitted to 0; P1.4c: fitAmbient 0.62, fitGround 0.61, fitMsForm 0 (fitMs / fitK / fitMsPow kept for form 0); P1.4c: ms tau from the light grid alone, refitted (P1.4b: fitMs 2.42, fitMsTauSmooth 0; the rest unchanged); P1.4b: refitted on 4 suns x 2 clouds (P1.2c: ms 2.58, K 0.4, ambient 0.33, kUp 0.05, msFwd 0.2, ground 0.31, msPow 1); P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1527,6 +1541,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[136] = settings.fitAlbedo; f[137] = settings.fitG; f[138] = settings.fitMs; f[139] = settings.fitK; f[140] = settings.fitAmbient; f[141] = settings.lightingModel === 'fit' ? 1 : 0; f[142] = settings.fitKUp; f[143] = settings.fitDirect;
       f[144] = settings.fitMsFwd; f[145] = settings.fitMsG; f[146] = settings.fitGround; f[147] = settings.fitAmbientForm;
       f[148] = settings.fitMsPow; f[149] = settings.fitGroundAtten; f[150] = settings.fitMsTauSmooth;   // P1.4b, P1.4c (Frame.fit4)
+      f[152] = settings.fitMsNear; f[153] = settings.fitMsNearFwd; f[154] = settings.fitKNear; f[155] = settings.fitMsForm; f[156] = settings.fitMsFar; f[157] = settings.fitMsFarFwd; f[158] = settings.fitKFar;   // P1.6a (Frame.fit5, fit6)
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;
