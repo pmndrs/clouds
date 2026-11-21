@@ -171,16 +171,20 @@ fn octaveVoxel() -> vec4<f32> { return vec4(OCTAVE_VOXEL_DIFFUSE, frame.ambientS
 // above plus the ground unshadowed:
 //   msPhase = (1 - msFwd) / (4 pi) + msFwd HG(cosSun, msG);   ms = sun albedo ms msPhase / (1 + k tau)
 //   ambient = albedo (ambientGain up / (1 + kUp tauUp) + ground down)
+// P1.4b (fit4 = (msPow, groundAtten)): ms = ... / (1 + k tau)^msPow; groundAtten 1: ground down / (1 + kUp tauUp).
 fn fitOn() -> bool { return frame.fit2.y > 0.5; }
-fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
+// P1.4c: tauMs, the ms term's own (smoother) optical depth toward the sun; the direct term keeps tau. cloudFitLight: tauMs = tau (the procedural trace).
+fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> { return cloudFitLightMs(tau, tau, tauUp, cosSun, sun, up, down); }
+fn cloudFitLightMs(tau: f32, tauMs: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
   let f = frame.fit;
   let direct = sun * (f.x * henyeyGreenstein(cosSun, f.y) * exp(-tau) * frame.fit2.w);   // P1.2b: fit2.w = fitDirect (1; debug)
   let f3 = frame.fit3;
   let msPhase = (1.0 - f3.x) * ISO_PHASE + f3.x * henyeyGreenstein(cosSun, f3.y);   // P1.2c: f3.x = 0 is P1.2b's isotropic ms
-  let ms = sun * (f.x * f.z * msPhase / (1.0 + f.w * tau));
+  let ms = sun * (f.x * f.z * msPhase / pow(1.0 + f.w * tauMs, frame.fit4.x));   // P1.4b: fit4.x = fitMsPow (1 = P1.2c)
   var ambient: vec3<f32>;
   if (f3.w > 0.5) {
-    ambient = (up * (frame.fit2.x / (1.0 + frame.fit2.z * tauUp)) + down * f3.z) * f.x;   // P1.2c: sky through the cloud above, ground unshadowed
+    let upT = 1.0 / (1.0 + frame.fit2.z * tauUp);
+    ambient = (up * (frame.fit2.x * upT) + down * (f3.z * select(1.0, upT, frame.fit4.y > 0.5))) * f.x;   // P1.2c: sky through the cloud above, ground unshadowed; P1.4b: fit4.y = fitGroundAtten (ground through it too)
   } else {
     let u = 0.5 + 0.5 / (1.0 + frame.fit2.z * tauUp);   // P1.2b: its own K (fitKUp), fixed while fitK is fitted
     ambient = (up * u + down * (1.0 - u)) * (frame.fit2.x * f.x);

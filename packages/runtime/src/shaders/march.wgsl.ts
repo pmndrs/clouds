@@ -346,7 +346,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               var lit: vec3<f32>;
               // H3: the ambient's up sum is read at the sample itself. The sun tap (48 m toward the sun) landed inside the neighbouring
               // tower on shaded walls and under dense cores, so the ambient darkened by that column, not the cloud above the sample.
-              if (fitOn()) { lit = cloudFitLight(tau, lightGridSampleClamped(ps).y * frame.lightDensityScale, cosSun, sunHere, ambientUp, ambientDown); }
+              if (fitOn()) {
+                // P1.4c (fitMsTauSmooth, frame.fit4.z): the ms term's tau from the light grid alone, read at the sample itself (no start offset; the grid
+                // holds each cell's optical depth to the sun, so its trilinear read is the crease-free, cell-scale smoothed tau), blended with the exact tau.
+                var tauMs = tau;
+                if (frame.fit4.z > 0.0) {
+                  let g0 = select(lightGridSampleClamped(ps), lightGridSampleCubic(ps), frame.d2.z > 0.5);
+                  tauMs = mix(tau, g0.x * frame.lightDensityScale, frame.fit4.z);
+                }
+                lit = cloudFitLightMs(tau, tauMs, lightGridSampleClamped(ps).y * frame.lightDensityScale, cosSun, sunHere, ambientUp, ambientDown);
+              }
               else if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunHere, ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
               else {
                 // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.

@@ -1,0 +1,45 @@
+
+P1.4b defaults (its final frames): luminance ratios fit / path trace
+| frame | cloud | thick | base | dark20 | bright20 | dark20 B/R fit / pt |
+|---|---|---|---|---|---|---|
+| sky noon | 1.03 | 0.98 | 0.98 | 0.91 | 0.95 | 0.92 / 1.05 |
+| sky low | 1.09 | 1.03 | 1.13 | 1.06 | 0.91 | 0.83 / 0.92 |
+| sky backlit | 1.04 | 1.00 | 1.01 | 1.03 | 1.05 | 0.83 / 0.96 |
+| sky sunset | 1.16 | 1.08 | **1.31** | **1.47** | 1.19 | 0.68 / 0.66 |
+| embergen02 noon | 0.94 | 0.87 | 0.83 | **0.72** | 1.00 | 1.04 / 1.16 |
+| embergen02 low | 1.11 | 1.06 | 1.02 | 0.93 | 0.94 | 0.95 / 1.25 |
+| embergen02 backlit | 0.92 | 0.88 | 0.86 | 0.94 | 0.94 | 1.20 / 1.25 |
+| embergen02 sunset | 1.12 | 1.08 | 1.07 | 1.21 | 1.00 | 0.63 / 0.91 |
+
+| fitK | fitMsPow | fitMs | fitMsFwd | fitAmbient | fitGround | rms log (120 RGB means) |
+|---|---|---|---|---|---|---|
+| 0.2 | 1 | 1.753 | 0.219 | 0.529 | 0.179 | 0.225 |
+| 0.2 | 2 | 2.473 | 0.376 | 0.619 | 0.607 | 0.135 |
+| 0.4 | 1 | 2.240 | 0.277 | 0.539 | 0.326 | 0.182 |
+| 0.4 | 2 | 3.426 | 0.434 | 0.684 | 0.682 | 0.143 |
+
+best: fitK 0.2 fitMsPow 2 fitKUp 0.3 fitGroundAtten 0 fitMsTauSmooth 1 fitMs 2.473 fitMsFwd 0.376 fitAmbient 0.619 fitGround 0.607  rms log 0.135
+
+predicted luminance ratios
+| frame | cloud | thick | base | dark20 | bright20 | dark20 B/R fit / pt |
+|---|---|---|---|---|---|---|
+| sky noon | 1.01 | 0.96 | 0.98 | 0.91 | 0.92 | 0.92 / 1.05 |
+| sky low | 1.07 | 1.01 | 1.13 | 1.05 | 0.88 | 0.82 / 0.92 |
+| sky backlit | 1.03 | 0.99 | 1.00 | 1.02 | 1.03 | 0.83 / 0.96 |
+| sky sunset | 1.15 | 1.06 | **1.30** | **1.48** | 1.17 | 0.67 / 0.66 |
+| embergen02 noon | 0.95 | 0.88 | 0.84 | **0.72** | 1.01 | 1.03 / 1.16 |
+| embergen02 low | 1.13 | 1.08 | 1.04 | 0.93 | 0.95 | 0.94 / 1.25 |
+| embergen02 backlit | 0.93 | 0.89 | 0.87 | 0.94 | 0.95 | 1.20 / 1.25 |
+| embergen02 sunset | 1.14 | 1.10 | 1.09 | 1.22 | 1.01 | 0.63 / 0.91 |
+
+16-64 px band energy over the thick body, fit / path trace
+| frame | P1.4b | P1.4c predicted |
+|---|---|---|
+| sky noon | 1.12 | 1.11 |
+| sky low | 0.94 | 0.93 |
+| sky backlit | 1.05 | 1.05 |
+| sky sunset | 0.89 | 0.88 |
+| embergen02 noon | 1.76 | 1.77 |
+| embergen02 low | 1.85 | 1.86 |
+| embergen02 backlit | 1.02 | 1.03 |
+| embergen02 sunset | 1.38 | 1.38 |
