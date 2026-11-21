@@ -53,6 +53,18 @@ def read_pfm(path):
     return np.ascontiguousarray(img[::-1]).astype(np.float32)
 
 
+def read_png_display(path):
+    """A screenshot decoded from sRGB to linear display values (after ACES): PT1's units, for comparing the two spaces."""
+    from PIL import Image
+    v = np.asarray(Image.open(path).convert('RGB')).astype(np.float32) / 255
+    return np.where(v <= 0.04045, v / 12.92, ((v + 0.055) / 1.055) ** 2.4).astype(np.float32)
+
+
+def read_frame(path, display=False):
+    path = Path(path)
+    return read_png_display(path.with_suffix('.png')) if display else read_pfm(path)
+
+
 def write_pfm(path, img):
     img = np.asarray(img, dtype='<f4')
     ch = 3 if img.ndim == 3 else 1
@@ -224,8 +236,35 @@ def deviation(m):
 
 
 def noise_floor(ref, ref2, alpha):
+    """Seed-to-seed deviation of every measure, plus the path tracer's own pixel noise inside each detail band: the band energy of
+    (log A - log B) / sqrt 2 (one frame's noise; the seeds share the signal), as `bandnoise_*` (absolute) next to the frame's band energy.
+    Noise adds energy to both seeds alike, so the seed-to-seed ratio alone cannot show how much of a band is grain."""
     card = score(ref, ref2, alpha)
-    return {k: deviation(v) for k, v in card['measures'].items() if deviation(v) is not None}, card
+    nf = {k: deviation(v) for k, v in card['measures'].items() if deviation(v) is not None}
+    alpha = as_mask(alpha)
+    la, lb = luminance(ref), luminance(ref2)
+    reg = regions(alpha, la)
+    d = (np.log(np.maximum(la, 1e-8)) - np.log(np.maximum(lb, 1e-8))) / np.sqrt(2)
+    for key, ev in [('band', reg['thick_core']), ('band_lit', reg['thick_lit'])]:
+        en = band_energies(np.exp(d), reg['thick'], ev)
+        for b, v in en.items():
+            card['measures'].setdefault(f'{key}noise_{b}', {})['noise'] = v
+            card['measures'][f'{key}noise_{b}']['frame'] = card['measures'][f'{key}_{b}']['ref']
+    return nf, card
+
+
+def corrected_band_ratios(card, noise_card):
+    """Band ratios against the reference's band energy with its pixel noise removed in quadrature: test / sqrt(ref^2 - noise^2)."""
+    out = {}
+    for k, m in card['measures'].items():
+        if not k.startswith('band') or 'noise' in k:
+            continue
+        key, b = k.split('_', 1)
+        n = noise_card['measures'].get(f'{key}noise_{b}', {}).get('noise')
+        if n is None or m['ref'] is None or m['test'] is None or m['ref'] <= n:
+            continue
+        out[k] = m['test'] / np.sqrt(m['ref'] ** 2 - n ** 2)
+    return out
 
 
 # ---------------------------------------------------------------- reporting
@@ -263,7 +302,8 @@ def noise_row(label, noise):
 
 
 # ---------------------------------------------------------------- gate run
-def gate(d, seed2):
+def gate(d, seed2, display=False):
+    """display=True: the same scorecard on the PNG screenshots (display-referred, after ACES + sRGB), as PT1 measured; masks stay linear."""
     d = Path(d)
     seed2 = Path(seed2) if seed2 else d / 'seed2'
     out = {'dir': str(d), 'comparisons': {}, 'noise': {}, 'checks': {}}
@@ -273,20 +313,24 @@ def gate(d, seed2):
         if not all(p.exists() for p in need):
             print('skip', sun, [str(p) for p in need if not p.exists()])
             continue
-        ref, alpha = read_pfm(need[0]), read_pfm(need[1])
+        ref, alpha = read_frame(need[0], display), read_pfm(need[1])
         for model in MODELS:
             tp = d / f'{model}-{sun}.pfm'
             if not tp.exists():
                 continue
             ta = d / f'rtalpha-{sun}.pfm'
-            card = score(ref, read_pfm(tp), alpha, read_pfm(ta) if ta.exists() else None)
+            card = score(ref, read_frame(tp, display), alpha, read_pfm(ta) if ta.exists() else None)
             out['comparisons'][f'{model}-{sun}'] = card
             lines.append(table_row(f'{model} {sun}', card))
         r2 = seed2 / f'pt-{sun}.pfm'
         if r2.exists():
-            nf, card = noise_floor(ref, read_pfm(r2), alpha)
+            nf, ncard = noise_floor(ref, read_frame(r2, display), alpha)
             out['noise'][sun] = nf
-            out['noise_cards'] = out.get('noise_cards', {}); out['noise_cards'][sun] = card
+            out.setdefault('noise_cards', {})[sun] = ncard
+            for model in MODELS:
+                c = out['comparisons'].get(f'{model}-{sun}')
+                if c:
+                    c['band_ratio_noise_corrected'] = corrected_band_ratios(c, ncard)
     if out['noise']:
         lines.append('')
         lines.append('Noise floor (seed 1 vs seed 2 of the path trace: |ratio - 1|, or |B/R diff|):')
@@ -294,7 +338,22 @@ def gate(d, seed2):
         lines.append(table_header())
         for sun, nf in out['noise'].items():
             lines.append(noise_row(f'PT seed noise {sun}', nf))
-    for sun in SUNS:
+        lines.append('')
+        lines.append("PT pixel noise inside the detail bands (one frame's grain / the frame's band energy), and band ratios with that grain removed from the reference in quadrature:")
+        lines.append('')
+        for sun, nc in out.get('noise_cards', {}).items():
+            parts = []
+            for k in ['band_4-16', 'band_16-64', 'band_64-256', 'band_lit_4-16']:
+                key, b = k.split('_', 1)
+                m = nc['measures'].get(f'{key}noise_{b}')
+                if m and m.get('noise') is not None and m.get('frame'):
+                    parts.append(f"{k} {m['noise'] / m['frame']:.2f}")
+            corr = []
+            for model in MODELS:
+                c = out['comparisons'].get(f'{model}-{sun}', {}).get('band_ratio_noise_corrected', {})
+                corr.append(f"{model} " + ', '.join(f"{k.replace('band_', '')} {v:.2f}" for k, v in c.items() if k in ('band_4-16', 'band_16-64', 'band_lit_4-16')))
+            lines.append(f"- {sun}: grain share {'; '.join(parts)}. Corrected ratios: {' | '.join(corr)}")
+    for sun in SUNS if not display else []:
         p = sheet(d, sun)
         if p:
             print('wrote', p)
@@ -302,10 +361,13 @@ def gate(d, seed2):
     lines.append('')
     for k, v in out['checks'].items():
         lines.append(f"- {'PASS' if v['pass'] else 'FAIL'} {k}: {v['detail']}")
-    (d / 'scorecard.json').write_text(json.dumps(out, indent=1))
-    (d / 'scorecard.md').write_text('\n'.join(lines) + '\n')
+    stem = 'scorecard-display' if display else 'scorecard'
+    if display:
+        lines.insert(0, 'DISPLAY-REFERRED (PNG screenshots after ACES + sRGB, as PT1): for comparison with the linear scorecard only.\n')
+    (d / f'{stem}.json').write_text(json.dumps(out, indent=1))
+    (d / f'{stem}.md').write_text('\n'.join(lines) + '\n')
     print('\n'.join(lines))
-    print('wrote', d / 'scorecard.json', d / 'scorecard.md')
+    print('wrote', d / f'{stem}.json', d / f'{stem}.md')
     return out
 
 
@@ -471,6 +533,7 @@ def main():
     ap.add_argument('--selftest', action='store_true')
     ap.add_argument('--gate', metavar='DIR')
     ap.add_argument('--seed2', metavar='DIR', help='gate: the second-seed path traces (default DIR/seed2)')
+    ap.add_argument('--display', action='store_true', help='gate: score the PNG screenshots (display-referred, PT1 units) instead of the PFMs')
     ap.add_argument('--ref'); ap.add_argument('--test'); ap.add_argument('--alpha'); ap.add_argument('--test-alpha')
     ap.add_argument('--noise', action='store_true', help='noise-floor mode: --ref and --ref2 are two seeds of the same view')
     ap.add_argument('--ref2')
@@ -480,7 +543,7 @@ def main():
     if a.selftest:
         sys.exit(0 if selftest() else 1)
     if a.gate:
-        gate(a.gate, a.seed2)
+        gate(a.gate, a.seed2, a.display)
         return
     if not (a.ref and a.alpha and (a.test or (a.noise and a.ref2))):
         ap.error('need --ref, --alpha and --test (or --noise with --ref2)')
