@@ -4,7 +4,7 @@ The one page to check. The plan: the Clouds Audit Compass (https://claude.ai/art
 
 Updated 2026-11-20.
 
-## Running (2026-11-21): Phase 0 of the audit plan, the truth rig
+## Phase 0 (the truth rig): done 2026-11-21, except the pathtracer upgrades, which do not block. Phase 1 (light) started
 Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. The plan page is the new Compass: https://claude.ai/artifact/Q5SGgE2Z9C5dpNvZcWbPPD (source `work/compass-2026-11/index.html`; republish that file with the Artifact tool to update it). The old Compass (`work/compass/`) is kept as the record of the phases before the audit. Every run now has a time and memory cap (plan rule 9).
 
 | Step | What | Who | State |
@@ -25,7 +25,9 @@ What 0.3 found (same captures as PT1, compared before the tone map):
 - Lit-face fine texture is 2.2-2.9x the reference (about 3.5x once the reference's own grain is removed). The backlit "foam" is a tone-map effect, not extra detail.
 - The reference needs more samples: at 1024 spp its grain is most of the finest detail band. The card renders two seeds at 2048 spp and averages them.
 
-What 0.4 shows (provisional until 0.6 confirms the references):
+| 1.1 | Single scattering: our direct term against a one-bounce path trace, sun only, same phase function, realtime side converged. Thresholds for all of Phase 1 are now fixed in the plan | Opus, own worktree, 75-minute cap | running |
+
+What 0.4 shows (0.6 has confirmed the references: furnace 1.000, absorber within 0.1 %, Cycles within 0.3 %):
 - **Step 2.0 came out against my prediction.** One body from the procedural sky, path traced, reads as a soft, plausible cumulus (`work/captures/card/sky/contact.jpg`). At the scale of one body the lighting is the larger fault. The patch was baked at 8 m, which removes some fine erosion, and it is one body seen from the side, so it says nothing about the sky-wide sameness (every cloud a similar pancake).
 - Backlit and sunset bodies are far too dark on every cloud: octave thick bodies 0.15 to 0.25x the reference at sunset.
 - Lit faces are too textured on Parkouring (3.6 to 4.6x) and EmberGen (2.1 to 2.2x), about right on the sky patch.
