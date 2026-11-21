@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """P0.5 converged-march gate: differences between two tone-mapped captures (8-bit PNG), and an amplified diff sheet.
 
-  python3 scripts/gpu/converged-diff.py A.png B.png [--sheet out.jpg] [--amp 8] [--label "A|B"] [--crop x,y,w,h]
+  python3 scripts/gpu/converged-diff.py A.png B.png [--sheet out.jpg] [--amp 8] [--label "A|B"] [--crop x,y,w,h (stats and sheet)]
 
 Prints mean |B - A| (0..255 over RGB), its 99th percentile, the mean signed difference per channel (a global shift shows there), and the same
 difference after a 16 px box filter (a brightness or colour shift survives it; sampling noise and edge softness mostly do not).
@@ -20,6 +20,9 @@ args = ap.parse_args()
 
 A = np.asarray(Image.open(args.a).convert('RGB')).astype(np.float64)
 B = np.asarray(Image.open(args.b).convert('RGB')).astype(np.float64)
+if args.crop:   # the statistics and the sheet both use the crop
+    x, y, cw, ch = map(int, args.crop.split(','))
+    A, B = A[y:y + ch, x:x + cw], B[y:y + ch, x:x + cw]
 d = B - A
 ad = np.abs(d)
 lumA = A @ [0.2126, 0.7152, 0.0722]
@@ -32,9 +35,6 @@ lp = d[:h, :w].reshape(h // k, k, w // k, k, 3).mean(axis=(1, 3))
 print(f'16px-block mean d: |.| mean {np.abs(lp).mean():.3f}  p99 {np.percentile(np.abs(lp), 99):.2f}  signed luma mean {(lp @ [0.2126, 0.7152, 0.0722]).mean():+.3f}')
 if args.sheet:
     imgs = [A, B, np.clip(128 + d * args.amp, 0, 255)]
-    if args.crop:
-        x, y, cw, ch = map(int, args.crop.split(','))
-        imgs = [i[y:y + ch, x:x + cw] for i in imgs]
     hh, ww = imgs[0].shape[:2]
     sheet = Image.new('RGB', (ww * 3, hh + 18), (20, 20, 20))
     labels = args.label.split('|') + [f'B - A x{args.amp:g} (grey = same)']
