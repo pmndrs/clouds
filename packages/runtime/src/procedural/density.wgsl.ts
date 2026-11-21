@@ -105,7 +105,8 @@ struct ProcParams {
   // P2.5a edge character (packed by settings.ts packHzdEdge)
   hzEdge: vec4<f32>,     // P2.5a: on (0/1), top crisp from (h), full at (h), coverage probe (m up/downwind)
   hzEdge2: vec4<f32>,    // P2.5a: lead (-1..1; 0 = height only), lead range (coverage difference), erosion x at c 0 (soft), at c 1 (crisp)
-  hzEdge3: vec4<f32>,    // P2.5a: density exponent at c 0 (soft), at c 1 (crisp), 0, 0
+  hzEdge3: vec4<f32>,    // P2.5a: density exponent at c 0 (soft), at c 1 (crisp; only when gain 0); P2.5b: hard cut, hard gain (0 = the P2.5a pow)
+  hzEdge4: vec4<f32>,    // P2.5b: edge lobes (lobe rung strength x c), 0, 0, 0
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32, storm: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers

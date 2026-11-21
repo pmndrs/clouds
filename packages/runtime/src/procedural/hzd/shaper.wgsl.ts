@@ -297,6 +297,25 @@ fn hzdEdgeCrisp(xz: vec2<f32>, h: f32) -> f32 {
   let lead = saturate(0.5 + P.hzEdge2.x * dCov / P.hzEdge2.y);
   return saturate(top * mix(1.0, lead * 2.0, abs(P.hzEdge2.x)));
 }
+// P2.5b: the edge's hardness by c: lerp(soft, hard, c); soft = d ^ softPow (thinned, translucent), hard = sat((d - cut) / (1 - cut) x gain)
+// (the thin outer haze cut and the ramp steepened: an opaque edge). gain 0 = the P2.5a shaping d ^ lerp(softPow, crispPow, c) (it lifted the
+// thin ramp into a halo on the tops). Ours.
+fn hzdEdgeShape(d: f32, c: f32) -> f32 {
+  let x = saturate(d);
+  if (P.hzEdge3.w <= 0.0) { return pow(x, mix(P.hzEdge3.x, P.hzEdge3.y, c)); }
+  let hard = saturate((x - P.hzEdge3.z) / (1.0 - P.hzEdge3.z) * P.hzEdge3.w);
+  return mix(pow(x, P.hzEdge3.x), hard, c);
+}
+// H7 lobe rung's noise (see the 'hzd' detail branch): 1 - the inverted-Worley channel read at lobeTile, curl-displaced like the detail.
+fn hzdLobeNoise(qDetail: vec3<f32>, footprint: f32, t: f32) -> f32 {
+  let lcurl = textureSampleLevel(procAux, procRepeat, qDetail.xz / P.hzScale.z, 0.0).xy;
+  let ql = (qDetail + vec3(lcurl.x, 0.0, lcurl.y) * P.hzScale.w) / P.hzLobe.x;
+  let lodL = hzdLod(footprint, P.hzLobe.x, 32.0);
+  var L: f32;
+  if (lodL <= 0.0 && t < P.hzMisc.w && P.hzLobe.w > 0.5) { L = hzdCubic3(procNoiseB, ql).r; }
+  else { L = textureSampleLevel(procNoiseB, procRepeat, ql, lodL).r; }
+  return 1.0 - L;
+}
 
 // F1: a world-anchored low-frequency field in -1..1 (the shape texture's Perlin-Worley read flat at a coarse mip, contrast x4; ours).
 fn hzdLowField(xz: vec2<f32>, tile: f32, z: f32) -> f32 {
@@ -682,6 +701,11 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     if (swirlW > 0.01) { n3 = mix(n3, hzdN3Noise(qDetailB, h, footprint, t, prof, T), swirlW); }
     var comp = saturate(n3 * P.hzN3.z * fade);
     if (edgeOn) { comp = saturate(n3 * P.hzN3.z * fade * mix(P.hzEdge2.z, P.hzEdge2.w, crisp)); }
+    // P2.5b edge lobes: the H7 lobe rung at edgeLobes x c (rounded middle-size lobes where crisp), added to the erosion.
+    if (edgeOn && P.hzEdge4.x > 0.0) {
+      let lc = saturate(cov / max(P.hzShelf.w, 1e-3));
+      comp = saturate(comp + hzdLobeNoise(qDetail, footprint, t) * P.hzEdge4.x * crisp * fade * lc * lc);
+    }
     if (P.hzExtra.w > 0.5) {
       let be = hzdValueErosion(base, comp);
       density = max(hzdRemap(be * gradient, 1.0 - cov, 1.0, 0.0, 1.0), 0.0) * covK * fadeK;
@@ -694,8 +718,8 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       let s4 = s2 * s2;
       density = pow(max(density, 0.0) * s4, mix(0.3, 0.6, s4));
     }
-    // P2.5a: the edge's hardness: below 1 lifts thin density (a hard, opaque edge), above 1 thins it (soft, translucent).
-    if (edgeOn) { density = pow(saturate(density), mix(P.hzEdge3.x, P.hzEdge3.y, crisp)); }
+    // P2.5a/b: the edge's hardness by c (hzdEdgeShape).
+    if (edgeOn) { density = hzdEdgeShape(density, crisp); }
     // The veil keeps its own noise (the HZD detail fBM, as the 'hzd' branch reads it).
     if (P.hzVeil.x < 0.5 && veil > 0.0) { veilW = hzdDetailFbm(select(qDetail, qVeil, skirtOn), h, footprint, false); }
   } else if (full && stage >= 2.5 && fade > 0.0) {
@@ -720,17 +744,14 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     // curl-displaced like the detail, its cell borders eroding the low-frequency noise so each body grows ~3.5x-smaller domes. It fades in from
     // the wispy switch to lobeFull (h): textured tops, smooth bellies (santa D2, frog F3). Constants ours.
     var lobe = 0.0;
-    if (P.hzLobe.y > 0.0) {
-      let lcurl = textureSampleLevel(procAux, procRepeat, qDetail.xz / P.hzScale.z, 0.0).xy;
-      let ql = (qDetail + vec3(lcurl.x, 0.0, lcurl.y) * P.hzScale.w) / P.hzLobe.x;
-      let lodL = hzdLod(footprint, P.hzLobe.x, 32.0);
-      var L: f32;
-      if (lodL <= 0.0 && t < P.hzMisc.w && P.hzLobe.w > 0.5) { L = hzdCubic3(procNoiseB, ql).r; }
-      else { L = textureSampleLevel(procNoiseB, procRepeat, ql, lodL).r; }
+    // P2.5b: with edge character on, the rung's strength is edgeLobes x c instead of lobeStrength x the height ramp.
+    if (P.hzLobe.y > 0.0 || (edgeOn && P.hzEdge4.x > 0.0)) {
       // Scaled by sat(coverage / lobeCoverage)^2: small, thin-coverage clouds keep one lobe level instead of shattering into pellets
       // (world-anchored lobes: a small body shows fewer of them, frog F1).
       let lc = saturate(cov / max(P.hzShelf.w, 1e-3));
-      lobe = (1.0 - L) * P.hzLobe.y * smoothstep(P.hzExtra.z, max(P.hzLobe.z, P.hzExtra.z + 1e-3), h) * fade * lc * lc;
+      var lobeK = P.hzLobe.y * smoothstep(P.hzExtra.z, max(P.hzLobe.z, P.hzExtra.z + 1e-3), h);
+      if (edgeOn) { lobeK = P.hzEdge4.x * crisp; }
+      lobe = hzdLobeNoise(qDetail, footprint, t) * lobeK * fade * lc * lc;
     }
     if (P.hzExtra.w > 0.5) {
       // H6 'hfw' order (HFW p.15-17): erode the low-frequency noise, then apply the profile and the coverage remap.
@@ -746,7 +767,7 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       let lowB = 1.0 - saturate(h / select(P.hzExtra.z, 0.2, hag));
       density = hzdRemap(max(density, 0.0), modifier * P.hzSkirt2.z * lowB * fade, 1.0, 0.0, 1.0);
     }
-    if (edgeOn) { density = pow(saturate(density), mix(P.hzEdge3.x, P.hzEdge3.y, crisp)); }
+    if (edgeOn) { density = hzdEdgeShape(density, crisp); }
   }
   density = saturate(density);
   // F1 S7, hag eq 18: the anvil density fix, x lerp(1, sat(remap(sqrt(h), 0.4, 0.95, 1, 0.2)), amount) (keeps the plate from going opaque).

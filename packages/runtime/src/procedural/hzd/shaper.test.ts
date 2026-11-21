@@ -75,7 +75,7 @@ describe('HZD shaper (H1)', () => {
     s.hzd.lobeStrength = 0;
     packProceduralParams(s, out);
     expect(out[181]).toBe(0);
-    expect(PROC_HZD_WGSL).toContain('if (P.hzLobe.y > 0.0) {');
+    expect(PROC_HZD_WGSL).toContain('if (P.hzLobe.y > 0.0 || (edgeOn && P.hzEdge4.x > 0.0)) {');
   });
   it('H7: the hybrid blend takes one lerped rise and the summed falls', () => {
     // Type 0.75: the lerped rise (stratocumulus..cumulus stops) is full above 0.125; below it the hybrid follows one ramp, not two.
@@ -193,7 +193,7 @@ describe('HZD shaper F1: types and forms', () => {
     packProceduralParams(s, out);
     const o = PROC_HZD_N3_OFFSET;
     expect(o).toBe(PROC_HZD_FORMS_OFFSET + 44);
-    expect(PROC_HZD_LUT_OFFSET).toBe(o + 36);   // P2.5a: + 3 edge vec4; L3: the hzMix vec4 and (STORM1) three storm vec4 sit between the N1 block and the tables
+    expect(PROC_HZD_LUT_OFFSET).toBe(o + 40);   // P2.5a/b: + 4 edge vec4; L3: the hzMix vec4 and (STORM1) three storm vec4 sit between the N1 block and the tables
     expect(Array.from(out.subarray(o, o + 8))).toEqual([1, 600, 1, 0.5, 900, 1, 0, 0]);
     s.hzd.noiseSet = 'hzd'; s.hzd.shapeNoise = 'nubis3';
     packProceduralParams(s, out);
