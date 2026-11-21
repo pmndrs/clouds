@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 528;
+export const FRAME_UNIFORM_BYTES = 544;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -65,6 +65,10 @@ struct Frame {
   conv: vec4<f32>,
   // P0.5: x = the first row (pass pixels) of the band of rows the converged march traces this frame (a sample is traced over several frames); yzw 0.
   conv2: vec4<f32>,
+  // P1.1b sun shadow (CloudSettings sunShadow* block, runtime.ts): x = inline reach (m: the in-line sun taps cover 0..x, the light grid is read x m
+  // toward the sun; 48 = before P1.1b), y = in-line taps beyond the first 16 m (1 = the one 16-48 m tap before P1.1b), z = directAlbedo (the
+  // single-scattering albedo on the direct term; 1 = none), w unused.
+  sunShadow: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

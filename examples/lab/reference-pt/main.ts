@@ -24,6 +24,9 @@
 //      SINGLE_SCATTER_DEPTH, the runtime shows its direct term only (lightDebug 1, nubis model) with one HG of the PT's g: silverStrength 0, phase
 //      model hg, directProfile 0, edgeDarkening 0), &converged=1 (the runtime's P0.5 converged march; settle waits for it; &cvSamples=16),
 //      &probe=<view optical depth>&probeMode=0|1 (the runtime's light probe, CloudSettings.lightProbe: needs converged, one sample).
+// P1.1b (Review section "P1.1b sun shadow": live controls, no reload; also &sunShadow=accurate and the s.<key> URL overrides): the runtime's
+//      sunShadow block (grid source, full-resolution grid, in-line reach and taps), lightDensityScale, directAlbedo and sunAtCentre. The preset
+//      "accurate sun shadow" (ACCURATE_SUN_SHADOW) sets the recommended combination; "before P1.1b" restores the defaults.
 // P0.3: window.__clouds.readLinear() reads the current view back as linear scene radiance (float32 RGBA, before exposure and ACES):
 // the PT accumulator / samples, the runtime's composite (scene HDR target * transmittance + cloud), or the opacity masks. See linear.ts and
 // scripts/gpu/capture.mjs --linear (saves PFM next to each screenshot).
@@ -137,6 +140,8 @@ try {
   if (SINGLE) Object.assign(runtime.settings, { lightingModel: 'nubis', lightDebug: 1, silverStrength: 0, phaseG: settings.g, phaseModel: 'hg', directProfile: 0, edgeDarkening: 0 });
   if (CONVERGED) Object.assign(runtime.settings, { converged: 1, convergedSamples: PROBE > 0 ? 1 : num('cvSamples', 16) });
   if (PROBE > 0) Object.assign(runtime.settings, { lightProbe: PROBE, lightProbeMode: num('probeMode', 0) });
+  // P1.1b: the "accurate sun shadow" preset (applied before the s.<key> overrides, so one setting can be switched off on top of it).
+  if (query.get('sunShadow') === 'accurate') applySunShadowPreset(runtime, true);
   for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
 
   const pt = new PtReference();
@@ -321,6 +326,35 @@ try {
   };
   p11.append(check('sunOnly', 'sun only', SUN_ONLY), check('single', 'single scatter', SINGLE), check('converged', 'converged', CONVERGED));
   panel.appendChild(p11);
+  // P1.1b Review: the sun-shadow settings, live (the converged sum restarts on any change); the preset buttons set them together.
+  const p11b = document.createElement('div'); p11b.className = 'row'; p11b.append('Review: P1.1b sun shadow ');
+  const ssControls: { key: string; el: HTMLInputElement | HTMLSelectElement }[] = [];
+  const artLds = runtime.settings.lightDensityScale;
+  const ssSet = (key: string, v: number) => { (runtime.settings as unknown as Record<string, number>)[key] = v; };
+  const ssSelect = (key: string, label: string, opts: [string, number][]) => {
+    const el = document.createElement('select');
+    for (const [t, v] of opts) { const o = document.createElement('option'); o.value = String(v); o.textContent = t; el.append(o); }
+    el.onchange = () => ssSet(key, Number(el.value)); ssControls.push({ key, el }); p11b.append(` ${label} `, el);
+  };
+  const ssNumber = (key: string, label: string, step: string) => {
+    const el = Object.assign(document.createElement('input'), { type: 'number', step, style: 'width:4.5em' });
+    el.onchange = () => ssSet(key, Number(el.value)); ssControls.push({ key, el }); p11b.append(` ${label} `, el);
+  };
+  ssSelect('sunShadowGridSource', 'grid source', [['NVDF R (before)', 0], ['rendered density', 1]]);
+  ssSelect('sunShadowGridFull', 'grid res', [['half (before)', 0], ['full', 1]]);
+  ssNumber('sunShadowInlineReach', 'in-line reach m', '8');
+  ssNumber('sunShadowInlineSamples', 'far taps', '1');
+  ssNumber('lightDensityScale', 'grid scale', '0.05');
+  ssNumber('directAlbedo', 'direct albedo', '0.01');
+  ssSelect('sunAtCentre', 'sun', [['by height (runtime)', 0], ['at cloud centre (as PT)', 1]]);
+  const syncSunShadow = () => { const rs = runtime.settings as unknown as Record<string, number>; for (const c of ssControls) c.el.value = String(rs[c.key]); };
+  const ssButton = (label: string, on: boolean) => {
+    const b = document.createElement('button'); b.textContent = label;
+    b.onclick = () => { applySunShadowPreset(runtime, on, artLds); syncSunShadow(); }; p11b.append(' ', b);
+  };
+  ssButton('accurate sun shadow', true); ssButton('before P1.1b', false);
+  syncSunShadow();
+  panel.appendChild(p11b);
   function syncPanel() { for (const [k, b] of buttons) b.classList.toggle('on', k === `${state.renderer}-${state.sun}`); }
   function updateHud() {
     const s = sunNow();
@@ -345,6 +379,7 @@ try {
       sky: skyNow && { sunIrradiance: round(skyNow.sun), ambientUp: round(skyNow.ambientUp), ambientDown: round(skyNow.ambientDown), envMapUp: round(skyNow.envUp), envMapDown: round(skyNow.envDown) },
       grid: gridNow && { resolution: gridNow.resolution, voxel: gridNow.voxel, min: gridNow.min, max: gridNow.max, densityMax: gridNow.densityMax, occupancy: gridNow.occupancy, bakeMs: gridNow.ms },
       ptTest: PT_TEST, p11: { sunOnly: SUN_ONLY, single: SINGLE, converged: CONVERGED, probe: PROBE, probeMode: runtime.settings.lightProbeMode, convergedInfo: runtime.convergedInfo },
+      sunShadow: { ...Object.fromEntries(SUN_SHADOW_KEYS.map(k => [k, (runtime.settings as unknown as Record<string, number>)[k]])), grid: runtime.lightGridInfo },
       pt: { majorant: pt.majorant, extScale: settings.extScale, samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
       runtime: { lightDebug: runtime.settings.lightDebug, edgeDarkening: runtime.settings.edgeDarkening, directProfile: runtime.settings.directProfile, phaseModel: runtime.settings.phaseModel, microDist: runtime.settings.microDist, bodyEnv: runtime.settings.bodyEnv, quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
       card: { def: DEF, cameraRing: { distance: CAMERA_DISTANCE, height: CAMERA_HEIGHT }, ...card.describe() },
@@ -381,7 +416,7 @@ try {
       if (CONVERGED && state.renderer !== 'alpha') while (!runtime.convergedInfo.done) await frames(4);
       // A light-grid rebuild after a sun change is sliced over frames (up to one per grid layer) and restarts the sum when it swaps in; a
       // full-resolution grid (lightGridFull) can take longer than a whole converged sum, so wait until a quiet stretch shows no further restart.
-      if (CONVERGED && state.renderer !== 'alpha' && runtime.settings.lightGridFull > 0.5) {
+      if (CONVERGED && state.renderer !== 'alpha' && (runtime.settings.lightGridFull > 0.5 || runtime.settings.sunShadowGridFull > 0.5 || runtime.settings.sunShadowGridSource > 0.5)) {
         for (;;) {
           const r = runtime.convergedInfo.restarts;
           await frames(260);
@@ -549,4 +584,22 @@ try {
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));
   throw e;
+}
+
+/**
+ * P1.1b: the sun-shadow settings the card's Review row shows, and the "accurate sun shadow" preset: every value a more accurate estimate of the
+ * optical depth toward the sun through the rendered density (or a missing physical factor), none tuned toward the reference. The full-resolution
+ * grid is turned on only where its three rgba16float textures stay within SUN_SHADOW_GRID_CAP (the run's memory cap per grid).
+ */
+export const SUN_SHADOW_KEYS = ['sunShadowGridSource', 'sunShadowGridFull', 'sunShadowInlineReach', 'sunShadowInlineSamples', 'lightDensityScale', 'directAlbedo', 'sunAtCentre'] as const;
+export const SUN_SHADOW_DEFAULTS = { sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, directAlbedo: 1, sunAtCentre: 0 } as const;
+export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, lightDensityScale: 1, directAlbedo: 0.99 } as const;
+export const SUN_SHADOW_GRID_CAP = 500 * 1024 * 1024;
+type SunShadowRuntime = { settings: object; lightGridInfo: { volumeDims: [number, number, number] } | null };
+function applySunShadowPreset(runtime: SunShadowRuntime, on: boolean, artLightDensityScale = 1.2): void {
+  const rs = runtime.settings as unknown as Record<string, number>;
+  if (!on) { Object.assign(rs, SUN_SHADOW_DEFAULTS); rs.lightDensityScale = artLightDensityScale; return; }
+  Object.assign(rs, ACCURATE_SUN_SHADOW);
+  const v = runtime.lightGridInfo?.volumeDims;
+  if (v && v[0] * v[1] * v[2] * 8 * 3 > SUN_SHADOW_GRID_CAP) rs.sunShadowGridFull = 0;
 }
