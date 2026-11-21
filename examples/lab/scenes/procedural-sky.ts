@@ -10,7 +10,7 @@ import tkShapeDetailUrl from '../../../node_modules/@takram/three-clouds/assets/
 import tkLocalWeatherUrl from '../../../node_modules/@takram/three-clouds/assets/local_weather.png?url';
 import tkTurbulenceUrl from '../../../node_modules/@takram/three-clouds/assets/turbulence.png?url';
 
-type Runtime = Parameters<typeof attachProceduralClouds>[0] & { settings: { lightingModel: 'nubis' | 'octave' } };
+type Runtime = Parameters<typeof attachProceduralClouds>[0] & { settings: { lightingModel: 'nubis' | 'octave' | 'fit' } };
 
 /** Reads ?model / ?light / ?vlight / ?proc_* / ?tk_*. Returns null when the page stays on the NVDF path. */
 export async function attachProceduralSky(runtime: Runtime, device: GPUDevice, query: URLSearchParams, defaults: { boxCarve?: number } = {}): Promise<ProceduralClouds | null> {

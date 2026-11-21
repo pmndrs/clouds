@@ -160,6 +160,26 @@ fn octaveOn() -> bool { return frame.haze.w > 0.5; }
 // The voxel path's tail weight and ambient gain (CloudSettings.ambientStrength).
 const OCTAVE_VOXEL_DIFFUSE = 0.5;
 fn octaveVoxel() -> vec4<f32> { return vec4(OCTAVE_VOXEL_DIFFUSE, frame.ambientStrength, 0.0, 0.0); }
+// P1.2a 'fit' lighting model (CloudSettings.lightingModel 'fit'): deliberately tiny, every term physical, no profile, SDF depth, micro-shadow,
+// glow boost, edge darkening, powder, tint or step-size factor. tau: optical depth toward the sun; tauUp: straight up; up / down: the ambient pair
+// the other models receive (mean sky radiance above, lower hemisphere plus ground). f = (albedo, g, ms, k), ambientGain = frame.fit2.x.
+//   direct  = sun albedo HG(cosSun, g) exp(-tau)
+//   ms      = sun albedo ms / (4 pi) / (1 + k tau)          (the higher orders: isotropic, diffusion-like falloff)
+//   U       = 0.5 + 0.5 / (1 + k tauUp)                      (the share of the surroundings that is open sky)
+//   ambient = ambientGain albedo (up U + down (1 - U))
+fn fitOn() -> bool { return frame.fit2.y > 0.5; }
+fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
+  let f = frame.fit;
+  let direct = sun * (f.x * henyeyGreenstein(cosSun, f.y) * exp(-tau));
+  let ms = sun * (f.x * f.z * ISO_PHASE / (1.0 + f.w * tau));
+  let u = 0.5 + 0.5 / (1.0 + f.w * tauUp);
+  let ambient = (up * u + down * (1.0 - u)) * (frame.fit2.x * f.x);
+  if (frame.lightDebug > 0.5 && frame.lightDebug < 5.5) {
+    let k = u32(frame.lightDebug);
+    return select(select(select(vec3(0.0), ambient, k == 4u), ms, k == 2u), direct, k == 1u);
+  }
+  return direct + ms + ambient;
+}
 // Dark edges (front-lit): rays that only graze the cloud (shallow in the SDF) scatter little. Multiply the ray's radiance by this.
 fn cloudEdgeFactor(depthMax: f32, frontness: f32) -> f32 {
   return mix(1.0, mix(EDGE_FLOOR, 1.0, smoothstep(0.0, EDGE_DEPTH, depthMax)), frame.edgeDarkening * frontness);

@@ -346,7 +346,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               var lit: vec3<f32>;
               // H3: the ambient's up sum is read at the sample itself. The sun tap (48 m toward the sun) landed inside the neighbouring
               // tower on shaded walls and under dense cores, so the ambient darkened by that column, not the cloud above the sample.
-              if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunHere, ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
+              if (fitOn()) { lit = cloudFitLight(tau, lightGridSampleClamped(ps).y * frame.lightDensityScale, cosSun, sunHere, ambientUp, ambientDown); }
+              else if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunHere, ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
               else {
                 // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.
                 // D1 round 6 (profileFilter, bit 1): the lighting profile through the tricubic read (trilinear kinks print voxel-plane seams).
@@ -400,7 +401,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       radiance *= keep; flashAcc *= keep;
       T = 0.0;
     }
-    radiance = radiance * select(cloudEdgeFactor(depthMax, frontness), 1.0, octaveOn()) + flashAcc;
+    radiance = radiance * select(cloudEdgeFactor(depthMax, frontness), 1.0, octaveOn() || fitOn()) + flashAcc;   // P1.2a: 'fit' takes no edge factor
     if (probeOn) { radiance = probeOut; }
   }
 

@@ -19,7 +19,7 @@ const out = resolve(root, opt('out', 'work/captures/card'));
 const url = opt('url', 'http://127.0.0.1:5173');
 const clouds = opt('clouds', 'parkouring,embergen02,wdas,sky,stratus').split(',');
 const SUNS = ['noon', 'low', 'backlit', 'sunset'];
-const RT = ['nubis', 'octave', 'alpha', 'rtalpha'];
+const RT = ['nubis', 'octave', 'fit', 'alpha', 'rtalpha'];
 const size = opt('size', '1280x720');
 
 function capture(cloud, seed, shots, dir, spp) {
@@ -84,7 +84,7 @@ for (const cloud of ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus']) {
       const s2 = cap2?.shots.find(x => x.name === s.name);
       frame.spp = r.pt.samples; frame.seeds = [r.pt.seed, ...(s2 ? [s2.report.pt.seed] : [])];
       frame.seed2File = s2?.linear?.file ?? null; frame.ptWallMs = [r.pt.wallMs, ...(s2 ? [s2.report.pt.wallMs] : [])]; frame.maxDepth = r.pt.maxDepth;
-    } else if (renderer === 'nubis' || renderer === 'octave' || renderer === 'rtalpha') {
+    } else if (renderer === 'nubis' || renderer === 'octave' || renderer === 'fit' || renderer === 'rtalpha') {
       frame.runtime = { ...r.runtime, lightingModel: renderer === 'rtalpha' ? 'nubis' : renderer };
     }
     manifest.frames.push(frame);

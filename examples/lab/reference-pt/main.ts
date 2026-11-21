@@ -12,7 +12,7 @@
 // environment is the runtime's own sky-view LUT as an equirect, its sun the runtime's sun at the cloud centre (a delta light).
 // Wind frozen (the bake is a still).
 //
-// Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave | alpha | rtalpha, sun noon | low | backlit | sunset.
+// Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave | fit | alpha | rtalpha, sun noon | low | backlit | sunset.
 // URL: ?cloud=parkouring &view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35 &seed=1
 //      &distance= &height= (override the cloud's camera ring)
 // P0.6 (Review section of the panel; each also a URL parameter): &ptTest=furnace|absorber (the PT medium checks: no sun, a uniform sky of
@@ -73,7 +73,7 @@ const num = (k: string, d: number) => (query.has(k) && Number.isFinite(Number(qu
 
 // alpha: the PT side's opacity mask of the baked grid (1 - exp(-optical depth)), for the sheet's statistics.
 // rtalpha: the runtime's own opacity (1 - the march's transmittance, read back from its output after the settle): checks the bake against the march.
-const RENDERERS = ['pt', 'nubis', 'octave', 'alpha', 'rtalpha'] as const;
+const RENDERERS = ['pt', 'nubis', 'octave', 'fit', 'alpha', 'rtalpha'] as const;
 type RendererName = (typeof RENDERERS)[number];
 const CLOUD: CardCloudKey = (CARD_CLOUDS as readonly string[]).includes(query.get('cloud') ?? '') ? (query.get('cloud') as CardCloudKey) : 'parkouring';
 const DEF = CARD_DEFS[CLOUD];
@@ -210,7 +210,7 @@ try {
     frameData.atmosphere = skyBridge.bindGroup;
     bridge.syncOutput();
     bridge.renderScene(scene, camera);
-    if (state.renderer === 'nubis' || state.renderer === 'octave' || state.renderer === 'rtalpha') {
+    if (state.renderer === 'nubis' || state.renderer === 'octave' || state.renderer === 'fit' || state.renderer === 'rtalpha') {
       bridge.fillFrame(camera, frameData);
       frameData.time = (now - t0) / 1000; frameData.frameIndex = frame;
       const encoder = device.createCommandEncoder({ label: 'pt1 runtime' });
@@ -288,8 +288,22 @@ try {
     const isPt = state.renderer === 'pt' || state.renderer === 'alpha';
     ptCanvas.style.display = isPt ? 'block' : 'none';
     renderer.domElement.style.display = isPt ? 'none' : 'block';
-    if (state.renderer === 'nubis' || state.renderer === 'octave') runtime.settings.lightingModel = SINGLE ? 'nubis' : state.renderer;   // P1.1: single = the nubis direct term
+    if (state.renderer === 'nubis' || state.renderer === 'octave' || state.renderer === 'fit') runtime.settings.lightingModel = SINGLE ? 'nubis' : state.renderer;   // P1.1: single = the nubis direct term
+    applyFitSunShadow(state.renderer === 'fit');
     if (state.renderer === 'rtalpha') runtime.settings.lightingModel = 'nubis';
+  }
+
+  // P1.2a: the 'fit' view runs with the P1.1b sun-shadow settings that were verified (grid from the rendered float density on direct volumes,
+  // lightDensityScale 1); the untested ones (full-resolution grid, in-line ladder, the up-rezzed voxel source) stay as they are. Leaving the
+  // view puts back the values it replaced, so nubis / octave render exactly as before.
+  let fitStash: { sunShadowGridSource: number; lightDensityScale: number } | null = null;
+  function applyFitSunShadow(on: boolean): void {
+    const rs = runtime.settings;
+    if (on && !fitStash) {
+      fitStash = { sunShadowGridSource: rs.sunShadowGridSource, lightDensityScale: rs.lightDensityScale };
+      if (DEF.runtime === 'direct') rs.sunShadowGridSource = 1;
+      rs.lightDensityScale = 1;
+    } else if (!on && fitStash) { Object.assign(rs, fitStash); fitStash = null; }
   }
 
   async function setView(name: string): Promise<void> {
@@ -376,6 +390,16 @@ try {
   ssButton('accurate sun shadow', true); ssButton('before P1.1b', false);
   syncSunShadow();
   panel.appendChild(p11b);
+  // P1.2a Review: the 'fit' lighting model's constants, live (the fit-<sun> buttons above show it; defaults are the plain physical values).
+  const p12a = document.createElement('div'); p12a.className = 'row'; p12a.append('Review: P1.2a fit model ');
+  for (const [key, label, step] of [['fitAlbedo', 'albedo', '0.01'], ['fitG', 'g', '0.05'], ['fitMs', 'ms', '0.25'], ['fitK', 'k', '0.01'], ['fitAmbient', 'ambient', '0.1']] as const) {
+    const el = Object.assign(document.createElement('input'), { type: 'number', step, style: 'width:4.5em', value: String(runtime.settings[key]) });
+    el.onchange = () => { runtime.settings[key] = Number(el.value); };
+    p12a.append(` ${label} `, el);
+  }
+  const fitBtn = document.createElement('button'); fitBtn.textContent = 'show fit'; fitBtn.onclick = () => { void setView(`fit-${state.sun}`); };
+  p12a.append(' ', fitBtn);
+  panel.appendChild(p12a);
   function syncPanel() { for (const [k, b] of buttons) b.classList.toggle('on', k === `${state.renderer}-${state.sun}`); }
   function updateHud() {
     const s = sunNow();
@@ -402,7 +426,7 @@ try {
       ptTest: PT_TEST, p11: { sunOnly: SUN_ONLY, single: SINGLE, converged: CONVERGED, probe: PROBE, probeMode: runtime.settings.lightProbeMode, convergedInfo: runtime.convergedInfo },
       sunShadow: { ...Object.fromEntries(SUN_SHADOW_KEYS.map(k => [k, (runtime.settings as unknown as Record<string, number>)[k]])), grid: runtime.lightGridInfo },
       pt: { majorant: pt.majorant, extScale: settings.extScale, samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
-      runtime: { lightDebug: runtime.settings.lightDebug, edgeDarkening: runtime.settings.edgeDarkening, directProfile: runtime.settings.directProfile, phaseModel: runtime.settings.phaseModel, microDist: runtime.settings.microDist, bodyEnv: runtime.settings.bodyEnv, quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
+      runtime: { lightDebug: runtime.settings.lightDebug, edgeDarkening: runtime.settings.edgeDarkening, directProfile: runtime.settings.directProfile, phaseModel: runtime.settings.phaseModel, microDist: runtime.settings.microDist, bodyEnv: runtime.settings.bodyEnv, quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, sunShadowGridSource: runtime.settings.sunShadowGridSource, fit: [runtime.settings.fitAlbedo, runtime.settings.fitG, runtime.settings.fitMs, runtime.settings.fitK, runtime.settings.fitAmbient], phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
       card: { def: DEF, cameraRing: { distance: CAMERA_DISTANCE, height: CAMERA_HEIGHT }, ...card.describe() },
       exposure: settings.exposure, frames: frame,
     }),
