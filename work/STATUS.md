@@ -7,6 +7,9 @@ Updated 2026-11-20.
 ## Running
 Nothing.
 
+## Waiting on you: the November audit (2026-11-21)
+Outside audit and a new phase plan: `docs/AUDIT-2026-11.md`. Divergence log started: `DIVERGES.md`. Nothing in the code changed. The plan needs your yes (or edits) before Phase 0 starts; until then the phases on the Compass still stand.
+
 ## Tonight (2026-11-20): the refactor and the styles
 
 What landed on `main`. The tag `stable-2026-11-20-pre-refactor` is the state before any of it; `stable-2026-11-20` is after the merges below.
