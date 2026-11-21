@@ -25,7 +25,8 @@ What 0.3 found (same captures as PT1, compared before the tone map):
 - Lit-face fine texture is 2.2-2.9x the reference (about 3.5x once the reference's own grain is removed). The backlit "foam" is a tone-map effect, not extra detail.
 - The reference needs more samples: at 1024 spp its grain is most of the finest detail band. The card renders two seeds at 2048 spp and averages them.
 
-| 1.1 | Single scattering: our direct term against a one-bounce path trace, sun only, same phase function, realtime side converged. Thresholds for all of Phase 1 are now fixed in the plan | Opus, own worktree, 75-minute cap | running |
+| 1.1 | Single scattering: our direct term against a one-bounce path trace, sun only, same phase function, realtime side converged. **Gate fails: 37 of 64 region readings within 5 %** (EmberGen 16/16, stratus 12, Parkouring 9, sky patch 0). Phase, units and the view ray match. Every miss is the sun's optical depth from the light grid: an 8-bit density copy with a floor, half resolution, a 1.2 density scale on Parkouring, and the grid integrating a smoother density than the one rendered | Opus | **merged** (`work/reports/P1-1-single-scatter.md`, sheets `work/captures/P1-1/`) |
+| 1.1b | Fix the sun's optical depth behind settings (real density in the grid, resolution, more in-line samples, no 1.2, albedo factor) and re-run the 1.1 gate | Opus, own worktree, 90-minute cap | running |
 
 What 0.4 shows (0.6 has confirmed the references: furnace 1.000, absorber within 0.1 %, Cycles within 0.3 %):
 - **Step 2.0 came out against my prediction.** One body from the procedural sky, path traced, reads as a soft, plausible cumulus (`work/captures/card/sky/contact.jpg`). At the scale of one body the lighting is the larger fault. The patch was baked at 8 m, which removes some fine erosion, and it is one body seen from the side, so it says nothing about the sky-wide sameness (every cloud a similar pancake).
