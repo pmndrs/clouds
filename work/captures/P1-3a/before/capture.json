@@ -1,0 +1,82 @@
+{
+  "url": "http://127.0.0.1:5791/hzd/?clean=1&motion=0&proc_lightingModel=fit",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-21T14:21:42.941Z",
+  "shots": [
+    {
+      "name": "gp7@look:0:50",
+      "file": "work/captures/P1-3a/before/gp7@look:0:50.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 50,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "converged": {
+          "active": false,
+          "samples": 0,
+          "target": 16,
+          "done": false,
+          "restarts": 0,
+          "reason": "",
+          "band": 0
+        },
+        "gpuMs": {
+          "scene": 34.60827182758621,
+          "lightGridReduce": 0.032166,
+          "lightGrid": 0.021041,
+          "marchNear": 1.380736500000001,
+          "marchFar": 1.4710414666666665,
+          "shadowMap": 2.2550894999999995,
+          "composite": 2.6288855333333334,
+          "dome": 0.9963007666666664,
+          "skyLayer": 14.038005166666672,
+          "skyResolve": 4.738384450000001,
+          "cloudsTotal": 27.56165038333334,
+          "total": 62.16992221091955
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.032166,
+          "lightGrid": 0.021041,
+          "marchNear": 0.02625,
+          "marchFar": 0.068624,
+          "shadowMap": 2.069511,
+          "composite": 0.113498,
+          "dome": 0.719031,
+          "skyLayer": 9.418231,
+          "skyResolve": 0.104039
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "c.animSpeed": 0,
+          "proc.lightingModel": "fit"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5791/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a3a7c4ffd1b5e107c/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=330d5d02:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5791/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a3a7c4ffd1b5e107c/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=330d5d02:1421:12)\n    at http://127.0.0.1:5791/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a3a7c4ffd1b5e107c/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=330d5d02:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

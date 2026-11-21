@@ -290,6 +290,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         let reuse = min(fineStep * 3.0, max(20.0, P.spShape.y * P.spShape.w * 0.03));
         if ((cv && (u32(SKY.convergedKeep.x) & 2u) == 0u) || abs(t - shadowAt) >= reuse || abs(s.sigma - shadowDensity) > 0.08 * procSigmaRef() || cheap != shadowCheap) {
           shadowTau = 0.0; nearTau = 0.0;
+          // P1.3a: the early stop (P.wind.w, lightTauCap; 32 for nubis/octave, none for fit: its 1 / (1 + K tau) ms still tells 32 from 100).
+          let tauCap = P.wind.w;
           for (var k = 1u; k < 8u; k++) {
             if (k >= taps) { break; }
             let o = tapOff[k];
@@ -298,7 +300,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
             let tau = (ls.sigma * densityScale * procCarve(q) + procVoxelSigma(q)) * o.w;
             shadowTau += tau;
             if (k == 1u) { nearTau = tau; }
-            if (shadowTau >= 32.0) { break; }
+            if (shadowTau >= tauCap) { break; }
           }
           // Far taps (X1, after HZD s83's last light sample "far away to capture shadows cast by distant clouds"; Takram covers this range with
           // its beer shadow map): the cone taps end about 1 km out, but toward a low sun the path to the top of the clouds is many km. Up to
@@ -306,7 +308,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
           let coneEnd = tapOff[taps - 1u].w * 0.5 + length(tapOff[taps - 1u].xyz);
           let toTop = (P.shell.y - procAltitude(p)) / max(L.y, 0.01);
           let reach = min(toTop, PROC_FAR_REACH);
-          if (reach > coneEnd * 1.2 && shadowTau < 32.0) {
+          if (reach > coneEnd * 1.2 && shadowTau < tauCap) {
             let ratio = pow(reach / coneEnd, 1.0 / f32(PROC_FAR_TAPS));
             var a = coneEnd;
             for (var k = 0u; k < PROC_FAR_TAPS; k++) {

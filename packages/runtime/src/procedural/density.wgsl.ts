@@ -46,7 +46,7 @@ export const PROC_PARAMS_WGSL = /* wgsl */ `
 struct ProcParams {
   shell: vec4<f32>,      // min y, max y (m), max distance, coverage
   steps: vec4<f32>,      // fine step floor (m), max steps, light taps, full-lighting opacity
-  wind: vec4<f32>,       // 0, 0, evolution (m), 0
+  wind: vec4<f32>,       // 0, 0, evolution (m), P1.3a sun-tap tau cap (lightTauCap; 32 nubis/octave, 1e30 fit)
   misc: vec4<f32>,       // density scale, light scale, debug, profile depth (m)
   spShell: vec4<f32>,    // Sky Pro: altitude, thickness, density (1/m), coverage
   spShape: vec4<f32>,    // weather scale, base scale, base strength, erosion scale multiplier
