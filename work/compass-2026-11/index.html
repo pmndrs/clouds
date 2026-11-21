@@ -88,9 +88,9 @@ a { color: var(--accent); }
 
 <section>
   <div class="strip">
-    <a class="now" href="#p0"><span class="n">Phase 0</span><span class="t">Truth rig</span><span class="s">running</span></a>
-    <a href="#p1"><span class="n">Phase 1</span><span class="t">Light</span><span class="s">next</span></a>
-    <a href="#p2"><span class="n">Phase 2</span><span class="t">Shape</span><span class="s">prep started</span></a>
+    <a href="#p0"><span class="n">Phase 0</span><span class="t">Truth rig</span><span class="s">done</span></a>
+    <a class="now" href="#p1"><span class="n">Phase 1</span><span class="t">Light</span><span class="s">running</span></a>
+    <a href="#p2"><span class="n">Phase 2</span><span class="t">Shape</span><span class="s">measures in</span></a>
     <a href="#p3"><span class="n">Phase 3</span><span class="t">Image</span><span class="s">later</span></a>
     <a href="#p4"><span class="n">Phase 4</span><span class="t">Speed</span><span class="s">later</span></a>
     <a href="#p5"><span class="n">Phase 5</span><span class="t">Breadth</span><span class="s">later</span></a>
@@ -110,14 +110,15 @@ a { color: var(--accent); }
 
 <section id="p0">
   <h2>Phase 0: the truth rig</h2>
-  <p class="sub">No look changes. Builds the measuring tools every later phase is gated on.</p>
+  <p class="sub">Done, apart from the pathtracer upgrades, which do not block Phase 1. No look changes were made.</p>
   <div class="tw"><table>
     <tr><th>Step</th><th>Work</th><th>State</th></tr>
-    <tr><td class="id">0.1</td><td>Freeze. Baseline tagged <code>stable-2026-11-21-audit-baseline</code>; the old shaper, both old lighting models and the styles are kept but no longer tuned.</td><td><span class="pill run">check pending</span></td></tr>
+    <tr><td class="id">0.1</td><td>Freeze. Baseline tagged <code>stable-2026-11-21-audit-baseline</code>; the old shaper, both old lighting models and the styles are kept but no longer tuned.</td><td><span class="pill ok">passed</span></td></tr>
     <tr><td class="id">0.2</td><td>Pathtracer volumes for cloud conditions: validation at strong forward scattering first, then droplet phase functions, a single/multiple scatter split, outputs with volumes on, a ground plane, grid memory.</td><td><span class="pill run">handed off</span></td></tr>
     <tr><td class="id">0.2b</td><td>Second reference renderer, Cycles. Closed-form checks pass within 0.2 %. Blender's default volume method gains energy on a dense cloud, so the script uses ray marching. Slow, so it spot-checks one or two frames.</td><td><span class="pill ok">passed</span></td></tr>
     <tr><td class="id">0.3</td><td>Linear-radiance comparison and the scorecard script.</td><td><span class="pill ok">passed</span></td></tr>
-    <tr><td class="id">0.4</td><td>The scene card: five clouds (Parkouring, EmberGen 02, the Disney cloud, a patch of the procedural sky, a stratus slab) under four suns (noon, low, backlit, sunset).</td><td><span class="pill run">running</span></td></tr>
+    <tr><td class="id">0.4</td><td>The scene card: Parkouring, EmberGen 02, a patch of the procedural sky and a stratus slab, each path traced under four suns (noon, low, backlit, sunset). Both renderers see the same density. The Disney cloud is too slow to path trace within the caps.</td><td><span class="pill ok">merged</span></td></tr>
+    <tr><td class="id">0.6</td><td>Can the references be trusted? Furnace test reads 1.000 on the card's own clouds, the absorber test is within 0.1 %, and Cycles agrees with our pathtracer within 0.3 %.</td><td><span class="pill ok">passed</span></td></tr>
     <tr><td class="id">0.5</td><td>Converged march mode. Review switch P05 on the sky bench; a checkbox on the flagship page.</td><td><span class="pill ok">passed</span></td></tr>
   </table></div>
 </section>
@@ -125,9 +126,11 @@ a { color: var(--accent); }
 <section>
   <h2>What the rig has shown so far</h2>
   <ul>
-    <li><strong>The two renderers agree on units.</strong> Clear-sky pixels match within 0.05 %.</li>
+    <li><strong>The references are sound.</strong> Our pathtracer passes the furnace and absorber tests on real cloud grids and agrees with Cycles within 0.3 %. Clear-sky pixels of the two renderers match within 0.05 %.</li>
+    <li><strong>One body from our procedural sky, path traced, looks like a plausible cumulus.</strong> At the scale of a single cloud the lighting is the larger fault, more than the audit first said.</li>
+    <li><strong>Against your photos, our sky has</strong> too much fine fuzz on outlines and bases, too much flat underside and too little clear sky. Mid-scale lobes are inside the photo range. Body thickness is not yet measurable.</li>
     <li><strong>"Brightness is about right" was a tone-map effect.</strong> In linear light our lighting is 1.26× the reference at noon and 1.62× in thin fringes.</li>
-    <li><strong>Backlit clouds are far too dark:</strong> 0.62× the reference with the Nubis model and 0.33× with the octave model.</li>
+    <li><strong>Backlit and sunset clouds are far too dark</strong> on every card cloud: thick bodies down to 0.24× of the reference.</li>
     <li><strong>Lit faces carry 2.2 to 2.9× too much fine texture</strong> against the path trace.</li>
     <li><strong>Perfect sampling removes only pixel-level speckle.</strong> At normal viewing size the converged frame looks nearly the same, so the shaving-cream read is shape and lighting.</li>
   </ul>
@@ -154,22 +157,22 @@ a { color: var(--accent); }
   <h2>Phases after this one</h2>
   <p class="note">Thresholds are fixed before a phase starts, from what the previous phase measured. Each phase ends with one look from you.</p>
 
-  <details id="p1"><summary>Phase 1 · Light <span class="g">fit one lighting model to the path trace</span></summary>
+  <details id="p1" open><summary>Phase 1 · Light <span class="g">fit one lighting model to the path trace · thresholds fixed · 1.1 running</span></summary>
     <div class="tw"><table>
       <tr><th>Step</th><th>Work</th><th>Gate</th></tr>
-      <tr><td class="id">1.1</td><td>Single scattering against a one-bounce path trace</td><td>Within 5 % everywhere; a miss means a units, shadow or phase bug</td></tr>
-      <tr><td class="id">1.2</td><td>Multiple scattering: one fitted term, no surface-scale occlusion</td><td>Thick body within 8 % at all four suns; fine texture within 1.25× of the reference</td></tr>
-      <tr><td class="id">1.3</td><td>Sky and ground light</td><td>Shade colour and base brightness inside their bands</td></tr>
-      <tr><td class="id">1.4</td><td>Thin fringes and wisps</td><td>Fringe brightness and colour inside their bands</td></tr>
+      <tr><td class="id">1.1</td><td>Single scattering against a one-bounce path trace, sun only <span class="pill run">running</span></td><td>Cloud, thick-body, base and fringe means within 5 % on every frame; a miss means a units, shadow or phase bug</td></tr>
+      <tr><td class="id">1.2</td><td>Multiple scattering: one fitted term, no surface-scale occlusion</td><td>Cloud and thick-body means within 8 % on every frame; fine and mid texture within 1.25× of the reference</td></tr>
+      <tr><td class="id">1.3</td><td>Sky and ground light</td><td>Shade blue/red within 0.15 of the reference; base within 10 %</td></tr>
+      <tr><td class="id">1.4</td><td>Thin fringes and wisps</td><td>Fringe mean within 10 %; fringe blue/red within 0.3</td></tr>
       <tr><td class="id">1.5</td><td>Your look: path trace, new, old, per cloud</td><td>"Mostly right", or what is off</td></tr>
     </table></div>
   </details>
 
-  <details id="p2"><summary>Phase 2 · Shape <span class="g">the phase most likely to change the sky · prep started</span></summary>
+  <details id="p2"><summary>Phase 2 · Shape <span class="g">narrower than first thought; scope set after Phase 1</span></summary>
     <div class="tw"><table>
       <tr><th>Step</th><th>Work</th><th>Gate</th></tr>
-      <tr><td class="id">2.0</td><td>Path trace a patch of today's procedural sky</td><td>A sheet: does it still read as slabs with fuzz under correct light?</td></tr>
-      <tr><td class="id">2.1</td><td>Shape measures from your photos and our renders <span class="pill run">running</span></td><td>The numbers separate photos from today's sky clearly</td></tr>
+      <tr><td class="id">2.0</td><td>Path trace a patch of today's procedural sky <span class="pill ok">done</span></td><td>Result: one body reads as a plausible cumulus under correct light</td></tr>
+      <tr><td class="id">2.1</td><td>Shape measures from your photos and our renders <span class="pill ok">first pass in</span></td><td>Partly: fuzz, base structure, flat underside and gaps separate; mid-scale lobes do not; thickness needs the renderer's own alpha</td></tr>
       <tr><td class="id">2.2</td><td>Clean shaper, starting from the published profile structure <span class="pill ok">source spec written</span></td><td>No worse than the old shaper on the same field, in a fraction of the code</td></tr>
       <tr><td class="id">2.3</td><td>Generator: bodies from flat to towering in one sky</td><td>Height-to-width and gap sizes inside the photo range</td></tr>
       <tr><td class="id">2.4</td><td>Generator: nested lobes</td><td>Silhouette structure at the middle scales, inside the photo range</td></tr>
@@ -213,7 +216,7 @@ a { color: var(--accent); }
   <h2>Waiting on you</h2>
   <div class="tw"><table>
     <tr><th>Item</th><th>What</th><th></th></tr>
-    <tr><td>Pathtracer session</td><td>Relay: its validation should include a furnace test on a real cloud grid at 0.6 per metre. Its tracking method is the same family that gained energy in Blender.</td><td><span class="pill you">yours</span></td></tr>
+    <tr><td>Pathtracer session</td><td>Good news to relay: the furnace test on real cloud grids reads 1.000 with its committed volume code, and it matches Cycles within 0.3 %. No bug found. The global majorant is 2 to 3× slower than brick.</td><td><span class="pill wait">optional</span></td></tr>
     <tr><td>Default caps</td><td>5 minutes per render, 15 minutes per full card or test run, 500 MB per grid. Say if these should differ.</td><td><span class="pill wait">optional</span></td></tr>
     <tr><td>Disney cloud</td><td>Only reduced-resolution files are on disk. The plan does not need the full file.</td><td><span class="pill wait">no action</span></td></tr>
   </table></div>
