@@ -47,6 +47,24 @@ import { CARD_CLOUDS, CARD_DEFS, SUNS, loadCard, type CardCloudKey, type CardSce
 import { PtReference } from './pt';
 import { chunk, composite, describe, readRgba16f, type LinearFrame } from './linear';
 
+/**
+ * P1.1b: the sun-shadow settings the card's Review row shows, and the "accurate sun shadow" preset: every value a more accurate estimate of the
+ * optical depth toward the sun through the rendered density (or a missing physical factor), none tuned toward the reference. The full-resolution
+ * grid is turned on only where its three rgba16float textures stay within SUN_SHADOW_GRID_CAP (the run's memory cap per grid).
+ */
+export const SUN_SHADOW_KEYS = ['sunShadowGridSource', 'sunShadowGridFull', 'sunShadowInlineReach', 'sunShadowInlineSamples', 'lightDensityScale', 'directAlbedo', 'sunAtCentre'] as const;
+export const SUN_SHADOW_DEFAULTS = { sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, directAlbedo: 1, sunAtCentre: 0 } as const;
+export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, lightDensityScale: 1, directAlbedo: 0.99 } as const;
+export const SUN_SHADOW_GRID_CAP = 500 * 1024 * 1024;
+type SunShadowRuntime = { settings: object; lightGridInfo: { volumeDims: [number, number, number] } | null };
+function applySunShadowPreset(runtime: SunShadowRuntime, on: boolean, artLightDensityScale = 1.2): void {
+  const rs = runtime.settings as unknown as Record<string, number>;
+  if (!on) { Object.assign(rs, SUN_SHADOW_DEFAULTS); rs.lightDensityScale = artLightDensityScale; return; }
+  Object.assign(rs, ACCURATE_SUN_SHADOW);
+  const v = runtime.lightGridInfo?.volumeDims;
+  if (v && v[0] * v[1] * v[2] * 8 * 3 > SUN_SHADOW_GRID_CAP) rs.sunShadowGridFull = 0;
+}
+
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
 const num = (k: string, d: number) => (query.has(k) && Number.isFinite(Number(query.get(k))) ? Number(query.get(k)) : d);
@@ -586,20 +604,3 @@ try {
   throw e;
 }
 
-/**
- * P1.1b: the sun-shadow settings the card's Review row shows, and the "accurate sun shadow" preset: every value a more accurate estimate of the
- * optical depth toward the sun through the rendered density (or a missing physical factor), none tuned toward the reference. The full-resolution
- * grid is turned on only where its three rgba16float textures stay within SUN_SHADOW_GRID_CAP (the run's memory cap per grid).
- */
-export const SUN_SHADOW_KEYS = ['sunShadowGridSource', 'sunShadowGridFull', 'sunShadowInlineReach', 'sunShadowInlineSamples', 'lightDensityScale', 'directAlbedo', 'sunAtCentre'] as const;
-export const SUN_SHADOW_DEFAULTS = { sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, directAlbedo: 1, sunAtCentre: 0 } as const;
-export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, lightDensityScale: 1, directAlbedo: 0.99 } as const;
-export const SUN_SHADOW_GRID_CAP = 500 * 1024 * 1024;
-type SunShadowRuntime = { settings: object; lightGridInfo: { volumeDims: [number, number, number] } | null };
-function applySunShadowPreset(runtime: SunShadowRuntime, on: boolean, artLightDensityScale = 1.2): void {
-  const rs = runtime.settings as unknown as Record<string, number>;
-  if (!on) { Object.assign(rs, SUN_SHADOW_DEFAULTS); rs.lightDensityScale = artLightDensityScale; return; }
-  Object.assign(rs, ACCURATE_SUN_SHADOW);
-  const v = runtime.lightGridInfo?.volumeDims;
-  if (v && v[0] * v[1] * v[2] * 8 * 3 > SUN_SHADOW_GRID_CAP) rs.sunShadowGridFull = 0;
-}
