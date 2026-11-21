@@ -108,10 +108,10 @@ def check(name, d, args):
         extra.append("--passes")
     if kind == "absorber":
         extra.append("--alpha")
-    pfm = d / "out" / "frame.pfm"
-    side = json.loads((d / "out" / "frame.json").read_text()) if args.no_render else None
+    pfm = d / args.tag / "frame.pfm"
+    side = json.loads((d / args.tag / "frame.json").read_text()) if args.no_render else None
     if not args.no_render:
-        pfm, side = render(d, args.device, extra)
+        pfm, side = render(d, args.device, extra + (["--biased"] if args.mode == "biased" else []), args.tag)
     img = refio.read_pfm(pfm)
     secs = side.get("seconds", 0) + side.get("alphaSeconds", 0)
 
@@ -122,11 +122,13 @@ def check(name, d, args):
 
     if kind == "furnace":
         L = np.array(e["radiance"])
-        mask_med = refio.optical_depth(m, *refio.camera_rays(m["camera"], 1))[..., 0] > 1.0
+        mask_med = refio.optical_depth(m, *refio.camera_rays(m["camera"], 1), step_frac=0.5)[..., 0] > 1.0
         mu, se = region_mean(img)
         row("all pixels", L, mu, rel(mu, L), se / L)
         mu, se = region_mean(img, mask_med)
         row(f"through medium ({mask_med.sum()} px)", L, mu, rel(mu, L), se / L)
+        dev = np.abs(img / L - 1).max()
+        row("largest single-pixel deviation", 0, dev, dev)
     elif kind == "absorber":
         pos, dirs = refio.camera_rays(m["camera"], 3)
         tau = refio.optical_depth(m, pos, dirs)
@@ -142,12 +144,20 @@ def check(name, d, args):
             row("whole image RMS / L (vs numpy trilinear march)", [0, 0, 0], np.sqrt((err ** 2).mean((0, 1))) / sky, np.sqrt((err ** 2).mean((0, 1))) / sky)
         else:
             row("combined (black sky, no sun) = 0", [0, 0, 0], img.mean((0, 1)), img.mean((0, 1)))
-        al = refio.read_pfm(d / "out" / "frame.alpha.pfm")[..., 0]
+        al = refio.read_pfm(d / args.tag / "frame.alpha.pfm")[..., 0]
         exp_a = 1 - np.exp(-tau).mean(2)
         mu, se = region_mean(al[c][..., None])
         ea = 1 - math.exp(-e["tauNormal"])
         row("alpha AOV centre vs 1 - exp(-tau)", ea, mu, rel(mu, ea), se / ea)
         row("alpha AOV whole image RMS", 0, np.sqrt(((al - exp_a) ** 2).mean()), np.sqrt(((al - exp_a) ** 2).mean()))
+    elif kind == "hetero-absorber":
+        pos, dirs = refio.camera_rays(m["camera"], 2)
+        exp_img = np.exp(-refio.optical_depth(m, pos, dirs, step_frac=0.25)).mean(2)
+        meas = img.mean(-1)
+        part = (exp_img > 0.02) & (exp_img < 0.98)
+        row(f"partial-transmittance pixels ({part.sum()}) mean vs numpy trilinear march", exp_img[part].mean(), meas[part].mean(),
+            rel(meas[part].mean(), exp_img[part].mean()))
+        row("whole image RMS", 0, np.sqrt(((meas - exp_img) ** 2).mean()), np.sqrt(((meas - exp_img) ** 2).mean()))
     elif kind == "sun":
         E, alb = np.array(e["irradiance"]), np.array(e["albedo"])
         cz = math.sin(math.radians(e["elevationDeg"]))
@@ -163,7 +173,7 @@ def check(name, d, args):
         lab = "combined" if e["maxBounces"] == 1 else "combined (all orders)"
         row(f"{lab}, central half", ex, mu, rel(mu, ex), se / ex)
         if e["maxBounces"] > 1:
-            vd = refio.read_pfm(d / "out" / "frame.volume_direct.pfm")
+            vd = refio.read_pfm(d / args.tag / "frame.volume_direct.pfm")
             mu, se = region_mean(vd[c])
             row("Volume Direct pass, central half", ex, mu, rel(mu, ex), se / ex)
     elif kind == "skymap":
@@ -228,7 +238,9 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--device", default="CPU")
     ap.add_argument("--no-render", action="store_true")
+    ap.add_argument("--mode", default="null", choices=["null", "biased"], help="Cycles volumes: null scattering (default) or ray marching, step voxel/8")
     args = ap.parse_args()
+    args.tag = "out" if args.mode == "null" else "out-biased"
     names = sorted(p.name for p in args.tests.iterdir() if (p / "manifest.json").exists())
     if args.only:
         keep = args.only.split(",")
@@ -239,7 +251,7 @@ def main():
         for r in rows:
             print(f"{r['test']:22s} {r['check'][:58]:58s} exp {r['expected']}  meas {r['measured']}  err {r['maxRelErr']:.4f}" + (f"  noise {r['noise']:.4f}" if r["noise"] is not None else "") + f"  {r['seconds']}s")
         all_rows += rows
-    suffix = ("" if args.device == "CPU" else "-" + args.device.lower()) + ("-subset" if args.only else "")
+    suffix = ("" if args.device == "CPU" else "-" + args.device.lower()) + ("" if args.mode == "null" else "-biased") + ("-subset" if args.only else "")
     if True:
         (args.tests / f"results{suffix}.json").write_text(json.dumps(all_rows, indent=1) + "\n")
         with open(args.tests / f"results{suffix}.md", "w") as f:

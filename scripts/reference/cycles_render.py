@@ -50,6 +50,11 @@ def args_after_dashes():
     p.add_argument("--passes", action="store_true", help="also write volume direct / indirect passes as PFM")
     p.add_argument("--alpha", action="store_true", help="also render 1 - transmittance along camera rays (second, cheap render)")
     p.add_argument("--threads", type=int, default=0)
+    p.add_argument("--step-rate", type=float, default=1.0, help="Cycles volume_step_rate (diagnostic; sizes the majorant grid)")
+    p.add_argument("--vol-step", type=float, default=0.0, help="volume object step_size in metres (diagnostic; 0 = automatic)")
+    p.add_argument("--biased", action="store_true", help="use Cycles' ray-marching volume mode (step = --vol-step) instead of null scattering")
+    p.add_argument("--interp", default="LINEAR", choices=["LINEAR", "CUBIC"], help="volume interpolation (diagnostic)")
+    p.add_argument("--width", type=int, help="override camera width (and height by the same factor), for quick tests")
     p.add_argument("--keep-blend", action="store_true", help="save the built .blend next to --out (debugging)")
     return p.parse_args(argv)
 
@@ -114,14 +119,16 @@ def set_phase(node, ph):
         raise ValueError(f"unknown phase type {t}")
 
 
-def build_volume(m, vdb_path, scene):
+def build_volume(m, vdb_path, scene, a=None):
     vol = bpy.data.volumes.new("density")
     vol.filepath = vdb_path
     vol.grids.load()
     vol.render.precision = "FULL"   # default HALF quantises the density
     vol.render.clipping = 0.0       # default 0.001 drops thin material
     vol.render.space = "WORLD"
-    vol.render.step_size = 0.0      # only used by the biased ray-marching mode, which is off
+    # Step of the ray-marching mode (metres, world space): --vol-step, else voxel / 8. Null scattering ignores it.
+    step = float(getattr(a, "vol_step", 0.0) or 0.0) or float(m["grid"]["voxel"]) / 8.0
+    vol.render.step_size = step
     obj = bpy.data.objects.new("density", vol)
     scene.collection.objects.link(obj)
     obj.matrix_world = R_OURS_TO_BL.copy()
@@ -131,7 +138,7 @@ def build_volume(m, vdb_path, scene):
     alb = [float(alb)] * 3 if not isinstance(alb, list) else [float(a) for a in alb]
     mat = bpy.data.materials.new("medium")
     mat.use_nodes = True
-    mat.cycles.volume_interpolation = "LINEAR"   # trilinear, as the pathtracer
+    mat.cycles.volume_interpolation = getattr(a, "interp", "LINEAR")   # trilinear, as the pathtracer
     nt = mat.node_tree
     nt.nodes.clear()
     out = nt.nodes.new("ShaderNodeOutputMaterial")
@@ -327,8 +334,8 @@ def configure(m, scene, a, transparent=False, max_scatter=None):
     c.ao_bounces_render = 0
     c.caustics_reflective = True
     c.caustics_refractive = True
-    c.volume_biased = False          # null scattering (unbiased); the step settings below only matter in the biased mode
-    c.volume_step_rate = 1.0
+    c.volume_biased = bool(a.biased)  # default False: null scattering; True: Cycles' ray marcher with --vol-step metres
+    c.volume_step_rate = float(a.step_rate)
     c.volume_max_steps = 65536
     # Manifest maxBounces = scattering/reflection vertices per path (pbrt's maxDepth; 1 = single scattering).
     # Cycles counts bounces AFTER the first vertex: 0 = direct lighting only. So Cycles = maxBounces - 1.
@@ -408,6 +415,10 @@ def render_once(scene, path):
 def main():
     a = args_after_dashes()
     m = refio.load_manifest(a.manifest)
+    if a.width:
+        cam = m["camera"]
+        cam["height"] = max(1, round(cam["height"] * a.width / cam["width"]))
+        cam["width"] = a.width
     a.out = a.out.resolve()
     a.out.parent.mkdir(parents=True, exist_ok=True)
     pfm = (a.pfm or a.out.with_suffix(".pfm")).resolve()
@@ -417,7 +428,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="cycles-ref-") as tmp:
         vdb, dmax, active = build_vdb(m, tmp) if m.get("grid") else (None, 0.0, 0)
         if vdb:
-            build_volume(m, vdb, scene)
+            build_volume(m, vdb, scene, a)
         side["grid"] = {"densityMax": dmax, "activeVoxels": active}
         side["sky"] = build_world(m, scene)
         side["sun"] = build_sun(m, scene)

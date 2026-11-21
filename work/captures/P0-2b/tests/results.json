@@ -14,7 +14,7 @@
   ],
   "maxRelErr": 0.0012172480881682546,
   "noise": 0.0027060480139516436,
-  "seconds": 1.66
+  "seconds": 1.14
  },
  {
   "test": "absorber",
@@ -31,7 +31,7 @@
   ],
   "maxRelErr": 0.006438885503061648,
   "noise": null,
-  "seconds": 1.66
+  "seconds": 1.14
  },
  {
   "test": "absorber",
@@ -44,7 +44,7 @@
   ],
   "maxRelErr": 0.0007084100337950705,
   "noise": 0.0015748569276183844,
-  "seconds": 1.66
+  "seconds": 1.14
  },
  {
   "test": "absorber",
@@ -57,7 +57,7 @@
   ],
   "maxRelErr": 0.006438885503061645,
   "noise": null,
-  "seconds": 1.66
+  "seconds": 1.14
  },
  {
   "test": "absorber-a05",
@@ -74,7 +74,7 @@
   ],
   "maxRelErr": 0.0,
   "noise": null,
-  "seconds": 2.97
+  "seconds": 1.66
  },
  {
   "test": "absorber-a05",
@@ -87,7 +87,7 @@
   ],
   "maxRelErr": 0.0007084100337950705,
   "noise": 0.0015748569276183844,
-  "seconds": 2.97
+  "seconds": 1.66
  },
  {
   "test": "absorber-a05",
@@ -100,7 +100,7 @@
   ],
   "maxRelErr": 0.006438885503061645,
   "noise": null,
-  "seconds": 2.97
+  "seconds": 1.66
  },
  {
   "test": "axes-fromx",
@@ -113,7 +113,7 @@
   ],
   "maxRelErr": 0.002296542245150151,
   "noise": null,
-  "seconds": 0.47
+  "seconds": 0.34
  },
  {
   "test": "axes-fromx",
@@ -128,7 +128,7 @@
   ],
   "maxRelErr": 3.810046765817532e-05,
   "noise": null,
-  "seconds": 0.47
+  "seconds": 0.34
  },
  {
   "test": "axes-fromx",
@@ -137,7 +137,7 @@
   "measured": [],
   "maxRelErr": 0.0,
   "noise": null,
-  "seconds": 0.47
+  "seconds": 0.34
  },
  {
   "test": "axes-fromy",
@@ -150,7 +150,7 @@
   ],
   "maxRelErr": 0.0027785463010354477,
   "noise": null,
-  "seconds": 0.47
+  "seconds": 0.36
  },
  {
   "test": "axes-fromy",
@@ -165,7 +165,7 @@
   ],
   "maxRelErr": 3.241711384638357e-05,
   "noise": null,
-  "seconds": 0.47
+  "seconds": 0.36
  },
  {
   "test": "axes-fromy",
@@ -174,7 +174,7 @@
   "measured": [],
   "maxRelErr": 0.0,
   "noise": null,
-  "seconds": 0.47
+  "seconds": 0.36
  },
  {
   "test": "axes-fromz",
@@ -187,7 +187,7 @@
   ],
   "maxRelErr": 0.0030353204776335254,
   "noise": null,
-  "seconds": 0.6
+  "seconds": 0.38
  },
  {
   "test": "axes-fromz",
@@ -202,7 +202,7 @@
   ],
   "maxRelErr": 0.0001351564179106942,
   "noise": null,
-  "seconds": 0.6
+  "seconds": 0.38
  },
  {
   "test": "axes-fromz",
@@ -211,7 +211,7 @@
   "measured": [],
   "maxRelErr": 0.0,
   "noise": null,
-  "seconds": 0.6
+  "seconds": 0.38
  },
  {
   "test": "furnace-hg08",
@@ -228,7 +228,7 @@
   ],
   "maxRelErr": 0.00014199316501617432,
   "noise": 1.2032961649310892e-06,
-  "seconds": 0.56
+  "seconds": 0.42
  },
  {
   "test": "furnace-hg08",
@@ -245,7 +245,20 @@
   ],
   "maxRelErr": 3.644824028015137e-05,
   "noise": 5.570605310367682e-07,
-  "seconds": 0.56
+  "seconds": 0.42
+ },
+ {
+  "test": "furnace-hg08",
+  "check": "largest single-pixel deviation",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.0
+  ],
+  "maxRelErr": 2.3990869522094727e-06,
+  "noise": null,
+  "seconds": 0.42
  },
  {
   "test": "furnace-iso",
@@ -262,7 +275,7 @@
   ],
   "maxRelErr": 0.00014199316501617432,
   "noise": 1.2032961649310892e-06,
-  "seconds": 0.54
+  "seconds": 0.42
  },
  {
   "test": "furnace-iso",
@@ -279,7 +292,187 @@
   ],
   "maxRelErr": 3.644824028015137e-05,
   "noise": 5.570605310367682e-07,
-  "seconds": 0.54
+  "seconds": 0.42
+ },
+ {
+  "test": "furnace-iso",
+  "check": "largest single-pixel deviation",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.0
+  ],
+  "maxRelErr": 2.3990869522094727e-06,
+  "noise": null,
+  "seconds": 0.42
+ },
+ {
+  "test": "hetero-absorber-e0.1",
+  "check": "partial-transmittance pixels (3009) mean vs numpy trilinear march",
+  "expected": [
+   0.31932
+  ],
+  "measured": [
+   0.32009
+  ],
+  "maxRelErr": 0.0023965047669547435,
+  "noise": null,
+  "seconds": 0.38
+ },
+ {
+  "test": "hetero-absorber-e0.1",
+  "check": "whole image RMS",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00535
+  ],
+  "maxRelErr": 0.005352534177285905,
+  "noise": null,
+  "seconds": 0.38
+ },
+ {
+  "test": "hetero-furnace-e0.06",
+  "check": "all pixels",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.00052,
+   1.00052,
+   1.00052
+  ],
+  "maxRelErr": 0.0005186796188354492,
+  "noise": 0.00012930161028634757,
+  "seconds": 0.36
+ },
+ {
+  "test": "hetero-furnace-e0.06",
+  "check": "through medium (3327 px)",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.00197,
+   1.00197,
+   1.00197
+  ],
+  "maxRelErr": 0.0019704103469848633,
+  "noise": 0.0004537639324553311,
+  "seconds": 0.36
+ },
+ {
+  "test": "hetero-furnace-e0.06",
+  "check": "largest single-pixel deviation",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.16618
+  ],
+  "maxRelErr": 0.1661825180053711,
+  "noise": null,
+  "seconds": 0.36
+ },
+ {
+  "test": "hetero-furnace-e0.2",
+  "check": "all pixels",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.01376,
+   1.01376,
+   1.01376
+  ],
+  "maxRelErr": 0.01376187801361084,
+  "noise": 0.0002529639459680766,
+  "seconds": 0.82
+ },
+ {
+  "test": "hetero-furnace-e0.2",
+  "check": "through medium (4167 px)",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.04673,
+   1.04673,
+   1.04673
+  ],
+  "maxRelErr": 0.046733975410461426,
+  "noise": 0.0005993109080009162,
+  "seconds": 0.82
+ },
+ {
+  "test": "hetero-furnace-e0.2",
+  "check": "largest single-pixel deviation",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.28313
+  ],
+  "maxRelErr": 0.2831270694732666,
+  "noise": null,
+  "seconds": 0.82
+ },
+ {
+  "test": "hetero-furnace-e0.6",
+  "check": "all pixels",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.04125,
+   1.04125,
+   1.04125
+  ],
+  "maxRelErr": 0.04124772548675537,
+  "noise": 0.0006731373141519725,
+  "seconds": 2.03
+ },
+ {
+  "test": "hetero-furnace-e0.6",
+  "check": "through medium (4465 px)",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.13137,
+   1.13137,
+   1.13137
+  ],
+  "maxRelErr": 0.13137364387512207,
+  "noise": 0.0014268564991652966,
+  "seconds": 2.03
+ },
+ {
+  "test": "hetero-furnace-e0.6",
+  "check": "largest single-pixel deviation",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   1.85882
+  ],
+  "maxRelErr": 1.8588242530822754,
+  "noise": null,
+  "seconds": 2.03
  },
  {
   "test": "sky-nz",
@@ -409,6 +602,23 @@
   "seconds": 0.01
  },
  {
+  "test": "ss-draine-25-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.07849,
+   0.05232,
+   0.02616
+  ],
+  "measured": [
+   0.07847,
+   0.05231,
+   0.02616
+  ],
+  "maxRelErr": 0.00020540665437729366,
+  "noise": 0.003044147851634334,
+  "seconds": 0.53
+ },
+ {
   "test": "ss-hg08-fwd-b1",
   "check": "combined, central half",
   "expected": [
@@ -423,7 +633,7 @@
   ],
   "maxRelErr": 0.00019866572111781888,
   "noise": 0.004653842913677028,
-  "seconds": 0.64
+  "seconds": 0.53
  },
  {
   "test": "ss-hg08-fwd-b512",
@@ -440,7 +650,7 @@
   ],
   "maxRelErr": 0.015654482153155458,
   "noise": 0.004667658101906657,
-  "seconds": 1.33
+  "seconds": 0.57
  },
  {
   "test": "ss-hg08-fwd-b512",
@@ -457,7 +667,7 @@
   ],
   "maxRelErr": 0.00019866572111781888,
   "noise": 0.004653842913677028,
-  "seconds": 1.33
+  "seconds": 0.57
  },
  {
   "test": "ss-hg08-side-b1",
@@ -474,7 +684,7 @@
   ],
   "maxRelErr": 0.0001439024373125486,
   "noise": 0.0006788484362810905,
-  "seconds": 1.01
+  "seconds": 0.57
  },
  {
   "test": "ss-hg08-side-b512",
@@ -491,7 +701,7 @@
   ],
   "maxRelErr": 0.0472041387867026,
   "noise": 0.0012318156253510824,
-  "seconds": 0.98
+  "seconds": 0.61
  },
  {
   "test": "ss-hg08-side-b512",
@@ -508,7 +718,7 @@
   ],
   "maxRelErr": 0.0001439024373125486,
   "noise": 0.0006788484362810905,
-  "seconds": 0.98
+  "seconds": 0.61
  },
  {
   "test": "ss-iso-fwd-b1",
@@ -525,7 +735,7 @@
   ],
   "maxRelErr": 0.00018570210204349458,
   "noise": 0.0007918942638890078,
-  "seconds": 1.02
+  "seconds": 0.57
  },
  {
   "test": "ss-iso-fwd-b512",
@@ -542,7 +752,7 @@
   ],
   "maxRelErr": 0.10617486499006046,
   "noise": 0.0009540746809439846,
-  "seconds": 1.21
+  "seconds": 0.61
  },
  {
   "test": "ss-iso-fwd-b512",
@@ -559,7 +769,41 @@
   ],
   "maxRelErr": 0.00018570210204349458,
   "noise": 0.0007918942638890078,
-  "seconds": 1.21
+  "seconds": 0.61
+ },
+ {
+  "test": "ss-mie-25-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.04665,
+   0.0311,
+   0.01555
+  ],
+  "measured": [
+   0.04664,
+   0.03109,
+   0.01555
+  ],
+  "maxRelErr": 0.00020093210642058157,
+  "noise": 0.0024325581754570218,
+  "seconds": 0.63
+ },
+ {
+  "test": "ss-mix-25-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.03648,
+   0.02432,
+   0.01216
+  ],
+  "measured": [
+   0.03647,
+   0.02432,
+   0.01216
+  ],
+  "maxRelErr": 0.00020461624622925,
+  "noise": 0.0023986831087094602,
+  "seconds": 0.68
  },
  {
   "test": "sun-e30",
@@ -576,7 +820,7 @@
   ],
   "maxRelErr": 0.00011512056913964841,
   "noise": 9.611695901429023e-07,
-  "seconds": 0.02
+  "seconds": 0.01
  },
  {
   "test": "sun-e70",

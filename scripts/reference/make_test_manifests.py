@@ -163,6 +163,21 @@ def main():
             "camera": {"position": [centre[i] + 250 * off[i] for i in range(3)], "target": centre, "up": up, "fovY": 25, "width": 192, "height": 144},
             "render": {"spp": 1024, "maxBounces": 512, "seed": 0},
         }, {"kind": "axes"}, grid=gridL)
+    # 7. The real cloud (smoke grid from vdb_to_grid.py, if present) as a heterogeneous furnace and absorber.
+    smoke = root.parent / "smoke"
+    if (smoke / "density.f32").exists():
+        sm = json.loads((smoke / "manifest.json").read_text())
+        rel_grid = str(Path("..") / ".." / "smoke" / "density.f32")
+        cam = dict(sm["camera"], width=160, height=90)
+        for ext in (0.06, 0.2, 0.6):
+            write(root, f"hetero-furnace-e{ext}", {
+                "grid": dict(sm["grid"], file=rel_grid, extinctionScale=ext), "medium": {"albedo": 1.0, "phase": {"type": "hg", "g": 0.8}},
+                "sun": None, "sky": {"uniform": [1, 1, 1]}, "ground": None, "camera": cam, "render": {"spp": 128, "maxBounces": 512, "seed": 0},
+            }, {"kind": "furnace", "radiance": [1, 1, 1], "note": "EmberGen cloud_02, 4 m voxels"})
+        write(root, "hetero-absorber-e0.1", {
+            "grid": dict(sm["grid"], file=rel_grid, extinctionScale=0.1), "medium": {"albedo": 0.0, "phase": {"type": "hg", "g": 0.8}},
+            "sun": None, "sky": {"uniform": [1, 1, 1]}, "ground": None, "camera": cam, "render": {"spp": 256, "maxBounces": 512, "seed": 0},
+        }, {"kind": "hetero-absorber"})
     print(f"wrote tests under {root}")
 
 
