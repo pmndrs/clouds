@@ -43,7 +43,7 @@ export const CARD_DEFS: Record<CardCloudKey, CardCloudDef> = {
   parkouring: { key: 'parkouring', label: 'A Parkouring (Nubis pack NVDF)', source: 'Nubis pack hero "Parkouring" (NVDF + runtime up-rez noise), baked per camera at 2 m', runtime: 'nvdf', camera: { distance: 1150, height: 120 }, alphaFilter: 'nearest' },
   embergen02: { key: 'embergen02', label: 'B EmberGen 02 (CloudPack VDB)', source: 'JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m', runtime: 'direct', camera: { distance: 3100, height: 150 }, alphaFilter: 'trilinear' },
   wdas: { key: 'wdas', label: 'C Disney cloud (WDAS 1/8 VDB)', source: 'Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m', runtime: 'direct', camera: { distance: 3400, height: 150 }, alphaFilter: 'trilinear' },
-  sky: { key: 'sky', label: 'D procedural sky patch (HZD bench)', source: 'HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample', runtime: 'direct', camera: { distance: 4800, height: 150 }, alphaFilter: 'trilinear' },
+  sky: { key: 'sky', label: 'D procedural sky patch (HZD bench)', source: 'HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample', runtime: 'direct', camera: { distance: 6800, height: 150 }, alphaFilter: 'trilinear' },
   // Below the slab (1200 m from its centre, inside its 3 km footprint), looking up at about 28 degrees.
   stratus: { key: 'stratus', label: 'E stratus slab (HZD deck)', source: 'HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample', runtime: 'direct', camera: { distance: 1200, height: 100 }, alphaFilter: 'trilinear' },
 };
@@ -63,10 +63,10 @@ const VDB_BASE = 900;
 export const PROC_PATCHES: Record<'sky' | 'stratus', { configure: Record<string, number | string>; box: { min: V3; max: V3 }; voxel: number }> = {
   // A 3 x 3 km window of the seed-3 map whose border crosses almost no cloud (2 % of its edge columns above optical depth 1, at a 50 m scan):
   // two main cumulus masses and a few small ones, bases about 1675 m, tops to about 2525 m.
-  sky: { configure: {}, box: { min: [3000, 1550, -8800], max: [6000, 2750, -5800] }, voxel: 8 },
-  // The deck slot's stratus (main layer off): a continuous deck with holes. This 3 x 3 km window is about 63 % covered (column optical depth
-  // median 2, p90 8.6 at a 25 m scan; 26 % of the columns below 0.1): shaded where it is thick, sky through its holes and thin parts.
-  stratus: { configure: { coverageBias: -1, deckForm: 'stratus' }, box: { min: [1500, 590, 500], max: [4500, 870, 3500] }, voxel: 8 },
+  sky: { configure: {}, box: { min: [3000, 1550, -8800], max: [6000, 3150, -5800] }, voxel: 8 },
+  // The deck slot's stratus (main layer off): a continuous deck with holes. This 3 x 3 km window is the deck breaking up (column optical
+  // depth median 0.9, p90 6.9 at a 25 m scan; 35 % of the columns below 0.1): shaded where it is thick, sky through its holes and thin parts.
+  stratus: { configure: { coverageBias: -1, deckForm: 'stratus' }, box: { min: [2000, 590, 1000], max: [5000, 870, 4000] }, voxel: 8 },
 };
 
 const RESEARCH_CANDIDATES = [`${__REPO_ROOT__}artifacts/research/`, `${__REPO_ROOT__}../../../artifacts/research/`];
