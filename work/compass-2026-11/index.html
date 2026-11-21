@@ -71,8 +71,20 @@ a { color: var(--accent); }
 <header style="display:flex;flex-direction:column;gap:8px">
   <div class="stamp">WebGPUClouds · updated 2026-11-21 · source work/compass-2026-11/ · plan docs/AUDIT-2026-11.md</div>
   <h1>Clouds Audit Compass</h1>
-  <p class="sub">The plan since the November audit. A clean shaper and lighting model inside the existing repo, each measured against its own ground truth. This replaces the phase list on the earlier Compass, which stays as the record of the work before the audit.</p>
+  <p class="sub">The plan since the November audit. This replaces the phase list on the earlier Compass, which stays as the record of the work before the audit.</p>
 </header>
+
+<section>
+  <h2>The goal</h2>
+  <p style="font-family:var(--display);font-size:19px;font-weight:600;max-width:40ch">The best-looking, fastest cloud system that can run in the browser.</p>
+  <ul>
+    <li><strong>Looks are judged against reality:</strong> your photos, the simulated clouds you rate highly, and physically correct light from a path trace. Then your eye.</li>
+    <li><strong>Speed is judged in milliseconds</strong> on the target machines.</li>
+    <li><strong>Every source is a toolbox, not a target.</strong> Horizon and Nubis, Takram, Sky Pro, Frostbite, the papers and Houdini are places to take methods from. Horizon's clouds are one style; none of these is a gate.</li>
+    <li><strong>Differing from a source is fine</strong> when the reason is better quality, shape or speed. That is not a reason to skip hard work, or to avoid a method because a source uses it.</li>
+  </ul>
+  <p class="note">No gate on this page compares against a Horizon frame, a Decima number or a published constant.</p>
+</section>
 
 <section>
   <div class="strip">
@@ -103,7 +115,7 @@ a { color: var(--accent); }
     <tr><th>Step</th><th>Work</th><th>State</th></tr>
     <tr><td class="id">0.1</td><td>Freeze. Baseline tagged <code>stable-2026-11-21-audit-baseline</code>; the old shaper, both old lighting models and the styles are kept but no longer tuned.</td><td><span class="pill run">check pending</span></td></tr>
     <tr><td class="id">0.2</td><td>Pathtracer volumes for cloud conditions: validation at strong forward scattering first, then droplet phase functions, a single/multiple scatter split, outputs with volumes on, a ground plane, grid memory.</td><td><span class="pill run">handed off</span></td></tr>
-    <tr><td class="id">0.2b</td><td>Second reference renderer. Cycles, because it has droplet phase functions; Karma on one frame as a third opinion now that the Houdini licence works.</td><td><span class="pill run">running</span></td></tr>
+    <tr><td class="id">0.2b</td><td>Second reference renderer, Cycles. Closed-form checks pass within 0.2 %. Blender's default volume method gains energy on a dense cloud, so the script uses ray marching. Slow, so it spot-checks one or two frames.</td><td><span class="pill ok">passed</span></td></tr>
     <tr><td class="id">0.3</td><td>Linear-radiance comparison and the scorecard script.</td><td><span class="pill ok">passed</span></td></tr>
     <tr><td class="id">0.4</td><td>The scene card: five clouds (Parkouring, EmberGen 02, the Disney cloud, a patch of the procedural sky, a stratus slab) under four suns (noon, low, backlit, sunset).</td><td><span class="pill run">running</span></td></tr>
     <tr><td class="id">0.5</td><td>Converged march mode. Review switch P05 on the sky bench; a checkbox on the flagship page.</td><td><span class="pill ok">passed</span></td></tr>
@@ -127,10 +139,10 @@ a { color: var(--accent); }
 
 <section>
   <h2>Structure we are building toward</h2>
-  <p>Guerrilla runs three cloud systems side by side, fed by an authoring layer. We keep that layout and rebuild the two tangled parts clean.</p>
+  <p>Guerrilla splits the job into a sky-wide procedural system, voxel hero clouds, and a generator with authoring on top. That split is a sound starting layout, so we begin from it and rebuild the two tangled parts clean. Any part can be replaced by something that looks or runs better.</p>
   <div class="tw"><table>
     <tr><th>System</th><th>Today</th><th>Plan</th></tr>
-    <tr><td>Vertical profile (the sky at large)</td><td>One function mixing four generations of the model</td><td>Rebuild from one generation, the version recapped in the Nubis Cubed deck</td></tr>
+    <tr><td>Vertical profile (the sky at large)</td><td>One function mixing four generations of the model</td><td>Rebuild small and clean. Start from the published structure because it is cheap and proven at speed; change whatever your photos and your eye say is wrong. Much of the recipe was never published, so large parts are ours anyway</td></tr>
     <tr><td>Generator</td><td>Invented by us; theirs is unpublished</td><td>New and body-based: cloud bodies with their own sizes and top heights, built from nested lobes</td></tr>
     <tr><td>Voxel (hero clouds, your VDBs)</td><td>Works</td><td>Keep; it gets the new lighting</td></tr>
     <tr><td>Envelope (cloud on terrain)</td><td>Not built</td><td>Later, if a demo needs it</td></tr>
@@ -158,7 +170,7 @@ a { color: var(--accent); }
       <tr><th>Step</th><th>Work</th><th>Gate</th></tr>
       <tr><td class="id">2.0</td><td>Path trace a patch of today's procedural sky</td><td>A sheet: does it still read as slabs with fuzz under correct light?</td></tr>
       <tr><td class="id">2.1</td><td>Shape measures from your photos and our renders <span class="pill run">running</span></td><td>The numbers separate photos from today's sky clearly</td></tr>
-      <tr><td class="id">2.2</td><td>Clean one-generation profile shaper <span class="pill run">spec being written</span></td><td>No worse than the old shaper on the same field, in a fraction of the code</td></tr>
+      <tr><td class="id">2.2</td><td>Clean shaper, starting from the published profile structure <span class="pill ok">source spec written</span></td><td>No worse than the old shaper on the same field, in a fraction of the code</td></tr>
       <tr><td class="id">2.3</td><td>Generator: bodies from flat to towering in one sky</td><td>Height-to-width and gap sizes inside the photo range</td></tr>
       <tr><td class="id">2.4</td><td>Generator: nested lobes</td><td>Silhouette structure at the middle scales, inside the photo range</td></tr>
       <tr><td class="id">2.5</td><td>Erosion on edges and undersides only</td><td>Lit-face fine texture stays inside the Phase 1 band</td></tr>
@@ -201,7 +213,7 @@ a { color: var(--accent); }
   <h2>Waiting on you</h2>
   <div class="tw"><table>
     <tr><th>Item</th><th>What</th><th></th></tr>
-    <tr><td>Pathtracer session</td><td>Start it from <code>docs/internal/CLOUDS-HANDOFF.md</code> on the pathtracer branch <code>clouds/volume-reference</code>.</td><td><span class="pill you">yours</span></td></tr>
+    <tr><td>Pathtracer session</td><td>Relay: its validation should include a furnace test on a real cloud grid at 0.6 per metre. Its tracking method is the same family that gained energy in Blender.</td><td><span class="pill you">yours</span></td></tr>
     <tr><td>Default caps</td><td>5 minutes per render, 15 minutes per full card or test run, 500 MB per grid. Say if these should differ.</td><td><span class="pill wait">optional</span></td></tr>
     <tr><td>Disney cloud</td><td>Only reduced-resolution files are on disk. The plan does not need the full file.</td><td><span class="pill wait">no action</span></td></tr>
   </table></div>
@@ -213,7 +225,7 @@ a { color: var(--accent); }
     <li>One default path. Everything else stays in the code, frozen.</li>
     <li>One fixed scene card; every round reports the same scorecard.</li>
     <li>Agents measure. You judge, on a few sheets per phase. No model judges taste.</li>
-    <li>Every departure from a source goes in <code>DIVERGES.md</code> with its measured effect.</li>
+    <li>Each place we use, change or drop a source's method goes in <code>DIVERGES.md</code> with its measured effect. It is a record of choices, not a list of gaps to close.</li>
     <li>One change per step. A failed gate is a result, not a reason to widen the change.</li>
     <li>Every run has a time and a memory cap. Hours-long runs need your yes first.</li>
   </ul>
