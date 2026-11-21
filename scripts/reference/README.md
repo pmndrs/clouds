@@ -14,9 +14,10 @@ Validated against closed forms by `validate.py`. Results: `work/captures/P0-2b/t
 ```sh
 B=/Applications/Blender.app/Contents/MacOS/Blender
 $B -b --factory-startup -P scripts/reference/cycles_render.py -- frame/manifest.json --out frame/cycles.exr \
-   [--pfm frame/cycles.pfm] [--device CPU|GPU] [--spp N] [--passes] [--alpha] [--threads N] [--keep-blend]
-python3 scripts/reference/make_test_manifests.py              # synthetic scenes -> work/captures/P0-2b/tests
-python3 scripts/reference/validate.py [--only furnace,ss] [--device GPU]
+   [--pfm frame/cycles.pfm] [--device CPU|GPU] [--spp N] [--passes] [--alpha] [--threads N] [--keep-blend] \
+   [--vol-step M] [--null-scattering] [--width W]   # --width: quick low-res run of the same view
+python3 scripts/reference/make_test_manifests.py              # synthetic scenes -> work/captures/P0-2b/tests (+ hetero-* from the smoke grid)
+python3 scripts/reference/validate.py [--only furnace,ss] [--device GPU] [--mode march|null]
 $B -b --factory-startup -P scripts/reference/vdb_to_grid.py -- cloud.vdb --out dir --voxel 4 --up z   # VDB -> raw grid
 python3 scripts/reference/preview.py frame.pfm preview.jpg --exposure 1.5   # a look only, never a measurement
 ```
@@ -117,9 +118,27 @@ the top. This matches the pathtracer's `PtLookAtCamera`.
 world shader applies R⁻¹ to the ray direction before the equirect lookup. Nothing relies on an importer's axis settings.
 The `--up z` option of `vdb_to_grid.py` uses the same rotation: `(x, y, z)_src -> (x, z, −y)_ours`.
 
-**Cycles settings that matter for bias.**
-- Volumes use null scattering (`volume_biased = False`, unbiased; Cycles 5.x's default). Step size and step rate only affect the
-  biased ray-marching mode. `volume_max_steps` is set to its maximum, 65536.
+**Volume mode: ray marching, not Blender's default.** Cycles 5.1 defaults to null scattering, which is unbiased in principle. On a
+dense real grid it is **not**. On the EmberGen cloud (4 m voxels, density up to 0.73), as a furnace with albedo 1 under a uniform
+sky of 1:
+- At 0.6/m per unit density it reads **1.041 overall and 1.131 through the medium**, with single pixels up to 2.9.
+- At 0.2/m it reads 1.014 and 1.047. At 0.06/m it reads 1.0005.
+- The sunlit frame shows negative pixels, which means samples with negative weight. That is a majorant below the trilinear density
+  somewhere, and the thick body comes out **10 % brighter** than in the converged ray march.
+- `volume_step_rate` has no effect on it. CPU and Metal give the same result.
+
+So the script defaults to Cycles' **ray-marching mode** (`volume_biased = True`) with a step of **voxel / 4** world metres
+(`--vol-step` overrides it):
+- The heterogeneous furnace reads exactly 1 at all three extinctions.
+- The real-cloud transmittance is within 0.1 % of a numpy trilinear march.
+- Every closed-form check still passes.
+- On the sunlit cloud, steps of voxel/2 and voxel/4 differ by less than 0.1 %.
+- The cost is about 2× null scattering at voxel/2 and 3.5× at voxel/4.
+
+`--null-scattering` brings back Blender's default for comparison. `volume_max_steps` is at its maximum, 65536. The script refuses
+a grid whose diagonal divided by the step exceeds that.
+
+**Other Cycles settings that matter for bias.**
 - These are all off: denoiser, adaptive sampling, clamping (direct and indirect), light threshold, fast GI / AO bounces, path
   guiding and scrambling distance.
 - View transform is Standard with exposure 0. EXR output is scene-linear whatever the view transform.

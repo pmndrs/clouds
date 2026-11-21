@@ -111,7 +111,7 @@ def check(name, d, args):
     pfm = d / args.tag / "frame.pfm"
     side = json.loads((d / args.tag / "frame.json").read_text()) if args.no_render else None
     if not args.no_render:
-        pfm, side = render(d, args.device, extra + (["--biased"] if args.mode == "biased" else []), args.tag)
+        pfm, side = render(d, args.device, extra + (["--null-scattering"] if args.mode == "null" else []), args.tag)
     img = refio.read_pfm(pfm)
     secs = side.get("seconds", 0) + side.get("alphaSeconds", 0)
 
@@ -238,9 +238,9 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--device", default="CPU")
     ap.add_argument("--no-render", action="store_true")
-    ap.add_argument("--mode", default="null", choices=["null", "biased"], help="Cycles volumes: null scattering (default) or ray marching, step voxel/8")
+    ap.add_argument("--mode", default="march", choices=["march", "null"], help="Cycles volumes: ray marching at voxel/4 (the script's default) or null scattering")
     args = ap.parse_args()
-    args.tag = "out" if args.mode == "null" else "out-biased"
+    args.tag = "out" if args.mode == "march" else "out-null"
     names = sorted(p.name for p in args.tests.iterdir() if (p / "manifest.json").exists())
     if args.only:
         keep = args.only.split(",")
@@ -251,7 +251,7 @@ def main():
         for r in rows:
             print(f"{r['test']:22s} {r['check'][:58]:58s} exp {r['expected']}  meas {r['measured']}  err {r['maxRelErr']:.4f}" + (f"  noise {r['noise']:.4f}" if r["noise"] is not None else "") + f"  {r['seconds']}s")
         all_rows += rows
-    suffix = ("" if args.device == "CPU" else "-" + args.device.lower()) + ("" if args.mode == "null" else "-biased") + ("-subset" if args.only else "")
+    suffix = ("" if args.device == "CPU" else "-" + args.device.lower()) + ("" if args.mode == "march" else "-null") + ("-subset" if args.only else "")
     if True:
         (args.tests / f"results{suffix}.json").write_text(json.dumps(all_rows, indent=1) + "\n")
         with open(args.tests / f"results{suffix}.md", "w") as f:

@@ -1,12 +1,19 @@
-"""Unbiased Cycles reference render of one reference-frame manifest (scripts/reference/README.md), in linear radiance.
+"""Cycles reference render of one reference-frame manifest (scripts/reference/README.md), in linear radiance.
 
   Blender -b --factory-startup -P scripts/reference/cycles_render.py -- manifest.json --out frame.exr \
-      [--pfm frame.pfm] [--device CPU|GPU] [--spp N] [--passes] [--alpha] [--threads N]
+      [--pfm frame.pfm] [--device CPU|GPU] [--spp N] [--passes] [--alpha] [--threads N] [--vol-step M] [--null-scattering]
+
+VOLUME MODE. Default: Cycles' ray-marching volume mode ("biased") with a step of voxel / 4 (world metres). In Blender 5.1 the default
+null-scattering mode is NOT energy conserving on dense real grids: a furnace on the EmberGen cloud (albedo 1, uniform sky 1) reads
+1.04 mean / 1.13 through the medium at sigma_t 0.6/m density, with negative pixels from an underestimated majorant, and a sunlit
+render is 10 % too bright in the thick body. Ray marching passes the same furnace exactly and the transmittance checks within
+0.1 %; the step converges (voxel/2 vs voxel/4 differ by < 0.1 %). --null-scattering restores Blender's default for comparison.
+The text below describes the rest of the setup.
 
 Builds the scene from the manifest only (empty factory scene): the raw float32 grid becomes a temporary .vdb (openvdb module), a
 volume object with Volume Scatter (+ Volume Absorption) so that sigma_s = albedo * sigma_t and sigma_a = (1 - albedo) * sigma_t,
 sigma_t = density * extinctionScale (1/m); the manifest's phase function; a sun light (W/m^2 irradiance, angle = 2 * angularRadius);
-the equirect or uniform world; an optional Lambertian ground plane; the camera. Cycles null-scattering volumes (unbiased), no
+the equirect or uniform world; an optional Lambertian ground plane; the camera. No
 denoiser, no clamping, no adaptive sampling, no light threshold, no fast GI, no Russian roulette, box pixel filter 1 px, Standard
 view transform with exposure 0 (irrelevant for the EXR, which is scene-linear Rec.709 anyway).
 
@@ -52,7 +59,8 @@ def args_after_dashes():
     p.add_argument("--threads", type=int, default=0)
     p.add_argument("--step-rate", type=float, default=1.0, help="Cycles volume_step_rate (diagnostic; sizes the majorant grid)")
     p.add_argument("--vol-step", type=float, default=0.0, help="volume object step_size in metres (diagnostic; 0 = automatic)")
-    p.add_argument("--biased", action="store_true", help="use Cycles' ray-marching volume mode (step = --vol-step) instead of null scattering")
+    p.add_argument("--null-scattering", action="store_true", help="use Blender's default null-scattering volumes (fails the furnace on dense grids)")
+    p.add_argument("--biased", action="store_true", help=argparse.SUPPRESS)   # old name of the (now default) ray-marching mode
     p.add_argument("--interp", default="LINEAR", choices=["LINEAR", "CUBIC"], help="volume interpolation (diagnostic)")
     p.add_argument("--width", type=int, help="override camera width (and height by the same factor), for quick tests")
     p.add_argument("--keep-blend", action="store_true", help="save the built .blend next to --out (debugging)")
@@ -126,8 +134,12 @@ def build_volume(m, vdb_path, scene, a=None):
     vol.render.precision = "FULL"   # default HALF quantises the density
     vol.render.clipping = 0.0       # default 0.001 drops thin material
     vol.render.space = "WORLD"
-    # Step of the ray-marching mode (metres, world space): --vol-step, else voxel / 8. Null scattering ignores it.
-    step = float(getattr(a, "vol_step", 0.0) or 0.0) or float(m["grid"]["voxel"]) / 8.0
+    # Step of the ray-marching mode (metres, world space): --vol-step, else voxel / 4. Null scattering ignores it.
+    g = m["grid"]
+    step = float(getattr(a, "vol_step", 0.0) or 0.0) or float(g["voxel"]) / 4.0
+    diag = math.sqrt(sum((d * float(g["voxel"])) ** 2 for d in g["dims"]))
+    if diag / step > 65536:   # volume_max_steps' hard maximum: a longer march would be cut short
+        raise ValueError(f"grid diagonal {diag:.0f} m / step {step} m exceeds 65536 steps; pass a larger --vol-step")
     vol.render.step_size = step
     obj = bpy.data.objects.new("density", vol)
     scene.collection.objects.link(obj)
@@ -334,7 +346,7 @@ def configure(m, scene, a, transparent=False, max_scatter=None):
     c.ao_bounces_render = 0
     c.caustics_reflective = True
     c.caustics_refractive = True
-    c.volume_biased = bool(a.biased)  # default False: null scattering; True: Cycles' ray marcher with --vol-step metres
+    c.volume_biased = not a.null_scattering   # ray marching at the volume's step_size (see the module docstring for why)
     c.volume_step_rate = float(a.step_rate)
     c.volume_max_steps = 65536
     # Manifest maxBounces = scattering/reflection vertices per path (pbrt's maxDepth; 1 = single scattering).
@@ -465,6 +477,9 @@ def main():
             if scene.world:
                 scene.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
             configure(m, scene, a, transparent=True, max_scatter=1)
+            # The ray march costs the same per camera ray with or without light, so cap the alpha pass's samples.
+            scene.cycles.samples = min(scene.cycles.samples, 128)
+            side["alphaSpp"] = scene.cycles.samples
             alpha_exr = a.out.with_name(a.out.stem + ".alpha.exr")
             side["alphaSeconds"] = render_once(scene, alpha_exr)
             la = read_exr_layers(alpha_exr)

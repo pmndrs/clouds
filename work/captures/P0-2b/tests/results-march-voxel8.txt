@@ -1,0 +1,58 @@
+absorber               centre 6x6 vs exp(-tau) L                                  exp [0.18394, 0.36788, 0.73576]  meas [0.18412, 0.36825, 0.7365]  err 0.0010  noise 0.0002  7.56s
+absorber               whole image RMS / L (vs numpy trilinear march)             exp [0.0, 0.0, 0.0]  meas [0.00056, 0.00056, 0.00056]  err 0.0006  7.56s
+absorber               alpha AOV centre vs 1 - exp(-tau)                          exp [0.63212]  meas [0.63175]  err 0.0006  noise 0.0001  7.56s
+absorber               alpha AOV whole image RMS                                  exp [0.0]  meas [0.00056]  err 0.0006  7.56s
+absorber-a05           combined (black sky, no sun) = 0                           exp [0.0, 0.0, 0.0]  meas [0.0, 0.0, 0.0]  err 0.0000  19.87s
+absorber-a05           alpha AOV centre vs 1 - exp(-tau)                          exp [0.63212]  meas [0.63132]  err 0.0013  noise 0.0007  19.87s
+absorber-a05           alpha AOV whole image RMS                                  exp [0.0]  meas [0.00289]  err 0.0029  19.87s
+axes-fromx             RMS (vs numpy trilinear march)                             exp [0.0]  meas [0.00098]  err 0.0010  2.54s
+axes-fromx             absorbance centroid px (x, y)                              exp [105.25476, 83.13043]  meas [105.25956, 83.14016]  err 0.0001  2.54s
+axes-fromx             RMS vs grid mirrored in x: 0.0518, y: 0.1304, z: 0.1431    exp []  meas []  err 0.0000  2.54s
+axes-fromy             RMS (vs numpy trilinear march)                             exp [0.0]  meas [0.00114]  err 0.0011  2.35s
+axes-fromy             absorbance centroid px (x, y)                              exp [83.24541, 62.30952]  meas [83.23736, 62.30671]  err 0.0000  2.35s
+axes-fromy             RMS vs grid mirrored in x: 0.1193, y: 0.0477, z: 0.1604    exp []  meas []  err 0.0000  2.35s
+axes-fromz             RMS (vs numpy trilinear march)                             exp [0.0]  meas [0.00119]  err 0.0012  1.91s
+axes-fromz             absorbance centroid px (x, y)                              exp [82.05768, 84.66044]  meas [82.04396, 84.66189]  err 0.0001  1.91s
+axes-fromz             RMS vs grid mirrored in x: 0.1267, y: 0.1553, z: 0.0429    exp []  meas []  err 0.0000  1.91s
+furnace-hg08           all pixels                                                 exp [0.6, 0.8, 1.0]  meas [0.60005, 0.79989, 1.0]  err 0.0001  noise 0.0000  11.95s
+furnace-hg08           through medium (3736 px)                                   exp [0.6, 0.8, 1.0]  meas [0.59999, 0.80003, 1.0]  err 0.0000  noise 0.0000  11.95s
+furnace-hg08           largest single-pixel deviation                             exp [0.0]  meas [0.0]  err 0.0000  11.95s
+furnace-iso            all pixels                                                 exp [0.6, 0.8, 1.0]  meas [0.60005, 0.79989, 1.0]  err 0.0001  noise 0.0000  19.08s
+furnace-iso            through medium (3736 px)                                   exp [0.6, 0.8, 1.0]  meas [0.59999, 0.80003, 1.0]  err 0.0000  noise 0.0000  19.08s
+furnace-iso            largest single-pixel deviation                             exp [0.0]  meas [0.0]  err 0.0000  19.08s
+hetero-absorber-e0.1   partial-transmittance pixels (3009) mean vs numpy trilinea exp [0.31932]  meas [0.3196]  err 0.0009  25.28s
+hetero-absorber-e0.1   whole image RMS                                            exp [0.0]  meas [0.00218]  err 0.0022  25.28s
+hetero-furnace-e0.06   all pixels                                                 exp [1.0, 1.0, 1.0]  meas [1.0, 1.0, 1.0]  err 0.0000  noise 0.0000  50.9s
+hetero-furnace-e0.06   through medium (3327 px)                                   exp [1.0, 1.0, 1.0]  meas [1.0, 1.0, 1.0]  err 0.0000  noise 0.0000  50.9s
+hetero-furnace-e0.06   largest single-pixel deviation                             exp [0.0]  meas [0.0]  err 0.0000  50.9s
+hetero-furnace-e0.2    all pixels                                                 exp [1.0, 1.0, 1.0]  meas [1.0, 1.0, 1.0]  err 0.0000  noise 0.0000  96.21s
+hetero-furnace-e0.2    through medium (4167 px)                                   exp [1.0, 1.0, 1.0]  meas [1.0, 1.0, 1.0]  err 0.0000  noise 0.0000  96.21s
+hetero-furnace-e0.2    largest single-pixel deviation                             exp [0.0]  meas [0.0]  err 0.0000  96.21s
+hetero-furnace-e0.6    all pixels                                                 exp [1.0, 1.0, 1.0]  meas [1.0, 1.0, 1.0]  err 0.0000  noise 0.0000  121.49s
+hetero-furnace-e0.6    through medium (4465 px)                                   exp [1.0, 1.0, 1.0]  meas [1.0, 1.0, 1.0]  err 0.0000  noise 0.0000  121.49s
+hetero-furnace-e0.6    largest single-pixel deviation                             exp [0.0]  meas [0.0]  err 0.0000  121.49s
+sky-nz                 RMS / peak (vs numpy bilinear lookup)                      exp [0.0]  meas [0.00022]  err 0.0002  0.01s
+sky-nz                 blob [1, 1, 0] centroid px (x, y)                          exp [80.0, 45.0]  meas [80.00232, 44.99985]  err 0.0000  0.01s
+sky-px                 RMS / peak (vs numpy bilinear lookup)                      exp [0.0]  meas [0.00031]  err 0.0003  0.01s
+sky-px                 blob [1, 0, 0] centroid px (x, y)                          exp [80.0, 45.0]  meas [80.00232, 44.99985]  err 0.0000  0.01s
+sky-px                 blob [1, 1, 1] centroid px (x, y)                          exp [80.0, 16.63133]  meas [79.99797, 16.34517]  err 0.0032  0.01s
+sky-py                 RMS / peak (vs numpy bilinear lookup)                      exp [0.0]  meas [0.00016]  err 0.0002  0.01s
+sky-py                 blob [0, 0, 1] centroid px (x, y)                          exp [80.0, 45.0]  meas [80.00244, 44.9997]  err 0.0000  0.01s
+sky-pz                 RMS / peak (vs numpy bilinear lookup)                      exp [0.0]  meas [0.00015]  err 0.0002  0.01s
+sky-pz                 blob [0, 1, 0] centroid px (x, y)                          exp [80.0, 45.0]  meas [80.00231, 44.99985]  err 0.0000  0.01s
+ss-draine-25-b1        combined, central half                                     exp [0.07849, 0.05232, 0.02616]  meas [0.07842, 0.05228, 0.02614]  err 0.0008  noise 0.0032  6.65s
+ss-hg08-fwd-b1         combined, central half                                     exp [0.29352, 0.19568, 0.09784]  meas [0.29329, 0.19553, 0.09776]  err 0.0008  noise 0.0047  7.85s
+ss-hg08-fwd-b512       combined (all orders), central half                        exp [0.29352, 0.19568, 0.09784]  meas [0.29787, 0.19858, 0.09929]  err 0.0148  noise 0.0048  4.56s
+ss-hg08-fwd-b512       Volume Direct pass, central half                           exp [0.29352, 0.19568, 0.09784]  meas [0.29329, 0.19553, 0.09776]  err 0.0008  noise 0.0047  4.56s
+ss-hg08-side-b1        combined, central half                                     exp [0.00126, 0.00084, 0.00042]  meas [0.00125, 0.00084, 0.00042]  err 0.0006  noise 0.0011  1.94s
+ss-hg08-side-b512      combined (all orders), central half                        exp [0.00126, 0.00084, 0.00042]  meas [0.00131, 0.00087, 0.00044]  err 0.0433  noise 0.0028  2.04s
+ss-hg08-side-b512      Volume Direct pass, central half                           exp [0.00126, 0.00084, 0.00042]  meas [0.00125, 0.00084, 0.00042]  err 0.0006  noise 0.0011  2.04s
+ss-iso-fwd-b1          combined, central half                                     exp [0.01473, 0.00982, 0.00491]  meas [0.01472, 0.00982, 0.00491]  err 0.0005  noise 0.0012  1.92s
+ss-iso-fwd-b512        combined (all orders), central half                        exp [0.01473, 0.00982, 0.00491]  meas [0.01627, 0.01085, 0.00542]  err 0.1048  noise 0.0019  1.77s
+ss-iso-fwd-b512        Volume Direct pass, central half                           exp [0.01473, 0.00982, 0.00491]  meas [0.01472, 0.00982, 0.00491]  err 0.0005  noise 0.0012  1.77s
+ss-mie-25-b1           combined, central half                                     exp [0.04665, 0.0311, 0.01555]  meas [0.04662, 0.03108, 0.01554]  err 0.0008  noise 0.0026  2.01s
+ss-mix-25-b1           combined, central half                                     exp [0.03648, 0.02432, 0.01216]  meas [0.03645, 0.0243, 0.01215]  err 0.0007  noise 0.0025  2.18s
+sun-e30                ground radiance a E cos(z) / pi                            exp [0.38197, 0.15915, 0.03979]  meas [0.38197, 0.15917, 0.03979]  err 0.0001  noise 0.0000  0.01s
+sun-e70                ground radiance a E cos(z) / pi                            exp [0.71787, 0.29911, 0.07478]  meas [0.7178, 0.2991, 0.07477]  err 0.0001  noise 0.0000  0.01s
+
+[exited with code 0]

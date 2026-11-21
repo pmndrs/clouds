@@ -1,53 +1,9 @@
 {
-  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/smoke/manifest.json",
+  "note": "Hand-written: frame.pfm/.exr and the pass PFMs are the ray-marching (default) render, step 1 m (voxel/4), 640x360, 1024 spp, maxBounces 512, CPU, finished 17:16 after about 88 min wall while other agents ran GPU captures (uncontended estimate about 21 min). Its --alpha pass was killed by request; frame.alpha.pfm is from the earlier null-scattering run (15:26, 1024 spp), whose transmittance is validated in both modes. The null-scattering 1024 spp render itself took 579.6 s (alpha 27.4 s) and is 10 % too bright in the thick body (see preview-1024spp-nullscattering.jpg).",
+  "manifest": "work/captures/P0-2b/smoke/manifest.json",
   "blender": "5.1.1",
   "device": "CPU",
-  "grid": {
-    "densityMax": 0.728515625,
-    "activeVoxels": 5699272
-  },
-  "sky": {
-    "kind": "uniform",
-    "radiance": [
-      0.18,
-      0.26,
-      0.42
-    ]
-  },
-  "sun": {
-    "energy": 6.0,
-    "color": [
-      1.0,
-      0.949999988079071,
-      0.8666666746139526
-    ],
-    "angle": 0.0
-  },
-  "ground": null,
-  "seconds": 579.5799298286438,
   "spp": 1024,
-  "cyclesBounces": 511,
-  "channels": [
-    "ViewLayer.Combined.A",
-    "ViewLayer.Combined.B",
-    "ViewLayer.Combined.G",
-    "ViewLayer.Combined.R",
-    "ViewLayer.Diffuse Direct.B",
-    "ViewLayer.Diffuse Direct.G",
-    "ViewLayer.Diffuse Direct.R",
-    "ViewLayer.Diffuse Indirect.B",
-    "ViewLayer.Diffuse Indirect.G",
-    "ViewLayer.Diffuse Indirect.R",
-    "ViewLayer.Environment.B",
-    "ViewLayer.Environment.G",
-    "ViewLayer.Environment.R",
-    "ViewLayer.Volume Direct.B",
-    "ViewLayer.Volume Direct.G",
-    "ViewLayer.Volume Direct.R",
-    "ViewLayer.Volume Indirect.B",
-    "ViewLayer.Volume Indirect.G",
-    "ViewLayer.Volume Indirect.R"
-  ],
-  "alphaSeconds": 27.393728017807007,
-  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/smoke/out/frame.pfm"
+  "volumeMode": "ray marching, step 1.0 m",
+  "thickBodyMeanRGB": [0.6055, 0.6497, 0.7455]
 }

@@ -1,37 +1,233 @@
 [
  {
-  "test": "ss-draine-25-b1",
-  "check": "combined, central half",
+  "test": "absorber",
+  "check": "centre 6x6 vs exp(-tau) L",
   "expected": [
-   0.07849,
-   0.05232,
-   0.02616
+   0.18394,
+   0.36788,
+   0.73576
   ],
   "measured": [
-   0.07847,
-   0.05231,
-   0.02616
+   0.18425,
+   0.3685,
+   0.73701
   ],
-  "maxRelErr": 0.00020540665437729366,
-  "noise": 0.003044147851634334,
-  "seconds": 5.04
+  "maxRelErr": 0.0017003670886273081,
+  "noise": 0.0003118956466855371,
+  "seconds": 11.05
  },
  {
-  "test": "ss-mie-25-b1",
-  "check": "combined, central half",
+  "test": "absorber",
+  "check": "whole image RMS / L (vs numpy trilinear march)",
   "expected": [
-   0.04665,
-   0.0311,
-   0.01555
+   0.0,
+   0.0,
+   0.0
   ],
   "measured": [
-   0.04664,
-   0.03109,
-   0.01555
+   0.0009,
+   0.0009,
+   0.0009
   ],
-  "maxRelErr": 0.00020093210642058157,
-  "noise": 0.0024325581754570218,
-  "seconds": 5.3
+  "maxRelErr": 0.0009040611487894948,
+  "noise": null,
+  "seconds": 11.05
+ },
+ {
+  "test": "absorber",
+  "check": "alpha AOV centre vs 1 - exp(-tau)",
+  "expected": [
+   0.63212
+  ],
+  "measured": [
+   0.63157
+  ],
+  "maxRelErr": 0.0008708118041217405,
+  "noise": 0.0005262547638267279,
+  "seconds": 11.05
+ },
+ {
+  "test": "absorber",
+  "check": "alpha AOV whole image RMS",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00198
+  ],
+  "maxRelErr": 0.001977578787391785,
+  "noise": null,
+  "seconds": 11.05
+ },
+ {
+  "test": "absorber-a05",
+  "check": "combined (black sky, no sun) = 0",
+  "expected": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "measured": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 27.8
+ },
+ {
+  "test": "absorber-a05",
+  "check": "alpha AOV centre vs 1 - exp(-tau)",
+  "expected": [
+   0.63212
+  ],
+  "measured": [
+   0.6339
+  ],
+  "maxRelErr": 0.00281114749412148,
+  "noise": 0.00252993730828166,
+  "seconds": 27.8
+ },
+ {
+  "test": "absorber-a05",
+  "check": "alpha AOV whole image RMS",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00967
+  ],
+  "maxRelErr": 0.009673068002140272,
+  "noise": null,
+  "seconds": 27.8
+ },
+ {
+  "test": "axes-fromz",
+  "check": "RMS (vs numpy trilinear march)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00223
+  ],
+  "maxRelErr": 0.0022301883404472144,
+  "noise": null,
+  "seconds": 5.98
+ },
+ {
+  "test": "axes-fromz",
+  "check": "absorbance centroid px (x, y)",
+  "expected": [
+   82.05768,
+   84.66044
+  ],
+  "measured": [
+   82.03314,
+   84.66751
+  ],
+  "maxRelErr": 0.00012780748011779566,
+  "noise": null,
+  "seconds": 5.98
+ },
+ {
+  "test": "axes-fromz",
+  "check": "RMS vs grid mirrored in x: 0.1264, y: 0.1549, z: 0.0432",
+  "expected": [],
+  "measured": [],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 5.98
+ },
+ {
+  "test": "hetero-absorber-e0.1",
+  "check": "partial-transmittance pixels (3009) mean vs numpy trilinear march",
+  "expected": [
+   0.31932
+  ],
+  "measured": [
+   0.31967
+  ],
+  "maxRelErr": 0.0010798962338869345,
+  "noise": null,
+  "seconds": 22.99
+ },
+ {
+  "test": "hetero-absorber-e0.1",
+  "check": "whole image RMS",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00221
+  ],
+  "maxRelErr": 0.0022118285730769907,
+  "noise": null,
+  "seconds": 22.99
+ },
+ {
+  "test": "hetero-furnace-e0.6",
+  "check": "all pixels",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "maxRelErr": 0.0,
+  "noise": 8.4078988216163e-10,
+  "seconds": 86.84
+ },
+ {
+  "test": "hetero-furnace-e0.6",
+  "check": "through medium (4465 px)",
+  "expected": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "measured": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "maxRelErr": 1.1920928955078125e-07,
+  "noise": 1.4007230930701553e-09,
+  "seconds": 86.84
+ },
+ {
+  "test": "hetero-furnace-e0.6",
+  "check": "largest single-pixel deviation",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.0
+  ],
+  "maxRelErr": 5.960464477539062e-07,
+  "noise": null,
+  "seconds": 86.84
+ },
+ {
+  "test": "ss-hg08-fwd-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.29352,
+   0.19568,
+   0.09784
+  ],
+  "measured": [
+   0.29319,
+   0.19546,
+   0.09773
+  ],
+  "maxRelErr": 0.0011070982572636279,
+  "noise": 0.004784455434804936,
+  "seconds": 2.63
  },
  {
   "test": "ss-mix-25-b1",
@@ -42,12 +238,12 @@
    0.01216
   ],
   "measured": [
-   0.03647,
-   0.02432,
-   0.01216
+   0.03644,
+   0.02429,
+   0.01215
   ],
-  "maxRelErr": 0.00020461624622925,
-  "noise": 0.0023986831087094602,
-  "seconds": 6.72
+  "maxRelErr": 0.0011361880493983012,
+  "noise": 0.0026256543102586684,
+  "seconds": 4.86
  }
 ]

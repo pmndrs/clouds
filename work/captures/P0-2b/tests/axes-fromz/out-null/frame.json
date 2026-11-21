@@ -1,5 +1,5 @@
 {
-  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/axes-fromy/manifest.json",
+  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/axes-fromz/manifest.json",
   "blender": "5.1.1",
   "device": "CPU",
   "grid": {
@@ -16,7 +16,7 @@
   },
   "sun": null,
   "ground": null,
-  "seconds": 2.3538167476654053,
+  "seconds": 0.38271570205688477,
   "spp": 1024,
   "cyclesBounces": 511,
   "channels": [
@@ -25,5 +25,5 @@
     "ViewLayer.Combined.G",
     "ViewLayer.Combined.R"
   ],
-  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/axes-fromy/out-biased/frame.pfm"
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/axes-fromz/out/frame.pfm"
 }

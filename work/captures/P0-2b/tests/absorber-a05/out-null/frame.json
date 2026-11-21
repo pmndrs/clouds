@@ -16,7 +16,7 @@
   },
   "sun": null,
   "ground": null,
-  "seconds": 11.795849800109863,
+  "seconds": 0.8994443416595459,
   "spp": 1024,
   "cyclesBounces": 511,
   "channels": [
@@ -25,6 +25,6 @@
     "ViewLayer.Combined.G",
     "ViewLayer.Combined.R"
   ],
-  "alphaSeconds": 8.073176145553589,
-  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/absorber-a05/out-biased/frame.pfm"
+  "alphaSeconds": 0.760615348815918,
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/absorber-a05/out/frame.pfm"
 }

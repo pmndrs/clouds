@@ -16,7 +16,7 @@
   },
   "sun": null,
   "ground": null,
-  "seconds": 0.8994443416595459,
+  "seconds": 25.634786128997803,
   "spp": 1024,
   "cyclesBounces": 511,
   "channels": [
@@ -25,6 +25,7 @@
     "ViewLayer.Combined.G",
     "ViewLayer.Combined.R"
   ],
-  "alphaSeconds": 0.760615348815918,
+  "alphaSpp": 128,
+  "alphaSeconds": 2.1670169830322266,
   "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/absorber-a05/out/frame.pfm"
 }

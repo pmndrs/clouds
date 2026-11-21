@@ -1,0 +1,52 @@
+{
+  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/smoke/manifest.json",
+  "blender": "5.1.1",
+  "device": "GPU",
+  "grid": {
+    "densityMax": 0.728515625,
+    "activeVoxels": 5699272
+  },
+  "sky": {
+    "kind": "uniform",
+    "radiance": [
+      0.18,
+      0.26,
+      0.42
+    ]
+  },
+  "sun": {
+    "energy": 6.0,
+    "color": [
+      1.0,
+      0.949999988079071,
+      0.8666666746139526
+    ],
+    "angle": 0.0
+  },
+  "ground": null,
+  "seconds": 149.4707908630371,
+  "spp": 128,
+  "cyclesBounces": 511,
+  "channels": [
+    "ViewLayer.Combined.A",
+    "ViewLayer.Combined.B",
+    "ViewLayer.Combined.G",
+    "ViewLayer.Combined.R",
+    "ViewLayer.Diffuse Direct.B",
+    "ViewLayer.Diffuse Direct.G",
+    "ViewLayer.Diffuse Direct.R",
+    "ViewLayer.Diffuse Indirect.B",
+    "ViewLayer.Diffuse Indirect.G",
+    "ViewLayer.Diffuse Indirect.R",
+    "ViewLayer.Environment.B",
+    "ViewLayer.Environment.G",
+    "ViewLayer.Environment.R",
+    "ViewLayer.Volume Direct.B",
+    "ViewLayer.Volume Direct.G",
+    "ViewLayer.Volume Direct.R",
+    "ViewLayer.Volume Indirect.B",
+    "ViewLayer.Volume Indirect.G",
+    "ViewLayer.Volume Indirect.R"
+  ],
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/smoke/out-march-gpu/frame.pfm"
+}
