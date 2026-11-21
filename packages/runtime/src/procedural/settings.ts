@@ -547,6 +547,12 @@ export interface ProceduralSettings {
    */
   octaveDiffuse: number;
   /**
+   * P1.3a: the sun taps stop once their optical depth reaches this (the remaining cone taps and all far taps are skipped). 0 = auto: 32 for
+   * 'nubis' and 'octave' (their exp(-tau) cannot tell 32 from more), no cap for 'fit' (its multiple scattering, 1 / (1 + fitK tau), can: the
+   * early stop printed flat, hard-edged patches on shaded bases wherever the cone alone reached 32). Any other value is used as given.
+   */
+  lightTauCap: number;
+  /**
    * X3 hybrid (CloudSettings.densityModel 'hybrid'): 0 (default) = density union, the procedural field continues through the voxel box and the
    * two add where they overlap. > 0: the procedural density fades out over this many metres inside the box walls, so a generated voxel field
    * replaces the procedural one there (the NVDF sky layer's hard partition, softened).
@@ -746,7 +752,7 @@ export const hzdNdfKey = (n: HzdNdfSettings) => [n.seed, n.resolution, n.coverag
 export function defaultProceduralSettings(shaper: ProceduralShaper = 'takram'): ProceduralSettings {
   return {
     shaper, stepMeters: 25, maxSteps: 256, lightTaps: 6, fullLightingAlpha: 0.5, maxDistance: 120000, densityScale: 1, lightScale: 1, profileDepth: 120, debug: 0,
-    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 3, surfaceGrow: true, surfaceRefineMode: 1, surfaceRefineTau: 0,   // S2 (agent-chosen): the hatch fix on; surfaceRefine 0 = the old march
+    lightingModel: 'octave', powderScale: 0.8, octavePhase: [0.7, -0.2, 0.5], ambientGain: 1, octaveDiffuse: 0.5, lightTauCap: 0, boxCarve: 0, voxelShadow: true, heroShadow: 1, surfaceRefine: 3, surfaceGrow: true, surfaceRefineMode: 1, surfaceRefineTau: 0,   // S2 (agent-chosen): the hatch fix on; surfaceRefine 0 = the old march
     skypro: { ...SKYPRO_DEFAULTS, windDirection: [...SKYPRO_DEFAULTS.windDirection], weatherMass: [...SKYPRO_DEFAULTS.weatherMass], weatherDetail: [...SKYPRO_DEFAULTS.weatherDetail] },
     takram: { ...TAKRAM_DEFAULTS, layers: TAKRAM_DEFAULTS.layers.map(l => ({ ...l, densityProfile: [...l.densityProfile] })) },
     hzd: hzdDefaults(),
@@ -776,6 +782,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   }
   out.set([minY, maxY, s.maxDistance, s.shaper === 'skypro' ? sp.coverage : tk.coverage], 0);
   out.set([s.stepMeters, s.maxSteps, Math.max(1, Math.min(7, Math.round(s.lightTaps))), s.fullLightingAlpha], 4);
+  out[11] = s.lightTauCap > 0 ? s.lightTauCap : s.lightingModel === 'fit' ? 1e30 : 32;   // P1.3a: P.wind.w, the sun taps' tau cap (a free lane; 10 is per frame)
   out.set([s.densityScale, s.lightScale, s.debug, s.profileDepth], 12);
   // Sky Pro (SkyProClouds.js settingsBlock): shell, shape, erosion, base, horizon, wind.
   out.set([sp.altitude, sp.thickness, sp.density, sp.coverage], 16);
