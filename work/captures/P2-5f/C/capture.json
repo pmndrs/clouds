@@ -1,0 +1,86 @@
+{
+  "url": "http://127.0.0.1:63585/hzd/?clean=1&motion=0&proc_lightingModel=fit&hz_edgeCharacter=1&hz_edgeFactors=4&hz_edgeHardMode=1&hz_edgeSteepGain=12",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-21T16:21:00.471Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/P2-5f/C/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "converged": {
+          "active": false,
+          "samples": 0,
+          "target": 16,
+          "done": false,
+          "restarts": 0,
+          "reason": "",
+          "band": 0
+        },
+        "gpuMs": {
+          "scene": 16.05840915,
+          "lightGridReduce": 0.009957,
+          "lightGrid": 0.009666,
+          "marchNear": 0.030012783333333327,
+          "marchFar": 0.06794744999999999,
+          "shadowMap": 0.7600132727272727,
+          "composite": 0.1146571666666667,
+          "dome": 0.38334138333333334,
+          "skyLayer": 17.974518816666663,
+          "skyResolve": 0.10135116666666666,
+          "cloudsTotal": 19.451465039393938,
+          "total": 35.50987418939394
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.009957,
+          "lightGrid": 0.009666,
+          "marchNear": 0.022499,
+          "marchFar": 0.053915,
+          "shadowMap": 1.000485,
+          "composite": 0.112831,
+          "dome": 0.352953,
+          "skyLayer": 17.340236,
+          "skyResolve": 0.094665
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "hzd.edgeCharacter": 1,
+          "hzd.edgeFactors": 4,
+          "hzd.edgeHardMode": 1,
+          "hzd.edgeSteepGain": 12,
+          "c.animSpeed": 0,
+          "proc.lightingModel": "fit"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:63585/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-ace6cbf06c26dd90f/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=fb203b51:1465:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:63585/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-ace6cbf06c26dd90f/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=fb203b51:1421:12)\n    at http://127.0.0.1:63585/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-ace6cbf06c26dd90f/node_modules/.vite/deps/chunk-PEH3TQYN.js?v=fb203b51:540:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

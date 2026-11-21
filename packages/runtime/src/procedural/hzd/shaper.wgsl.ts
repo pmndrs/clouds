@@ -307,6 +307,11 @@ fn hzdEdgeShape(d: f32, c: f32) -> f32 {
   let x = saturate(d);
   // P2.5e: factor 4 = the crisp hardness, 16 = the soft shaping; a factor off leaves its side as the feature off (x).
   let softP = select(1.0, P.hzEdge3.x, hzdEdgeBit(16u));
+  // P2.5f: edgeHardMode 1 (bit 32) = pure gain, no cut: sat(d x lerp(1, edgeSteepGain, c)) (packed in hzEdge3.w), the soft pow by (1 - c).
+  if (hzdEdgeBit(32u)) {
+    if (!hzdEdgeBit(4u)) { return pow(x, mix(softP, 1.0, c)); }
+    return saturate(pow(x, mix(softP, 1.0, c)) * mix(1.0, P.hzEdge3.w, c));
+  }
   if (P.hzEdge3.w <= 0.0) { return pow(x, mix(softP, select(1.0, P.hzEdge3.y, hzdEdgeBit(4u)), c)); }
   var hard = x;
   if (hzdEdgeBit(4u)) { hard = saturate((x - P.hzEdge3.z) / (1.0 - P.hzEdge3.z) * P.hzEdge3.w); }
