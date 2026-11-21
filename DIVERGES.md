@@ -1,10 +1,12 @@
-# Where we diverge from our sources
+# Where we differ from our sources, and why
 
-One entry per place where our implementation departs from the source a concept came from. Add an entry in the same change that creates or finds the divergence.
+The goal is the best-looking, fastest cloud system that runs in the browser (see `docs/AUDIT-2026-11.md`, "The goal"). Sources such as Guerrilla's Nubis talks, Takram, Sky Pro and the papers are a toolbox. This file records each place we use, change or drop a source's method, so the choice can be revisited with evidence. It is not a list of gaps to close: differing from a source is fine, and is the intended result when it looks or runs better.
+
+Rows about a physical reference (the path trace, the converged march) are different in kind: those are errors against reality, and they are the ones the phases set out to remove.
 
 Status values:
-- **intended**: a deliberate choice; keep.
-- **open**: not chosen; close it or decide.
+- **intended**: a deliberate choice that measures or looks better, or that the source never published; keep.
+- **open**: unmeasured, or measurably worse than the alternative; decide.
 - **unknown**: found, not yet measured.
 
 "Measured effect" is a scorecard number or a sheet path, never an opinion. Leave it blank until measured.
