@@ -72,7 +72,7 @@ const MODES: Record<string, Record<string, number>> = {
   'hzd.stage': { '1: base shape x gradient (Fig 4.13)': 1, '2: + coverage, base fade (Fig 4.14)': 2, '3: + detail erosion (Fig 4.16)': 3 },
   'hzd.noiseSupersample': { '1: point sampled (the tool)': 1, '2: 2x2x2 box filter': 2, '3: 3x3x3 box filter': 3 },
   'ndf.resolution': { '128': 128, '256': 256, '512': 512, '1024': 1024 },
-  'proc.debug': { 'off': 0, 'step count': 1, 'first-hit distance': 2, 'profile at the first hit': 3 },
+  'proc.debug': { 'off': 0, 'step count': 1, 'first-hit distance': 2, 'profile at the first hit': 3, 'edge crispness c at the first hit': 5 },
   'proc.lightTaps': { '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7 },
   'c.lightDebug': { 'normal': 0, 'direct sun only': 1, 'inner glow (ms) only': 2, 'deep octaves only': 3, 'sky ambient only': 4, 'environment body only': 5, 'all, no aerial perspective': 6 },
   'sky.debug': { 'off': 0, 'first-hit distance': 1, 'step count': 2, 'depthMax': 3, 'no billow': 4, 'profile at first hit': 5, 'no jitter': 6, 'depth at first hit': 7 },
