@@ -143,7 +143,8 @@ const MICRO_DEPTH = 40.0;   // Q-1: metres below the SDF surface within which th
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Temporal amortization (P5-B): the dispatch covers only this frame's traced pixels (all of them when k = 1 or on a cut).
-  let pxu = tracedPixel(gid.xy);
+  var pxu = tracedPixel(gid.xy);
+  if (frame.conv.x > 0.5) { pxu.y += u32(frame.conv2.x); }   // P0.5: this frame's band of rows
   if (any(vec2<f32>(pxu) >= frame.renderSize)) { return; }
   let px = vec2<i32>(pxu);
   let uv = (vec2<f32>(pxu) + 0.5) / frame.renderSize;
@@ -152,7 +153,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let sceneEnd = passSceneEnd(pxu, uv);
 
   let origin = frame.cameraPos;
-  let dir = normalize(unprojectDepth(uv, 1.0) - origin);
+  // P0.5 converged march (frame.conv.x > 0, runtime settings.converged): the ray moves by this sample's sub-pixel offset (a one-pixel box over the
+  // accumulated samples), the step is divided by conv.x, and the step widening, the step growth, the thin-segment light skip and the far pass's
+  // occlusion skip are off. Off (conv.x = 0) every expression below is the normal march's.
+  let conv = frame.conv.x > 0.5;
+  let rayUv = select(uv, (vec2<f32>(pxu) + 0.5 + frame.conv.yz) / frame.renderSize, conv);
+  let dir = normalize(unprojectDepth(rayUv, 1.0) - origin);
   let interval = volumeRayInterval(origin, dir);
   let isNear = frame.passMode == 0u;
   let tCap = select(frame.misc.y, frame.splitDistance, isNear);
@@ -161,7 +167,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   // Far pass: pixels whose neighbourhood in the near pass is (almost) opaque contribute nothing; skip them.
   var hidden = false;
-  if (!isNear && frame.splitDistance > 0.0) {   // splitDistance 0: the near pass is off (the 'mobile' tier), the far pass marches the whole ray
+  if (!isNear && frame.splitDistance > 0.0 && !conv) {   // splitDistance 0: the near pass is off (the 'mobile' tier), the far pass marches the whole ray
     let nd = vec2<i32>(frame.rects.xy);
     let c = vec2<i32>(floor(uv * vec2<f32>(nd))) - vec2<i32>(1);
     var maxT = 0.0;
@@ -232,15 +238,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         sdfBound = sdf; sdfFetchT = t;
       }
       let deckStep = frame.stepScale <= 1.0;
-      var step = max(sdf, select(max(STEP_MIN, sqrt(t) * STEP_SQRT) * frame.stepScale, max(DECK_STEP_MIN, sqrt(t) * DECK_STEP_SQRT), deckStep));
+      let baseStep = select(max(STEP_MIN, sqrt(t) * STEP_SQRT) * frame.stepScale, max(DECK_STEP_MIN, sqrt(t) * DECK_STEP_SQRT), deckStep);
+      var step = max(sdf, select(baseStep, baseStep / frame.conv.x, conv));
       // Never silently truncate a long ray at the step cap: coarsen the step once a ray has used a lot of them.
-      {
+      if (!conv) {
         // P3-E: widen the step in thin or dark-deep media, but never by more than half the depth below the surface (the SDF is a bound,
         // so such a step stays inside the cloud and cannot skip across a skin or a bulge).
         let wide = step * (1.0 + sparseRun * SPARSE_GAIN) * (1.0 + DENSE_STEP_GAIN * (1.0 - T) * (1.0 - T));
         step = min(wide, max(step, -sdf * DEPTH_CAP));
       }
-      if (i > STEP_GROWTH_FROM) { step *= 1.0 + 0.02 * f32(i - STEP_GROWTH_FROM); }
+      if (i > STEP_GROWTH_FROM && !conv) { step *= 1.0 + 0.02 * f32(i - STEP_GROWTH_FROM); }
       if (sdf < 0.0 && entryJitter > 0.0) { step *= entryJitter; entryJitter = 0.0; }
       if (sdf < 0.0) {
         // Jitter moves the sample, not the advance. Q2: animated at every distance. The static far jitter (one interleaved-gradient value per
@@ -256,7 +263,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
           if (d.x > 0.0) {
             let sigma = d.x * frame.extinction;
             let stepT = exp(-sigma * ds);
-            if (sigma * ds > LIGHT_MIN_OPTICAL_DEPTH) {
+            if (sigma * ds > select(LIGHT_MIN_OPTICAL_DEPTH, 0.0, conv && (u32(frame.conv.w) & 1u) == 0u)) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
               if (ts - inlineT >= inlineReuse) {
                 let s0 = ${density}(ps + sunInline0, ts, lightInputs);
@@ -361,7 +368,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);
 ${atm ? `  if (meanDistance > 0.0 && frame.lightDebug < 0.5) {
     // Aerial perspective of the cloud as a whole, at its transmittance-weighted mean distance.
-    let viewDir = normalize(unprojectDepth(uv, 1.0) - origin);
+    let viewDir = normalize(unprojectDepth(rayUv, 1.0) - origin);
     radiance = applyAerialPerspective(radiance, T, viewDir, meanDistance);
     radiance = applyHorizonHaze(radiance, T, origin, viewDir, meanDistance, frame.haze);
   }` : ''}

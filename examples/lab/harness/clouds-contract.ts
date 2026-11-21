@@ -8,6 +8,8 @@ export interface CloudsHarnessOptions {
   bookmark?: (name: string) => void | Promise<void>;
   /** Optional read-back of the generated field as per-column maps, for scripts/variety.mjs (see `readCloudColumns`). */
   fields?: () => Promise<CloudColumnFields>;
+  /** P0.5: while this returns true, `settle` keeps waiting after its frame count (the converged march's accumulation), so a capture gets the finished frame. */
+  busy?: () => boolean;
 }
 /**
  * The generated field reduced to per-column maps (nx * ny bytes each, base64, row-major with x fastest), so a script can measure
@@ -115,6 +117,7 @@ function preflightWebGpu(): void {
 export function installCloudsHarness(): CloudsHarness {
   let frames = 0;
   const waiters: { target: number; resolve: () => void }[] = [];
+  let busy: (() => boolean) | undefined;
   const state: Record<string, unknown> = { ready: false };
   window.__clouds = state;
   preflightWebGpu();
@@ -125,6 +128,7 @@ export function installCloudsHarness(): CloudsHarness {
       state.report = options.report;
       state.bookmark = options.bookmark;
       state.fields = options.fields;
+      busy = options.busy;
       state.settle = (n: number) => new Promise<void>(resolve => waiters.push({ target: frames + n, resolve }));
       state.ready = true;
       beacon('READY');
@@ -132,6 +136,7 @@ export function installCloudsHarness(): CloudsHarness {
     fail(message) { state.error = message; showErrorOverlay(message); },
     frame() {
       frames++;
+      if (waiters.length && busy?.()) return;
       for (let i = waiters.length - 1; i >= 0; i--) if (frames >= waiters[i].target) { waiters[i].resolve(); waiters.splice(i, 1); }
     },
   };

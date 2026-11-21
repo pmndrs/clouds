@@ -123,10 +123,12 @@ function reportReady(harness: CloudsHarness, renderer: WebGPURenderer) {
   const canvas = renderer.domElement as HTMLCanvasElement;
   harness.ready({
     bookmark,
+    // P0.5: a capture's settle waits for the converged march to finish its sum (Review P0.5, ?c_converged=1).
+    busy: () => { const c = bench.getState().rt?.core.convergedInfo; return !!c && c.active && !c.done; },
     report: () => {
       const s = bench.getState(), v = s.view;
       return { view: s.viewName, style: s.style, ref: s.ref.id, refMode: s.ref.mode, camera: [...v.position], lookAz: v.lookAz, pitch: v.pitch, sunElevation: v.sunEl, sunAzimuth: v.sunAz,
-        coverage: v.coverage, quality: s.quality, gpuMs: s.rt?.pane.stats().gpuMs ?? null, gpuLast: s.rt?.clouds.lastTimings ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
+        coverage: v.coverage, quality: s.quality, converged: s.rt?.core.convergedInfo ?? null, gpuMs: s.rt?.pane.stats().gpuMs ?? null, gpuLast: s.rt?.clouds.lastTimings ?? null, frameMs: {}, renderSize: [canvas.width, canvas.height], changed: s.rt?.tuner.changes() ?? {} };
     },
   });
 }
@@ -139,5 +141,6 @@ function hudText(renderer: WebGPURenderer): string {
   return `HZD sky · ${s.viewName}${rt.pane.ready() ? '' : ' (loading...)'}  q ${s.quality}  style ${s.style}\n`
     + `cam ${v.position.map(x => Math.round(x)).join(', ')}  az ${Math.round(v.lookAz)}  pitch ${f1(v.pitch)}  fov ${Math.round(v.fov)}\n`
     + `sun el ${f1(v.sunEl)} az ${Math.round(v.sunAz)}  coverage ${v.coverage.toFixed(2)}  motion ×${rt.sources.c.animSpeed}\n`
+    + (rt.core.convergedInfo.active ? `converged march: ${rt.core.convergedInfo.samples} / ${rt.core.convergedInfo.target} samples${rt.core.convergedInfo.done ? ' (done)' : ''}  steps / ${rt.sources.c.convergedStepScale}\n` : '')
     + `${gpu != null ? `gpu ${f1(gpu)} ms` : ''}${sky != null ? `  sky layer ${f1(sky)} ms` : ''}${up != null ? `  upscale ${f1(up)} ms` : ''}  ${canvas.width}x${canvas.height}  level ${level}${s.ref.id ? `\nvs ${s.ref.id}` : ''}`;
 }

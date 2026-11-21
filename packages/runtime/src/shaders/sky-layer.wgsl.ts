@@ -44,6 +44,7 @@ fn skyJitter(px: vec2<i32>, cycle: u32) -> f32 {
 // value (Cranley-Patterson), so the pixels refreshed this cycle and the ones still holding the last cycle's offset are not two shifted copies of the
 // image laid out in the 4 x 4 Bayer order.
 fn skySubPixel(px: vec2<i32>, cycle: u32) -> vec2<f32> {
+  if (SKY.converged.x > 0.5) { return SKY.converged.zw; }   // P0.5 converged march: this sample's offset, the same for every pixel (a one-pixel box)
   var h = vec2(radicalInverse(1u + cycle % 16u, 2u), radicalInverse(1u + cycle % 16u, 3u));
   if (SKY.resolveOpts2.w > 0.5) { h = fract(h + vec2(skyBlue(px), skyBlue(px + vec2<i32>(64, 37)))); }
   return (h - 0.5) * SKY.resolveOpts2.z;
@@ -54,10 +55,10 @@ export const SKY_RESOLVE_BINDINGS = {
   trace: 4, traceDepth: 5, hist: 6, histDepth: 7, histOut: 8, histDepthOut: 9, params: 10, sampler: 11, traceBack: 13, histBack: 14, histBackOut: 15,
 } as const;
 /**
- * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 8 vec4 = 88 floats, written every frame), then H4's static part written once at
+ * SkyParams uniform: the per-frame header (10 vec4 + mat4 + 11 vec4 = 100 floats, written every frame), then H4's static part written once at
  * creation: the profile tables' top ends (16 vec4, 64 floats), the two N3 s18 tables and their column peaks (768 vec4<u32>: 3 x 64 x 64 bytes).
  */
-export const SKY_PARAM_FLOATS = 92;
+export const SKY_PARAM_FLOATS = 100;
 /** H4: word offsets of the static part (the tables' top ends, then the packed tables) in the params buffer. */
 export const SKY_TABLE_TOP_OFFSET = SKY_PARAM_FLOATS;
 export const SKY_LUT_OFFSET = SKY_TABLE_TOP_OFFSET + 64;
@@ -118,6 +119,8 @@ struct SkyParams {
   cloudMotion: vec4<f32>, // C2: x, y, z the clouds' world displacement since the last frame (m; the wind offset's change times the cloud speed), w = 1 when the resolve follows it
   resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); S2 w: the procedural trace's texture LOD, 0 the output pixel .. 1 the layer pixel
   resolveOpts2: vec4<f32>, // FX1: x, y the adaptive filter's cloud-motion thresholds (m per frame); S2: z the trace's sub-pixel jitter span (layer px), w per-pixel rotation (0/1)
+  converged: vec4<f32>,    // P0.5 converged march (0 = off): x the step divisor, y the step budget's extra multiplier, zw this sample's sub-pixel offset (layer px)
+  convergedKeep: vec4<f32>, // P0.5: x = diagnostic bit flags of normal-march shortcuts kept on in the converged march (1 the thin-segment light skip, 2 the light-tap reuse); y = the first row of this frame's band (layer px); zw 0
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
@@ -783,6 +786,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let full = SKY.temporal.z > 0.5;
   var px = vec2<i32>(gid.xy);
   if (!full) { px = px * 4 + bayerPos(u32(SKY.temporal.x)); }
+  if (SKY.converged.x > 0.5) { px.y += i32(SKY.convergedKeep.y); }   // P0.5: this frame's band of rows
   if (any(vec2<f32>(px) >= frame.renderSize)) { return; }
   let uv = (vec2<f32>(px) + 0.5) / frame.renderSize;
   let sceneEnd = skySceneEnd(px, uv);
@@ -838,14 +842,17 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     // Same up-rez inputs as the voxel march (Q2: with its erosion bias, which the layer had left at 0: softer, rounder clouds than the voxel field
     // next to them); the high-frequency fold is a near-camera detail (rayDistance < 150 m only).
     let inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
-    let maxSteps = u32(SKY.steps.z);
+    // P0.5 converged march: steps divided by converged.x, the budget raised to match (times converged.y), the light evaluated at every lit step.
+    let cv = SKY.converged.x > 0.5;
+    let maxSteps = select(u32(SKY.steps.z), u32(SKY.steps.z * SKY.converged.x * SKY.converged.y), cv);
     var capped = true;
     var t = t0;
     var litT = -1.0e9;
     var lit = vec3(0.0);
     for (var i = 0u; i < maxSteps; i++) {
       if (t >= tEnd || T < SKY.steps.w) { capped = false; break; }
-      var step = SKY.steps.x + SKY.steps.y * t;
+      let baseStep = SKY.steps.x + SKY.steps.y * t;
+      var step = select(baseStep, baseStep / SKY.converged.x, cv);
       // One jittered sample per step: the sample position stands for the whole step.
       let ts = t + jitter * step;
       let ps = origin + dir * ts;
@@ -861,10 +868,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
             let fade = 1.0 - smoothstep(0.75 * SKY.shell.z, SKY.shell.z, ts);
             let sigma = d.x * ext * fade;
             let stepT = exp(-sigma * ds);
-            if (sigma * ds > SKY_LIGHT_MIN_OPTICAL_DEPTH) {
+            if (sigma * ds > select(SKY_LIGHT_MIN_OPTICAL_DEPTH, 0.0, cv && (u32(SKY.convergedKeep.x) & 1u) == 0u)) {
               // Q2: near the camera (the puffs overhead) the light is evaluated at every step with the march's billow-scale micro shadow (below).
               let nearW = select(0.0, 1.0 - smoothstep(SKY_MICRO_NEAR, 2.0 * SKY_MICRO_NEAR, ts), frame.microDist > 0.0);
-              if (nearW > 0.0 || ts - litT > SKY_LIGHT_REFRESH_M + SKY_LIGHT_REFRESH_REL * ts) {
+              if ((cv && (u32(SKY.convergedKeep.x) & 2u) == 0u) || nearW > 0.0 || ts - litT > SKY_LIGHT_REFRESH_M + SKY_LIGHT_REFRESH_REL * ts) {
                 litT = ts;
                 let d0 = skyDensityLight(ps + sunInline0, ts, inputs, sp);
                 let d1 = skyDensityLight(ps + sunInline1, ts, inputs, sp);

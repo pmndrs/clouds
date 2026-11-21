@@ -16,11 +16,12 @@ import { FRAME_UNIFORM_BYTES } from './shaders/frame.wgsl';
 import { createLightning, type FlashOptions, type LightningSettings } from './lightning';
 import { blueNoiseBytes, BLUE_NOISE_SIZE } from './blue-noise';
 import { MARCH_ATMOSPHERE_GROUP, MARCH_BLUE_NOISE_BINDING, MARCH_LIGHT_GRID_BINDING, MARCH_NEAR_BINDING, MARCH_SKY_LIGHT_BINDING, marchWgsl, SKY_LIGHT_BINDING, SKY_LIGHT_BYTES, SKY_LIGHT_ENTRIES, SKY_LIGHT_WGSL } from './shaders/march.wgsl';
-import { createSkyLayer, type SkyLayer } from './sky-layer';
+import { convergedRows, createSkyLayer, type SkyLayer } from './sky-layer';
 import { createCirrusLayer, type CirrusLayer } from './cirrus';
 import { createSkyUpscale, type CloudRenderLevel, type SkyUpscale } from './upscale';
 import type { ProceduralDensityModel } from './procedural/types';
 import { SKY_PARAM_BYTES } from './shaders/sky-layer.wgsl';
+import { CONVERGED_PARAM_BYTES, CONVERGED_WGSL, convergedSubPixel } from './shaders/converged.wgsl';
 import { createVolumeBindGroup, createVolumeBindGroupLayout, createVolumeSamplers, heroUniformData, volumeUniformData, volumeWgsl, HERO_UNIFORM_BYTES, VOLUME_UNIFORM_BYTES } from './shaders/volume.wgsl';
 
 export type CloudQuality = 'ultra' | 'high' | 'medium' | 'low' | 'mobile';
@@ -397,6 +398,34 @@ export interface CloudSettings {
    * Trilinear reads are C0 across the 8 m voxel planes; the lighting prints the kink as a straight seam where a plane is seen edge-on.
    */
   profileFilter: number;
+  /**
+   * P0.5 converged march (docs/AUDIT-2026-11.md step 0.5): 1 = a slow ground truth of our own lighting and density with the sampling shortcuts
+   * removed, for judging stepping, jitter, temporal blending, amortised updates and upscaling. It does not change what is integrated, only how
+   * finely. Every pixel of both march passes and of the sky layer is traced every frame at the output's resolution (no 1/k or 1/16 amortisation,
+   * no history blend, render level 'cinematic': no upscaler, render scale 1), the march steps are divided by `convergedStepScale` with the step
+   * budget raised to match, light taps are recomputed at every lit step, and `convergedSamples` frames are accumulated (linear radiance, float)
+   * with a different march jitter (blue noise + golden ratio) and sub-pixel offset (Halton 2, 3: a one-pixel box) per sample, then shown through
+   * the normal composite and tone map. The wind and the clock stand still while it is on; the sum restarts when the camera, the sun or any setting
+   * changes. Seconds per frame; `convergedInfo` reports progress. 0 (default) = the normal renderer, untouched.
+   */
+  converged: number;
+  /** P0.5: the converged march's step divisor (default 4). */
+  convergedStepScale: number;
+  /** P0.5: frames accumulated by the converged march (default 16). */
+  convergedSamples: number;
+  /**
+   * P0.5: each sample is traced over this many frames, one band of rows per frame (0 = auto: the step divisor, so a frame costs about one full
+   * normal-resolution trace). Keeps every GPU submission short: a whole converged sample in one submission can trip the GPU watchdog.
+   */
+  convergedBands: number;
+  /** P0.5: offset of the converged march's sample sequence (0 = samples 0..n-1); a different value gives an independent sample set of the same image (the stability test). */
+  convergedSeed: number;
+  /**
+   * P0.5 diagnostics (default 0): bit flags of normal-march shortcuts the converged march keeps, to attribute a converged-vs-normal difference:
+   * 1 = the thin-segment light skip (segments under 0.002 optical depth attenuate but add no light), 2 = the light-tap reuse along the ray,
+   * 4 = the normal transmittance cutoffs (else 1e-4).
+   */
+  convergedKeep: number;
 }
 
 /**
@@ -498,6 +527,11 @@ export interface CloudRuntime {
   readonly memory: CloudMemory;
   /** Drop the temporal history: the next frame traces every pixel of both march passes and the sky layer. Call on a cut the runtime cannot see (a sky or lighting jump, a setting change). */
   resetTemporal(): void;
+  /**
+   * P0.5: the converged march's state: `active` (settings.converged on), samples in the sum and wanted, `done` (the output holds the converged mean
+   * and nothing is traced until the view or a setting changes), restarts so far, and `busy` (what restarted it last: 'view', 'shadow', 'grid', '').
+   */
+  readonly convergedInfo: { active: boolean; samples: number; target: number; done: boolean; restarts: number; reason: string; band: number };
   /** Temporal amortization state, for tooling: the rates in effect, history resets so far and the memory the history costs. */
   readonly temporalInfo: { near: TemporalRate; far: TemporalRate; resets: number; frames: number; bytes: number };
   /** `width` x `height` is the scene (depth) size. `output` may be supplied by the caller (rgba16float, STORAGE_BINDING | TEXTURE_BINDING, exactly `outputSize`). */
@@ -601,6 +635,9 @@ const TEMPORAL_CLIP_MARGIN = 0.03;
 const TEMPORAL_MODEL_INDICES = [23, 27, 32, 33, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 72, 73, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99];
 /** U2: frames the procedural layer runs before the upscaler is created (see encode). */
 const UPSCALE_WARM_FRAMES = 240;
+/** P0.5 converged march: the step budget's multiplier on top of the step divisor (the normal march's step growth past 256 steps is off), and the transmittance cutoff. */
+const CV_BUDGET = 4;
+const CV_CUTOFF = 1e-4;
 /** Bytes per texel of the history colour (rgba16float) and distance (r32uint) targets, and of the trace's (rgba16float + r32float). */
 const SHADOW_MAP_RESOLUTION = 1024;
 const HIST_TEXEL_BYTES = 8 + 4;
@@ -810,6 +847,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
     jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, microShadowMode: 0, microDist2: 0, microShadow2: 0, directProfile: 0, directRimDepth: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
+    converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -892,6 +930,28 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const skyLightPipeline = pipeline('cloud sky light', COMMON_WGSL + volumeWgsl(0) + SKY_LIGHT_WGSL, skyLightLayout, atmosphereLayout);
   const resolvePipeline = pipeline('cloud temporal resolve', COMMON_WGSL + volumeWgsl(0) + TEMPORAL_WGSL, resolveLayout);
   const compositePipeline = pipeline('cloud composite', COMMON_WGSL + volumeWgsl(0) + COMPOSITE_WGSL, compositeLayout);
+  // ---- P0.5 converged march: the composite writes each sample into `cv.sample`, the accumulate pass sums it (rgba32float ping-pong) and writes the mean to the output ----
+  const cvLayout = device.createBindGroupLayout({ label: 'cloud converged accumulate', entries: [
+    { binding: 0, visibility: C, buffer: { type: 'uniform' } },
+    { binding: 1, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: 2, visibility: C, texture: { sampleType: 'unfilterable-float' } },
+    { binding: 3, visibility: C, storageTexture: { access: 'write-only', format: 'rgba32float' } },
+    { binding: 4, visibility: C, storageTexture: { access: 'write-only', format: 'rgba16float' } },
+  ] });
+  let cvPipeline: GPUComputePipeline | null = null;   // compiled on first use
+  const cvParams = device.createBuffer({ label: 'cloud converged params', size: CONVERGED_PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const cvParamU32 = new Uint32Array(CONVERGED_PARAM_BYTES / 4);
+  let cvTargets: { sample: GPUTexture; sums: [GPUTexture, GPUTexture] } | null = null;
+  const cvGroups: (GPUBindGroup | undefined)[] = [undefined, undefined];
+  /** Samples in the sum, restarts, what restarted it last, the inputs it was started for, the frozen clock, the shadow map's write count, whether the targets are full size. */
+  let cvCount = 0, cvRestarts = 0, cvReason = '', cvKey = '', cvTime: number | null = null, cvShadowWrites = -1, cvAllocated = false, cvPing = 0, cvBand = 0;
+  /** P0.5: everything the converged image depends on that the CPU sees (the view, the sun, the settings, the procedural model's version). The wind offset stands still while it is on. */
+  const convergedKey = (frame: CloudFrame) => [
+    Array.from(frame.inverseViewProjection).join(), Array.from(frame.cameraPosition).join(), Array.from(frame.sunDirection).join(),
+    frame.lighting ? JSON.stringify({ s: Array.from(frame.lighting.sunRadiance), t: Array.from(frame.lighting.ambientTop), b: Array.from(frame.lighting.ambientBottom) }) : 'atmosphere',
+    JSON.stringify({ ...settings, windOffset: 0, renderScale: 0 }), JSON.stringify(skyLayer.settings), JSON.stringify(cirrus.settings), JSON.stringify(shadowMap.settings),
+    procModel?.version ?? -1, outCW, outCH,
+  ].join('|');
 
   const skyLayer = createSkyLayer(device, volumeLayout, atmosphereLayout);
   skyLayer.settings.resolutionScale = startPreset.skyScale;
@@ -1011,6 +1071,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   let skyTarget: { w: number; h: number; color: GPUTexture; depth: GPUTexture; back: GPUTexture; scale: number } | null = null;
   /** U2: the sky layer's size relative to the output: its own resolutionScale at the cinematic level, the level's scale otherwise. */
   const skyScale = () => {
+    if (settings.converged > 0.5) return 1;   // P0.5: the converged march traces the layer at the output's resolution
     const l = settings.renderLevel;
     const s = l === 'desktop' ? settings.levelScaleDesktop : l === 'laptop' ? settings.levelScaleLaptop : skyLayer.settings.resolutionScale;
     return Math.min(1.5, Math.max(0.0625, s));
@@ -1022,8 +1083,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   // Bind groups are cached by (pass, light-grid slot, history parity, direct) and created on first use after any rebuild.
   const marchGroups: (GPUBindGroup | undefined)[] = new Array(16).fill(undefined);
   const resolveGroups: (GPUBindGroup | undefined)[] = new Array(4).fill(undefined);
-  const compositeGroups: (GPUBindGroup | undefined)[] = new Array(4).fill(undefined);
-  const forgetGroups = () => { marchGroups.fill(undefined); resolveGroups.fill(undefined); compositeGroups.fill(undefined); boundDepth = null; };
+  const compositeGroups: (GPUBindGroup | undefined)[] = new Array(8).fill(undefined);   // [converged][grid front][history parity]
+  const forgetGroups = () => { marchGroups.fill(undefined); resolveGroups.fill(undefined); compositeGroups.fill(undefined); cvGroups.fill(undefined); boundDepth = null; };
   let boundDepth: GPUTextureView | null = null;
   let lastTime = -1, flashPrev = false, flashLevelNow = 0;
   let autoFrames = 0;
@@ -1048,6 +1109,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   const releaseTargets = () => {
     for (const t of targets ?? []) { t.hist.forEach(h => { h.color.destroy(); h.depth.destroy(); }); releaseTrace(t); }
     skyTarget?.color.destroy(); skyTarget?.depth.destroy(); skyTarget?.back.destroy(); skyTarget = null;
+    cvTargets?.sample.destroy(); cvTargets?.sums.forEach(t => t.destroy()); cvTargets = null;
     if (ownsOutput) output?.destroy();
     targets = null; output = null; forgetGroups();
   };
@@ -1069,7 +1131,9 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       return { name, w, h, rw: w, rh: h, prw: w, prh: h, hist: [pair(0), pair(1)], trace: null };
     };
     const passScale = Math.max(0.25, options.passScale ?? 1);
-    const near = makePass('near', Math.min(1, preset.nearScale * passScale)), far = makePass('far', Math.min(1, preset.farScale * passScale));
+    // P0.5: the converged march renders both passes at the output's resolution (a tier without a near pass keeps it off).
+    cvAllocated = settings.converged > 0.5;
+    const near = makePass('near', cvAllocated && preset.nearScale > 0 ? 1 : Math.min(1, preset.nearScale * passScale)), far = makePass('far', cvAllocated ? 1 : Math.min(1, preset.farScale * passScale));
     nearW = near.w; nearH = near.h; farW = far.w; farH = far.h;
     targets = [near, far];
     needReset = true;
@@ -1077,6 +1141,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     skyTarget = { w: sky.w, h: sky.h, color: sky.color, depth: sky.depth, back: device.createTexture({ label: 'cloud sky back', size: [sky.w, sky.h], format: 'rgba16float', usage }), scale: skyScale() };
     ownsOutput = !externalOutput;
     output = externalOutput ?? device.createTexture({ label: 'cloud composite', size: [outCW, outCH], format: 'rgba16float', usage });
+    if (cvAllocated) {
+      const sum = (i: number) => device.createTexture({ label: `cloud converged sum ${i}`, size: [outCW, outCH], format: 'rgba32float', usage: hUsage });
+      cvTargets = { sample: device.createTexture({ label: 'cloud converged sample', size: [outCW, outCH], format: 'rgba16float', usage: hUsage }), sums: [sum(0), sum(1)] };
+    }
   };
   /** The trace target (this frame's fresh samples, compact) exists only while the pass runs at k > 1, sized for the rate. Recreated when the rate changes; the bind groups are rebuilt. */
   const ensureTrace = (pass: number, k: number, accumulate: boolean) => {
@@ -1206,6 +1274,10 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     // FX1: the sky layer's history too. A lighting setting (ambientSaturation, diffuseSun, ...) is not in the layer's model params, so the layer
     // could not see the change and dissolved to it over ~100 frames (blend 0.3 per 16-frame cycle): a live switch looked like it did nothing.
     resetTemporal() { needReset = true; skyLayer.reset(); },
+    get convergedInfo() {
+      const target = Math.max(1, Math.round(settings.convergedSamples));
+      return { active: settings.converged > 0.5, samples: cvCount, target, done: settings.converged > 0.5 && cvCount >= target, restarts: cvRestarts, reason: cvReason, band: cvBand };
+    },
     get temporalInfo() {
       const m = memory();
       return { near: snapRate(settings.temporalNear), far: snapRate(settings.temporalFar), resets: temporalResets, frames: temporalFrames, bytes: m.history + m.trace };
@@ -1230,8 +1302,27 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       if (disposed || !volumeGroup || !output || !targets || !lightGrid) return;
       const uniformLighting = frame.lighting?.kind === 'uniform' ? frame.lighting : null;
       if (!uniformLighting && !frame.atmosphere) return;
+      // P0.5 converged march: full-size targets while it is on (re-allocated when it is switched); the clock and the wind stand still; the sum
+      // restarts when anything it depends on changes, and once it holds `convergedSamples` the output keeps the mean and nothing is traced.
+      const cv = settings.converged > 0.5;
+      if (cv !== cvAllocated) allocate(externalOutput);
+      if (!targets || !output) return;
+      const cvStep = Math.max(1, settings.convergedStepScale);
+      const cvTarget = Math.max(1, Math.round(settings.convergedSamples));
+      if (cv) {
+        cvTime ??= frame.time;
+        // A finished sum: refresh the procedural model's version (the trace that would call `update` does not run), then compare.
+        if (cvCount >= cvTarget && procModel?.ready && settings.densityModel !== 'nvdf') procModel.update(cvTime, { camera: frame.cameraPosition, wind: settings.windOffset });
+        const key = convergedKey(frame);
+        if (key !== cvKey || needReset) { cvKey = key; cvCount = 0; cvBand = 0; cvRestarts++; cvReason = 'view'; }
+        if (cvCount >= cvTarget) return;
+      } else { cvTime = null; cvKey = ''; cvCount = 0; cvBand = 0; }
+      const cvBands = cv ? Math.max(1, Math.round(settings.convergedBands > 0 ? settings.convergedBands : cvStep)) : 1;
+      if (cvBand >= cvBands) cvBand = 0;
+      const frameTime = cv ? cvTime! : frame.time;
+      const level: CloudRenderLevel = cv ? 'cinematic' : settings.renderLevel;   // P0.5: no upscaler
       // 'auto': the controlled passes' GPU time (this frame's readback lags the encode by 2-3 frames) moves the render scale.
-      if (dynamic && timer?.enabled) {
+      if (dynamic && timer?.enabled && !cv) {
         autoFrames++;
         if (autoFrames > 20) settings.renderScale = dynamic.update(controlledCost(timer.last()));
       }
@@ -1257,14 +1348,14 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
       const grid = lightGrid;
       const [near, far] = targets;
-      const dt = lastTime < 0 ? 0 : Math.min(0.1, Math.max(0, frame.time - lastTime));
+      const dt = lastTime < 0 || cv ? 0 : Math.min(0.1, Math.max(0, frame.time - lastTime));
       lastTime = frame.time;
       // Wind integrates velocity * animSpeed, so changing animSpeed changes the rate and never teleports the noise.
       windDelta[0] = settings.windVelocity[0] * settings.animSpeed * dt; windDelta[1] = settings.windVelocity[2] * settings.animSpeed * dt;
       for (let i = 0; i < 3; i++) settings.windOffset[i] += settings.windVelocity[i] * settings.animSpeed * dt;
 
       // Dynamic resolution: the passes render into the top-left rectangle of their (tier-sized) textures.
-      const scale = Math.min(1, Math.max(0.25, settings.renderScale));
+      const scale = cv ? 1 : Math.min(1, Math.max(0.25, settings.renderScale));
       for (const t of targets) { t.prw = t.rw; t.prh = t.rh; t.rw = Math.max(2, Math.min(t.w, Math.round(t.w * scale))); t.rh = Math.max(2, Math.min(t.h, Math.round(t.h * scale))); }
 
       const f = frameF32;
@@ -1286,7 +1377,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[68] = near.w; f[69] = near.h; f[70] = far.w; f[71] = far.h;
       f[72] = settings.detailDistance; f[73] = Math.max(settings.farLimit, f[44] + 1); f[74] = outCW; f[75] = outCH;
       // P6-B lightning: the flash to render this frame (radius 0 = none; the march skips the glow on a uniform branch).
-      const flash = lightning.update(frame.time);
+      const flash = lightning.update(frameTime);
       if (flash) { f[76] = flash.position[0]; f[77] = flash.position[1]; f[78] = flash.position[2]; f[79] = flash.radius; f[80] = flash.color[0]; f[81] = flash.color[1]; f[82] = flash.color[2]; f[83] = flash.level; }
       else { f[79] = 0; f[80] = f[81] = f[82] = f[83] = 0; }
       // C1 low-sun lighting: the body terms' sun share and the environment's (sun elevation from the world-up sun direction), and the phase model.
@@ -1317,8 +1408,19 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       if (procMode !== procWas) { procWas = procMode; needReset = true; }
       frameU32[33] = procMode === 'procedural' ? 0 : settings.maxSteps >>> 0;
       f[53] = skyActive ? 1 : 0;
+      // P0.5: this sample's jitter index and sub-pixel offset, the step divisor; the step budget raised to match (x CV_BUDGET, the step growth is off),
+      // a near-zero transmittance cutoff, fresh in-line sun taps at every step, the blue-noise jitter with a random step phase, no static far jitter.
+      const cvIndex = cvCount + Math.max(0, Math.round(settings.convergedSeed));
+      const cvKeep = Math.max(0, Math.round(settings.convergedKeep)) | 0;
+      const cvSub = cv ? convergedSubPixel(cvIndex) : [0, 0];
+      if (cv) {
+        f[124] = cvStep; f[125] = cvSub[0]; f[126] = cvSub[1]; f[127] = cvKeep & 1;
+        if (frameU32[33] > 0) frameU32[33] = Math.min(1 << 20, Math.ceil(settings.maxSteps * cvStep * CV_BUDGET)) >>> 0;
+        if (!(cvKeep & 4)) f[45] = Math.min(settings.transmittanceCutoff, CV_CUTOFF);
+        f[106] = 0; f[112] = 1; f[113] = 1; if (!(cvKeep & 2)) f[115] = 0;
+      } else { f[124] = 0; f[125] = 0; f[126] = 0; f[127] = 0; }
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
-      const rates = [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
+      const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;
       // Forward direction of the camera from the inverse view-projection (clip (0, 0, 1) is the far plane, straight ahead).
       const inv = frame.inverseViewProjection;
@@ -1335,7 +1437,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
       if (cut) temporalResets++;
       for (const i of TEMPORAL_MODEL_INDICES) prevModel[i] = f[i];
-      const accumulate = settings.temporalAccumulate > 0.5;
+      const accumulate = !cv && settings.temporalAccumulate > 0.5;
       for (let pass = 0; pass < 2; pass++) {
         const k = rates[pass];
         // k = 1 writes the history directly (every pixel, every frame) unless temporalAccumulate; a cut or a rate change traces every pixel into the history.
@@ -1344,12 +1446,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         ensureTrace(pass, k, k === 1 && accumulate);
       }
       lastAccumulate = accumulate;
-      cur ^= 1;
+      if (!cv) cur ^= 1;   // P0.5: the converged march traces a sample in bands over frames into the same history texture
       for (let pass = 0; pass < 2; pass++) {
         const t = targets[pass];
         f[28] = t.rw; f[29] = t.rh; frameU32[46] = pass;
+        f[128] = cv ? convergedRows(t.rh, cvBand, cvBands)[0] : 0;
         // The jitter index counts this pass's own sweeps (every pixel traced once per k frames), so the pixels of one sweep share one IGN slice instead of a lattice-correlated hatch.
-        frameU32[34] = rates[pass] > 1 ? Math.floor(temporalFrames / rates[pass]) >>> 0 : frame.frameIndex >>> 0;
+        frameU32[34] = cv ? cvIndex >>> 0 : rates[pass] > 1 ? Math.floor(temporalFrames / rates[pass]) >>> 0 : frame.frameIndex >>> 0;
         f[60] = rates[pass]; f[61] = temporalFrames % rates[pass]; f[62] = passFull[pass] ? 1 : 0; f[63] = 0;
         device.queue.writeBuffer(frameUniforms[pass], 0, f);
         resolveF32.set(prevViewProj, 0);
@@ -1364,7 +1467,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         resolveF32[28] = settings.historyFilter; resolveF32[29] = settings.windCompensate;
         device.queue.writeBuffer(resolveParams[pass], 0, resolveF32);
       }
-      f[60] = 0; f[61] = 0; f[62] = 0; frameU32[34] = frame.frameIndex >>> 0;
+      f[60] = 0; f[61] = 0; f[62] = 0; frameU32[34] = (cv ? cvIndex : frame.frameIndex) >>> 0;
       // Remember this frame's view for the next frame's reprojection.
       prevViewProj.set(frame.viewProjection);
       prevCam[0] = cam[0]; prevCam[1] = cam[1]; prevCam[2] = cam[2];
@@ -1430,7 +1533,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         if (!uniformLighting) march.setBindGroup(MARCH_ATMOSPHERE_GROUP, frame.atmosphere!);
         const w = t.rw, h = t.rh;
         // Only the traced pixels are dispatched: x halves for k >= 2, y for k = 4.
-        const gx = direct || k === 1 ? w : Math.ceil(w / 2), gy = direct || k <= 2 ? h : Math.ceil(h / 2);
+        const cvRows = cv ? convergedRows(h, cvBand, cvBands) : null;
+        const gx = direct || k === 1 ? w : Math.ceil(w / 2), gy = cvRows ? cvRows[1] - cvRows[0] : direct || k <= 2 ? h : Math.ceil(h / 2);
         march.dispatchWorkgroups(Math.ceil(gx / 8), Math.ceil(gy / 8));
         march.end();
         if (!direct) {
@@ -1455,10 +1559,11 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
 
       if (skyActive) {
-        skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null, time: frame.time,
+        skyLayer.encode(encoder, { volumeGroup, frameBuffer: frameUniforms[2], depth: frame.depth, color: skyTarget!.color, depthOut: skyTarget!.depth, back: skyTarget!.back, atmosphere: uniformLighting ? undefined : frame.atmosphere, skyLightBuffer, box: skyBox, inverseViewProjection: frame.inverseViewProjection, cameraPosition: frame.cameraPosition, sunDirection: frame.sunDirection, timer, procedural: procOn ? proc : null, time: frameTime,
           wind: settings.windOffset, voxelDepth: { near: near.hist[cur].depth, far: far.hist[cur].depth },
-          subPixelSpan: settings.renderLevel !== 'cinematic' && settings.levelSubPixelSpan >= 0 ? settings.levelSubPixelSpan : undefined,
-          lodLayerPixel: settings.renderLevel !== 'cinematic' && settings.levelLodLayerPixel >= 0 ? settings.levelLodLayerPixel : undefined });
+          subPixelSpan: level !== 'cinematic' && settings.levelSubPixelSpan >= 0 ? settings.levelSubPixelSpan : undefined,
+          lodLayerPixel: level !== 'cinematic' && settings.levelLodLayerPixel >= 0 ? settings.levelLodLayerPixel : undefined,
+          converged: cv ? { stepScale: cvStep, budget: CV_BUDGET, index: cvIndex, subPixel: [cvSub[0], cvSub[1]], keep: cvKeep, cutoff: cvKeep & 4 ? undefined : CV_CUTOFF, band: cvBand, bands: cvBands } : null });
       }
       // U2: below the cinematic level the layer (the whole cloud in 'procedural' mode) goes through the upscaler to the composite's size, and the
       // composite reads the upscaled colour per output pixel (frame.skyEnabled 2) with the layer's own depth words for the scene occlusion.
@@ -1468,7 +1573,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // page's start-up compiles; until then the reduced layer is composited the old way (bilinear). U2 open problem: on the shared, heavily
       // loaded test machine Metal lost the device ("Insufficient Memory") within a few frames of the upscaler's start in about half of the
       // runs, at any start frame tried (see the U2 report); runs that got past those frames never failed.
-      if (skyActive && settings.renderLevel !== 'cinematic' && procMode === 'procedural' && (skyUpscale || upscaleWarm > UPSCALE_WARM_FRAMES)) {
+      if (skyActive && level !== 'cinematic' && procMode === 'procedural' && (skyUpscale || upscaleWarm > UPSCALE_WARM_FRAMES)) {
         skyUpscale ??= createSkyUpscale(device);
         // A frame without the upscaler in between (another level, the layer off) leaves its history stale: reset it.
         const resume = upscaleLastTime < 0;
@@ -1530,12 +1635,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const composite = encoder.beginComputePass({ label: 'cloud composite', timestampWrites: timer?.passTimestampWrites('composite') });
       composite.setPipeline(compositePipeline);
       composite.setBindGroup(0, volumeGroup);
-      composite.setBindGroup(1, compositeGroups[gridStep.front * 2 + cur] ??= device.createBindGroup({ label: 'cloud composite', layout: compositeLayout, entries: [
+      const cvOut = cv && cvTargets ? cvTargets : null;
+      composite.setBindGroup(1, compositeGroups[(cvOut ? 4 : 0) + gridStep.front * 2 + cur] ??= device.createBindGroup({ label: 'cloud composite', layout: compositeLayout, entries: [
         { binding: 0, resource: { buffer: frameUniforms[0] } },
         { binding: 1, resource: frame.depth },
         { binding: 2, resource: near.hist[cur].color.createView() },
         { binding: 3, resource: near.hist[cur].depth.createView() },
-        { binding: 4, resource: output.createView() },
+        { binding: 4, resource: (cvOut ? cvOut.sample : output).createView() },
         { binding: 5, resource: far.hist[cur].color.createView() },
         { binding: 6, resource: far.hist[cur].depth.createView() },
         ...grid.bindGroupEntries(COMPOSITE_LIGHT_GRID_BINDING, gridStep.front),
@@ -1550,6 +1656,36 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       ] }));
       composite.dispatchWorkgroups(Math.ceil(outCW / 8), Math.ceil(outCH / 8));
       composite.end();
+      if (cvOut) {
+        // P0.5: a sample is traced over cvBands frames, one band of rows each, and added once its last band is in. The light grid swapping, the shadow
+        // map being written (a sweep after the sun or the view moved) or the sky trace not running yet (compiling, baking) drops it and restarts the sum.
+        const writes = shadowMap.info.writes;
+        const loading = ((settings.densityModel !== 'nvdf' && !!procModel) || skyLayer.settings.enabled) && !skyActive;
+        const unstable = gridStep.swapped || writes !== cvShadowWrites || loading;
+        cvShadowWrites = writes;
+        let add = false;
+        if (unstable) {
+          if (cvCount > 0 || cvBand > 0) { cvRestarts++; cvReason = loading ? 'loading' : gridStep.swapped ? 'grid' : 'shadow'; }
+          cvCount = 0; cvBand = 0;
+        } else if (cvBand >= cvBands - 1) { cvBand = 0; cvCount++; add = true; } else cvBand++;
+        if (add) {
+          cvParamU32[0] = cvCount;
+          device.queue.writeBuffer(cvParams, 0, cvParamU32);
+          cvPipeline ??= device.createComputePipeline({ label: 'cloud converged accumulate', layout: device.createPipelineLayout({ bindGroupLayouts: [cvLayout] }), compute: { module: device.createShaderModule({ label: 'cloud converged accumulate', code: CONVERGED_WGSL }), entryPoint: 'main' } });
+          const acc = encoder.beginComputePass({ label: 'cloud converged accumulate' });
+          acc.setPipeline(cvPipeline);
+          acc.setBindGroup(0, cvGroups[cvPing] ??= device.createBindGroup({ label: `cloud converged ${cvPing}`, layout: cvLayout, entries: [
+            { binding: 0, resource: { buffer: cvParams } },
+            { binding: 1, resource: cvOut.sample.createView() },
+            { binding: 2, resource: cvOut.sums[cvPing].createView() },
+            { binding: 3, resource: cvOut.sums[1 - cvPing].createView() },
+            { binding: 4, resource: output.createView() },
+          ] }));
+          acc.dispatchWorkgroups(Math.ceil(outCW / 8), Math.ceil(outCH / 8));
+          acc.end();
+          cvPing = 1 - cvPing;
+        }
+      }
 
       if (domeSettings.enabled) {
         // Reference point: fixed, or the camera's x/z at ground height.
@@ -1610,7 +1746,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       disposed = true;
       releaseTargets(); if (ownsVolume) volume?.destroy(); noise?.destroy(); lightGrid?.destroy();
       volumeGroup = null; forgetGroups(); lightGrid = null;
-      volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); blueNoise.destroy(); skyLightBuffer.destroy();
+      volumeUniforms.destroy(); heroUniforms.destroy(); resolveParams.forEach(b => b.destroy()); frameUniforms.forEach(b => b.destroy()); dummyNear.destroy(); blueNoise.destroy(); skyLightBuffer.destroy(); cvParams.destroy();
       skyUpscale?.dispose(); skyUpscale = null;
       skyLayer.dispose(); cirrus.dispose(); midLayer.dispose(); shadowMap.dispose(); domeSkyDummy.destroy(); domeSkyDummyParams.destroy(); domeTexture.destroy(); domeFrameBuffer.destroy(); domeParamBuffer.destroy(); domeDepth.destroy(); domeGroups = null;
     },

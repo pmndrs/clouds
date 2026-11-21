@@ -228,6 +228,12 @@ export interface SkyEncodeArgs {
   subPixelSpan?: number;
   /** S2: overrides settings.lodLayerPixel this frame (the runtime's levelLodLayerPixel at the reduced render levels). */
   lodLayerPixel?: number;
+  /**
+   * P0.5 converged march (the runtime's settings.converged): this frame is one sample of an accumulation. Every pixel is traced with no history
+   * blend, the steps are divided by `stepScale` (budget times `stepScale * budget`), the light is evaluated at every lit step, and the jitter is
+   * sample `index` of the blue-noise + golden-ratio sequence with the sub-pixel offset `subPixel` (layer px). Null / absent: the normal trace.
+   */
+  converged?: { stepScale: number; budget: number; index: number; subPixel: [number, number]; keep?: number; cutoff?: number; band?: number; bands?: number } | null;
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
@@ -261,6 +267,13 @@ const MODEL_PARAM_FLOATS = 36;        // params[0..36) describe the cloud model;
 const BLEND_PARAM = 35;
 const SPECIES_PARAM = 64;             // params[64..80): the species profiles (P9-C) and H4's profile table and erosion law, part of the model too
 const SPECIES_PARAMS = 16;
+
+/** P0.5: rows [y0, y1) of band `band` of `bands` over a target `h` rows tall (band edges on multiples of 8, the last band ends at h). */
+export function convergedRows(h: number, band: number, bands: number): [number, number] {
+  const n = Math.max(1, Math.floor(bands)), b = Math.min(n - 1, Math.max(0, Math.floor(band)));
+  const edge = (i: number) => (i >= n ? h : Math.min(h, Math.floor((i * h) / n / 8) * 8));
+  return [edge(b), edge(b + 1)];
+}
 
 /** Invert a column-major 4x4 (gl-matrix style). Returns false when singular. */
 function invert4(m: ArrayLike<number>, out: Float32Array): boolean {
@@ -615,7 +628,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
       const cam = a.cameraPosition, sun = a.sunDirection;
       forwardOf(a.inverseViewProjection, fwd);
-      let cut = needReset || procCut || !prevValid || !s.temporal;
+      const cv = a.converged ?? null;
+      let cut = needReset || procCut || !prevValid || !s.temporal || !!cv;
       if (!cut) {
         const d = Math.hypot(cam[0] - prevCam[0], cam[1] - prevCam[1], cam[2] - prevCam[2]);
         const turn = fwd[0] * prevFwd[0] + fwd[1] * prevFwd[1] + fwd[2] * prevFwd[2];
@@ -628,6 +642,12 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       const period = SKY_TEMPORAL_PERIOD;
       const phase = s.freezeCycle >= 0 ? Math.floor(s.freezeCycle) : frames;
       p[36] = phase % period; p[37] = Math.floor(phase / period); p[38] = cut ? 1 : 0; p[39] = s.jitterNoise === 'blue' ? 1 : 0;
+      // P0.5: the converged sample's jitter (cycle = the sample index, blue noise + golden ratio) and step divisor; zeros = the normal trace.
+      if (cv) {
+        p[37] = cv.index; p[39] = 1; p[92] = Math.max(1, cv.stepScale); p[93] = Math.max(1, cv.budget); p[94] = cv.subPixel[0]; p[95] = cv.subPixel[1]; p[96] = cv.keep ?? 0;
+        p[97] = convergedRows(a.color.height, cv.band ?? 0, cv.bands ?? 1)[0];
+        if (cv.cutoff !== undefined) p[27] = Math.min(p[27], cv.cutoff);   // the transmittance cutoff (0.05 by default: the rest of the ray continues as the mean colour)
+      } else { p[92] = 0; p[93] = 0; p[94] = 0; p[95] = 0; p[96] = 0; p[97] = 0; }
       p.set(prevViewProj, 40);
       // C2: the clouds' displacement since last frame (procedural model only: the wind offset times its cloud speed; a cut or a first frame has none).
       {
@@ -678,7 +698,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       trace.setBindGroup(0, a.volumeGroup);
       trace.setBindGroup(1, group!);
       if (a.atmosphere) trace.setBindGroup(MARCH_ATMOSPHERE_GROUP, a.atmosphere);
-      if (cut) trace.dispatchWorkgroups(Math.ceil(w / 8), Math.ceil(h / 8));
+      if (cv) { const [y0, y1] = convergedRows(h, cv.band ?? 0, cv.bands ?? 1); trace.dispatchWorkgroups(Math.ceil(w / 8), Math.ceil((y1 - y0) / 8)); }   // P0.5: one band of rows
+      else if (cut) trace.dispatchWorkgroups(Math.ceil(w / 8), Math.ceil(h / 8));
       else trace.dispatchWorkgroups(Math.ceil(w / 4 / 8), Math.ceil(h / 4 / 8));
       trace.end();
       resolveAndCopy(encoder, a, w, h);
