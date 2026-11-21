@@ -117,6 +117,8 @@ export class PtReference {
   compileMs = 0;
   kernelBytes = 0;
   maxDepth = 512;
+  /** Scrambling seed base for the sampler (`?seed=`): two seeds give independent realisations of the same view (the scorecard's noise floor). */
+  seed = 1;
   medium: PtMediumParams = { extinction: 0.3, albedo: 0.99, g: 0.8 };
   /** Bumped by every reset; a progress loop stops when it changes. */
   epoch = 0;
@@ -201,7 +203,7 @@ export class PtReference {
     k.setFilm(width, height);
     k.setCamera(camera);
     k.setLimits({ maxDepth: this.maxDepth, rrStartDepth: 0 });
-    k.setSeed(1);
+    k.setSeed(this.seed);
   }
 
   reset(): void {
@@ -252,6 +254,26 @@ export class PtReference {
   private alphaPipeline: GPUComputePipeline | null = null;
   /** The opacity mask of the current grid from `camera` (same film), shown raw (alpha as grey). */
   async presentAlpha(camera: PtLookAtCamera): Promise<void> {
+    const out = await this.computeAlpha(camera);
+    this.draw(this.device.createBindGroup({ layout: this.displayLayout, entries: [{ binding: 0, resource: { buffer: out } }, { binding: 1, resource: { buffer: this.displayParams } }] }), 1, 1);
+    await this.device.queue.onSubmittedWorkDone();
+    out.destroy();
+  }
+
+  /** P0.3: the same opacity mask read back (accumulator format: rgb = alpha, w = 1, row 0 = top), at the film size. */
+  async readAlpha(camera: PtLookAtCamera): Promise<Float32Array> {
+    const out = await this.computeAlpha(camera);
+    const size = this.width * this.height * 16;
+    const staging = this.device.createBuffer({ size, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const enc = this.device.createCommandEncoder(); enc.copyBufferToBuffer(out, 0, staging, 0, size); this.device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(staging.getMappedRange().slice(0));
+    staging.unmap(); staging.destroy(); out.destroy();
+    return data;
+  }
+
+  /** Runs the opacity kernel into a new storage buffer (the caller destroys it). */
+  private async computeAlpha(camera: PtLookAtCamera): Promise<GPUBuffer> {
     const grid = this.grid!, device = this.device;
     if (!this.gridTexture) {
       this.gridTexture = device.createTexture({ label: 'pt1 alpha grid', size: grid.resolution, dimension: '3d', format: 'r32float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
@@ -269,7 +291,7 @@ export class PtReference {
     pf.set(grid.min, 16); pf.set(grid.max, 20);
     const params = device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(params, 0, p);
-    const out = device.createBuffer({ size: this.width * this.height * 16, usage: GPUBufferUsage.STORAGE });
+    const out = device.createBuffer({ size: this.width * this.height * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
     const enc = device.createCommandEncoder();
     const pass = enc.beginComputePass();
     pass.setPipeline(this.alphaPipeline);
@@ -277,12 +299,11 @@ export class PtReference {
     pass.dispatchWorkgroups(Math.ceil(this.width / 8), Math.ceil(this.height / 8));
     pass.end();
     device.queue.submit([enc.finish()]);
-    this.draw(device.createBindGroup({ layout: this.displayLayout, entries: [{ binding: 0, resource: { buffer: out } }, { binding: 1, resource: { buffer: this.displayParams } }] }), 1, 1);
-    await device.queue.onSubmittedWorkDone();
-    params.destroy(); out.destroy();
+    void device.queue.onSubmittedWorkDone().then(() => params.destroy());
+    return out;
   }
 
-  /** Mean linear radiance of the image (for the report): reads the accumulator back. */
+  /** Linear radiance of the image (accumulator / sample count, rgb; w = 1; row 0 = top): reads the accumulator back. */
   async readLinear(): Promise<Float32Array> {
     const accum = this.kernel!.accumulator!;
     const size = this.width * this.height * 16;

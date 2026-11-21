@@ -1,0 +1,5 @@
+captured pt-noon -> work/captures/P0-3b/seed2/pt-noon.png
+captured pt-low -> work/captures/P0-3b/seed2/pt-low.png
+captured pt-backlit -> work/captures/P0-3b/seed2/pt-backlit.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/P0-3b/seed2/capture.json

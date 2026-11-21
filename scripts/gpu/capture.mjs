@@ -29,7 +29,9 @@ if (flag('help')) {
 --headed            show the browser window
 --timeout <s>       ready timeout in seconds (default 60)
 --no-contract       page has no window.__clouds: stub it after load and just settle frames
---eval-timeout <s>  per page call (bookmark, settle, report) in seconds (default 45; a path-traced settle can take minutes)`);
+--eval-timeout <s>  per page call (bookmark, settle, report) in seconds (default 45; a path-traced settle can take minutes)
+--linear            also save each shot's linear frame (page's window.__clouds.readLinear(), e.g. reference-pt/) as <shot>.pfm:
+                    float32 scene radiance before exposure and tone mapping (PF = RGB; Pf = one channel for alpha masks)`);
   process.exit(0);
 }
 const root = resolve(new URL('../..', import.meta.url).pathname);
@@ -49,6 +51,26 @@ async function waitFor(fn, ms, what) {
   const end = Date.now() + ms;
   while (Date.now() < end) { try { const v = await fn(); if (v) return v; } catch { /* retry */ } await sleep(150); }
   throw new Error(`Timed out waiting for ${what}`);
+}
+
+// --linear: pulls the page's last readLinear() frame (float32 RGBA, row 0 = top) out in base64 chunks and writes a PFM (rows bottom to top,
+// little-endian, scale -1). Radiance frames keep RGB; alpha masks keep one channel.
+async function saveLinear(eval_, file) {
+  const info = await eval_(`window.__clouds.readLinear ? window.__clouds.readLinear() : Promise.reject(new Error('page has no readLinear()'))`);
+  const CHUNK = 1 << 20;   // 1 MB of floats (1.4 MB of base64) per call: a 4 MB chunk never returns over CDP
+  const parts = [];
+  for (let off = 0; off < info.byteLength; off += CHUNK) parts.push(Buffer.from(await eval_(`window.__clouds.linearChunk(${off}, ${CHUNK})`), 'base64'));
+  const bytes = Buffer.concat(parts);
+  if (bytes.length !== info.byteLength) throw new Error(`linear readback: got ${bytes.length} of ${info.byteLength} bytes`);
+  const rgba = new Float32Array(bytes.buffer, bytes.byteOffset, bytes.length / 4);
+  const { width: w, height: h } = info, ch = info.kind === 'alpha' ? 1 : 3;
+  const body = new Float32Array(w * h * ch);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const s = ((h - 1 - y) * w + x) * 4, d = (y * w + x) * ch;   // PFM rows run bottom to top
+    for (let c = 0; c < ch; c++) body[d + c] = rgba[s + c];
+  }
+  writeFileSync(file, Buffer.concat([Buffer.from(`${ch === 3 ? 'PF' : 'Pf'}\n${w} ${h}\n-1.0\n`, 'ascii'), Buffer.from(body.buffer)]));
+  return { file: file.slice(root.length + 1), ...info };
 }
 
 const children = [];
@@ -107,7 +129,9 @@ try {
     const { data } = await cdp.send('Page.captureScreenshot', { format, ...(format === 'jpeg' ? { quality } : {}) }, format === 'png' ? 240000 : 45000);
     const file = join(out, `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`);
     writeFileSync(file, Buffer.from(data, 'base64'));
-    report.shots.push({ name: fileName, file: file.slice(root.length + 1), report: pageReport });
+    const shotEntry = { name: fileName, file: file.slice(root.length + 1), report: pageReport };
+    if (flag('linear')) shotEntry.linear = await saveLinear(eval_, join(out, `${fileName}.pfm`));
+    report.shots.push(shotEntry);
     console.log(`captured ${shot} -> ${file.slice(root.length + 1)}${pageReport?.gpuMs ? '  gpu ' + JSON.stringify(pageReport.gpuMs) : ''}`);
   }
   for (const e of cdp.events) {
