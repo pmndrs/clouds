@@ -1,0 +1,558 @@
+{
+  "url": "http://127.0.0.1:5447/reference-pt/?clean=1&cloud=embergen02&spp=1&converged=1",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T16:08:11.816Z",
+  "shots": [
+    {
+      "name": "fit-low",
+      "file": "work/captures/P1-4a/embergen02/fit-low.png",
+      "report": {
+        "view": "fit-low",
+        "status": "sun low: ready",
+        "cloud": "embergen02",
+        "camera": {
+          "position": [
+            -1768.139178502634,
+            150,
+            2547.6955081324063
+          ],
+          "target": [
+            -2,
+            1256,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35,
+            28.9258,
+            22.168
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            336,
+            180,
+            484
+          ],
+          "voxel": 4,
+          "min": [
+            -672,
+            900,
+            -968
+          ],
+          "max": [
+            672,
+            1620,
+            968
+          ],
+          "densityMax": 2.134765625,
+          "occupancy": 0.22940832841401024,
+          "bakeMs": 652
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 1,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              168,
+              242,
+              90
+            ],
+            "bytes": 87816960,
+            "volumeDims": [
+              336,
+              484,
+              180
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 1,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 1,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 75.29999999701977,
+          "wallMs": 75.3999999910593,
+          "compileMs": 99,
+          "kernelBytes": 52884,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.17988696088723372,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "ultra",
+          "lightingModel": "fit",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 1,
+          "fit": [
+            0.99,
+            0.8,
+            2.58,
+            0.4,
+            0.33,
+            0.05,
+            1,
+            0.2,
+            0.5,
+            0.31,
+            1
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "embergen02",
+            "label": "B EmberGen 02 (CloudPack VDB)",
+            "source": "JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3100,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3100,
+            "height": 150
+          },
+          "source": "JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            336,
+            484,
+            180
+          ],
+          "voxel": 4,
+          "densityRef": 0.2998116014787229,
+          "densityMaxSource": 0.6399313807487488,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.17988696088723372,
+          "boxMin": [
+            -672,
+            900,
+            -968
+          ],
+          "boxMax": [
+            672,
+            1620,
+            968
+          ],
+          "occupied": {
+            "min": [
+              -660,
+              912,
+              -952
+            ],
+            "max": [
+              656,
+              1600,
+              952
+            ]
+          },
+          "file": "vdbs/CloudPack/CloudPackVDB/cloud_02_variant_0000.vdb",
+          "gridName": "density",
+          "sourceVoxels": 5699272,
+          "up": "z",
+          "worldScale": 4.008438818565401,
+          "nativeVoxel": 4.008438818565401,
+          "taps": 1,
+          "loadMs": 910,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 374
+      },
+      "linear": {
+        "file": "work/captures/P1-4a/embergen02/fit-low.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.9321569290861953,
+          1.1902372291526344,
+          1.7247248079790733
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 379,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "fit-sunset",
+      "file": "work/captures/P1-4a/embergen02/fit-sunset.png",
+      "report": {
+        "view": "fit-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "embergen02",
+        "camera": {
+          "position": [
+            180.57543954918037,
+            150,
+            3094.6189117358895
+          ],
+          "target": [
+            -2,
+            1256,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            25.3906,
+            13.457,
+            4.9658
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            336,
+            180,
+            484
+          ],
+          "voxel": 4,
+          "min": [
+            -672,
+            900,
+            -968
+          ],
+          "max": [
+            672,
+            1620,
+            968
+          ],
+          "densityMax": 2.134765625,
+          "occupancy": 0.22940832841401024,
+          "bakeMs": 652
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 2,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              168,
+              242,
+              90
+            ],
+            "bytes": 87816960,
+            "volumeDims": [
+              336,
+              484,
+              180
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 2,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 1,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 75.29999999701977,
+          "wallMs": 75.3999999910593,
+          "compileMs": 99,
+          "kernelBytes": 52884,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.17988696088723372,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "ultra",
+          "lightingModel": "fit",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 1,
+          "fit": [
+            0.99,
+            0.8,
+            2.58,
+            0.4,
+            0.33,
+            0.05,
+            1,
+            0.2,
+            0.5,
+            0.31,
+            1
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "embergen02",
+            "label": "B EmberGen 02 (CloudPack VDB)",
+            "source": "JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3100,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3100,
+            "height": 150
+          },
+          "source": "JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            336,
+            484,
+            180
+          ],
+          "voxel": 4,
+          "densityRef": 0.2998116014787229,
+          "densityMaxSource": 0.6399313807487488,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.17988696088723372,
+          "boxMin": [
+            -672,
+            900,
+            -968
+          ],
+          "boxMax": [
+            672,
+            1620,
+            968
+          ],
+          "occupied": {
+            "min": [
+              -660,
+              912,
+              -952
+            ],
+            "max": [
+              656,
+              1600,
+              952
+            ]
+          },
+          "file": "vdbs/CloudPack/CloudPackVDB/cloud_02_variant_0000.vdb",
+          "gridName": "density",
+          "sourceVoxels": 5699272,
+          "up": "z",
+          "worldScale": 4.008438818565401,
+          "nativeVoxel": 4.008438818565401,
+          "taps": 1,
+          "loadMs": 910,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 758
+      },
+      "linear": {
+        "file": "work/captures/P1-4a/embergen02/fit-sunset.pfm",
+        "view": "fit-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.694515277136169,
+          0.6795393472602074,
+          0.766890015709796
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 763,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
