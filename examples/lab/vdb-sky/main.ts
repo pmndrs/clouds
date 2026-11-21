@@ -9,7 +9,7 @@
 //               the same box by an empty runtime volume).
 //
 // Query (every one has a visible control too): ?route=a|b  ?asset=<key>  ?sky=hybrid|off  ?surface=water|ground  ?sunel= ?sunaz=
-//   ?voxel=<m> (route A lattice)  ?density=<x> (route A directDensity / route B extinction scale)  ?quality=high|ultra|...  ?clean=1
+//   ?light=fit (P1.5a: fitted lighting on hero + sky)  ?voxel=<m> (route A lattice)  ?density=<x> (route A directDensity / route B extinction scale)  ?quality=high|ultra|...  ?clean=1
 // Bookmarks (capture.mjs --shots): near, far, sunset, above.
 // Assets are local only (artifacts/research, never committed): WDAS cloud (CC BY-SA 3.0, Disney) and the JangaFX CloudPack (EmberGen, CC0).
 import { ACESFilmicToneMapping, DirectionalLight, Group, Matrix4, PerspectiveCamera, Scene } from 'three';
@@ -137,7 +137,26 @@ try {
     clouds.core.setProceduralModel(state.sky === 'hybrid' ? proc : null);
     clouds.core.settings.densityModel = state.sky === 'hybrid' ? 'hybrid' : 'nvdf';
   };
-  if (state.sky === 'hybrid') await startSky();
+  // P1.5a: the fitted lighting model (?light=fit, panel 'lighting'), on the hero (route A) and the procedural sky around it, so the frame is
+  // lit one way. Same companions as the reference card's 'fit' direct-volume views (reference-pt/main.ts applyFitSunShadow): sun-shadow grid
+  // from the rendered float density (route A's direct volume) and lightDensityScale 1. Off puts the replaced values back (the page's default
+  // renders exactly as before). Re-run after every setVolume / sky start, which can reset these.
+  let fitOn = query.get('light') === 'fit';
+  let fitStash: { lightingModel: typeof clouds.core.settings.lightingModel; sunShadowGridSource: number; lightDensityScale: number } | null = null;
+  let procStash: ProceduralClouds['settings']['lightingModel'] | null = null;
+  const syncLight = () => {
+    const rs = clouds.core.settings;
+    if (fitOn) {
+      if (!fitStash) fitStash = { lightingModel: rs.lightingModel, sunShadowGridSource: rs.sunShadowGridSource, lightDensityScale: rs.lightDensityScale };
+      rs.lightingModel = 'fit'; rs.lightDensityScale = 1;
+      rs.sunShadowGridSource = state.route === 'a' ? 1 : fitStash.sunShadowGridSource;
+      if (proc) { if (procStash === null) procStash = proc.settings.lightingModel; proc.settings.lightingModel = 'fit'; }
+    } else {
+      if (fitStash) { Object.assign(rs, fitStash); fitStash = null; }
+      if (proc && procStash !== null) { proc.settings.lightingModel = procStash; procStash = null; }
+    }
+  };
+  if (state.sky === 'hybrid') { await startSky(); syncLight(); }
   void PROCEDURAL_STYLES;
 
   // ---- @pmndrs/vdb: one pool on our device, a resampler (route A) and a froxel renderer (route B)
@@ -244,6 +263,7 @@ try {
         void minCorner;
       }
       if (prev) { const keep = current; current = prev; disposeCurrent(); current = keep; }
+      syncLight();
       const out = state.route === 'b' ? outputB : outputA;
       if (post.outputNode !== out) { post.outputNode = out; post.needsUpdate = true; }
     } catch (e) {
@@ -301,7 +321,8 @@ try {
   const title = document.createElement('b'); title.textContent = 'V1 vdb-sky (Review)'; panel.prepend(title);
   const routeSel = select('route', [['a', 'A: our runtime (direct)'], ['b', 'B: vdb froxel renderer']], state.route, v => { state.route = v as 'a' | 'b'; void show(); });
   const assetSel = select('asset', Object.entries(ASSETS).map(([k, d]) => [k, d.label]), state.asset, v => { state.asset = v; state.density = NaN; void show(); });
-  const skySel = select('sky', [['hybrid', 'procedural HZD sky (hybrid)'], ['off', 'off (VDB only)']], state.sky, async v => { state.sky = v as 'hybrid' | 'off'; if (state.sky === 'hybrid' && !proc) await startSky(); applySky(); });
+  const skySel = select('sky', [['hybrid', 'procedural HZD sky (hybrid)'], ['off', 'off (VDB only)']], state.sky, async v => { state.sky = v as 'hybrid' | 'off'; if (state.sky === 'hybrid' && !proc) await startSky(); syncLight(); applySky(); });
+  const lightSel = select('lighting', [['page', 'page (nubis; sky nubis)'], ['fit', 'fit (new): hero + sky']], fitOn ? 'fit' : 'page', v => { fitOn = v === 'fit'; syncLight(); });
   const surfSel = select('surface', [['water', 'water'], ['ground', 'ground']], state.surface, v => { state.surface = v as 'water' | 'ground'; applySurface(); });
   const elIn = range('sun elevation', -2, 85, 0.5, 30, v => setSun(v, state.sunAz));
   const azIn = range('sun azimuth', 0, 360, 1, 150, v => setSun(state.sunEl, v));
@@ -332,7 +353,7 @@ try {
   };
   row('drop .vdb / .nvdb (y-up)', drop);
   function syncPanel() {
-    routeSel.value = state.route; assetSel.value = state.asset; skySel.value = state.sky; surfSel.value = state.surface; qualSel.value = clouds.quality;
+    routeSel.value = state.route; lightSel.value = fitOn ? 'fit' : 'page'; assetSel.value = state.asset; skySel.value = state.sky; surfSel.value = state.surface; qualSel.value = clouds.quality;
     elIn.value = String(state.sunEl); azIn.value = String(state.sunAz);
     densIn.value = String(Number.isFinite(state.density) ? state.density / ASSETS[state.asset]!.density : 1);
   }
@@ -404,6 +425,7 @@ try {
         load: e ? { kind: e.src.kind, fileBytes: e.src.fileBytes, voxels: e.src.voxels, fetchMs: e.fetchMs, parseMs: e.src.parseMs, buildMs: e.src.buildMs, poolAddMs: e.addMs, poolBytes: pool.info(e.id).imageBytes, gridType: pool.info(e.id).type } : null,
         direct: current?.direct ?? null, setVolumeMs: current?.setVolumeMs, worldScale: current?.worldScale, voxel: current?.voxel, error: lastError,
         directDensity: clouds.core.settings.directDensity,
+        lighting: { model: clouds.core.settings.lightingModel, proc: proc?.settings.lightingModel ?? null, sunShadowGridSource: clouds.core.settings.sunShadowGridSource, lightDensityScale: clouds.core.settings.lightDensityScale },
       };
     },
   });

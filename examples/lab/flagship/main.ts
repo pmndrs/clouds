@@ -160,6 +160,22 @@ try {
   // P0.5: the converged march (slow: seconds per frame; the HUD counts the samples).
   const convergedBox = el('input', { type: 'checkbox', checked: runtime.settings.converged > 0.5, title: 'P0.5 converged march: every pixel every frame at full resolution, no history, steps / convergedStepScale, convergedSamples frames averaged with their own jitter. Ground truth for the image (stepping, jitter, temporal, upscaling); slow.' }, label('converged'));
   convergedBox.onchange = () => { runtime.settings.converged = convergedBox.checked ? 1 : 0; };
+  // P1.5a: the fitted lighting model on the hero (?light=fit). Same companions as the reference card's 'fit' views (reference-pt/main.ts
+  // applyFitSunShadow): lightDensityScale 1, and on a direct volume the sun-shadow grid from the rendered float density. Switching back puts
+  // the replaced values back, so the default (the page's own model) renders exactly as before. No procedural sky on this page.
+  let fitStash: { lightingModel: typeof runtime.settings.lightingModel; sunShadowGridSource: number; lightDensityScale: number } | null = null;
+  const applyLight = (fit: boolean) => {
+    const rs = runtime.settings;
+    if (fit && !fitStash) {
+      fitStash = { lightingModel: rs.lightingModel, sunShadowGridSource: rs.sunShadowGridSource, lightDensityScale: rs.lightDensityScale };
+      rs.lightingModel = 'fit'; rs.lightDensityScale = 1;
+      if (volumeAsset.direct) rs.sunShadowGridSource = 1;
+    } else if (!fit && fitStash) { Object.assign(rs, fitStash); fitStash = null; }
+  };
+  const lightSel = el('select', { title: 'P1.5a lighting model: the page\'s own (default) or the fitted model (fit, with the card page\'s verified sun-shadow settings). URL: ?light=fit' }, label('lighting'));
+  for (const [v, t] of [['page', `page (${runtime.settings.lightingModel})`], ['fit', 'fit (new)']]) el('option', { value: v, textContent: t }, lightSel);
+  lightSel.onchange = () => applyLight(lightSel.value === 'fit');
+  if (query.get('light') === 'fit') { lightSel.value = 'fit'; applyLight(true); }
   const modeBtn = el('button', { textContent: 'mode: orbit (F)' });
   const toggleMode = () => { rig.setMode(rig.mode === 'orbit' ? 'fly' : 'orbit'); modeBtn.textContent = `mode: ${rig.mode} (F)`; };
   modeBtn.onclick = toggleMode;
@@ -244,7 +260,7 @@ try {
   harness.ready({
     bookmark: name => applyBookmark(name),
     busy: () => runtime.convergedInfo.active && !runtime.convergedInfo.done,   // P0.5: settle waits for the converged sum
-    report: () => ({ converged: runtime.convergedInfo, camera: camera.position.toArray(), hfovDeg: (2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * camera.aspect) * 180) / Math.PI, focusBox: FOCUS_BOX, gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
+    report: () => ({ converged: runtime.convergedInfo, camera: camera.position.toArray(), hfovDeg: (2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * camera.aspect) * 180) / Math.PI, focusBox: FOCUS_BOX, gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, lighting: { model: runtime.settings.lightingModel, sunShadowGridSource: runtime.settings.sunShadowGridSource, lightDensityScale: runtime.settings.lightDensityScale }, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

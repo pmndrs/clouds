@@ -1,0 +1,103 @@
+{
+  "url": "http://127.0.0.1:64902/vdb-sky/?clean=1&asset=cloudpack-02",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-21T16:33:23.160Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/P1-5a/vdbsky-old/view.png",
+      "report": {
+        "route": "a",
+        "asset": "cloudpack-02",
+        "sky": "hybrid",
+        "surface": "water",
+        "bookmark": "near",
+        "sun": {
+          "elevation": 60,
+          "azimuth": 200
+        },
+        "gpuMs": {
+          "scene": 17.92836518333333,
+          "lightGridReduce": 0.538325,
+          "lightGrid": 0.8793158333333331,
+          "marchNear": 0.06192470000000001,
+          "marchFar": 0.8792920999999995,
+          "shadowMap": 2.7395388499999997,
+          "composite": 0.2730361499999999,
+          "dome": 0.4886840333333334,
+          "resolveNear": 0.03711269999999999,
+          "resolveFar": 0.11706983333333332,
+          "skyLayer": 13.937039616666663,
+          "skyResolve": 0.11934193333333333,
+          "cloudsTotal": 20.070680749999998,
+          "total": 37.99904593333333
+        },
+        "frameMs": {
+          "p50": 33.30000000000291,
+          "p95": 50.10000000000582
+        },
+        "renderSize": [
+          1280,
+          720
+        ],
+        "quality": "high",
+        "frames": 2381,
+        "cloudsReady": true,
+        "load": {
+          "kind": "vdb",
+          "fileBytes": 20159892,
+          "voxels": 5699272,
+          "fetchMs": 84.19999998807907,
+          "parseMs": 119.20000000298023,
+          "buildMs": 106.09999999403954,
+          "poolAddMs": 230.09999999403954,
+          "poolBytes": 37937088,
+          "gridType": "float"
+        },
+        "direct": {
+          "dims": [
+            336,
+            484,
+            180
+          ],
+          "voxelSize": 4,
+          "taps": 1,
+          "densityRef": 0.2998116014787229,
+          "max": 0.6399313807487488,
+          "occupied": 6654032,
+          "sizeMeters": [
+            1344,
+            720,
+            1936
+          ],
+          "timings": {
+            "resampleGpuMs": 73.90000000596046,
+            "packMs": 347.70000000298023,
+            "uploadSdfMs": 219
+          },
+          "gpuBytes": 234178560
+        },
+        "setVolumeMs": 29.5,
+        "worldScale": 4.008438818565401,
+        "voxel": 4,
+        "error": null,
+        "directDensity": 0.6,
+        "lighting": {
+          "model": "nubis",
+          "proc": "nubis",
+          "sunShadowGridSource": 0,
+          "lightDensityScale": 1
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
