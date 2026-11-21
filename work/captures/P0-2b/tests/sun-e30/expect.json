@@ -1,0 +1,14 @@
+{
+  "kind": "sun",
+  "irradiance": [
+    3.0,
+    2.0,
+    1.0
+  ],
+  "albedo": [
+    0.8,
+    0.5,
+    0.25
+  ],
+  "elevationDeg": 30.0
+}

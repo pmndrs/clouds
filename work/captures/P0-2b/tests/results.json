@@ -1,0 +1,598 @@
+[
+ {
+  "test": "absorber",
+  "check": "centre 6x6 vs exp(-tau) L",
+  "expected": [
+   0.18394,
+   0.36788,
+   0.73576
+  ],
+  "measured": [
+   0.18372,
+   0.36743,
+   0.73486
+  ],
+  "maxRelErr": 0.0012172480881682546,
+  "noise": 0.0027060480139516436,
+  "seconds": 1.66
+ },
+ {
+  "test": "absorber",
+  "check": "whole image RMS / L (vs numpy trilinear march)",
+  "expected": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "measured": [
+   0.00644,
+   0.00644,
+   0.00644
+  ],
+  "maxRelErr": 0.006438885503061648,
+  "noise": null,
+  "seconds": 1.66
+ },
+ {
+  "test": "absorber",
+  "check": "alpha AOV centre vs 1 - exp(-tau)",
+  "expected": [
+   0.63212
+  ],
+  "measured": [
+   0.63257
+  ],
+  "maxRelErr": 0.0007084100337950705,
+  "noise": 0.0015748569276183844,
+  "seconds": 1.66
+ },
+ {
+  "test": "absorber",
+  "check": "alpha AOV whole image RMS",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00644
+  ],
+  "maxRelErr": 0.006438885503061645,
+  "noise": null,
+  "seconds": 1.66
+ },
+ {
+  "test": "absorber-a05",
+  "check": "combined (black sky, no sun) = 0",
+  "expected": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "measured": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 2.97
+ },
+ {
+  "test": "absorber-a05",
+  "check": "alpha AOV centre vs 1 - exp(-tau)",
+  "expected": [
+   0.63212
+  ],
+  "measured": [
+   0.63257
+  ],
+  "maxRelErr": 0.0007084100337950705,
+  "noise": 0.0015748569276183844,
+  "seconds": 2.97
+ },
+ {
+  "test": "absorber-a05",
+  "check": "alpha AOV whole image RMS",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00644
+  ],
+  "maxRelErr": 0.006438885503061645,
+  "noise": null,
+  "seconds": 2.97
+ },
+ {
+  "test": "axes-fromx",
+  "check": "RMS (vs numpy trilinear march)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.0023
+  ],
+  "maxRelErr": 0.002296542245150151,
+  "noise": null,
+  "seconds": 0.47
+ },
+ {
+  "test": "axes-fromx",
+  "check": "absorbance centroid px (x, y)",
+  "expected": [
+   105.25476,
+   83.13043
+  ],
+  "measured": [
+   105.2555,
+   83.13591
+  ],
+  "maxRelErr": 3.810046765817532e-05,
+  "noise": null,
+  "seconds": 0.47
+ },
+ {
+  "test": "axes-fromx",
+  "check": "RMS vs grid mirrored in x: 0.0515, y: 0.1308, z: 0.1434",
+  "expected": [],
+  "measured": [],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 0.47
+ },
+ {
+  "test": "axes-fromy",
+  "check": "RMS (vs numpy trilinear march)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00278
+  ],
+  "maxRelErr": 0.0027785463010354477,
+  "noise": null,
+  "seconds": 0.47
+ },
+ {
+  "test": "axes-fromy",
+  "check": "absorbance centroid px (x, y)",
+  "expected": [
+   83.24541,
+   62.30952
+  ],
+  "measured": [
+   83.25163,
+   62.30672
+  ],
+  "maxRelErr": 3.241711384638357e-05,
+  "noise": null,
+  "seconds": 0.47
+ },
+ {
+  "test": "axes-fromy",
+  "check": "RMS vs grid mirrored in x: 0.1196, y: 0.0474, z: 0.1608",
+  "expected": [],
+  "measured": [],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 0.47
+ },
+ {
+  "test": "axes-fromz",
+  "check": "RMS (vs numpy trilinear march)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00304
+  ],
+  "maxRelErr": 0.0030353204776335254,
+  "noise": null,
+  "seconds": 0.6
+ },
+ {
+  "test": "axes-fromz",
+  "check": "absorbance centroid px (x, y)",
+  "expected": [
+   82.05768,
+   84.66044
+  ],
+  "measured": [
+   82.03173,
+   84.65701
+  ],
+  "maxRelErr": 0.0001351564179106942,
+  "noise": null,
+  "seconds": 0.6
+ },
+ {
+  "test": "axes-fromz",
+  "check": "RMS vs grid mirrored in x: 0.1270, y: 0.1556, z: 0.0428",
+  "expected": [],
+  "measured": [],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 0.6
+ },
+ {
+  "test": "furnace-hg08",
+  "check": "all pixels",
+  "expected": [
+   0.6,
+   0.8,
+   1.0
+  ],
+  "measured": [
+   0.60005,
+   0.79989,
+   1.0
+  ],
+  "maxRelErr": 0.00014199316501617432,
+  "noise": 1.2032961649310892e-06,
+  "seconds": 0.56
+ },
+ {
+  "test": "furnace-hg08",
+  "check": "through medium (3736 px)",
+  "expected": [
+   0.6,
+   0.8,
+   1.0
+  ],
+  "measured": [
+   0.59999,
+   0.80003,
+   1.0
+  ],
+  "maxRelErr": 3.644824028015137e-05,
+  "noise": 5.570605310367682e-07,
+  "seconds": 0.56
+ },
+ {
+  "test": "furnace-iso",
+  "check": "all pixels",
+  "expected": [
+   0.6,
+   0.8,
+   1.0
+  ],
+  "measured": [
+   0.60005,
+   0.79989,
+   1.0
+  ],
+  "maxRelErr": 0.00014199316501617432,
+  "noise": 1.2032961649310892e-06,
+  "seconds": 0.54
+ },
+ {
+  "test": "furnace-iso",
+  "check": "through medium (3736 px)",
+  "expected": [
+   0.6,
+   0.8,
+   1.0
+  ],
+  "measured": [
+   0.59999,
+   0.80003,
+   1.0
+  ],
+  "maxRelErr": 3.644824028015137e-05,
+  "noise": 5.570605310367682e-07,
+  "seconds": 0.54
+ },
+ {
+  "test": "sky-nz",
+  "check": "RMS / peak (vs numpy bilinear lookup)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00022
+  ],
+  "maxRelErr": 0.0002186945799261846,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-nz",
+  "check": "blob [1, 1, 0] centroid px (x, y)",
+  "expected": [
+   80.0,
+   45.0
+  ],
+  "measured": [
+   80.00232,
+   44.99985
+  ],
+  "maxRelErr": 1.4491902738811291e-05,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-px",
+  "check": "RMS / peak (vs numpy bilinear lookup)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00031
+  ],
+  "maxRelErr": 0.000306977160776623,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-px",
+  "check": "blob [1, 0, 0] centroid px (x, y)",
+  "expected": [
+   80.0,
+   45.0
+  ],
+  "measured": [
+   80.00232,
+   44.99985
+  ],
+  "maxRelErr": 1.4498321939537817e-05,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-px",
+  "check": "blob [1, 1, 1] centroid px (x, y)",
+  "expected": [
+   80.0,
+   16.63133
+  ],
+  "measured": [
+   79.99797,
+   16.34517
+  ],
+  "maxRelErr": 0.0031795057759966975,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-py",
+  "check": "RMS / peak (vs numpy bilinear lookup)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00016
+  ],
+  "maxRelErr": 0.00015547381810981898,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-py",
+  "check": "blob [0, 0, 1] centroid px (x, y)",
+  "expected": [
+   80.0,
+   45.0
+  ],
+  "measured": [
+   80.00244,
+   44.9997
+  ],
+  "maxRelErr": 1.5279310597549058e-05,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-pz",
+  "check": "RMS / peak (vs numpy bilinear lookup)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00015
+  ],
+  "maxRelErr": 0.00015462830975453,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "sky-pz",
+  "check": "blob [0, 1, 0] centroid px (x, y)",
+  "expected": [
+   80.0,
+   45.0
+  ],
+  "measured": [
+   80.00231,
+   44.99985
+  ],
+  "maxRelErr": 1.4430717930835613e-05,
+  "noise": null,
+  "seconds": 0.01
+ },
+ {
+  "test": "ss-hg08-fwd-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.29352,
+   0.19568,
+   0.09784
+  ],
+  "measured": [
+   0.29346,
+   0.19564,
+   0.09782
+  ],
+  "maxRelErr": 0.00019866572111781888,
+  "noise": 0.004653842913677028,
+  "seconds": 0.64
+ },
+ {
+  "test": "ss-hg08-fwd-b512",
+  "check": "combined (all orders), central half",
+  "expected": [
+   0.29352,
+   0.19568,
+   0.09784
+  ],
+  "measured": [
+   0.29811,
+   0.19874,
+   0.09937
+  ],
+  "maxRelErr": 0.015654482153155458,
+  "noise": 0.004667658101906657,
+  "seconds": 1.33
+ },
+ {
+  "test": "ss-hg08-fwd-b512",
+  "check": "Volume Direct pass, central half",
+  "expected": [
+   0.29352,
+   0.19568,
+   0.09784
+  ],
+  "measured": [
+   0.29346,
+   0.19564,
+   0.09782
+  ],
+  "maxRelErr": 0.00019866572111781888,
+  "noise": 0.004653842913677028,
+  "seconds": 1.33
+ },
+ {
+  "test": "ss-hg08-side-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.00126,
+   0.00084,
+   0.00042
+  ],
+  "measured": [
+   0.00126,
+   0.00084,
+   0.00042
+  ],
+  "maxRelErr": 0.0001439024373125486,
+  "noise": 0.0006788484362810905,
+  "seconds": 1.01
+ },
+ {
+  "test": "ss-hg08-side-b512",
+  "check": "combined (all orders), central half",
+  "expected": [
+   0.00126,
+   0.00084,
+   0.00042
+  ],
+  "measured": [
+   0.00131,
+   0.00088,
+   0.00044
+  ],
+  "maxRelErr": 0.0472041387867026,
+  "noise": 0.0012318156253510824,
+  "seconds": 0.98
+ },
+ {
+  "test": "ss-hg08-side-b512",
+  "check": "Volume Direct pass, central half",
+  "expected": [
+   0.00126,
+   0.00084,
+   0.00042
+  ],
+  "measured": [
+   0.00126,
+   0.00084,
+   0.00042
+  ],
+  "maxRelErr": 0.0001439024373125486,
+  "noise": 0.0006788484362810905,
+  "seconds": 0.98
+ },
+ {
+  "test": "ss-iso-fwd-b1",
+  "check": "combined, central half",
+  "expected": [
+   0.01473,
+   0.00982,
+   0.00491
+  ],
+  "measured": [
+   0.01473,
+   0.00982,
+   0.00491
+  ],
+  "maxRelErr": 0.00018570210204349458,
+  "noise": 0.0007918942638890078,
+  "seconds": 1.02
+ },
+ {
+  "test": "ss-iso-fwd-b512",
+  "check": "combined (all orders), central half",
+  "expected": [
+   0.01473,
+   0.00982,
+   0.00491
+  ],
+  "measured": [
+   0.01629,
+   0.01086,
+   0.00543
+  ],
+  "maxRelErr": 0.10617486499006046,
+  "noise": 0.0009540746809439846,
+  "seconds": 1.21
+ },
+ {
+  "test": "ss-iso-fwd-b512",
+  "check": "Volume Direct pass, central half",
+  "expected": [
+   0.01473,
+   0.00982,
+   0.00491
+  ],
+  "measured": [
+   0.01473,
+   0.00982,
+   0.00491
+  ],
+  "maxRelErr": 0.00018570210204349458,
+  "noise": 0.0007918942638890078,
+  "seconds": 1.21
+ },
+ {
+  "test": "sun-e30",
+  "check": "ground radiance a E cos(z) / pi",
+  "expected": [
+   0.38197,
+   0.15915,
+   0.03979
+  ],
+  "measured": [
+   0.38197,
+   0.15917,
+   0.03979
+  ],
+  "maxRelErr": 0.00011512056913964841,
+  "noise": 9.611695901429023e-07,
+  "seconds": 0.02
+ },
+ {
+  "test": "sun-e70",
+  "check": "ground radiance a E cos(z) / pi",
+  "expected": [
+   0.71787,
+   0.29911,
+   0.07478
+  ],
+  "measured": [
+   0.7178,
+   0.2991,
+   0.07477
+  ],
+  "maxRelErr": 0.00010597474757423342,
+  "noise": 8.835843360936547e-07,
+  "seconds": 0.01
+ }
+]

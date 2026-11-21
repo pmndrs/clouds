@@ -1,0 +1,35 @@
+{
+  "grid": null,
+  "medium": null,
+  "sun": null,
+  "sky": {
+    "file": "sky.pfm",
+    "mapping": "equirect-rowtop+Y-u=atan2(x,-z)/2pi"
+  },
+  "ground": null,
+  "camera": {
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "target": [
+      1,
+      0,
+      0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fovY": 60,
+    "width": 160,
+    "height": 90
+  },
+  "render": {
+    "spp": 16,
+    "maxBounces": 1,
+    "seed": 0
+  }
+}
