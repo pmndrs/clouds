@@ -11,10 +11,20 @@ Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `D
 | --- | --- | --- | --- |
 | 0.1 | Freeze: baseline tagged; old shaper, lighting models and styles are frozen (kept, not tuned) | orchestrator | tagged; the repeat-run check waits on the card |
 | 0.2 | Pathtracer volume work (droplet phase, single/multi split, ground plane, AOVs with volumes, high-g check) | **you schedule this in the pathtracer repo** | not started |
-| 0.2b | Karma (or Cycles) cross-check of one card cloud | Sonnet inventory first | running |
-| 0.3 | Linear-radiance compare and the scorecard script | Opus, own worktree | running |
-| 0.4 | The scene card: 5 clouds x 4 suns | Sonnet inventory first, then Opus | running (inventory) |
+| 0.2b | Cross-check renderer: **Cycles**, not Karma (hython finds no licence from the agent sandbox; Blender 5.1.1 works headless and has droplet phase functions) | Opus, own worktree | running |
+| 0.3 | Linear-radiance compare and the scorecard script | Opus | **passed, merged** (`work/reports/P0-3-linear-scorecard.md`) |
+| 0.4 | The scene card: 5 clouds x 4 suns (Parkouring, EmberGen 02, Disney, a procedural sky patch, a stratus slab; noon, low, backlit, sunset) | Opus, own worktree | running |
 | 0.5 | Converged march mode | Opus, own worktree | running |
+
+What 0.3 found (same captures as PT1, compared before the tone map):
+- The units match: clear-sky pixels agree within 0.05 % between the path tracer and our renderer.
+- **"Brightness is about right" was a tone-map effect.** In linear light our Nubis lighting is 1.26x the reference at noon (1.62x in thin fringes), and backlit bodies are 0.62x (Nubis) and 0.33x (octave), worse than the 0.81x and 0.51x seen on screen.
+- Lit-face fine texture is 2.2-2.9x the reference (about 3.5x once the reference's own grain is removed). The backlit "foam" is a tone-map effect, not extra detail.
+- The reference needs more samples: at 1024 spp its grain is most of the finest detail band. The card renders two seeds at 2048 spp and averages them.
+
+Waiting on you:
+- **Houdini licence:** `hython` 21.0.792 and 22.0.466 both report "No licenses could be found" from the agent sandbox, though `hserver` is running. Only matters if you want Karma as well as Cycles.
+- **Disney cloud:** only the quarter, eighth and sixteenth VDBs are on disk; the full and half-resolution files the README lists are missing. The card uses the eighth or quarter.
 
 ## Tonight (2026-11-20): the refactor and the styles
 
