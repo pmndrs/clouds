@@ -4,11 +4,17 @@ The one page to check. The plan: the Compass (https://claude.ai/artifact/CnMaoMG
 
 Updated 2026-11-20.
 
-## Running
-Nothing.
+## Running (2026-11-21): Phase 0 of the audit plan, the truth rig
+Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. This plan replaces the phase list on the Compass until you say otherwise.
 
-## Waiting on you: the November audit (2026-11-21)
-Outside audit and a new phase plan: `docs/AUDIT-2026-11.md`. Divergence log started: `DIVERGES.md`. Nothing in the code changed. The plan needs your yes (or edits) before Phase 0 starts; until then the phases on the Compass still stand.
+| Step | What | Who | State |
+| --- | --- | --- | --- |
+| 0.1 | Freeze: baseline tagged; old shaper, lighting models and styles are frozen (kept, not tuned) | orchestrator | tagged; the repeat-run check waits on the card |
+| 0.2 | Pathtracer volume work (droplet phase, single/multi split, ground plane, AOVs with volumes, high-g check) | **you schedule this in the pathtracer repo** | not started |
+| 0.2b | Karma (or Cycles) cross-check of one card cloud | Sonnet inventory first | running |
+| 0.3 | Linear-radiance compare and the scorecard script | Opus, own worktree | running |
+| 0.4 | The scene card: 5 clouds x 4 suns | Sonnet inventory first, then Opus | running (inventory) |
+| 0.5 | Converged march mode | Opus, own worktree | running |
 
 ## Tonight (2026-11-20): the refactor and the styles
 
