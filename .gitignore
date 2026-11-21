@@ -18,3 +18,7 @@ assets/clouds/local/
 # P0.3 linear captures: float frames and raw screenshots stay local (commit only JSON, markdown, small JPEG sheets)
 work/captures/P0-3b/**/*.pfm
 work/captures/P0-3b/**/*.png
+
+# P0.4 scene card: float frames and raw screenshots stay local (commit JSON, markdown, small JPEG sheets)
+work/captures/card/**/*.pfm
+work/captures/card/**/*.png

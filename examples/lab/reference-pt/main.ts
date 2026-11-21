@@ -1,28 +1,37 @@
 // PT1 reference lab: the same cloud density lit by an unbiased multiple-scattering path tracer (the owner's @pmndrs/pathtracer, P5 volumes)
 // and by our realtime runtime (Nubis lighting, octave lighting), same camera, same sun, same sky, same tone mapping.
 //
-// Cloud: the Nubis pack hero Parkouring, placed as on the flagship. The PT reads a dense bake of the runtime's own up-rezzed density
-// (DENSITY_WGSL on the runtime's device, each voxel at its distance to the camera so the noise mip matches the march) times the runtime's
-// view extinction (settings.densityScale). The runtime renders the NVDF itself, as always.
+// P0.4: the page is the scene card. ?cloud=parkouring|embergen02|wdas|sky|stratus picks one of five densities (cards.ts CARD_DEFS: source,
+// box, voxel, extinction scale, camera ring, how the runtime renders it) and four suns (noon, low, backlit, sunset).
+//  - parkouring: the Nubis pack hero, placed as on the flagship. The PT reads a dense bake of the runtime's own up-rezzed density
+//    (DENSITY_WGSL on the runtime's device, each voxel at its distance to the camera so the noise mip matches the march) times the runtime's
+//    view extinction (settings.densityScale). The runtime renders the NVDF itself, as always (PT1 / P0.3, unchanged).
+//  - the others: one f32 field on the runtime's lattice reaches both sides (direct.ts): the runtime marches it as a direct volume (vdb-sky's
+//    route A), the PT reads the same r16f texels. VDBs are resampled by vdb-direct.ts; the procedural patches are baked by proc-bake.ts.
 // Sky: @pmndrs/sky with aerial perspective off and our horizon haze off (the PT has no atmosphere between camera and cloud); the PT's
 // environment is the runtime's own sky-view LUT as an equirect, its sun the runtime's sun at the cloud centre (a delta light).
 // Wind frozen (the bake is a still).
 //
-// Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave, sun noon | low.
-// URL: ?view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35 &seed=1
+// Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave | alpha | rtalpha, sun noon | low | backlit | sunset.
+// URL: ?cloud=parkouring &view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35 &seed=1
+//      &distance= &height= (override the cloud's camera ring)
 // P0.3: window.__clouds.readLinear() reads the current view back as linear scene radiance (float32 RGBA, before exposure and ACES):
 // the PT accumulator / samples, the runtime's composite (scene HDR target * transmittance + cloud), or the opacity masks. See linear.ts and
 // scripts/gpu/capture.mjs --linear (saves PFM next to each screenshot).
+// P0.4: window.__clouds.frameScene() is the one place a card frame's scene can be dumped from (grid, sky equirect, sun, camera, medium);
+// report().card carries its parameters for the manifest.
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
-import { createCloudRuntime, loadCloudNoise, loadCloudVolume, type CloudFrame } from '@clouds/runtime';
+import { createCloudRuntime, loadCloudNoise, type CloudFrame } from '@clouds/runtime';
 import { sharedBackend } from '../../../packages/legacy/three/src/gpu/backend';
 import { installCloudsHarness } from '../harness/clouds-contract';
-import { FOCUS_BOX, placeCloud, sunVector } from '../flagship/bookmarks';
+import { sunVector } from '../flagship/bookmarks';
 import { createCloudBridge } from '../flagship/three-bridge';
 import { createSkyBridge } from '../flagship/sky-bridge';
-import { bakeDensity, bakeSky, type DensityGrid, type SkyBake, type V3 } from './bake';
+import { vdbDeviceLimits } from '../vdb-sky/vdb-direct';
+import { bakeSky, type DensityGrid, type SkyBake, type V3 } from './bake';
+import { CARD_CLOUDS, CARD_DEFS, SUNS, loadCard, type CardCloudKey, type CardScene, type SunName } from './cards';
 import { PtReference } from './pt';
 import { chunk, composite, describe, readRgba16f, type LinearFrame } from './linear';
 
@@ -34,12 +43,11 @@ const num = (k: string, d: number) => (query.has(k) && Number.isFinite(Number(qu
 // rtalpha: the runtime's own opacity (1 - the march's transmittance, read back from its output after the settle): checks the bake against the march.
 const RENDERERS = ['pt', 'nubis', 'octave', 'alpha', 'rtalpha'] as const;
 type RendererName = (typeof RENDERERS)[number];
-// Sun setups: time of day (lat 40, as the flagship) and the camera's ring angle from the sun's azimuth (0 = sun behind the camera).
-const SUNS = { noon: { time: 13, ring: 70 }, low: { time: 17.6, ring: 70 }, backlit: { time: 17.6, ring: 140 } } as const;
-type SunName = keyof typeof SUNS;
-const CAMERA_DISTANCE = num('distance', 1150);   // m, horizontal, from the cloud centre
-const CAMERA_HEIGHT = num('height', 120);        // m above the ground
-const FOV_Y = num('fov', 30);                    // vertical, degrees
+const CLOUD: CardCloudKey = (CARD_CLOUDS as readonly string[]).includes(query.get('cloud') ?? '') ? (query.get('cloud') as CardCloudKey) : 'parkouring';
+const DEF = CARD_DEFS[CLOUD];
+const CAMERA_DISTANCE = num('distance', DEF.camera.distance);   // m, horizontal, from the cloud centre
+const CAMERA_HEIGHT = num('height', DEF.camera.height);         // m above the ground
+const FOV_Y = num('fov', 30);                                    // vertical, degrees
 
 const settings = {
   spp: num('spp', 1024),
@@ -65,7 +73,14 @@ const ptCanvas = document.getElementById('pt') as HTMLCanvasElement;
 if (query.get('clean') === '1') { hud.style.display = 'none'; panel.style.display = 'none'; }
 
 try {
-  const renderer = new WebGPURenderer({ antialias: true });
+  // The VDB clouds need the pool's device limits (and room for large direct volumes); Parkouring keeps the PT1 renderer as it was.
+  let requiredLimits: Record<string, number> | undefined;
+  if (CLOUD === 'embergen02' || CLOUD === 'wdas') {
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    if (!adapter) throw new Error('WebGPU: no adapter');
+    requiredLimits = vdbDeviceLimits(adapter);
+  }
+  const renderer = new WebGPURenderer({ antialias: true, ...(requiredLimits ? { requiredLimits } : {}) } as ConstructorParameters<typeof WebGPURenderer>[0]);
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = settings.exposure;
   app.appendChild(renderer.domElement);
@@ -82,9 +97,9 @@ try {
   const quality = (query.get('quality') ?? 'ultra') as 'ultra';
   const runtime = createCloudRuntime(device, { quality, atmosphereLayout: skyBridge.layout });
   const bridge = createCloudBridge(renderer, runtime);
-  const [volumeAsset, noiseAsset] = await Promise.all([loadCloudVolume('/clouds/parkouring/'), loadCloudNoise('/clouds/noise/')]);
-  const volumeMin = placeCloud(volumeAsset) as V3;
-  await runtime.setVolume(volumeAsset, { position: volumeMin });
+  const noiseAsset = await loadCloudNoise('/clouds/noise/');
+  let status = 'starting';
+  const card: CardScene = await loadCard(CLOUD, { device, runtime, noiseAsset, parkouringVoxel: settings.voxel, status: s => { status = s; } });
   await runtime.setNoise(noiseAsset);
   // A still: no wind (the bake is one instant), no horizon haze (no atmosphere on the PT side either).
   runtime.settings.windVelocity = [0, 0, 0];
@@ -96,6 +111,7 @@ try {
   await pt.init(ptCanvas);
   pt.maxDepth = settings.maxDepth;
   pt.seed = settings.seed;
+  pt.alphaFilter = DEF.alphaFilter;
 
   const resize = () => {
     renderer.setPixelRatio(1);
@@ -108,7 +124,7 @@ try {
   addEventListener('resize', resize);
   resize();
 
-  const centre = (): V3 => [0, 1, 2].map(i => (FOCUS_BOX.min[i] + FOCUS_BOX.max[i]) / 2) as V3;
+  const centre = (): V3 => [0, 1, 2].map(i => (card.focus.min[i] + card.focus.max[i]) / 2) as V3;
   const sunNow = (): V3 => sunVector(sky.sunAzimuth, sky.sunElevation) as V3;
   const cameraFor = (sun: SunName): { position: V3; target: V3 } => {
     const s = sunNow(), c = centre();
@@ -150,13 +166,12 @@ try {
     if (frame % 10 === 0) updateHud();
   });
 
-  // ---- scene setup: sun (time of day) -> camera -> sky bake -> density bake (per camera) -> PT scene ----
+  // ---- scene setup: sun (time of day) -> camera -> sky bake -> density grid (per camera for Parkouring) -> PT scene ----
   const grids = new Map<string, DensityGrid>();
   let sceneKey = '';
   let skyNow: SkyBake | null = null;
   let gridNow: DensityGrid | null = null;
   let camNow: { position: V3; target: V3 } | null = null;
-  let status = 'starting';
   let busy: Promise<void> = Promise.resolve();
 
   async function applyScene(sun: SunName): Promise<void> {
@@ -170,15 +185,13 @@ try {
     const key = camNow.position.map(v => v.toFixed(1)).join(',');
     let grid = grids.get(key);
     if (!grid) {
-      status = `sun ${sun}: density bake`;
-      const m = 8;   // metres of empty margin around the occupied box
-      grid = await bakeDensity(device, volumeAsset, noiseAsset, volumeMin, runtime.settings, camNow.position,
-        { min: FOCUS_BOX.min.map(v => v - m) as V3, max: FOCUS_BOX.max.map(v => v + m) as V3 }, settings.voxel);
+      status = `sun ${sun}: density grid`;
+      grid = await card.grid(camNow.position);
       grids.set(key, grid);
     }
     const sd = skyBridge.values.sunDirection;
     const sceneParams = { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: skyNow };
-    const medium = { extinction: runtime.settings.densityScale, albedo: settings.albedo, g: settings.g };
+    const medium = { extinction: card.ptExtinction(), albedo: settings.albedo, g: settings.g };
     if (grid !== gridNow || !pt.kernel || pt.medium.extinction !== medium.extinction) {
       status = `sun ${sun}: PT kernel`;
       await pt.setMedium(grid, medium, sceneParams);
@@ -194,17 +207,20 @@ try {
 
   // PT progress: runs while the PT view is shown and the target is not reached. Each submit is sized to ~250 ms of GPU work.
   let ptLoopOn = false;
+  let ptStarted = 0, ptWallMs = 0;
   async function ptLoop(): Promise<void> {
     if (ptLoopOn) return;
     ptLoopOn = true;
     try {
       let passes = 1;
+      if (pt.samples === 0) ptStarted = performance.now();
       while (state.renderer === 'pt' && pt.kernel && pt.samples < settings.spp) {
         const epoch = pt.epoch;
         await pt.step(Math.min(passes, settings.spp - pt.samples));
-        if (epoch !== pt.epoch) continue;
+        if (epoch !== pt.epoch) { ptStarted = performance.now(); continue; }
         pt.present(settings.exposure);
         passes = Math.max(1, Math.min(16, Math.round(250 / Math.max(pt.passMs, 1))));
+        ptWallMs = performance.now() - ptStarted;
       }
       if (state.renderer === 'pt') pt.present(settings.exposure);
     } finally { ptLoopOn = false; }
@@ -220,7 +236,7 @@ try {
 
   async function setView(name: string): Promise<void> {
     const [r, s] = name.split('-');
-    if (!RENDERERS.includes(r as RendererName) || !(s in SUNS)) throw new Error(`unknown view ${name}: <pt|nubis|octave|alpha>-<${Object.keys(SUNS).join('|')}>`);
+    if (!RENDERERS.includes(r as RendererName) || !(s in SUNS)) throw new Error(`unknown view ${name}: <${RENDERERS.join('|')}>-<${Object.keys(SUNS).join('|')}>`);
     state.renderer = r as RendererName;
     showView();
     busy = busy.then(() => applyScene(s as SunName));
@@ -231,7 +247,13 @@ try {
     if (state.renderer === 'alpha' && camNow) await pt.presentAlpha({ position: camNow.position, target: camNow.target, up: [0, 1, 0], yFovDeg: FOV_Y });
   }
 
-  // ---- panel ----
+  // ---- panel: every cloud (reloads the page with ?cloud=), every renderer x sun, the PT sample target ----
+  const cloudRow = document.createElement('label'); cloudRow.append('cloud ');
+  const cloudSel = document.createElement('select');
+  for (const k of CARD_CLOUDS) { const o = document.createElement('option'); o.value = k; o.textContent = CARD_DEFS[k].label; cloudSel.append(o); }
+  cloudSel.value = CLOUD;
+  cloudSel.onchange = () => { const q = new URLSearchParams(location.search); q.set('cloud', cloudSel.value); q.set('view', `${state.renderer}-${state.sun}`); location.search = q.toString(); };
+  cloudRow.appendChild(cloudSel); panel.appendChild(cloudRow);
   const buttons = new Map<string, HTMLButtonElement>();
   for (const sun of Object.keys(SUNS) as SunName[]) {
     const row = document.createElement('div'); row.className = 'row';
@@ -250,9 +272,9 @@ try {
   function updateHud() {
     const s = sunNow();
     hud.textContent = [
-      `PT1 reference  view ${state.renderer}-${state.sun}  [${status}]`,
+      `PT1 reference  cloud ${CLOUD}  view ${state.renderer}-${state.sun}  [${status}]`,
       `sun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}  dir ${s.map(v => v.toFixed(2)).join(', ')}`,
-      `PT ${pt.samples}/${settings.spp} spp  ${pt.width}x${pt.height}  ${pt.passMs.toFixed(0)} ms/pass  albedo ${settings.albedo} g ${settings.g} ext ${runtime.settings.densityScale}/m  maxDepth ${settings.maxDepth}`,
+      `PT ${pt.samples}/${settings.spp} spp  ${pt.width}x${pt.height}  ${pt.passMs.toFixed(0)} ms/pass  albedo ${settings.albedo} g ${settings.g} ext ${card.ptExtinction().toPrecision(4)}/m per unit  maxDepth ${settings.maxDepth}`,
       gridNow ? `grid ${gridNow.resolution.join('x')} @ ${gridNow.voxel} m  max ${gridNow.densityMax.toFixed(3)}  occ ${(gridNow.occupancy * 100).toFixed(1)}%  bake ${gridNow.ms.toFixed(0)} ms` : 'grid -',
       skyNow ? `sun E ${skyNow.sun.map(v => v.toFixed(2)).join(' ')}  sky up ${skyNow.ambientUp.map(v => v.toFixed(3)).join(' ')} (map ${skyNow.envUp.map(v => v.toFixed(3)).join(' ')})` : '',
     ].join('\n');
@@ -264,13 +286,14 @@ try {
   harness.ready({
     bookmark: name => setView(name),
     report: () => ({
-      view: `${state.renderer}-${state.sun}`, status,
+      view: `${state.renderer}-${state.sun}`, status, cloud: CLOUD,
       camera: camNow, fovY: FOV_Y, viewport: [innerWidth, innerHeight],
-      sun: { elevationDeg: sky.sunElevation, azimuthDeg: sky.sunAzimuth, direction: round(sunNow()), timeOfDay: SUNS[state.sun].time },
+      sun: { elevationDeg: sky.sunElevation, azimuthDeg: sky.sunAzimuth, direction: round(sunNow()), timeOfDay: SUNS[state.sun].time, ring: SUNS[state.sun].ring },
       sky: skyNow && { sunIrradiance: round(skyNow.sun), ambientUp: round(skyNow.ambientUp), ambientDown: round(skyNow.ambientDown), envMapUp: round(skyNow.envUp), envMapDown: round(skyNow.envDown) },
       grid: gridNow && { resolution: gridNow.resolution, voxel: gridNow.voxel, min: gridNow.min, max: gridNow.max, densityMax: gridNow.densityMax, occupancy: gridNow.occupancy, bakeMs: gridNow.ms },
-      pt: { samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium },
-      runtime: { quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength },
+      pt: { samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
+      runtime: { quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
+      card: { def: DEF, cameraRing: { distance: CAMERA_DISTANCE, height: CAMERA_HEIGHT }, ...card.describe() },
       exposure: settings.exposure, frames: frame,
     }),
   });
@@ -316,7 +339,7 @@ try {
       return { view, kind: 'radiance', width: pt.width, height: pt.height, data, meta: { samples: pt.samples, seed: pt.seed, units: 'accumulator / samples' } };
     }
     if (state.renderer === 'alpha') {
-      return { view, kind: 'alpha', width: pt.width, height: pt.height, data: await pt.readAlpha(ptCam), meta: { source: 'bake opacity 1 - exp(-tau)' } };
+      return { view, kind: 'alpha', width: pt.width, height: pt.height, data: await pt.readAlpha(ptCam), meta: { source: `bake opacity 1 - exp(-tau), ${pt.alphaFilter}` } };
     }
     // Runtime views: the scene's HDR target (the sky) and the runtime's composite output, both rgba16float, composited as the bridge's quad does.
     const sceneTex = sharedBackend(renderer).texture(bridge.sceneTarget.texture);
@@ -332,6 +355,63 @@ try {
   /** Reads the current view (after settle) into the page; returns its size and mean. Fetch the floats with linearChunk(offset, bytes). */
   contract.readLinear = async () => { lastLinear = null; lastLinear = await readLinear(); return describe(lastLinear); };
   contract.linearChunk = (offset: number, length: number) => { if (!lastLinear) throw new Error('readLinear() first'); return chunk(lastLinear, offset, length); };
+
+  /**
+   * P0.4: everything a card frame's scene is made of, from one place (for an external reference renderer: scripts/reference/ reads a per-frame
+   * manifest, a raw float32 grid and a PFM sky). `withData` adds the arrays: the grid (world axes x, y, z; x fastest; sigma_t = density *
+   * medium.extinction) and the sky equirect (RGBA f32, row 0 = +Y, u = atan2(x, -z) / 2 pi, exposure units). The sun is a delta light of
+   * `sun.irradiance` from `sun.direction` (towards the sun).
+   */
+  function frameScene(withData = false) {
+    const grid = gridNow!, sk = skyNow!, cam = camNow!;
+    const sd = skyBridge.values.sunDirection;
+    return {
+      cloud: CLOUD, view: `${state.renderer}-${state.sun}`,
+      grid: { resolution: grid.resolution, min: grid.min, max: grid.max, voxel: grid.voxel, densityMax: grid.densityMax, ...(withData ? { density: grid.density } : {}) },
+      medium: { ...pt.medium },
+      sun: { direction: [sd[0], sd[1], sd[2]], irradiance: sk.sun, elevationDeg: sky.sunElevation, azimuthDeg: sky.sunAzimuth, timeOfDay: SUNS[state.sun].time },
+      sky: { width: sk.env.width, height: sk.env.height, ...(withData ? { data: sk.env.data } : {}) },
+      camera: { position: cam.position, target: cam.target, up: [0, 1, 0], yFovDeg: FOV_Y, film: [pt.width, pt.height] },
+      pt: { maxDepth: pt.maxDepth, spp: settings.spp, seed: pt.seed },
+    };
+  }
+  contract.frameScene = () => frameScene(false);
+  (contract as Record<string, unknown>).__frameSceneData = () => frameScene(true);
+
+  /**
+   * P0.4 tools for choosing and checking the procedural patches (scripts only): `scanProcedural(kind, box, voxel)` bakes `kind`'s model ('sky' |
+   * 'stratus' settings) over `box` and returns per-column optical depth, top and base (row-major, x fastest); `bakeAlpha(kind, box, voxel,
+   * camera?)` bakes a box and returns the PT side's opacity mask of it from the current camera (as alpha frames: readLinear after it).
+   */
+  const bakerFor = async (kind: 'sky' | 'stratus') => {
+    const { PROC_PATCHES } = await import('./cards');
+    const { createProcBaker } = await import('./proc-bake');
+    return createProcBaker(device, noiseAsset, p => { p.settings.lightingModel = 'nubis'; p.settings.hzd.lightProfile = 'exact'; Object.assign(p.settings.hzd, PROC_PATCHES[kind].configure); });
+  };
+  contract.scanProcedural = async (kind: 'sky' | 'stratus', box: { min: V3; max: V3 }, voxel: number) => {
+    const { columnStats } = await import('./proc-bake');
+    const baker = await bakerFor(kind);
+    const c: V3 = [(box.min[0] + box.max[0]) / 2, 2, (box.min[2] + box.max[2]) / 2];
+    const g = await baker.bake(box, voxel, { t: CAMERA_DISTANCE, footprint: voxel, camera: c });
+    baker.dispose();
+    const s = columnStats(g);
+    const r = (a: Float32Array) => Array.from(a, v => Math.round(v * 10) / 10);
+    return { nx: s.nx, nz: s.nz, min: g.min, voxel, densityMax: g.densityMax, occupancy: g.occupancy, ms: g.ms, tau: r(s.tau), top: r(s.top), base: r(s.base) };
+  };
+  contract.bakeAlpha = async (kind: 'sky' | 'stratus', box: { min: V3; max: V3 }, voxel: number) => {
+    const baker = await bakerFor(kind);
+    const c: V3 = [(box.min[0] + box.max[0]) / 2, 2, (box.min[2] + box.max[2]) / 2];
+    const g = await baker.bake(box, voxel, { t: CAMERA_DISTANCE, footprint: voxel, camera: c });
+    baker.dispose();
+    const cam = camNow!;
+    const keep = gridNow;
+    // The alpha kernel reads the PT's grid: swap the baked one in for the mask (a sigma grid: extinction 1), then put the card's back.
+    await pt.setMedium(g, { extinction: 1, albedo: settings.albedo, g: settings.g }, { sunDir: [0, 1, 0], sky: skyNow! });
+    const data = await pt.readAlpha({ position: cam.position, target: cam.target, up: [0, 1, 0], yFovDeg: FOV_Y });
+    lastLinear = { view: `bakeAlpha-${kind}-${voxel}`, kind: 'alpha', width: pt.width, height: pt.height, data, meta: { box, voxel, grid: g.resolution } };
+    if (keep) { const sd = skyBridge.values.sunDirection; await pt.setMedium(keep, { extinction: card.ptExtinction(), albedo: settings.albedo, g: settings.g }, { sunDir: [sd[0], sd[1], sd[2]], sky: skyNow! }); pt.reset(); }
+    return describe(lastLinear);
+  };
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));
   throw e;

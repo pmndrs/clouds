@@ -51,7 +51,7 @@ fn srgb(c: vec3<f32>) -> vec3<f32> {
 // The cloud's opacity along each camera ray (1 - exp(-optical depth) through the baked grid, nearest voxel, 1 m steps): a mask for the
 // sheet's statistics (which pixels are cloud, thin edge or thick body). Written in the accumulator's format (rgb = alpha, w = 1).
 const ALPHA_WGSL = /* wgsl */ `
-struct AlphaParams { origin: vec3<f32>, ext: f32, forward: vec3<f32>, voxel: f32, right: vec3<f32>, w: u32, up: vec3<f32>, h: u32, gmin: vec3<f32>, _a: f32, gmax: vec3<f32>, _b: f32 }
+struct AlphaParams { origin: vec3<f32>, ext: f32, forward: vec3<f32>, voxel: f32, right: vec3<f32>, w: u32, up: vec3<f32>, h: u32, gmin: vec3<f32>, lookup: u32, gmax: vec3<f32>, _b: f32 }
 @group(0) @binding(0) var<uniform> P: AlphaParams;
 @group(0) @binding(1) var grid: texture_3d<f32>;
 @group(0) @binding(2) var<storage, read_write> outAlpha: array<vec4<f32>>;
@@ -66,9 +66,30 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let tf = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
   var tau = 0.0;
   let dims = vec3<i32>(textureDimensions(grid));
-  for (var t = tn + 0.5; t < tf; t += 1.0) {
-    let g = vec3<i32>(floor((P.origin + d * t - P.gmin) / P.voxel));
-    if (all(g >= vec3(0)) && all(g < dims)) { tau += textureLoad(grid, g, 0).r; }
+  if (P.lookup == 0u) {
+    // PT1: nearest voxel, 1 m steps (kept for Parkouring's mask).
+    for (var t = tn + 0.5; t < tf; t += 1.0) {
+      let g = vec3<i32>(floor((P.origin + d * t - P.gmin) / P.voxel));
+      if (all(g >= vec3(0)) && all(g < dims)) { tau += textureLoad(grid, g, 0).r; }
+    }
+  } else {
+    // P0.4: the path tracer's own lookup (trilinear between voxel centres, zero outside the grid), midpoint steps of a quarter voxel.
+    let dt = P.voxel * 0.25;
+    for (var t = tn + 0.5 * dt; t < tf; t += dt) {
+      let gx = (P.origin + d * t - P.gmin) / P.voxel - 0.5;
+      let i0 = vec3<i32>(floor(gx));
+      let fr = gx - floor(gx);
+      var acc = 0.0;
+      for (var c = 0u; c < 8u; c++) {
+        let o = vec3<i32>(i32(c & 1u), i32((c >> 1u) & 1u), i32((c >> 2u) & 1u));
+        let ii = i0 + o;
+        if (all(ii >= vec3(0)) && all(ii < dims)) {
+          let wt = select(1.0 - fr.x, fr.x, o.x == 1) * select(1.0 - fr.y, fr.y, o.y == 1) * select(1.0 - fr.z, fr.z, o.z == 1);
+          acc += textureLoad(grid, ii, 0).r * wt;
+        }
+      }
+      tau += acc * dt;
+    }
   }
   let a = 1.0 - exp(-tau * P.ext);
   outAlpha[gid.y * P.w + gid.x] = vec4(a, a, a, 1.0);
@@ -120,6 +141,8 @@ export class PtReference {
   /** Scrambling seed base for the sampler (`?seed=`): two seeds give independent realisations of the same view (the scorecard's noise floor). */
   seed = 1;
   medium: PtMediumParams = { extinction: 0.3, albedo: 0.99, g: 0.8 };
+  /** P0.4: the opacity mask's lookup: 'nearest' at 1 m steps (PT1, Parkouring) or 'trilinear' at voxel / 4 (the path tracer's own). */
+  alphaFilter: 'nearest' | 'trilinear' = 'nearest';
   /** Bumped by every reset; a progress loop stops when it changes. */
   epoch = 0;
 
@@ -279,7 +302,12 @@ export class PtReference {
       this.gridTexture = device.createTexture({ label: 'pt1 alpha grid', size: grid.resolution, dimension: '3d', format: 'r32float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
       device.queue.writeTexture({ texture: this.gridTexture }, grid.density as Float32Array<ArrayBuffer>, { bytesPerRow: grid.resolution[0] * 4, rowsPerImage: grid.resolution[1] }, grid.resolution);
     }
-    this.alphaPipeline ??= await device.createComputePipelineAsync({ layout: 'auto', compute: { module: device.createShaderModule({ label: 'pt1 alpha', code: ALPHA_WGSL }), entryPoint: 'main' } });
+    if (!this.alphaPipeline) {
+      const module = device.createShaderModule({ label: 'pt1 alpha', code: ALPHA_WGSL });
+      const errors = (await module.getCompilationInfo()).messages.filter(m => m.type === 'error');
+      if (errors.length) throw new Error(`pt1 alpha WGSL: ${errors.map(m => `${m.lineNum}:${m.linePos} ${m.message}`).join('; ')}`);
+      this.alphaPipeline = await device.createComputePipelineAsync({ layout: 'auto', compute: { module, entryPoint: 'main' } });
+    }
     const sub = (a: readonly number[], b: readonly number[]) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
     const norm = (a: number[]) => { const l = Math.hypot(a[0], a[1], a[2]); return a.map(v => v / l); };
     const cross = (a: number[], b: readonly number[]) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -288,7 +316,7 @@ export class PtReference {
     const p = new ArrayBuffer(96), pf = new Float32Array(p), pu = new Uint32Array(p);
     pf.set(camera.position, 0); pf[3] = this.medium.extinction; pf.set(f, 4); pf[7] = grid.voxel;
     pf.set(r.map(v => v * th * aspect), 8); pu[11] = this.width; pf.set(u.map(v => v * th), 12); pu[15] = this.height;
-    pf.set(grid.min, 16); pf.set(grid.max, 20);
+    pf.set(grid.min, 16); pu[19] = this.alphaFilter === 'trilinear' ? 1 : 0; pf.set(grid.max, 20);
     const params = device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(params, 0, p);
     const out = device.createBuffer({ size: this.width * this.height * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });

@@ -143,11 +143,19 @@ export class DirectResampler {
 
   /** Resample grid `id` onto the runtime lattice and build a direct GpuCloudVolume (caller-owned). */
   async build(id: number, p: DirectPlacement, label = 'vdb direct'): Promise<{ volume: GpuCloudVolume; info: DirectInfo }> {
+    const t0 = performance.now();
+    const { density, dims, taps } = await this.resample(id, p, label);
+    const t1 = performance.now();
+    const packed = await packDirectVolume(this.device, density, dims, p.voxelSize, label);
+    return { volume: packed.volume, info: { ...packed.info, taps, timings: { ...packed.info.timings, resampleGpuMs: t1 - t0 } } };
+  }
+
+  /** P0.4: the resample alone: f32 density on the runtime lattice (x, map row, up; x fastest), before any normalisation. */
+  async resample(id: number, p: DirectPlacement, label = 'vdb direct'): Promise<{ density: Float32Array; dims: [number, number, number]; taps: number; origin: [number, number, number] }> {
     const { device } = this;
     const L = this.lattice(id, p);
     const [w, h, d] = L.dims;
     const count = w * h * d;
-    const t0 = performance.now();
     const params = new ArrayBuffer(80);
     const u32 = new Uint32Array(params), f32 = new Float32Array(params);
     u32.set([w, h, d, L.taps], 0);
@@ -170,55 +178,71 @@ export class DirectResampler {
     await read.mapAsync(GPUMapMode.READ);
     const density = new Float32Array(read.getMappedRange().slice(0));
     read.unmap(); read.destroy(); out.destroy(); ubo.destroy();
-    const t1 = performance.now();
-
-    // densityRef = p99 of the occupied texels (vdb_to_direct.py); empty below 1e-4 of the max (EmberGen's absolute 1e-4 at max ~1).
-    let max = 0;
-    for (let i = 0; i < count; i++) if (density[i] > max) max = density[i];
-    const empty = Math.max(1e-7, max * 1e-4);
-    const BINS = 4096, hist = new Uint32Array(BINS);
-    let occupied = 0;
-    for (let i = 0; i < count; i++) { const v = density[i]; if (v > empty) { occupied++; hist[Math.min(BINS - 1, Math.floor((v / max) * BINS))]++; } }
-    let seen = 0, ref = max;
-    for (let b = 0; b < BINS; b++) { seen += hist[b]; if (seen >= occupied * 0.99) { ref = ((b + 1) / BINS) * max; break; } }
-    ref = Math.max(ref, 1e-6);
-    const half = new Uint16Array(count);
-    const nvdf = new Uint8Array(count * 4);
-    for (let i = 0; i < count; i++) {
-      const v = density[i];
-      half[i] = toHalfBits(v / ref);
-      // R: the cheap density (light grid, shadow map, dome) and the SDF seed: at least 1/255 wherever there is material, so thin wisps keep their SDF.
-      nvdf[i * 4] = v > empty ? Math.max(1, Math.min(255, Math.round((v / ref) * 255))) : 0;
-      nvdf[i * 4 + 2] = 255;
-      nvdf[i * 4 + 3] = v > empty ? 255 : 0;
-    }
-    const t2 = performance.now();
-
-    const volume = createEmptyCloudVolume(device, L.dims, p.voxelSize, label);
-    const size: GPUExtent3D = { width: w, height: h, depthOrArrayLayers: d };
-    device.queue.writeTexture({ texture: volume.nvdf }, nvdf, { bytesPerRow: w * 4, rowsPerImage: h }, size);
-    const densityTex = device.createTexture({ label: `${label} direct density`, dimension: '3d', format: 'r16float', size, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
-    device.queue.writeTexture({ texture: densityTex }, half, { bytesPerRow: w * 2, rowsPerImage: h }, size);
-    const rebuilder = createSdfRebuilder(device, volume, { rounds: 2, label: `${label} sdf` });
-    const enc = device.createCommandEncoder({ label: `${label} sdf` });
-    rebuilder.generate(enc);
-    device.queue.submit([enc.finish()]);
-    await device.queue.onSubmittedWorkDone();
-    rebuilder.destroy();
-    volume.direct = { density: densityTex, densityRef: ref };
-    const destroy = volume.destroy;
-    volume.destroy = () => { densityTex.destroy(); destroy.call(volume); };
-    const v = p.voxelSize;
-    return {
-      volume,
-      info: {
-        dims: L.dims, voxelSize: v, taps: L.taps, densityRef: ref, max, occupied,
-        sizeMeters: [w * v, d * v, h * v],
-        timings: { resampleGpuMs: t1 - t0, packMs: t2 - t1, uploadSdfMs: performance.now() - t2 },
-        gpuBytes: count * 8,
-      },
-    };
+    return { density, dims: L.dims, taps: L.taps, origin: L.origin };
   }
+}
+
+/** p99 of the occupied texels (vdb_to_direct.py); empty below 1e-4 of the max (EmberGen's absolute 1e-4 at max ~1). */
+export function directDensityRef(density: Float32Array): { ref: number; max: number; empty: number; occupied: number } {
+  const count = density.length;
+  let max = 0;
+  for (let i = 0; i < count; i++) if (density[i] > max) max = density[i];
+  const empty = Math.max(1e-7, max * 1e-4);
+  const BINS = 4096, hist = new Uint32Array(BINS);
+  let occupied = 0;
+  for (let i = 0; i < count; i++) { const v = density[i]; if (v > empty) { occupied++; hist[Math.min(BINS - 1, Math.floor((v / max) * BINS))]++; } }
+  let seen = 0, ref = max;
+  for (let b = 0; b < BINS; b++) { seen += hist[b]; if (seen >= occupied * 0.99) { ref = ((b + 1) / BINS) * max; break; } }
+  ref = Math.max(ref, 1e-6);
+  return { ref, max, empty, occupied };
+}
+
+/**
+ * The CPU pack, upload and SDF of a direct volume from f32 density on the runtime lattice (x, map row, up; x fastest): r16f density / densityRef
+ * (the march), rgba8 NVDF R = saturate(density / densityRef) (light grid, shadow map, dome; at least 1/255 wherever there is material), and a
+ * 2-round jump-flood SDF. P0.4 (reference-pt scene card) packs its baked procedural patches through this too, so every direct volume is built alike.
+ */
+export async function packDirectVolume(device: GPUDevice, density: Float32Array, dims: [number, number, number], voxelSize: number, label = 'vdb direct'): Promise<{ volume: GpuCloudVolume; info: DirectInfo }> {
+  const [w, h, d] = dims;
+  const count = w * h * d;
+  const t1 = performance.now();
+  const { ref, max, empty, occupied } = directDensityRef(density);
+  const half = new Uint16Array(count);
+  const nvdf = new Uint8Array(count * 4);
+  for (let i = 0; i < count; i++) {
+    const v = density[i];
+    half[i] = toHalfBits(v / ref);
+    // R: the cheap density (light grid, shadow map, dome) and the SDF seed: at least 1/255 wherever there is material, so thin wisps keep their SDF.
+    nvdf[i * 4] = v > empty ? Math.max(1, Math.min(255, Math.round((v / ref) * 255))) : 0;
+    nvdf[i * 4 + 2] = 255;
+    nvdf[i * 4 + 3] = v > empty ? 255 : 0;
+  }
+  const t2 = performance.now();
+
+  const volume = createEmptyCloudVolume(device, dims, voxelSize, label);
+  const size: GPUExtent3D = { width: w, height: h, depthOrArrayLayers: d };
+  device.queue.writeTexture({ texture: volume.nvdf }, nvdf, { bytesPerRow: w * 4, rowsPerImage: h }, size);
+  const densityTex = device.createTexture({ label: `${label} direct density`, dimension: '3d', format: 'r16float', size, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+  device.queue.writeTexture({ texture: densityTex }, half, { bytesPerRow: w * 2, rowsPerImage: h }, size);
+  const rebuilder = createSdfRebuilder(device, volume, { rounds: 2, label: `${label} sdf` });
+  const enc = device.createCommandEncoder({ label: `${label} sdf` });
+  rebuilder.generate(enc);
+  device.queue.submit([enc.finish()]);
+  await device.queue.onSubmittedWorkDone();
+  rebuilder.destroy();
+  volume.direct = { density: densityTex, densityRef: ref };
+  const destroy = volume.destroy;
+  volume.destroy = () => { densityTex.destroy(); destroy.call(volume); };
+  const v = voxelSize;
+  return {
+    volume,
+    info: {
+      dims, voxelSize: v, taps: 1, densityRef: ref, max, occupied,
+      sizeMeters: [w * v, d * v, h * v],
+      timings: { resampleGpuMs: 0, packMs: t2 - t1, uploadSdfMs: performance.now() - t2 },
+      gpuBytes: count * 8,
+    },
+  };
 }
 
 /** Device limits for a renderer that hosts a VDBGridPool and large direct volumes. */
