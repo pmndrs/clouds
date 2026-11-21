@@ -1,0 +1,29 @@
+{
+  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/sky-px/manifest.json",
+  "blender": "5.1.1",
+  "device": "CPU",
+  "grid": {
+    "densityMax": 0.0,
+    "activeVoxels": 0
+  },
+  "sky": {
+    "kind": "equirect",
+    "size": [
+      512,
+      256
+    ],
+    "scale": 1.0
+  },
+  "sun": null,
+  "ground": null,
+  "seconds": 0.008123159408569336,
+  "spp": 16,
+  "cyclesBounces": 0,
+  "channels": [
+    "ViewLayer.Combined.A",
+    "ViewLayer.Combined.B",
+    "ViewLayer.Combined.G",
+    "ViewLayer.Combined.R"
+  ],
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/sky-px/out/frame.pfm"
+}

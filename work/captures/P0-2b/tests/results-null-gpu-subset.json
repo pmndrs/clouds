@@ -1,0 +1,150 @@
+[
+ {
+  "test": "axes-fromz",
+  "check": "RMS (vs numpy trilinear march)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00304
+  ],
+  "maxRelErr": 0.003035438917172819,
+  "noise": null,
+  "seconds": 9.98
+ },
+ {
+  "test": "axes-fromz",
+  "check": "absorbance centroid px (x, y)",
+  "expected": [
+   82.05768,
+   84.66044
+  ],
+  "measured": [
+   82.03173,
+   84.65699
+  ],
+  "maxRelErr": 0.00013516175291298596,
+  "noise": null,
+  "seconds": 9.98
+ },
+ {
+  "test": "axes-fromz",
+  "check": "RMS vs grid mirrored in x: 0.1270, y: 0.1556, z: 0.0428",
+  "expected": [],
+  "measured": [],
+  "maxRelErr": 0.0,
+  "noise": null,
+  "seconds": 9.98
+ },
+ {
+  "test": "furnace-hg08",
+  "check": "all pixels",
+  "expected": [
+   0.6,
+   0.8,
+   1.0
+  ],
+  "measured": [
+   0.60005,
+   0.79989,
+   1.0
+  ],
+  "maxRelErr": 0.00014199316501617432,
+  "noise": 1.182144302447341e-06,
+  "seconds": 6.2
+ },
+ {
+  "test": "furnace-hg08",
+  "check": "through medium (3736 px)",
+  "expected": [
+   0.6,
+   0.8,
+   1.0
+  ],
+  "measured": [
+   0.59999,
+   0.80003,
+   1.0
+  ],
+  "maxRelErr": 3.637373447418213e-05,
+  "noise": 5.946195713590896e-07,
+  "seconds": 6.2
+ },
+ {
+  "test": "sky-px",
+  "check": "RMS / peak (vs numpy bilinear lookup)",
+  "expected": [
+   0.0
+  ],
+  "measured": [
+   0.00031
+  ],
+  "maxRelErr": 0.00030698784891031335,
+  "noise": null,
+  "seconds": 0.48
+ },
+ {
+  "test": "sky-px",
+  "check": "blob [1, 0, 0] centroid px (x, y)",
+  "expected": [
+   80.0,
+   45.0
+  ],
+  "measured": [
+   80.00228,
+   44.99985
+  ],
+  "maxRelErr": 1.4254652240186515e-05,
+  "noise": null,
+  "seconds": 0.48
+ },
+ {
+  "test": "sky-px",
+  "check": "blob [1, 1, 1] centroid px (x, y)",
+  "expected": [
+   80.0,
+   16.63133
+  ],
+  "measured": [
+   79.99801,
+   16.34519
+  ],
+  "maxRelErr": 0.003179267526238563,
+  "noise": null,
+  "seconds": 0.48
+ },
+ {
+  "test": "ss-hg08-fwd-b512",
+  "check": "combined (all orders), central half",
+  "expected": [
+   0.29352,
+   0.19568,
+   0.09784
+  ],
+  "measured": [
+   0.29811,
+   0.19874,
+   0.09941
+  ],
+  "maxRelErr": 0.016074531935434067,
+  "noise": 0.004668605231922442,
+  "seconds": 3.31
+ },
+ {
+  "test": "ss-hg08-fwd-b512",
+  "check": "Volume Direct pass, central half",
+  "expected": [
+   0.29352,
+   0.19568,
+   0.09784
+  ],
+  "measured": [
+   0.29346,
+   0.19564,
+   0.09786
+  ],
+  "maxRelErr": 0.0002236685958720841,
+  "noise": 0.004654717462121252,
+  "seconds": 3.31
+ }
+]

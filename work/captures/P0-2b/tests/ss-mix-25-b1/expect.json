@@ -1,0 +1,30 @@
+{
+  "kind": "single",
+  "sigmaT": 0.0125,
+  "albedo": 1.0,
+  "phase": {
+    "type": "mix",
+    "lobes": [
+      {
+        "weight": 0.6,
+        "type": "hg",
+        "g": 0.2
+      },
+      {
+        "weight": 0.4,
+        "type": "hg",
+        "g": 0.85
+      }
+    ]
+  },
+  "irradiance": [
+    3.0,
+    2.0,
+    1.0
+  ],
+  "slabY": [
+    52.0,
+    56.0
+  ],
+  "maxBounces": 1
+}

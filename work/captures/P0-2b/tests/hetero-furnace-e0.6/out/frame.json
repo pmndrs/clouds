@@ -1,0 +1,29 @@
+{
+  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/hetero-furnace-e0.6/manifest.json",
+  "blender": "5.1.1",
+  "device": "CPU",
+  "grid": {
+    "densityMax": 0.728515625,
+    "activeVoxels": 5699272
+  },
+  "sky": {
+    "kind": "uniform",
+    "radiance": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sun": null,
+  "ground": null,
+  "seconds": 86.8356921672821,
+  "spp": 128,
+  "cyclesBounces": 511,
+  "channels": [
+    "ViewLayer.Combined.A",
+    "ViewLayer.Combined.B",
+    "ViewLayer.Combined.G",
+    "ViewLayer.Combined.R"
+  ],
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/hetero-furnace-e0.6/out/frame.pfm"
+}

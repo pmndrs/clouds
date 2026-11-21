@@ -1,0 +1,59 @@
+{
+  "grid": {
+    "file": "../../smoke/density.f32",
+    "dims": [
+      329,
+      173,
+      476
+    ],
+    "order": "x-fastest",
+    "voxel": 4.0,
+    "origin": [
+      -658.0,
+      1496.0,
+      -952.0
+    ],
+    "extinctionScale": 0.2
+  },
+  "medium": {
+    "albedo": 1.0,
+    "phase": {
+      "type": "hg",
+      "g": 0.8
+    }
+  },
+  "sun": null,
+  "sky": {
+    "uniform": [
+      1,
+      1,
+      1
+    ]
+  },
+  "ground": null,
+  "camera": {
+    "position": [
+      3096.7,
+      2014.7,
+      1127.1
+    ],
+    "target": [
+      0.0,
+      1842.0,
+      0.0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fovY": 22,
+    "width": 160,
+    "height": 90
+  },
+  "render": {
+    "spp": 128,
+    "maxBounces": 512,
+    "seed": 0
+  }
+}

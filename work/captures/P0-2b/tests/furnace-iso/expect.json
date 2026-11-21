@@ -1,0 +1,9 @@
+{
+  "kind": "furnace",
+  "radiance": [
+    0.6,
+    0.8,
+    1.0
+  ],
+  "note": "sphere r 40 m, sigma_t 0.25/m (optical radius 10)"
+}

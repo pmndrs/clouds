@@ -1,0 +1,10 @@
+{
+  "kind": "absorber",
+  "tauNormal": 1.0,
+  "sky": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "albedo": 0.0
+}

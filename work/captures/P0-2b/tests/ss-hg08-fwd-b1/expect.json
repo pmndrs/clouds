@@ -1,0 +1,19 @@
+{
+  "kind": "single",
+  "sigmaT": 0.0125,
+  "albedo": 1.0,
+  "phase": {
+    "type": "hg",
+    "g": 0.8
+  },
+  "irradiance": [
+    3.0,
+    2.0,
+    1.0
+  ],
+  "slabY": [
+    52.0,
+    56.0
+  ],
+  "maxBounces": 1
+}

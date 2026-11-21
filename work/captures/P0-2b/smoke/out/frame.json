@@ -1,0 +1,9 @@
+{
+  "note": "Hand-written: frame.pfm/.exr and the pass PFMs are the ray-marching (default) render, step 1 m (voxel/4), 640x360, 1024 spp, maxBounces 512, CPU, finished 17:16 after about 88 min wall while other agents ran GPU captures (uncontended estimate about 21 min). Its --alpha pass was killed by request; frame.alpha.pfm is from the earlier null-scattering run (15:26, 1024 spp), whose transmittance is validated in both modes. The null-scattering 1024 spp render itself took 579.6 s (alpha 27.4 s) and is 10 % too bright in the thick body (see preview-1024spp-nullscattering.jpg).",
+  "manifest": "work/captures/P0-2b/smoke/manifest.json",
+  "blender": "5.1.1",
+  "device": "CPU",
+  "spp": 1024,
+  "volumeMode": "ray marching, step 1.0 m",
+  "thickBodyMeanRGB": [0.6055, 0.6497, 0.7455]
+}

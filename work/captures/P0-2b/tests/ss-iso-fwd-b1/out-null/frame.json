@@ -1,0 +1,37 @@
+{
+  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/ss-iso-fwd-b1/manifest.json",
+  "blender": "5.1.1",
+  "device": "CPU",
+  "grid": {
+    "densityMax": 1.0,
+    "activeVoxels": 45000
+  },
+  "sky": {
+    "kind": "uniform",
+    "radiance": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "sun": {
+    "energy": 3.0,
+    "color": [
+      1.0,
+      0.6666666865348816,
+      0.3333333432674408
+    ],
+    "angle": 0.0
+  },
+  "ground": null,
+  "seconds": 0.5726602077484131,
+  "spp": 256,
+  "cyclesBounces": 0,
+  "channels": [
+    "ViewLayer.Combined.A",
+    "ViewLayer.Combined.B",
+    "ViewLayer.Combined.G",
+    "ViewLayer.Combined.R"
+  ],
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a4724070a7a21e83c/work/captures/P0-2b/tests/ss-iso-fwd-b1/out/frame.pfm"
+}

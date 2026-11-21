@@ -1,0 +1,71 @@
+{
+  "grid": {
+    "file": "density.f32",
+    "dims": [
+      152,
+      4,
+      152
+    ],
+    "order": "x-fastest",
+    "voxel": 2.0,
+    "origin": [
+      -152.0,
+      50.0,
+      -152.0
+    ],
+    "extinctionScale": 0.0125
+  },
+  "medium": {
+    "albedo": 0.5,
+    "phase": {
+      "type": "hg",
+      "g": 0.8
+    }
+  },
+  "sun": {
+    "direction": [
+      -0.766044443118978,
+      0.6427876096865393,
+      9.381338752702731e-17
+    ],
+    "irradiance": [
+      3.0,
+      2.0,
+      1.0
+    ],
+    "angularRadius": 0.0
+  },
+  "sky": {
+    "uniform": [
+      0,
+      0,
+      0
+    ]
+  },
+  "ground": null,
+  "camera": {
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "target": [
+      0.6427876096865394,
+      0.766044443118978,
+      0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fovY": 20,
+    "width": 160,
+    "height": 90
+  },
+  "render": {
+    "spp": 256,
+    "maxBounces": 512,
+    "seed": 0
+  }
+}

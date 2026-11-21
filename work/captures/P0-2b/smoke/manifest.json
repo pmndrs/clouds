@@ -1,0 +1,10 @@
+{
+  "grid": { "file": "density.f32", "dims": [329, 173, 476], "order": "x-fastest", "voxel": 4.0, "origin": [-658.0, 1496.0, -952.0], "extinctionScale": 0.6 },
+  "medium": { "albedo": 0.99, "phase": { "type": "hg", "g": 0.8 } },
+  "sun": { "direction": [0.26200, 0.64279, 0.71985], "irradiance": [6.0, 5.7, 5.2], "angularRadius": 0.0 },
+  "sky": { "uniform": [0.18, 0.26, 0.42] },
+  "ground": null,
+  "camera": { "position": [3096.7, 2014.7, 1127.1], "target": [0.0, 1842.0, 0.0], "up": [0, 1, 0], "fovY": 22, "width": 640, "height": 360 },
+  "render": { "spp": 1024, "maxBounces": 512, "seed": 0 },
+  "notes": "P0-2b smoke test: EmberGen CloudPack cloud_02_variant_0000 (density grid, Z-up source rotated to Y-up), 1 voxel = 4 m, made by scripts/reference/vdb_to_grid.py. Sun 40 deg elevation, uniform pale-blue sky."
+}
