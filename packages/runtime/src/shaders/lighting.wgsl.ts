@@ -167,13 +167,24 @@ fn octaveVoxel() -> vec4<f32> { return vec4(OCTAVE_VOXEL_DIFFUSE, frame.ambientS
 //   ms      = sun albedo ms / (4 pi) / (1 + k tau)          (the higher orders: isotropic, diffusion-like falloff)
 //   U       = 0.5 + 0.5 / (1 + kUp tauUp)                     (the share of the surroundings that is open sky)
 //   ambient = ambientGain albedo (up U + down (1 - U))
+// P1.2c (fit3 = (msFwd, msG, ground, ambientForm)): the ms phase leans forward, and (ambientForm 1) the ambient is the sky through the cloud
+// above plus the ground unshadowed:
+//   msPhase = (1 - msFwd) / (4 pi) + msFwd HG(cosSun, msG);   ms = sun albedo ms msPhase / (1 + k tau)
+//   ambient = albedo (ambientGain up / (1 + kUp tauUp) + ground down)
 fn fitOn() -> bool { return frame.fit2.y > 0.5; }
 fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
   let f = frame.fit;
   let direct = sun * (f.x * henyeyGreenstein(cosSun, f.y) * exp(-tau) * frame.fit2.w);   // P1.2b: fit2.w = fitDirect (1; debug)
-  let ms = sun * (f.x * f.z * ISO_PHASE / (1.0 + f.w * tau));
-  let u = 0.5 + 0.5 / (1.0 + frame.fit2.z * tauUp);   // P1.2b: its own K (fitKUp), fixed while fitK is fitted
-  let ambient = (up * u + down * (1.0 - u)) * (frame.fit2.x * f.x);
+  let f3 = frame.fit3;
+  let msPhase = (1.0 - f3.x) * ISO_PHASE + f3.x * henyeyGreenstein(cosSun, f3.y);   // P1.2c: f3.x = 0 is P1.2b's isotropic ms
+  let ms = sun * (f.x * f.z * msPhase / (1.0 + f.w * tau));
+  var ambient: vec3<f32>;
+  if (f3.w > 0.5) {
+    ambient = (up * (frame.fit2.x / (1.0 + frame.fit2.z * tauUp)) + down * f3.z) * f.x;   // P1.2c: sky through the cloud above, ground unshadowed
+  } else {
+    let u = 0.5 + 0.5 / (1.0 + frame.fit2.z * tauUp);   // P1.2b: its own K (fitKUp), fixed while fitK is fitted
+    ambient = (up * u + down * (1.0 - u)) * (frame.fit2.x * f.x);
+  }
   if (frame.lightDebug > 0.5 && frame.lightDebug < 5.5) {
     let k = u32(frame.lightDebug);
     return select(select(select(vec3(0.0), ambient, k == 4u), ms, k == 2u), direct, k == 1u);

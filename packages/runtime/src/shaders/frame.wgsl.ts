@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 576;
+export const FRAME_UNIFORM_BYTES = 592;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -73,6 +73,9 @@ struct Frame {
   fit: vec4<f32>,
   // P1.2a: x = fitAmbient, y = 1 when the 'fit' model is selected; P1.2b: z = fitKUp (the open-sky share's falloff), w = fitDirect (debug gain).
   fit2: vec4<f32>,
+  // P1.2c: x = fitMsFwd (forward share of the ms phase), y = fitMsG (its HG g), z = fitGround (gain on the lower-hemisphere ambient),
+  // w = fitAmbientForm (0 = P1.2b's U blend of up and down, 1 = up through 1 / (1 + fitKUp tauUp) plus ground unshadowed).
+  fit3: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
