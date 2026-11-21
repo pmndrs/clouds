@@ -14,3 +14,7 @@ assets/clouds/local/
 .env.local
 .env.*.local
 *.env
+
+# P0.3 linear captures: float frames and raw screenshots stay local (commit only JSON, markdown, small JPEG sheets)
+work/captures/P0-3b/**/*.pfm
+work/captures/P0-3b/**/*.png

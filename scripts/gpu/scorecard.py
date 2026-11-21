@@ -294,6 +294,10 @@ def gate(d, seed2):
         lines.append(table_header())
         for sun, nf in out['noise'].items():
             lines.append(noise_row(f'PT seed noise {sun}', nf))
+    for sun in SUNS:
+        p = sheet(d, sun)
+        if p:
+            print('wrote', p)
     out['checks'] = checks(out)
     lines.append('')
     for k, v in out['checks'].items():
@@ -346,6 +350,59 @@ def checks(out):
     have = all(sun in N and all(k in N[sun] for k in keys if not k.startswith('sky_lum')) for sun in SUNS)
     res['b noise floor for every measure'] = {'pass': bool(have), 'detail': f"suns with a noise floor: {sorted(N)}"}
     return res
+
+
+# ---------------------------------------------------------------- sheets (small JPEGs for review; the floats stay out of git)
+def aces_srgb(rgb, exposure=0.35):
+    """three's ACESFilmicToneMapping at the page exposure, then sRGB: the same display as the page (pt.ts DISPLAY_WGSL)."""
+    c = rgb.astype(np.float64) * exposure / 0.6
+    A = np.array([[0.59719, 0.35458, 0.04823], [0.07600, 0.90834, 0.01566], [0.02840, 0.13383, 0.83777]])
+    B = np.array([[1.60475, -0.53108, -0.07367], [-0.10208, 1.10813, -0.00605], [-0.00327, -0.07276, 1.07602]])
+    v = c @ A.T
+    v = (v * (v + 0.0245786) - 0.000090537) / (v * (0.983729 * v + 0.4329510) + 0.238081)
+    o = np.clip(v @ B.T, 0, 1)
+    return np.where(o <= 0.0031308, o * 12.92, 1.055 * o ** (1 / 2.4) - 0.055)
+
+
+def ratio_map(test, ref, stops=1.0):
+    """log2(test / ref) luminance as blue (darker) - white - red (brighter), saturating at +-stops."""
+    q = np.log2(np.maximum(luminance(test), 1e-8) / np.maximum(luminance(ref), 1e-8)) / stops
+    q = np.clip(q, -1, 1)[..., None]
+    white, red, blue = np.array([1.0, 1.0, 1.0]), np.array([0.85, 0.15, 0.1]), np.array([0.1, 0.3, 0.9])
+    return np.where(q >= 0, white + (red - white) * q, white + (blue - white) * (-q))
+
+
+def sheet(d, sun, exposure=0.35, max_w=1400):
+    from PIL import Image, ImageDraw
+    d = Path(d)
+    frames = {r: d / f'{r}-{sun}.pfm' for r in ['pt'] + MODELS}
+    ap = d / f'alpha-{sun}.pfm'
+    if not ap.exists() or not all(p.exists() for p in frames.values()):
+        return None
+    alpha = as_mask(read_pfm(ap))
+    img = {r: read_pfm(p) for r, p in frames.items()}
+    ys, xs = np.nonzero(alpha > 0.02)
+    m = 24
+    y0, y1, x0, x1 = max(0, ys.min() - m), min(alpha.shape[0], ys.max() + m), max(0, xs.min() - m), min(alpha.shape[1], xs.max() + m)
+    tiles = [('path traced', aces_srgb(img['pt'], exposure))] + [(f'{r}', aces_srgb(img[r], exposure)) for r in MODELS]
+    maps = [('alpha (bake)', np.repeat(alpha[..., None], 3, 2))] + [(f'{r} / PT luminance, +-1 stop', ratio_map(img[r], img['pt'])) for r in MODELS]
+    cw, ch = x1 - x0, y1 - y0
+    pad, lh = 8, 18
+    W = 3 * cw + 4 * pad
+    H = 2 * (ch + lh + pad) + pad + 22
+    out = Image.new('RGB', (W, H), (18, 18, 20))
+    dr = ImageDraw.Draw(out)
+    dr.text((pad, 4), f'P0.3 {sun}: linear frames shown with the page ACES at exposure {exposure}; bottom: luminance ratio (blue darker, red brighter)', fill=(230, 230, 230))
+    for row, cells in enumerate([tiles, maps]):
+        for i, (label, im) in enumerate(cells):
+            x, y = pad + i * (cw + pad), 22 + row * (ch + lh + pad)
+            dr.text((x, y), label, fill=(210, 210, 210))
+            out.paste(Image.fromarray((np.clip(im[y0:y1, x0:x1], 0, 1) * 255).astype(np.uint8)), (x, y + lh))
+    if out.size[0] > max_w:
+        out = out.resize((max_w, int(out.size[1] * max_w / out.size[0])), Image.LANCZOS)
+    p = d / f'sheet-{sun}.jpg'
+    out.save(p, quality=85)
+    return p
 
 
 # ---------------------------------------------------------------- self-checks

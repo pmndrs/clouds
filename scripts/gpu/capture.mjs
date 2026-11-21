@@ -57,7 +57,7 @@ async function waitFor(fn, ms, what) {
 // little-endian, scale -1). Radiance frames keep RGB; alpha masks keep one channel.
 async function saveLinear(eval_, file) {
   const info = await eval_(`window.__clouds.readLinear ? window.__clouds.readLinear() : Promise.reject(new Error('page has no readLinear()'))`);
-  const CHUNK = 4 << 20;
+  const CHUNK = 1 << 20;   // 1 MB of floats (1.4 MB of base64) per call: a 4 MB chunk never returns over CDP
   const parts = [];
   for (let off = 0; off < info.byteLength; off += CHUNK) parts.push(Buffer.from(await eval_(`window.__clouds.linearChunk(${off}, ${CHUNK})`), 'base64'));
   const bytes = Buffer.concat(parts);
