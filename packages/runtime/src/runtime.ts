@@ -583,7 +583,7 @@ export interface CloudRuntime {
    */
   readonly convergedInfo: { active: boolean; samples: number; target: number; done: boolean; restarts: number; reason: string; band: number };
   /** P1.1b: the light grid's texel dims, its memory (two ping-pong textures + the reduced volume, rgba16float) and the volume's dims; null before a volume. */
-  readonly lightGridInfo: { dims: [number, number, number]; bytes: number; volumeDims: [number, number, number]; building: boolean } | null;
+  readonly lightGridInfo: { dims: [number, number, number]; bytes: number; volumeDims: [number, number, number]; building: boolean; progress: number; passes: number; swaps: number; restarts: number } | null;
   /** Temporal amortization state, for tooling: the rates in effect, history resets so far and the memory the history costs. */
   readonly temporalInfo: { near: TemporalRate; far: TemporalRate; resets: number; frames: number; bytes: number };
   /** `width` x `height` is the scene (depth) size. `output` may be supplied by the caller (rgba16float, STORAGE_BINDING | TEXTURE_BINDING, exactly `outputSize`). */
@@ -1098,6 +1098,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get refreshFrames() { return domeRefreshFrames; },
   };
   let lightGrid: LightGrid | null = null;
+  let gridSwaps = 0, gridRestarts = 0;   // P1.1b: completed grid builds and builds thrown away (lightGridInfo)
   const lightingData = new Float32Array(SKY_LIGHT_ENTRIES * 4);
   let mieDiameter = NaN;
   let lowSun = 0;   // 1 - saturate(sin(sun elevation) / bodySunKnee), this frame   // the diameter f[88..91] were last written for
@@ -1338,7 +1339,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get lightGridInfo() {
       if (!volume) return null;
       const d = lightGrid ? lightGrid.dims : [0, 0, 0];
-      return { dims: [d[0], d[1], d[2]] as [number, number, number], bytes: d[0] * d[1] * d[2] * 8 * 3, volumeDims: [volume.dims[0], volume.dims[1], volume.dims[2]] as [number, number, number], building: !!lightGrid?.scheduler.building };
+      return { dims: [d[0], d[1], d[2]] as [number, number, number], bytes: d[0] * d[1] * d[2] * 8 * 3, volumeDims: [volume.dims[0], volume.dims[1], volume.dims[2]] as [number, number, number], building: !!lightGrid?.scheduler.building, progress: lightGrid?.scheduler.progress ?? 0, passes: lightGrid?.scheduler.passes ?? 0, swaps: gridSwaps, restarts: gridRestarts };
     },
     get temporalInfo() {
       const m = memory();
@@ -1562,6 +1563,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           mipDistanceScale: settings.mipDistanceScale, baseMip: settings.baseMip, hfDistance: Math.max(settings.detailDistance, 150), wispyBias: settings.wispyBias, detailBias: settings.detailBias,
           uprez: [settings.noiseInvert, settings.detailTypeOverride, settings.typeFromScale, settings.ambientLaw] } : undefined,
         procKey: gridProc ? [gridProc.version, Math.round((settings.windOffset[0] - skyBox.minCorner[0]) / 8), Math.round((settings.windOffset[2] - skyBox.minCorner[2]) / 8), Math.round(skyBox.minCorner[1] / 8)] : undefined }, timer);
+      if (gridStep.swapped) gridSwaps++; if (gridStep.restarted) gridRestarts++;   // P1.1b: lightGridInfo counters
 
       if (uniformLighting) {
         // One sun for every height ([3] = [4] = log sun, heights 0 and 1 m, no earth shadow), the environment pair = the ambient pair (see SKY_LIGHT_ENTRIES).

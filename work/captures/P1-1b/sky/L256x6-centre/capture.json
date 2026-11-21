@@ -1,0 +1,1138 @@
+{
+  "url": "http://127.0.0.1:5197/reference-pt/?clean=1&cloud=sky&sunOnly=1&single=1&converged=1&spp=64&seed=1&sunShadow=accurate&s.sunShadowInlineReach=256&s.sunShadowInlineSamples=6&s.sunAtCentre=1",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T12:25:08.402Z",
+  "shots": [
+    {
+      "name": "nubis-noon",
+      "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-noon.png",
+      "report": {
+        "view": "nubis-noon",
+        "status": "sun noon: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            7779.132060790651,
+            150,
+            -1342.8788053376957
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.3008,
+            35.957,
+            33.1836
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 509
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 1,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 256,
+          "sunShadowInlineSamples": 6,
+          "lightDensityScale": 1,
+          "directAlbedo": 0.99,
+          "sunAtCentre": 1,
+          "grid": {
+            "dims": [
+              188,
+              188,
+              100
+            ],
+            "bytes": 84825600,
+            "volumeDims": [
+              375,
+              375,
+              200
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 1,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 64,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9400000005960465,
+          "wallMs": 74.3999999910593,
+          "compileMs": 73.40000000596046,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 57.5
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 372
+      },
+      "linear": {
+        "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-noon.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.013744399361053688,
+          0.012917340160864923,
+          0.01193617483885545
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 375,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-low",
+      "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-low.png",
+      "report": {
+        "view": "nubis-low",
+        "status": "sun low: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            625.8882536071255,
+            150,
+            -1711.5066273224638
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.4688,
+            29.7656,
+            23.7305
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 509
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 2,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 256,
+          "sunShadowInlineSamples": 6,
+          "lightDensityScale": 1,
+          "directAlbedo": 0.99,
+          "sunAtCentre": 1,
+          "grid": {
+            "dims": [
+              188,
+              188,
+              100
+            ],
+            "bytes": 84825600,
+            "volumeDims": [
+              375,
+              375,
+              200
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 2,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9400000005960465,
+          "wallMs": 74.3999999910593,
+          "compileMs": 73.40000000596046,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 57.5
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 751
+      },
+      "linear": {
+        "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-low.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.006311908578241451,
+          0.005308558773766789,
+          0.004249635913357553
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 755,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-backlit",
+      "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-backlit.png",
+      "report": {
+        "view": "nubis-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            8426.441728855087,
+            150,
+            -1748.1484755168858
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.4688,
+            29.7656,
+            23.7305
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 509
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 3,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 256,
+          "sunShadowInlineSamples": 6,
+          "lightDensityScale": 1,
+          "directAlbedo": 0.99,
+          "sunAtCentre": 1,
+          "grid": {
+            "dims": [
+              188,
+              188,
+              100
+            ],
+            "bytes": 84825600,
+            "volumeDims": [
+              375,
+              375,
+              200
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 2,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9400000005960465,
+          "wallMs": 74.3999999910593,
+          "compileMs": 73.40000000596046,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 57.5
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 1106
+      },
+      "linear": {
+        "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-backlit.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.04117322792092131,
+          0.034628043602634634,
+          0.027720595399538677
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1111,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-sunset",
+      "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-sunset.png",
+      "report": {
+        "view": "nubis-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            4900.488060946589,
+            150,
+            -511.80367748256504
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            26.6406,
+            14.8926,
+            6.3379
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 509
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 4,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 256,
+          "sunShadowInlineSamples": 6,
+          "lightDensityScale": 1,
+          "directAlbedo": 0.99,
+          "sunAtCentre": 1,
+          "grid": {
+            "dims": [
+              188,
+              188,
+              100
+            ],
+            "bytes": 84825600,
+            "volumeDims": [
+              375,
+              375,
+              200
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 3,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9400000005960465,
+          "wallMs": 74.3999999910593,
+          "compileMs": 73.40000000596046,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 57.5
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 1487
+      },
+      "linear": {
+        "file": "work/captures/P1-1b/sky/L256x6-centre/nubis-sunset.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.008661136765602147,
+          0.004871025970723066,
+          0.00210366672060142
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1492,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -54,8 +54,10 @@ import { chunk, composite, describe, readRgba16f, type LinearFrame } from './lin
  */
 export const SUN_SHADOW_KEYS = ['sunShadowGridSource', 'sunShadowGridFull', 'sunShadowInlineReach', 'sunShadowInlineSamples', 'lightDensityScale', 'directAlbedo', 'sunAtCentre'] as const;
 export const SUN_SHADOW_DEFAULTS = { sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, directAlbedo: 1, sunAtCentre: 0 } as const;
-export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, lightDensityScale: 1, directAlbedo: 0.99 } as const;
+export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 256, sunShadowInlineSamples: 6, lightDensityScale: 1, directAlbedo: 0.99 } as const;
 export const SUN_SHADOW_GRID_CAP = 500 * 1024 * 1024;
+/** P1.1b: settle gives up after this long and says which condition was unmet (env override: &settleTimeout=<s>). */
+const SETTLE_TIMEOUT_MS = 1000 * Number(new URLSearchParams(location.search).get('settleTimeout') ?? 60);
 type SunShadowRuntime = { settings: object; lightGridInfo: { volumeDims: [number, number, number] } | null };
 function applySunShadowPreset(runtime: SunShadowRuntime, on: boolean, artLightDensityScale = 1.2): void {
   const rs = runtime.settings as unknown as Record<string, number>;
@@ -430,15 +432,24 @@ try {
       await frames(2);
     } else {
       await frames(state.renderer === "alpha" ? 2 : n);
+      // P1.1b: a hard timeout (SETTLE_TIMEOUT_MS) that names the condition still unmet, and a once-a-second log of the grid and the converged sum.
+      const tStart = performance.now();
+      let tLog = tStart;
+      const waitTick = async (what: string) => {
+        await frames(4);
+        const now = performance.now();
+        if (now - tLog > 1000) { tLog = now; console.log(`settle ${what} ${((now - tStart) / 1000).toFixed(0)} s: cv ${JSON.stringify(runtime.convergedInfo)} grid ${JSON.stringify(runtime.lightGridInfo)}`); }
+        if (now - tStart > SETTLE_TIMEOUT_MS) throw new Error(`settle timeout after ${SETTLE_TIMEOUT_MS / 1000} s waiting for ${what}: cv ${JSON.stringify(runtime.convergedInfo)} grid ${JSON.stringify(runtime.lightGridInfo)}`);
+      };
       // P1.1: the converged march restarts its sum on any change; wait until it holds every sample.
-      if (CONVERGED && state.renderer !== 'alpha') while (!runtime.convergedInfo.done) await frames(4);
+      if (CONVERGED && state.renderer !== 'alpha') while (!runtime.convergedInfo.done) await waitTick('converged sum');
       // A light-grid rebuild after a sun change is sliced over frames (up to one per grid layer) and restarts the sum when it swaps in; a
       // full-resolution grid (lightGridFull) can take longer than a whole converged sum, so wait until a quiet stretch shows no further restart.
       if (CONVERGED && state.renderer !== 'alpha' && (runtime.settings.lightGridFull > 0.5 || runtime.settings.sunShadowGridFull > 0.5 || runtime.settings.sunShadowGridSource > 0.5)) {
         for (;;) {
           const r = runtime.convergedInfo.restarts;
-          await frames(260);
-          while (!runtime.convergedInfo.done) await frames(4);
+          for (let i = 0; i < 65; i++) await waitTick('a quiet stretch (no grid restart)');
+          while (!runtime.convergedInfo.done) await waitTick('converged sum after a grid swap');
           if (runtime.convergedInfo.restarts === r) break;
         }
       }

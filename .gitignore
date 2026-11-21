@@ -34,3 +34,6 @@ work/captures/P1-1/**/*.f32
 work/captures/P1-1/**/*.exr
 work/captures/P1-1/**/*.npz
 work/captures/P1-1/**/probe-*.json
+work/captures/P1-1b/**/*.pfm
+work/captures/P1-1b/**/*.png
+work/captures/P1-1b/**/probe-*.json
