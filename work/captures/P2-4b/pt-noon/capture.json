@@ -1,0 +1,295 @@
+{
+  "url": "http://127.0.0.1:5431/reference-pt/?clean=1&cloud=tower&spp=1024&seed=1",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T17:03:52.720Z",
+  "shots": [
+    {
+      "name": "pt-noon",
+      "file": "work/captures/P2-4b/pt-noon/pt-noon.png",
+      "report": {
+        "view": "pt-noon",
+        "status": "sun noon: ready",
+        "cloud": "tower",
+        "camera": {
+          "position": [
+            3901.80242445959,
+            150,
+            7044.377876073299
+          ],
+          "target": [
+            44,
+            2828,
+            36
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.3789,
+            36.1523,
+            33.6133
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            392,
+            344,
+            200
+          ],
+          "voxel": 8,
+          "min": [
+            -1520,
+            1480,
+            -768
+          ],
+          "max": [
+            1616,
+            4232,
+            832
+          ],
+          "densityMax": 1,
+          "occupancy": 0.20909308999762696,
+          "bakeMs": 577.5
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": false,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": false,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 0,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              196,
+              100,
+              172
+            ],
+            "bytes": 80908800,
+            "volumeDims": [
+              392,
+              200,
+              344
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 0,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 1024,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 121.89999999850988,
+          "wallMs": 99812.70000000298,
+          "compileMs": 89.80000001192093,
+          "kernelBytes": 51395,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.45,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.45,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 0,
+          "fit": [
+            0.99,
+            0.8,
+            2.47,
+            0.2,
+            0.62,
+            0.3,
+            1,
+            0.38,
+            0.5,
+            0.61,
+            1,
+            2,
+            0,
+            1
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "tower",
+            "label": "F sphere-hierarchy tower (P2.4a probe)",
+            "source": "P2.4a: 9 + level-1 + level-2 spheres, smooth union, 2-octave noise, flat soft base; GPU bake at 8 m, sigma 0.45 / m at density 1",
+            "runtime": "direct",
+            "camera": {
+              "distance": 8000,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 8000,
+            "height": 150
+          },
+          "source": "P2.4a: 9 + level-1 + level-2 spheres, smooth union, 2-octave noise, flat soft base; GPU bake at 8 m, sigma 0.45 / m at density 1",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            392,
+            200,
+            344
+          ],
+          "voxel": 8,
+          "densityRef": 1,
+          "densityMaxSource": 1,
+          "directDensity": 0.45,
+          "extinctionScale": 0.45,
+          "ptSigmaPerUnit": 0.45,
+          "boxMin": [
+            -1520,
+            1480,
+            -768
+          ],
+          "boxMax": [
+            1616,
+            4232,
+            832
+          ],
+          "occupied": {
+            "min": [
+              -1448,
+              1504,
+              -688
+            ],
+            "max": [
+              1536,
+              4152,
+              760
+            ]
+          },
+          "perLevel": [
+            9,
+            71,
+            454,
+            0
+          ],
+          "bakeMs": 236,
+          "gridDims": [
+            392,
+            344,
+            200
+          ],
+          "occupancy": 0.20909308999762696
+        },
+        "exposure": 0.35,
+        "frames": 5971
+      },
+      "linear": {
+        "file": "work/captures/P2-4b/pt-noon/pt-noon.pfm",
+        "view": "pt-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.7475107516609649,
+          1.259512611199429,
+          2.263741179699492
+        ],
+        "meta": {
+          "samples": 1024,
+          "seed": 1,
+          "units": "accumulator / samples"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
