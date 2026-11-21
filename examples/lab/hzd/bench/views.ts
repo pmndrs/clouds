@@ -18,6 +18,17 @@ export const VIEWS: Record<string, Bookmark & { about: string }> = {
 export const STORM_PRESET: Record<string, unknown> = {
   stormStrength: 1, stormSource: 'map', anvilFlatten: 1, anvilDensityFix: 0.5, anvilCirrus: 0.00006, stormDensity: 1.6, stormDark: 0.7,
 };
+/** P2.3a: sky-layout presets (URL layout=<name>, Review "P23"): several existing weather-map (`ndf.`) and shaper (`hzd.`) settings at once,
+ *  no shader or generator change. Applied before the URL's own keys, so explicit hzn_/hz_ keys win. See work/logs/P2-3a.md. */
+export const LAYOUT_PRESETS: Record<string, Record<string, unknown>> = {
+  // scattered: separate cumulus with clear sky between (Perlin-Worley islands, a more closed gate, less footprint), flat bases (little height
+  // noise), tops that rise with the coverage (big bodies tall, small puffs low), cumulus types only.
+  scattered: {
+    'ndf.footprint': 1, 'ndf.islandGain': 1.6, 'ndf.footLo': -0.3, 'ndf.footHi': 0.7, 'ndf.gateLo': -0.15, 'ndf.gateHi': 0.05,
+    'ndf.typeMin': 0.75, 'ndf.maxHeight': 1, 'ndf.heightVariation': 0.04,
+    'hzd.heightFromCoverage': 0.85, 'hzd.heightCoverageRef': 0.85,
+  },
+};
 export const VIEW_NAMES = Object.keys(VIEWS);
 export const MOTIONS: [string, number][] = [['frozen', 0], ['slow', 0.25], ['normal', 1], ['fast', 4], ['time-lapse', 20]];
 export const QUALITIES = ['mobile', 'low', 'medium', 'high', 'ultra'] as const;

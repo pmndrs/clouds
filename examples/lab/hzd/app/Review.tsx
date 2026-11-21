@@ -7,6 +7,7 @@ import { Tip } from '../ui/components/tooltip';
 import { useBench, settingsChanged } from '../bench/store';
 import type { SourceId } from '../tune';
 import { Note, Row, Section, SliderRow } from './controls';
+import { LAYOUT_PRESETS } from '../bench/views';
 
 interface Item {
   id: string;
@@ -18,6 +19,9 @@ interface Item {
   /** What has to be on to see it (a setting and the value that shows it). */
   show?: { label: string; src: SourceId; key: string; on: unknown; off: unknown };
   slider?: { min: number; max: number; step: number };
+  /** P2.3a: a preset over several settings (`<source>.<key>` -> value). Options are then 'old' (every key back to its starting value) and
+   *  'new' (the bundle); `src`/`key` are unused. */
+  bundle?: Record<string, unknown>;
 }
 
 const ITEMS: Item[] = [
@@ -97,6 +101,8 @@ const ITEMS: Item[] = [
     tip: 'P0.5: the converged march divides every march step by this (the step budget follows). Doubling it should change the converged image very little; if it does, a step-size-dependent term is left (see work/reports/P0-5-converged-march.md). Needs P05 on.' },
   { id: 'P05c', title: 'converged: samples', src: 'c', key: 'convergedSamples', options: [['16 (default)', 16], ['32', 32]], slider: { min: 1, max: 128, step: 1 },
     tip: 'P0.5: frames the converged march averages (each with its own march jitter and sub-pixel offset). Needs P05 on.' },
+  { id: 'P23', title: 'P23 sky layout: scattered (new)', src: 'ndf', key: 'footprint', options: [['old (default)', 'old'], ['new: scattered', 'new']], bundle: LAYOUT_PRESETS.scattered,
+    tip: 'P2.3a: a layout preset from existing settings only (no shader or generator change), aimed at the owner\'s texas-afternoon photo: separate cumulus with clear sky between, sizes from puffs to large bodies, a few much taller. Weather map: Perlin-Worley islands (footprint 1, islandGain 1.6), less footprint (footLo/footHi -0.3/0.7), a more closed gate (gateLo/gateHi -0.15/0.05), cumulus types only (typeMin 0.75), full layer (maxHeight 1) with flat bases (heightVariation 0.04). Shaper: the top rises with the coverage (heightFromCoverage 0.85, heightCoverageRef 0.85), so big bodies tower and small puffs stay low. Known: the tall bodies come out as cones or mesas, not rounded turrets. Best from the "ground" and "gp7" views. URL: layout=scattered. Log: work/logs/P2-3a.md.' },
   { id: 'PF1', title: 'empty-space skipping', src: 'hzd', key: 'emptySkip', options: [['old: off', 'off'], ['new: exact', 'exact'], ['free (faster, reaches further)', 'free']],
     tip: 'The ray march skips stretches of clear sky using a coarse grid of the weather map (largest coverage, lowest base and highest top per 500 m cell). Exact: the same image as off (checked pixel for pixel), fewer samples; it pays off on maps with clear lanes (about 10-20 % of the sky pass) and does nothing on a map that has some cloud coverage everywhere. Free: also does not charge the skipped strides to the step limit, so far rays reach further: distant cloud bands that the old march ran out of steps before now show (best seen from the "above" view on a sparse map). Tune panel: "Ray march" (emptySkip, emptySkipCoverage).' },
 ];
@@ -115,6 +121,22 @@ export function ReviewSection() {
         <Tip text="time-lapse motion, to see A6, SH1a and SH1b"><Button onClick={() => { S.c.animSpeed = 20; settingsChanged({ refreshTuner: true }); }}>motion: time-lapse</Button></Tip>
       </Row>
       {open && ITEMS.map(it => {
+        if (it.bundle) {
+          // P2.3a: a several-setting preset. 'new' when every key holds the bundle's value, 'old' when every key is at its starting value.
+          const entries = Object.entries(it.bundle).map(([sk, v]) => { const i = sk.indexOf('.'); return [sk.slice(0, i) as SourceId, sk.slice(i + 1), v, sk] as const; });
+          const isNew = entries.every(([s, k, v]) => S[s]?.[k] === v);
+          const isOld = entries.every(([s, k, , sk]) => S[s]?.[k] === rt.tuner.baseOf(sk));
+          const setAll = (which: string) => { for (const [s, k, v, sk] of entries) if (k in S[s]) S[s][k] = which === 'new' ? v : rt.tuner.baseOf(sk); settingsChanged({ refreshTuner: true }); };
+          const val = isNew ? '1' : isOld ? '0' : '';
+          return (
+            <div key={it.id} className="grid gap-1 border-t border-white/10 pt-1">
+              <Tip text={it.tip} side="left"><div className="text-[11px] text-foreground"><b>{it.id}</b> {it.title} <span className="text-muted-foreground">ⓘ</span></div></Tip>
+              <ToggleGroup type="single" value={val} onValueChange={v => v !== '' && setAll(it.options[Number(v)][1] as string)}>
+                {it.options.map(([label], i) => <ToggleGroupItem key={i} value={String(i)}>{label}</ToggleGroupItem>)}
+              </ToggleGroup>
+            </div>
+          );
+        }
         const cur = S[it.src]?.[it.key];
         if (cur === undefined) return null;
         const idx = it.options.findIndex(([, v]) => v === cur);

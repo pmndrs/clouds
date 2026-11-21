@@ -247,6 +247,8 @@ export function createHzdTuner(host: HzdTuneHost) {
     set: (k: string, v: unknown) => { set(k, v); panel.refresh(); },
     /** S1: take these keys' current values as their starting values (a style switch: "changed" and reset are then relative to the style). */
     rebase(keys: string[]) { for (const k of keys) if (k in base) base[k] = clone(get(k)); panel.refresh(); },
+    /** P2.3a: a key's starting value (a Review preset's "old" puts these back). */
+    baseOf: (k: string): unknown => clone(base[k]),
     snapshot,
     apply,
   };
