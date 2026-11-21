@@ -5,16 +5,18 @@ The one page to check. The plan: the Compass (https://claude.ai/artifact/CnMaoMG
 Updated 2026-11-20.
 
 ## Running (2026-11-21): Phase 0 of the audit plan, the truth rig
-Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. This plan replaces the phase list on the Compass until you say otherwise.
+Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. The plan page is the new Compass (source `work/compass-2026-11/index.html`; the link is in the Compass row below once published). The old Compass (`work/compass/`) is kept as the record of the phases before the audit. Every run now has a time and memory cap (plan rule 9).
 
 | Step | What | Who | State |
 | --- | --- | --- | --- |
 | 0.1 | Freeze: baseline tagged; old shaper, lighting models and styles are frozen (kept, not tuned) | orchestrator | tagged; the repeat-run check waits on the card |
-| 0.2 | Pathtracer volume work (droplet phase, single/multi split, ground plane, AOVs with volumes, high-g check) | **you schedule this in the pathtracer repo** | not started |
-| 0.2b | Cross-check renderer: **Cycles**, not Karma (hython finds no licence from the agent sandbox; Blender 5.1.1 works headless and has droplet phase functions) | Opus, own worktree | running |
+| 0.2 | Pathtracer volume work (high-g validation first, then droplet phase, single/multi split, outputs with volumes, ground plane, grid memory) | a session in the pathtracer repo, from `docs/internal/CLOUDS-HANDOFF.md` on its branch `clouds/volume-reference` | handed off 2026-11-21 |
+| 0.2b | Cross-check renderer: **Cycles**, not Karma (hython finds no licence from the agent sandbox; Blender 5.1.1 works headless and has droplet phase functions) | Opus, own worktree | running; told to stop a two-hour CPU smoke render and report |
 | 0.3 | Linear-radiance compare and the scorecard script | Opus | **passed, merged** (`work/reports/P0-3-linear-scorecard.md`) |
 | 0.4 | The scene card: 5 clouds x 4 suns (Parkouring, EmberGen 02, Disney, a procedural sky patch, a stratus slab; noon, low, backlit, sunset) | Opus, own worktree | running |
 | 0.5 | Converged march mode: Review switches **P05** (on/off), **P05b** (step divisor), **P05c** (samples) on the HZD bench; a "converged" checkbox on the flagship | Opus | **passed, merged** (`work/reports/P0-5-converged-march.md`, sheets `work/captures/P0-5/`) |
+| 2.1 (early) | Shape measures from your photos and our renders (silhouette lobe spectrum, body aspect, base flatness, gaps): started early because it needs no reference renderer | Opus, own worktree | running |
+| 2.2 (prep) | Written spec of the one-generation vertical-profile model (Nubis Cubed deck recap) that the clean shaper will be built from, with a map to the existing code | Sonnet, own worktree | running |
 
 What 0.3 found (same captures as PT1, compared before the tone map):
 - The units match: clear-sky pixels agree within 0.05 % between the path tracer and our renderer.
