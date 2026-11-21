@@ -31,6 +31,8 @@ export function createCloudBridge(renderer: WebGPURenderer, runtime: CloudRuntim
   let width = 0, height = 0, cwNow = 0, chNow = 0;
 
   return {
+    /** The scene's HDR target (rgba16float linear radiance before the composite and three's tone mapping), for linear readbacks (reference-pt). */
+    sceneTarget,
     resize(w: number, h: number) {
       if (w === width && h === height) return;
       width = w; height = h;

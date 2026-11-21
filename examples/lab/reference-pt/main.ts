@@ -9,7 +9,10 @@
 // Wind frozen (the bake is a still).
 //
 // Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave, sun noon | low.
-// URL: ?view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35
+// URL: ?view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35 &seed=1
+// P0.3: window.__clouds.readLinear() reads the current view back as linear scene radiance (float32 RGBA, before exposure and ACES):
+// the PT accumulator / samples, the runtime's composite (scene HDR target * transmittance + cloud), or the opacity masks. See linear.ts and
+// scripts/gpu/capture.mjs --linear (saves PFM next to each screenshot).
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { Sky } from '@pmndrs/sky';
@@ -21,6 +24,7 @@ import { createCloudBridge } from '../flagship/three-bridge';
 import { createSkyBridge } from '../flagship/sky-bridge';
 import { bakeDensity, bakeSky, type DensityGrid, type SkyBake, type V3 } from './bake';
 import { PtReference } from './pt';
+import { chunk, composite, describe, readRgba16f, type LinearFrame } from './linear';
 
 const harness = installCloudsHarness();
 const query = new URLSearchParams(location.search);
@@ -45,6 +49,7 @@ const settings = {
   voxel: num('voxel', 2),
   maxDepth: num('maxDepth', 512),
   exposure: num('exposure', 0.35),
+  seed: num('seed', 1),
 };
 const state: { renderer: RendererName; sun: SunName } = { renderer: 'pt', sun: 'noon' };
 {
@@ -90,6 +95,7 @@ try {
   const pt = new PtReference();
   await pt.init(ptCanvas);
   pt.maxDepth = settings.maxDepth;
+  pt.seed = settings.seed;
 
   const resize = () => {
     renderer.setPixelRatio(1);
@@ -263,7 +269,7 @@ try {
       sun: { elevationDeg: sky.sunElevation, azimuthDeg: sky.sunAzimuth, direction: round(sunNow()), timeOfDay: SUNS[state.sun].time },
       sky: skyNow && { sunIrradiance: round(skyNow.sun), ambientUp: round(skyNow.ambientUp), ambientDown: round(skyNow.ambientDown), envMapUp: round(skyNow.envUp), envMapDown: round(skyNow.envDown) },
       grid: gridNow && { resolution: gridNow.resolution, voxel: gridNow.voxel, min: gridNow.min, max: gridNow.max, densityMax: gridNow.densityMax, occupancy: gridNow.occupancy, bakeMs: gridNow.ms },
-      pt: { samples: pt.samples, target: settings.spp, film: [pt.width, pt.height], msPerPass: pt.passMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium },
+      pt: { samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium },
       runtime: { quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength },
       exposure: settings.exposure, frames: frame,
     }),
@@ -297,6 +303,35 @@ try {
       if (state.renderer === "rtalpha") await showRuntimeAlpha();
     }
   };
+
+  // ---- P0.3: linear readback ----
+  let lastLinear: LinearFrame | null = null;
+  async function readLinear(): Promise<LinearFrame> {
+    await busy;
+    const view = `${state.renderer}-${state.sun}`;
+    const cam = camNow!;
+    const ptCam = { position: cam.position, target: cam.target, up: [0, 1, 0] as V3, yFovDeg: FOV_Y };
+    if (state.renderer === 'pt') {
+      const data = await pt.readLinear();
+      return { view, kind: 'radiance', width: pt.width, height: pt.height, data, meta: { samples: pt.samples, seed: pt.seed, units: 'accumulator / samples' } };
+    }
+    if (state.renderer === 'alpha') {
+      return { view, kind: 'alpha', width: pt.width, height: pt.height, data: await pt.readAlpha(ptCam), meta: { source: 'bake opacity 1 - exp(-tau)' } };
+    }
+    // Runtime views: the scene's HDR target (the sky) and the runtime's composite output, both rgba16float, composited as the bridge's quad does.
+    const sceneTex = sharedBackend(renderer).texture(bridge.sceneTarget.texture);
+    const [sceneLin, cloudLin] = await Promise.all([readRgba16f(device, sceneTex), readRgba16f(device, runtime.output!)]);
+    const rgba = composite(sceneLin.data, cloudLin.data);
+    if (state.renderer === 'rtalpha') {
+      for (let i = 0; i < rgba.length; i += 4) rgba[i] = rgba[i + 1] = rgba[i + 2] = rgba[i + 3];
+      return { view, kind: 'alpha', width: sceneLin.width, height: sceneLin.height, data: rgba, meta: { source: 'runtime 1 - transmittance', frame } };
+    }
+    return { view, kind: 'radiance', width: sceneLin.width, height: sceneLin.height, data: rgba, meta: { lightingModel: runtime.settings.lightingModel, frame, units: 'scene * transmittance + cloud, before exposure and tone mapping' } };
+  }
+  const contract = window.__clouds as Record<string, unknown>;
+  /** Reads the current view (after settle) into the page; returns its size and mean. Fetch the floats with linearChunk(offset, bytes). */
+  contract.readLinear = async () => { lastLinear = null; lastLinear = await readLinear(); return describe(lastLinear); };
+  contract.linearChunk = (offset: number, length: number) => { if (!lastLinear) throw new Error('readLinear() first'); return chunk(lastLinear, offset, length); };
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));
   throw e;
