@@ -50,6 +50,11 @@ export interface LightGridFrameParams {
   procKey?: readonly number[];
   /** X4: CloudSettings.lightDensityScale (the march multiplies the grid by it; the procedural part is divided by it so it keeps the model's extinction). */
   lightDensityScale?: number;
+  /**
+   * P1.1 diagnostic (CloudSettings.lightGridSource): true = the reduced volume reads the volume's direct density texture (the r16f values the
+   * march reads) instead of the NVDF R channel. Only for a direct volume (the binding holds the hero pool otherwise). A change rebuilds the grid.
+   */
+  directSource?: boolean;
 }
 
 export interface SliceDispatch { z0: number; z1: number; sun: [number, number, number]; densityScale: number; target: 0 | 1 }
@@ -208,6 +213,13 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, reduceLayout] }),
     compute: { module, entryPoint: 'reduceLightGrid' },
   });
+  // P1.1 diagnostic: the reduce from the direct density texture (LightGridFrameParams.directSource).
+  const reduceDirectPipeline = device.createComputePipeline({
+    label: 'light grid reduce (direct density)',
+    layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, reduceLayout] }),
+    compute: { module, entryPoint: 'reduceLightGridDirect' },
+  });
+  let directSourceNow = false;
   // X4: one build pipeline per procedural shaper (the model's density WGSL at LIGHT_GRID_PROC_BINDING), compiled asynchronously on first use.
   const procPipelines = new Map<string, { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null }>();
   const procPipeline = (m: ProceduralDensityModel) => {
@@ -284,12 +296,13 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       }
       const pk = proc ? [...(params.procKey ?? []), params.lightDensityScale ?? 1] : [];
       if (pk.length !== procKeyBound.length || pk.some((v, i) => v !== procKeyBound[i])) { procKeyBound = pk; scheduler.invalidate(); }
+      if (!!params.directSource !== directSourceNow) { directSourceNow = !!params.directSource; reducedValid = false; scheduler.invalidate(); }
       const result = scheduler.step(params.sunDirection, params.densityScale, params.frameIndex);
       const d = result.dispatch;
       if (!d) return result;
       if (!reducedValid) {
         const rp = encoder.beginComputePass({ label: 'light grid reduce', timestampWrites: timer?.passTimestampWrites('lightGridReduce') });
-        rp.setPipeline(reducePipeline);
+        rp.setPipeline(directSourceNow ? reduceDirectPipeline : reducePipeline);
         rp.setBindGroup(0, volumeBindGroup);
         rp.setBindGroup(1, reduceGroup);
         rp.dispatchWorkgroups(Math.ceil(dims[0] / 8), Math.ceil(dims[1] / 8), 1);

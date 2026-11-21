@@ -1,0 +1,52 @@
+{
+  "manifest": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-abb31ed39016ad2d6/work/captures/P1-1/cycles/manifest/manifest.json",
+  "blender": "5.1.1",
+  "device": "GPU",
+  "grid": {
+    "densityMax": 2.134765625,
+    "activeVoxels": 6715314
+  },
+  "sky": {
+    "kind": "uniform",
+    "radiance": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "sun": {
+    "energy": 38.125,
+    "color": [
+      1.0,
+      0.9334016442298889,
+      0.8493852615356445
+    ],
+    "angle": 0.0
+  },
+  "ground": null,
+  "seconds": 13.31286072731018,
+  "spp": 128,
+  "cyclesBounces": 0,
+  "channels": [
+    "ViewLayer.Combined.A",
+    "ViewLayer.Combined.B",
+    "ViewLayer.Combined.G",
+    "ViewLayer.Combined.R",
+    "ViewLayer.Diffuse Direct.B",
+    "ViewLayer.Diffuse Direct.G",
+    "ViewLayer.Diffuse Direct.R",
+    "ViewLayer.Diffuse Indirect.B",
+    "ViewLayer.Diffuse Indirect.G",
+    "ViewLayer.Diffuse Indirect.R",
+    "ViewLayer.Environment.B",
+    "ViewLayer.Environment.G",
+    "ViewLayer.Environment.R",
+    "ViewLayer.Volume Direct.B",
+    "ViewLayer.Volume Direct.G",
+    "ViewLayer.Volume Direct.R",
+    "ViewLayer.Volume Indirect.B",
+    "ViewLayer.Volume Indirect.G",
+    "ViewLayer.Volume Indirect.R"
+  ],
+  "pfm": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-abb31ed39016ad2d6/work/captures/P1-1/cycles/cycles.pfm"
+}

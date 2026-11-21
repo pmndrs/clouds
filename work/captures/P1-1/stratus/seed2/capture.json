@@ -1,0 +1,1042 @@
+{
+  "url": "http://127.0.0.1:5417/reference-pt/?clean=1&cloud=stratus&sunOnly=1&single=1&converged=1&spp=4096&seed=2",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T09:42:40.373Z",
+  "shots": [
+    {
+      "name": "pt-noon",
+      "file": "work/captures/P1-1/stratus/seed2/pt-noon.png",
+      "report": {
+        "view": "pt-noon",
+        "status": "sun noon: ready",
+        "cloud": "stratus",
+        "camera": {
+          "position": [
+            4078.6703636689385,
+            100,
+            3551.256681410995
+          ],
+          "target": [
+            3500,
+            734,
+            2500
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3711,
+            31.9141
+          ],
+          "ambientUp": [
+            0.3913,
+            0.7797,
+            1.6963
+          ],
+          "ambientDown": [
+            1.1454,
+            1.0656,
+            0.9633
+          ],
+          "envMapUp": [
+            0.3892,
+            0.7742,
+            1.6818
+          ],
+          "envMapDown": [
+            1.129,
+            1.0503,
+            0.9497
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            35,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            2000,
+            590,
+            1000
+          ],
+          "max": [
+            5000,
+            870,
+            4000
+          ],
+          "densityMax": 1.0712890625,
+          "occupancy": 0.3875114666666667,
+          "bakeMs": 209.90000000596046
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 4096,
+          "target": 4096,
+          "seed": 2,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 2.1866666664679846,
+          "wallMs": 9119.300000011921,
+          "compileMs": 67.09999999403954,
+          "kernelBytes": 51397,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.07538691948866472,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "stratus",
+            "label": "E stratus slab (HZD deck)",
+            "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 1200,
+              "height": 100
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 1200,
+            "height": 100
+          },
+          "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            35
+          ],
+          "voxel": 8,
+          "densityRef": 0.07538691948866472,
+          "densityMaxSource": 0.08074916899204254,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.07538691948866472,
+          "boxMin": [
+            2000,
+            590,
+            1000
+          ],
+          "boxMax": [
+            5000,
+            870,
+            4000
+          ],
+          "occupied": {
+            "min": [
+              2000,
+              622,
+              1000
+            ],
+            "max": [
+              5000,
+              846,
+              4000
+            ]
+          },
+          "patch": {
+            "min": [
+              2000,
+              590,
+              1000
+            ],
+            "max": [
+              5000,
+              870,
+              4000
+            ]
+          },
+          "configure": {
+            "coverageBias": -1,
+            "deckForm": "stratus"
+          },
+          "bake": {
+            "t": 1200,
+            "footprint": 8,
+            "camera": [
+              3500,
+              2,
+              2500
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 22.400000005960464
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 577
+      },
+      "linear": {
+        "file": "work/captures/P1-1/stratus/seed2/pt-noon.pfm",
+        "view": "pt-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.199484438557457,
+          0.18564559067682943,
+          0.1675013224627525
+        ],
+        "meta": {
+          "samples": 4096,
+          "seed": 2,
+          "units": "accumulator / samples"
+        }
+      }
+    },
+    {
+      "name": "pt-low",
+      "file": "work/captures/P1-1/stratus/seed2/pt-low.png",
+      "report": {
+        "view": "pt-low",
+        "status": "sun low: ready",
+        "cloud": "stratus",
+        "camera": {
+          "position": [
+            2816.333221224787,
+            100,
+            3486.2047128254476
+          ],
+          "target": [
+            3500,
+            734,
+            2500
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.707,
+            28.418,
+            21.2891
+          ],
+          "ambientUp": [
+            0.3192,
+            0.5895,
+            1.1922
+          ],
+          "ambientDown": [
+            0.3718,
+            0.3042,
+            0.23
+          ],
+          "envMapUp": [
+            0.3202,
+            0.5882,
+            1.1858
+          ],
+          "envMapDown": [
+            0.3666,
+            0.3,
+            0.2269
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            35,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            2000,
+            590,
+            1000
+          ],
+          "max": [
+            5000,
+            870,
+            4000
+          ],
+          "densityMax": 1.0712890625,
+          "occupancy": 0.3875114666666667,
+          "bakeMs": 209.90000000596046
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 4096,
+          "target": 4096,
+          "seed": 2,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 2.580000000198682,
+          "wallMs": 10856,
+          "compileMs": 67.09999999403954,
+          "kernelBytes": 51397,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.07538691948866472,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "stratus",
+            "label": "E stratus slab (HZD deck)",
+            "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 1200,
+              "height": 100
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 1200,
+            "height": 100
+          },
+          "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            35
+          ],
+          "voxel": 8,
+          "densityRef": 0.07538691948866472,
+          "densityMaxSource": 0.08074916899204254,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.07538691948866472,
+          "boxMin": [
+            2000,
+            590,
+            1000
+          ],
+          "boxMax": [
+            5000,
+            870,
+            4000
+          ],
+          "occupied": {
+            "min": [
+              2000,
+              622,
+              1000
+            ],
+            "max": [
+              5000,
+              846,
+              4000
+            ]
+          },
+          "patch": {
+            "min": [
+              2000,
+              590,
+              1000
+            ],
+            "max": [
+              5000,
+              870,
+              4000
+            ]
+          },
+          "configure": {
+            "coverageBias": -1,
+            "deckForm": "stratus"
+          },
+          "bake": {
+            "t": 1200,
+            "footprint": 8,
+            "camera": [
+              3500,
+              2,
+              2500
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 22.400000005960464
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 1267
+      },
+      "linear": {
+        "file": "work/captures/P1-1/stratus/seed2/pt-low.pfm",
+        "view": "pt-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.03338804280256148,
+          0.027337986815254456,
+          0.020480003735709566
+        ],
+        "meta": {
+          "samples": 4096,
+          "seed": 2,
+          "units": "accumulator / samples"
+        }
+      }
+    },
+    {
+      "name": "pt-backlit",
+      "file": "work/captures/P1-1/stratus/seed2/pt-backlit.png",
+      "report": {
+        "view": "pt-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "stratus",
+        "camera": {
+          "position": [
+            4192.901481562662,
+            100,
+            3479.7385043205495
+          ],
+          "target": [
+            3500,
+            734,
+            2500
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.707,
+            28.418,
+            21.2891
+          ],
+          "ambientUp": [
+            0.3192,
+            0.5895,
+            1.1922
+          ],
+          "ambientDown": [
+            0.3718,
+            0.3042,
+            0.23
+          ],
+          "envMapUp": [
+            0.3202,
+            0.5882,
+            1.1858
+          ],
+          "envMapDown": [
+            0.3666,
+            0.3,
+            0.2269
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            35,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            2000,
+            590,
+            1000
+          ],
+          "max": [
+            5000,
+            870,
+            4000
+          ],
+          "densityMax": 1.0712890625,
+          "occupancy": 0.3875114666666667,
+          "bakeMs": 209.90000000596046
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 4096,
+          "target": 4096,
+          "seed": 2,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 2.580000000198682,
+          "wallMs": 10696.60000000894,
+          "compileMs": 67.09999999403954,
+          "kernelBytes": 51397,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.07538691948866472,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "stratus",
+            "label": "E stratus slab (HZD deck)",
+            "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 1200,
+              "height": 100
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 1200,
+            "height": 100
+          },
+          "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            35
+          ],
+          "voxel": 8,
+          "densityRef": 0.07538691948866472,
+          "densityMaxSource": 0.08074916899204254,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.07538691948866472,
+          "boxMin": [
+            2000,
+            590,
+            1000
+          ],
+          "boxMax": [
+            5000,
+            870,
+            4000
+          ],
+          "occupied": {
+            "min": [
+              2000,
+              622,
+              1000
+            ],
+            "max": [
+              5000,
+              846,
+              4000
+            ]
+          },
+          "patch": {
+            "min": [
+              2000,
+              590,
+              1000
+            ],
+            "max": [
+              5000,
+              870,
+              4000
+            ]
+          },
+          "configure": {
+            "coverageBias": -1,
+            "deckForm": "stratus"
+          },
+          "bake": {
+            "t": 1200,
+            "footprint": 8,
+            "camera": [
+              3500,
+              2,
+              2500
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 22.400000005960464
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 1954
+      },
+      "linear": {
+        "file": "work/captures/P1-1/stratus/seed2/pt-backlit.pfm",
+        "view": "pt-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.603029448644436,
+          0.4937579341147541,
+          0.3698942598549686
+        ],
+        "meta": {
+          "samples": 4096,
+          "seed": 2,
+          "units": "accumulator / samples"
+        }
+      }
+    },
+    {
+      "name": "pt-sunset",
+      "file": "work/captures/P1-1/stratus/seed2/pt-sunset.png",
+      "report": {
+        "view": "pt-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "stratus",
+        "camera": {
+          "position": [
+            3570.674363696457,
+            100,
+            3697.916998091312
+          ],
+          "target": [
+            3500,
+            734,
+            2500
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            24.6094,
+            12.627,
+            4.292
+          ],
+          "ambientUp": [
+            0.2357,
+            0.3349,
+            0.5472
+          ],
+          "ambientDown": [
+            0.0687,
+            0.0353,
+            0.0139
+          ],
+          "envMapUp": [
+            0.236,
+            0.3339,
+            0.5438
+          ],
+          "envMapDown": [
+            0.0678,
+            0.0349,
+            0.0137
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            35,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            2000,
+            590,
+            1000
+          ],
+          "max": [
+            5000,
+            870,
+            4000
+          ],
+          "densityMax": 1.0712890625,
+          "occupancy": 0.3875114666666667,
+          "bakeMs": 209.90000000596046
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 4096,
+          "target": 4096,
+          "seed": 2,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 3.693333332737287,
+          "wallMs": 15282.79999999702,
+          "compileMs": 67.09999999403954,
+          "kernelBytes": 51397,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.07538691948866472,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "stratus",
+            "label": "E stratus slab (HZD deck)",
+            "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 1200,
+              "height": 100
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 1200,
+            "height": 100
+          },
+          "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            35
+          ],
+          "voxel": 8,
+          "densityRef": 0.07538691948866472,
+          "densityMaxSource": 0.08074916899204254,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.07538691948866472,
+          "boxMin": [
+            2000,
+            590,
+            1000
+          ],
+          "boxMax": [
+            5000,
+            870,
+            4000
+          ],
+          "occupied": {
+            "min": [
+              2000,
+              622,
+              1000
+            ],
+            "max": [
+              5000,
+              846,
+              4000
+            ]
+          },
+          "patch": {
+            "min": [
+              2000,
+              590,
+              1000
+            ],
+            "max": [
+              5000,
+              870,
+              4000
+            ]
+          },
+          "configure": {
+            "coverageBias": -1,
+            "deckForm": "stratus"
+          },
+          "bake": {
+            "t": 1200,
+            "footprint": 8,
+            "camera": [
+              3500,
+              2,
+              2500
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 22.400000005960464
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 2911
+      },
+      "linear": {
+        "file": "work/captures/P1-1/stratus/seed2/pt-sunset.pfm",
+        "view": "pt-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.013594918885667441,
+          0.006975488112025416,
+          0.0023710185818290007
+        ],
+        "meta": {
+          "samples": 4096,
+          "seed": 2,
+          "units": "accumulator / samples"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

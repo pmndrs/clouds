@@ -1,0 +1,2135 @@
+{
+  "url": "http://127.0.0.1:5417/reference-pt/?clean=1&cloud=sky&sunOnly=1&single=1&converged=1&spp=64&seed=1&s.lightGridSource=1&s.lightGridFull=1",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T09:49:49.194Z",
+  "shots": [
+    {
+      "name": "nubis-noon",
+      "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-noon.png",
+      "report": {
+        "view": "nubis-noon",
+        "status": "sun noon: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            7779.132060790651,
+            150,
+            -1342.8788053376957
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.3008,
+            35.957,
+            33.1836
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 880.2999999970198
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 1,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 64,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9749999977648258,
+          "wallMs": 91.69999998807907,
+          "compileMs": 113.79999999701977,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 91
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 112
+      },
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-noon.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.013964919310787485,
+          0.013096697216646538,
+          0.012053102682241135
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 118,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-low",
+      "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-low.png",
+      "report": {
+        "view": "nubis-low",
+        "status": "sun low: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            625.8882536071255,
+            150,
+            -1711.5066273224638
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.4688,
+            29.7656,
+            23.7305
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 880.2999999970198
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 2,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9749999977648258,
+          "wallMs": 91.69999998807907,
+          "compileMs": 113.79999999701977,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 91
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 213
+      },
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-low.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.007613146298875412,
+          0.006370677772598962,
+          0.005035528127466225
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 218,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-backlit",
+      "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-backlit.png",
+      "report": {
+        "view": "nubis-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            8426.441728855087,
+            150,
+            -1748.1484755168858
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.4688,
+            29.7656,
+            23.7305
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 880.2999999970198
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 3,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9749999977648258,
+          "wallMs": 91.69999998807907,
+          "compileMs": 113.79999999701977,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 91
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 316
+      },
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-backlit.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.06922174993695485,
+          0.057916901300713,
+          0.04576316558678324
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 322,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-sunset",
+      "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-sunset.png",
+      "report": {
+        "view": "nubis-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            4900.488060946589,
+            150,
+            -511.80367748256504
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            26.6406,
+            14.8926,
+            6.3379
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 880.2999999970198
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 4,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 64,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0.9749999977648258,
+          "wallMs": 91.69999998807907,
+          "compileMs": 113.79999999701977,
+          "kernelBytes": 51390,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 91
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 415
+      },
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-sunset.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.015113417013134393,
+          0.00833858335804608,
+          0.003427085430464811
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 420,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-noon-centre",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 1474,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-noon-centre.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.013977447560626185,
+          0.013136439583936912,
+          0.012138600117371728
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 517,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d0.05-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 71,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d0.05-m0.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          2.1128852340374658,
+          79.7411154513889,
+          0.4092983839246962
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 527,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d0.05-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 84,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d0.05-m1.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.06741449926824619,
+          2.0461737793942705,
+          0.005426906082365248
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 539,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d0.3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 74,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d0.3-m0.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          2.3111632087632703,
+          67.19710503472223,
+          0.3426516363355849
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 549,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d0.3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 75,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d0.3-m1.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.2183844281000913,
+          2.0935080995969475,
+          0.02750085300869412
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 561,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d1-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 72,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d1-m0.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          2.3830506778999956,
+          59.63074652777778,
+          0.30487311681111656
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 570,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d1-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 73,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d1-m1.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.32085298075392427,
+          2.062922583557148,
+          0.08051311492919921
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 579,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 70,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d3-m0.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          2.5585064757946463,
+          56.80301649305556,
+          0.2892964850531684
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 590,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 69,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d3-m1.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.43053116011950704,
+          2.1287084597845873,
+          0.22373738606770832
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 599,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d10-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 75,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d10-m0.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 608,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-noon-d10-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 76,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-noon-d10-m1.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 620,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-low-centre",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 1475,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-low-centre.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.007648357697503848,
+          0.006432579514932715,
+          0.005149458343318353
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 714,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d0.05-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 75,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d0.05-m0.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          1.5714300218524617,
+          78.54052951388888,
+          0.4044083786010742
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 723,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d0.05-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 66,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d0.05-m1.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.0198431077439131,
+          1.5521170608655344,
+          0.005261717504925198
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 735,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d0.3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 75,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d0.3-m0.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          1.6477636460895235,
+          66.49329427083333,
+          0.332990837097168
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 744,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d0.3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 72,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d0.3-m1.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.11499965124427237,
+          1.533291268119485,
+          0.026858094533284506
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 756,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d1-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 72,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d1-m0.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          1.659396593062621,
+          55.04787326388889,
+          0.27750159581502276
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 765,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d1-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 80,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d1-m1.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.2099835237995204,
+          1.4499108537071799,
+          0.07336725870768229
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 774,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 76,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d3-m0.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          1.8126664242645105,
+          51.93211371527778,
+          0.2613001823425293
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 787,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 66,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d3-m1.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.3195059203480681,
+          1.4936786018537047,
+          0.20209817674424913
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 800,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d10-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 74,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d10-m0.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 809,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-low-d10-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 67,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-low-d10-m1.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 817,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-backlit-centre",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 2683,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-backlit-centre.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.04231322569850211,
+          0.03558666148895605,
+          0.02848788766966512
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 982,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d0.05-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 77,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d0.05-m0.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          6.755483173851131,
+          79.37663628472222,
+          0.40811150868733725
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 992,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d0.05-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 66,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d0.05-m1.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.06844514909666032,
+          6.689244828051112,
+          0.0053814535670810276
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1003,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d0.3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 63,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d0.3-m0.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          6.303000923578058,
+          67.2595095486111,
+          0.34190462112426756
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1013,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d0.3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 66,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d0.3-m1.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.2746504739364092,
+          6.030490487287753,
+          0.027416391372680662
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1022,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d1-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 65,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d1-m0.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          6.254714807826612,
+          60.434422743055556,
+          0.309154478708903
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1033,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d1-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 77,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d1-m1.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.40165183786716724,
+          5.855102758204254,
+          0.08128974066840278
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1044,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 78,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d3-m0.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          6.179465318519312,
+          57.62405381944444,
+          0.2927911779615614
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1053,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 73,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d3-m1.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.4978156810735042,
+          5.683654887308367,
+          0.22606050279405382
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1065,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d10-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 74,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d10-m0.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1074,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-backlit-d10-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 70,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-backlit-d10-m1.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1082,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-sunset-centre",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 1479,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/nubis-sunset-centre.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.01136766677386024,
+          0.006393174544080264,
+          0.0027610228510780467
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1176,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d0.05-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 69,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d0.05-m0.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          4.631003836347049,
+          78.76462239583333,
+          0.40629845089382594
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1186,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d0.05-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 71,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d0.05-m1.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.042737820757708204,
+          4.5897287782949086,
+          0.005374718772040473
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1195,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d0.3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 77,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d0.3-m0.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          4.795500633022231,
+          67.79973524305555,
+          0.3458647791544596
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1204,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d0.3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 64,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d0.3-m1.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.202688234616071,
+          4.594413472732219,
+          0.027818165885077583
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1216,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d1-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 76,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d1-m0.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          4.5751920291946995,
+          58.90590711805555,
+          0.302857608795166
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1229,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d1-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 71,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d1-m1.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.3305573252836863,
+          4.246130864870113,
+          0.0799407450358073
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1238,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d3-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 73,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d3-m0.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          4.659296625571119,
+          56.201571180555554,
+          0.2872288407219781
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1247,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d3-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 63,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d3-m1.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.43976885488463774,
+          4.221003307891855,
+          0.22263932122124566
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1258,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d10-m0",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 76,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d10-m0.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1267,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "probe-sunset-d10-m1",
+      "eval": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()",
+      "ms": 67,
+      "linear": {
+        "file": "work/captures/P1-1/sky/iso-gridsrc+full/probe-sunset-d10-m1.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0,
+          0,
+          0
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1275,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "reset",
+      "eval": "window.__clouds.setSettings({lightProbe: 0, sunAtCentre: 0, convergedSamples: 16})",
+      "ms": 0
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1,0 +1,12 @@
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/P1-1/parkouring/capture.json
+OK -> work/captures/P1-1/parkouring/seed2/capture.json
+parkouring seed1 46 s, seed2 30 s
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/P1-1/sky/capture.json
+OK -> work/captures/P1-1/sky/seed2/capture.json
+sky seed1 57 s, seed2 38 s
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/P1-1/stratus/capture.json
+OK -> work/captures/P1-1/stratus/seed2/capture.json
+stratus seed1 90 s, seed2 50 s
