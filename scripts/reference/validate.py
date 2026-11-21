@@ -52,6 +52,31 @@ def hg(g, c):
     return (1 - g * g) / (4 * math.pi * np.power(1 + g * g - 2 * g * c, 1.5))
 
 
+def draine(g, a, c):
+    return hg(g, c) * (1 + a * c * c) / (1 + a * (1 + 2 * g * g) / 3)
+
+
+def phase_eval(ph, c):
+    """Phase function value (1/sr) at cos(theta) between the light's and the scattered ray's propagation directions."""
+    t = ph.get("type", "hg")
+    if t == "hg":
+        return hg(ph.get("g", 0.0), c)
+    if t == "draine":
+        return draine(ph["g"], ph["alpha"], c)
+    if t == "mix":
+        tot = sum(l["weight"] for l in ph["lobes"])
+        return sum(l["weight"] / tot * phase_eval(l, c) for l in ph["lobes"])
+    if t == "mie":
+        # Jendersie & d'Eon 2023 fit for water droplets, 5 um <= d <= 50 um (what Blender's MIE phase implements).
+        d = ph["diameter"]
+        g_hg = math.exp(-0.0990567 / (d - 1.67154))
+        g_d = math.exp(-2.20679 / (d + 3.91029) - 0.428934)
+        alpha = math.exp(3.62489 - 8.29288 / (d + 5.52825))
+        w_d = math.exp(-0.599085 / (d - 0.641583) - 0.665888)
+        return (1 - w_d) * hg(g_hg, c) + w_d * draine(g_d, alpha, c)
+    raise ValueError(t)
+
+
 def single_scatter_expected(m, e):
     """Closed form for a laterally infinite slab [y0, y1] of constant sigma_t, camera below, sun above, black sky."""
     cam = m["camera"]
@@ -68,8 +93,7 @@ def single_scatter_expected(m, e):
     a = st * (1 / mv - 1 / ms)
     # L = E p sigma_s / mu_v * exp(-sigma_t h / mu_s) * int_0^h exp(-a z) dz
     integ = np.where(np.abs(a) > 1e-9, (1 - np.exp(-a * h)) / np.where(np.abs(a) > 1e-9, a, 1), h)
-    ph = e["phase"]
-    p = hg(ph.get("g", 0.0), dirs @ s)
+    p = phase_eval(e["phase"], dirs @ s)
     L = (p * ss_ / mv * np.exp(-st * h / ms) * integ)[..., None] * E
     return L.mean(2)
 

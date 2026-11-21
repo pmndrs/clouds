@@ -104,8 +104,14 @@ def main():
         ("ss-iso-fwd", {"type": "hg", "g": 0.0}, 1.0, sun_dir(60, 0), [0, 0, 0], [math.cos(math.radians(50)), math.sin(math.radians(50)), 0]),
         ("ss-hg08-side", {"type": "hg", "g": 0.8}, 0.5, sun_dir(40, 180), [0, 0, 0], [math.cos(math.radians(50)), math.sin(math.radians(50)), 0]),
     ]
-    for name, phase, albedo, s, pos, look in cases:
-        for mb in (1, 512):
+    look50 = [math.cos(math.radians(50)), math.sin(math.radians(50)), 0]
+    one = [  # other phase functions, single scatter only, scattering angles about 15 to 35 degrees across the frame
+        ("ss-mix-25", {"type": "mix", "lobes": [{"weight": 0.6, "type": "hg", "g": 0.2}, {"weight": 0.4, "type": "hg", "g": 0.85}]}, 1.0, sun_dir(75, 0), [0, 0, 0], look50),
+        ("ss-draine-25", {"type": "draine", "g": 0.7, "alpha": 1.0}, 1.0, sun_dir(75, 0), [0, 0, 0], look50),
+        ("ss-mie-25", {"type": "mie", "diameter": 20.0}, 1.0, sun_dir(75, 0), [0, 0, 0], look50),
+    ]
+    for name, phase, albedo, s, pos, look in cases + one:
+        for mb in ((1, 512) if (name, phase, albedo, s, pos, look) in cases else (1,)):
             write(root, f"{name}-b{mb}", {
                 "grid": grid_block(dims, origin, v, sig, slab),
                 "medium": {"albedo": albedo, "phase": phase},

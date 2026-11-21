@@ -1,0 +1,34 @@
+{
+  "file": "density.f32",
+  "dims": [
+    329,
+    173,
+    476
+  ],
+  "order": "x-fastest",
+  "voxel": 4.0,
+  "origin": [
+    -658.0,
+    1496.0,
+    -952.0
+  ],
+  "extinctionScale": 1.0,
+  "source": {
+    "vdb": "/Users/dex/Developer/WebGPUClouds/artifacts/research/vdbs/CloudPack/CloudPackVDB/cloud_02_variant_0000.vdb",
+    "grid": "density",
+    "activeBox": [
+      [
+        18,
+        103,
+        11
+      ],
+      [
+        344,
+        576,
+        181
+      ]
+    ],
+    "up": "z"
+  },
+  "densityMax": 0.728515625
+}
