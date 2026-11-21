@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 544;
+export const FRAME_UNIFORM_BYTES = 576;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -69,6 +69,10 @@ struct Frame {
   // toward the sun; 48 = before P1.1b), y = in-line taps beyond the first 16 m (1 = the one 16-48 m tap before P1.1b), z = directAlbedo (the
   // single-scattering albedo on the direct term; 1 = none), w = sunShadowInlineJitter (1 = the ladder's taps jittered, 0 = midpoints).
   sunShadow: vec4<f32>,
+  // P1.2a 'fit' lighting model (CloudSettings.lightingModel 'fit', fit* settings): x = fitAlbedo, y = fitG, z = fitMs, w = fitK.
+  fit: vec4<f32>,
+  // P1.2a: x = fitAmbient, y = 1 when the 'fit' model is selected, zw 0.
+  fit2: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

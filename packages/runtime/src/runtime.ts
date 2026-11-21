@@ -258,9 +258,11 @@ export interface CloudSettings {
   /**
    * X3: the lighting model of the voxel march and the NVDF sky layer. 'nubis' (default): the N3 model (SDF depth, in-scatter profile, glow,
    * deep octaves, C1 low-sun handoff). 'octave': the per-sample Frostbite / Takram model (Wrenninge octaves, two-lobe HG, sky irradiance
-   * along a height gradient, powder; LIGHTING_WGSL cloudOctaveLight). The procedural model has its own (ProceduralSettings.lightingModel).
+   * along a height gradient, powder; LIGHTING_WGSL cloudOctaveLight). P1.2a 'fit': a tiny physical model (direct HG exp(-tau), an isotropic
+   * multiple-scattering term with diffusion falloff, an ambient split by the open-sky share; LIGHTING_WGSL cloudFitLight, fit* settings), voxel
+   * march only. The procedural model has its own (ProceduralSettings.lightingModel).
    */
-  lightingModel: 'nubis' | 'octave';
+  lightingModel: 'nubis' | 'octave' | 'fit';
   /**
    * V2: extinction (1/m) per unit of VDB density for a direct volume (GpuCloudVolume.direct, scripts/vdb/vdb_to_direct.py), which is marched
    * as-is (native resolution, trilinear, no profile / erosion / up-rez) with the same lighting; it replaces `densityScale` while such a volume
@@ -478,6 +480,16 @@ export interface CloudSettings {
   sunShadowInlineJitter: number;
   /** Single-scattering albedo on the direct (sun) term: 1 = none (before P1.1b); clouds 0.99+ (the path tracer's medium is 0.99). */
   directAlbedo: number;
+  /** P1.2a 'fit' model: single-scattering albedo on every term. */
+  fitAlbedo: number;
+  /** P1.2a 'fit' model: Henyey-Greenstein g of the direct term. */
+  fitG: number;
+  /** P1.2a 'fit' model: weight of the isotropic multiple-scattering term (sun albedo fitMs / 4 pi / (1 + fitK tau)). */
+  fitMs: number;
+  /** P1.2a 'fit' model: the diffusion falloff per unit optical depth (ms term and the open-sky share of the ambient). */
+  fitK: number;
+  /** P1.2a 'fit' model: gain on the ambient term. */
+  fitAmbient: number;
 }
 
 /**
@@ -904,6 +916,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
     sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
+    fitAlbedo: 0.99, fitG: 0.8, fitMs: 3.0, fitK: 0.15, fitAmbient: 1.0,   // P1.2a 'fit' model constants (used only with lightingModel 'fit')
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1490,6 +1503,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       f[129] = Math.max(0, settings.lightProbe); f[130] = settings.lightProbeMode; f[131] = settings.sunAtCentre;
       // P1.1b sunShadow: in-line reach and taps, the direct term's albedo (Frame.sunShadow).
       f[132] = Math.max(48, settings.sunShadowInlineReach); f[133] = Math.max(1, Math.round(settings.sunShadowInlineSamples)); f[134] = Math.min(1, Math.max(0, settings.directAlbedo)); f[135] = settings.sunShadowInlineJitter;
+      // P1.2a 'fit' lighting model (Frame.fit, Frame.fit2).
+      f[136] = settings.fitAlbedo; f[137] = settings.fitG; f[138] = settings.fitMs; f[139] = settings.fitK; f[140] = settings.fitAmbient; f[141] = settings.lightingModel === 'fit' ? 1 : 0; f[142] = 0; f[143] = 0;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;
