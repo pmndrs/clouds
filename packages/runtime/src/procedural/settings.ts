@@ -546,6 +546,11 @@ export interface HzdShape {
   edgeUpStep: number;
   /** P2.5d: the coarse-density drop over edgeUpStep that makes a surface fully upward-facing (half of it: 0.5 + drop / range). */
   edgeUpRange: number;
+  /** P2.5e (debug, to test the factors one at a time): a bit mask of what the edge character does. 1 crisp noise kind (billowy by c),
+   *  2 crisp erosion strength (edgeCrispErosion by c), 4 crisp hardness (cut and gain by c), 8 crisp lobes (edgeLobes by c), 16 the soft
+   *  branch (wispy noise, edgeSoftErosion, ^ edgeSoftPow, no lobes at low c). A factor that is off leaves its part exactly as with the
+   *  feature off. 31 = all (the P2.5d behaviour). */
+  edgeFactors: number;
   // ---- end P2.5a ----
   ndf: HzdNdfSettings;
 }
@@ -762,12 +767,13 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
 export const HZD_EDGE_DEFAULTS = {
   edgeCharacter: 0, edgeTopLo: 0.25, edgeTopHi: 0.7, edgeProbe: 1200, edgeLead: 1, edgeLeadRange: 0.25, edgeSoftErosion: 1.4, edgeCrispErosion: 1, edgeSoftPow: 1.6, edgeCrispPow: 0.55,
   edgeCrispCut: 0.12, edgeCrispGain: 3, edgeLobes: 0.6,
-  edgeTopMode: 1, edgeUpStep: 80, edgeUpRange: 0.15,
+  edgeTopMode: 1, edgeUpStep: 80, edgeUpRange: 0.15, edgeFactors: 31,
 } satisfies Partial<HzdShape>;
 /** P2.5a: the edge character block (hzEdge .. hzEdge4 in density.wgsl.ts). */
 export function packHzdEdge(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_EDGE_OFFSET;
-  out.set([hz.edgeCharacter > 0.5 ? 1 : 0, hz.edgeTopLo, Math.max(hz.edgeTopHi, hz.edgeTopLo + 1e-3), Math.max(hz.edgeProbe, 1)], o);
+  // P2.5e: x = 1 + the factor mask when on (0 = off), so the mask rides in the on flag.
+  out.set([hz.edgeCharacter > 0.5 ? 1 + (Math.round(hz.edgeFactors ?? 31) & 31) : 0, hz.edgeTopLo, Math.max(hz.edgeTopHi, hz.edgeTopLo + 1e-3), Math.max(hz.edgeProbe, 1)], o);
   out.set([Math.min(Math.max(hz.edgeLead, -1), 1), Math.max(hz.edgeLeadRange, 1e-3), Math.max(hz.edgeSoftErosion, 0), Math.max(hz.edgeCrispErosion, 0)], o + 4);
   out.set([Math.max(hz.edgeSoftPow, 0.05), Math.max(hz.edgeCrispPow, 0.05), Math.min(Math.max(hz.edgeCrispCut, 0), 0.95), Math.max(hz.edgeCrispGain, 0)], o + 8);
   out.set([Math.max(hz.edgeLobes, 0), hz.edgeTopMode > 0.5 ? 1 : 0, Math.max(hz.edgeUpStep, 1), Math.max(hz.edgeUpRange, 1e-3)], o + 12);

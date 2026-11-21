@@ -305,10 +305,15 @@ fn hzdEdgeCrisp(xz: vec2<f32>, h: f32, up: f32) -> f32 {
 // thin ramp into a halo on the tops). Ours.
 fn hzdEdgeShape(d: f32, c: f32) -> f32 {
   let x = saturate(d);
-  if (P.hzEdge3.w <= 0.0) { return pow(x, mix(P.hzEdge3.x, P.hzEdge3.y, c)); }
-  let hard = saturate((x - P.hzEdge3.z) / (1.0 - P.hzEdge3.z) * P.hzEdge3.w);
-  return mix(pow(x, P.hzEdge3.x), hard, c);
+  // P2.5e: factor 4 = the crisp hardness, 16 = the soft shaping; a factor off leaves its side as the feature off (x).
+  let softP = select(1.0, P.hzEdge3.x, hzdEdgeBit(16u));
+  if (P.hzEdge3.w <= 0.0) { return pow(x, mix(softP, select(1.0, P.hzEdge3.y, hzdEdgeBit(4u)), c)); }
+  var hard = x;
+  if (hzdEdgeBit(4u)) { hard = saturate((x - P.hzEdge3.z) / (1.0 - P.hzEdge3.z) * P.hzEdge3.w); }
+  return mix(pow(x, softP), hard, c);
 }
+// P2.5e (debug): the edge character's factor mask (settings edgeFactors; 1 noise, 2 erosion strength, 4 hardness, 8 lobes, 16 soft branch).
+fn hzdEdgeBit(b: u32) -> bool { return ((u32(P.hzEdge.x + 0.5) - 1u) & b) != 0u; }
 // P2.5d: the coarse density (before the detail erosion; hzdMainSample's coarse) at altitude alt2 in the same column: the shape read (same
 // read kind and lod), the height gradient (base lumps included), the coverage remap, the coverage and base fades. The column's NDF fields
 // (n, cov0, bottom, top) are reused, not re-read. Only for the edge character's facing (one extra shape read on full detail samples). Ours.
@@ -745,13 +750,20 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     let prof = saturate(d);
     var T = hzdN3Type(n.topType + P.hzCov.y, h);
     // P2.5a: the type follows the crispness instead of the height (billowy toward crisp, wispy toward soft); stratus stays partly wispy.
-    if (edgeOn) { T = crisp * mix(P.hzN3.w, 1.0, saturate(2.0 * (n.topType + P.hzCov.y))); }
+    // P2.5e: each side only when its factor is on (1 crisp noise, 16 soft); off = the feature-off type on that side.
+    if (edgeOn) {
+      let tCrisp = select(T, mix(P.hzN3.w, 1.0, saturate(2.0 * (n.topType + P.hzCov.y))), hzdEdgeBit(1u));
+      T = mix(select(T, 0.0, hzdEdgeBit(16u)), tCrisp, crisp);
+    }
     var n3 = hzdN3Noise(qDetail, h, footprint, t, prof, T);
     if (swirlW > 0.01) { n3 = mix(n3, hzdN3Noise(qDetailB, h, footprint, t, prof, T), swirlW); }
     var comp = saturate(n3 * P.hzN3.z * fade);
-    if (edgeOn) { comp = saturate(n3 * P.hzN3.z * fade * mix(P.hzEdge2.z, P.hzEdge2.w, crisp)); }
+    if (edgeOn) {
+      let eK = mix(select(1.0, P.hzEdge2.z, hzdEdgeBit(16u)), select(1.0, P.hzEdge2.w, hzdEdgeBit(2u)), crisp);
+      comp = saturate(n3 * P.hzN3.z * fade * eK);
+    }
     // P2.5b edge lobes: the H7 lobe rung at edgeLobes x c (rounded middle-size lobes where crisp), added to the erosion.
-    if (edgeOn && P.hzEdge4.x > 0.0) {
+    if (edgeOn && P.hzEdge4.x > 0.0 && hzdEdgeBit(8u)) {
       let lc = saturate(cov / max(P.hzShelf.w, 1e-3));
       comp = saturate(comp + hzdLobeNoise(qDetail, footprint, t) * P.hzEdge4.x * crisp * fade * lc * lc);
     }
@@ -780,11 +792,12 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     var modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
     // F1 S7: a storm's upper 40 % is glaciated: fibrous (wispy) instead of cauliflower (photos §4).
     // P2.5a: billowy toward crisp, wispy toward soft (instead of by height).
-    if (edgeOn) { modifier = mix(hfFbm, 1.0 - hfFbm, crisp); }
+    // P2.5e: each side only when its factor is on (1 crisp noise, 16 soft).
+    if (edgeOn) { modifier = mix(select(modifier, hfFbm, hzdEdgeBit(16u)), select(modifier, 1.0 - hfFbm, hzdEdgeBit(1u)), crisp); }
     if (hzdStormW > 0.0) { modifier = mix(modifier, hfFbm, hzdStormW * smoothstep(0.55, 0.75, h)); }
     // H7: the erosion strength rises from P.hzSkirt.w at the base to erosionStrength at the wispy switch (wispy bottoms erode deeper; gp7 one value).
     var strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
-    if (edgeOn) { strength *= mix(P.hzEdge2.z, P.hzEdge2.w, crisp); }
+    if (edgeOn) { strength *= mix(select(1.0, P.hzEdge2.z, hzdEdgeBit(16u)), select(1.0, P.hzEdge2.w, hzdEdgeBit(2u)), crisp); }
     // F1 S7: the anvil plate erodes at half strength (smooth glaciated top, photos §4; ours).
     if (hzdStormW > 0.0) { strength *= 1.0 - 0.5 * hzdStormW * smoothstep(0.65, 0.8, h); }
     // H7 lobe rung: the step between the body (shape noise, 0.6-1.2 km) and the detail grain (75 m cells) that the photos have and we lacked
@@ -799,7 +812,8 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       // (world-anchored lobes: a small body shows fewer of them, frog F1).
       let lc = saturate(cov / max(P.hzShelf.w, 1e-3));
       var lobeK = P.hzLobe.y * smoothstep(P.hzExtra.z, max(P.hzLobe.z, P.hzExtra.z + 1e-3), h);
-      if (edgeOn) { lobeK = P.hzEdge4.x * crisp; }
+      // P2.5e: 8 crisp lobes, 16 soft (none at low c); off = the feature-off lobeK on that side.
+      if (edgeOn) { lobeK = mix(select(lobeK, 0.0, hzdEdgeBit(16u)), select(lobeK, P.hzEdge4.x, hzdEdgeBit(8u)), crisp); }
       lobe = hzdLobeNoise(qDetail, footprint, t) * lobeK * fade * lc * lc;
     }
     if (P.hzExtra.w > 0.5) {
