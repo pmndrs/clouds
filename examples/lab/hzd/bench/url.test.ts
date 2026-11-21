@@ -80,4 +80,12 @@ describe('the React bench URL', () => {
     applySettingOverrides(q('c_renderLevel=laptop'), src);
     expect(src.c.renderLevel).toBe('laptop');
   });
+
+  it('applies a layout preset (P2.3a) under explicit keys', () => {
+    const src = { ...sources(), ndf: { ...sources().ndf, footprint: 0, gateLo: -0.2 }, hzd: { ...sources().hzd, heightFromCoverage: 0.4 } };
+    applySettingOverrides(q('layout=scattered&hzn_gateLo=-0.1'), src);
+    expect(src.ndf.footprint).toBe(1);
+    expect(src.hzd.heightFromCoverage).toBe(0.85);
+    expect(src.ndf.gateLo).toBe(-0.1);
+  });
 });
