@@ -32,6 +32,8 @@ if (flag('help')) {
 --eval-timeout <s>  per page call (bookmark, settle, report) in seconds (default 45; a path-traced settle can take minutes)
 --evals <file.json> after the shots, evaluate [{ name, expr, linear? }] in the page in order: <out>/<name>.json (and .pfm with linear:
                     the expression returns a readLinear-style summary and the page's linearChunk serves the floats)
+--export <dir>      after the shots (and evals), save the page's window.__clouds.exportManifest() (reference-pt/): manifest.json and
+                    the files it names (density.f32, sky.pfm), for scripts/reference/cycles_render.py
 --linear            also save each shot's linear frame (page's window.__clouds.readLinear(), e.g. reference-pt/) as <shot>.pfm:
                     float32 scene radiance before exposure and tone mapping (PF = RGB; Pf = one channel for alpha masks)`);
   process.exit(0);
@@ -151,6 +153,22 @@ try {
       report.shots.push(entry);
       console.log(`eval ${e.name} (${entry.ms} ms) -> ${join(out, e.name + '.json').slice(root.length + 1)}`);
     }
+  }
+  // --export <dir>: the reference page's scene as a scripts/reference/ manifest plus its files.
+  const exportDir = opt('export');
+  if (exportDir) {
+    const dir = resolve(root, exportDir);
+    mkdirSync(dir, { recursive: true });
+    const { manifest, files } = await eval_(`window.__clouds.exportManifest()`);
+    for (const [name, size] of Object.entries(files)) {
+      const CHUNK = 1 << 20, parts = [];
+      for (let off = 0; off < size; off += CHUNK) parts.push(Buffer.from(await eval_(`window.__clouds.exportChunk(${JSON.stringify(name)}, ${off}, ${CHUNK})`), 'base64'));
+      const bytes = Buffer.concat(parts);
+      if (bytes.length !== size) throw new Error(`export ${name}: got ${bytes.length} of ${size} bytes`);
+      writeFileSync(join(dir, name), bytes);
+    }
+    writeFileSync(join(dir, 'manifest.json'), JSON.stringify(manifest, null, 2));
+    console.log(`exported ${Object.keys(files).join(', ')} + manifest.json -> ${dir.slice(root.length + 1)}`);
   }
   for (const e of cdp.events) {
     if (e.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(e.params.type)) report.console.push(`${e.params.type}: ${e.params.args.map(a => a.value ?? a.description).join(' ')}`);

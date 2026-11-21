@@ -15,6 +15,10 @@
 // Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave | alpha | rtalpha, sun noon | low | backlit | sunset.
 // URL: ?cloud=parkouring &view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35 &seed=1
 //      &distance= &height= (override the cloud's camera ring)
+// P0.6 (Review section of the panel; each also a URL parameter): &ptTest=furnace|absorber (the PT medium checks: no sun, a uniform sky of
+//      radiance 1; furnace = albedo 1, so every pixel must read 1; absorber = albedo 0, so each pixel reads the transmittance),
+//      &majorant=brick|global (the PT's delta-tracking majorant), &extScale=1 (multiplies the card's extinction), &alphaFilter=nearest|trilinear.
+//      window.__clouds.exportManifest() writes the current frame as a scripts/reference/ manifest (capture.mjs --export <dir> saves it).
 // P0.3: window.__clouds.readLinear() reads the current view back as linear scene radiance (float32 RGBA, before exposure and ACES):
 // the PT accumulator / samples, the runtime's composite (scene HDR target * transmittance + cloud), or the opacity masks. See linear.ts and
 // scripts/gpu/capture.mjs --linear (saves PFM next to each screenshot).
@@ -58,7 +62,15 @@ const settings = {
   maxDepth: num('maxDepth', 512),
   exposure: num('exposure', 0.35),
   seed: num('seed', 1),
+  extScale: num('extScale', 1),
+  majorant: (query.get('majorant') === 'global' ? 'global' : 'brick') as 'brick' | 'global',
 };
+// P0.6: the PT medium checks (see the header). 'off' is the card.
+const PT_TESTS = ['off', 'furnace', 'absorber'] as const;
+type PtTest = (typeof PT_TESTS)[number];
+const PT_TEST: PtTest = (PT_TESTS as readonly string[]).includes(query.get('ptTest') ?? '') ? (query.get('ptTest') as PtTest) : 'off';
+/** A uniform sky of radiance 1 in every channel (the furnace and absorber light). */
+const uniformSky = (): SkyBake => ({ env: { width: 64, height: 32, channels: 4, data: new Float32Array(64 * 32 * 4).fill(1) }, sun: [0, 0, 0], ambientUp: [1, 1, 1], ambientDown: [1, 1, 1], envUp: [1, 1, 1], envDown: [1, 1, 1] });
 const state: { renderer: RendererName; sun: SunName } = { renderer: 'pt', sun: 'noon' };
 {
   const [r, s] = (query.get('view') ?? 'pt-noon').split('-');
@@ -111,7 +123,8 @@ try {
   await pt.init(ptCanvas);
   pt.maxDepth = settings.maxDepth;
   pt.seed = settings.seed;
-  pt.alphaFilter = DEF.alphaFilter;
+  pt.alphaFilter = query.get('alphaFilter') === 'nearest' || query.get('alphaFilter') === 'trilinear' ? (query.get('alphaFilter') as 'nearest' | 'trilinear') : DEF.alphaFilter;
+  pt.majorant = settings.majorant;
 
   const resize = () => {
     renderer.setPixelRatio(1);
@@ -190,8 +203,8 @@ try {
       grids.set(key, grid);
     }
     const sd = skyBridge.values.sunDirection;
-    const sceneParams = { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: skyNow };
-    const medium = { extinction: card.ptExtinction(), albedo: settings.albedo, g: settings.g };
+    const sceneParams = PT_TEST === 'off' ? { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: skyNow } : { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: uniformSky(), noSun: true };
+    const medium = { extinction: card.ptExtinction() * settings.extScale, albedo: PT_TEST === 'furnace' ? 1 : PT_TEST === 'absorber' ? 0 : settings.albedo, g: settings.g };
     if (grid !== gridNow || !pt.kernel || pt.medium.extinction !== medium.extinction) {
       status = `sun ${sun}: PT kernel`;
       await pt.setMedium(grid, medium, sceneParams);
@@ -268,13 +281,24 @@ try {
   const sppInput = Object.assign(document.createElement('input'), { type: 'number', min: '1', max: '65536', value: String(settings.spp) });
   sppInput.onchange = () => { settings.spp = Math.max(1, Number(sppInput.value) || 1); void ptLoop(); };
   sppLabel.appendChild(sppInput); panel.appendChild(sppLabel);
+  // P0.6 Review: the PT medium checks (each reloads the page with its URL parameter, as the cloud select does).
+  const review = document.createElement('div'); review.className = 'row'; review.append('Review: PT test ');
+  const reload = (k: string, v: string) => { const q = new URLSearchParams(location.search); q.set(k, v); q.set('view', `${state.renderer}-${state.sun}`); location.search = q.toString(); };
+  const select = (key: string, options: readonly string[], value: string) => {
+    const el = document.createElement('select');
+    for (const v of options) { const o = document.createElement('option'); o.value = o.textContent = v; el.append(o); }
+    el.value = value; el.onchange = () => reload(key, el.value); return el;
+  };
+  review.append(select('ptTest', PT_TESTS, PT_TEST), ' majorant ', select('majorant', ['brick', 'global'], settings.majorant), ' ext x ',
+    select('extScale', ['1', '0.3333333'], String(settings.extScale) === '1' ? '1' : '0.3333333'), ' depth ', select('maxDepth', ['512', '4096'], String(settings.maxDepth)));
+  panel.appendChild(review);
   function syncPanel() { for (const [k, b] of buttons) b.classList.toggle('on', k === `${state.renderer}-${state.sun}`); }
   function updateHud() {
     const s = sunNow();
     hud.textContent = [
       `PT1 reference  cloud ${CLOUD}  view ${state.renderer}-${state.sun}  [${status}]`,
       `sun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}  dir ${s.map(v => v.toFixed(2)).join(', ')}`,
-      `PT ${pt.samples}/${settings.spp} spp  ${pt.width}x${pt.height}  ${pt.passMs.toFixed(0)} ms/pass  albedo ${settings.albedo} g ${settings.g} ext ${card.ptExtinction().toPrecision(4)}/m per unit  maxDepth ${settings.maxDepth}`,
+      `${PT_TEST === 'off' ? '' : `PT TEST ${PT_TEST} (no sun, sky 1)  `}majorant ${pt.majorant}  PT ${pt.samples}/${settings.spp} spp  ${pt.width}x${pt.height}  ${pt.passMs.toFixed(0)} ms/pass  albedo ${pt.medium.albedo} g ${settings.g} ext ${pt.medium.extinction.toPrecision(4)}/m per unit  maxDepth ${settings.maxDepth}`,
       gridNow ? `grid ${gridNow.resolution.join('x')} @ ${gridNow.voxel} m  max ${gridNow.densityMax.toFixed(3)}  occ ${(gridNow.occupancy * 100).toFixed(1)}%  bake ${gridNow.ms.toFixed(0)} ms` : 'grid -',
       skyNow ? `sun E ${skyNow.sun.map(v => v.toFixed(2)).join(' ')}  sky up ${skyNow.ambientUp.map(v => v.toFixed(3)).join(' ')} (map ${skyNow.envUp.map(v => v.toFixed(3)).join(' ')})` : '',
     ].join('\n');
@@ -291,7 +315,8 @@ try {
       sun: { elevationDeg: sky.sunElevation, azimuthDeg: sky.sunAzimuth, direction: round(sunNow()), timeOfDay: SUNS[state.sun].time, ring: SUNS[state.sun].ring },
       sky: skyNow && { sunIrradiance: round(skyNow.sun), ambientUp: round(skyNow.ambientUp), ambientDown: round(skyNow.ambientDown), envMapUp: round(skyNow.envUp), envMapDown: round(skyNow.envDown) },
       grid: gridNow && { resolution: gridNow.resolution, voxel: gridNow.voxel, min: gridNow.min, max: gridNow.max, densityMax: gridNow.densityMax, occupancy: gridNow.occupancy, bakeMs: gridNow.ms },
-      pt: { samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
+      ptTest: PT_TEST,
+      pt: { majorant: pt.majorant, extScale: settings.extScale, samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
       runtime: { quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
       card: { def: DEF, cameraRing: { distance: CAMERA_DISTANCE, height: CAMERA_HEIGHT }, ...card.describe() },
       exposure: settings.exposure, frames: frame,
@@ -376,6 +401,64 @@ try {
     };
   }
   contract.frameScene = () => frameScene(false);
+
+  /**
+   * P0.6: the current frame as a scripts/reference/ manifest (README "What the exporting side must write"): `manifest.json`, the grid as raw
+   * float32 (`density.f32`, x fastest, sigma_t = density * extinctionScale) and the sky as an equirect PFM (`sky.pfm`, RGB, bottom row first),
+   * or a uniform sky in a PT test. The PT clips its medium at the grid box and Cycles does not, so a grid with density on a face gets a zero
+   * margin of one voxel (the origin moves out by one voxel; reported as `padded`). Returns the manifest and the file sizes; capture.mjs
+   * --export <dir> pulls each file with exportChunk(name, offset, length) (base64) and writes them next to the manifest.
+   */
+  const exportFiles = new Map<string, Uint8Array>();
+  contract.exportManifest = async () => {
+    await busy;
+    const grid = gridNow!, cam = camNow!, sd = skyBridge.values.sunDirection;
+    const [nx, ny, nz] = grid.resolution;
+    let faceVoxels = 0;
+    for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      if (i > 0 && i < nx - 1 && j > 0 && j < ny - 1 && k > 0 && k < nz - 1) { i = nx - 2; continue; }
+      if (grid.density[i + nx * (j + ny * k)] > 0) faceVoxels++;
+    }
+    let density = grid.density, dims: V3 = [nx, ny, nz], origin: V3 = [...grid.min];
+    if (faceVoxels > 0) {
+      dims = [nx + 2, ny + 2, nz + 2];
+      density = new Float32Array(dims[0] * dims[1] * dims[2]);
+      for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) density.set(grid.density.subarray(nx * (j + ny * k), nx * (j + ny * k) + nx), 1 + dims[0] * (j + 1 + dims[1] * (k + 1)));
+      origin = [origin[0] - grid.voxel, origin[1] - grid.voxel, origin[2] - grid.voxel];
+    }
+    exportFiles.clear();
+    exportFiles.set('density.f32', new Uint8Array(density.buffer, density.byteOffset, density.byteLength));
+    let sky: Record<string, unknown> = { uniform: [1, 1, 1] };
+    if (PT_TEST === 'off') {
+      const env = skyNow!.env, w = env.width, h = env.height;
+      const header = new TextEncoder().encode(`PF\n${w} ${h}\n-1.0\n`);
+      const body = new Float32Array(w * h * 3);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let c = 0; c < 3; c++) body[((h - 1 - y) * w + x) * 3 + c] = env.data[(y * w + x) * 4 + c];
+      const pfm = new Uint8Array(header.length + body.byteLength);
+      pfm.set(header, 0); pfm.set(new Uint8Array(body.buffer), header.length);
+      exportFiles.set('sky.pfm', pfm);
+      sky = { file: 'sky.pfm', mapping: 'equirect-rowtop+Y-u=atan2(x,-z)/2pi', scale: 1 };
+    }
+    const manifest = {
+      notes: `WebGPUClouds reference-pt export: cloud ${CLOUD}, view ${state.renderer}-${state.sun}, ptTest ${PT_TEST}, majorant ${pt.majorant}`,
+      source: { cloud: CLOUD, view: `${state.renderer}-${state.sun}`, ptTest: PT_TEST, majorant: pt.majorant, extScale: settings.extScale, padded: faceVoxels > 0, faceVoxels, densityMax: grid.densityMax },
+      grid: { file: 'density.f32', dims, order: 'x-fastest', voxel: grid.voxel, origin, extinctionScale: pt.medium.extinction },
+      medium: { albedo: pt.medium.albedo, phase: { type: 'hg', g: pt.medium.g } },
+      sun: PT_TEST === 'off' ? { direction: [sd[0], sd[1], sd[2]], irradiance: [...skyNow!.sun], angularRadius: 0 } : null,
+      sky,
+      ground: null,
+      camera: { position: cam.position, target: cam.target, up: [0, 1, 0], fovY: FOV_Y, width: pt.width, height: pt.height },
+      render: { spp: settings.spp, maxBounces: pt.maxDepth, seed: pt.seed, russianRoulette: false },
+    };
+    return { manifest, files: Object.fromEntries([...exportFiles].map(([k, v]) => [k, v.byteLength])) };
+  };
+  contract.exportChunk = async (name: string, offset: number, length: number) => {
+    const bytes = exportFiles.get(name);
+    if (!bytes) throw new Error(`exportManifest() first (no ${name})`);
+    const part = bytes.subarray(offset, Math.min(bytes.byteLength, offset + length));
+    const url: string = await new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result as string); r.onerror = () => reject(r.error); r.readAsDataURL(new Blob([part as Uint8Array<ArrayBuffer>])); });
+    return url.slice(url.indexOf(',') + 1);
+  };
   (contract as Record<string, unknown>).__frameSceneData = () => frameScene(true);
 
   /**
