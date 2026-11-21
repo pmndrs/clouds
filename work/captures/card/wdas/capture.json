@@ -1,0 +1,3254 @@
+{
+  "url": "http://127.0.0.1:5391/reference-pt/?clean=1&cloud=wdas&spp=1024&seed=1",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-21T08:55:44.687Z",
+  "shots": [
+    {
+      "name": "nubis-noon",
+      "file": "work/captures/card/wdas/nubis-noon.png",
+      "report": {
+        "view": "nubis-noon",
+        "status": "sun noon: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1636.5660303953257,
+            150,
+            2975.560597331152
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.1445,
+            35.6445,
+            32.5195
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 1,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 159
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/nubis-noon.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6830274393509413,
+          1.1340739049982707,
+          2.0706028339705274
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 166,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-noon",
+      "file": "work/captures/card/wdas/octave-noon.png",
+      "report": {
+        "view": "octave-noon",
+        "status": "sun noon: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1636.5660303953257,
+            150,
+            2975.560597331152
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.1445,
+            35.6445,
+            32.5195
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 1,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 297
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/octave-noon.pfm",
+        "view": "octave-noon",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.7030941755174879,
+          1.1541003330791946,
+          2.092381925334064
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 304,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "alpha-noon",
+      "file": "work/captures/card/wdas/alpha-noon.png",
+      "report": {
+        "view": "alpha-noon",
+        "status": "sun noon: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1636.5660303953257,
+            150,
+            2975.560597331152
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.1445,
+            35.6445,
+            32.5195
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 1,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 348
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/alpha-noon.pfm",
+        "view": "alpha-noon",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.1434997929641718,
+          0.1434997929641718,
+          0.1434997929641718
+        ],
+        "meta": {
+          "source": "bake opacity 1 - exp(-tau), trilinear"
+        }
+      }
+    },
+    {
+      "name": "rtalpha-noon",
+      "file": "work/captures/card/wdas/rtalpha-noon.png",
+      "report": {
+        "view": "rtalpha-noon",
+        "status": "sun noon: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1636.5660303953257,
+            150,
+            2975.560597331152
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.1445,
+            35.6445,
+            32.5195
+          ],
+          "ambientUp": [
+            0.3871,
+            0.774,
+            1.6883
+          ],
+          "ambientDown": [
+            1.147,
+            1.0692,
+            0.9733
+          ],
+          "envMapUp": [
+            0.385,
+            0.7685,
+            1.6739
+          ],
+          "envMapDown": [
+            1.1306,
+            1.0541,
+            0.9597
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 1,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 474
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/rtalpha-noon.pfm",
+        "view": "rtalpha-noon",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.1435160298544603,
+          0.1435160298544603,
+          0.1435160298544603
+        ],
+        "meta": {
+          "source": "runtime 1 - transmittance",
+          "frame": 480
+        }
+      }
+    },
+    {
+      "name": "nubis-low",
+      "file": "work/captures/card/wdas/nubis-low.png",
+      "report": {
+        "view": "nubis-low",
+        "status": "sun low: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            -1940.0558731964372,
+            150,
+            2791.246686338768
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 616
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/nubis-low.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5528985928033783,
+          0.8667233154310573,
+          1.479767235550648
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 625,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-low",
+      "file": "work/captures/card/wdas/octave-low.png",
+      "report": {
+        "view": "octave-low",
+        "status": "sun low: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            -1940.0558731964372,
+            150,
+            2791.246686338768
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 772
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/octave-low.pfm",
+        "view": "octave-low",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6120553229968573,
+          0.9171901519664243,
+          1.5227323065501777
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 782,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "alpha-low",
+      "file": "work/captures/card/wdas/alpha-low.png",
+      "report": {
+        "view": "alpha-low",
+        "status": "sun low: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            -1940.0558731964372,
+            150,
+            2791.246686338768
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 835
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/alpha-low.pfm",
+        "view": "alpha-low",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.1479752819818936,
+          0.1479752819818936,
+          0.1479752819818936
+        ],
+        "meta": {
+          "source": "bake opacity 1 - exp(-tau), trilinear"
+        }
+      }
+    },
+    {
+      "name": "rtalpha-low",
+      "file": "work/captures/card/wdas/rtalpha-low.png",
+      "report": {
+        "view": "rtalpha-low",
+        "status": "sun low: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            -1940.0558731964372,
+            150,
+            2791.246686338768
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 953
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/rtalpha-low.pfm",
+        "view": "rtalpha-low",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.14796831281299497,
+          0.14796831281299497,
+          0.14796831281299497
+        ],
+        "meta": {
+          "source": "runtime 1 - transmittance",
+          "frame": 956
+        }
+      }
+    },
+    {
+      "name": "nubis-backlit",
+      "file": "work/captures/card/wdas/nubis-backlit.png",
+      "report": {
+        "view": "nubis-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1960.2208644275436,
+            150,
+            2772.925762241557
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1088
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/nubis-backlit.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.714871475234791,
+          1.1325760883422562,
+          1.883166827768105
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1098,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-backlit",
+      "file": "work/captures/card/wdas/octave-backlit.png",
+      "report": {
+        "view": "octave-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1960.2208644275436,
+            150,
+            2772.925762241557
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1229
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/octave-backlit.pfm",
+        "view": "octave-backlit",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6951454859714957,
+          1.1167471193376857,
+          1.872980881094538
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 1238,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "alpha-backlit",
+      "file": "work/captures/card/wdas/alpha-backlit.png",
+      "report": {
+        "view": "alpha-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1960.2208644275436,
+            150,
+            2772.925762241557
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1278
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/alpha-backlit.pfm",
+        "view": "alpha-backlit",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.14528451011716648,
+          0.14528451011716648,
+          0.14528451011716648
+        ],
+        "meta": {
+          "source": "bake opacity 1 - exp(-tau), trilinear"
+        }
+      }
+    },
+    {
+      "name": "rtalpha-backlit",
+      "file": "work/captures/card/wdas/rtalpha-backlit.png",
+      "report": {
+        "view": "rtalpha-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            1960.2208644275436,
+            150,
+            2772.925762241557
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1391
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/rtalpha-backlit.pfm",
+        "view": "rtalpha-backlit",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.14525810149465945,
+          0.14525810149465945,
+          0.14525810149465945
+        ],
+        "meta": {
+          "source": "runtime 1 - transmittance",
+          "frame": 1394
+        }
+      }
+    },
+    {
+      "name": "nubis-sunset",
+      "file": "work/captures/card/wdas/nubis-sunset.png",
+      "report": {
+        "view": "nubis-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            197.2440304732946,
+            150,
+            3391.0981612587175
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            25.6055,
+            13.7012,
+            5.1855
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1525
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/nubis-sunset.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.402897032945758,
+          0.5172794739709773,
+          0.7076472898780574
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 1536,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-sunset",
+      "file": "work/captures/card/wdas/octave-sunset.png",
+      "report": {
+        "view": "octave-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            197.2440304732946,
+            150,
+            3391.0981612587175
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            25.6055,
+            13.7012,
+            5.1855
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1682
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/octave-sunset.pfm",
+        "view": "octave-sunset",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.3784555015776924,
+          0.5041359137301555,
+          0.7033131334407193
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 1692,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "alpha-sunset",
+      "file": "work/captures/card/wdas/alpha-sunset.png",
+      "report": {
+        "view": "alpha-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            197.2440304732946,
+            150,
+            3391.0981612587175
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            25.6055,
+            13.7012,
+            5.1855
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1753
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/alpha-sunset.pfm",
+        "view": "alpha-sunset",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.13885084534943518,
+          0.13885084534943518,
+          0.13885084534943518
+        ],
+        "meta": {
+          "source": "bake opacity 1 - exp(-tau), trilinear"
+        }
+      }
+    },
+    {
+      "name": "rtalpha-sunset",
+      "file": "work/captures/card/wdas/rtalpha-sunset.png",
+      "report": {
+        "view": "rtalpha-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            197.2440304732946,
+            150,
+            3391.0981612587175
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            25.6055,
+            13.7012,
+            5.1855
+          ],
+          "ambientUp": [
+            0.2341,
+            0.3338,
+            0.5474
+          ],
+          "ambientDown": [
+            0.0703,
+            0.0371,
+            0.0161
+          ],
+          "envMapUp": [
+            0.2344,
+            0.3327,
+            0.544
+          ],
+          "envMapDown": [
+            0.0698,
+            0.0368,
+            0.016
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 704.6000000089407
+        },
+        "pt": {
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 586.2000000029802,
+          "wallMs": 586.5,
+          "compileMs": 934.2000000029802,
+          "kernelBytes": 51430,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.552099609375,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 956.5,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 1870
+      },
+      "linear": {
+        "file": "work/captures/card/wdas/rtalpha-sunset.pfm",
+        "view": "rtalpha-sunset",
+        "kind": "alpha",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.13888753979938984,
+          0.13888753979938984,
+          0.13888753979938984
+        ],
+        "meta": {
+          "source": "runtime 1 - transmittance",
+          "frame": 1873
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

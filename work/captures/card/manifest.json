@@ -1,0 +1,8392 @@
+{
+ "step": "P0.4 scene card",
+ "commit": "aaf648e2bbe081661d50c6f6ce46846560dd6874",
+ "dirtyTree": false,
+ "createdAt": "2026-11-21T08:56:18.837Z",
+ "size": "1280x720",
+ "suns": [
+  "noon",
+  "low",
+  "backlit",
+  "sunset"
+ ],
+ "frames": [
+  {
+   "cloud": "parkouring",
+   "name": "pt-noon",
+   "renderer": "pt",
+   "sun": "noon",
+   "file": "work/captures/card/parkouring/pt-noon.pfm",
+   "png": "work/captures/card/parkouring/pt-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3516,
+    31.8945
+   ],
+   "skyAmbientUp": [
+    0.3896,
+    0.7775,
+    1.693
+   ],
+   "camera": {
+    "position": [
+     554.5590985160661,
+     120,
+     1007.4543196855368
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714786211129296,
+    "bakeMs": 112
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/parkouring/seed2/pt-noon.pfm",
+   "ptWallMs": [
+    50724.20000000298,
+    123388.59999999404
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "parkouring",
+   "name": "nubis-noon",
+   "renderer": "nubis",
+   "sun": "noon",
+   "file": "work/captures/card/parkouring/nubis-noon.pfm",
+   "png": "work/captures/card/parkouring/nubis-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3516,
+    31.8945
+   ],
+   "skyAmbientUp": [
+    0.3896,
+    0.7775,
+    1.693
+   ],
+   "camera": {
+    "position": [
+     554.5590985160661,
+     120,
+     1007.4543196855368
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714786211129296,
+    "bakeMs": 112
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "octave-noon",
+   "renderer": "octave",
+   "sun": "noon",
+   "file": "work/captures/card/parkouring/octave-noon.pfm",
+   "png": "work/captures/card/parkouring/octave-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3516,
+    31.8945
+   ],
+   "skyAmbientUp": [
+    0.3896,
+    0.7775,
+    1.693
+   ],
+   "camera": {
+    "position": [
+     554.5590985160661,
+     120,
+     1007.4543196855368
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714786211129296,
+    "bakeMs": 112
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "alpha-noon",
+   "renderer": "alpha",
+   "sun": "noon",
+   "file": "work/captures/card/parkouring/alpha-noon.pfm",
+   "png": "work/captures/card/parkouring/alpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3516,
+    31.8945
+   ],
+   "skyAmbientUp": [
+    0.3896,
+    0.7775,
+    1.693
+   ],
+   "camera": {
+    "position": [
+     554.5590985160661,
+     120,
+     1007.4543196855368
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714786211129296,
+    "bakeMs": 112
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest"
+  },
+  {
+   "cloud": "parkouring",
+   "name": "rtalpha-noon",
+   "renderer": "rtalpha",
+   "sun": "noon",
+   "file": "work/captures/card/parkouring/rtalpha-noon.pfm",
+   "png": "work/captures/card/parkouring/rtalpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3516,
+    31.8945
+   ],
+   "skyAmbientUp": [
+    0.3896,
+    0.7775,
+    1.693
+   ],
+   "camera": {
+    "position": [
+     554.5590985160661,
+     120,
+     1007.4543196855368
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714786211129296,
+    "bakeMs": 112
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "pt-low",
+   "renderer": "pt",
+   "sun": "low",
+   "file": "work/captures/card/parkouring/pt-low.pfm",
+   "png": "work/captures/card/parkouring/pt-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     -655.1806629929126,
+     120,
+     945.1128497910539
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06716672434156307,
+    "bakeMs": 105.59999999403954
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/parkouring/seed2/pt-low.pfm",
+   "ptWallMs": [
+    84737.90000000596,
+    139010.40000000596
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "parkouring",
+   "name": "nubis-low",
+   "renderer": "nubis",
+   "sun": "low",
+   "file": "work/captures/card/parkouring/nubis-low.pfm",
+   "png": "work/captures/card/parkouring/nubis-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     -655.1806629929126,
+     120,
+     945.1128497910539
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06716672434156307,
+    "bakeMs": 105.59999999403954
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "octave-low",
+   "renderer": "octave",
+   "sun": "low",
+   "file": "work/captures/card/parkouring/octave-low.pfm",
+   "png": "work/captures/card/parkouring/octave-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     -655.1806629929126,
+     120,
+     945.1128497910539
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06716672434156307,
+    "bakeMs": 105.59999999403954
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "alpha-low",
+   "renderer": "alpha",
+   "sun": "low",
+   "file": "work/captures/card/parkouring/alpha-low.pfm",
+   "png": "work/captures/card/parkouring/alpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     -655.1806629929126,
+     120,
+     945.1128497910539
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06716672434156307,
+    "bakeMs": 105.59999999403954
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest"
+  },
+  {
+   "cloud": "parkouring",
+   "name": "rtalpha-low",
+   "renderer": "rtalpha",
+   "sun": "low",
+   "file": "work/captures/card/parkouring/rtalpha-low.pfm",
+   "png": "work/captures/card/parkouring/rtalpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     -655.1806629929126,
+     120,
+     945.1128497910539
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06716672434156307,
+    "bakeMs": 105.59999999403954
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "pt-backlit",
+   "renderer": "pt",
+   "sun": "backlit",
+   "file": "work/captures/card/parkouring/pt-backlit.pfm",
+   "png": "work/captures/card/parkouring/pt-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     664.0305864975516,
+     120,
+     938.9160666405267
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714713664089796,
+    "bakeMs": 118.5
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/parkouring/seed2/pt-backlit.pfm",
+   "ptWallMs": [
+    64110.29999999702,
+    102573.79999999702
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "parkouring",
+   "name": "nubis-backlit",
+   "renderer": "nubis",
+   "sun": "backlit",
+   "file": "work/captures/card/parkouring/nubis-backlit.pfm",
+   "png": "work/captures/card/parkouring/nubis-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     664.0305864975516,
+     120,
+     938.9160666405267
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714713664089796,
+    "bakeMs": 118.5
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "octave-backlit",
+   "renderer": "octave",
+   "sun": "backlit",
+   "file": "work/captures/card/parkouring/octave-backlit.pfm",
+   "png": "work/captures/card/parkouring/octave-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     664.0305864975516,
+     120,
+     938.9160666405267
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714713664089796,
+    "bakeMs": 118.5
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "alpha-backlit",
+   "renderer": "alpha",
+   "sun": "backlit",
+   "file": "work/captures/card/parkouring/alpha-backlit.pfm",
+   "png": "work/captures/card/parkouring/alpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     664.0305864975516,
+     120,
+     938.9160666405267
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714713664089796,
+    "bakeMs": 118.5
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest"
+  },
+  {
+   "cloud": "parkouring",
+   "name": "rtalpha-backlit",
+   "renderer": "rtalpha",
+   "sun": "backlit",
+   "file": "work/captures/card/parkouring/rtalpha-backlit.pfm",
+   "png": "work/captures/card/parkouring/rtalpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.6875,
+    28.3984,
+    21.2695
+   ],
+   "skyAmbientUp": [
+    0.318,
+    0.5881,
+    1.1908
+   ],
+   "camera": {
+    "position": [
+     664.0305864975516,
+     120,
+     938.9160666405267
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06714713664089796,
+    "bakeMs": 118.5
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "pt-sunset",
+   "renderer": "pt",
+   "sun": "sunset",
+   "file": "work/captures/card/parkouring/pt-sunset.pfm",
+   "png": "work/captures/card/parkouring/pt-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.5898,
+    12.5977,
+    4.2676
+   ],
+   "skyAmbientUp": [
+    0.235,
+    0.3345,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     67.72959854243788,
+     120,
+     1148.0037898375074
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06715566091803926,
+    "bakeMs": 804.1999999880791
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/parkouring/seed2/pt-sunset.pfm",
+   "ptWallMs": [
+    109723.39999999106,
+    89364.70000000298
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "parkouring",
+   "name": "nubis-sunset",
+   "renderer": "nubis",
+   "sun": "sunset",
+   "file": "work/captures/card/parkouring/nubis-sunset.pfm",
+   "png": "work/captures/card/parkouring/nubis-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.5898,
+    12.5977,
+    4.2676
+   ],
+   "skyAmbientUp": [
+    0.235,
+    0.3345,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     67.72959854243788,
+     120,
+     1148.0037898375074
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06715566091803926,
+    "bakeMs": 804.1999999880791
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "octave-sunset",
+   "renderer": "octave",
+   "sun": "sunset",
+   "file": "work/captures/card/parkouring/octave-sunset.pfm",
+   "png": "work/captures/card/parkouring/octave-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.5898,
+    12.5977,
+    4.2676
+   ],
+   "skyAmbientUp": [
+    0.235,
+    0.3345,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     67.72959854243788,
+     120,
+     1148.0037898375074
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06715566091803926,
+    "bakeMs": 804.1999999880791
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "parkouring",
+   "name": "alpha-sunset",
+   "renderer": "alpha",
+   "sun": "sunset",
+   "file": "work/captures/card/parkouring/alpha-sunset.pfm",
+   "png": "work/captures/card/parkouring/alpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.5898,
+    12.5977,
+    4.2676
+   ],
+   "skyAmbientUp": [
+    0.235,
+    0.3345,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     67.72959854243788,
+     120,
+     1148.0037898375074
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06715566091803926,
+    "bakeMs": 804.1999999880791
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest"
+  },
+  {
+   "cloud": "parkouring",
+   "name": "rtalpha-sunset",
+   "renderer": "rtalpha",
+   "sun": "sunset",
+   "file": "work/captures/card/parkouring/rtalpha-sunset.pfm",
+   "png": "work/captures/card/parkouring/rtalpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.5898,
+    12.5977,
+    4.2676
+   ],
+   "skyAmbientUp": [
+    0.235,
+    0.3345,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     67.72959854243788,
+     120,
+     1148.0037898375074
+    ],
+    "target": [
+     0,
+     712,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     376,
+     156,
+     376
+    ],
+    "voxel": 2,
+    "min": [
+     -376,
+     556,
+     -376
+    ],
+    "max": [
+     376,
+     868,
+     376
+    ],
+    "densityMax": 1,
+    "occupancy": 0.06715566091803926,
+    "bakeMs": 804.1999999880791
+   },
+   "medium": {
+    "extinction": 0.3,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "nearest",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "pt-noon",
+   "renderer": "pt",
+   "sun": "noon",
+   "file": "work/captures/card/embergen02/pt-noon.pfm",
+   "png": "work/captures/card/embergen02/pt-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.125,
+    35.5859,
+    32.3828
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1492.8984394780912,
+     150,
+     2715.7464269784036
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/embergen02/seed2/pt-noon.pfm",
+   "ptWallMs": [
+    158756.29999999702,
+    164059.79999999702
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "embergen02",
+   "name": "nubis-noon",
+   "renderer": "nubis",
+   "sun": "noon",
+   "file": "work/captures/card/embergen02/nubis-noon.pfm",
+   "png": "work/captures/card/embergen02/nubis-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.125,
+    35.5859,
+    32.3828
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1492.8984394780912,
+     150,
+     2715.7464269784036
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "octave-noon",
+   "renderer": "octave",
+   "sun": "noon",
+   "file": "work/captures/card/embergen02/octave-noon.pfm",
+   "png": "work/captures/card/embergen02/octave-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.125,
+    35.5859,
+    32.3828
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1492.8984394780912,
+     150,
+     2715.7464269784036
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "alpha-noon",
+   "renderer": "alpha",
+   "sun": "noon",
+   "file": "work/captures/card/embergen02/alpha-noon.pfm",
+   "png": "work/captures/card/embergen02/alpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.125,
+    35.5859,
+    32.3828
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1492.8984394780912,
+     150,
+     2715.7464269784036
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "embergen02",
+   "name": "rtalpha-noon",
+   "renderer": "rtalpha",
+   "sun": "noon",
+   "file": "work/captures/card/embergen02/rtalpha-noon.pfm",
+   "png": "work/captures/card/embergen02/rtalpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.125,
+    35.5859,
+    32.3828
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1492.8984394780912,
+     150,
+     2715.7464269784036
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "pt-low",
+   "renderer": "pt",
+   "sun": "low",
+   "file": "work/captures/card/embergen02/pt-low.pfm",
+   "png": "work/captures/card/embergen02/pt-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1768.139178502634,
+     150,
+     2547.6955081324063
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/embergen02/seed2/pt-low.pfm",
+   "ptWallMs": [
+    326208.200000003,
+    278678.799999997
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "embergen02",
+   "name": "nubis-low",
+   "renderer": "nubis",
+   "sun": "low",
+   "file": "work/captures/card/embergen02/nubis-low.pfm",
+   "png": "work/captures/card/embergen02/nubis-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1768.139178502634,
+     150,
+     2547.6955081324063
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "octave-low",
+   "renderer": "octave",
+   "sun": "low",
+   "file": "work/captures/card/embergen02/octave-low.pfm",
+   "png": "work/captures/card/embergen02/octave-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1768.139178502634,
+     150,
+     2547.6955081324063
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "alpha-low",
+   "renderer": "alpha",
+   "sun": "low",
+   "file": "work/captures/card/embergen02/alpha-low.pfm",
+   "png": "work/captures/card/embergen02/alpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1768.139178502634,
+     150,
+     2547.6955081324063
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "embergen02",
+   "name": "rtalpha-low",
+   "renderer": "rtalpha",
+   "sun": "low",
+   "file": "work/captures/card/embergen02/rtalpha-low.pfm",
+   "png": "work/captures/card/embergen02/rtalpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1768.139178502634,
+     150,
+     2547.6955081324063
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "pt-backlit",
+   "renderer": "pt",
+   "sun": "backlit",
+   "file": "work/captures/card/embergen02/pt-backlit.pfm",
+   "png": "work/captures/card/embergen02/pt-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1787.995494036878,
+     150,
+     2530.99113616142
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/embergen02/seed2/pt-backlit.pfm",
+   "ptWallMs": [
+    269107.700000003,
+    170520.5
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "embergen02",
+   "name": "nubis-backlit",
+   "renderer": "nubis",
+   "sun": "backlit",
+   "file": "work/captures/card/embergen02/nubis-backlit.pfm",
+   "png": "work/captures/card/embergen02/nubis-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1787.995494036878,
+     150,
+     2530.99113616142
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "octave-backlit",
+   "renderer": "octave",
+   "sun": "backlit",
+   "file": "work/captures/card/embergen02/octave-backlit.pfm",
+   "png": "work/captures/card/embergen02/octave-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1787.995494036878,
+     150,
+     2530.99113616142
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "alpha-backlit",
+   "renderer": "alpha",
+   "sun": "backlit",
+   "file": "work/captures/card/embergen02/alpha-backlit.pfm",
+   "png": "work/captures/card/embergen02/alpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1787.995494036878,
+     150,
+     2530.99113616142
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "embergen02",
+   "name": "rtalpha-backlit",
+   "renderer": "rtalpha",
+   "sun": "backlit",
+   "file": "work/captures/card/embergen02/rtalpha-backlit.pfm",
+   "png": "work/captures/card/embergen02/rtalpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35,
+    28.9258,
+    22.168
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1787.995494036878,
+     150,
+     2530.99113616142
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "pt-sunset",
+   "renderer": "pt",
+   "sun": "sunset",
+   "file": "work/captures/card/embergen02/pt-sunset.pfm",
+   "png": "work/captures/card/embergen02/pt-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.3906,
+    13.457,
+    4.9658
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     180.57543954918037,
+     150,
+     3094.6189117358895
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/embergen02/seed2/pt-sunset.pfm",
+   "ptWallMs": [
+    262961.59999999404,
+    251146.09999999404
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "embergen02",
+   "name": "nubis-sunset",
+   "renderer": "nubis",
+   "sun": "sunset",
+   "file": "work/captures/card/embergen02/nubis-sunset.pfm",
+   "png": "work/captures/card/embergen02/nubis-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.3906,
+    13.457,
+    4.9658
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     180.57543954918037,
+     150,
+     3094.6189117358895
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "octave-sunset",
+   "renderer": "octave",
+   "sun": "sunset",
+   "file": "work/captures/card/embergen02/octave-sunset.pfm",
+   "png": "work/captures/card/embergen02/octave-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.3906,
+    13.457,
+    4.9658
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     180.57543954918037,
+     150,
+     3094.6189117358895
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "embergen02",
+   "name": "alpha-sunset",
+   "renderer": "alpha",
+   "sun": "sunset",
+   "file": "work/captures/card/embergen02/alpha-sunset.pfm",
+   "png": "work/captures/card/embergen02/alpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.3906,
+    13.457,
+    4.9658
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     180.57543954918037,
+     150,
+     3094.6189117358895
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "embergen02",
+   "name": "rtalpha-sunset",
+   "renderer": "rtalpha",
+   "sun": "sunset",
+   "file": "work/captures/card/embergen02/rtalpha-sunset.pfm",
+   "png": "work/captures/card/embergen02/rtalpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.3906,
+    13.457,
+    4.9658
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     180.57543954918037,
+     150,
+     3094.6189117358895
+    ],
+    "target": [
+     -2,
+     1256,
+     0
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     336,
+     180,
+     484
+    ],
+    "voxel": 4,
+    "min": [
+     -672,
+     900,
+     -968
+    ],
+    "max": [
+     672,
+     1620,
+     968
+    ],
+    "densityMax": 2.134765625,
+    "occupancy": 0.22940832841401024,
+    "bakeMs": 1372.2999999970198
+   },
+   "medium": {
+    "extinction": 0.17988696088723372,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "nubis-noon",
+   "renderer": "nubis",
+   "sun": "noon",
+   "file": "work/captures/card/wdas/nubis-noon.pfm",
+   "png": "work/captures/card/wdas/nubis-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.1445,
+    35.6445,
+    32.5195
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1636.5660303953257,
+     150,
+     2975.560597331152
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "octave-noon",
+   "renderer": "octave",
+   "sun": "noon",
+   "file": "work/captures/card/wdas/octave-noon.pfm",
+   "png": "work/captures/card/wdas/octave-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.1445,
+    35.6445,
+    32.5195
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1636.5660303953257,
+     150,
+     2975.560597331152
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "alpha-noon",
+   "renderer": "alpha",
+   "sun": "noon",
+   "file": "work/captures/card/wdas/alpha-noon.pfm",
+   "png": "work/captures/card/wdas/alpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.1445,
+    35.6445,
+    32.5195
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1636.5660303953257,
+     150,
+     2975.560597331152
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "wdas",
+   "name": "rtalpha-noon",
+   "renderer": "rtalpha",
+   "sun": "noon",
+   "file": "work/captures/card/wdas/rtalpha-noon.pfm",
+   "png": "work/captures/card/wdas/rtalpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.1445,
+    35.6445,
+    32.5195
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     1636.5660303953257,
+     150,
+     2975.560597331152
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "nubis-low",
+   "renderer": "nubis",
+   "sun": "low",
+   "file": "work/captures/card/wdas/nubis-low.pfm",
+   "png": "work/captures/card/wdas/nubis-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1940.0558731964372,
+     150,
+     2791.246686338768
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "octave-low",
+   "renderer": "octave",
+   "sun": "low",
+   "file": "work/captures/card/wdas/octave-low.pfm",
+   "png": "work/captures/card/wdas/octave-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1940.0558731964372,
+     150,
+     2791.246686338768
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "alpha-low",
+   "renderer": "alpha",
+   "sun": "low",
+   "file": "work/captures/card/wdas/alpha-low.pfm",
+   "png": "work/captures/card/wdas/alpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1940.0558731964372,
+     150,
+     2791.246686338768
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "wdas",
+   "name": "rtalpha-low",
+   "renderer": "rtalpha",
+   "sun": "low",
+   "file": "work/captures/card/wdas/rtalpha-low.pfm",
+   "png": "work/captures/card/wdas/rtalpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     -1940.0558731964372,
+     150,
+     2791.246686338768
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "nubis-backlit",
+   "renderer": "nubis",
+   "sun": "backlit",
+   "file": "work/captures/card/wdas/nubis-backlit.pfm",
+   "png": "work/captures/card/wdas/nubis-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1960.2208644275436,
+     150,
+     2772.925762241557
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "octave-backlit",
+   "renderer": "octave",
+   "sun": "backlit",
+   "file": "work/captures/card/wdas/octave-backlit.pfm",
+   "png": "work/captures/card/wdas/octave-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1960.2208644275436,
+     150,
+     2772.925762241557
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "alpha-backlit",
+   "renderer": "alpha",
+   "sun": "backlit",
+   "file": "work/captures/card/wdas/alpha-backlit.pfm",
+   "png": "work/captures/card/wdas/alpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1960.2208644275436,
+     150,
+     2772.925762241557
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "wdas",
+   "name": "rtalpha-backlit",
+   "renderer": "rtalpha",
+   "sun": "backlit",
+   "file": "work/captures/card/wdas/rtalpha-backlit.pfm",
+   "png": "work/captures/card/wdas/rtalpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.0781,
+    29.082,
+    22.4414
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     1960.2208644275436,
+     150,
+     2772.925762241557
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "nubis-sunset",
+   "renderer": "nubis",
+   "sun": "sunset",
+   "file": "work/captures/card/wdas/nubis-sunset.pfm",
+   "png": "work/captures/card/wdas/nubis-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.6055,
+    13.7012,
+    5.1855
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     197.2440304732946,
+     150,
+     3391.0981612587175
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "octave-sunset",
+   "renderer": "octave",
+   "sun": "sunset",
+   "file": "work/captures/card/wdas/octave-sunset.pfm",
+   "png": "work/captures/card/wdas/octave-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.6055,
+    13.7012,
+    5.1855
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     197.2440304732946,
+     150,
+     3391.0981612587175
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "wdas",
+   "name": "alpha-sunset",
+   "renderer": "alpha",
+   "sun": "sunset",
+   "file": "work/captures/card/wdas/alpha-sunset.pfm",
+   "png": "work/captures/card/wdas/alpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.6055,
+    13.7012,
+    5.1855
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     197.2440304732946,
+     150,
+     3391.0981612587175
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "wdas",
+   "name": "rtalpha-sunset",
+   "renderer": "rtalpha",
+   "sun": "sunset",
+   "file": "work/captures/card/wdas/rtalpha-sunset.pfm",
+   "png": "work/captures/card/wdas/rtalpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    25.6055,
+    13.7012,
+    5.1855
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     197.2440304732946,
+     150,
+     3391.0981612587175
+    ],
+    "target": [
+     -3,
+     1422,
+     -3
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     253,
+     175,
+     308
+    ],
+    "voxel": 6,
+    "min": [
+     -759,
+     900,
+     -924
+    ],
+    "max": [
+     759,
+     1950,
+     924
+    ],
+    "densityMax": 1.0869140625,
+    "occupancy": 0.21107768008389127,
+    "bakeMs": 704.6000000089407
+   },
+   "medium": {
+    "extinction": 0.552099609375,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "pt-noon",
+   "renderer": "pt",
+   "sun": "noon",
+   "file": "work/captures/card/sky/pt-noon.pfm",
+   "png": "work/captures/card/sky/pt-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.3008,
+    35.957,
+    33.1836
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     7779.132060790651,
+     150,
+     -1342.8788053376957
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/sky/seed2/pt-noon.pfm",
+   "ptWallMs": [
+    241972.09999999404,
+    248011.90000000596
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "sky",
+   "name": "nubis-noon",
+   "renderer": "nubis",
+   "sun": "noon",
+   "file": "work/captures/card/sky/nubis-noon.pfm",
+   "png": "work/captures/card/sky/nubis-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.3008,
+    35.957,
+    33.1836
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     7779.132060790651,
+     150,
+     -1342.8788053376957
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "octave-noon",
+   "renderer": "octave",
+   "sun": "noon",
+   "file": "work/captures/card/sky/octave-noon.pfm",
+   "png": "work/captures/card/sky/octave-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.3008,
+    35.957,
+    33.1836
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     7779.132060790651,
+     150,
+     -1342.8788053376957
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "alpha-noon",
+   "renderer": "alpha",
+   "sun": "noon",
+   "file": "work/captures/card/sky/alpha-noon.pfm",
+   "png": "work/captures/card/sky/alpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.3008,
+    35.957,
+    33.1836
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     7779.132060790651,
+     150,
+     -1342.8788053376957
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "sky",
+   "name": "rtalpha-noon",
+   "renderer": "rtalpha",
+   "sun": "noon",
+   "file": "work/captures/card/sky/rtalpha-noon.pfm",
+   "png": "work/captures/card/sky/rtalpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.3008,
+    35.957,
+    33.1836
+   ],
+   "skyAmbientUp": [
+    0.3871,
+    0.774,
+    1.6883
+   ],
+   "camera": {
+    "position": [
+     7779.132060790651,
+     150,
+     -1342.8788053376957
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "pt-low",
+   "renderer": "pt",
+   "sun": "low",
+   "file": "work/captures/card/sky/pt-low.pfm",
+   "png": "work/captures/card/sky/pt-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     625.8882536071255,
+     150,
+     -1711.5066273224638
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/sky/seed2/pt-low.pfm",
+   "ptWallMs": [
+    245110.39999999106,
+    288186.89999999106
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "sky",
+   "name": "nubis-low",
+   "renderer": "nubis",
+   "sun": "low",
+   "file": "work/captures/card/sky/nubis-low.pfm",
+   "png": "work/captures/card/sky/nubis-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     625.8882536071255,
+     150,
+     -1711.5066273224638
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "octave-low",
+   "renderer": "octave",
+   "sun": "low",
+   "file": "work/captures/card/sky/octave-low.pfm",
+   "png": "work/captures/card/sky/octave-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     625.8882536071255,
+     150,
+     -1711.5066273224638
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "alpha-low",
+   "renderer": "alpha",
+   "sun": "low",
+   "file": "work/captures/card/sky/alpha-low.pfm",
+   "png": "work/captures/card/sky/alpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     625.8882536071255,
+     150,
+     -1711.5066273224638
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "sky",
+   "name": "rtalpha-low",
+   "renderer": "rtalpha",
+   "sun": "low",
+   "file": "work/captures/card/sky/rtalpha-low.pfm",
+   "png": "work/captures/card/sky/rtalpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     625.8882536071255,
+     150,
+     -1711.5066273224638
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "pt-backlit",
+   "renderer": "pt",
+   "sun": "backlit",
+   "file": "work/captures/card/sky/pt-backlit.pfm",
+   "png": "work/captures/card/sky/pt-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     8426.441728855087,
+     150,
+     -1748.1484755168858
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/sky/seed2/pt-backlit.pfm",
+   "ptWallMs": [
+    256669.90000000596,
+    263514.700000003
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "sky",
+   "name": "nubis-backlit",
+   "renderer": "nubis",
+   "sun": "backlit",
+   "file": "work/captures/card/sky/nubis-backlit.pfm",
+   "png": "work/captures/card/sky/nubis-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     8426.441728855087,
+     150,
+     -1748.1484755168858
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "octave-backlit",
+   "renderer": "octave",
+   "sun": "backlit",
+   "file": "work/captures/card/sky/octave-backlit.pfm",
+   "png": "work/captures/card/sky/octave-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     8426.441728855087,
+     150,
+     -1748.1484755168858
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "alpha-backlit",
+   "renderer": "alpha",
+   "sun": "backlit",
+   "file": "work/captures/card/sky/alpha-backlit.pfm",
+   "png": "work/captures/card/sky/alpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     8426.441728855087,
+     150,
+     -1748.1484755168858
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "sky",
+   "name": "rtalpha-backlit",
+   "renderer": "rtalpha",
+   "sun": "backlit",
+   "file": "work/captures/card/sky/rtalpha-backlit.pfm",
+   "png": "work/captures/card/sky/rtalpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    35.4688,
+    29.7656,
+    23.7305
+   ],
+   "skyAmbientUp": [
+    0.3163,
+    0.586,
+    1.1886
+   ],
+   "camera": {
+    "position": [
+     8426.441728855087,
+     150,
+     -1748.1484755168858
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "pt-sunset",
+   "renderer": "pt",
+   "sun": "sunset",
+   "file": "work/captures/card/sky/pt-sunset.pfm",
+   "png": "work/captures/card/sky/pt-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    26.6406,
+    14.8926,
+    6.3379
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     4900.488060946589,
+     150,
+     -511.80367748256504
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 1024,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/sky/seed2/pt-sunset.pfm",
+   "ptWallMs": [
+    275056.5,
+    299635.40000000596
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "sky",
+   "name": "nubis-sunset",
+   "renderer": "nubis",
+   "sun": "sunset",
+   "file": "work/captures/card/sky/nubis-sunset.pfm",
+   "png": "work/captures/card/sky/nubis-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    26.6406,
+    14.8926,
+    6.3379
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     4900.488060946589,
+     150,
+     -511.80367748256504
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "octave-sunset",
+   "renderer": "octave",
+   "sun": "sunset",
+   "file": "work/captures/card/sky/octave-sunset.pfm",
+   "png": "work/captures/card/sky/octave-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    26.6406,
+    14.8926,
+    6.3379
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     4900.488060946589,
+     150,
+     -511.80367748256504
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "sky",
+   "name": "alpha-sunset",
+   "renderer": "alpha",
+   "sun": "sunset",
+   "file": "work/captures/card/sky/alpha-sunset.pfm",
+   "png": "work/captures/card/sky/alpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    26.6406,
+    14.8926,
+    6.3379
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     4900.488060946589,
+     150,
+     -511.80367748256504
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "sky",
+   "name": "rtalpha-sunset",
+   "renderer": "rtalpha",
+   "sun": "sunset",
+   "file": "work/captures/card/sky/rtalpha-sunset.pfm",
+   "png": "work/captures/card/sky/rtalpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    26.6406,
+    14.8926,
+    6.3379
+   ],
+   "skyAmbientUp": [
+    0.2341,
+    0.3338,
+    0.5474
+   ],
+   "camera": {
+    "position": [
+     4900.488060946589,
+     150,
+     -511.80367748256504
+    ],
+    "target": [
+     4500,
+     2242,
+     -7300
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     200,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ],
+    "densityMax": 1.189453125,
+    "occupancy": 0.14391466666666666,
+    "bakeMs": 1159.8999999910593
+   },
+   "medium": {
+    "extinction": 0.41865366278216243,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "pt-noon",
+   "renderer": "pt",
+   "sun": "noon",
+   "file": "work/captures/card/stratus/pt-noon.pfm",
+   "png": "work/captures/card/stratus/pt-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3711,
+    31.9141
+   ],
+   "skyAmbientUp": [
+    0.3913,
+    0.7797,
+    1.6963
+   ],
+   "camera": {
+    "position": [
+     4078.6703636689385,
+     100,
+     3551.256681410995
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/stratus/seed2/pt-noon.pfm",
+   "ptWallMs": [
+    216635.90000000596,
+    221946.89999999106
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "stratus",
+   "name": "nubis-noon",
+   "renderer": "nubis",
+   "sun": "noon",
+   "file": "work/captures/card/stratus/nubis-noon.pfm",
+   "png": "work/captures/card/stratus/nubis-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3711,
+    31.9141
+   ],
+   "skyAmbientUp": [
+    0.3913,
+    0.7797,
+    1.6963
+   ],
+   "camera": {
+    "position": [
+     4078.6703636689385,
+     100,
+     3551.256681410995
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "octave-noon",
+   "renderer": "octave",
+   "sun": "noon",
+   "file": "work/captures/card/stratus/octave-noon.pfm",
+   "png": "work/captures/card/stratus/octave-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3711,
+    31.9141
+   ],
+   "skyAmbientUp": [
+    0.3913,
+    0.7797,
+    1.6963
+   ],
+   "camera": {
+    "position": [
+     4078.6703636689385,
+     100,
+     3551.256681410995
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "alpha-noon",
+   "renderer": "alpha",
+   "sun": "noon",
+   "file": "work/captures/card/stratus/alpha-noon.pfm",
+   "png": "work/captures/card/stratus/alpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3711,
+    31.9141
+   ],
+   "skyAmbientUp": [
+    0.3913,
+    0.7797,
+    1.6963
+   ],
+   "camera": {
+    "position": [
+     4078.6703636689385,
+     100,
+     3551.256681410995
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "stratus",
+   "name": "rtalpha-noon",
+   "renderer": "rtalpha",
+   "sun": "noon",
+   "file": "work/captures/card/stratus/rtalpha-noon.pfm",
+   "png": "work/captures/card/stratus/rtalpha-noon.png",
+   "sunDirection": [
+    -0.2323,
+    0.9357,
+    0.2656
+   ],
+   "sunElevationDeg": 69.33939910241031,
+   "sunAzimuthDeg": 221.169158800876,
+   "timeOfDay": 13,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    38.0078,
+    35.3711,
+    31.9141
+   ],
+   "skyAmbientUp": [
+    0.3913,
+    0.7797,
+    1.6963
+   ],
+   "camera": {
+    "position": [
+     4078.6703636689385,
+     100,
+     3551.256681410995
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "pt-low",
+   "renderer": "pt",
+   "sun": "low",
+   "file": "work/captures/card/stratus/pt-low.pfm",
+   "png": "work/captures/card/stratus/pt-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     2816.333221224787,
+     100,
+     3486.2047128254476
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/stratus/seed2/pt-low.pfm",
+   "ptWallMs": [
+    258964.39999999106,
+    234410.40000000596
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "stratus",
+   "name": "nubis-low",
+   "renderer": "nubis",
+   "sun": "low",
+   "file": "work/captures/card/stratus/nubis-low.pfm",
+   "png": "work/captures/card/stratus/nubis-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     2816.333221224787,
+     100,
+     3486.2047128254476
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "octave-low",
+   "renderer": "octave",
+   "sun": "low",
+   "file": "work/captures/card/stratus/octave-low.pfm",
+   "png": "work/captures/card/stratus/octave-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     2816.333221224787,
+     100,
+     3486.2047128254476
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "alpha-low",
+   "renderer": "alpha",
+   "sun": "low",
+   "file": "work/captures/card/stratus/alpha-low.pfm",
+   "png": "work/captures/card/stratus/alpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     2816.333221224787,
+     100,
+     3486.2047128254476
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "stratus",
+   "name": "rtalpha-low",
+   "renderer": "rtalpha",
+   "sun": "low",
+   "file": "work/captures/card/stratus/rtalpha-low.pfm",
+   "png": "work/captures/card/stratus/rtalpha-low.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 70,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     2816.333221224787,
+     100,
+     3486.2047128254476
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "pt-backlit",
+   "renderer": "pt",
+   "sun": "backlit",
+   "file": "work/captures/card/stratus/pt-backlit.pfm",
+   "png": "work/captures/card/stratus/pt-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     4192.901481562662,
+     100,
+     3479.7385043205495
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/stratus/seed2/pt-backlit.pfm",
+   "ptWallMs": [
+    457710.59999999404,
+    251645.29999999702
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "stratus",
+   "name": "nubis-backlit",
+   "renderer": "nubis",
+   "sun": "backlit",
+   "file": "work/captures/card/stratus/nubis-backlit.pfm",
+   "png": "work/captures/card/stratus/nubis-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     4192.901481562662,
+     100,
+     3479.7385043205495
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "octave-backlit",
+   "renderer": "octave",
+   "sun": "backlit",
+   "file": "work/captures/card/stratus/octave-backlit.pfm",
+   "png": "work/captures/card/stratus/octave-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     4192.901481562662,
+     100,
+     3479.7385043205495
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "alpha-backlit",
+   "renderer": "alpha",
+   "sun": "backlit",
+   "file": "work/captures/card/stratus/alpha-backlit.pfm",
+   "png": "work/captures/card/stratus/alpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     4192.901481562662,
+     100,
+     3479.7385043205495
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "stratus",
+   "name": "rtalpha-backlit",
+   "renderer": "rtalpha",
+   "sun": "backlit",
+   "file": "work/captures/card/stratus/rtalpha-backlit.pfm",
+   "png": "work/captures/card/stratus/rtalpha-backlit.png",
+   "sunDirection": [
+    -0.9118,
+    0.3335,
+    -0.2397
+   ],
+   "sunElevationDeg": 19.481079685240942,
+   "sunAzimuthDeg": 284.73086424947815,
+   "timeOfDay": 17.6,
+   "cameraRingDeg": 140,
+   "sunIrradiance": [
+    34.707,
+    28.418,
+    21.2891
+   ],
+   "skyAmbientUp": [
+    0.3192,
+    0.5895,
+    1.1922
+   ],
+   "camera": {
+    "position": [
+     4192.901481562662,
+     100,
+     3479.7385043205495
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "pt-sunset",
+   "renderer": "pt",
+   "sun": "sunset",
+   "file": "work/captures/card/stratus/pt-sunset.pfm",
+   "png": "work/captures/card/stratus/pt-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.6094,
+    12.627,
+    4.292
+   ],
+   "skyAmbientUp": [
+    0.2357,
+    0.3349,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     3570.674363696457,
+     100,
+     3697.916998091312
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "spp": 2048,
+   "seeds": [
+    1,
+    2
+   ],
+   "seed2File": "work/captures/card/stratus/seed2/pt-sunset.pfm",
+   "ptWallMs": [
+    391853.40000000596,
+    283862.299999997
+   ],
+   "maxDepth": 512
+  },
+  {
+   "cloud": "stratus",
+   "name": "nubis-sunset",
+   "renderer": "nubis",
+   "sun": "sunset",
+   "file": "work/captures/card/stratus/nubis-sunset.pfm",
+   "png": "work/captures/card/stratus/nubis-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.6094,
+    12.627,
+    4.292
+   ],
+   "skyAmbientUp": [
+    0.2357,
+    0.3349,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     3570.674363696457,
+     100,
+     3697.916998091312
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "octave-sunset",
+   "renderer": "octave",
+   "sun": "sunset",
+   "file": "work/captures/card/stratus/octave-sunset.pfm",
+   "png": "work/captures/card/stratus/octave-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.6094,
+    12.627,
+    4.292
+   ],
+   "skyAmbientUp": [
+    0.2357,
+    0.3349,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     3570.674363696457,
+     100,
+     3697.916998091312
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "octave",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  },
+  {
+   "cloud": "stratus",
+   "name": "alpha-sunset",
+   "renderer": "alpha",
+   "sun": "sunset",
+   "file": "work/captures/card/stratus/alpha-sunset.pfm",
+   "png": "work/captures/card/stratus/alpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.6094,
+    12.627,
+    4.292
+   ],
+   "skyAmbientUp": [
+    0.2357,
+    0.3349,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     3570.674363696457,
+     100,
+     3697.916998091312
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear"
+  },
+  {
+   "cloud": "stratus",
+   "name": "rtalpha-sunset",
+   "renderer": "rtalpha",
+   "sun": "sunset",
+   "file": "work/captures/card/stratus/rtalpha-sunset.pfm",
+   "png": "work/captures/card/stratus/rtalpha-sunset.png",
+   "sunDirection": [
+    -0.8906,
+    0.0872,
+    -0.4464
+   ],
+   "sunElevationDeg": 5.000693438300772,
+   "sunAzimuthDeg": 296.6235938462722,
+   "timeOfDay": 18.949,
+   "cameraRingDeg": 120,
+   "sunIrradiance": [
+    24.6094,
+    12.627,
+    4.292
+   ],
+   "skyAmbientUp": [
+    0.2357,
+    0.3349,
+    0.5472
+   ],
+   "camera": {
+    "position": [
+     3570.674363696457,
+     100,
+     3697.916998091312
+    ],
+    "target": [
+     3500,
+     734,
+     2500
+    ],
+    "yFovDeg": 30,
+    "viewport": [
+     1280,
+     720
+    ]
+   },
+   "grid": {
+    "resolution": [
+     375,
+     35,
+     375
+    ],
+    "voxel": 8,
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ],
+    "densityMax": 1.0712890625,
+    "occupancy": 0.3875114666666667,
+    "bakeMs": 298
+   },
+   "medium": {
+    "extinction": 0.07538691948866472,
+    "albedo": 0.99,
+    "g": 0.8
+   },
+   "alphaFilter": "trilinear",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   }
+  }
+ ],
+ "clouds": {
+  "parkouring": {
+   "def": {
+    "key": "parkouring",
+    "label": "A Parkouring (Nubis pack NVDF)",
+    "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+    "runtime": "nvdf",
+    "camera": {
+     "distance": 1150,
+     "height": 120
+    },
+    "alphaFilter": "nearest"
+   },
+   "cameraRing": {
+    "distance": 1150,
+    "height": 120
+   },
+   "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1.2,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 1.4,
+    "ambientStrength": 1,
+    "ambientSaturation": 1,
+    "diffuseSun": 0,
+    "microShadow": 1
+   },
+   "volumeMin": [
+    -432,
+    500,
+    -432
+   ],
+   "volumeDims": [
+    108,
+    108,
+    51
+   ],
+   "volumeVoxel": 8,
+   "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+   "extinctionScale": 0.3,
+   "albedo": 0.99,
+   "g": 0.8,
+   "ptSigmaPerUnit": 0.3,
+   "maxDepth": 512
+  },
+  "embergen02": {
+   "def": {
+    "key": "embergen02",
+    "label": "B EmberGen 02 (CloudPack VDB)",
+    "source": "JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m",
+    "runtime": "direct",
+    "camera": {
+     "distance": 3100,
+     "height": 150
+    },
+    "alphaFilter": "trilinear"
+   },
+   "cameraRing": {
+    "distance": 3100,
+    "height": 150
+   },
+   "source": "JangaFX CloudPack cloud_02_variant_0000.vdb (EmberGen, Z-up), 1 voxel = 4 m, sigma_t = 0.6 x density / m",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   },
+   "latticeDims": [
+    336,
+    484,
+    180
+   ],
+   "voxel": 4,
+   "densityRef": 0.2998116014787229,
+   "densityMaxSource": 0.6399313807487488,
+   "directDensity": 0.6,
+   "extinctionScale": 0.6,
+   "ptSigmaPerUnit": 0.17988696088723372,
+   "boxMin": [
+    -672,
+    900,
+    -968
+   ],
+   "boxMax": [
+    672,
+    1620,
+    968
+   ],
+   "occupied": {
+    "min": [
+     -660,
+     912,
+     -952
+    ],
+    "max": [
+     656,
+     1600,
+     952
+    ]
+   },
+   "file": "vdbs/CloudPack/CloudPackVDB/cloud_02_variant_0000.vdb",
+   "gridName": "density",
+   "sourceVoxels": 5699272,
+   "up": "z",
+   "worldScale": 4.008438818565401,
+   "nativeVoxel": 4.008438818565401,
+   "taps": 1,
+   "loadMs": 2469.3999999910593,
+   "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)",
+   "albedo": 0.99,
+   "g": 0.8,
+   "maxDepth": 512
+  },
+  "wdas": {
+   "def": {
+    "key": "wdas",
+    "label": "C Disney cloud (WDAS 1/8 VDB)",
+    "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+    "runtime": "direct",
+    "camera": {
+     "distance": 3400,
+     "height": 150
+    },
+    "alphaFilter": "trilinear"
+   },
+   "cameraRing": {
+    "distance": 3400,
+    "height": 150
+   },
+   "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 0.6,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   },
+   "latticeDims": [
+    253,
+    308,
+    175
+   ],
+   "voxel": 6,
+   "densityRef": 0.920166015625,
+   "densityMaxSource": 1,
+   "directDensity": 0.6,
+   "extinctionScale": 0.6,
+   "ptSigmaPerUnit": 0.552099609375,
+   "boxMin": [
+    -759,
+    900,
+    -924
+   ],
+   "boxMax": [
+    759,
+    1950,
+    924
+   ],
+   "occupied": {
+    "min": [
+     -735,
+     930,
+     -900
+    ],
+    "max": [
+     729,
+     1914,
+     894
+    ]
+   },
+   "file": "disney-cloud/wdas_cloud_eighth.vdb",
+   "gridName": "density",
+   "sourceVoxels": 3122022,
+   "up": "y",
+   "worldScale": 3.517915393319893,
+   "nativeVoxel": 5.863192182410423,
+   "taps": 1,
+   "loadMs": 956.5,
+   "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)",
+   "albedo": 0.99,
+   "g": 0.8,
+   "maxDepth": 512
+  },
+  "sky": {
+   "def": {
+    "key": "sky",
+    "label": "D procedural sky patch (HZD bench)",
+    "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+    "runtime": "direct",
+    "camera": {
+     "distance": 6800,
+     "height": 150
+    },
+    "alphaFilter": "trilinear"
+   },
+   "cameraRing": {
+    "distance": 6800,
+    "height": 150
+   },
+   "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   },
+   "latticeDims": [
+    375,
+    375,
+    200
+   ],
+   "voxel": 8,
+   "densityRef": 0.41865366278216243,
+   "densityMaxSource": 0.4979109764099121,
+   "directDensity": 1,
+   "extinctionScale": 1,
+   "ptSigmaPerUnit": 0.41865366278216243,
+   "boxMin": [
+    3000,
+    1550,
+    -8800
+   ],
+   "boxMax": [
+    6000,
+    3150,
+    -5800
+   ],
+   "occupied": {
+    "min": [
+     3000,
+     1726,
+     -8800
+    ],
+    "max": [
+     6000,
+     2758,
+     -5800
+    ]
+   },
+   "patch": {
+    "min": [
+     3000,
+     1550,
+     -8800
+    ],
+    "max": [
+     6000,
+     3150,
+     -5800
+    ]
+   },
+   "configure": {},
+   "bake": {
+    "t": 6800,
+    "footprint": 8,
+    "camera": [
+     4500,
+     2,
+     -7300
+    ],
+    "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+    "bakeMs": 107
+   },
+   "ndf": {
+    "seed": 3,
+    "tileMeters": 32000,
+    "resolution": 1024
+   },
+   "hzdExtinction": 0.8,
+   "layer": [
+    1500,
+    5000
+   ],
+   "albedo": 0.99,
+   "g": 0.8,
+   "maxDepth": 512
+  },
+  "stratus": {
+   "def": {
+    "key": "stratus",
+    "label": "E stratus slab (HZD deck)",
+    "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+    "runtime": "direct",
+    "camera": {
+     "distance": 1200,
+     "height": 100
+    },
+    "alphaFilter": "trilinear"
+   },
+   "cameraRing": {
+    "distance": 1200,
+    "height": 100
+   },
+   "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+   "runtime": {
+    "quality": "ultra",
+    "lightingModel": "nubis",
+    "densityScale": 0.3,
+    "directDensity": 1,
+    "lightDensityScale": 1,
+    "phaseG": 0.2,
+    "silverG": 0.85,
+    "silverStrength": 0.4,
+    "msStrength": 0.2,
+    "ambientStrength": 0.5,
+    "ambientSaturation": 0.5,
+    "diffuseSun": 0.5,
+    "microShadow": 0
+   },
+   "latticeDims": [
+    375,
+    375,
+    35
+   ],
+   "voxel": 8,
+   "densityRef": 0.07538691948866472,
+   "densityMaxSource": 0.08074916899204254,
+   "directDensity": 1,
+   "extinctionScale": 1,
+   "ptSigmaPerUnit": 0.07538691948866472,
+   "boxMin": [
+    2000,
+    590,
+    1000
+   ],
+   "boxMax": [
+    5000,
+    870,
+    4000
+   ],
+   "occupied": {
+    "min": [
+     2000,
+     622,
+     1000
+    ],
+    "max": [
+     5000,
+     846,
+     4000
+    ]
+   },
+   "patch": {
+    "min": [
+     2000,
+     590,
+     1000
+    ],
+    "max": [
+     5000,
+     870,
+     4000
+    ]
+   },
+   "configure": {
+    "coverageBias": -1,
+    "deckForm": "stratus"
+   },
+   "bake": {
+    "t": 1200,
+    "footprint": 8,
+    "camera": [
+     3500,
+     2,
+     2500
+    ],
+    "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+    "bakeMs": 41.80000001192093
+   },
+   "ndf": {
+    "seed": 3,
+    "tileMeters": 32000,
+    "resolution": 1024
+   },
+   "hzdExtinction": 0.8,
+   "layer": [
+    1500,
+    5000
+   ],
+   "albedo": 0.99,
+   "g": 0.8,
+   "maxDepth": 512
+  }
+ },
+ "runs": {
+  "parkouring/seed1": {
+   "ok": true,
+   "ms": 365765,
+   "attempt": 1,
+   "spp": 2048
+  },
+  "parkouring/seed2": {
+   "ok": true,
+   "ms": 476497,
+   "attempt": 1,
+   "spp": 2048
+  },
+  "stratus/seed1": {
+   "ok": true,
+   "ms": 1410404,
+   "attempt": 1,
+   "spp": 2048
+  },
+  "stratus/seed2": {
+   "ok": true,
+   "ms": 1002655,
+   "attempt": 1,
+   "spp": 2048
+  },
+  "embergen02/seed1": {
+   "ok": true,
+   "ms": 1072101,
+   "attempt": 1,
+   "spp": 1024
+  },
+  "embergen02/seed2": {
+   "ok": true,
+   "ms": 875102,
+   "attempt": 1,
+   "spp": 1024
+  },
+  "parkouring/rerun": {
+   "ok": true,
+   "ms": 20860,
+   "attempt": 1,
+   "shots": [
+    "nubis-noon",
+    "octave-noon",
+    "nubis-low",
+    "octave-low",
+    "nubis-backlit",
+    "octave-backlit",
+    "nubis-sunset",
+    "octave-sunset"
+   ]
+  },
+  "embergen02/rerun": {
+   "ok": true,
+   "ms": 22889,
+   "attempt": 1,
+   "shots": [
+    "nubis-noon",
+    "octave-noon",
+    "nubis-low",
+    "octave-low",
+    "nubis-backlit",
+    "octave-backlit",
+    "nubis-sunset",
+    "octave-sunset"
+   ]
+  }
+ }
+}

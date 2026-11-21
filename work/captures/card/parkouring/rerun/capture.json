@@ -1,0 +1,1410 @@
+{
+  "url": "http://127.0.0.1:5391/reference-pt/?clean=1&cloud=parkouring&spp=16&seed=1",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-21T08:54:55.772Z",
+  "shots": [
+    {
+      "name": "nubis-noon",
+      "file": "work/captures/card/parkouring/rerun/nubis-noon.png",
+      "report": {
+        "view": "nubis-noon",
+        "status": "sun noon: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            554.5590985160661,
+            120,
+            1007.4543196855368
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3516,
+            31.8945
+          ],
+          "ambientUp": [
+            0.3896,
+            0.7775,
+            1.693
+          ],
+          "ambientDown": [
+            1.1461,
+            1.0671,
+            0.9674
+          ],
+          "envMapUp": [
+            0.3875,
+            0.7719,
+            1.6787
+          ],
+          "envMapDown": [
+            1.1297,
+            1.0519,
+            0.9537
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714786211129296,
+          "bakeMs": 85.59999999403954
+        },
+        "pt": {
+          "samples": 6,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 107.29999999701977,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 119
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/nubis-noon.pfm",
+        "view": "nubis-noon",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.7649951793932834,
+          1.177050399766239,
+          2.15807617190682
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 126,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-noon",
+      "file": "work/captures/card/parkouring/rerun/octave-noon.png",
+      "report": {
+        "view": "octave-noon",
+        "status": "sun noon: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            554.5590985160661,
+            120,
+            1007.4543196855368
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3516,
+            31.8945
+          ],
+          "ambientUp": [
+            0.3896,
+            0.7775,
+            1.693
+          ],
+          "ambientDown": [
+            1.1461,
+            1.0671,
+            0.9674
+          ],
+          "envMapUp": [
+            0.3875,
+            0.7719,
+            1.6787
+          ],
+          "envMapDown": [
+            1.1297,
+            1.0519,
+            0.9537
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714786211129296,
+          "bakeMs": 85.59999999403954
+        },
+        "pt": {
+          "samples": 6,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 107.29999999701977,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 245
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/octave-noon.pfm",
+        "view": "octave-noon",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6690601360148544,
+          1.0499498788000912,
+          1.9529661658484514
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 251,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-low",
+      "file": "work/captures/card/parkouring/rerun/nubis-low.png",
+      "report": {
+        "view": "nubis-low",
+        "status": "sun low: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            -655.1806629929126,
+            120,
+            945.1128497910539
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06716672434156307,
+          "bakeMs": 83.20000000298023
+        },
+        "pt": {
+          "samples": 0,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 75.40000000596046,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 389
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/nubis-low.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.499825795227015,
+          0.7831108106409536,
+          1.4374831265353392
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 398,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-low",
+      "file": "work/captures/card/parkouring/rerun/octave-low.png",
+      "report": {
+        "view": "octave-low",
+        "status": "sun low: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            -655.1806629929126,
+            120,
+            945.1128497910539
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06716672434156307,
+          "bakeMs": 83.20000000298023
+        },
+        "pt": {
+          "samples": 0,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 75.40000000596046,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 526
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/octave-low.pfm",
+        "view": "octave-low",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5305604228791748,
+          0.7726308635748379,
+          1.3483639898075166
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 535,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-backlit",
+      "file": "work/captures/card/parkouring/rerun/nubis-backlit.png",
+      "report": {
+        "view": "nubis-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            664.0305864975516,
+            120,
+            938.9160666405267
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714713664089796,
+          "bakeMs": 90.79999999701977
+        },
+        "pt": {
+          "samples": 0,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 75.1000000089407,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 680
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/nubis-backlit.pfm",
+        "view": "nubis-backlit",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.7456520957116866,
+          1.1019205501921372,
+          1.8857544350384787
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 690,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-backlit",
+      "file": "work/captures/card/parkouring/rerun/octave-backlit.png",
+      "report": {
+        "view": "octave-backlit",
+        "status": "sun backlit: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            664.0305864975516,
+            120,
+            938.9160666405267
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 140
+        },
+        "sky": {
+          "sunIrradiance": [
+            34.6875,
+            28.3984,
+            21.2695
+          ],
+          "ambientUp": [
+            0.318,
+            0.5881,
+            1.1908
+          ],
+          "ambientDown": [
+            0.3726,
+            0.3057,
+            0.233
+          ],
+          "envMapUp": [
+            0.3189,
+            0.5868,
+            1.1844
+          ],
+          "envMapDown": [
+            0.3675,
+            0.3016,
+            0.2301
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06714713664089796,
+          "bakeMs": 90.79999999701977
+        },
+        "pt": {
+          "samples": 0,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 75.1000000089407,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 819
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/octave-backlit.pfm",
+        "view": "octave-backlit",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6540310961546493,
+          0.9957527727622396,
+          1.7352557107323405
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 834,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "nubis-sunset",
+      "file": "work/captures/card/parkouring/rerun/nubis-sunset.png",
+      "report": {
+        "view": "nubis-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            67.72959854243788,
+            120,
+            1148.0037898375074
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            24.5898,
+            12.5977,
+            4.2676
+          ],
+          "ambientUp": [
+            0.235,
+            0.3345,
+            0.5472
+          ],
+          "ambientDown": [
+            0.0693,
+            0.036,
+            0.0147
+          ],
+          "envMapUp": [
+            0.2354,
+            0.3334,
+            0.5439
+          ],
+          "envMapDown": [
+            0.0687,
+            0.0357,
+            0.0147
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06715566091803926,
+          "bakeMs": 164.29999999701977
+        },
+        "pt": {
+          "samples": 0,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 140.5,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 990
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/nubis-sunset.pfm",
+        "view": "nubis-sunset",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.3669602822079711,
+          0.467614055784361,
+          0.707689402956522
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 999,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "octave-sunset",
+      "file": "work/captures/card/parkouring/rerun/octave-sunset.png",
+      "report": {
+        "view": "octave-sunset",
+        "status": "sun sunset: ready",
+        "cloud": "parkouring",
+        "camera": {
+          "position": [
+            67.72959854243788,
+            120,
+            1148.0037898375074
+          ],
+          "target": [
+            0,
+            712,
+            0
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          1280,
+          720
+        ],
+        "sun": {
+          "elevationDeg": 5.000693438300772,
+          "azimuthDeg": 296.6235938462722,
+          "direction": [
+            -0.8906,
+            0.0872,
+            -0.4464
+          ],
+          "timeOfDay": 18.949,
+          "ring": 120
+        },
+        "sky": {
+          "sunIrradiance": [
+            24.5898,
+            12.5977,
+            4.2676
+          ],
+          "ambientUp": [
+            0.235,
+            0.3345,
+            0.5472
+          ],
+          "ambientDown": [
+            0.0693,
+            0.036,
+            0.0147
+          ],
+          "envMapUp": [
+            0.2354,
+            0.3334,
+            0.5439
+          ],
+          "envMapDown": [
+            0.0687,
+            0.0357,
+            0.0147
+          ]
+        },
+        "grid": {
+          "resolution": [
+            376,
+            156,
+            376
+          ],
+          "voxel": 2,
+          "min": [
+            -376,
+            556,
+            -376
+          ],
+          "max": [
+            376,
+            868,
+            376
+          ],
+          "densityMax": 1,
+          "occupancy": 0.06715566091803926,
+          "bakeMs": 164.29999999701977
+        },
+        "pt": {
+          "samples": 0,
+          "target": 16,
+          "seed": 1,
+          "film": [
+            1280,
+            720
+          ],
+          "msPerPass": 23.22000000178814,
+          "wallMs": 163,
+          "compileMs": 140.5,
+          "kernelBytes": 51390,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.3,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "nearest"
+        },
+        "runtime": {
+          "quality": "ultra",
+          "lightingModel": "octave",
+          "densityScale": 0.3,
+          "directDensity": 0.6,
+          "lightDensityScale": 1.2,
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 1.4,
+          "ambientStrength": 1,
+          "ambientSaturation": 1,
+          "diffuseSun": 0,
+          "microShadow": 1
+        },
+        "card": {
+          "def": {
+            "key": "parkouring",
+            "label": "A Parkouring (Nubis pack NVDF)",
+            "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+            "runtime": "nvdf",
+            "camera": {
+              "distance": 1150,
+              "height": 120
+            },
+            "alphaFilter": "nearest"
+          },
+          "cameraRing": {
+            "distance": 1150,
+            "height": 120
+          },
+          "source": "Nubis pack hero \"Parkouring\" (NVDF + runtime up-rez noise), baked per camera at 2 m",
+          "runtime": "NVDF + up-rez (DENSITY_WGSL cloudDensity), CloudSettings.densityScale",
+          "volumeMin": [
+            -432,
+            500,
+            -432
+          ],
+          "volumeDims": [
+            108,
+            108,
+            51
+          ],
+          "volumeVoxel": 8,
+          "ptBake": "DENSITY_WGSL cloudDensity(...).x per camera at 2 m",
+          "extinctionScale": 0.3
+        },
+        "exposure": 0.35,
+        "frames": 1128
+      },
+      "linear": {
+        "file": "work/captures/card/parkouring/rerun/octave-sunset.pfm",
+        "view": "octave-sunset",
+        "kind": "radiance",
+        "width": 1280,
+        "height": 720,
+        "channels": 4,
+        "byteLength": 14745600,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.316603713871114,
+          0.41710669102160963,
+          0.6418257425757716
+        ],
+        "meta": {
+          "lightingModel": "octave",
+          "frame": 1137,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

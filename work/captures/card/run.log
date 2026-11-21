@@ -1,0 +1,120 @@
+[card] parkouring seed 1 spp 2048: 20 shots -> work/captures/card/parkouring (attempt 1)
+captured pt-noon -> work/captures/card/parkouring/pt-noon.png
+captured nubis-noon -> work/captures/card/parkouring/nubis-noon.png
+captured octave-noon -> work/captures/card/parkouring/octave-noon.png
+captured alpha-noon -> work/captures/card/parkouring/alpha-noon.png
+captured rtalpha-noon -> work/captures/card/parkouring/rtalpha-noon.png
+captured pt-low -> work/captures/card/parkouring/pt-low.png
+captured nubis-low -> work/captures/card/parkouring/nubis-low.png
+captured octave-low -> work/captures/card/parkouring/octave-low.png
+captured alpha-low -> work/captures/card/parkouring/alpha-low.png
+captured rtalpha-low -> work/captures/card/parkouring/rtalpha-low.png
+captured pt-backlit -> work/captures/card/parkouring/pt-backlit.png
+captured nubis-backlit -> work/captures/card/parkouring/nubis-backlit.png
+captured octave-backlit -> work/captures/card/parkouring/octave-backlit.png
+captured alpha-backlit -> work/captures/card/parkouring/alpha-backlit.png
+captured rtalpha-backlit -> work/captures/card/parkouring/rtalpha-backlit.png
+captured pt-sunset -> work/captures/card/parkouring/pt-sunset.png
+captured nubis-sunset -> work/captures/card/parkouring/nubis-sunset.png
+captured octave-sunset -> work/captures/card/parkouring/octave-sunset.png
+captured alpha-sunset -> work/captures/card/parkouring/alpha-sunset.png
+captured rtalpha-sunset -> work/captures/card/parkouring/rtalpha-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/parkouring/capture.json
+[card] parkouring seed 2 spp 2048: 4 shots -> work/captures/card/parkouring/seed2 (attempt 1)
+captured pt-noon -> work/captures/card/parkouring/seed2/pt-noon.png
+captured pt-low -> work/captures/card/parkouring/seed2/pt-low.png
+captured pt-backlit -> work/captures/card/parkouring/seed2/pt-backlit.png
+captured pt-sunset -> work/captures/card/parkouring/seed2/pt-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/parkouring/seed2/capture.json
+[card] stratus seed 1 spp 2048: 20 shots -> work/captures/card/stratus (attempt 1)
+captured pt-noon -> work/captures/card/stratus/pt-noon.png
+captured nubis-noon -> work/captures/card/stratus/nubis-noon.png
+captured octave-noon -> work/captures/card/stratus/octave-noon.png
+captured alpha-noon -> work/captures/card/stratus/alpha-noon.png
+captured rtalpha-noon -> work/captures/card/stratus/rtalpha-noon.png
+captured pt-low -> work/captures/card/stratus/pt-low.png
+captured nubis-low -> work/captures/card/stratus/nubis-low.png
+captured octave-low -> work/captures/card/stratus/octave-low.png
+captured alpha-low -> work/captures/card/stratus/alpha-low.png
+captured rtalpha-low -> work/captures/card/stratus/rtalpha-low.png
+captured pt-backlit -> work/captures/card/stratus/pt-backlit.png
+captured nubis-backlit -> work/captures/card/stratus/nubis-backlit.png
+captured octave-backlit -> work/captures/card/stratus/octave-backlit.png
+captured alpha-backlit -> work/captures/card/stratus/alpha-backlit.png
+captured rtalpha-backlit -> work/captures/card/stratus/rtalpha-backlit.png
+captured pt-sunset -> work/captures/card/stratus/pt-sunset.png
+captured nubis-sunset -> work/captures/card/stratus/nubis-sunset.png
+captured octave-sunset -> work/captures/card/stratus/octave-sunset.png
+captured alpha-sunset -> work/captures/card/stratus/alpha-sunset.png
+captured rtalpha-sunset -> work/captures/card/stratus/rtalpha-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/stratus/capture.json
+[card] stratus seed 2 spp 2048: 4 shots -> work/captures/card/stratus/seed2 (attempt 1)
+captured pt-noon -> work/captures/card/stratus/seed2/pt-noon.png
+captured pt-low -> work/captures/card/stratus/seed2/pt-low.png
+captured pt-backlit -> work/captures/card/stratus/seed2/pt-backlit.png
+captured pt-sunset -> work/captures/card/stratus/seed2/pt-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/stratus/seed2/capture.json
+[card] embergen02 seed 1 spp 1024: 20 shots -> work/captures/card/embergen02 (attempt 1)
+captured pt-noon -> work/captures/card/embergen02/pt-noon.png
+captured nubis-noon -> work/captures/card/embergen02/nubis-noon.png
+captured octave-noon -> work/captures/card/embergen02/octave-noon.png
+captured alpha-noon -> work/captures/card/embergen02/alpha-noon.png
+captured rtalpha-noon -> work/captures/card/embergen02/rtalpha-noon.png
+captured pt-low -> work/captures/card/embergen02/pt-low.png
+captured nubis-low -> work/captures/card/embergen02/nubis-low.png
+captured octave-low -> work/captures/card/embergen02/octave-low.png
+captured alpha-low -> work/captures/card/embergen02/alpha-low.png
+captured rtalpha-low -> work/captures/card/embergen02/rtalpha-low.png
+captured pt-backlit -> work/captures/card/embergen02/pt-backlit.png
+captured nubis-backlit -> work/captures/card/embergen02/nubis-backlit.png
+captured octave-backlit -> work/captures/card/embergen02/octave-backlit.png
+captured alpha-backlit -> work/captures/card/embergen02/alpha-backlit.png
+captured rtalpha-backlit -> work/captures/card/embergen02/rtalpha-backlit.png
+captured pt-sunset -> work/captures/card/embergen02/pt-sunset.png
+captured nubis-sunset -> work/captures/card/embergen02/nubis-sunset.png
+captured octave-sunset -> work/captures/card/embergen02/octave-sunset.png
+captured alpha-sunset -> work/captures/card/embergen02/alpha-sunset.png
+captured rtalpha-sunset -> work/captures/card/embergen02/rtalpha-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/embergen02/capture.json
+[card] embergen02 seed 2 spp 1024: 4 shots -> work/captures/card/embergen02/seed2 (attempt 1)
+captured pt-noon -> work/captures/card/embergen02/seed2/pt-noon.png
+captured pt-low -> work/captures/card/embergen02/seed2/pt-low.png
+captured pt-backlit -> work/captures/card/embergen02/seed2/pt-backlit.png
+captured pt-sunset -> work/captures/card/embergen02/seed2/pt-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/embergen02/seed2/capture.json
+[card] sky seed 1 spp 1024: 20 shots -> work/captures/card/sky (attempt 1)
+captured pt-noon -> work/captures/card/sky/pt-noon.png
+captured nubis-noon -> work/captures/card/sky/nubis-noon.png
+captured octave-noon -> work/captures/card/sky/octave-noon.png
+captured alpha-noon -> work/captures/card/sky/alpha-noon.png
+captured rtalpha-noon -> work/captures/card/sky/rtalpha-noon.png
+captured pt-low -> work/captures/card/sky/pt-low.png
+captured nubis-low -> work/captures/card/sky/nubis-low.png
+captured octave-low -> work/captures/card/sky/octave-low.png
+captured alpha-low -> work/captures/card/sky/alpha-low.png
+captured rtalpha-low -> work/captures/card/sky/rtalpha-low.png
+captured pt-backlit -> work/captures/card/sky/pt-backlit.png
+captured nubis-backlit -> work/captures/card/sky/nubis-backlit.png
+captured octave-backlit -> work/captures/card/sky/octave-backlit.png
+captured alpha-backlit -> work/captures/card/sky/alpha-backlit.png
+captured rtalpha-backlit -> work/captures/card/sky/rtalpha-backlit.png
+captured pt-sunset -> work/captures/card/sky/pt-sunset.png
+captured nubis-sunset -> work/captures/card/sky/nubis-sunset.png
+captured octave-sunset -> work/captures/card/sky/octave-sunset.png
+captured alpha-sunset -> work/captures/card/sky/alpha-sunset.png
+captured rtalpha-sunset -> work/captures/card/sky/rtalpha-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/sky/capture.json
+[card] sky seed 2 spp 1024: 4 shots -> work/captures/card/sky/seed2 (attempt 1)
+captured pt-noon -> work/captures/card/sky/seed2/pt-noon.png
+captured pt-low -> work/captures/card/sky/seed2/pt-low.png
+captured pt-backlit -> work/captures/card/sky/seed2/pt-backlit.png
+captured pt-sunset -> work/captures/card/sky/seed2/pt-sunset.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/card/sky/seed2/capture.json

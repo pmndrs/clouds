@@ -8,7 +8,14 @@ Luminance is Rec.709 (0.2126, 0.7152, 0.0722) of linear RGB. B/R is mean(B) / me
   one comparison:  scorecard.py --ref pt-noon.pfm --test nubis-noon.pfm --alpha alpha-noon.pfm [--test-alpha rtalpha-noon.pfm] --out s.json
   noise floor:     scorecard.py --noise --ref pt-noon.pfm --ref2 seed2/pt-noon.pfm --alpha alpha-noon.pfm --out n.json
   gate run:        scorecard.py --gate work/captures/P0-3b [--seed2 work/captures/P0-3b/seed2]   (all suns x nubis, octave; table + checks)
+  scene card:      scorecard.py --gate work/captures/card      (P0.4: a directory with manifest.json or <cloud>/ subdirectories: one table
+                   per cloud in <cloud>/scorecard.md, all of them in card/scorecard.md, contact sheets card/<cloud>/contact.jpg)
+  realtime noise:  scorecard.py --rt-noise work/captures/card    (P0.4 step 0.1 gate: <cloud>/rerun/{nubis,octave}-<sun>.pfm against the card's)
   self-checks:     scorecard.py --selftest
+
+P0.4: the standard reference is TWO path traces with different seeds, averaged (pt-<sun>.pfm and seed2/pt-<sun>.pfm). Half their difference
+estimates the averaged reference's own grain: its band energy is reported per band (`grain`) and removed from the reference's band energy
+in quadrature for the corrected band ratios; each measure's noise floor is half the seed-to-seed deviation (the mean of two halves it).
 
 Measures (ratios are test / reference; B/R is reported for both and as test - reference):
   cloud     alpha > 0.5                         mean luminance
@@ -33,6 +40,8 @@ LUMA = np.array([0.2126, 0.7152, 0.0722], dtype=np.float64)
 BANDS = [(4, 16), (16, 64), (64, 256)]
 SUNS = ['noon', 'low', 'backlit']
 MODELS = ['nubis', 'octave']
+CARD_SUNS = ['noon', 'low', 'backlit', 'sunset']
+CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus']
 
 
 # ---------------------------------------------------------------- io
@@ -467,6 +476,221 @@ def sheet(d, sun, exposure=0.35, max_w=1400):
     return p
 
 
+# ---------------------------------------------------------------- P0.4 scene card
+def averaged_reference(a, b):
+    """The standard reference: the mean of two seeds. Returns (mean, half difference): the half difference has the mean's noise statistics."""
+    a64, b64 = a.astype(np.float64), b.astype(np.float64)
+    return ((a64 + b64) / 2).astype(np.float32), ((a64 - b64) / 2)
+
+
+def mean_grain_card(a, b, alpha):
+    """Band energy of the averaged reference's own grain: (log A - log B) / 2 per pixel (the mean of two seeds carries half the variance of
+    one), read as the bands are, next to the averaged frame's band energy."""
+    alpha = as_mask(alpha)
+    ref, _ = averaged_reference(a, b)
+    la, lb, lr = luminance(a), luminance(b), luminance(ref)
+    reg = regions(alpha, lr)
+    d = (np.log(np.maximum(la, 1e-8)) - np.log(np.maximum(lb, 1e-8))) / 2
+    out = {}
+    for key, ev in [('band', reg['thick_core']), ('band_lit', reg['thick_lit'])]:
+        en = band_energies(np.exp(d), reg['thick'], ev)
+        fr = band_energies(lr, reg['thick'], ev)
+        for b_, v in en.items():
+            out[f'{key}_{b_}'] = {'grain': v, 'frame': fr[b_], 'share': None if v is None or not fr[b_] else v / fr[b_]}
+    return out
+
+
+def corrected_with_grain(card, grain):
+    out = {}
+    for k, m in card['measures'].items():
+        g = grain.get(k)
+        if not k.startswith('band') or g is None or g['grain'] is None or m['ref'] is None or m['test'] is None or m['ref'] <= g['grain']:
+            continue
+        out[k] = m['test'] / np.sqrt(m['ref'] ** 2 - g['grain'] ** 2)
+    return out
+
+
+CARD_COLS = [('cloud_lum', 'cloud L', 'ratio'), ('thick_lum', 'thick L', 'ratio'), ('fringe_lum', 'fringe L', 'ratio'), ('fringe_br', 'fringe B/R', 'br'),
+             ('base_lum', 'base L', 'ratio'), ('base_br', 'base B/R', 'br'), ('dark20_lum', 'dark20 L', 'ratio'), ('dark20_br', 'dark20 B/R', 'br'),
+             ('band_4-16', '4-16', 'ratio'), ('band_16-64', '16-64', 'ratio'), ('band_64-256', '64-256', 'ratio'), ('band_lit_4-16', 'lit 4-16', 'ratio')]
+
+
+def card_header():
+    return ('| view | alpha Δ | fill | ' + ' | '.join(c[1] for c in CARD_COLS) + ' | 4-16 corr | lit 4-16 corr | sky |\n|'
+            + '---|' * (len(CARD_COLS) + 6))
+
+
+def card_row(label, card):
+    aa = card.get('alpha_agreement') or {}
+    a = aa.get('mean_abs_diff_over_cloud')
+    corr = card.get('band_ratio_grain_corrected', {})
+    sky = card['measures'].get('sky_rgb')
+    skys = '-' if not sky else f"{max(abs(v - 1) for v in sky['ratio']):.3f}"
+    c = lambda k: '-' if corr.get(k) is None else f'{corr[k]:.2f}'
+    return (f"| {label} | {'-' if a is None else f'{a:.4f}'} | {card.get('fill', 0):.2f} | " + ' | '.join(fmt(card['measures'].get(k), kind) for k, _, kind in CARD_COLS)
+            + f" | {c('band_4-16')} | {c('band_lit_4-16')} | {skys} |")
+
+
+def card_noise_row(label, nf, grain):
+    cells = []
+    for k, _, kind in CARD_COLS:
+        v = nf.get(k)
+        cells.append('-' if v is None else f'±{v:.3f}')
+    g = lambda k: '-' if not grain.get(k) or grain[k]['share'] is None else f"grain {grain[k]['share']:.2f}"
+    return f'| {label} | | | ' + ' | '.join(cells) + f" | {g('band_4-16')} | {g('band_lit_4-16')} | |"
+
+
+def cloud_gate(d, cloud):
+    """One cloud of the card: every sun x model against the averaged reference."""
+    d = Path(d)
+    out = {'cloud': cloud, 'dir': str(d), 'comparisons': {}, 'noise': {}, 'grain': {}, 'seeds': {}}
+    lines = [f'### {cloud}', '', card_header()]
+    noise_lines = []
+    for sun in CARD_SUNS:
+        p1, p2, pa = d / f'pt-{sun}.pfm', d / 'seed2' / f'pt-{sun}.pfm', d / f'alpha-{sun}.pfm'
+        if not (p1.exists() and pa.exists()):
+            continue
+        a = read_pfm(p1)
+        alpha = read_pfm(pa)
+        if p2.exists():
+            b = read_pfm(p2)
+            ref, _ = averaged_reference(a, b)
+            pair = score(a, b, alpha)
+            nf = {k: v / 2 for k, v in ((k, deviation(m)) for k, m in pair['measures'].items()) if v is not None}
+            grain = mean_grain_card(a, b, alpha)
+            out['noise'][sun], out['grain'][sun], out['seeds'][sun] = nf, grain, 2
+        else:
+            ref, nf, grain = a, {}, {}
+            out['seeds'][sun] = 1
+        ta = d / f'rtalpha-{sun}.pfm'
+        ta_img = read_pfm(ta) if ta.exists() else None
+        for model in MODELS:
+            tp = d / f'{model}-{sun}.pfm'
+            if not tp.exists():
+                continue
+            c = score(ref, read_pfm(tp), alpha, ta_img)
+            c['fill'] = float((as_mask(alpha) > 0.5).mean())
+            if grain:
+                c['band_ratio_grain_corrected'] = corrected_with_grain(c, grain)
+            out['comparisons'][f'{model}-{sun}'] = c
+            lines.append(card_row(f'{model} {sun}', c))
+        if nf:
+            noise_lines.append(card_noise_row(f'ref noise {sun}', nf, grain))
+    if noise_lines:
+        lines += noise_lines
+    return out, lines
+
+
+def contact_sheet(d, cloud, exposure=0.35, tile_h=170):
+    """pt | nubis | octave across the four suns, each row cropped to its cloud (+ margin), tone-mapped with the page's ACES: for viewing only."""
+    from PIL import Image, ImageDraw
+    d = Path(d)
+    rows = []
+    for sun in CARD_SUNS:
+        ap = d / f'alpha-{sun}.pfm'
+        cells = []
+        for r in ['pt', 'nubis', 'octave']:
+            p = d / f'{r}-{sun}.pfm'
+            if r == 'pt' and (d / 'seed2' / f'pt-{sun}.pfm').exists() and p.exists():
+                img, _ = averaged_reference(read_pfm(p), read_pfm(d / 'seed2' / f'pt-{sun}.pfm'))
+            else:
+                img = read_pfm(p) if p.exists() else None
+            cells.append(img)
+        if not ap.exists() or any(c is None for c in cells):
+            continue
+        alpha = as_mask(read_pfm(ap))
+        ys, xs = np.nonzero(alpha > 0.02)
+        if len(ys) == 0:
+            continue
+        h, w = alpha.shape
+        m = 20
+        y0, y1, x0, x1 = max(0, ys.min() - m), min(h, ys.max() + m), max(0, xs.min() - m), min(w, xs.max() + m)
+        tiles = []
+        for img in cells:
+            t = Image.fromarray((np.clip(aces_srgb(img[y0:y1, x0:x1], exposure), 0, 1) * 255).astype(np.uint8))
+            tiles.append(t.resize((max(1, int(t.size[0] * tile_h / t.size[1])), tile_h), Image.LANCZOS))
+        rows.append((sun, tiles))
+    if not rows:
+        return None
+    pad, lh = 6, 16
+    W = max(sum(t.size[0] for t in tiles) + pad * 4 for _, tiles in rows)
+    H = 20 + len(rows) * (tile_h + lh + pad) + pad
+    out = Image.new('RGB', (W, H), (18, 18, 20))
+    dr = ImageDraw.Draw(out)
+    dr.text((pad, 4), f'P0.4 card {cloud}: path traced (2 seeds averaged) | nubis | octave, linear frames through the page ACES at {exposure}', fill=(230, 230, 230))
+    for i, (sun, tiles) in enumerate(rows):
+        y, x = 20 + i * (tile_h + lh + pad), pad
+        for label, t in zip([f'{sun}: pt', 'nubis', 'octave'], tiles):
+            dr.text((x, y), label, fill=(210, 210, 210))
+            out.paste(t, (x, y + lh))
+            x += t.size[0] + pad
+    if out.size[0] > 1400:
+        out = out.resize((1400, int(out.size[1] * 1400 / out.size[0])), Image.LANCZOS)
+    p = d / 'contact.jpg'
+    out.save(p, quality=82)
+    return p
+
+
+def is_card_dir(d):
+    d = Path(d)
+    return (d / 'manifest.json').exists() or any((d / c).is_dir() for c in CARD_CLOUDS)
+
+
+def card_gate(root):
+    root = Path(root)
+    clouds = [c for c in CARD_CLOUDS if (root / c).is_dir()]
+    combined = {'dir': str(root), 'clouds': {}}
+    md = ['# P0.4 scene card scorecard (linear radiance; ratios are ours / path trace; B/R is ours / PT)', '',
+          'Reference: the mean of two path traces (seeds 1 and 2). `alpha Δ`: mean |alpha - rtalpha| where either is above 0.02 (same density on both',
+          'sides). `fill`: share of the frame with alpha > 0.5. `corr`: band ratio with the averaged reference\'s grain removed in quadrature.',
+          '`ref noise`: half the seed-to-seed deviation of each measure (the averaged reference\'s noise floor); `grain` = grain / band energy.',
+          '`sky`: largest per-channel |ratio - 1| on clear sky (the units check).', '']
+    for cloud in clouds:
+        res, lines = cloud_gate(root / cloud, cloud)
+        combined['clouds'][cloud] = res
+        (root / cloud / 'scorecard.json').write_text(json.dumps(res, indent=1))
+        (root / cloud / 'scorecard.md').write_text('\n'.join(lines) + '\n')
+        p = contact_sheet(root / cloud, cloud)
+        if p:
+            print('wrote', p)
+        md += lines + ['']
+    (root / 'scorecard.json').write_text(json.dumps(combined, indent=1))
+    (root / 'scorecard.md').write_text('\n'.join(md) + '\n')
+    print('\n'.join(md))
+    print('wrote', root / 'scorecard.md')
+    return combined
+
+
+def rt_noise(root):
+    """Realtime run-to-run: <cloud>/rerun/<model>-<sun>.pfm (a second, fresh browser session) against <cloud>/<model>-<sun>.pfm, every measure."""
+    root = Path(root)
+    out = {}
+    md = ['# P0.4 realtime run-to-run noise (step 0.1 gate): |ratio - 1| or |B/R diff| between two fresh sessions of the same frame', '',
+          '| cloud view | ' + ' | '.join(c[1] for c in CARD_COLS) + ' | sky |', '|' + '---|' * (len(CARD_COLS) + 2)]
+    for cloud in CARD_CLOUDS:
+        rr = root / cloud / 'rerun'
+        if not rr.is_dir():
+            continue
+        for sun in CARD_SUNS:
+            ap = root / cloud / f'alpha-{sun}.pfm'
+            for model in MODELS:
+                a, b = root / cloud / f'{model}-{sun}.pfm', rr / f'{model}-{sun}.pfm'
+                if not (a.exists() and b.exists() and ap.exists()):
+                    continue
+                c = score(read_pfm(a), read_pfm(b), read_pfm(ap))
+                dev = {k: deviation(m) for k, m in c['measures'].items() if deviation(m) is not None}
+                diff = np.abs(luminance(read_pfm(a)) - luminance(read_pfm(b)))
+                dev['pixel_lum_mean_abs_rel'] = float(diff.mean() / max(luminance(read_pfm(a)).mean(), 1e-12))
+                out[f'{cloud}/{model}-{sun}'] = dev
+                cells = ['-' if dev.get(k) is None else f'±{dev[k]:.4f}' for k, _, _ in CARD_COLS]
+                md.append(f'| {cloud} {model} {sun} | ' + ' | '.join(cells) + f" | {dev.get('sky_rgb', 0):.4f} |")
+    md += ['', 'Mean |ΔL| / mean L per pixel: ' + ', '.join(f"{k} {v['pixel_lum_mean_abs_rel']:.4f}" for k, v in out.items())]
+    (root / 'rt-noise.json').write_text(json.dumps(out, indent=1))
+    (root / 'rt-noise.md').write_text('\n'.join(md) + '\n')
+    print('\n'.join(md))
+    return out
+
+
 # ---------------------------------------------------------------- self-checks
 def selftest():
     rng = np.random.default_rng(7)
@@ -524,6 +748,19 @@ def selftest():
     a2 = ref * (1 + 0.03 * rng.standard_normal((h, w, 1))).astype(np.float32)
     nf, _ = noise_floor(a1, a2, alpha)
     check('noise floor: one value per measure, all small', len(nf) >= 15 and all(v < 0.2 for v in nf.values()), f'{len(nf)} measures, max {max(nf.values()):.3f}')
+
+    # P0.4: two seeds averaged. The half difference's band energy must estimate the averaged frame's own grain (its energy against the truth).
+    s1 = ref * np.exp(0.05 * rng.standard_normal((h, w, 1))).astype(np.float32)
+    s2 = ref * np.exp(0.05 * rng.standard_normal((h, w, 1))).astype(np.float32)
+    mean, _ = averaged_reference(s1, s2)
+    g = mean_grain_card(s1, s2, alpha)['band_4-16']['grain']
+    reg = regions(alpha, luminance(ref))
+    truth = band_energies(np.exp(np.log(np.maximum(luminance(mean), 1e-8)) - np.log(np.maximum(luminance(ref), 1e-8))), reg['thick'], reg['thick_core'])['4-16']
+    check('averaged reference: half-difference grain matches the mean\'s true grain within 10 %', abs(g / truth - 1) < 0.1, f'{g:.5f} vs {truth:.5f}')
+    c = score(mean, ref * 1.0, alpha)
+    corr = corrected_with_grain(c, mean_grain_card(s1, s2, alpha))
+    raw = c['measures']['band_4-16']['ratio']
+    check('averaged reference: grain-corrected 4-16 ratio of the truth is nearer 1 than the raw ratio', abs(corr['band_4-16'] - 1) < abs(raw - 1), f"raw {raw:.3f}, corrected {corr['band_4-16']:.3f}")
     print('selftest', 'PASSED' if ok else 'FAILED')
     return ok
 
@@ -534,6 +771,7 @@ def main():
     ap.add_argument('--gate', metavar='DIR')
     ap.add_argument('--seed2', metavar='DIR', help='gate: the second-seed path traces (default DIR/seed2)')
     ap.add_argument('--display', action='store_true', help='gate: score the PNG screenshots (display-referred, PT1 units) instead of the PFMs')
+    ap.add_argument('--rt-noise', metavar='CARD_DIR', help='P0.4: realtime run-to-run noise of <cloud>/rerun/ against the card frames')
     ap.add_argument('--ref'); ap.add_argument('--test'); ap.add_argument('--alpha'); ap.add_argument('--test-alpha')
     ap.add_argument('--noise', action='store_true', help='noise-floor mode: --ref and --ref2 are two seeds of the same view')
     ap.add_argument('--ref2')
@@ -543,7 +781,13 @@ def main():
     if a.selftest:
         sys.exit(0 if selftest() else 1)
     if a.gate:
-        gate(a.gate, a.seed2, a.display)
+        if is_card_dir(a.gate) and not a.display:
+            card_gate(a.gate)
+        else:
+            gate(a.gate, a.seed2, a.display)
+        return
+    if a.rt_noise:
+        rt_noise(a.rt_noise)
         return
     if not (a.ref and a.alpha and (a.test or (a.noise and a.ref2))):
         ap.error('need --ref, --alpha and --test (or --noise with --ref2)')

@@ -1,0 +1,68 @@
+{
+ "parkouring/seed1": {
+  "ok": true,
+  "ms": 365765,
+  "attempt": 1,
+  "spp": 2048
+ },
+ "parkouring/seed2": {
+  "ok": true,
+  "ms": 476497,
+  "attempt": 1,
+  "spp": 2048
+ },
+ "stratus/seed1": {
+  "ok": true,
+  "ms": 1410404,
+  "attempt": 1,
+  "spp": 2048
+ },
+ "stratus/seed2": {
+  "ok": true,
+  "ms": 1002655,
+  "attempt": 1,
+  "spp": 2048
+ },
+ "embergen02/seed1": {
+  "ok": true,
+  "ms": 1072101,
+  "attempt": 1,
+  "spp": 1024
+ },
+ "embergen02/seed2": {
+  "ok": true,
+  "ms": 875102,
+  "attempt": 1,
+  "spp": 1024
+ },
+ "parkouring/rerun": {
+  "ok": true,
+  "ms": 20860,
+  "attempt": 1,
+  "shots": [
+   "nubis-noon",
+   "octave-noon",
+   "nubis-low",
+   "octave-low",
+   "nubis-backlit",
+   "octave-backlit",
+   "nubis-sunset",
+   "octave-sunset"
+  ]
+ },
+ "embergen02/rerun": {
+  "ok": true,
+  "ms": 22889,
+  "attempt": 1,
+  "shots": [
+   "nubis-noon",
+   "octave-noon",
+   "nubis-low",
+   "octave-low",
+   "nubis-backlit",
+   "octave-backlit",
+   "nubis-sunset",
+   "octave-sunset"
+  ]
+ }
+}

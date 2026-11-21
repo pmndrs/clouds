@@ -30,6 +30,8 @@ if (flag('help')) {
 --timeout <s>       ready timeout in seconds (default 60)
 --no-contract       page has no window.__clouds: stub it after load and just settle frames
 --eval-timeout <s>  per page call (bookmark, settle, report) in seconds (default 45; a path-traced settle can take minutes)
+--evals <file.json> after the shots, evaluate [{ name, expr, linear? }] in the page in order: <out>/<name>.json (and .pfm with linear:
+                    the expression returns a readLinear-style summary and the page's linearChunk serves the floats)
 --linear            also save each shot's linear frame (page's window.__clouds.readLinear(), e.g. reference-pt/) as <shot>.pfm:
                     float32 scene radiance before exposure and tone mapping (PF = RGB; Pf = one channel for alpha masks)`);
   process.exit(0);
@@ -55,8 +57,8 @@ async function waitFor(fn, ms, what) {
 
 // --linear: pulls the page's last readLinear() frame (float32 RGBA, row 0 = top) out in base64 chunks and writes a PFM (rows bottom to top,
 // little-endian, scale -1). Radiance frames keep RGB; alpha masks keep one channel.
-async function saveLinear(eval_, file) {
-  const info = await eval_(`window.__clouds.readLinear ? window.__clouds.readLinear() : Promise.reject(new Error('page has no readLinear()'))`);
+async function saveLinear(eval_, file, summary) {
+  const info = summary ?? await eval_(`window.__clouds.readLinear ? window.__clouds.readLinear() : Promise.reject(new Error('page has no readLinear()'))`);
   const CHUNK = 1 << 20;   // 1 MB of floats (1.4 MB of base64) per call: a 4 MB chunk never returns over CDP
   const parts = [];
   for (let off = 0; off < info.byteLength; off += CHUNK) parts.push(Buffer.from(await eval_(`window.__clouds.linearChunk(${off}, ${CHUNK})`), 'base64'));
@@ -133,6 +135,22 @@ try {
     if (flag('linear')) shotEntry.linear = await saveLinear(eval_, join(out, `${fileName}.pfm`));
     report.shots.push(shotEntry);
     console.log(`captured ${shot} -> ${file.slice(root.length + 1)}${pageReport?.gpuMs ? '  gpu ' + JSON.stringify(pageReport.gpuMs) : ''}`);
+  }
+  // --evals <file.json>: [{ name, expr, linear? }] evaluated in order after the shots (page tools, e.g. reference-pt's scanProcedural);
+  // each result goes to <out>/<name>.json, and with linear: true the page's last readLinear-style frame to <out>/<name>.pfm.
+  const evalsFile = opt('evals');
+  if (evalsFile) {
+    const { readFileSync } = await import('node:fs');
+    for (const e of JSON.parse(readFileSync(resolve(evalsFile), 'utf8'))) {
+      const t = Date.now();
+      const value = await eval_(e.expr);
+      writeFileSync(join(out, `${e.name}.json`), JSON.stringify(value));
+      const entry = { name: e.name, eval: e.expr, ms: Date.now() - t };
+      // the eval returned the frame's summary (describe(): width, height, kind, byteLength); the floats are still in the page
+      if (e.linear) entry.linear = await saveLinear(eval_, join(out, `${e.name}.pfm`), value);
+      report.shots.push(entry);
+      console.log(`eval ${e.name} (${entry.ms} ms) -> ${join(out, e.name + '.json').slice(root.length + 1)}`);
+    }
   }
   for (const e of cdp.events) {
     if (e.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(e.params.type)) report.console.push(`${e.params.type}: ${e.params.args.map(a => a.value ?? a.description).join(' ')}`);
