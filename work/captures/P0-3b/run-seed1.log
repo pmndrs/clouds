@@ -1,0 +1,17 @@
+captured pt-noon -> work/captures/P0-3b/pt-noon.png
+captured nubis-noon -> work/captures/P0-3b/nubis-noon.png
+captured octave-noon -> work/captures/P0-3b/octave-noon.png
+captured alpha-noon -> work/captures/P0-3b/alpha-noon.png
+captured rtalpha-noon -> work/captures/P0-3b/rtalpha-noon.png
+captured pt-low -> work/captures/P0-3b/pt-low.png
+captured nubis-low -> work/captures/P0-3b/nubis-low.png
+captured octave-low -> work/captures/P0-3b/octave-low.png
+captured alpha-low -> work/captures/P0-3b/alpha-low.png
+captured rtalpha-low -> work/captures/P0-3b/rtalpha-low.png
+captured pt-backlit -> work/captures/P0-3b/pt-backlit.png
+captured nubis-backlit -> work/captures/P0-3b/nubis-backlit.png
+captured octave-backlit -> work/captures/P0-3b/octave-backlit.png
+captured alpha-backlit -> work/captures/P0-3b/alpha-backlit.png
+captured rtalpha-backlit -> work/captures/P0-3b/rtalpha-backlit.png
+log: Failed to load module script: The server responded with a non-JavaScript MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.
+OK -> work/captures/P0-3b/capture.json
