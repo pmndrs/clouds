@@ -502,6 +502,10 @@ export interface CloudSettings {
   fitGround: number;
   /** P1.2c 'fit' model: 0 = P1.2b's ambient (fitAmbient (up U + down (1 - U))), 1 = fitAmbient up / (1 + fitKUp tauUp) + fitGround down. */
   fitAmbientForm: number;
+  /** P1.4b 'fit' model: exponent of the ms falloff (ms / (1 + fitK tau)^fitMsPow); 1 = P1.2c. */
+  fitMsPow: number;
+  /** P1.4b 'fit' model (fitAmbientForm 1): 1 = the ground term also fades with the depth above (/ (1 + fitKUp tauUp)); 0 = P1.2c (unshadowed). */
+  fitGroundAtten: number;
 }
 
 /**
@@ -928,7 +932,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
     sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
-    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.58, fitK: 0.4, fitAmbient: 0.33, fitKUp: 0.05, fitDirect: 1, fitMsFwd: 0.2, fitMsG: 0.5, fitGround: 0.31, fitAmbientForm: 1,   // P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
+    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.42, fitK: 0.2, fitAmbient: 0.62, fitKUp: 0.3, fitDirect: 1, fitMsFwd: 0.38, fitMsG: 0.5, fitGround: 0.61, fitAmbientForm: 1, fitMsPow: 2, fitGroundAtten: 0,   // P1.4b: refitted on 4 suns x 2 clouds (P1.2c: ms 2.58, K 0.4, ambient 0.33, kUp 0.05, msFwd 0.2, ground 0.31, msPow 1); P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1518,6 +1522,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // P1.2a 'fit' lighting model (Frame.fit, Frame.fit2).
       f[136] = settings.fitAlbedo; f[137] = settings.fitG; f[138] = settings.fitMs; f[139] = settings.fitK; f[140] = settings.fitAmbient; f[141] = settings.lightingModel === 'fit' ? 1 : 0; f[142] = settings.fitKUp; f[143] = settings.fitDirect;
       f[144] = settings.fitMsFwd; f[145] = settings.fitMsG; f[146] = settings.fitGround; f[147] = settings.fitAmbientForm;
+      f[148] = settings.fitMsPow; f[149] = settings.fitGroundAtten;   // P1.4b (Frame.fit4)
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;
