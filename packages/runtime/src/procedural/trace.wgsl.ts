@@ -138,6 +138,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let full = SKY.temporal.z > 0.5;
   var px = vec2<i32>(gid.xy);
   if (!full) { px = px * 4 + bayerPos(u32(SKY.temporal.x)); }
+  if (SKY.converged.x > 0.5) { px.y += i32(SKY.convergedKeep.y); }   // P0.5: this frame's band of rows
   if (any(vec2<f32>(px) >= frame.renderSize)) { return; }
   let uv = (vec2<f32>(px) + 0.5) / frame.renderSize;
   let sceneEnd = skySceneEnd(px, uv);

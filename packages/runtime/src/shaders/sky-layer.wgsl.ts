@@ -120,7 +120,7 @@ struct SkyParams {
   resolveOpts: vec4<f32>, // SH1b: x history filter (0 bilinear, 1 Catmull-Rom with a neighbourhood clamp, FX1 2 adaptive: Catmull-Rom weight = max(smoothstep(y, z, screen motion px), smoothstep(resolveOpts2.x, resolveOpts2.y, cloud motion m)); S2 w: the procedural trace's texture LOD, 0 the output pixel .. 1 the layer pixel
   resolveOpts2: vec4<f32>, // FX1: x, y the adaptive filter's cloud-motion thresholds (m per frame); S2: z the trace's sub-pixel jitter span (layer px), w per-pixel rotation (0/1)
   converged: vec4<f32>,    // P0.5 converged march (0 = off): x the step divisor, y the step budget's extra multiplier, zw this sample's sub-pixel offset (layer px)
-  convergedKeep: vec4<f32>, // P0.5 diagnostics: x = bit flags of normal-march shortcuts kept on in the converged march (1 the thin-segment light skip, 2 the light-tap reuse); yzw 0
+  convergedKeep: vec4<f32>, // P0.5: x = diagnostic bit flags of normal-march shortcuts kept on in the converged march (1 the thin-segment light skip, 2 the light-tap reuse); y = the first row of this frame's band (layer px); zw 0
   tableTop: array<vec4<f32>, 16>,   // H4: per top-type column, the table height where the top table ends (generate/profile-tables.ts profileTopEnds)
   lut: array<vec4<u32>, 768>,       // H4: the top table, the bottom table and the column peaks, 64 x 64 bytes each, 4 per word (packProfileTables)
 }
@@ -786,6 +786,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   let full = SKY.temporal.z > 0.5;
   var px = vec2<i32>(gid.xy);
   if (!full) { px = px * 4 + bayerPos(u32(SKY.temporal.x)); }
+  if (SKY.converged.x > 0.5) { px.y += i32(SKY.convergedKeep.y); }   // P0.5: this frame's band of rows
   if (any(vec2<f32>(px) >= frame.renderSize)) { return; }
   let uv = (vec2<f32>(px) + 0.5) / frame.renderSize;
   let sceneEnd = skySceneEnd(px, uv);

@@ -143,7 +143,8 @@ const MICRO_DEPTH = 40.0;   // Q-1: metres below the SDF surface within which th
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Temporal amortization (P5-B): the dispatch covers only this frame's traced pixels (all of them when k = 1 or on a cut).
-  let pxu = tracedPixel(gid.xy);
+  var pxu = tracedPixel(gid.xy);
+  if (frame.conv.x > 0.5) { pxu.y += u32(frame.conv2.x); }   // P0.5: this frame's band of rows
   if (any(vec2<f32>(pxu) >= frame.renderSize)) { return; }
   let px = vec2<i32>(pxu);
   let uv = (vec2<f32>(pxu) + 0.5) / frame.renderSize;
