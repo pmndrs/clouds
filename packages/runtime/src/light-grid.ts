@@ -1,6 +1,7 @@
-import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_MAX_STEPS, LIGHT_GRID_PARAM_BYTES, LIGHT_GRID_PROC_BINDING, LIGHT_GRID_PROC_STUB_WGSL, LIGHT_GRID_PROC_WGSL, LIGHT_GRID_SKY_BINDINGS, LIGHT_GRID_SKY_WGSL } from './shaders/light-grid.wgsl';
+import { LIGHT_GRID_BUILD_WGSL, LIGHT_GRID_REDUCE_UPREZ_WGSL, LIGHT_GRID_UPREZ_PARAM_BYTES, LIGHT_GRID_MAX_STEPS, LIGHT_GRID_PARAM_BYTES, LIGHT_GRID_PROC_BINDING, LIGHT_GRID_PROC_STUB_WGSL, LIGHT_GRID_PROC_WGSL, LIGHT_GRID_SKY_BINDINGS, LIGHT_GRID_SKY_WGSL } from './shaders/light-grid.wgsl';
 import { volumeWgsl } from './shaders/volume.wgsl';
 import { COMMON_WGSL } from './shaders/common.wgsl';
+import { DENSITY_WGSL } from './shaders/density.wgsl';
 import { BILLOW_WGSL } from './generate/shaders';
 import { SKY_FIELD_WGSL, SKY_PARAM_BYTES, SKY_STRUCT_WGSL } from './shaders/sky-layer.wgsl';
 import type { GpuTimer } from './gpu-timer';
@@ -55,6 +56,14 @@ export interface LightGridFrameParams {
    * march reads) instead of the NVDF R channel. Only for a direct volume (the binding holds the hero pool otherwise). A change rebuilds the grid.
    */
   directSource?: boolean;
+  /**
+   * P1.1b (CloudSettings.sunShadowGridSource): the sun channel's density. 'nvdf' (default) = the NVDF R channel's profile x scale; 'direct' = a
+   * direct volume's r16f texels; 'uprez' = an NVDF volume's up-rezzed density, cell-averaged (needs `uprez`). The up sum keeps the NVDF in both.
+   * Ignored while `directSource` is on. A change rebuilds the grid.
+   */
+  sunSource?: 'nvdf' | 'direct' | 'uprez';
+  /** P1.1b: the density inputs of the 'uprez' source (the march's) and the camera (the noise mip and hf fold go by distance to it; a move over 1 m rebuilds). */
+  uprez?: { camera: [number, number, number]; wind: [number, number, number]; mipDistanceScale: number; baseMip: number; hfDistance: number; wispyBias: number; detailBias: number; uprez: [number, number, number, number] };
 }
 
 export interface SliceDispatch { z0: number; z1: number; sun: [number, number, number]; densityScale: number; target: 0 | 1 }
@@ -220,6 +229,31 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
     compute: { module, entryPoint: 'reduceLightGridDirect' },
   });
   let directSourceNow = false;
+  // P1.1b sun sources (LightGridFrameParams.sunSource): the direct texels for .r only, and the up-rezzed density (its own module: DENSITY_WGSL).
+  const reduceDirectSunPipeline = device.createComputePipeline({
+    label: 'light grid reduce (direct density, sun channel)',
+    layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, reduceLayout] }),
+    compute: { module, entryPoint: 'reduceLightGridDirectSun' },
+  });
+  let uprezReduce: { pipeline: GPUComputePipeline; group: GPUBindGroup; params: GPUBuffer } | null = null;
+  const getUprezReduce = () => {
+    if (uprezReduce) return uprezReduce;
+    const layout = device.createBindGroupLayout({ label: 'light grid reduce (up-rez)', entries: [
+      { binding: 0, visibility: COMPUTE, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: COMPUTE, storageTexture: { access: 'write-only', format: 'rgba16float', viewDimension: '3d' } },
+    ] });
+    const params = device.createBuffer({ label: 'light grid reduce (up-rez) params', size: LIGHT_GRID_UPREZ_PARAM_BYTES, usage: BUF_UNIFORM | BUF_COPY_DST });
+    const pipeline = device.createComputePipeline({
+      label: 'light grid reduce (up-rez)',
+      layout: device.createPipelineLayout({ bindGroupLayouts: [volumeLayout, layout] }),
+      compute: { module: device.createShaderModule({ label: 'light grid reduce (up-rez)', code: COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL + LIGHT_GRID_REDUCE_UPREZ_WGSL }), entryPoint: 'reduceLightGridUprez' },
+    });
+    const group = device.createBindGroup({ label: 'light grid reduce (up-rez)', layout, entries: [{ binding: 0, resource: { buffer: params } }, { binding: 1, resource: reducedView }] });
+    uprezReduce = { pipeline, group, params };
+    return uprezReduce;
+  };
+  let sunSourceNow: 'nvdf' | 'direct' | 'uprez' = 'nvdf';
+  let uprezKey: number[] = [];
   // X4: one build pipeline per procedural shaper (the model's density WGSL at LIGHT_GRID_PROC_BINDING), compiled asynchronously on first use.
   const procPipelines = new Map<string, { layout: GPUBindGroupLayout; pipeline: GPUComputePipeline | null }>();
   const procPipeline = (m: ProceduralDensityModel) => {
@@ -297,14 +331,31 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       const pk = proc ? [...(params.procKey ?? []), params.lightDensityScale ?? 1] : [];
       if (pk.length !== procKeyBound.length || pk.some((v, i) => v !== procKeyBound[i])) { procKeyBound = pk; scheduler.invalidate(); }
       if (!!params.directSource !== directSourceNow) { directSourceNow = !!params.directSource; reducedValid = false; scheduler.invalidate(); }
+      const src = params.sunSource ?? 'nvdf';
+      if (src !== sunSourceNow) { sunSourceNow = src; reducedValid = false; scheduler.invalidate(); }
+      if (src === 'uprez' && params.uprez) {
+        const u = params.uprez;
+        const key = [...u.camera, ...u.wind, u.mipDistanceScale, u.baseMip, u.hfDistance, u.wispyBias, u.detailBias, ...u.uprez];
+        const moved = uprezKey.length !== key.length || Math.hypot(key[0] - uprezKey[0], key[1] - uprezKey[1], key[2] - uprezKey[2]) > 1 || key.slice(3).some((v, i) => v !== uprezKey[i + 3]);
+        if (moved) { uprezKey = key; reducedValid = false; scheduler.invalidate(); }
+      }
       const result = scheduler.step(params.sunDirection, params.densityScale, params.frameIndex);
       const d = result.dispatch;
       if (!d) return result;
       if (!reducedValid) {
         const rp = encoder.beginComputePass({ label: 'light grid reduce', timestampWrites: timer?.passTimestampWrites('lightGridReduce') });
-        rp.setPipeline(directSourceNow ? reduceDirectPipeline : reducePipeline);
-        rp.setBindGroup(0, volumeBindGroup);
-        rp.setBindGroup(1, reduceGroup);
+        const ur = !directSourceNow && sunSourceNow === 'uprez' && uprezKey.length ? getUprezReduce() : null;
+        if (ur) {
+          const k = uprezKey;   // [camera xyz, wind xyz, mipDistanceScale, baseMip, hfDistance, wispyBias, detailBias, uprez xyzw] -> UprezReduceParams
+          device.queue.writeBuffer(ur.params, 0, new Float32Array([k[0], k[1], k[2], k[6], k[3], k[4], k[5], k[7], k[11], k[12], k[13], k[14], k[8], k[9], k[10], 0]));
+          rp.setPipeline(ur.pipeline);
+          rp.setBindGroup(0, volumeBindGroup);
+          rp.setBindGroup(1, ur.group);
+        } else {
+          rp.setPipeline(directSourceNow ? reduceDirectPipeline : sunSourceNow === 'direct' ? reduceDirectSunPipeline : reducePipeline);
+          rp.setBindGroup(0, volumeBindGroup);
+          rp.setBindGroup(1, reduceGroup);
+        }
         rp.dispatchWorkgroups(Math.ceil(dims[0] / 8), Math.ceil(dims[1] / 8), 1);
         rp.end();
         reducedValid = true;
@@ -323,6 +374,6 @@ export function createLightGrid(device: GPUDevice, volumeLayout: GPUBindGroupLay
       return result;
     },
     invalidate() { reducedValid = false; scheduler.invalidate(); },
-    destroy() { textures[0].destroy(); textures[1].destroy(); reduced.destroy(); paramBuffers.forEach(b => b.destroy()); dummyWeather.destroy(); dummyParams.destroy(); },
+    destroy() { textures[0].destroy(); textures[1].destroy(); reduced.destroy(); paramBuffers.forEach(b => b.destroy()); dummyWeather.destroy(); dummyParams.destroy(); uprezReduce?.params.destroy(); },
   };
 }

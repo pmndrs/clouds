@@ -66,12 +66,16 @@ fn lgMarch(o: vec3<f32>, d: vec3<f32>, minStep: f32) -> f32 {
 
 // Reduce: one thread per (x, z) column. Fetches the NVDF once per grid texel and accumulates the upward optical depth from the top.
 @compute @workgroup_size(8, 8, 1)
-fn reduceLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, false); }
+fn reduceLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, 0u); }
 // P1.1 diagnostic (CloudSettings.lightGridSource 1, direct volumes only): the same from the direct density texture (heroPool holds r16f
-// density / densityRef for a direct volume), unclamped and without the NVDF's 8-bit step and 1/255 floor.
+// density / densityRef for a direct volume), unclamped and without the NVDF's 8-bit step and 1/255 floor. Both channels from it.
 @compute @workgroup_size(8, 8, 1)
-fn reduceLightGridDirect(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, true); }
-fn reduceColumn(gid: vec3<u32>, direct: bool) {
+fn reduceLightGridDirect(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, 1u); }
+// P1.1b (CloudSettings.sunShadowGridSource 1, direct volumes): the sun channel's density (.r) from the direct texels, the up sum (.g) from the NVDF
+// as before, so only the sun's optical depth changes.
+@compute @workgroup_size(8, 8, 1)
+fn reduceLightGridDirectSun(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, 2u); }
+fn reduceColumn(gid: vec3<u32>, mode: u32) {
   let dims = textureDimensions(lgDst);
   if (gid.x >= dims.x || gid.y >= dims.y) { return; }
   let cellY = cloudVolume.extent.y / f32(dims.z);
@@ -82,9 +86,11 @@ fn reduceColumn(gid: vec3<u32>, direct: bool) {
     let uvw = (vec3<f32>(f32(gid.x), f32(gid.y), f32(k)) + 0.5) / vec3<f32>(dims);
     let p = cloudVolume.minCorner + vec3(uvw.x * cloudVolume.extent.x, uvw.z * cloudVolume.extent.y, uvw.y * cloudVolume.extent.z);
     var v: f32;
-    if (direct) { v = max(textureSampleLevel(heroPool, clampSampler, uvw, 0.0).r, 0.0); } else { let m = sampleModeling(p, 0.0); v = m.x * m.z; }
+    var vs: f32;
+    if (mode == 1u) { v = max(textureSampleLevel(heroPool, clampSampler, uvw, 0.0).r, 0.0); vs = v; }
+    else { let m = sampleModeling(p, 0.0); v = m.x * m.z; vs = v; if (mode == 2u) { vs = max(textureSampleLevel(heroPool, clampSampler, uvw, 0.0).r, 0.0); } }
     if (k == i32(dims.z) - 1) { vAbove = v; above = 0.5 * cellY * v; } else { above += 0.5 * cellY * (v + vAbove); vAbove = v; }
-    textureStore(lgDst, vec3<i32>(i32(gid.x), i32(gid.y), k), vec4(v, above, 0.0, 0.0));
+    textureStore(lgDst, vec3<i32>(i32(gid.x), i32(gid.y), k), vec4(vs, above, 0.0, 0.0));
   }
 }
 
@@ -111,6 +117,60 @@ fn buildLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) {
   textureStore(lgDst, vec3<i32>(id), vec4(sun, up, outside, 0.0) * lgParams.densityScale);
 }
 `;
+
+/**
+ * P1.1b (CloudSettings.sunShadowGridSource 1, NVDF volumes): the reduce with the sun channel's density (.r) from the up-rezzed density the march
+ * renders (DENSITY_WGSL's cloudDensity), averaged over LG_UPREZ_SS^3 points spread over each grid cell (a box filter: the grid then holds the cell
+ * mean of the rendered density, which is what an optical depth needs), with the noise mip and the high-frequency fold at each point's distance to
+ * the camera, as the march has them. The up sum (.g) stays on the NVDF profile x scale. Its own module (COMMON_WGSL + volumeWgsl(0) + DENSITY_WGSL
+ * before it): group 1 = 0 these params, 1 the reduced volume.
+ */
+export const LIGHT_GRID_REDUCE_UPREZ_WGSL = /* wgsl */ `
+struct UprezReduceParams {
+  camera: vec3<f32>, mipDistanceScale: f32,
+  wind: vec3<f32>, baseMip: f32,
+  uprez: vec4<f32>,
+  hfDistance: f32, wispyBias: f32, detailBias: f32, pad: f32,
+}
+@group(1) @binding(0) var<uniform> urParams: UprezReduceParams;
+@group(1) @binding(1) var lgDst: texture_storage_3d<rgba16float, write>;
+const LG_UPREZ_SS = 4;
+@compute @workgroup_size(8, 8, 1)
+fn reduceLightGridUprez(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let dims = textureDimensions(lgDst);
+  if (gid.x >= dims.x || gid.y >= dims.y) { return; }
+  let cellY = cloudVolume.extent.y / f32(dims.z);
+  let cell = vec3(cloudVolume.extent.x / f32(dims.x), cellY, cloudVolume.extent.z / f32(dims.y));
+  var above = 0.0;
+  var vAbove = 0.0;
+  for (var k = i32(dims.z) - 1; k >= 0; k--) {
+    let uvw = (vec3<f32>(f32(gid.x), f32(gid.y), f32(k)) + 0.5) / vec3<f32>(dims);
+    let p = cloudVolume.minCorner + vec3(uvw.x * cloudVolume.extent.x, uvw.z * cloudVolume.extent.y, uvw.y * cloudVolume.extent.z);
+    let m = sampleModeling(p, 0.0);
+    let v = m.x * m.z;
+    var vs = 0.0;
+    // Skip cells whose profile is 0 at the centre and all eight corners (the up-rez is 0 where the profile is).
+    var occupied = m.x > 0.0;
+    for (var c = 0; c < 8 && !occupied; c++) {
+      let o = (vec3(f32(c & 1), f32((c >> 1) & 1), f32((c >> 2) & 1)) - 0.5) * cell;
+      occupied = sampleModeling(p + o, 0.0).x > 0.0;
+    }
+    if (occupied) {
+      for (var i = 0; i < LG_UPREZ_SS * LG_UPREZ_SS * LG_UPREZ_SS; i++) {
+        let f = (vec3(f32(i % LG_UPREZ_SS), f32((i / LG_UPREZ_SS) % LG_UPREZ_SS), f32(i / (LG_UPREZ_SS * LG_UPREZ_SS))) + 0.5) / f32(LG_UPREZ_SS) - 0.5;
+        let q = p + f * cell;
+        let rd = distance(q, urParams.camera);
+        let inputs = DensityInputs(urParams.wind, urParams.mipDistanceScale, urParams.baseMip, select(0u, 1u, rd < urParams.hfDistance), urParams.wispyBias, urParams.detailBias, urParams.uprez);
+        vs += max(cloudDensity(q, rd, inputs).x, 0.0);
+      }
+      vs /= f32(LG_UPREZ_SS * LG_UPREZ_SS * LG_UPREZ_SS);
+    }
+    if (k == i32(dims.z) - 1) { vAbove = v; above = 0.5 * cellY * v; } else { above += 0.5 * cellY * (v + vAbove); vAbove = v; }
+    textureStore(lgDst, vec3<i32>(i32(gid.x), i32(gid.y), k), vec4(vs, above, 0.0, 0.0));
+  }
+}
+`;
+export const LIGHT_GRID_UPREZ_PARAM_BYTES = 64;
 
 /**
  * Consumer-side declarations: a sampled light-grid texture at `binding` and its sampler at `binding + 1` in `group`.

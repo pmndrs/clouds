@@ -452,6 +452,32 @@ export interface CloudSettings {
    * voxel; only for small volumes). Isolates the grid's resolution as a factor. A change rebuilds the grid.
    */
   lightGridFull: number;
+  // ---- sunShadow block (P1.1b, docs/AUDIT-2026-11.md step 1.1; work/reports/P1-1b-sun-shadow.md) ----
+  // How the optical depth from a lit sample to the sun is estimated. Every key defaults to the behaviour before P1.1b (the frame is bit-identical);
+  // each non-default value is a more accurate estimate of the same quantity (the optical depth through the density the view ray renders), never a
+  // gain. `lightDensityScale` (above) belongs to the same estimate: 1 is the physical value. The reference-pt card's "accurate sun shadow" preset
+  // turns on the recommended combination.
+  /**
+   * What the light grid integrates. 0 = the NVDF R channel's profile x density scale (before P1.1b: on a direct volume that channel is an 8-bit copy
+   * of the density, clamped at p99, with a 1/255 floor wherever there is any density); 1 = the density the march renders: a direct volume's r16f
+   * texels (unclamped, no floor), an NVDF volume's up-rezzed density (DENSITY_WGSL, the noise mip and high-frequency fold at each texel's distance
+   * to the camera, as the march sees it) averaged over 4x4x4 points per grid cell. The grid's up sum (ambient, ms) stays on the old source, so only
+   * the sun's optical depth changes. A change, and for NVDF volumes a camera move over 1 m, rebuilds the grid (one reduce pass + the sliced build).
+   */
+  sunShadowGridSource: number;
+  /** 1 = the light grid at the volume's own resolution instead of half: 8x the grid memory (3 rgba16float textures, 24 bytes per volume voxel). */
+  sunShadowGridFull: number;
+  /**
+   * Metres toward the sun the in-line taps cover before the grid takes over (48 = before P1.1b; the grid is read this far toward the sun). The taps
+   * read the march's own density function. With more than 48 m, `sunShadowInlineSamples` taps share reach - 16 m in a geometric ladder.
+   */
+  sunShadowInlineReach: number;
+  /** In-line taps beyond the first 16 m (1 = the single 16-48 m tap before P1.1b). Each is one more density evaluation per lit step. */
+  sunShadowInlineSamples: number;
+  /** 1 = the ladder's taps at a per-pixel, per-frame jittered position in their segments; 0 = the midpoints (measured: the jitter brightens, see the WGSL). */
+  sunShadowInlineJitter: number;
+  /** Single-scattering albedo on the direct (sun) term: 1 = none (before P1.1b); clouds 0.99+ (the path tracer's medium is 0.99). */
+  directAlbedo: number;
 }
 
 /**
@@ -558,6 +584,8 @@ export interface CloudRuntime {
    * and nothing is traced until the view or a setting changes), restarts so far, and `busy` (what restarted it last: 'view', 'shadow', 'grid', '').
    */
   readonly convergedInfo: { active: boolean; samples: number; target: number; done: boolean; restarts: number; reason: string; band: number };
+  /** P1.1b: the light grid's texel dims, its memory (two ping-pong textures + the reduced volume, rgba16float) and the volume's dims; null before a volume. */
+  readonly lightGridInfo: { dims: [number, number, number]; bytes: number; volumeDims: [number, number, number]; building: boolean; progress: number; passes: number; swaps: number; restarts: number } | null;
   /** Temporal amortization state, for tooling: the rates in effect, history resets so far and the memory the history costs. */
   readonly temporalInfo: { near: TemporalRate; far: TemporalRate; resets: number; frames: number; bytes: number };
   /** `width` x `height` is the scene (depth) size. `output` may be supplied by the caller (rgba16float, STORAGE_BINDING | TEXTURE_BINDING, exactly `outputSize`). */
@@ -875,6 +903,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, microShadowMode: 0, microDist2: 0, microShadow2: 0, directProfile: 0, directRimDepth: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
+    sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1071,6 +1100,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     get refreshFrames() { return domeRefreshFrames; },
   };
   let lightGrid: LightGrid | null = null;
+  let gridSwaps = 0, gridRestarts = 0;   // P1.1b: completed grid builds and builds thrown away (lightGridInfo)
   const lightingData = new Float32Array(SKY_LIGHT_ENTRIES * 4);
   let mieDiameter = NaN;
   let lowSun = 0;   // 1 - saturate(sin(sun elevation) / bodySunKnee), this frame   // the diameter f[88..91] were last written for
@@ -1122,7 +1152,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     const div = CLOUD_QUALITY_PRESETS[quality].lightGridDivisor;
     // The grid is sized from the volume dims it is given (ceil(d / 2), at least 16 per axis); a divisor shrinks them. Its shaders read the texture size, not the dims.
     let dims = div > 1 ? v.dims.map(d => Math.max(1, Math.round(d / div))) as [number, number, number] : v.dims;
-    lightGridFullNow = settings.lightGridFull > 0.5;
+    lightGridFullNow = settings.lightGridFull > 0.5 || settings.sunShadowGridFull > 0.5;   // P1.1 diagnostic / P1.1b sunShadowGridFull
     if (lightGridFullNow) dims = v.dims.map(d => d * 2) as [number, number, number];   // P1.1 diagnostic: lightGridDims halves them back to the volume's
     return createLightGrid(device, volumeLayout, { dims, voxelSize: v.voxelSize, extentMeters: v.extentMeters });
   };
@@ -1308,6 +1338,11 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       const target = Math.max(1, Math.round(settings.convergedSamples));
       return { active: settings.converged > 0.5, samples: cvCount, target, done: settings.converged > 0.5 && cvCount >= target, restarts: cvRestarts, reason: cvReason, band: cvBand };
     },
+    get lightGridInfo() {
+      if (!volume) return null;
+      const d = lightGrid ? lightGrid.dims : [0, 0, 0];
+      return { dims: [d[0], d[1], d[2]] as [number, number, number], bytes: d[0] * d[1] * d[2] * 8 * 3, volumeDims: [volume.dims[0], volume.dims[1], volume.dims[2]] as [number, number, number], building: !!lightGrid?.scheduler.building, progress: lightGrid?.scheduler.progress ?? 0, passes: lightGrid?.scheduler.passes ?? 0, swaps: gridSwaps, restarts: gridRestarts };
+    },
     get temporalInfo() {
       const m = memory();
       return { near: snapRate(settings.temporalNear), far: snapRate(settings.temporalFar), resets: temporalResets, frames: temporalFrames, bytes: m.history + m.trace };
@@ -1331,7 +1366,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     encode(encoder, frame, timer) {
       if (disposed || !volumeGroup || !output || !targets || !lightGrid) return;
       // P1.1 diagnostic: the grid at full resolution (lightGridFull) is a different texture size: rebuild it and drop the groups that bind it.
-      if ((settings.lightGridFull > 0.5) !== lightGridFullNow && volume) { lightGrid.destroy(); lightGrid = makeLightGrid(); domeGroups = null; forgetGroups(); }
+      if ((settings.lightGridFull > 0.5 || settings.sunShadowGridFull > 0.5) !== lightGridFullNow && volume) { lightGrid.destroy(); lightGrid = makeLightGrid(); domeGroups = null; forgetGroups(); }
       const uniformLighting = frame.lighting?.kind === 'uniform' ? frame.lighting : null;
       if (!uniformLighting && !frame.atmosphere) return;
       // P0.5 converged march: full-size targets while it is on (re-allocated when it is switched); the clock and the wind stand still; the sum
@@ -1453,6 +1488,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       } else { f[124] = 0; f[125] = 0; f[126] = 0; f[127] = 0; }
       // P1.1 debug: the light probe (view optical depth, mode) and the sun at the volume centre (conv2.yzw; conv2.x is the converged band row).
       f[129] = Math.max(0, settings.lightProbe); f[130] = settings.lightProbeMode; f[131] = settings.sunAtCentre;
+      // P1.1b sunShadow: in-line reach and taps, the direct term's albedo (Frame.sunShadow).
+      f[132] = Math.max(48, settings.sunShadowInlineReach); f[133] = Math.max(1, Math.round(settings.sunShadowInlineSamples)); f[134] = Math.min(1, Math.max(0, settings.directAlbedo)); f[135] = settings.sunShadowInlineJitter;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;
@@ -1522,7 +1559,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       }
       const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: extinction(), frameIndex: frame.frameIndex, sky: skyActive ? skyLayer.domeResources : null,
         procedural: gridProc, lightDensityScale: settings.lightDensityScale, directSource: settings.lightGridSource > 0.5 && !!volume?.direct,
+        // P1.1b sunShadowGridSource: the grid's sun channel from the density the march renders (direct texels, or the NVDF's up-rez at the camera's mips).
+        sunSource: settings.sunShadowGridSource > 0.5 ? (volume?.direct ? 'direct' : 'uprez') : 'nvdf',
+        uprez: settings.sunShadowGridSource > 0.5 && !volume?.direct ? { camera: [frame.cameraPosition[0], frame.cameraPosition[1], frame.cameraPosition[2]], wind: [settings.windOffset[0], settings.windOffset[1], settings.windOffset[2]],
+          mipDistanceScale: settings.mipDistanceScale, baseMip: settings.baseMip, hfDistance: Math.max(settings.detailDistance, 150), wispyBias: settings.wispyBias, detailBias: settings.detailBias,
+          uprez: [settings.noiseInvert, settings.detailTypeOverride, settings.typeFromScale, settings.ambientLaw] } : undefined,
         procKey: gridProc ? [gridProc.version, Math.round((settings.windOffset[0] - skyBox.minCorner[0]) / 8), Math.round((settings.windOffset[2] - skyBox.minCorner[2]) / 8), Math.round(skyBox.minCorner[1] / 8)] : undefined }, timer);
+      if (gridStep.swapped) gridSwaps++; if (gridStep.restarted) gridRestarts++;   // P1.1b: lightGridInfo counters
 
       if (uniformLighting) {
         // One sun for every height ([3] = [4] = log sun, heights 0 and 1 m, no earth shadow), the environment pair = the ambient pair (see SKY_LIGHT_ENTRIES).

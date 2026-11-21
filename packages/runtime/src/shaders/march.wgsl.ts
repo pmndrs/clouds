@@ -213,7 +213,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let envDown = skyLight[6].xyz;
     let sunInline0 = frame.sunDir * (0.5 * INLINE_NEAR);
     let sunInline1 = frame.sunDir * (0.5 * (INLINE_NEAR + INLINE_FAR));
-    let sunGrid = frame.sunDir * INLINE_FAR;
+    // P1.1b sunShadow (frame.sunShadow, CloudSettings.sunShadowInlineReach / sunShadowInlineSamples): with a reach past INLINE_FAR or more than one
+    // far tap, the in-line taps run a geometric ladder from INLINE_NEAR to the reach and the grid is read there. Off, every expression is the old one.
+    let ssReach = frame.sunShadow.x;
+    let ssLadder = ssReach > INLINE_FAR + 0.5 || frame.sunShadow.y > 1.5;
+    let ssTaps = max(u32(frame.sunShadow.y), 1u);
+    let ssRatio = pow(max(ssReach, INLINE_FAR) / INLINE_NEAR, 1.0 / f32(ssTaps));
+    let sunGrid = frame.sunDir * select(INLINE_FAR, ssReach, ssLadder);
     let invExtentY = 1.0 / cloudVolume.extent.y;
     var inputs = DensityInputs(frame.wind, frame.mipDistanceScale, frame.baseMip, 0u, frame.wispyBias, frame.detailBias, frame.uprez);
     // The in-line sun samples skip the high-frequency fold (they are 8-32 m from the sample, below its scale).
@@ -272,11 +278,27 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
               if (ts - inlineT >= inlineReuse) {
                 let s0 = ${density}(ps + sunInline0, ts, lightInputs);
-                let s1 = ${density}(ps + sunInline1, ts, lightInputs);
                 let d0 = select(s0.x, s0.y, inlineProfile);
-                let d1 = select(s1.x, s1.y, inlineProfile);
                 tauNear = d0 * (INLINE_NEAR - frame.microDist) * inlineExt;
-                tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * inlineExt;
+                if (!ssLadder) {
+                  let s1 = ${density}(ps + sunInline1, ts, lightInputs);
+                  let d1 = select(s1.x, s1.y, inlineProfile);
+                  tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * inlineExt;
+                } else {
+                  // P1.1b ladder: ssTaps segments, each ssRatio times the last, one sample each at the segment's midpoint, or (frame.sunShadow.w,
+                  // sunShadowInlineJitter) at a per-pixel, per-frame jittered position. The jittered tau is unbiased, but exp(-tau) of a noisy tau is
+                  // not (Jensen: the mean of exp(-tau) over the jitter exceeds exp(-mean tau)), which measured +3 to +7 % on lit bases (P1.1b).
+                  var a = INLINE_NEAR;
+                  var acc = 0.0;
+                  let u = select(0.5, fract(jitterAnimated + 0.5), frame.sunShadow.w > 0.5);
+                  for (var j = 0u; j < ssTaps; j++) {
+                    let b = select(a * ssRatio, ssReach, j + 1u == ssTaps);
+                    let sj = ${density}(ps + frame.sunDir * mix(a, b, u), ts, lightInputs);
+                    acc += select(sj.x, sj.y, inlineProfile) * (b - a);
+                    a = b;
+                  }
+                  tauInline = tauNear + acc * inlineExt;
+                }
                 inlineT = ts;
               }
               // Q-1: one short full-density sample toward the sun from every lit step (never reused: it is what resolves the
