@@ -80,6 +80,8 @@ try {
   // M1: ?material=m1 puts the Karma-fitted material balance on an NVDF (Nubis chain) volume too; a direct volume gets it from setVolume.
   if (query.get('material') === 'm1' && !volumeAsset.direct) Object.assign(runtime.settings, MATERIAL_SETTINGS);
   for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
+  // P0.5: ?converged=1 the converged march (ground truth of the image; ?s.convergedStepScale / ?s.convergedSamples tune it); the panel has the switch.
+  if (query.get('converged') === '1') runtime.settings.converged = 1;
 
   // Render size follows the window times the render-scale control. Canvas CSS stays 100%.
   const renderSize = { width: 1, height: 1 };
@@ -155,6 +157,9 @@ try {
   animateBox.onchange = () => { state.animateTime = animateBox.checked; };
   const shadowInput = el('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(runtime.settings.shadowStrength) }, label('shadow'));
   shadowInput.oninput = () => { runtime.settings.shadowStrength = Number(shadowInput.value); };
+  // P0.5: the converged march (slow: seconds per frame; the HUD counts the samples).
+  const convergedBox = el('input', { type: 'checkbox', checked: runtime.settings.converged > 0.5, title: 'P0.5 converged march: every pixel every frame at full resolution, no history, steps / convergedStepScale, convergedSamples frames averaged with their own jitter. Ground truth for the image (stepping, jitter, temporal, upscaling); slow.' }, label('converged'));
+  convergedBox.onchange = () => { runtime.settings.converged = convergedBox.checked ? 1 : 0; };
   const modeBtn = el('button', { textContent: 'mode: orbit (F)' });
   const toggleMode = () => { rig.setMode(rig.mode === 'orbit' ? 'fly' : 'orbit'); modeBtn.textContent = `mode: ${rig.mode} (F)`; };
   modeBtn.onclick = toggleMode;
@@ -175,6 +180,7 @@ try {
       `render ${renderSize.width}x${renderSize.height} (x${state.scale})  q:${tierText()}  t:${f(state.time)}h`,
       ...(runtime.auto ? [`auto  tier ${runtime.auto.tier}  scale ${f(runtime.settings.renderScale)}  cloud ${f(runtime.auto.costMs)} / ${f(runtime.auto.budgetMs)} ms  changes ${runtime.auto.changes}`] : []),
       `mem ${f(runtime.memory.total / 1048576, 1)} MB (history ${f(runtime.temporalInfo.bytes / 1048576, 1)})`,
+      ...(runtime.convergedInfo.active ? [`converged march ${runtime.convergedInfo.samples} / ${runtime.convergedInfo.target}${runtime.convergedInfo.done ? ' (done)' : ''}  steps / ${runtime.settings.convergedStepScale}`] : []),
       `gpu ms${timer.enabled || sceneGpu.length ? '' : ' (no timestamp-query)'}`,
       ...Object.entries(g).map(([k, v]) => `  ${k.padEnd(12)} ${f(v)}`),
       `cam ${camera.position.toArray().map(v => f(v, 0)).join(', ')}  [${rig.mode}${rig.mode === 'fly' ? ` ${f(rig.speed, 0)} m/s` : ''}]`,
@@ -237,7 +243,8 @@ try {
   if (query.has('time')) setTime(Number(query.get('time')));
   harness.ready({
     bookmark: name => applyBookmark(name),
-    report: () => ({ camera: camera.position.toArray(), hfovDeg: (2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * camera.aspect) * 180) / Math.PI, focusBox: FOCUS_BOX, gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
+    busy: () => runtime.convergedInfo.active && !runtime.convergedInfo.done,   // P0.5: settle waits for the converged sum
+    report: () => ({ converged: runtime.convergedInfo, camera: camera.position.toArray(), hfovDeg: (2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * camera.aspect) * 180) / Math.PI, focusBox: FOCUS_BOX, gpuMs: gpuMs(), gpuMedian: gpuMedian(), frameMs: frameStats(), renderSize: [renderSize.width, renderSize.height], bookmark: state.bookmark, timeOfDay: state.time, sunElevation: sky.sunElevation, sunAzimuth: sky.sunAzimuth, animateTime: state.animateTime, quality: runtime.quality, qualityOption: state.quality, auto: runtime.auto, renderScale: runtime.settings.renderScale, memory: runtime.memory, cloud: cloudName, frames: frame, temporal: runtime.temporalInfo, trace: TRACE_FRAMES ? trace : undefined, assetLoadMs: assetsLoadedAt - assetStart, firstCloudFrameMs }),
   });
 } catch (e) {
   harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e));

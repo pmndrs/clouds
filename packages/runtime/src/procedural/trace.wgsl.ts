@@ -191,7 +191,12 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
     let densityScale = P.misc.x;
     let fadeStart = 0.8 * P.shell.z;
-    var t = interval.x + jitter * P.steps.x;
+    // P0.5 converged march (SKY.converged.x > 0, runtime settings.converged): every step length (fine, coarse, the surface step, the start offset) is
+    // divided by cvDiv, the coarse search returns after as many metres of empty fine steps as before, the step budget is raised to match (times
+    // SKY.converged.y), the light taps are recomputed at every lit step and no thin segment skips the light. Off, every expression is the normal one.
+    let cv = SKY.converged.x > 0.5;
+    let cvDiv = select(1.0, SKY.converged.x, cv);
+    var t = interval.x + jitter * select(P.steps.x, P.steps.x / cvDiv, cv);
     var coarse = true; var emptyRun = 0u; var accumulated = 0.0; var refineEnd = -1.0;
     var cellEnd = -1.0; var cellStart = -1.0; var cellData = vec4(1.0);
     let boundsMode = procBoundsMode();
@@ -200,7 +205,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
     var lastEmpty = -1.0;
     var sinceEntry = 99u;   // S2: fine samples since the last bisected cloud entry (99: none)
     let refineSteps = u32(P.hybrid.w + 0.5);
-    let maxSteps = u32(P.steps.y);
+    let maxSteps = select(u32(P.steps.y), u32(P.steps.y * cvDiv * SKY.converged.y), cv);
+    let emptyRunMax = select(4u, u32(4.0 * cvDiv + 0.5), cv);
     for (var i = 0u; i < maxSteps; i++) {
       if (t >= tEnd || T < SKY.steps.w) { break; }
       steps++;
@@ -217,7 +223,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
           // march's); mode 3 does not (the ray can reach further past the budget).
           var strides = 0u;
           loop {
-            t += max(P.steps.x, t * stepConeAngle * 1.5) * 4.0;
+            let stride = max(P.steps.x, t * stepConeAngle * 1.5) * 4.0;
+            t += select(stride, stride / cvDiv, cv);
             strides++;
             if (t >= cellEnd || t >= tEnd) { break; }
           }
@@ -226,7 +233,8 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         }
       }
       let footprint = t * pixelConeAngle;
-      let fineStep = max(P.steps.x, t * stepConeAngle * 1.5);
+      let fineStep0 = max(P.steps.x, t * stepConeAngle * 1.5);
+      let fineStep = select(fineStep0, fineStep0 / cvDiv, cv);
       var p = origin + dir * t;
       if (coarse) {
         let c = procSample(p, t, footprint, true, jitter);
@@ -246,7 +254,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         lastEmpty = t;
         emptyRun++;
         if (t < refineEnd) { t = min(t + fineStep, refineEnd); continue; }
-        if (emptyRun >= 4u) { coarse = true; }
+        if (emptyRun >= emptyRunMax) { coarse = true; }
         t += select(fineStep, fineStep * 4.0, coarse);
         continue;
       }
@@ -268,17 +276,18 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       emptyRun = 0u; refineEnd = -1.0;
       let fade = 1.0 - smoothstep(fadeStart, P.shell.z, t);
       let sigmaT = s.sigma * densityScale * fade * procCarve(p);
-      var surfaceStep = clamp(0.5 / max(sigmaT, 0.000001), fineStep * 0.15, fineStep);
+      let surfaceTarget = 0.5 / max(sigmaT, 0.000001);
+      var surfaceStep = clamp(select(surfaceTarget, surfaceTarget / cvDiv, cv), fineStep * 0.15, fineStep);
       // S2: the bisected entry sits where the density has only just begun, so 0.5 / sigma there is a full fine step, which would jump over the surface
       // layer the bisection found (and print the step as contour lines). Grow the step from the surface minimum instead: 0.15, 0.3, 0.6 of a fine step.
       if (sinceEntry < 3u && P.tkTurb.w > 0.5) { surfaceStep = min(surfaceStep, fineStep * 0.15 * f32(1u << sinceEntry)); }
       sinceEntry = min(sinceEntry + 1u, 99u);
       let stepLength = min(mix(surfaceStep, fineStep * 3.0, smoothstep(1.0, 3.0, accumulated)), tEnd - t);
       let stepT = exp(-sigmaT * stepLength);
-      if (sigmaT * stepLength > 2.0e-3) {
+      if (sigmaT * stepLength > select(2.0e-3, 0.0, cv)) {
         let cheap = (1.0 - T) >= P.steps.w;
         let reuse = min(fineStep * 3.0, max(20.0, P.spShape.y * P.spShape.w * 0.03));
-        if (abs(t - shadowAt) >= reuse || abs(s.sigma - shadowDensity) > 0.08 * procSigmaRef() || cheap != shadowCheap) {
+        if (cv || abs(t - shadowAt) >= reuse || abs(s.sigma - shadowDensity) > 0.08 * procSigmaRef() || cheap != shadowCheap) {
           shadowTau = 0.0; nearTau = 0.0;
           for (var k = 1u; k < 8u; k++) {
             if (k >= taps) { break; }

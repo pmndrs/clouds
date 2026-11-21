@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 496;
+export const FRAME_UNIFORM_BYTES = 512;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -61,6 +61,8 @@ struct Frame {
   d3: vec4<f32>,
   // D1 round 11: x = microDist2 (m, a second micro sun tap from microDist to microDist2; 0 = off), y = microShadow2 (its occlusion weight), z = directProfile (the direct term weighted by the in-scatter probability, 0..1), w = directRimDepth (m: that weight within this depth of the surface only; 0 = everywhere).
   d4: vec4<f32>,
+  // P0.5 converged march: x = the step divisor (0 = off: the normal march), yz = the ray's sub-pixel offset (pass pixels), w = 0.
+  conv: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;

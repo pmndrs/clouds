@@ -228,6 +228,12 @@ export interface SkyEncodeArgs {
   subPixelSpan?: number;
   /** S2: overrides settings.lodLayerPixel this frame (the runtime's levelLodLayerPixel at the reduced render levels). */
   lodLayerPixel?: number;
+  /**
+   * P0.5 converged march (the runtime's settings.converged): this frame is one sample of an accumulation. Every pixel is traced with no history
+   * blend, the steps are divided by `stepScale` (budget times `stepScale * budget`), the light is evaluated at every lit step, and the jitter is
+   * sample `index` of the blue-noise + golden-ratio sequence with the sub-pixel offset `subPixel` (layer px). Null / absent: the normal trace.
+   */
+  converged?: { stepScale: number; budget: number; index: number; subPixel: [number, number] } | null;
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
@@ -615,7 +621,8 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       // Cuts: a camera jump or turn, a sun jump, or any model change invalidates the history (the next frame traces every pixel).
       const cam = a.cameraPosition, sun = a.sunDirection;
       forwardOf(a.inverseViewProjection, fwd);
-      let cut = needReset || procCut || !prevValid || !s.temporal;
+      const cv = a.converged ?? null;
+      let cut = needReset || procCut || !prevValid || !s.temporal || !!cv;
       if (!cut) {
         const d = Math.hypot(cam[0] - prevCam[0], cam[1] - prevCam[1], cam[2] - prevCam[2]);
         const turn = fwd[0] * prevFwd[0] + fwd[1] * prevFwd[1] + fwd[2] * prevFwd[2];
@@ -628,6 +635,9 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       const period = SKY_TEMPORAL_PERIOD;
       const phase = s.freezeCycle >= 0 ? Math.floor(s.freezeCycle) : frames;
       p[36] = phase % period; p[37] = Math.floor(phase / period); p[38] = cut ? 1 : 0; p[39] = s.jitterNoise === 'blue' ? 1 : 0;
+      // P0.5: the converged sample's jitter (cycle = the sample index, blue noise + golden ratio) and step divisor; zeros = the normal trace.
+      if (cv) { p[37] = cv.index; p[39] = 1; p[92] = Math.max(1, cv.stepScale); p[93] = Math.max(1, cv.budget); p[94] = cv.subPixel[0]; p[95] = cv.subPixel[1]; }
+      else { p[92] = 0; p[93] = 0; p[94] = 0; p[95] = 0; }
       p.set(prevViewProj, 40);
       // C2: the clouds' displacement since last frame (procedural model only: the wind offset times its cloud speed; a cut or a first frame has none).
       {
