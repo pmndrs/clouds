@@ -1,11 +1,11 @@
 # Status: what's running, what's waiting on you, what landed
 
-The one page to check. The plan: the Compass (https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1). Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5180/hzd/ (T opens the tune panel).
+The one page to check. The plan: the Clouds Audit Compass (https://claude.ai/artifact/Q5SGgE2Z9C5dpNvZcWbPPD); the earlier Compass (https://claude.ai/artifact/CnMaoMGzR6LxnZAgbQ28M1) records the phases before the November audit. Updated by the orchestrator at every merge. Details live in the linked reports. The bench is at http://localhost:5180/hzd/ (T opens the tune panel).
 
 Updated 2026-11-20.
 
 ## Running (2026-11-21): Phase 0 of the audit plan, the truth rig
-Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. The plan page is the new Compass (source `work/compass-2026-11/index.html`; the link is in the Compass row below once published). The old Compass (`work/compass/`) is kept as the record of the phases before the audit. Every run now has a time and memory cap (plan rule 9).
+Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. The plan page is the new Compass: https://claude.ai/artifact/Q5SGgE2Z9C5dpNvZcWbPPD (source `work/compass-2026-11/index.html`; republish that file with the Artifact tool to update it). The old Compass (`work/compass/`) is kept as the record of the phases before the audit. Every run now has a time and memory cap (plan rule 9).
 
 | Step | What | Who | State |
 | --- | --- | --- | --- |
