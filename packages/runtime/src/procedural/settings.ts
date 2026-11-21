@@ -527,9 +527,17 @@ export interface HzdShape {
   /** P2.5a: the erosion strength factor at c = 0 (soft) and c = 1 (crisp). */
   edgeSoftErosion: number;
   edgeCrispErosion: number;
-  /** P2.5a: the exponent on the eroded density at c = 0 (soft) and c = 1 (crisp). */
+  /** P2.5a: the exponent on the eroded density at c = 0 (soft) and c = 1 (crisp). P2.5b: edgeSoftPow is the soft shaping; edgeCrispPow is
+   *  used only when edgeCrispGain is 0 (the P2.5a pow(d, lerp(softPow, crispPow, c)), kept as an option: it hazed the tops). */
   edgeSoftPow: number;
   edgeCrispPow: number;
+  /** P2.5b: the hard shaping at c = 1: sat((d - edgeCrispCut) / (1 - edgeCrispCut) x edgeCrispGain) (cuts the thin outer haze and steepens
+   *  the ramp: an opaque edge); the density is lerp(d ^ edgeSoftPow, hard, c). edgeCrispGain 0 = the P2.5a pow shaping. */
+  edgeCrispCut: number;
+  edgeCrispGain: number;
+  /** P2.5b: with edge character on, the lobe rung (lobeTile) erodes at edgeLobes x c instead of lobeStrength x the height ramp: rounded
+   *  middle-size lobes where the edge is crisp, none where it is soft. In both detail branches. 0 = no edge lobes. */
+  edgeLobes: number;
   // ---- end P2.5a ----
   ndf: HzdNdfSettings;
 }
@@ -681,9 +689,9 @@ export const PROC_HZD_N3_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
 export const PROC_HZD_MIX_OFFSET = PROC_HZD_N3_OFFSET + 8;
 /** STORM1: three more vec4 (hzStorm3, hzStorm4, hzStorm5) between hzMix and the tables. */
 export const PROC_HZD_STORM_OFFSET = PROC_HZD_MIX_OFFSET + 4;
-/** P2.5a: three more vec4 (hzEdge, hzEdge2, hzEdge3) between hzStorm5 and the tables. */
+/** P2.5a: three more vec4 (hzEdge, hzEdge2, hzEdge3) between hzStorm5 and the tables; P2.5b: hzEdge4. */
 export const PROC_HZD_EDGE_OFFSET = PROC_HZD_STORM_OFFSET + 12;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_EDGE_OFFSET + 12;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_EDGE_OFFSET + 16;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -740,16 +748,19 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
   out.set([Math.max(hz.stormDensity, 0), Math.min(Math.max(hz.stormDark, 0), 1), Math.max(hz.stormGlow, 0), Math.max(hz.stormFlashRate, 0)], o + 4);
   out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, hz.stormAnvilShape === 'taps' ? 1 : 0, hz.stormRotation > 0 ? 1e-4 : 0], o + 8);   // w: the rotation phase, written per frame by the runtime
 }
-/** P2.5a: edge character defaults (off; the constants are the first prototype's, agent-chosen). */
+/** P2.5a: edge character defaults (off; agent-chosen). P2.5b: probe 300 -> 1200 m, lead range 0.15 -> 0.05, crisp erosion 0.7 -> 1 (crisp parts
+ *  keep the full erosion), the hard shaping (cut 0.12, gain 3) instead of pow 0.55, edge lobes 0.6. */
 export const HZD_EDGE_DEFAULTS = {
-  edgeCharacter: 0, edgeTopLo: 0.25, edgeTopHi: 0.7, edgeProbe: 300, edgeLead: 1, edgeLeadRange: 0.15, edgeSoftErosion: 1.4, edgeCrispErosion: 0.7, edgeSoftPow: 1.6, edgeCrispPow: 0.55,
+  edgeCharacter: 0, edgeTopLo: 0.25, edgeTopHi: 0.7, edgeProbe: 1200, edgeLead: 1, edgeLeadRange: 0.05, edgeSoftErosion: 1.4, edgeCrispErosion: 1, edgeSoftPow: 1.6, edgeCrispPow: 0.55,
+  edgeCrispCut: 0.12, edgeCrispGain: 3, edgeLobes: 0.6,
 } satisfies Partial<HzdShape>;
-/** P2.5a: the edge character block (hzEdge .. hzEdge3 in density.wgsl.ts). */
+/** P2.5a: the edge character block (hzEdge .. hzEdge4 in density.wgsl.ts). */
 export function packHzdEdge(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_EDGE_OFFSET;
   out.set([hz.edgeCharacter > 0.5 ? 1 : 0, hz.edgeTopLo, Math.max(hz.edgeTopHi, hz.edgeTopLo + 1e-3), Math.max(hz.edgeProbe, 1)], o);
   out.set([Math.min(Math.max(hz.edgeLead, -1), 1), Math.max(hz.edgeLeadRange, 1e-3), Math.max(hz.edgeSoftErosion, 0), Math.max(hz.edgeCrispErosion, 0)], o + 4);
-  out.set([Math.max(hz.edgeSoftPow, 0.05), Math.max(hz.edgeCrispPow, 0.05), 0, 0], o + 8);
+  out.set([Math.max(hz.edgeSoftPow, 0.05), Math.max(hz.edgeCrispPow, 0.05), Math.min(Math.max(hz.edgeCrispCut, 0), 0.95), Math.max(hz.edgeCrispGain, 0)], o + 8);
+  out.set([Math.max(hz.edgeLobes, 0), 0, 0, 0], o + 12);
 }
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
