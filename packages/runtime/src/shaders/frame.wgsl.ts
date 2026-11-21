@@ -71,7 +71,7 @@ struct Frame {
   sunShadow: vec4<f32>,
   // P1.2a 'fit' lighting model (CloudSettings.lightingModel 'fit', fit* settings): x = fitAlbedo, y = fitG, z = fitMs, w = fitK.
   fit: vec4<f32>,
-  // P1.2a: x = fitAmbient, y = 1 when the 'fit' model is selected, zw 0.
+  // P1.2a: x = fitAmbient, y = 1 when the 'fit' model is selected; P1.2b: z = fitKUp (the open-sky share's falloff), w = fitDirect (debug gain).
   fit2: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
