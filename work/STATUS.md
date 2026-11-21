@@ -11,7 +11,7 @@ Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `D
 | --- | --- | --- | --- |
 | 0.1 | Freeze: baseline tagged; old shaper, lighting models and styles are frozen (kept, not tuned) | orchestrator | tagged; the repeat-run check waits on the card |
 | 0.2 | Pathtracer volume work (high-g validation first, then droplet phase, single/multi split, outputs with volumes, ground plane, grid memory) | a session in the pathtracer repo, from `docs/internal/CLOUDS-HANDOFF.md` on its branch `clouds/volume-reference` | handed off 2026-11-21 |
-| 0.2b | Cross-check renderer: **Cycles**, not Karma (hython finds no licence from the agent sandbox; Blender 5.1.1 works headless and has droplet phase functions) | Opus, own worktree | running; told to stop a two-hour CPU smoke render and report |
+| 0.2b | Cross-check renderer: Cycles (`scripts/reference/`, manifest format in its README). Closed-form checks pass within 0.2 %. **Blender's default volume method gains energy on a dense real cloud (furnace 1.13 at 0.6 per metre, negative pixels under sun), so the script defaults to ray marching at voxel / 4, which reads exactly 1.000.** One 1280x720 real-cloud frame: about 20 min at 256 spp, 80 min at 1024, so Cycles checks one or two frames, at low spp | Opus | **passed, merged** (`work/reports/P0-2b-cycles-reference.md`) |
 | 0.3 | Linear-radiance compare and the scorecard script | Opus | **passed, merged** (`work/reports/P0-3-linear-scorecard.md`) |
 | 0.4 | The scene card: 5 clouds x 4 suns (Parkouring, EmberGen 02, Disney, a procedural sky patch, a stratus slab; noon, low, backlit, sunset) | Opus, own worktree | running |
 | 0.5 | Converged march mode: Review switches **P05** (on/off), **P05b** (step divisor), **P05c** (samples) on the HZD bench; a "converged" checkbox on the flagship | Opus | **passed, merged** (`work/reports/P0-5-converged-march.md`, sheets `work/captures/P0-5/`) |
@@ -30,6 +30,7 @@ What 0.5 found:
 - Contour lines on shaded bases are in every converged frame, so they come from the density or the light, not from sampling.
 
 Waiting on you:
+- **Relay to the pathtracer session:** our pathtracer also uses null-collision tracking with brick majorants, the family of method that gained energy in Cycles. Its validation (handoff item 1) should include a furnace test on a real heterogeneous cloud grid at 0.6 per metre, not only spheres and slabs. The clouds side will run the same test from the reference page once the card is merged.
 - ~~**Houdini licence:** `hython` 21.0.792 and 22.0.466 both report "No licenses could be found" from the agent sandbox, though `hserver` is running. Only matters if you want Karma as well as Cycles.~~ Fixed 2026-11-21: `hython` 21.0.792 runs with the Indie licence. Karma will render one card frame as a second cross-check after Cycles.
 - **Disney cloud:** only the quarter, eighth and sixteenth VDBs are on disk; the full and half-resolution files the README lists are missing. The card uses the eighth or quarter. You said the full file is very large and belongs on the NAS if downloaded; the plan does not need it.
 
