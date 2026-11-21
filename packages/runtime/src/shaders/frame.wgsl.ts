@@ -67,7 +67,7 @@ struct Frame {
   conv2: vec4<f32>,
   // P1.1b sun shadow (CloudSettings sunShadow* block, runtime.ts): x = inline reach (m: the in-line sun taps cover 0..x, the light grid is read x m
   // toward the sun; 48 = before P1.1b), y = in-line taps beyond the first 16 m (1 = the one 16-48 m tap before P1.1b), z = directAlbedo (the
-  // single-scattering albedo on the direct term; 1 = none), w unused.
+  // single-scattering albedo on the direct term; 1 = none), w = sunShadowInlineJitter (1 = the ladder's taps jittered, 0 = midpoints).
   sunShadow: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

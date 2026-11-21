@@ -474,6 +474,8 @@ export interface CloudSettings {
   sunShadowInlineReach: number;
   /** In-line taps beyond the first 16 m (1 = the single 16-48 m tap before P1.1b). Each is one more density evaluation per lit step. */
   sunShadowInlineSamples: number;
+  /** 1 = the ladder's taps at a per-pixel, per-frame jittered position in their segments; 0 = the midpoints (measured: the jitter brightens, see the WGSL). */
+  sunShadowInlineJitter: number;
   /** Single-scattering albedo on the direct (sun) term: 1 = none (before P1.1b); clouds 0.99+ (the path tracer's medium is 0.99). */
   directAlbedo: number;
 }
@@ -901,7 +903,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, microShadowMode: 0, microDist2: 0, microShadow2: 0, directProfile: 0, directRimDepth: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
-    sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
+    sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1487,7 +1489,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // P1.1 debug: the light probe (view optical depth, mode) and the sun at the volume centre (conv2.yzw; conv2.x is the converged band row).
       f[129] = Math.max(0, settings.lightProbe); f[130] = settings.lightProbeMode; f[131] = settings.sunAtCentre;
       // P1.1b sunShadow: in-line reach and taps, the direct term's albedo (Frame.sunShadow).
-      f[132] = Math.max(48, settings.sunShadowInlineReach); f[133] = Math.max(1, Math.round(settings.sunShadowInlineSamples)); f[134] = Math.min(1, Math.max(0, settings.directAlbedo)); f[135] = 0;
+      f[132] = Math.max(48, settings.sunShadowInlineReach); f[133] = Math.max(1, Math.round(settings.sunShadowInlineSamples)); f[134] = Math.min(1, Math.max(0, settings.directAlbedo)); f[135] = settings.sunShadowInlineJitter;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;

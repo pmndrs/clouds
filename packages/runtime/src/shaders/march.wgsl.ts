@@ -285,11 +285,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                   let d1 = select(s1.x, s1.y, inlineProfile);
                   tauInline = tauNear + d1 * (INLINE_FAR - INLINE_NEAR) * inlineExt;
                 } else {
-                  // P1.1b ladder: ssTaps segments, each ssRatio times the last, one sample each at a per-pixel, per-frame jittered position (the
-                  // march's own jitter; the converged sum averages it into the segment integral; the midpoint when the jitter is 0.5).
+                  // P1.1b ladder: ssTaps segments, each ssRatio times the last, one sample each at the segment's midpoint, or (frame.sunShadow.w,
+                  // sunShadowInlineJitter) at a per-pixel, per-frame jittered position. The jittered tau is unbiased, but exp(-tau) of a noisy tau is
+                  // not (Jensen: the mean of exp(-tau) over the jitter exceeds exp(-mean tau)), which measured +3 to +7 % on lit bases (P1.1b).
                   var a = INLINE_NEAR;
                   var acc = 0.0;
-                  let u = fract(jitterAnimated + 0.5);
+                  let u = select(0.5, fract(jitterAnimated + 0.5), frame.sunShadow.w > 0.5);
                   for (var j = 0u; j < ssTaps; j++) {
                     let b = select(a * ssRatio, ssReach, j + 1u == ssTaps);
                     let sj = ${density}(ps + frame.sunDir * mix(a, b, u), ts, lightInputs);

@@ -52,9 +52,9 @@ import { chunk, composite, describe, readRgba16f, type LinearFrame } from './lin
  * optical depth toward the sun through the rendered density (or a missing physical factor), none tuned toward the reference. The full-resolution
  * grid is turned on only where its three rgba16float textures stay within SUN_SHADOW_GRID_CAP (the run's memory cap per grid).
  */
-export const SUN_SHADOW_KEYS = ['sunShadowGridSource', 'sunShadowGridFull', 'sunShadowInlineReach', 'sunShadowInlineSamples', 'lightDensityScale', 'directAlbedo', 'sunAtCentre'] as const;
-export const SUN_SHADOW_DEFAULTS = { sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, directAlbedo: 1, sunAtCentre: 0 } as const;
-export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 256, sunShadowInlineSamples: 6, lightDensityScale: 1, directAlbedo: 0.99 } as const;
+export const SUN_SHADOW_KEYS = ['sunShadowGridSource', 'sunShadowGridFull', 'sunShadowInlineReach', 'sunShadowInlineSamples', 'sunShadowInlineJitter', 'lightDensityScale', 'directAlbedo', 'sunAtCentre'] as const;
+export const SUN_SHADOW_DEFAULTS = { sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1, sunAtCentre: 0 } as const;
+export const ACCURATE_SUN_SHADOW = { sunShadowGridSource: 1, sunShadowGridFull: 1, sunShadowInlineReach: 256, sunShadowInlineSamples: 6, sunShadowInlineJitter: 0, lightDensityScale: 1, directAlbedo: 0.99 } as const;
 export const SUN_SHADOW_GRID_CAP = 500 * 1024 * 1024;
 /** P1.1b: settle gives up after this long and says which condition was unmet (env override: &settleTimeout=<s>). */
 const SETTLE_TIMEOUT_MS = 1000 * Number(new URLSearchParams(location.search).get('settleTimeout') ?? 60);
@@ -364,6 +364,7 @@ try {
   ssSelect('sunShadowGridFull', 'grid res', [['half (before)', 0], ['full', 1]]);
   ssNumber('sunShadowInlineReach', 'in-line reach m', '8');
   ssNumber('sunShadowInlineSamples', 'far taps', '1');
+  ssSelect('sunShadowInlineJitter', 'taps at', [['midpoints', 0], ['jittered', 1]]);
   ssNumber('lightDensityScale', 'grid scale', '0.05');
   ssNumber('directAlbedo', 'direct albedo', '0.01');
   ssSelect('sunAtCentre', 'sun', [['by height (runtime)', 0], ['at cloud centre (as PT)', 1]]);
