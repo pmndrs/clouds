@@ -538,6 +538,14 @@ export interface HzdShape {
   /** P2.5b: with edge character on, the lobe rung (lobeTile) erodes at edgeLobes x c instead of lobeStrength x the height ramp: rounded
    *  middle-size lobes where the edge is crisp, none where it is soft. In both detail branches. 0 = no edge lobes. */
   edgeLobes: number;
+  /** P2.5d: what "top" means in c. 0 = the column height (smoothstep(edgeTopLo, edgeTopHi, h), P2.5a-c: from the ground nearly every visible
+   *  surface sat below it, c = 0); 1 = the surface faces up: up = sat(0.5 + (d - dUp) / edgeUpRange), d the coarse density (before the detail
+   *  erosion) and dUp the same edgeUpStep m higher (density falling upward = the upper side of a bulge, at any height). */
+  edgeTopMode: number;
+  /** P2.5d: metres above the sample the coarse density is read again for the facing. */
+  edgeUpStep: number;
+  /** P2.5d: the coarse-density drop over edgeUpStep that makes a surface fully upward-facing (half of it: 0.5 + drop / range). */
+  edgeUpRange: number;
   // ---- end P2.5a ----
   ndf: HzdNdfSettings;
 }
@@ -749,10 +757,12 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
   out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, hz.stormAnvilShape === 'taps' ? 1 : 0, hz.stormRotation > 0 ? 1e-4 : 0], o + 8);   // w: the rotation phase, written per frame by the runtime
 }
 /** P2.5a: edge character defaults (off; agent-chosen). P2.5b: probe 300 -> 1200 m, lead range 0.15 -> 0.05, crisp erosion 0.7 -> 1 (crisp parts
- *  keep the full erosion), the hard shaping (cut 0.12, gain 3) instead of pow 0.55, edge lobes 0.6. */
+ *  keep the full erosion), the hard shaping (cut 0.12, gain 3) instead of pow 0.55, edge lobes 0.6. P2.5d: top by surface facing (edgeTopMode 1,
+ *  up step 80 m, range 0.15), lead range 0.05 -> 0.25 (the measured spread of the coverage difference at 1200 m). */
 export const HZD_EDGE_DEFAULTS = {
-  edgeCharacter: 0, edgeTopLo: 0.25, edgeTopHi: 0.7, edgeProbe: 1200, edgeLead: 1, edgeLeadRange: 0.05, edgeSoftErosion: 1.4, edgeCrispErosion: 1, edgeSoftPow: 1.6, edgeCrispPow: 0.55,
+  edgeCharacter: 0, edgeTopLo: 0.25, edgeTopHi: 0.7, edgeProbe: 1200, edgeLead: 1, edgeLeadRange: 0.25, edgeSoftErosion: 1.4, edgeCrispErosion: 1, edgeSoftPow: 1.6, edgeCrispPow: 0.55,
   edgeCrispCut: 0.12, edgeCrispGain: 3, edgeLobes: 0.6,
+  edgeTopMode: 1, edgeUpStep: 80, edgeUpRange: 0.15,
 } satisfies Partial<HzdShape>;
 /** P2.5a: the edge character block (hzEdge .. hzEdge4 in density.wgsl.ts). */
 export function packHzdEdge(hz: HzdShape, out: Float32Array): void {
@@ -760,7 +770,7 @@ export function packHzdEdge(hz: HzdShape, out: Float32Array): void {
   out.set([hz.edgeCharacter > 0.5 ? 1 : 0, hz.edgeTopLo, Math.max(hz.edgeTopHi, hz.edgeTopLo + 1e-3), Math.max(hz.edgeProbe, 1)], o);
   out.set([Math.min(Math.max(hz.edgeLead, -1), 1), Math.max(hz.edgeLeadRange, 1e-3), Math.max(hz.edgeSoftErosion, 0), Math.max(hz.edgeCrispErosion, 0)], o + 4);
   out.set([Math.max(hz.edgeSoftPow, 0.05), Math.max(hz.edgeCrispPow, 0.05), Math.min(Math.max(hz.edgeCrispCut, 0), 0.95), Math.max(hz.edgeCrispGain, 0)], o + 8);
-  out.set([Math.max(hz.edgeLobes, 0), 0, 0, 0], o + 12);
+  out.set([Math.max(hz.edgeLobes, 0), hz.edgeTopMode > 0.5 ? 1 : 0, Math.max(hz.edgeUpStep, 1), Math.max(hz.edgeUpRange, 1e-3)], o + 12);
 }
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {

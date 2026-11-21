@@ -290,8 +290,11 @@ fn hzdValueErosion(prof: f32, n: f32) -> f32 { return saturate((prof - n) / max(
 // P2.5a edge character (the owner's photos): the crispness c of the edge at a sample, 0 soft .. 1 crisp. Higher on the body is crisper (top);
 // the side the body moves into (coverage falling downwind of the sample) is crisp, the trailing side soft (lead; P.hzEdge2.x = +1, -1 flips,
 // 0 = height only). Bases stay soft whatever the direction (top gates it). Ours.
-fn hzdEdgeCrisp(xz: vec2<f32>, h: f32) -> f32 {
-  let top = smoothstep(P.hzEdge.y, P.hzEdge.z, h);
+// P2.5d: edgeTopMode 1 (P.hzEdge4.y): "top" is the upward-facing side of the surface at any height, not the height in the column: up (the
+// coarse density falling upward, hzdCoarseAt) replaces the height factor. Mode 0 = the column height as before.
+fn hzdEdgeCrisp(xz: vec2<f32>, h: f32, up: f32) -> f32 {
+  var top = smoothstep(P.hzEdge.y, P.hzEdge.z, h);
+  if (P.hzEdge4.y > 0.5) { top = up; }
   let w = vec2(P.hzWind.x, P.hzWind.y) * P.hzEdge.w;
   let dCov = ndfSample(xz - w).coverage - ndfSample(xz + w).coverage;
   let lead = saturate(0.5 + P.hzEdge2.x * dCov / P.hzEdge2.y);
@@ -305,6 +308,40 @@ fn hzdEdgeShape(d: f32, c: f32) -> f32 {
   if (P.hzEdge3.w <= 0.0) { return pow(x, mix(P.hzEdge3.x, P.hzEdge3.y, c)); }
   let hard = saturate((x - P.hzEdge3.z) / (1.0 - P.hzEdge3.z) * P.hzEdge3.w);
   return mix(pow(x, P.hzEdge3.x), hard, c);
+}
+// P2.5d: the coarse density (before the detail erosion; hzdMainSample's coarse) at altitude alt2 in the same column: the shape read (same
+// read kind and lod), the height gradient (base lumps included), the coverage remap, the coverage and base fades. The column's NDF fields
+// (n, cov0, bottom, top) are reused, not re-read. Only for the edge character's facing (one extra shape read on full detail samples). Ours.
+fn hzdCoarseAt(p: vec3<f32>, alt2: f32, bottom: f32, top: f32, cov0: f32, n: NdfSample, footprint: f32, cubic: bool, shapeLod: f32, stage: f32) -> f32 {
+  if (alt2 <= bottom || alt2 >= top) { return 0.0; }
+  let h = (alt2 - bottom) / (top - bottom);
+  let cov = hzdAnvil(cov0, h, n);
+  if (cov <= 0.0) { return 0.0; }
+  let windDir = vec3(P.hzWind.x, 0.0, P.hzWind.y);
+  let q = vec3(p.x, alt2, p.z) - windDir * (h * P.hzWind.z);
+  let scroll = P.drift.xyz + vec3(0.0, P.hzWind.w * length(P.drift.xz), 0.0);
+  let qShape = q - scroll * P.hzSpeed.y;
+  var A: vec4<f32>;
+  if (cubic) { A = hzdCubic3(procNoiseA, qShape / P.hzScale.x); } else { A = textureSampleLevel(procNoiseA, procRepeat, qShape / P.hzScale.x, shapeLod); }
+  var lowFbm = A.g * 0.625 + A.b * 0.25 + A.a * 0.125;
+  if (P.hzN3b.w > 0.0) {
+    let uS = qShape / P.hzN3b.w;
+    var S: vec4<f32>;
+    if (cubic) { S = hzdCubic3(cloudNoise, uS); } else { S = textureSampleLevel(cloudNoise, repeatSampler, uS, hzdLod(footprint, P.hzN3b.w, 128.0)); }
+    lowFbm = 0.69 + (0.392 - (0.625 * S.b + 0.375 * S.a)) * (0.10 / 0.157);
+  }
+  var gradient = hzdHeightGradientR(n.topType + P.hzCov.y, h, h);
+  if (P.hzShelf.x > 0.0) { gradient = hzdHeightGradientR(n.topType + P.hzCov.y, h, h + clamp(P.hzShelf.x * (A.g - 0.69) / 0.1, 0.0, 2.0 * P.hzShelf.x)); }
+  if (gradient <= 0.0) { return 0.0; }
+  let pw = select(saturate(0.5 + (A.r - 0.5) * P.hzExtra.x), A.r, P.hzExtra.x == 1.0);
+  var base = hzdRemap(pw, -(1.0 - lowFbm), 1.0, 0.0, 1.0);
+  if (hzdStormW > 0.0) { base = mix(base, 0.75, select(0.6, 0.9, P.hzStorm5.z < 0.5 && P.hzStorm3.x > 0.5) * hzdStormW * smoothstep(0.7, 0.78, h)); }
+  let d = hzdRemap(base * gradient, 1.0 - cov, 1.0, 0.0, 1.0);
+  if (d <= 0.0) { return 0.0; }
+  var fadeK = 1.0;
+  if (stage >= 1.5) { fadeK = hzdRemap(saturate(h / P.hzFade.y), 0.0, 1.0, P.hzFade.x, 1.0); }
+  let covK = select(1.0, cov, stage >= 1.5 && P.hzCov.z > 0.5);
+  return saturate(d * covK * fadeK);
 }
 // H7 lobe rung's noise (see the 'hzd' detail branch): 1 - the inverted-Worley channel read at lobeTile, curl-displaced like the detail.
 fn hzdLobeNoise(qDetail: vec3<f32>, footprint: f32, t: f32) -> f32 {
@@ -689,7 +726,15 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   // P2.5a edge character: the crispness c steers the detail stage (noise kind, erosion strength, edge exponent); off = the old image.
   let edgeOn = P.hzEdge.x > 0.5 && full && stage >= 2.5 && fade > 0.0;
   var crisp = 0.0;
-  if (edgeOn) { crisp = hzdEdgeCrisp(p.xz, h); }
+  if (edgeOn) {
+    // P2.5d facing: the coarse density edgeUpStep m higher; falling upward = an upward-facing surface (up > 0.5).
+    var up = 0.0;
+    if (P.hzEdge4.y > 0.5) {
+      let dUp = hzdCoarseAt(p, alt + P.hzEdge4.z, bottom, top, cov0, n, footprint, cubic, shapeLod, stage);
+      up = saturate(0.5 + (coarse - dUp) / P.hzEdge4.w);
+    }
+    crisp = hzdEdgeCrisp(p.xz, h, up);
+  }
   // P2.5c debug view 5: 1 + c of this sample; 0.5 where the edge character is not applied (off, coarse sample, stage < 3 or past the detail
   // fade); 0.25 a veil-only sample; 0 the other paths (fractus, sheets).
   o.dbg = select(0.5, 1.0 + crisp, edgeOn);
