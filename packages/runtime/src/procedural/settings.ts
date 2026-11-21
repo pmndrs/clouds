@@ -561,15 +561,16 @@ export interface HzdShape {
   /** P2.3b: how the column top follows the coverage when heightFromCoverage is on. 0 = the H6 line (x = sat(cov / heightCoverageRef): a
    *  body's top falls linearly to its edge, so tall bodies are cones); 1 = a dome (x -> mix(x, sqrt(1 - (1 - x)^2), topDome): steep at the
    *  edge, flat on top) broken into turrets (x x mix(1, turret field, turretAmount)). The turret field is a 2D Worley over xz (cells about
-   *  turretSize m, moving with the weather map): each cell a random height factor in [1 - turretDepth, 1] times a rounded profile
-   *  sqrt(sat(1 - 1.1 F1^2)) (F1 in cell units), so neighbouring heads meet in a notch. Both factors are <= 1: the top never exceeds the
-   *  H6 top. Constants ours. Cost: 9 hashes per column sample (only with topShape 1). */
+   *  turretSize m, moving with the weather map). P2.3c: continuous: every nearby cell contributes a rounded dome (radius 0.75 cell +- 25 %,
+   *  height 1 - turretDepth r^2, r uniform, so most heads reach full height) and the field is a smooth max of the domes and a floor of
+   *  1 - turretDepth, so neighbouring heads meet in a rounded notch, never a step. Both factors are <= 1: the top never exceeds the H6 top.
+   *  Constants ours. Cost: 18 hashes per column sample (only with topShape 1). */
   topShape: number;
   /** P2.3b: 0 = the H6 linear x, 1 = the quarter-circle dome. */
   topDome: number;
   /** P2.3b: turret cell size (m). */
   turretSize: number;
-  /** P2.3b: per-turret height spread: each head's height factor is in [1 - turretDepth, 1]. */
+  /** P2.3b: per-turret height spread: each head's height is 1 - turretDepth r^2 (P2.3c); 1 - turretDepth is also the notch floor. */
   turretDepth: number;
   /** P2.3b: 0 = one dome per body, 1 = the full turret field. */
   turretAmount: number;
