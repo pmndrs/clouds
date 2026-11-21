@@ -1,0 +1,24 @@
+
+P1.4c final (new defaults): luminance ratios fit / path trace
+| frame | cloud | thick | base | dark20 | bright20 | dark20 B/R fit / pt |
+|---|---|---|---|---|---|---|
+| sky noon | 1.01 | 0.96 | 0.98 | 0.92 | 0.92 | 0.92 / 1.05 |
+| sky low | 1.07 | 1.01 | 1.13 | 1.06 | 0.88 | 0.82 / 0.92 |
+| sky backlit | 1.03 | 1.00 | 1.00 | 1.03 | 1.03 | 0.83 / 0.96 |
+| sky sunset | 1.15 | 1.06 | **1.30** | **1.48** | 1.17 | 0.67 / 0.66 |
+| embergen02 noon | 0.95 | 0.88 | 0.84 | **0.72** | 1.01 | 1.03 / 1.16 |
+| embergen02 low | 1.13 | 1.08 | 1.03 | 0.93 | 0.95 | 0.94 / 1.25 |
+| embergen02 backlit | 0.94 | 0.89 | 0.87 | 0.94 | 0.95 | 1.20 / 1.25 |
+| embergen02 sunset | 1.14 | 1.10 | 1.09 | 1.22 | 1.01 | 0.63 / 0.91 |
+
+16-64 px band energy over the thick body, fit / path trace
+| frame | P1.4b | P1.4c |
+|---|---|---|
+| sky noon | 1.12 | 1.11 |
+| sky low | 0.94 | 0.92 |
+| sky backlit | 1.05 | 1.05 |
+| sky sunset | 0.89 | 0.88 |
+| embergen02 noon | 1.76 | 1.76 |
+| embergen02 low | 1.85 | 1.85 |
+| embergen02 backlit | 1.02 | 1.02 |
+| embergen02 sunset | 1.38 | 1.38 |

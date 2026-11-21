@@ -173,12 +173,14 @@ fn octaveVoxel() -> vec4<f32> { return vec4(OCTAVE_VOXEL_DIFFUSE, frame.ambientS
 //   ambient = albedo (ambientGain up / (1 + kUp tauUp) + ground down)
 // P1.4b (fit4 = (msPow, groundAtten)): ms = ... / (1 + k tau)^msPow; groundAtten 1: ground down / (1 + kUp tauUp).
 fn fitOn() -> bool { return frame.fit2.y > 0.5; }
-fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
+// P1.4c: tauMs, the ms term's own (smoother) optical depth toward the sun; the direct term keeps tau. cloudFitLight: tauMs = tau (the procedural trace).
+fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> { return cloudFitLightMs(tau, tau, tauUp, cosSun, sun, up, down); }
+fn cloudFitLightMs(tau: f32, tauMs: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
   let f = frame.fit;
   let direct = sun * (f.x * henyeyGreenstein(cosSun, f.y) * exp(-tau) * frame.fit2.w);   // P1.2b: fit2.w = fitDirect (1; debug)
   let f3 = frame.fit3;
   let msPhase = (1.0 - f3.x) * ISO_PHASE + f3.x * henyeyGreenstein(cosSun, f3.y);   // P1.2c: f3.x = 0 is P1.2b's isotropic ms
-  let ms = sun * (f.x * f.z * msPhase / pow(1.0 + f.w * tau, frame.fit4.x));   // P1.4b: fit4.x = fitMsPow (1 = P1.2c)
+  let ms = sun * (f.x * f.z * msPhase / pow(1.0 + f.w * tauMs, frame.fit4.x));   // P1.4b: fit4.x = fitMsPow (1 = P1.2c)
   var ambient: vec3<f32>;
   if (f3.w > 0.5) {
     let upT = 1.0 / (1.0 + frame.fit2.z * tauUp);

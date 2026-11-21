@@ -76,7 +76,8 @@ struct Frame {
   // P1.2c: x = fitMsFwd (forward share of the ms phase), y = fitMsG (its HG g), z = fitGround (gain on the lower-hemisphere ambient),
   // w = fitAmbientForm (0 = P1.2b's U blend of up and down, 1 = up through 1 / (1 + fitKUp tauUp) plus ground unshadowed).
   fit3: vec4<f32>,
-  // P1.4b: x = fitMsPow (ms falloff 1 / (1 + fitK tau)^x; 1 = P1.2c), y = fitGroundAtten (1 = the ground term also / (1 + fitKUp tauUp)), zw 0.
+  // P1.4b: x = fitMsPow (ms falloff 1 / (1 + fitK tau)^x; 1 = P1.2c), y = fitGroundAtten (1 = the ground term also / (1 + fitKUp tauUp)),
+  // z (P1.4c) = fitMsTauSmooth (the ms term's tau: mix(tau, light grid alone at the sample, z); voxel march only), w 0.
   fit4: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

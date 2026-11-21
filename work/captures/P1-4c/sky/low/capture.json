@@ -1,0 +1,617 @@
+{
+  "url": "http://127.0.0.1:5377/reference-pt/?clean=1&cloud=sky&spp=1&converged=1&view=fit-low",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T16:24:36.695Z",
+  "shots": [
+    {
+      "name": "fit-low",
+      "file": "work/captures/P1-4c/sky/low/fit-low.png",
+      "report": {
+        "view": "fit-low",
+        "status": "sun low: ready",
+        "cloud": "sky",
+        "camera": {
+          "position": [
+            625.8882536071255,
+            150,
+            -1711.5066273224638
+          ],
+          "target": [
+            4500,
+            2242,
+            -7300
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.4688,
+            29.7656,
+            23.7305
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            200,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            3000,
+            1550,
+            -8800
+          ],
+          "max": [
+            6000,
+            3150,
+            -5800
+          ],
+          "densityMax": 1.189453125,
+          "occupancy": 0.14391466666666666,
+          "bakeMs": 568.8999999910593
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": true,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": true,
+            "samples": 16,
+            "target": 16,
+            "done": true,
+            "restarts": 1,
+            "reason": "view",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              188,
+              188,
+              100
+            ],
+            "bytes": 84825600,
+            "volumeDims": [
+              375,
+              375,
+              200
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 24,
+            "swaps": 1,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 1,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 0,
+          "wallMs": 0,
+          "compileMs": 93.5,
+          "kernelBytes": 52882,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.41865366278216243,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "ultra",
+          "lightingModel": "fit",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 1,
+          "fit": [
+            0.99,
+            0.8,
+            2.42,
+            0.2,
+            0.62,
+            0.3,
+            1,
+            0.38,
+            0.5,
+            0.61,
+            1,
+            2,
+            0,
+            0
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "sky",
+            "label": "D procedural sky patch (HZD bench)",
+            "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 6800,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 6800,
+            "height": 150
+          },
+          "source": "HZD bench sky (default settings, NDF seed 3, wind frozen): a baked 3 x 3 km patch of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            200
+          ],
+          "voxel": 8,
+          "densityRef": 0.41865366278216243,
+          "densityMaxSource": 0.4979109764099121,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.41865366278216243,
+          "boxMin": [
+            3000,
+            1550,
+            -8800
+          ],
+          "boxMax": [
+            6000,
+            3150,
+            -5800
+          ],
+          "occupied": {
+            "min": [
+              3000,
+              1726,
+              -8800
+            ],
+            "max": [
+              6000,
+              2758,
+              -5800
+            ]
+          },
+          "patch": {
+            "min": [
+              3000,
+              1550,
+              -8800
+            ],
+            "max": [
+              6000,
+              3150,
+              -5800
+            ]
+          },
+          "configure": {},
+          "bake": {
+            "t": 6800,
+            "footprint": 8,
+            "camera": [
+              4500,
+              2,
+              -7300
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 60.79999999701977
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 349
+      },
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/fit-low.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6996138233242608,
+          1.0861631467671962,
+          1.7456509554375792
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 354,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "zero",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 0, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1109,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/zero.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5220214694306669,
+          0.9306131092940527,
+          1.6067784165617403
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 428,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "direct",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 1, \"fitMs\": 0, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1101,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/direct.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5281839119546651,
+          0.9357705508930102,
+          1.610856455725971
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 501,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "iso_k0.2_p1",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1.0, \"fitK\": 0.2, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1093,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/iso_k0.2_p1.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.619842723286258,
+          1.012455206647897,
+          1.6714244828740064
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 575,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "fwd_k0.2_p1",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 1, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1.0, \"fitK\": 0.2, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1096,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/fwd_k0.2_p1.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5628925709844286,
+          0.9648039391604672,
+          1.6337807889669138
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 647,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "iso_k0.2_p2",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 2.0, \"fitK\": 0.2, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1105,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/iso_k0.2_p2.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5937697969190059,
+          0.9906535776007867,
+          1.6542328778225046
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 720,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "fwd_k0.2_p2",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 1, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 2.0, \"fitK\": 0.2, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1097,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/fwd_k0.2_p2.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5521969844850441,
+          0.9558623299861744,
+          1.626732666061892
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 792,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "iso_k0.4_p1",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1.0, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1099,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/iso_k0.4_p1.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6020567186689652,
+          0.9975799609731055,
+          1.6596885301031579
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 865,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "fwd_k0.4_p1",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 1, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1.0, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1099,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/fwd_k0.4_p1.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5555925144785376,
+          0.9586997979631916,
+          1.6289674945019013
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 938,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "iso_k0.4_p2",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 2.0, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1110,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/iso_k0.4_p2.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5769163170233065,
+          0.9765512915087096,
+          1.6430954999031717
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 1012,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "fwd_k0.4_p2",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 1, \"fitMsFwd\": 1, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 2.0, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1105,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/fwd_k0.4_p2.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5452697815102698,
+          0.9500674714339666,
+          1.6221560912776933
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 1086,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "up_ku0.3",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 0, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 1, \"fitGround\": 0, \"fitGroundAtten\": 0, \"fitMsPow\": 1, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1113,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/up_ku0.3.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5331445409513961,
+          0.9509493677395019,
+          1.6476469156941635
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 1160,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "down",
+      "eval": "(async () => { const c = window.__clouds; const cv = () => c.report().p11.convergedInfo; const raf = () => new Promise(r => requestAnimationFrame(r));\n  const r0 = cv().restarts; c.setSettings({\"fitDirect\": 0, \"fitMs\": 0, \"fitMsFwd\": 0, \"fitMsG\": 0.5, \"fitAmbient\": 0, \"fitGround\": 1, \"fitGroundAtten\": 0, \"fitMsPow\": 1, \"fitK\": 0.4, \"fitKUp\": 0.3, \"fitAmbientForm\": 1, \"fitMsTauSmooth\": 1}); const t = performance.now();\n  while (cv().restarts === r0) { await raf(); if (performance.now() - t > 5000) throw new Error('no restart'); }\n  while (!cv().done) { await raf(); if (performance.now() - t > 30000) throw new Error('not converged'); }\n  for (let i = 0; i < 2; i++) await raf();\n  return c.readLinear(); })()",
+      "ms": 1108,
+      "linear": {
+        "file": "work/captures/P1-4c/sky/low/down.pfm",
+        "view": "fit-low",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.5604778617262167,
+          0.96294642214728,
+          1.6332303756699225
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 1234,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec.",
+    "warning: PtMegakernel: medium 0 expects ~2258 tentative collisions on its longest segment (55% of the 4096 loop cap): the cap can silently bias the image (free flight darkens, ratio tracking brightens). Use majorant: 'brick' or lower the density scale."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
