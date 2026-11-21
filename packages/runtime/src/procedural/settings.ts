@@ -532,8 +532,10 @@ export interface ProceduralSettings {
    * octaves with a two-lobe HG, the sky irradiance / 4 pi along a height gradient, powder, C1's low-sun handoff on the body octaves).
    * 'nubis': our N3 model (cloudInScatterMicro), with the depth below the surface and the in-scatter profile from proxies (`profileDepth`).
    * Both get the same sun (per altitude, with the earth's shadow), sky and optical depths.
+   * P1.2d 'fit': the voxel march's fitted model (LIGHTING_WGSL cloudFitLight, CloudSettings fit* constants) with the trace's own tau and
+   * skyTau, the same sun and ambient pair; no profile, micro-shadow or edge darkening (P.lit.x = 2).
    */
-  lightingModel: 'nubis' | 'octave';
+  lightingModel: 'nubis' | 'octave' | 'fit';
   /** Octave model: powder, radiance *= 1 - powderScale * exp(-extinction * 150 m) (Takram 0.8). */
   powderScale: number;
   /** Octave model: the two-lobe HG (forward g, back g, back-lobe weight; Takram 0.7, -0.2, 0.5) and the gain of the sky ambient (Takram 1). */
@@ -793,7 +795,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   lane(88, l => l.channel);
   out.set([tk.weatherTileMeters, tk.shapeRepeat, tk.detailRepeat, tk.turbulenceRepeat], 92);
   out.set([tk.turbulenceDisplacement, tk.detailDistance, tk.turbulenceOnShape ? 1 : 0, s.surfaceGrow ? 1 : 0], 96);
-  out.set([s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, s.shaper === 'hzd' && hz.lightProfile === 'exact' ? 1 : 0], 100);
+  out.set([s.lightingModel === 'fit' ? 2 : s.lightingModel === 'octave' ? 1 : 0, s.powderScale, s.ambientGain, s.shaper === 'hzd' && hz.lightProfile === 'exact' ? 1 : 0], 100);
   out.set([s.octavePhase[0], s.octavePhase[1], s.octavePhase[2], s.octaveDiffuse], 104);
   // 108..115: the camera and the wind offset (packProceduralView).
   out.set([Math.max(0, s.boxCarve), s.voxelShadow ? 1 : 0, Math.max(0, s.heroShadow), Math.max(0, Math.min(8, Math.round(s.surfaceRefine)))], 116);

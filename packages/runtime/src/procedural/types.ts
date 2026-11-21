@@ -66,6 +66,6 @@ export interface ProceduralDensityModel {
   resourceEntries(base: number): GPUBindGroupEntry[];
   readonly resourceKey: object;
   /** X3: the procedural lighting model (the dome uses it for the model's clouds). */
-  readonly lightingModel: 'nubis' | 'octave';
+  readonly lightingModel: 'nubis' | 'octave' | 'fit';
   dispose(): void;
 }

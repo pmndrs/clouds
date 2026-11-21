@@ -332,7 +332,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         // C1 (HZD lightProfile 'exact'): the analytic dimensional profile and depth in cloud; samples without one (sheets, fractus) keep the stand-in.
         if (P.lit.w > 0.5 && s.prof > 0.0) { profile = saturate(s.prof); litDepth = s.depthX; }
         var lit: vec3<f32>;
-        if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), vec4(P.octave.w, P.lit.z, 0.0, 0.0)); }
+        // P1.2d (P.lit.x = 2, lightingModel 'fit'): the voxel march's fitted model with this trace's tau and skyTau; nothing else applied.
+        if (P.lit.x > 1.5) { lit = cloudFitLight(tau, skyTau, cosSun, procSunRadiance(p), ambientUp, ambientDown); }
+        else if (P.lit.x > 0.5) { lit = cloudOctaveLight(tau, cosSun, saturate(s.h), sigmaT, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, vec4(P.octave.xyz, P.lit.y), vec4(P.octave.w, P.lit.z, 0.0, 0.0)); }
         else { lit = cloudInScatterMicro(max(profile, 1.0 / 255.0), -litDepth, saturate(s.h), tau, skyTau, phase, sunRelax, procSunRadiance(p), ambientUp, ambientDown, envUp, envDown, microOcc); }
         // STORM1 internal lightning: the flash envelope at this point times the storm weight, relative to the scene's light (sun share + sky).
         // STORM1 dark storm: the light inside the storm is dimmed by stormDark, most at the column and the anvil's underside (h < 0.8).
