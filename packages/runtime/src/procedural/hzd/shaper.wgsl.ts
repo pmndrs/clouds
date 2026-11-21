@@ -287,6 +287,16 @@ fn hzdN3Type(cloudType: f32, h: f32) -> f32 {
 }
 // N1: ValueErosion (the pack's definition, s107): sat((P - n) / (1 - n)).
 fn hzdValueErosion(prof: f32, n: f32) -> f32 { return saturate((prof - n) / max(1.0 - n, 1e-4)); }
+// P2.5a edge character (the owner's photos): the crispness c of the edge at a sample, 0 soft .. 1 crisp. Higher on the body is crisper (top);
+// the side the body moves into (coverage falling downwind of the sample) is crisp, the trailing side soft (lead; P.hzEdge2.x = +1, -1 flips,
+// 0 = height only). Bases stay soft whatever the direction (top gates it). Ours.
+fn hzdEdgeCrisp(xz: vec2<f32>, h: f32) -> f32 {
+  let top = smoothstep(P.hzEdge.y, P.hzEdge.z, h);
+  let w = vec2(P.hzWind.x, P.hzWind.y) * P.hzEdge.w;
+  let dCov = ndfSample(xz - w).coverage - ndfSample(xz + w).coverage;
+  let lead = saturate(0.5 + P.hzEdge2.x * dCov / P.hzEdge2.y);
+  return saturate(top * mix(1.0, lead * 2.0, abs(P.hzEdge2.x)));
+}
 
 // F1: a world-anchored low-frequency field in -1..1 (the shape texture's Perlin-Worley read flat at a coarse mip, contrast x4; ours).
 fn hzdLowField(xz: vec2<f32>, tile: f32, z: f32) -> f32 {
@@ -656,15 +666,22 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   let fade = 1.0 - smoothstep(0.75, 1.25, t / max(P.hzFade.z, 1.0) + (jitter - 0.5) * 0.1);
   var veilW = A.a;
   let n3 = P.hzN3.x > 0.5;
+  // P2.5a edge character: the crispness c steers the detail stage (noise kind, erosion strength, edge exponent); off = the old image.
+  let edgeOn = P.hzEdge.x > 0.5 && full && stage >= 2.5 && fade > 0.0;
+  var crisp = 0.0;
+  if (edgeOn) { crisp = hzdEdgeCrisp(p.xz, h); }
   if (full && stage >= 2.5 && fade > 0.0 && n3) {
     // N1 'nubis3': the deck's up-rez on the coarse density (the dimensional profile): the composite frequency follows P = d, the type T
     // follows the height and the HZD type; the erosion order 'hfw' erodes the base noise by the same composite before the profile and the
     // coverage remap, 'gp7' erodes the profile itself (the deck's order).
     let prof = saturate(d);
-    let T = hzdN3Type(n.topType + P.hzCov.y, h);
+    var T = hzdN3Type(n.topType + P.hzCov.y, h);
+    // P2.5a: the type follows the crispness instead of the height (billowy toward crisp, wispy toward soft); stratus stays partly wispy.
+    if (edgeOn) { T = crisp * mix(P.hzN3.w, 1.0, saturate(2.0 * (n.topType + P.hzCov.y))); }
     var n3 = hzdN3Noise(qDetail, h, footprint, t, prof, T);
     if (swirlW > 0.01) { n3 = mix(n3, hzdN3Noise(qDetailB, h, footprint, t, prof, T), swirlW); }
-    let comp = saturate(n3 * P.hzN3.z * fade);
+    var comp = saturate(n3 * P.hzN3.z * fade);
+    if (edgeOn) { comp = saturate(n3 * P.hzN3.z * fade * mix(P.hzEdge2.z, P.hzEdge2.w, crisp)); }
     if (P.hzExtra.w > 0.5) {
       let be = hzdValueErosion(base, comp);
       density = max(hzdRemap(be * gradient, 1.0 - cov, 1.0, 0.0, 1.0), 0.0) * covK * fadeK;
@@ -677,6 +694,8 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       let s4 = s2 * s2;
       density = pow(max(density, 0.0) * s4, mix(0.3, 0.6, s4));
     }
+    // P2.5a: the edge's hardness: below 1 lifts thin density (a hard, opaque edge), above 1 thins it (soft, translucent).
+    if (edgeOn) { density = pow(saturate(density), mix(P.hzEdge3.x, P.hzEdge3.y, crisp)); }
     // The veil keeps its own noise (the HZD detail fBM, as the 'hzd' branch reads it).
     if (P.hzVeil.x < 0.5 && veil > 0.0) { veilW = hzdDetailFbm(select(qDetail, qVeil, skirtOn), h, footprint, false); }
   } else if (full && stage >= 2.5 && fade > 0.0) {
@@ -687,9 +706,12 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     // gp7 p.108: wispy (fbm) below, billowy (1 - fbm) above; H6: the switch height is a setting (gp7 0.1 = h * 10; hag 0.2 = h * 5).
     var modifier = mix(hfFbm, 1.0 - hfFbm, saturate(h / select(P.hzExtra.z, 0.2, hag)));
     // F1 S7: a storm's upper 40 % is glaciated: fibrous (wispy) instead of cauliflower (photos §4).
+    // P2.5a: billowy toward crisp, wispy toward soft (instead of by height).
+    if (edgeOn) { modifier = mix(hfFbm, 1.0 - hfFbm, crisp); }
     if (hzdStormW > 0.0) { modifier = mix(modifier, hfFbm, hzdStormW * smoothstep(0.55, 0.75, h)); }
     // H7: the erosion strength rises from P.hzSkirt.w at the base to erosionStrength at the wispy switch (wispy bottoms erode deeper; gp7 one value).
     var strength = select(mix(P.hzSkirt.w, P.hzExtra.y, saturate(h / P.hzExtra.z)), 0.35 * exp(-0.75 * cov), hag);
+    if (edgeOn) { strength *= mix(P.hzEdge2.z, P.hzEdge2.w, crisp); }
     // F1 S7: the anvil plate erodes at half strength (smooth glaciated top, photos §4; ours).
     if (hzdStormW > 0.0) { strength *= 1.0 - 0.5 * hzdStormW * smoothstep(0.65, 0.8, h); }
     // H7 lobe rung: the step between the body (shape noise, 0.6-1.2 km) and the detail grain (75 m cells) that the photos have and we lacked
@@ -724,6 +746,7 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
       let lowB = 1.0 - saturate(h / select(P.hzExtra.z, 0.2, hag));
       density = hzdRemap(max(density, 0.0), modifier * P.hzSkirt2.z * lowB * fade, 1.0, 0.0, 1.0);
     }
+    if (edgeOn) { density = pow(saturate(density), mix(P.hzEdge3.x, P.hzEdge3.y, crisp)); }
   }
   density = saturate(density);
   // F1 S7, hag eq 18: the anvil density fix, x lerp(1, sat(remap(sqrt(h), 0.4, 0.95, 1, 0.2)), amount) (keeps the plate from going opaque).

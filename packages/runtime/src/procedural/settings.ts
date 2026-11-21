@@ -507,6 +507,30 @@ export interface HzdShape {
   shapeNoise: 'hzd' | 'nubis3';
   n3ShapeTile: number;
   // ---- end N1 ----
+  // ---- P2.5a: edge character (packed by packHzdEdge; shaper.wgsl.ts hzdEdgeCrisp) ----
+  /** P2.5a (the owner's photos): the edge's sharpness depends on where on the cloud and which way it faces. A crispness c (0 soft .. 1 crisp)
+   *  per sample: c = sat(top x lerp(1, 2 lead, |edgeLead|)), top = smoothstep(edgeTopLo, edgeTopHi, h) (crisp tops, soft bases), lead from
+   *  the coverage gradient along the wind (1 on the side the body moves toward). c then steers the detail erosion: the noise kind (billowy
+   *  toward c 1, wispy toward 0, instead of by height alone), its strength x lerp(edgeSoftErosion, edgeCrispErosion, c), and the eroded
+   *  density's exponent lerp(edgeSoftPow, edgeCrispPow, c) (< 1 lifts thin density: a hard, opaque edge; > 1 thins it: soft, translucent).
+   *  The shape does it, not the lighting. 0 = off (the image as before). */
+  edgeCharacter: number;
+  /** P2.5a: h (0 base .. 1 top) where the crispness starts / is full. */
+  edgeTopLo: number;
+  edgeTopHi: number;
+  /** P2.5a: metres up- and downwind the coverage is read at for the facing (lead). */
+  edgeProbe: number;
+  /** P2.5a: +1 the leading side (moving into new air) is crisp and the wisps trail; -1 flips it; 0 = by height only. */
+  edgeLead: number;
+  /** P2.5a: the coverage difference (upwind - downwind) that makes a side fully leading or trailing. */
+  edgeLeadRange: number;
+  /** P2.5a: the erosion strength factor at c = 0 (soft) and c = 1 (crisp). */
+  edgeSoftErosion: number;
+  edgeCrispErosion: number;
+  /** P2.5a: the exponent on the eroded density at c = 0 (soft) and c = 1 (crisp). */
+  edgeSoftPow: number;
+  edgeCrispPow: number;
+  // ---- end P2.5a ----
   ndf: HzdNdfSettings;
 }
 
@@ -657,7 +681,9 @@ export const PROC_HZD_N3_OFFSET = PROC_HZD_FORMS_OFFSET + 44;
 export const PROC_HZD_MIX_OFFSET = PROC_HZD_N3_OFFSET + 8;
 /** STORM1: three more vec4 (hzStorm3, hzStorm4, hzStorm5) between hzMix and the tables. */
 export const PROC_HZD_STORM_OFFSET = PROC_HZD_MIX_OFFSET + 4;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_STORM_OFFSET + 12;
+/** P2.5a: three more vec4 (hzEdge, hzEdge2, hzEdge3) between hzStorm5 and the tables. */
+export const PROC_HZD_EDGE_OFFSET = PROC_HZD_STORM_OFFSET + 12;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_EDGE_OFFSET + 12;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -714,6 +740,17 @@ export function packHzdStorm(hz: HzdShape, out: Float32Array): void {
   out.set([Math.max(hz.stormDensity, 0), Math.min(Math.max(hz.stormDark, 0), 1), Math.max(hz.stormGlow, 0), Math.max(hz.stormFlashRate, 0)], o + 4);
   out.set([Math.max(hz.anvilCirrusFiber, 1), hz.stormSingle ? 1 : 0, hz.stormAnvilShape === 'taps' ? 1 : 0, hz.stormRotation > 0 ? 1e-4 : 0], o + 8);   // w: the rotation phase, written per frame by the runtime
 }
+/** P2.5a: edge character defaults (off; the constants are the first prototype's, agent-chosen). */
+export const HZD_EDGE_DEFAULTS = {
+  edgeCharacter: 0, edgeTopLo: 0.25, edgeTopHi: 0.7, edgeProbe: 300, edgeLead: 1, edgeLeadRange: 0.15, edgeSoftErosion: 1.4, edgeCrispErosion: 0.7, edgeSoftPow: 1.6, edgeCrispPow: 0.55,
+} satisfies Partial<HzdShape>;
+/** P2.5a: the edge character block (hzEdge .. hzEdge3 in density.wgsl.ts). */
+export function packHzdEdge(hz: HzdShape, out: Float32Array): void {
+  const o = PROC_HZD_EDGE_OFFSET;
+  out.set([hz.edgeCharacter > 0.5 ? 1 : 0, hz.edgeTopLo, Math.max(hz.edgeTopHi, hz.edgeTopLo + 1e-3), Math.max(hz.edgeProbe, 1)], o);
+  out.set([Math.min(Math.max(hz.edgeLead, -1), 1), Math.max(hz.edgeLeadRange, 1e-3), Math.max(hz.edgeSoftErosion, 0), Math.max(hz.edgeCrispErosion, 0)], o + 4);
+  out.set([Math.max(hz.edgeSoftPow, 0.05), Math.max(hz.edgeCrispPow, 0.05), 0, 0], o + 8);
+}
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_N3_OFFSET;
@@ -741,7 +778,7 @@ export const HZD_DEFAULTS: HzdShape = {
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ...HZD_EDGE_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -832,6 +869,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   packHzdN3(hz, out);
   packHzdMix(hz, out);
   packHzdStorm(hz, out);
+  packHzdEdge(hz, out);
   return [minY, maxY];
 }
 

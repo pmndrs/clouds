@@ -102,6 +102,10 @@ struct ProcParams {
   hzStorm3: vec4<f32>,   // STORM1: storm source (1 NDF storm channel, 0 the placed cell), anvil cirrus density (0 = off), its length downwind (m), its depth (m)
   hzStorm4: vec4<f32>,   // STORM1: storm density scale (1 = off), dark (0..1: the storm's light is dimmed, most at the base), lightning glow (0 = off), flash rate (per s)
   hzStorm5: vec4<f32>,   // STORM1: anvil cirrus fibre elongation along the wind, single-tile storm window (0/1), ST2: anvil shape (0 smooth, 1 taps), rotation phase (rad; 0 = off)
+  // P2.5a edge character (packed by settings.ts packHzdEdge)
+  hzEdge: vec4<f32>,     // P2.5a: on (0/1), top crisp from (h), full at (h), coverage probe (m up/downwind)
+  hzEdge2: vec4<f32>,    // P2.5a: lead (-1..1; 0 = height only), lead range (coverage difference), erosion x at c 0 (soft), at c 1 (crisp)
+  hzEdge3: vec4<f32>,    // P2.5a: density exponent at c 0 (soft), at c 1 (crisp), 0, 0
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
 struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32, storm: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
