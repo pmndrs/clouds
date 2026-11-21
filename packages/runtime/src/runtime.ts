@@ -415,6 +415,12 @@ export interface CloudSettings {
   convergedSamples: number;
   /** P0.5: offset of the converged march's sample sequence (0 = samples 0..n-1); a different value gives an independent sample set of the same image (the stability test). */
   convergedSeed: number;
+  /**
+   * P0.5 diagnostics (default 0): bit flags of normal-march shortcuts the converged march keeps, to attribute a converged-vs-normal difference:
+   * 1 = the thin-segment light skip (segments under 0.002 optical depth attenuate but add no light), 2 = the light-tap reuse along the ray,
+   * 4 = the normal transmittance cutoffs (else 1e-4).
+   */
+  convergedKeep: number;
 }
 
 /**
@@ -836,7 +842,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     temporalAccumulate: 0,   // D1 round 2: k = 1 passes write the history directly (no accumulation); the 'decima' look turns it on
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
     jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, microShadowMode: 0, microDist2: 0, microShadow2: 0, directProfile: 0, directRimDepth: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
-    converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedSeed: 0,   // P0.5: the converged march, off
+    converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1398,12 +1404,13 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // P0.5: this sample's jitter index and sub-pixel offset, the step divisor; the step budget raised to match (x CV_BUDGET, the step growth is off),
       // a near-zero transmittance cutoff, fresh in-line sun taps at every step, the blue-noise jitter with a random step phase, no static far jitter.
       const cvIndex = cvCount + Math.max(0, Math.round(settings.convergedSeed));
+      const cvKeep = Math.max(0, Math.round(settings.convergedKeep)) | 0;
       const cvSub = cv ? convergedSubPixel(cvIndex) : [0, 0];
       if (cv) {
-        f[124] = cvStep; f[125] = cvSub[0]; f[126] = cvSub[1]; f[127] = 0;
+        f[124] = cvStep; f[125] = cvSub[0]; f[126] = cvSub[1]; f[127] = cvKeep & 1;
         if (frameU32[33] > 0) frameU32[33] = Math.min(1 << 20, Math.ceil(settings.maxSteps * cvStep * CV_BUDGET)) >>> 0;
-        f[45] = Math.min(settings.transmittanceCutoff, CV_CUTOFF);
-        f[106] = 0; f[112] = 1; f[113] = 1; f[115] = 0;
+        if (!(cvKeep & 4)) f[45] = Math.min(settings.transmittanceCutoff, CV_CUTOFF);
+        f[106] = 0; f[112] = 1; f[113] = 1; if (!(cvKeep & 2)) f[115] = 0;
       } else { f[124] = 0; f[125] = 0; f[126] = 0; f[127] = 0; }
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
@@ -1547,7 +1554,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
           wind: settings.windOffset, voxelDepth: { near: near.hist[cur].depth, far: far.hist[cur].depth },
           subPixelSpan: level !== 'cinematic' && settings.levelSubPixelSpan >= 0 ? settings.levelSubPixelSpan : undefined,
           lodLayerPixel: level !== 'cinematic' && settings.levelLodLayerPixel >= 0 ? settings.levelLodLayerPixel : undefined,
-          converged: cv ? { stepScale: cvStep, budget: CV_BUDGET, index: cvIndex, subPixel: [cvSub[0], cvSub[1]] } : null });
+          converged: cv ? { stepScale: cvStep, budget: CV_BUDGET, index: cvIndex, subPixel: [cvSub[0], cvSub[1]], keep: cvKeep, cutoff: cvKeep & 4 ? undefined : CV_CUTOFF } : null });
       }
       // U2: below the cinematic level the layer (the whole cloud in 'procedural' mode) goes through the upscaler to the composite's size, and the
       // composite reads the upscaled colour per output pixel (frame.skyEnabled 2) with the layer's own depth words for the scene occlusion.
@@ -1647,6 +1654,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         cvShadowWrites = writes;
         cvCount++;
         cvParamU32[0] = cvCount;
+        // The procedural trace or the sky layer is wanted but not running yet (its pipeline compiling, its weather baking): shown, not counted.
+        if (((settings.densityModel !== 'nvdf' && !!procModel) || skyLayer.settings.enabled) && !skyActive) { cvParamU32[0] = 1; cvCount = 0; cvReason = 'loading'; }
         device.queue.writeBuffer(cvParams, 0, cvParamU32);
         cvPipeline ??= device.createComputePipeline({ label: 'cloud converged accumulate', layout: device.createPipelineLayout({ bindGroupLayouts: [cvLayout] }), compute: { module: device.createShaderModule({ label: 'cloud converged accumulate', code: CONVERGED_WGSL }), entryPoint: 'main' } });
         const acc = encoder.beginComputePass({ label: 'cloud converged accumulate' });

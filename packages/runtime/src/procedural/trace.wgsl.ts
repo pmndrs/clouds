@@ -284,10 +284,10 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       sinceEntry = min(sinceEntry + 1u, 99u);
       let stepLength = min(mix(surfaceStep, fineStep * 3.0, smoothstep(1.0, 3.0, accumulated)), tEnd - t);
       let stepT = exp(-sigmaT * stepLength);
-      if (sigmaT * stepLength > select(2.0e-3, 0.0, cv)) {
+      if (sigmaT * stepLength > select(2.0e-3, 0.0, cv && (u32(SKY.convergedKeep.x) & 1u) == 0u)) {
         let cheap = (1.0 - T) >= P.steps.w;
         let reuse = min(fineStep * 3.0, max(20.0, P.spShape.y * P.spShape.w * 0.03));
-        if (cv || abs(t - shadowAt) >= reuse || abs(s.sigma - shadowDensity) > 0.08 * procSigmaRef() || cheap != shadowCheap) {
+        if ((cv && (u32(SKY.convergedKeep.x) & 2u) == 0u) || abs(t - shadowAt) >= reuse || abs(s.sigma - shadowDensity) > 0.08 * procSigmaRef() || cheap != shadowCheap) {
           shadowTau = 0.0; nearTau = 0.0;
           for (var k = 1u; k < 8u; k++) {
             if (k >= taps) { break; }

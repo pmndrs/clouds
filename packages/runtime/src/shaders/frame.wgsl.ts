@@ -61,7 +61,7 @@ struct Frame {
   d3: vec4<f32>,
   // D1 round 11: x = microDist2 (m, a second micro sun tap from microDist to microDist2; 0 = off), y = microShadow2 (its occlusion weight), z = directProfile (the direct term weighted by the in-scatter probability, 0..1), w = directRimDepth (m: that weight within this depth of the surface only; 0 = everywhere).
   d4: vec4<f32>,
-  // P0.5 converged march: x = the step divisor (0 = off: the normal march), yz = the ray's sub-pixel offset (pass pixels), w = 0.
+  // P0.5 converged march: x = the step divisor (0 = off: the normal march), yz = the ray's sub-pixel offset (pass pixels), w = diagnostic bit flags of shortcuts kept (1 the thin-segment light skip).
   conv: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;

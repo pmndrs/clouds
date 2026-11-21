@@ -262,7 +262,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
           if (d.x > 0.0) {
             let sigma = d.x * frame.extinction;
             let stepT = exp(-sigma * ds);
-            if (sigma * ds > select(LIGHT_MIN_OPTICAL_DEPTH, 0.0, conv)) {
+            if (sigma * ds > select(LIGHT_MIN_OPTICAL_DEPTH, 0.0, conv && (u32(frame.conv.w) & 1u) == 0u)) {
               // Optical depth toward the sun: two in-line samples, then the light grid from 48 m on.
               if (ts - inlineT >= inlineReuse) {
                 let s0 = ${density}(ps + sunInline0, ts, lightInputs);

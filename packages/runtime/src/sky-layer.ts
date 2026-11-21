@@ -233,7 +233,7 @@ export interface SkyEncodeArgs {
    * blend, the steps are divided by `stepScale` (budget times `stepScale * budget`), the light is evaluated at every lit step, and the jitter is
    * sample `index` of the blue-noise + golden-ratio sequence with the sub-pixel offset `subPixel` (layer px). Null / absent: the normal trace.
    */
-  converged?: { stepScale: number; budget: number; index: number; subPixel: [number, number] } | null;
+  converged?: { stepScale: number; budget: number; index: number; subPixel: [number, number]; keep?: number; cutoff?: number } | null;
 }
 
 export const SKY_LAYER_DEFAULTS: SkyLayerSettings = {
@@ -636,8 +636,10 @@ export function createSkyLayer(device: GPUDevice, volumeLayout: GPUBindGroupLayo
       const phase = s.freezeCycle >= 0 ? Math.floor(s.freezeCycle) : frames;
       p[36] = phase % period; p[37] = Math.floor(phase / period); p[38] = cut ? 1 : 0; p[39] = s.jitterNoise === 'blue' ? 1 : 0;
       // P0.5: the converged sample's jitter (cycle = the sample index, blue noise + golden ratio) and step divisor; zeros = the normal trace.
-      if (cv) { p[37] = cv.index; p[39] = 1; p[92] = Math.max(1, cv.stepScale); p[93] = Math.max(1, cv.budget); p[94] = cv.subPixel[0]; p[95] = cv.subPixel[1]; }
-      else { p[92] = 0; p[93] = 0; p[94] = 0; p[95] = 0; }
+      if (cv) {
+        p[37] = cv.index; p[39] = 1; p[92] = Math.max(1, cv.stepScale); p[93] = Math.max(1, cv.budget); p[94] = cv.subPixel[0]; p[95] = cv.subPixel[1]; p[96] = cv.keep ?? 0;
+        if (cv.cutoff !== undefined) p[27] = Math.min(p[27], cv.cutoff);   // the transmittance cutoff (0.05 by default: the rest of the ray continues as the mean colour)
+      } else { p[92] = 0; p[93] = 0; p[94] = 0; p[95] = 0; p[96] = 0; }
       p.set(prevViewProj, 40);
       // C2: the clouds' displacement since last frame (procedural model only: the wind offset times its cloud speed; a cut or a first frame has none).
       {
