@@ -23,12 +23,11 @@ What 0.3 found (same captures as PT1, compared before the tone map):
 - The reference needs more samples: at 1024 spp its grain is most of the finest detail band. The card renders two seeds at 2048 spp and averages them.
 
 What 0.5 found:
-- **Part of the foam is sampling, not lighting.** On the HZD bench the one-pixel speckle on lit faces disappears in the converged frame (`work/captures/P0-5/gp7-crop-normal-vs-converged.jpg`). The 4 to 16 px excess against the path trace is a separate, lighting effect; the card will show how much of each remains once the realtime frames are also captured converged.
+- **Only the pixel-level speckle is sampling.** On the HZD bench the one-pixel speckle on lit faces disappears in the converged frame (1:1 crop: `work/captures/P0-5/gp7-crop-normal-vs-converged.jpg`). At normal viewing size the converged frame looks nearly the same as the normal one (owner and orchestrator both checked on the bench, 2026-11-21): the shaving-cream read survives perfect sampling, so it is shape and lighting (Phases 1 and 2). The mode is a measuring tool, not a look fix. It takes about a minute to settle at a full browser window; the HUD counts samples.
 - The march loses or gains light with step size in six places (thin segments attenuated but unlit, first-order steps, edge darkening from the deepest sample, the cutoff's continuation colour, light-tap reuse, the 256-step budget). Listed for Phase 3.
 - Contour lines on shaded bases are in every converged frame, so they come from the density or the light, not from sampling.
 
 Waiting on you:
-- **Look at Review P05 on the HZD bench** when you have a moment: flip it at gp7 and tell me whether the converged frame is closer to what you want. No decision hangs on it yet.
 - ~~**Houdini licence:** `hython` 21.0.792 and 22.0.466 both report "No licenses could be found" from the agent sandbox, though `hserver` is running. Only matters if you want Karma as well as Cycles.~~ Fixed 2026-11-21: `hython` 21.0.792 runs with the Indie licence. Karma will render one card frame as a second cross-check after Cycles.
 - **Disney cloud:** only the quarter, eighth and sixteenth VDBs are on disk; the full and half-resolution files the README lists are missing. The card uses the eighth or quarter. You said the full file is very large and belongs on the NAS if downloaded; the plan does not need it.
 
