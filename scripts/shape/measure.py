@@ -33,9 +33,10 @@ Per body (8-connected, sqrt(area) >= --min-size * image width):
   base_frac     fraction of the outline (smoothed at D/32) whose outward normal
                 is within 30 degrees of straight down.
 Bodies touching the image border or the invalid zone are "truncated": they
-count in area and gap statistics; border-truncated (not invalid-truncated)
-bodies also count in the lobe spectrum, with the cut side edge-replicated and
-excluded; aspect and base measures use complete bodies only.
+count in area and gap statistics and in the lobe spectrum (the cut side is
+edge-replicated at the image border, or continued column-wise into the invalid
+zone, and excluded from the counts); aspect and base measures use complete
+bodies only.
 
 Per image: body areas / image area, clear-sky gaps and cloud chords along
 every 4th row (runs bounded by cloud/sky on both sides), divided by width.
@@ -147,6 +148,24 @@ def lobe_spectrum(body, inside, D):
     return out
 
 
+def _fill_invalid_columns(body, valid):
+    """Continue a body into the invalid zone (ground, haze, obstacles) by copying,
+    per column, the nearest valid pixel above (else below). Like the edge
+    replication at the image border, this keeps the cut from reading as outline;
+    the invalid zone itself is excluded from every count."""
+    H, W = body.shape
+    rows = np.arange(H)[:, None]
+    idx_above = np.where(valid, rows, -1)
+    idx_above = np.maximum.accumulate(idx_above, axis=0)
+    idx_below = np.where(valid, rows, H)
+    idx_below = np.minimum.accumulate(idx_below[::-1], axis=0)[::-1]
+    src = np.where(idx_above >= 0, idx_above, idx_below)
+    has = src < H
+    src = np.clip(src, 0, H - 1)
+    filled = body[src, np.arange(W)[None, :]] & has
+    return np.where(valid, body, filled)
+
+
 def base_rms(body):
     """body: bool crop tightly around a complete body."""
     H, W = body.shape
@@ -218,13 +237,16 @@ def measure_mask(cloud, valid, min_size=0.02, spectrum=True):
             b["aspect_mom"] = float(math.sqrt(vy / max(vx, 1e-9)))
             crop = lab[y0:y1 + 1, x0:x1 + 1] == k
             b["base_rms"] = base_rms(crop)
-        if spectrum and not touch_inv[k] and D >= SPEC_MIN_D:
+        if spectrum and D >= SPEC_MIN_D:
             P = int(math.ceil(1.5 * D)) + 4
             Y0, Y1, X0, X1 = y0 - P, y1 + P + 1, x0 - P, x1 + P + 1
             cy0, cy1, cx0, cx1 = max(Y0, 0), min(Y1, H), max(X0, 0), min(X1, W)
             crop = lab[cy0:cy1, cx0:cx1] == k
+            vcrop = valid[cy0:cy1, cx0:cx1]
+            if touch_inv[k]:
+                crop = _fill_invalid_columns(crop, vcrop)
             pads = ((cy0 - Y0, Y1 - cy1), (cx0 - X0, X1 - cx1))
-            ins = np.pad(np.ones_like(crop), pads, mode="constant", constant_values=False)
+            ins = np.pad(vcrop, pads, mode="constant", constant_values=False)
             crop = np.pad(crop, pads, mode="edge")
             sp = lobe_spectrum(crop, ins, D)
             b.update(sp)

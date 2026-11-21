@@ -40,7 +40,8 @@ import shapelib as sl  # noqa: E402
 PARAMS = dict(
     neutral_frac=0.40,  # cloud if R/G has moved this fraction of the way from local sky to neutral
     dark_drop=0.20,     # or if luminance is this fraction below the local sky
-    max_sky_rg=0.86,    # local sky R/G above this (near-white haze): zone is invalid
+    max_sky_rg=0.86,
+    obstacle_dark=0.45,  # darker than this fraction of local sky: tree/pole, invalid    # local sky R/G above this (near-white haze): zone is invalid
     min_area_frac=2e-5,  # specks smaller than this fraction of the image are dropped
     hole_frac=2e-5,     # sky holes smaller than this inside cloud are filled
 )
@@ -164,7 +165,12 @@ def segment(img, params=PARAMS):
     # have the same colour; mark that zone invalid instead of guessing.
     lowc = f_sky > params["max_sky_rg"]
     lowc = sl.gauss(lowc.astype(float), 3.0) > 0.5
-    valid = valid & ~lowc
+    # Obstacles above the horizon (trees, poles, wires, buildings): far darker
+    # than the sky, or green/brown and darker than it. Lit cloud is brighter
+    # than the sky and shaded bases stay above ~0.6 of it, so neither is hit.
+    obst = (L < params["obstacle_dark"] * L_sky) | (((G > B * 1.03) | (R > B * 1.03)) & (L < 0.8 * L_sky))
+    obst = sl.gauss(obst.astype(float), 1.5) > 0.2
+    valid = valid & ~lowc & ~obst
     cloud = (sl.gauss(np.where(valid, (score > 1.0).astype(float), 0.0), 1.0) > 0.5) & valid
     cloud = sl.remove_small(cloud, max(9, int(params["min_area_frac"] * H * W)))
     cloud = sl.fill_holes(cloud, int(params["hole_frac"] * H * W)) & valid
