@@ -557,7 +557,7 @@ export interface ProceduralSettings {
   lightScale: number;
   /** Depth below the surface (m) over which the in-scatter probability ('profile' of our lighting) ramps from 0 to 1. */
   profileDepth: number;
-  /** Debug view: 0 off, 1 step count, 2 first-hit distance, 3 profile at the first hit. */
+  /** Debug view: 0 off, 1 step count, 2 first-hit distance, 3 profile at the first hit, 4 hybrid split, 5 (P2.5c) HZD edge crispness c at the first hit (grey = not applied). */
   debug: number;
   /**
    * X3 lighting model. 'octave' (default for this model): the per-sample Frostbite / Takram model (LIGHTING_WGSL cloudOctaveLight: 8 Wrenninge

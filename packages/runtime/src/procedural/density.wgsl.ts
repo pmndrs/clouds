@@ -109,7 +109,7 @@ struct ProcParams {
   hzEdge4: vec4<f32>,    // P2.5b: edge lobes (lobe rung strength x c), 0, 0, 0
   hzLut: array<vec4<f32>, ${4096 / 4}>,   // F1: the N3 s18 top and bottom tables and their peaks, 3 bytes per float (settings.ts packHzdLut)
 }
-struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32, storm: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers
+struct ProcSample { sigma: f32, coarse: f32, depth: f32, h: f32, prof: f32, depthX: f32, glow: f32, storm: f32, dbg: f32 }   // prof / depthX: the HZD shaper's exact dimensional profile and depth in cloud (m); 0 from the other shapers; P2.5c dbg: 1 + the HZD shaper's edge crispness c (0 = edge character not applied), for debug view 5
 const PROC_EARTH_M = 6371000.0;
 // Altitude above the flat world's ground with the planet's curvature about the camera (Sky Pro scShellHeight: a parabolic drop avoids
 // subtracting two 6371 km values in f32).

@@ -672,6 +672,7 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
     let vd = P.hzConn.w * veil * pow(w, P.hzH6.z) * fadeV;
     if (vd <= 0.0) { return o; }
     o.sigma = vd * P.hzLayer.w; o.coarse = 0.0; o.h = h; o.depth = 0.0;
+    o.dbg = 0.25;   // P2.5c debug view 5: a veil-only sample (below the threshold; the edge character never reaches it)
     return o;
   }
   var fadeK = 1.0;
@@ -689,6 +690,9 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   let edgeOn = P.hzEdge.x > 0.5 && full && stage >= 2.5 && fade > 0.0;
   var crisp = 0.0;
   if (edgeOn) { crisp = hzdEdgeCrisp(p.xz, h); }
+  // P2.5c debug view 5: 1 + c of this sample; 0.5 where the edge character is not applied (off, coarse sample, stage < 3 or past the detail
+  // fade); 0.25 a veil-only sample; 0 the other paths (fractus, sheets).
+  o.dbg = select(0.5, 1.0 + crisp, edgeOn);
   if (full && stage >= 2.5 && fade > 0.0 && n3) {
     // N1 'nubis3': the deck's up-rez on the coarse density (the dimensional profile): the composite frequency follows P = d, the type T
     // follows the height and the HZD type; the erosion order 'hfw' erodes the base noise by the same composite before the profile and the
@@ -870,6 +874,7 @@ fn hzdMerge(a: ProcSample, b: ProcSample) -> ProcSample {
   var o: ProcSample;
   o.sigma = s; o.coarse = mix(a.coarse, b.coarse, w); o.depth = mix(a.depth, b.depth, w); o.h = mix(a.h, b.h, w);
   o.prof = mix(a.prof, b.prof, w); o.depthX = mix(a.depthX, b.depthX, w); o.glow = mix(a.glow, b.glow, w); o.storm = mix(a.storm, b.storm, w);
+  o.dbg = select(b.dbg, a.dbg, w < 0.5);
   return o;
 }
 // F1 step 4: is there a body base over column xz? Returns (presence 0..1: the coarse body at the belly height fractusBelly, as the main chain

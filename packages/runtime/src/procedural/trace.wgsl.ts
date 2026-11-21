@@ -162,7 +162,7 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
   var back = procPartInit();
   var T = 1.0;
   var depthMax = 0.0;
-  var steps = 0u; var firstHit = -1.0; var firstProfile = 0.0;
+  var steps = 0u; var firstHit = -1.0; var firstProfile = 0.0; var firstCrisp = 0.0;
   if (tEnd > interval.x) {
     let jitter = skyJitter(px, cycle);   // S2: IGN or blue noise (sky.jitterNoise)
     let L = frame.sunDir;
@@ -347,7 +347,9 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
         }
         if (t < tSplit) { procPartAdd(&front, lit, t, stepT); } else { procPartAdd(&back, lit, t, stepT); }
         depthMax = max(depthMax, s.depth);
-        if (firstHit < 0.0) { firstHit = t; firstProfile = profile; }
+        if (firstHit < 0.0) { firstHit = t; firstProfile = profile; firstCrisp = s.dbg; }
+        // P2.5c: view 5 shows the first sample the edge character reached (the veil's samples come first on most rays: magenta only if no other).
+        if (s.dbg > 0.9 && firstCrisp <= 0.9) { firstCrisp = s.dbg; }
       }
       if (t < tSplit) { front.T *= stepT; } else { back.T *= stepT; }
       T = front.T * back.T;
@@ -366,6 +368,12 @@ fn trace(@builtin(global_invocation_id) gid: vec3<u32>) {
       if (dbg == 1u) { c = heat(f32(steps) / P.steps.y); }
       else if (dbg == 2u) { c = select(vec3(0.0, 0.0, 0.3), heat(firstHit / 30000.0), firstHit >= 0.0); }
       else if (dbg == 3u) { c = heat(firstProfile); }
+      // P2.5c: the HZD edge crispness c at the first lit sample it reached (heat 0 blue .. 1 red); else the first lit sample's kind: magenta =
+      // veil-only, black = the main path with the edge character not applied (off, past the detail fade), grey = another path (fractus, sheets).
+      else if (dbg == 5u) {
+        c = vec3(0.35);
+        if (firstCrisp > 0.9) { c = heat(firstCrisp - 1.0); } else if (firstCrisp > 0.4) { c = vec3(0.0); } else if (firstCrisp > 0.1) { c = vec3(0.8, 0.0, 0.8); }
+      }
       else if (dbg == 4u) { c = select(vec3(0.0, 0.0, 0.3), heat(tSplit / 10000.0), tSplit < FAR_T); }
       front.rad = c * k; front.T = select(1.0, 0.0, firstHit >= 0.0 || dbg == 1u || (dbg == 4u && tSplit < FAR_T));
       back = procPartInit();
