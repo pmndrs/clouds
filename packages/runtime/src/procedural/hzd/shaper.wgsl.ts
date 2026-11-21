@@ -526,6 +526,43 @@ fn procFlash(p: vec3<f32>, time: f32) -> f32 {
   let g = saturate(1.0 - d / 1500.0);
   return e * g * g;
 }
+// P2.3b turrets: a 2D Worley over xz in cells of P.hzTop.z m, anchored to the weather map (ndfOffset: it moves with the coverage). Each cell
+// is one head: a random height factor in [1 - turretDepth, 1] times a rounded profile sqrt(sat(1 - 1.1 F1^2)) (F1 in cell units), so
+// neighbouring heads meet in a notch. 0..1. 9 hashes (3x3 cells).
+fn hzdTurretHash(c: vec2<f32>) -> vec3<f32> {
+  var q = fract(vec3(c.xyx) * vec3(0.1031, 0.1030, 0.0973));
+  q += dot(q, q.yxz + 33.33);
+  return fract((q.xxy + q.yzz) * q.zyx);
+}
+fn hzdTurrets(xz: vec2<f32>) -> f32 {
+  let u = (xz - ndfOffset()) / P.hzTop.z;
+  let c = floor(u);
+  let f = u - c;
+  var best = 1e9;
+  var hgt = 1.0;
+  for (var j = -1; j <= 1; j++) {
+    for (var i = -1; i <= 1; i++) {
+      let o = vec2(f32(i), f32(j));
+      let r = hzdTurretHash(c + o);
+      let d = o + 0.1 + 0.8 * r.xy - f;
+      let dd = dot(d, d);
+      if (dd < best) { best = dd; hgt = r.z; }
+    }
+  }
+  return mix(1.0 - P.hzTop.w, 1.0, hgt) * sqrt(saturate(1.0 - 1.1 * best));
+}
+// H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
+// dome at the cloud scale instead of meeting one ceiling. P2.3b (topShape 1, hzTop.x > 0.5): the fraction x is domed (a quarter circle: steep
+// at the edge, flat on top) and broken into turrets (hzdTurrets); both factors <= 1, so the top never exceeds the H6 line's.
+fn hzdColumnTop(bottom: f32, top: f32, cov: f32, xz: vec2<f32>) -> f32 {
+  var x = saturate(cov / P.hzProf.w);
+  if (P.hzTop.x > 0.5) {
+    let e = 1.0 - x;
+    x = mix(x, sqrt(max(1.0 - e * e, 0.0)), P.hzTop.y);
+    x *= mix(1.0, hzdTurrets(xz), P.hzTop.x - 1.0);
+  }
+  return bottom + max(top - bottom, 1.0) * mix(1.0, x, P.hzProf.z);
+}
 // The HZD low layer (H1-H7, + F1 types and storms). procSample (below) adds the F1 sheets and fractus.
 fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o: ProcSample;
@@ -618,7 +655,7 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   if (cov0 <= 0.0) { return o; }
   // H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
   // dome at the cloud scale instead of meeting one ceiling.
-  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(covN / P.hzProf.w), P.hzProf.z); }
+  if (P.hzProf.z > 0.0) { top = hzdColumnTop(bottom, top, covN, p.xz); }
   if (se > 0.0) { top = mix(top, P.hzStorm2.x, se); hzdStormW = se; }
   if (alt <= bottom || alt >= top || top - bottom < 1.0) { return o; }
   let h = (alt - bottom) / (top - bottom);
@@ -949,7 +986,7 @@ fn hzdBelly(xz: vec2<f32>, lod: f32) -> vec2<f32> {
   let span = P.hzLayer.y - P.hzLayer.x;
   let bottom = P.hzLayer.x + n.minHeight * span;
   var top = P.hzLayer.x + n.maxHeight * span;
-  if (P.hzProf.z > 0.0) { top = bottom + max(top - bottom, 1.0) * mix(1.0, saturate(cov / P.hzProf.w), P.hzProf.z); }
+  if (P.hzProf.z > 0.0) { top = hzdColumnTop(bottom, top, cov, xz); }
   let hb = P.hzFrac.w;
   let altB = bottom + hb * max(top - bottom, 1.0);
   if (cov <= 0.0) { return vec2(0.0, altB); }

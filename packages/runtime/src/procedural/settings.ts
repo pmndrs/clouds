@@ -557,6 +557,23 @@ export interface HzdShape {
   /** P2.5f: the gain at c = 1 for edgeHardMode 1. */
   edgeSteepGain: number;
   // ---- end P2.5a ----
+  // ---- P2.3b: tall-cloud top shape (packed by packHzdTop; shaper.wgsl.ts hzdColumnTop) ----
+  /** P2.3b: how the column top follows the coverage when heightFromCoverage is on. 0 = the H6 line (x = sat(cov / heightCoverageRef): a
+   *  body's top falls linearly to its edge, so tall bodies are cones); 1 = a dome (x -> mix(x, sqrt(1 - (1 - x)^2), topDome): steep at the
+   *  edge, flat on top) broken into turrets (x x mix(1, turret field, turretAmount)). The turret field is a 2D Worley over xz (cells about
+   *  turretSize m, moving with the weather map): each cell a random height factor in [1 - turretDepth, 1] times a rounded profile
+   *  sqrt(sat(1 - 1.1 F1^2)) (F1 in cell units), so neighbouring heads meet in a notch. Both factors are <= 1: the top never exceeds the
+   *  H6 top. Constants ours. Cost: 9 hashes per column sample (only with topShape 1). */
+  topShape: number;
+  /** P2.3b: 0 = the H6 linear x, 1 = the quarter-circle dome. */
+  topDome: number;
+  /** P2.3b: turret cell size (m). */
+  turretSize: number;
+  /** P2.3b: per-turret height spread: each head's height factor is in [1 - turretDepth, 1]. */
+  turretDepth: number;
+  /** P2.3b: 0 = one dome per body, 1 = the full turret field. */
+  turretAmount: number;
+  // ---- end P2.3b ----
   ndf: HzdNdfSettings;
 }
 
@@ -709,7 +726,9 @@ export const PROC_HZD_MIX_OFFSET = PROC_HZD_N3_OFFSET + 8;
 export const PROC_HZD_STORM_OFFSET = PROC_HZD_MIX_OFFSET + 4;
 /** P2.5a: three more vec4 (hzEdge, hzEdge2, hzEdge3) between hzStorm5 and the tables; P2.5b: hzEdge4. */
 export const PROC_HZD_EDGE_OFFSET = PROC_HZD_STORM_OFFSET + 12;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_EDGE_OFFSET + 16;
+/** P2.3b: one more vec4 (hzTop) after hzEdge4. */
+export const PROC_HZD_TOP_OFFSET = PROC_HZD_EDGE_OFFSET + 16;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_TOP_OFFSET + 4;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -785,6 +804,14 @@ export function packHzdEdge(hz: HzdShape, out: Float32Array): void {
   out.set([Math.max(hz.edgeSoftPow, 0.05), Math.max(hz.edgeCrispPow, 0.05), Math.min(Math.max(hz.edgeCrispCut, 0), 0.95), Math.max(steep ? (hz.edgeSteepGain ?? 4) : hz.edgeCrispGain, 0)], o + 8);
   out.set([Math.max(hz.edgeLobes, 0), hz.edgeTopMode > 0.5 ? 1 : 0, Math.max(hz.edgeUpStep, 1), Math.max(hz.edgeUpRange, 1e-3)], o + 12);
 }
+/** P2.3b: tall-cloud top shape defaults (off = the H6 line; agent-chosen constants). */
+export const HZD_TOP_DEFAULTS = { topShape: 0, topDome: 1, turretSize: 700, turretDepth: 0.45, turretAmount: 1 } satisfies Partial<HzdShape>;
+/** P2.3b: hzTop = (0 off, else 1 + turretAmount; topDome; turretSize; turretDepth). */
+export function packHzdTop(hz: HzdShape, out: Float32Array): void {
+  const on = (hz.topShape ?? 0) > 0.5;
+  out.set([on ? 1 + Math.min(Math.max(hz.turretAmount ?? 1, 0), 1) : 0, Math.min(Math.max(hz.topDome ?? 1, 0), 1), Math.max(hz.turretSize ?? 700, 10),
+    Math.min(Math.max(hz.turretDepth ?? 0.45, 0), 1)], PROC_HZD_TOP_OFFSET);
+}
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_N3_OFFSET;
@@ -812,7 +839,7 @@ export const HZD_DEFAULTS: HzdShape = {
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ...HZD_EDGE_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ...HZD_EDGE_DEFAULTS, ...HZD_TOP_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -904,6 +931,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   packHzdMix(hz, out);
   packHzdStorm(hz, out);
   packHzdEdge(hz, out);
+  packHzdTop(hz, out);
   return [minY, maxY];
 }
 
