@@ -12,7 +12,8 @@ import { buildTraceScene, createMeshBvhBuilder, uploadTraceScene, type TraceScen
 import type { DensityGrid, SkyBake, V3 } from './bake';
 
 export interface PtMediumParams { extinction: number; albedo: number; g: number }
-export interface PtSceneParams { sunDir: V3; sky: SkyBake }
+/** `noSun`: no sun light at all (P0.6 furnace and absorber checks: the sky alone). */
+export interface PtSceneParams { sunDir: V3; sky: SkyBake; noSun?: boolean }
 
 const DISPLAY_WGSL = /* wgsl */ `
 struct Display { size: vec2<u32>, exposure: f32, mode: u32 }
@@ -143,6 +144,8 @@ export class PtReference {
   medium: PtMediumParams = { extinction: 0.3, albedo: 0.99, g: 0.8 };
   /** P0.4: the opacity mask's lookup: 'nearest' at 1 m steps (PT1, Parkouring) or 'trilinear' at voxel / 4 (the path tracer's own). */
   alphaFilter: 'nearest' | 'trilinear' = 'nearest';
+  /** P0.6: the delta-tracking majorant: 'brick' (8^3 bricks walked by a DDA; what the card used) or 'global' (one scalar, densityMax * sigma_t). */
+  majorant: 'brick' | 'global' = 'brick';
   /** Bumped by every reset; a progress loop stops when it changes. */
   epoch = 0;
 
@@ -177,21 +180,21 @@ export class PtReference {
       this.trace = uploadTraceScene(this.device, data, 'pt1 cloud box');
     }
     this.uploadScene(scene);
-    const majorant = brickMajorants(grid.resolution, grid.density);
+    const majorant = this.majorant === 'brick' ? brickMajorants(grid.resolution, grid.density) : undefined;
     const integrator = {
       sampler: 'owen-sobol', nee: true, envMap: true, envSampling: 'importance' as const, sunVisible: false,
       volumes: {
         media: [{ sigmaT: [medium.extinction, medium.extinction, medium.extinction] as V3, albedo: [medium.albedo, medium.albedo, medium.albedo] as V3, g: medium.g,
           grid: { resolution: grid.resolution, worldToIndex: gridWorldToIndex(grid.resolution, [grid.min, grid.max]), densityMax: grid.densityMax } }],
         materials: [{ interior: 1, exterior: 0, boundary: true }],
-        majorant: 'brick' as const,
+        majorant: this.majorant,
       },
     };
     this.kernel?.destroy();
     this.kernel = await PtMegakernel.create(this.device, this.caps, {
       format: sceneFormatOf({ nodeFormat: this.trace!.nodeFormat, triangleLeaves: this.trace!.triangleLeaves, positionLayout: this.trace!.positionLayout }),
       layout: this.lastLayout, textures: null, integrator,
-      volumeGrid: { resolution: grid.resolution, density: grid.density, majorant },
+      volumeGrid: { resolution: grid.resolution, density: grid.density, ...(majorant ? { majorant } : {}) },
       label: 'pt1 cloud',
     });
     this.kernelBytes = this.kernel.wgslBytes;
@@ -210,7 +213,7 @@ export class PtReference {
       meshes: [{ positions: mesh.positions, indices: mesh.indices, normals: mesh.normals }],
       instances: [{ meshIndex: 0, instanceIndex: 0, objectToWorld: IDENTITY, material: 0, mask: 1 }],
       materials: [{ baseColor: [0, 0, 0], baseWeight: 0, specularWeight: 0 }],   // the bench's `interface` material
-      sun: { direction: [-scene.sunDir[0], -scene.sunDir[1], -scene.sunDir[2]], irradiance: scene.sky.sun, angularRadius: 0 },
+      sun: scene.noSun ? null : { direction: [-scene.sunDir[0], -scene.sunDir[1], -scene.sunDir[2]], irradiance: scene.sky.sun, angularRadius: 0 },
       environment: { radiance: envMapMean(env), map: env },
       options: { surface: { positions: true } },
     });
