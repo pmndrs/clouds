@@ -1,0 +1,148 @@
+{
+  "url": "http://127.0.0.1:5417/hzd/?clean=1&motion=0&proc_lightingModel=fit&hz_edgeCharacter=1",
+  "size": [
+    1280,
+    720
+  ],
+  "startedAt": "2026-11-21T15:44:35.510Z",
+  "shots": [
+    {
+      "name": "gp7",
+      "file": "work/captures/P2-5b/lobes/gp7.png",
+      "report": {
+        "view": "gp7",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          2,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 25,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "converged": {
+          "active": false,
+          "samples": 0,
+          "target": 16,
+          "done": false,
+          "restarts": 0,
+          "reason": "",
+          "band": 0
+        },
+        "gpuMs": {
+          "scene": 16.566810483333327,
+          "lightGridReduce": 0.045414,
+          "lightGrid": 3.839008,
+          "marchNear": 0.3974008833333335,
+          "marchFar": 0.7100440166666663,
+          "shadowMap": 0.8063108666666667,
+          "composite": 0.6034164999999999,
+          "dome": 0.5844884333333333,
+          "skyLayer": 29.8561748,
+          "skyResolve": 0.6461665333333336,
+          "cloudsTotal": 37.48842403333334,
+          "total": 54.055234516666665
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.045414,
+          "lightGrid": 3.839008,
+          "marchNear": 0.48566,
+          "marchFar": 0.084582,
+          "shadowMap": 1.677224,
+          "composite": 0.340995,
+          "dome": 1.279313,
+          "skyLayer": 35.070173,
+          "skyResolve": 0.11954
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "hzd.edgeCharacter": 1,
+          "c.animSpeed": 0,
+          "proc.lightingModel": "fit"
+        }
+      }
+    },
+    {
+      "name": "ground",
+      "file": "work/captures/P2-5b/lobes/ground.png",
+      "report": {
+        "view": "ground",
+        "style": "horizon",
+        "ref": "",
+        "refMode": "off",
+        "camera": [
+          0,
+          250,
+          0
+        ],
+        "lookAz": 0,
+        "pitch": 7,
+        "sunElevation": 40,
+        "sunAzimuth": 150,
+        "coverage": 0.5,
+        "quality": "ultra",
+        "converged": {
+          "active": false,
+          "samples": 0,
+          "target": 16,
+          "done": false,
+          "restarts": 0,
+          "reason": "",
+          "band": 0
+        },
+        "gpuMs": {
+          "scene": 38.59888411666667,
+          "lightGridReduce": 0.045414,
+          "lightGrid": 3.839008,
+          "marchNear": 0.1822276166666667,
+          "marchFar": 0.3530002333333334,
+          "shadowMap": 0.8063108666666667,
+          "composite": 0.5589324833333333,
+          "dome": 0.5330523166666667,
+          "skyLayer": 24.0642251,
+          "skyResolve": 0.5187657999999999,
+          "cloudsTotal": 30.90093641666667,
+          "total": 69.49982053333333
+        },
+        "gpuLast": {
+          "lightGridReduce": 0.045414,
+          "lightGrid": 3.839008,
+          "marchNear": 0.032209,
+          "marchFar": 0.070249,
+          "shadowMap": 1.677224,
+          "composite": 0.211164,
+          "dome": 0.412868,
+          "skyLayer": 18.858004,
+          "skyResolve": 0.10304
+        },
+        "frameMs": {},
+        "renderSize": [
+          1280,
+          720
+        ],
+        "changed": {
+          "hzd.edgeCharacter": 1,
+          "c.animSpeed": 0,
+          "proc.lightingModel": "fit"
+        }
+      }
+    }
+  ],
+  "console": [
+    "warning: %cPlease use state.renderer instead. state.gl is deprecated and will be removed in future versions.\n\nFor backwards compatibility, state.gl currently maps to state.renderer, but this may cause issues with libraries expecting WebGLRenderer.\n\nAccessed from:\n    at _Scheduler2.tickRoot (http://127.0.0.1:5417/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a21ff6b7b94bd157c/node_modules/.vite/deps/@react-three_fiber.js?v=822c36a0:2056:24)\n    at _Scheduler2.executeFrame (http://127.0.0.1:5417/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a21ff6b7b94bd157c/node_modules/.vite/deps/@react-three_fiber.js?v=822c36a0:2012:12)\n    at http://127.0.0.1:5417/@fs/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a21ff6b7b94bd157c/node_modules/.vite/deps/@react-three_fiber.js?v=822c36a0:1131:12 font-weight: bold;"
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
