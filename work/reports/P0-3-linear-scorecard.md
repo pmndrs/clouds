@@ -24,7 +24,7 @@ node scripts/gpu/capture.mjs --serve --page reference-pt/ --query "clean=1&spp=1
 python3 scripts/gpu/scorecard.py --gate work/captures/P0-3b        # add --display for the PT1-units table
 python3 scripts/gpu/scorecard.py --selftest
 ```
-Cost: 23 ms per pass at 1280×720, so about 25 s per 1024-spp view on an Apple GPU shared with another agent. PFMs and PNGs are git-ignored; JSON, Markdown and `sheet-*.jpg` are committed.
+Cost: 23 ms per pass at 1280×720, so about 25 s per 1024-spp view on an Apple GPU shared with another agent. PFMs and PNGs are git-ignored; JSON, Markdown and `sheet-*.jpg` are committed. In a fresh checkout, the first `--serve` run once hung after its first shot, probably on Vite's dependency re-optimisation reload. Rerun it, or keep a dev server up and pass `--url`.
 
 ## Scorecard (linear; ratios are ours / PT; B/R is ours / PT)
 | view | cloud L | thick L | fringe L | fringe B/R | base L | base B/R | dark20 L | dark20 B/R | 4-16 | 16-64 | 64-256 | lit 4-16 |
