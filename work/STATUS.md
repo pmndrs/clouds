@@ -14,7 +14,7 @@ Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `D
 | 0.2b | Cross-check renderer: **Cycles**, not Karma (hython finds no licence from the agent sandbox; Blender 5.1.1 works headless and has droplet phase functions) | Opus, own worktree | running |
 | 0.3 | Linear-radiance compare and the scorecard script | Opus | **passed, merged** (`work/reports/P0-3-linear-scorecard.md`) |
 | 0.4 | The scene card: 5 clouds x 4 suns (Parkouring, EmberGen 02, Disney, a procedural sky patch, a stratus slab; noon, low, backlit, sunset) | Opus, own worktree | running |
-| 0.5 | Converged march mode | Opus, own worktree | running |
+| 0.5 | Converged march mode: Review switches **P05** (on/off), **P05b** (step divisor), **P05c** (samples) on the HZD bench; a "converged" checkbox on the flagship | Opus | **passed, merged** (`work/reports/P0-5-converged-march.md`, sheets `work/captures/P0-5/`) |
 
 What 0.3 found (same captures as PT1, compared before the tone map):
 - The units match: clear-sky pixels agree within 0.05 % between the path tracer and our renderer.
@@ -22,9 +22,15 @@ What 0.3 found (same captures as PT1, compared before the tone map):
 - Lit-face fine texture is 2.2-2.9x the reference (about 3.5x once the reference's own grain is removed). The backlit "foam" is a tone-map effect, not extra detail.
 - The reference needs more samples: at 1024 spp its grain is most of the finest detail band. The card renders two seeds at 2048 spp and averages them.
 
+What 0.5 found:
+- **Part of the foam is sampling, not lighting.** On the HZD bench the one-pixel speckle on lit faces disappears in the converged frame (`work/captures/P0-5/gp7-crop-normal-vs-converged.jpg`). The 4 to 16 px excess against the path trace is a separate, lighting effect; the card will show how much of each remains once the realtime frames are also captured converged.
+- The march loses or gains light with step size in six places (thin segments attenuated but unlit, first-order steps, edge darkening from the deepest sample, the cutoff's continuation colour, light-tap reuse, the 256-step budget). Listed for Phase 3.
+- Contour lines on shaded bases are in every converged frame, so they come from the density or the light, not from sampling.
+
 Waiting on you:
-- **Houdini licence:** `hython` 21.0.792 and 22.0.466 both report "No licenses could be found" from the agent sandbox, though `hserver` is running. Only matters if you want Karma as well as Cycles.
-- **Disney cloud:** only the quarter, eighth and sixteenth VDBs are on disk; the full and half-resolution files the README lists are missing. The card uses the eighth or quarter.
+- **Look at Review P05 on the HZD bench** when you have a moment: flip it at gp7 and tell me whether the converged frame is closer to what you want. No decision hangs on it yet.
+- ~~**Houdini licence:** `hython` 21.0.792 and 22.0.466 both report "No licenses could be found" from the agent sandbox, though `hserver` is running. Only matters if you want Karma as well as Cycles.~~ Fixed 2026-11-21: `hython` 21.0.792 runs with the Indie licence. Karma will render one card frame as a second cross-check after Cycles.
+- **Disney cloud:** only the quarter, eighth and sixteenth VDBs are on disk; the full and half-resolution files the README lists are missing. The card uses the eighth or quarter. You said the full file is very large and belongs on the NAS if downloaded; the plan does not need it.
 
 ## Tonight (2026-11-20): the refactor and the styles
 
