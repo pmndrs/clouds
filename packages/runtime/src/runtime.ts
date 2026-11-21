@@ -928,7 +928,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
     sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
-    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.3, fitK: 0.18, fitAmbient: 0.13, fitKUp: 0.15, fitDirect: 1, fitMsFwd: 0, fitMsG: 0.5, fitGround: 0, fitAmbientForm: 0,   // P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0)
+    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.58, fitK: 0.4, fitAmbient: 0.33, fitKUp: 0.05, fitDirect: 1, fitMsFwd: 0.2, fitMsG: 0.5, fitGround: 0.31, fitAmbientForm: 1,   // P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
