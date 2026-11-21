@@ -526,15 +526,15 @@ fn procFlash(p: vec3<f32>, time: f32) -> f32 {
   let g = saturate(1.0 - d / 1500.0);
   return e * g * g;
 }
-// P2.3b turrets: a 2D Worley over xz in cells of P.hzTop.z m, anchored to the weather map (ndfOffset: it moves with the coverage). Each cell
-// is one head: a random height factor in [1 - turretDepth, 1] times a rounded profile sqrt(sat(1 - 1.1 F1^2)) (F1 in cell units), so
-// neighbouring heads meet in a notch. 0..1. 9 hashes (3x3 cells).
+// P2.3b turrets (archived, unused since P2.3c): a 2D Worley over xz in cells of P.hzTop.z m, anchored to the weather map (ndfOffset: it
+// moves with the coverage). Each cell is one head: a random height factor in [1 - turretDepth, 1] times a rounded profile
+// sqrt(sat(1 - 1.1 F1^2)) (F1 in cell units). The height jumps at cell borders (hard nearest cell), which cuts a cliff down the body.
 fn hzdTurretHash(c: vec2<f32>) -> vec3<f32> {
   var q = fract(vec3(c.xyx) * vec3(0.1031, 0.1030, 0.0973));
   q += dot(q, q.yxz + 33.33);
   return fract((q.xxy + q.yzz) * q.zyx);
 }
-fn hzdTurrets(xz: vec2<f32>) -> f32 {
+fn hzdTurretsCellsP23b(xz: vec2<f32>) -> f32 {
   let u = (xz - ndfOffset()) / P.hzTop.z;
   let c = floor(u);
   let f = u - c;
@@ -550,6 +550,34 @@ fn hzdTurrets(xz: vec2<f32>) -> f32 {
     }
   }
   return mix(1.0 - P.hzTop.w, 1.0, hgt) * sqrt(saturate(1.0 - 1.1 * best));
+}
+// P2.3c turrets: continuous. Same jittered cells (centres in 0.1..0.9 of each cell, anchored to the weather map), but every cell in the 3x3
+// neighbourhood contributes a rounded dome h_i * sqrt(sat(1 - (d_i / rad_i)^2)), rad_i = 0.75 cell x (1 +- 25 %), h_i = 1 - turretDepth r^2
+// (r uniform, so most heads are near full height and a few are low), and the field is a polynomial smooth max of the domes and a floor of
+// 1 - turretDepth (blend width 0.12), capped at 1. Domes reach at most 0.94 cells, so no cell outside the 3x3 can contribute: the field is
+// continuous and neighbouring heads meet in a rounded notch, never a step. 18 hashes (3x3 cells x 2).
+fn hzdSmax(a: f32, b: f32, k: f32) -> f32 {
+  let h = max(k - abs(a - b), 0.0) / k;
+  return max(a, b) + h * h * k * 0.25;
+}
+fn hzdTurrets(xz: vec2<f32>) -> f32 {
+  let u = (xz - ndfOffset()) / P.hzTop.z;
+  let c = floor(u);
+  let f = u - c;
+  let k = 0.12;
+  var m = 1.0 - P.hzTop.w;
+  for (var j = -1; j <= 1; j++) {
+    for (var i = -1; i <= 1; i++) {
+      let o = vec2(f32(i), f32(j));
+      let r = hzdTurretHash(c + o);
+      let r2 = hzdTurretHash(c + o + vec2(37.0, 91.0));
+      let rad = 0.75 * (0.75 + 0.5 * r2.x);
+      let d = (o + 0.1 + 0.8 * r.xy - f) / rad;
+      let hgt = 1.0 - P.hzTop.w * r.z * r.z;
+      m = hzdSmax(m, hgt * sqrt(saturate(1.0 - dot(d, d))), k);
+    }
+  }
+  return min(m, 1.0);
 }
 // H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
 // dome at the cloud scale instead of meeting one ceiling. P2.3b (topShape 1, hzTop.x > 0.5): the fraction x is domed (a quarter circle: steep
