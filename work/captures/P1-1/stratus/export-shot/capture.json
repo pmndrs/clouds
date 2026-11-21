@@ -1,0 +1,254 @@
+{
+  "url": "http://127.0.0.1:5417/reference-pt/?clean=1&cloud=stratus&sunOnly=1&single=1&spp=1&seed=1",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-21T09:43:51.674Z",
+  "shots": [
+    {
+      "name": "alpha-noon",
+      "file": "work/captures/P1-1/stratus/export-shot/alpha-noon.png",
+      "report": {
+        "view": "alpha-noon",
+        "status": "sun noon: ready",
+        "cloud": "stratus",
+        "camera": {
+          "position": [
+            4078.6703636689385,
+            100,
+            3551.256681410995
+          ],
+          "target": [
+            3500,
+            734,
+            2500
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 69.33939910241031,
+          "azimuthDeg": 221.169158800876,
+          "direction": [
+            -0.2323,
+            0.9357,
+            0.2656
+          ],
+          "timeOfDay": 13,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            38.0078,
+            35.3711,
+            31.9141
+          ],
+          "ambientUp": [
+            0.3913,
+            0.7797,
+            1.6963
+          ],
+          "ambientDown": [
+            1.1454,
+            1.0656,
+            0.9633
+          ],
+          "envMapUp": [
+            0.3892,
+            0.7742,
+            1.6818
+          ],
+          "envMapDown": [
+            1.129,
+            1.0503,
+            0.9497
+          ]
+        },
+        "grid": {
+          "resolution": [
+            375,
+            35,
+            375
+          ],
+          "voxel": 8,
+          "min": [
+            2000,
+            590,
+            1000
+          ],
+          "max": [
+            5000,
+            870,
+            4000
+          ],
+          "densityMax": 1.0712890625,
+          "occupancy": 0.3875114666666667,
+          "bakeMs": 230.6000000089407
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": true,
+          "single": true,
+          "converged": false,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": false,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 1,
+          "target": 1,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 6.200000002980232,
+          "wallMs": 6.300000011920929,
+          "compileMs": 74.70000000298023,
+          "kernelBytes": 51397,
+          "maxDepth": 1,
+          "medium": {
+            "extinction": 0.07538691948866472,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 1,
+          "edgeDarkening": 0,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 0,
+          "quality": "ultra",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 1,
+          "lightDensityScale": 1,
+          "phaseG": 0.8,
+          "silverG": 0.85,
+          "silverStrength": 0,
+          "msStrength": 0.2,
+          "ambientStrength": 0,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "stratus",
+            "label": "E stratus slab (HZD deck)",
+            "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+            "runtime": "direct",
+            "camera": {
+              "distance": 1200,
+              "height": 100
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 1200,
+            "height": 100
+          },
+          "source": "HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            375,
+            375,
+            35
+          ],
+          "voxel": 8,
+          "densityRef": 0.07538691948866472,
+          "densityMaxSource": 0.08074916899204254,
+          "directDensity": 1,
+          "extinctionScale": 1,
+          "ptSigmaPerUnit": 0.07538691948866472,
+          "boxMin": [
+            2000,
+            590,
+            1000
+          ],
+          "boxMax": [
+            5000,
+            870,
+            4000
+          ],
+          "occupied": {
+            "min": [
+              2000,
+              622,
+              1000
+            ],
+            "max": [
+              5000,
+              846,
+              4000
+            ]
+          },
+          "patch": {
+            "min": [
+              2000,
+              590,
+              1000
+            ],
+            "max": [
+              5000,
+              870,
+              4000
+            ]
+          },
+          "configure": {
+            "coverageBias": -1,
+            "deckForm": "stratus"
+          },
+          "bake": {
+            "t": 1200,
+            "footprint": 8,
+            "camera": [
+              3500,
+              2,
+              2500
+            ],
+            "kernel": "procSample(p, t, footprint, true, 0.5).sigma * densityScale * procCarve(p)",
+            "bakeMs": 25.399999991059303
+          },
+          "ndf": {
+            "seed": 3,
+            "tileMeters": 32000,
+            "resolution": 1024
+          },
+          "hzdExtinction": 0.8,
+          "layer": [
+            1500,
+            5000
+          ]
+        },
+        "exposure": 0.35,
+        "frames": 23
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

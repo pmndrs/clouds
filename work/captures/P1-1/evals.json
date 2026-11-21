@@ -1,0 +1,226 @@
+[
+ {
+  "name": "nubis-noon-centre",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d0.05-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d0.05-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d0.3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d0.3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d1-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d1-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d10-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-noon-d10-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-noon'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "nubis-low-centre",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d0.05-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d0.05-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d0.3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d0.3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d1-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d1-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d10-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-low-d10-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-low'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "nubis-backlit-centre",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d0.05-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d0.05-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d0.3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d0.3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d1-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d1-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d10-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-backlit-d10-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-backlit'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "nubis-sunset-centre",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 1, \"lightProbe\": 0, \"convergedSamples\": 16}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d0.05-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d0.05-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.05, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d0.3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d0.3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 0.3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d1-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d1-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 1, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d3-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d3-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 3, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d10-m0",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 0, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "probe-sunset-d10-m1",
+  "linear": true,
+  "expr": "(async () => { const c = window.__clouds; c.setSettings({\"sunAtCentre\": 0, \"lightProbe\": 10, \"lightProbeMode\": 1, \"convergedSamples\": 1}); await c.bookmark('nubis-sunset'); await c.settle(4); return await c.readLinear(); })()"
+ },
+ {
+  "name": "reset",
+  "expr": "window.__clouds.setSettings({lightProbe: 0, sunAtCentre: 0, convergedSamples: 16})"
+ }
+]

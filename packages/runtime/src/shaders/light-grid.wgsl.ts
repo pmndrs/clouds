@@ -66,7 +66,12 @@ fn lgMarch(o: vec3<f32>, d: vec3<f32>, minStep: f32) -> f32 {
 
 // Reduce: one thread per (x, z) column. Fetches the NVDF once per grid texel and accumulates the upward optical depth from the top.
 @compute @workgroup_size(8, 8, 1)
-fn reduceLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) {
+fn reduceLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, false); }
+// P1.1 diagnostic (CloudSettings.lightGridSource 1, direct volumes only): the same from the direct density texture (heroPool holds r16f
+// density / densityRef for a direct volume), unclamped and without the NVDF's 8-bit step and 1/255 floor.
+@compute @workgroup_size(8, 8, 1)
+fn reduceLightGridDirect(@builtin(global_invocation_id) gid: vec3<u32>) { reduceColumn(gid, true); }
+fn reduceColumn(gid: vec3<u32>, direct: bool) {
   let dims = textureDimensions(lgDst);
   if (gid.x >= dims.x || gid.y >= dims.y) { return; }
   let cellY = cloudVolume.extent.y / f32(dims.z);
@@ -76,8 +81,8 @@ fn reduceLightGrid(@builtin(global_invocation_id) gid: vec3<u32>) {
   for (var k = i32(dims.z) - 1; k >= 0; k--) {
     let uvw = (vec3<f32>(f32(gid.x), f32(gid.y), f32(k)) + 0.5) / vec3<f32>(dims);
     let p = cloudVolume.minCorner + vec3(uvw.x * cloudVolume.extent.x, uvw.z * cloudVolume.extent.y, uvw.y * cloudVolume.extent.z);
-    let m = sampleModeling(p, 0.0);
-    let v = m.x * m.z;
+    var v: f32;
+    if (direct) { v = max(textureSampleLevel(heroPool, clampSampler, uvw, 0.0).r, 0.0); } else { let m = sampleModeling(p, 0.0); v = m.x * m.z; }
     if (k == i32(dims.z) - 1) { vAbove = v; above = 0.5 * cellY * v; } else { above += 0.5 * cellY * (v + vAbove); vAbove = v; }
     textureStore(lgDst, vec3<i32>(i32(gid.x), i32(gid.y), k), vec4(v, above, 0.0, 0.0));
   }

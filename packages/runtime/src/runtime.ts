@@ -426,6 +426,32 @@ export interface CloudSettings {
    * 4 = the normal transmittance cutoffs (else 1e-4).
    */
   convergedKeep: number;
+  /**
+   * P1.1 light probe (debug, default 0 = off; docs/AUDIT-2026-11.md step 1.1): > 0 = the march writes, instead of radiance, the lighting inputs of
+   * the first lit sample at which the view ray's optical depth reaches this value (pixel-centre ray, no sub-pixel offset; use with converged on
+   * and convergedSamples 1). `lightProbeMode` 0: rgb = (sun optical depth tau as the direct term uses it, floor(t / 8), t - 8 floor(t / 8)) with
+   * t the sample's distance along the ray (m); 1: rgb = (in-line + micro part of tau, light-grid part of tau, view optical depth at the sample).
+   * Pixels whose ray never reaches the depth write 0. Normal rendering is untouched while it is 0.
+   */
+  lightProbe: number;
+  /** P1.1: what the light probe writes (see `lightProbe`). */
+  lightProbeMode: number;
+  /**
+   * P1.1 debug (default 0): 1 = the march lights every sample with the sun at the volume centre (skyLight[0], what the reference path tracer
+   * uses) instead of the per-height sun (sunRadianceAtHeight). Isolates the height variation of the sun's colour as a factor; not a look setting.
+   */
+  sunAtCentre: number;
+  /**
+   * P1.1 diagnostic (default 0): 1 = for a direct volume, the light grid integrates the march's own density (the r16f direct texture: unclamped,
+   * no 8-bit step, no 1/255 floor) instead of the NVDF R channel. Isolates the grid's input as a factor in the sun's optical depth; ignored for an
+   * NVDF volume.
+   */
+  lightGridSource: number;
+  /**
+   * P1.1 diagnostic (default 0): 1 = the light grid at the volume's own resolution instead of half (8x the memory: about 24 bytes per volume
+   * voxel; only for small volumes). Isolates the grid's resolution as a factor. A change rebuilds the grid.
+   */
+  lightGridFull: number;
 }
 
 /**
@@ -848,6 +874,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     ambientTap: 0, ambientBelowMirror: 0, inScatterProfile: 0,   // D1 round 3: no upward ambient occlusion tap; the scene's own lower hemisphere; P x S as the lighting profile
     jitterNoise: 1, stepJitter: 0, lightGridFilter: 0, inlineReuse: 4, profileFilter: 0, historyDither: 0, glowDepth: 0, glowDepthMode: 0, microLightScale: 0, microShadowMode: 0, microDist2: 0, microShadow2: 0, directProfile: 0, directRimDepth: 0, noiseScale: 0.01, windCompensate: 0, historyFilter: 0,   // D1 round 5: blue-noise jitter for every look (IGN printed its lattice into every lit surface); fixed step phase, trilinear grid, taps reused within 4 m
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
+    lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1089,11 +1116,14 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
   let lastTime = -1, flashPrev = false, flashLevelNow = 0;
   let autoFrames = 0;
 
+  let lightGridFullNow = false;
   const makeLightGrid = () => {
     const v = volume!;
     const div = CLOUD_QUALITY_PRESETS[quality].lightGridDivisor;
     // The grid is sized from the volume dims it is given (ceil(d / 2), at least 16 per axis); a divisor shrinks them. Its shaders read the texture size, not the dims.
-    const dims = div > 1 ? v.dims.map(d => Math.max(1, Math.round(d / div))) as [number, number, number] : v.dims;
+    let dims = div > 1 ? v.dims.map(d => Math.max(1, Math.round(d / div))) as [number, number, number] : v.dims;
+    lightGridFullNow = settings.lightGridFull > 0.5;
+    if (lightGridFullNow) dims = v.dims.map(d => d * 2) as [number, number, number];   // P1.1 diagnostic: lightGridDims halves them back to the volume's
     return createLightGrid(device, volumeLayout, { dims, voxelSize: v.voxelSize, extentMeters: v.extentMeters });
   };
   const rebuildVolumeGroup = () => {
@@ -1300,6 +1330,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     },
     encode(encoder, frame, timer) {
       if (disposed || !volumeGroup || !output || !targets || !lightGrid) return;
+      // P1.1 diagnostic: the grid at full resolution (lightGridFull) is a different texture size: rebuild it and drop the groups that bind it.
+      if ((settings.lightGridFull > 0.5) !== lightGridFullNow && volume) { lightGrid.destroy(); lightGrid = makeLightGrid(); domeGroups = null; forgetGroups(); }
       const uniformLighting = frame.lighting?.kind === 'uniform' ? frame.lighting : null;
       if (!uniformLighting && !frame.atmosphere) return;
       // P0.5 converged march: full-size targets while it is on (re-allocated when it is switched); the clock and the wind stand still; the sum
@@ -1419,6 +1451,8 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         if (!(cvKeep & 4)) f[45] = Math.min(settings.transmittanceCutoff, CV_CUTOFF);
         f[106] = 0; f[112] = 1; f[113] = 1; if (!(cvKeep & 2)) f[115] = 0;
       } else { f[124] = 0; f[125] = 0; f[126] = 0; f[127] = 0; }
+      // P1.1 debug: the light probe (view optical depth, mode) and the sun at the volume centre (conv2.yzw; conv2.x is the converged band row).
+      f[129] = Math.max(0, settings.lightProbe); f[130] = settings.lightProbeMode; f[131] = settings.sunAtCentre;
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;
@@ -1487,7 +1521,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
         device.queue.writeBuffer(volumeUniforms, 0, new Float32Array(volumeUniformData(volumePos, volume.extentMeters, volume.voxelSize, settings.noiseScale)));
       }
       const gridStep = lightGrid.encode(encoder, volumeGroup, { sunDirection: [frame.sunDirection[0], frame.sunDirection[1], frame.sunDirection[2]], densityScale: extinction(), frameIndex: frame.frameIndex, sky: skyActive ? skyLayer.domeResources : null,
-        procedural: gridProc, lightDensityScale: settings.lightDensityScale,
+        procedural: gridProc, lightDensityScale: settings.lightDensityScale, directSource: settings.lightGridSource > 0.5 && !!volume?.direct,
         procKey: gridProc ? [gridProc.version, Math.round((settings.windOffset[0] - skyBox.minCorner[0]) / 8), Math.round((settings.windOffset[2] - skyBox.minCorner[2]) / 8), Math.round(skyBox.minCorner[1] / 8)] : undefined }, timer);
 
       if (uniformLighting) {

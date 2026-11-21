@@ -1,0 +1,85 @@
+{
+  "notes": "WebGPUClouds reference-pt export: cloud parkouring, view alpha-backlit, ptTest off, majorant brick",
+  "source": {
+    "cloud": "parkouring",
+    "view": "alpha-backlit",
+    "ptTest": "off",
+    "sunOnly": true,
+    "single": true,
+    "majorant": "brick",
+    "extScale": 1,
+    "padded": false,
+    "faceVoxels": 0,
+    "densityMax": 1
+  },
+  "grid": {
+    "file": "density.f32",
+    "dims": [
+      376,
+      156,
+      376
+    ],
+    "order": "x-fastest",
+    "voxel": 2,
+    "origin": [
+      -376,
+      556,
+      -376
+    ],
+    "extinctionScale": 0.3
+  },
+  "medium": {
+    "albedo": 0.99,
+    "phase": {
+      "type": "hg",
+      "g": 0.8
+    }
+  },
+  "sun": {
+    "direction": [
+      -0.9117642874878906,
+      0.33349556028051813,
+      -0.23972191250464064
+    ],
+    "irradiance": [
+      34.6875,
+      28.3984375,
+      21.26953125
+    ],
+    "angularRadius": 0
+  },
+  "sky": {
+    "uniform": [
+      0,
+      0,
+      0
+    ]
+  },
+  "ground": null,
+  "camera": {
+    "position": [
+      664.0305864975516,
+      120,
+      938.9160666405267
+    ],
+    "target": [
+      0,
+      712,
+      0
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fovY": 30,
+    "width": 640,
+    "height": 360
+  },
+  "render": {
+    "spp": 1,
+    "maxBounces": 1,
+    "seed": 1,
+    "russianRoulette": false
+  }
+}

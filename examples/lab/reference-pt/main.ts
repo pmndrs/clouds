@@ -19,6 +19,11 @@
 //      radiance 1; furnace = albedo 1, so every pixel must read 1; absorber = albedo 0, so each pixel reads the transmittance),
 //      &majorant=brick|global (the PT's delta-tracking majorant), &extScale=1 (multiplies the card's extinction), &alphaFilter=nearest|trilinear.
 //      window.__clouds.exportManifest() writes the current frame as a scripts/reference/ manifest (capture.mjs --export <dir> saves it).
+// P1.1 (Review section, each also a URL parameter; docs/AUDIT-2026-11.md step 1.1): &sunOnly=1 (the PT's sky is black, the runtime's ambient,
+//      environment body and ground bounce are 0; the background reads black on both sides), &single=1 (single scattering: the PT's depth cap is
+//      SINGLE_SCATTER_DEPTH, the runtime shows its direct term only (lightDebug 1, nubis model) with one HG of the PT's g: silverStrength 0, phase
+//      model hg, directProfile 0, edgeDarkening 0), &converged=1 (the runtime's P0.5 converged march; settle waits for it; &cvSamples=16),
+//      &probe=<view optical depth>&probeMode=0|1 (the runtime's light probe, CloudSettings.lightProbe: needs converged, one sample).
 // P0.3: window.__clouds.readLinear() reads the current view back as linear scene radiance (float32 RGBA, before exposure and ACES):
 // the PT accumulator / samples, the runtime's composite (scene HDR target * transmittance + cloud), or the opacity masks. See linear.ts and
 // scripts/gpu/capture.mjs --linear (saves PFM next to each screenshot).
@@ -53,13 +58,21 @@ const CAMERA_DISTANCE = num('distance', DEF.camera.distance);   // m, horizontal
 const CAMERA_HEIGHT = num('height', DEF.camera.height);         // m above the ground
 const FOV_Y = num('fov', 30);                                    // vertical, degrees
 
+// P1.1: the path tracer's depth cap for single scattering. Its megakernel counts medium scattering vertices only (a boundary crossing of the box
+// mesh is an `interface` hit that `continue`s without touching depth): at depth 0 a medium event adds the sun's NEE and the phase-sampled
+// escape (the environment, black under sunOnly), then the next medium event at depth 1 >= 1 ends the path. Checked against Cycles' Volume Direct.
+const SINGLE_SCATTER_DEPTH = 1;
+const SUN_ONLY = query.get('sunOnly') === '1';
+const SINGLE = query.get('single') === '1';
+const CONVERGED = query.get('converged') === '1';
+const PROBE = Math.max(0, num('probe', 0));
 const settings = {
   spp: num('spp', 1024),
   ptScale: Math.min(1, Math.max(0.125, num('ptScale', 1))),
   albedo: num('albedo', 0.99),
   g: num('g', 0.8),
   voxel: num('voxel', 2),
-  maxDepth: num('maxDepth', 512),
+  maxDepth: num('maxDepth', SINGLE ? SINGLE_SCATTER_DEPTH : 512),
   exposure: num('exposure', 0.35),
   seed: num('seed', 1),
   extScale: num('extScale', 1),
@@ -71,6 +84,8 @@ type PtTest = (typeof PT_TESTS)[number];
 const PT_TEST: PtTest = (PT_TESTS as readonly string[]).includes(query.get('ptTest') ?? '') ? (query.get('ptTest') as PtTest) : 'off';
 /** A uniform sky of radiance 1 in every channel (the furnace and absorber light). */
 const uniformSky = (): SkyBake => ({ env: { width: 64, height: 32, channels: 4, data: new Float32Array(64 * 32 * 4).fill(1) }, sun: [0, 0, 0], ambientUp: [1, 1, 1], ambientDown: [1, 1, 1], envUp: [1, 1, 1], envDown: [1, 1, 1] });
+/** P1.1 sunOnly: the baked sun with a black sky (an all-black map: the path tracer's env sampler gives it pdf 0). */
+const blackSky = (sky: SkyBake): SkyBake => ({ env: { width: 64, height: 32, channels: 4, data: new Float32Array(64 * 32 * 4) }, sun: sky.sun, ambientUp: [0, 0, 0], ambientDown: [0, 0, 0], envUp: [0, 0, 0], envDown: [0, 0, 0] });
 const state: { renderer: RendererName; sun: SunName } = { renderer: 'pt', sun: 'noon' };
 {
   const [r, s] = (query.get('view') ?? 'pt-noon').split('-');
@@ -117,6 +132,11 @@ try {
   runtime.settings.windVelocity = [0, 0, 0];
   runtime.settings.windOffset = [0, 0, 0];
   runtime.settings.hazeDensity = 0;
+  // P1.1: sun only (no sky light on the cloud: ambient, environment body, ground bounce) and single scattering (the direct term alone, one HG).
+  if (SUN_ONLY) Object.assign(runtime.settings, { ambientStrength: 0, bodyEnv: 0, groundAlbedo: 0 });
+  if (SINGLE) Object.assign(runtime.settings, { lightingModel: 'nubis', lightDebug: 1, silverStrength: 0, phaseG: settings.g, phaseModel: 'hg', directProfile: 0, edgeDarkening: 0 });
+  if (CONVERGED) Object.assign(runtime.settings, { converged: 1, convergedSamples: PROBE > 0 ? 1 : num('cvSamples', 16) });
+  if (PROBE > 0) Object.assign(runtime.settings, { lightProbe: PROBE, lightProbeMode: num('probeMode', 0) });
   for (const [key, value] of query) if (key.startsWith('s.') && key.slice(2) in runtime.settings) (runtime.settings as unknown as Record<string, number | string>)[key.slice(2)] = Number.isNaN(Number(value)) ? value : Number(value);
 
   const pt = new PtReference();
@@ -203,7 +223,7 @@ try {
       grids.set(key, grid);
     }
     const sd = skyBridge.values.sunDirection;
-    const sceneParams = PT_TEST === 'off' ? { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: skyNow } : { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: uniformSky(), noSun: true };
+    const sceneParams = PT_TEST === 'off' ? { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: SUN_ONLY ? blackSky(skyNow) : skyNow } : { sunDir: [sd[0], sd[1], sd[2]] as V3, sky: uniformSky(), noSun: true };
     const medium = { extinction: card.ptExtinction() * settings.extScale, albedo: PT_TEST === 'furnace' ? 1 : PT_TEST === 'absorber' ? 0 : settings.albedo, g: settings.g };
     if (grid !== gridNow || !pt.kernel || pt.medium.extinction !== medium.extinction) {
       status = `sun ${sun}: PT kernel`;
@@ -243,7 +263,7 @@ try {
     const isPt = state.renderer === 'pt' || state.renderer === 'alpha';
     ptCanvas.style.display = isPt ? 'block' : 'none';
     renderer.domElement.style.display = isPt ? 'none' : 'block';
-    if (state.renderer === 'nubis' || state.renderer === 'octave') runtime.settings.lightingModel = state.renderer;
+    if (state.renderer === 'nubis' || state.renderer === 'octave') runtime.settings.lightingModel = SINGLE ? 'nubis' : state.renderer;   // P1.1: single = the nubis direct term
     if (state.renderer === 'rtalpha') runtime.settings.lightingModel = 'nubis';
   }
 
@@ -290,15 +310,24 @@ try {
     el.value = value; el.onchange = () => reload(key, el.value); return el;
   };
   review.append(select('ptTest', PT_TESTS, PT_TEST), ' majorant ', select('majorant', ['brick', 'global'], settings.majorant), ' ext x ',
-    select('extScale', ['1', '0.3333333'], String(settings.extScale) === '1' ? '1' : '0.3333333'), ' depth ', select('maxDepth', ['512', '4096'], String(settings.maxDepth)));
+    select('extScale', ['1', '0.3333333'], String(settings.extScale) === '1' ? '1' : '0.3333333'), ' depth ', select('maxDepth', ['512', '4096', String(SINGLE_SCATTER_DEPTH), '2'], String(settings.maxDepth)));
   panel.appendChild(review);
+  // P1.1 Review: sun only, single scatter, converged (each reloads with its URL parameter; maxDepth follows `single` unless set explicitly).
+  const p11 = document.createElement('div'); p11.className = 'row'; p11.append('Review: P1.1 ');
+  const check = (key: string, label: string, on: boolean) => {
+    const l = document.createElement('label'); const c = Object.assign(document.createElement('input'), { type: 'checkbox', checked: on });
+    c.onchange = () => { const q = new URLSearchParams(location.search); if (c.checked) q.set(key, '1'); else q.delete(key); if (key === 'single') q.delete('maxDepth'); q.set('view', `${state.renderer}-${state.sun}`); location.search = q.toString(); };
+    l.append(c, ` ${label} `); return l;
+  };
+  p11.append(check('sunOnly', 'sun only', SUN_ONLY), check('single', 'single scatter', SINGLE), check('converged', 'converged', CONVERGED));
+  panel.appendChild(p11);
   function syncPanel() { for (const [k, b] of buttons) b.classList.toggle('on', k === `${state.renderer}-${state.sun}`); }
   function updateHud() {
     const s = sunNow();
     hud.textContent = [
       `PT1 reference  cloud ${CLOUD}  view ${state.renderer}-${state.sun}  [${status}]`,
       `sun el ${sky.sunElevation.toFixed(1)} az ${sky.sunAzimuth.toFixed(1)}  dir ${s.map(v => v.toFixed(2)).join(', ')}`,
-      `${PT_TEST === 'off' ? '' : `PT TEST ${PT_TEST} (no sun, sky 1)  `}majorant ${pt.majorant}  PT ${pt.samples}/${settings.spp} spp  ${pt.width}x${pt.height}  ${pt.passMs.toFixed(0)} ms/pass  albedo ${pt.medium.albedo} g ${settings.g} ext ${pt.medium.extinction.toPrecision(4)}/m per unit  maxDepth ${settings.maxDepth}`,
+      `${SUN_ONLY ? 'SUN ONLY  ' : ''}${SINGLE ? 'SINGLE SCATTER  ' : ''}${CONVERGED ? `converged ${runtime.convergedInfo.samples}/${runtime.convergedInfo.target}  ` : ''}${PROBE > 0 ? `PROBE ${PROBE}  ` : ''}${PT_TEST === 'off' ? '' : `PT TEST ${PT_TEST} (no sun, sky 1)  `}majorant ${pt.majorant}  PT ${pt.samples}/${settings.spp} spp  ${pt.width}x${pt.height}  ${pt.passMs.toFixed(0)} ms/pass  albedo ${pt.medium.albedo} g ${settings.g} ext ${pt.medium.extinction.toPrecision(4)}/m per unit  maxDepth ${settings.maxDepth}`,
       gridNow ? `grid ${gridNow.resolution.join('x')} @ ${gridNow.voxel} m  max ${gridNow.densityMax.toFixed(3)}  occ ${(gridNow.occupancy * 100).toFixed(1)}%  bake ${gridNow.ms.toFixed(0)} ms` : 'grid -',
       skyNow ? `sun E ${skyNow.sun.map(v => v.toFixed(2)).join(' ')}  sky up ${skyNow.ambientUp.map(v => v.toFixed(3)).join(' ')} (map ${skyNow.envUp.map(v => v.toFixed(3)).join(' ')})` : '',
     ].join('\n');
@@ -315,9 +344,9 @@ try {
       sun: { elevationDeg: sky.sunElevation, azimuthDeg: sky.sunAzimuth, direction: round(sunNow()), timeOfDay: SUNS[state.sun].time, ring: SUNS[state.sun].ring },
       sky: skyNow && { sunIrradiance: round(skyNow.sun), ambientUp: round(skyNow.ambientUp), ambientDown: round(skyNow.ambientDown), envMapUp: round(skyNow.envUp), envMapDown: round(skyNow.envDown) },
       grid: gridNow && { resolution: gridNow.resolution, voxel: gridNow.voxel, min: gridNow.min, max: gridNow.max, densityMax: gridNow.densityMax, occupancy: gridNow.occupancy, bakeMs: gridNow.ms },
-      ptTest: PT_TEST,
+      ptTest: PT_TEST, p11: { sunOnly: SUN_ONLY, single: SINGLE, converged: CONVERGED, probe: PROBE, probeMode: runtime.settings.lightProbeMode, convergedInfo: runtime.convergedInfo },
       pt: { majorant: pt.majorant, extScale: settings.extScale, samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
-      runtime: { quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
+      runtime: { lightDebug: runtime.settings.lightDebug, edgeDarkening: runtime.settings.edgeDarkening, directProfile: runtime.settings.directProfile, phaseModel: runtime.settings.phaseModel, microDist: runtime.settings.microDist, bodyEnv: runtime.settings.bodyEnv, quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
       card: { def: DEF, cameraRing: { distance: CAMERA_DISTANCE, height: CAMERA_HEIGHT }, ...card.describe() },
       exposure: settings.exposure, frames: frame,
     }),
@@ -348,6 +377,18 @@ try {
       await frames(2);
     } else {
       await frames(state.renderer === "alpha" ? 2 : n);
+      // P1.1: the converged march restarts its sum on any change; wait until it holds every sample.
+      if (CONVERGED && state.renderer !== 'alpha') while (!runtime.convergedInfo.done) await frames(4);
+      // A light-grid rebuild after a sun change is sliced over frames (up to one per grid layer) and restarts the sum when it swaps in; a
+      // full-resolution grid (lightGridFull) can take longer than a whole converged sum, so wait until a quiet stretch shows no further restart.
+      if (CONVERGED && state.renderer !== 'alpha' && runtime.settings.lightGridFull > 0.5) {
+        for (;;) {
+          const r = runtime.convergedInfo.restarts;
+          await frames(260);
+          while (!runtime.convergedInfo.done) await frames(4);
+          if (runtime.convergedInfo.restarts === r) break;
+        }
+      }
       if (state.renderer === "rtalpha") await showRuntimeAlpha();
     }
   };
@@ -369,7 +410,8 @@ try {
     // Runtime views: the scene's HDR target (the sky) and the runtime's composite output, both rgba16float, composited as the bridge's quad does.
     const sceneTex = sharedBackend(renderer).texture(bridge.sceneTarget.texture);
     const [sceneLin, cloudLin] = await Promise.all([readRgba16f(device, sceneTex), readRgba16f(device, runtime.output!)]);
-    const rgba = composite(sceneLin.data, cloudLin.data);
+    // P1.1: sun only (the sky is black on the PT side) and the light probe (raw values) read the cloud term alone.
+    const rgba = composite(SUN_ONLY || runtime.settings.lightProbe > 0 ? new Float32Array(sceneLin.data.length) : sceneLin.data, cloudLin.data);
     if (state.renderer === 'rtalpha') {
       for (let i = 0; i < rgba.length; i += 4) rgba[i] = rgba[i + 1] = rgba[i + 2] = rgba[i + 3];
       return { view, kind: 'alpha', width: sceneLin.width, height: sceneLin.height, data: rgba, meta: { source: 'runtime 1 - transmittance', frame } };
@@ -377,6 +419,13 @@ try {
     return { view, kind: 'radiance', width: sceneLin.width, height: sceneLin.height, data: rgba, meta: { lightingModel: runtime.settings.lightingModel, frame, units: 'scene * transmittance + cloud, before exposure and tone mapping' } };
   }
   const contract = window.__clouds as Record<string, unknown>;
+  /** P1.1 scripts: assign runtime settings (e.g. the light probe, sunAtCentre) without a reload; returns the previous values. Debug only. */
+  contract.setSettings = (o: Record<string, number | string>) => {
+    const rs = runtime.settings as unknown as Record<string, number | string>;
+    const prev = Object.fromEntries(Object.keys(o).map(k => [k, rs[k]]));
+    for (const [k, v] of Object.entries(o)) { if (!(k in rs)) throw new Error(`setSettings: no setting ${k}`); rs[k] = v; }
+    return prev;
+  };
   /** Reads the current view (after settle) into the page; returns its size and mean. Fetch the floats with linearChunk(offset, bytes). */
   contract.readLinear = async () => { lastLinear = null; lastLinear = await readLinear(); return describe(lastLinear); };
   contract.linearChunk = (offset: number, length: number) => { if (!lastLinear) throw new Error('readLinear() first'); return chunk(lastLinear, offset, length); };
@@ -429,7 +478,9 @@ try {
     exportFiles.clear();
     exportFiles.set('density.f32', new Uint8Array(density.buffer, density.byteOffset, density.byteLength));
     let sky: Record<string, unknown> = { uniform: [1, 1, 1] };
-    if (PT_TEST === 'off') {
+    if (PT_TEST === 'off' && SUN_ONLY) {
+      sky = { uniform: [0, 0, 0] };   // P1.1 sun only: the PT's sky is black
+    } else if (PT_TEST === 'off') {
       const env = skyNow!.env, w = env.width, h = env.height;
       const header = new TextEncoder().encode(`PF\n${w} ${h}\n-1.0\n`);
       const body = new Float32Array(w * h * 3);
@@ -441,7 +492,7 @@ try {
     }
     const manifest = {
       notes: `WebGPUClouds reference-pt export: cloud ${CLOUD}, view ${state.renderer}-${state.sun}, ptTest ${PT_TEST}, majorant ${pt.majorant}`,
-      source: { cloud: CLOUD, view: `${state.renderer}-${state.sun}`, ptTest: PT_TEST, majorant: pt.majorant, extScale: settings.extScale, padded: faceVoxels > 0, faceVoxels, densityMax: grid.densityMax },
+      source: { cloud: CLOUD, view: `${state.renderer}-${state.sun}`, ptTest: PT_TEST, sunOnly: SUN_ONLY, single: SINGLE, majorant: pt.majorant, extScale: settings.extScale, padded: faceVoxels > 0, faceVoxels, densityMax: grid.densityMax },
       grid: { file: 'density.f32', dims, order: 'x-fastest', voxel: grid.voxel, origin, extinctionScale: pt.medium.extinction },
       medium: { albedo: pt.medium.albedo, phase: { type: 'hg', g: pt.medium.g } },
       sun: PT_TEST === 'off' ? { direction: [sd[0], sd[1], sd[2]], irradiance: [...skyNow!.sun], angularRadius: 0 } : null,

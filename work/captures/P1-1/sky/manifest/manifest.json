@@ -1,0 +1,85 @@
+{
+  "notes": "WebGPUClouds reference-pt export: cloud sky, view alpha-noon, ptTest off, majorant brick",
+  "source": {
+    "cloud": "sky",
+    "view": "alpha-noon",
+    "ptTest": "off",
+    "sunOnly": true,
+    "single": true,
+    "majorant": "brick",
+    "extScale": 1,
+    "padded": true,
+    "faceVoxels": 19757,
+    "densityMax": 1.189453125
+  },
+  "grid": {
+    "file": "density.f32",
+    "dims": [
+      377,
+      202,
+      377
+    ],
+    "order": "x-fastest",
+    "voxel": 8,
+    "origin": [
+      2992,
+      1542,
+      -8808
+    ],
+    "extinctionScale": 0.41865366278216243
+  },
+  "medium": {
+    "albedo": 0.99,
+    "phase": {
+      "type": "hg",
+      "g": 0.8
+    }
+  },
+  "sun": {
+    "direction": [
+      -0.23226346129842826,
+      0.9356868745227984,
+      0.265600748100284
+    ],
+    "irradiance": [
+      38.30078125,
+      35.95703125,
+      33.18359375
+    ],
+    "angularRadius": 0
+  },
+  "sky": {
+    "uniform": [
+      0,
+      0,
+      0
+    ]
+  },
+  "ground": null,
+  "camera": {
+    "position": [
+      7779.132060790651,
+      150,
+      -1342.8788053376957
+    ],
+    "target": [
+      4500,
+      2242,
+      -7300
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fovY": 30,
+    "width": 640,
+    "height": 360
+  },
+  "render": {
+    "spp": 1,
+    "maxBounces": 1,
+    "seed": 1,
+    "russianRoulette": false
+  }
+}

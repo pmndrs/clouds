@@ -27,3 +27,10 @@ work/captures/P0-6/**/*.pfm
 work/captures/P0-6/**/*.png
 work/captures/P0-6/**/*.f32
 work/captures/P0-6/**/*.exr
+# P1.1: float frames, grids, probes and Cycles EXRs stay local
+work/captures/P1-1/**/*.pfm
+work/captures/P1-1/**/*.png
+work/captures/P1-1/**/*.f32
+work/captures/P1-1/**/*.exr
+work/captures/P1-1/**/*.npz
+work/captures/P1-1/**/probe-*.json

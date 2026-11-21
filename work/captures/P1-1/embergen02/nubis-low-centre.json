@@ -1,0 +1,1 @@
+{"view":"nubis-low","kind":"radiance","width":640,"height":360,"channels":4,"byteLength":3686400,"nonFinite":0,"meanRgb":[0.012697319786788688,0.010493796458726543,0.008042132221938421],"meta":{"lightingModel":"nubis","frame":3053,"units":"scene * transmittance + cloud, before exposure and tone mapping"}}

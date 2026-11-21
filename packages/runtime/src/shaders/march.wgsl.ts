@@ -157,7 +157,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // accumulated samples), the step is divided by conv.x, and the step widening, the step growth, the thin-segment light skip and the far pass's
   // occlusion skip are off. Off (conv.x = 0) every expression below is the normal march's.
   let conv = frame.conv.x > 0.5;
-  let rayUv = select(uv, (vec2<f32>(pxu) + 0.5 + frame.conv.yz) / frame.renderSize, conv);
+  // P1.1 light probe (frame.conv2.y > 0, CloudSettings.lightProbe, debug): the pixel-centre ray, so the probed point can be reconstructed exactly.
+  let probeOn = frame.conv2.y > 0.0;
+  let rayUv = select(uv, (vec2<f32>(pxu) + 0.5 + frame.conv.yz) / frame.renderSize, conv && !probeOn);
   let dir = normalize(unprojectDepth(rayUv, 1.0) - origin);
   let interval = volumeRayInterval(origin, dir);
   let isNear = frame.passMode == 0u;
@@ -183,6 +185,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var flashAcc = vec3(0.0);   // P6-B: secondary light energy from the lightning glow, kept apart so the edge darkening (a sun term) does not touch it
   var depthSum = 0.0;
   var weightSum = 0.0;
+  var probeOD = 0.0;            // P1.1: view optical depth before the current segment
+  var probeOut = vec3(0.0);     // P1.1: what the probe recorded (0 = the ray never reached frame.conv2.y)
+  var probeDone = false;
 
   if (interval.x <= interval.y && t < tEnd && !hidden) {
     let jitterAnimated = marchJitter(pxu, frame.frameIndex);
@@ -305,11 +310,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               var grid: vec2<f32>;
               if (frame.d2.z > 0.5) { grid = lightGridSampleCubic(ps + sunGrid); } else { grid = lightGridSampleClamped(ps + sunGrid); }
               let tau = tauMicro + tauInline + grid.x * frame.lightDensityScale;
+              if (probeOn && !probeDone) {
+                let odAt = probeOD + sigma * (ts - t);
+                if (odAt >= frame.conv2.y) {
+                  probeDone = true;
+                  let t8 = floor(ts / 8.0);
+                  probeOut = select(vec3(tau, t8, ts - 8.0 * t8), vec3(tauMicro + tauInline, grid.x * frame.lightDensityScale, odAt), frame.conv2.z > 0.5);
+                }
+              }
+              // P1.1 debug (frame.conv2.w, CloudSettings.sunAtCentre): the sun at the volume centre for every sample, as the reference path tracer has it.
+              let sunHere = select(sunRadianceAtHeight(ps.y), sunRadiance, frame.conv2.w > 0.5);
               let h = saturate((ps.y - cloudVolume.minCorner.y) * invExtentY);
               var lit: vec3<f32>;
               // H3: the ambient's up sum is read at the sample itself. The sun tap (48 m toward the sun) landed inside the neighbouring
               // tower on shaded walls and under dense cores, so the ambient darkened by that column, not the cloud above the sample.
-              if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunRadianceAtHeight(ps.y), ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
+              if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunHere, ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
               else {
                 // D1 round 3 (inScatterProfile): the deck's in-scatter probability is the dimensional profile alone (s123/s126), not profile x scale.
                 // D1 round 6 (profileFilter, bit 1): the lighting profile through the tricubic read (trilinear kinks print voxel-plane seams).
@@ -337,7 +352,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 // jitter and printed speckle into the ms term wherever the relaxation is steep.
                 var sdfLit = cloudDistance(ps);
                 if ((u32(frame.material2.w) & 2u) != 0u) { sdfLit = cloudDistanceCubic(ps); }   // D1 round 6 (profileFilter, bit 2)
-                lit = cloudInScatterMicro(pLight, sdfLit, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunRadianceAtHeight(ps.y), ambientUp * ambOcc, ambientDown * ambOcc, envUp, envDown, microOcc);
+                lit = cloudInScatterMicro(pLight, sdfLit, h, tau, lightGridSampleClamped(ps).y, phase, sunRelax, sunHere, ambientUp * ambOcc, ambientDown * ambOcc, envUp, envDown, microOcc);
               }
               depthMax = max(depthMax, -sdf);
               // Energy-conserving segment integration (albedo 1, so scattering = extinction).
@@ -348,6 +363,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
               weightSum += w;
             }
             T *= stepT;
+            probeOD += sigma * ds;
           }
         }
       }
@@ -363,6 +379,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       T = 0.0;
     }
     radiance = radiance * select(cloudEdgeFactor(depthMax, frontness), 1.0, octaveOn()) + flashAcc;
+    if (probeOn) { radiance = probeOut; }
   }
 
   let meanDistance = select(0.0, depthSum / max(weightSum, 1e-6), weightSum > 1e-3);

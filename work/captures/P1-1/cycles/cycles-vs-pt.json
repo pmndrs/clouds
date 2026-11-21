@@ -1,0 +1,32 @@
+{
+ "pt seed1 / seed2": {
+  "cloud": 1.000299237667216,
+  "thick": 1.000228341347192,
+  "base": 1.0004853105432796,
+  "fringe": 1.0033971223727018
+ },
+ "Cycles Volume Direct / PT depth 1": {
+  "cloud": 1.00102625069407,
+  "thick": 1.0011703677524313,
+  "base": 1.0018273628870709,
+  "fringe": 0.992192944934566
+ },
+ "Cycles Combined (0 bounces) / PT depth 1": {
+  "cloud": 1.0010262506388792,
+  "thick": 1.0011703677110602,
+  "base": 1.001827362845701,
+  "fringe": 0.9921929446652273
+ },
+ "Cycles Volume Indirect / PT depth 1": {
+  "cloud": null,
+  "thick": null,
+  "base": null,
+  "fringe": null
+ },
+ "PT depth 2 / PT depth 1": {
+  "cloud": 2.278211595554538,
+  "thick": 2.3506826923239674,
+  "base": 2.598350544054522,
+  "fringe": 1.520245731452522
+ }
+}

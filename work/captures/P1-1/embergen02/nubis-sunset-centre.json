@@ -1,0 +1,1 @@
+{"view":"nubis-sunset","kind":"radiance","width":640,"height":360,"channels":4,"byteLength":3686400,"nonFinite":0,"meanRgb":[0.0196537716823837,0.010424019988471022,0.003847594424926986],"meta":{"lightingModel":"nubis","frame":3451,"units":"scene * transmittance + cloud, before exposure and tone mapping"}}
