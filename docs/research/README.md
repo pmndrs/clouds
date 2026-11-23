@@ -15,6 +15,7 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 
 | Doc | Tags | What it gives you |
 | --- | --- | --- |
+| [neural/README.md](neural/README.md) | neural light | **Neural cloud rendering.** State of the field, HaloRT anatomy (paper vs released code), 49 notes on HaloRT's references with code links, uncited work, WebGPU inference options. Plan: `docs/neural/PLAN.md` |
 | [nubis-sources.md](nubis-sources.md) | light shape perf | **The formula reference.** Nubis Cubed and Synthesizing constants, the NVDF layout, the sampler, the lighting model, with slide citations |
 | [deck-scenes.md](deck-scenes.md) | scene shape shadow | Catalog of every cloud scene in the N3 and SY decks, the shape vocabulary (why theirs vary), and targets T1–T7 |
 | [hzd-nubis-evolved.md](hzd-nubis-evolved.md) | shape weather cirrus light perf | HZD 2015 and Nubis Evolved 2022: **vertical-profile tables** (species), weather channels, the **cirrus recipe (NE p.65)**, the horizon rule, the superstorm |

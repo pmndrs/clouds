@@ -1,0 +1,17 @@
+# HYL23 — Deep real-time volumetric rendering using multi-feature fusion (MRPNN)
+
+- **Authors / year / venue:** Hu, Yu, Liu, Yan, Wu, Jin (Zhejiang Univ., Tokyo Univ. of Science, Tencent, UCSB); SIGGRAPH 2023 Conference Proceedings; doi 10.1145/3588432.3591493
+- **Paper:** https://sites.cs.ucsb.edu/~lingqi/publications/paper_mrpnn.pdf (local: `artifacts/research/papers/neural/HYL23-hu-2023.pdf`; supplementary: `HYL23-hu-2023-supp.pdf`, from https://sites.cs.ucsb.edu/~lingqi/publications/supplementary_mrpnn.pdf)
+- **Project page:** http://www.cad.zju.edu.cn/home/jin/sig20231/SigMRPNN2023.htm (link taken from the repo README, not fetched)
+- **Official code:** https://github.com/What-a-stupid-username/MRPNN — CUDA/C++, GPL-3.0, 269 stars, last push 2025-01. Includes the trained weights (compiled into `core/NNWeight.cuh`, plus `core/NNWeight_RPNN.cuh` for the RPNN baseline), `dataGen.cu` and a GUI renderer. No training script found in the tree. Demo volumes (cloud, 4 GB) are on OneDrive via the README. Needs CUDA 11.x, Windows or Linux, NVIDIA sm_75/86 (HaloRT notes it does not run on RTX 5090).
+- **Third-party code:** https://github.com/TumiJourdan/MRPNN-Unity (C#/CUDA DLL, GPL-3.0, Unity DirectX interop of the CUDA renderer, 7 stars); fork https://github.com/unicorn2022/MRPNN (GPL-3.0); https://github.com/Juice-zhi/autoresearch-mrpnn (Python, no licence, 2026, an AI-driven optimisation experiment on MRPNN). No WebGL/WebGPU/shader port found.
+- **Data / weights:** weights embedded in the official repo; test volumes on OneDrive; no training dataset released.
+- **Cited by HaloRT as:** main neural baseline ("density-conditioned transport estimation", Fig. 2); HaloRT ran it on an RTX 3090 and reports visible boundary noise and a cost of at least one pass of MRPNN even for its denoiser-free output.
+
+## Summary
+Problem: Deep Scattering (KMM17) is too slow for real time and fixed to one phase function and albedo. Method: reformulate the RTE so that the hard part is only the in-scattering term S, and give the network cheap physically derived auxiliary inputs. Inputs per shading point are (a) a mipmapped "transmittance field" (9 mip levels from 256^3 down to 1^3, computed per light direction at about 0.5 ms), (b) density, and (c) a phase feature and an albedo feature, so that albedo and Henyey-Greenstein g become runtime parameters. A frequency-sensitive stencil (a cone toward the light for high frequencies, a coarse global part for low) replaces the uniform lattice and fixes shadow boundaries on non-cloud shapes. The network is split into a feature stage that fuses stencil layers progressively and an albedo stage; it has only about 50k parameters and uses fused CUDA kernels.
+
+Results and cost: 1024x1024 in real time (40 Hz, frame cost at most 33 ms) on an RTX 2080, volume up to 1024^3, close to a 1 hour path-traced ground truth, two orders of magnitude faster than RPNN. Training about 4 days on the same card, on 26 cloud-shaped and 7 non-cloud volumes. Each frame still starts from a delta-tracked first bounce, and the network runs per pixel, so cost grows with the pixel count and with sparse-volume traversal.
+
+## Use for us
+The transmittance-field mip pyramid and the albedo/phase split are directly portable to a compute shader and are the cheapest strong prior for a cloud network. The 50k-parameter size shows a per-pixel MLP is feasible in WGSL; MRBNN (LYG26) shows the faster, per-volume baked variant.

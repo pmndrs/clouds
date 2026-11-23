@@ -4,6 +4,8 @@ The one page to check. The plan: the Clouds Audit Compass (https://claude.ai/art
 
 Updated 2026-11-20.
 
+**Neural track (separate, started 2026-11-23):** status in `work/neural/STATUS.md`, plan in `docs/neural/PLAN.md`, page https://claude.ai/artifact/VSCDDPexFVSkSRHBub293d. Four decisions wait on you there.
+
 ## Phase 0 (the truth rig): done 2026-11-21, except the pathtracer upgrades, which do not block. Phase 1 (light) started
 Plan: `docs/AUDIT-2026-11.md` (you said begin on 2026-11-21). Divergence log: `DIVERGES.md`. Baseline tag: `stable-2026-11-21-audit-baseline`. No look changes in this phase. The plan page is the new Compass: https://claude.ai/artifact/Q5SGgE2Z9C5dpNvZcWbPPD (source `work/compass-2026-11/index.html`; republish that file with the Artifact tool to update it). The old Compass (`work/compass/`) is kept as the record of the phases before the audit. Every run now has a time and memory cap (plan rule 9).
 
