@@ -354,7 +354,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                   let g0 = select(lightGridSampleClamped(ps), lightGridSampleCubic(ps), frame.d2.z > 0.5);
                   tauMs = mix(tau, g0.x * frame.lightDensityScale, frame.fit4.z);
                 }
-                lit = cloudFitLightMs(tau, tauMs, lightGridSampleClamped(ps).y * frame.lightDensityScale, cosSun, sunHere, ambientUp, ambientDown);
+                var tauAmb = lightGridSampleClamped(ps).y * frame.lightDensityScale;
+                // P1.8a (fitSkySide, frame.fit5.x): sky light also comes in from the sides. tauUp is the whole column overhead, so a body shaded
+                // from above got almost no sky even where its side faces open sky (beige shade where the path trace is blue-grey). The shortest
+                // way out, the SDF depth times the local extinction, caps it: the cheaper of up and out.
+                if (frame.fit5.x > 0.0) {
+                  let tauSide = max(-cloudDistance(ps), 0.0) * sigma * frame.lightDensityScale;
+                  tauAmb = mix(tauAmb, min(tauAmb, tauSide), frame.fit5.x);
+                }
+                lit = cloudFitLightMs(tau, tauMs, tauAmb, cosSun, sunHere, ambientUp, ambientDown);
               }
               else if (octaveOn()) { lit = cloudOctaveLight(tau, cosSun, h, sigma, sunHere, ambientUp, ambientDown, envUp, envDown, OCTAVE_DEFAULT, octaveVoxel()); }
               else {

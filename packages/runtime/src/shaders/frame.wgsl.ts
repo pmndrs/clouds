@@ -1,5 +1,5 @@
 /** Per-frame uniforms and scene-depth helpers shared by the march and composite passes (group 1, bindings 0 and 1). */
-export const FRAME_UNIFORM_BYTES = 608;
+export const FRAME_UNIFORM_BYTES = 624;
 
 export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
@@ -80,6 +80,8 @@ struct Frame {
   // z (P1.4c) = fitMsTauSmooth (the ms term's tau: mix(tau, light grid alone at the sample, z); voxel march only), w (P1.7a) = fitMiePhase
   // (1 = the direct term's phase is the HG + Draine droplet fit at dropletDiameter, 0 = HG(fitG)).
   fit4: vec4<f32>,
+  // P1.8a: x = fitSkySide (the ambient's optical depth mix(tauUp, min(tauUp, SDF depth x local extinction), x); voxel march only), yzw 0.
+  fit5: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
 @group(1) @binding(1) var sceneDepth: texture_depth_2d;
