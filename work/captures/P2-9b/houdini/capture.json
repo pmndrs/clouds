@@ -1,0 +1,584 @@
+{
+  "url": "http://127.0.0.1:5729/reference-pt/?clean=1&cloud=houdini&spp=1024&seed=1",
+  "size": [
+    640,
+    360
+  ],
+  "startedAt": "2026-11-24T07:16:18.519Z",
+  "shots": [
+    {
+      "name": "fit-sunward",
+      "file": "-a8af-1a5e5f64c4b2/scratchpad/p29b/houdini/fit-sunward.png",
+      "report": {
+        "view": "fit-sunward",
+        "status": "sun sunward: ready",
+        "cloud": "houdini",
+        "camera": {
+          "position": [
+            2969.8487232020025,
+            150,
+            226.79677214015044
+          ],
+          "target": [
+            2070.1713607529455,
+            580.2874535102392,
+            153.08550537324743
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 32.48580404496414,
+          "azimuthDeg": 274.6838262195186,
+          "direction": [
+            -0.8407,
+            0.5371,
+            -0.0689
+          ],
+          "timeOfDay": 16.45,
+          "ring": 180
+        },
+        "sky": {
+          "sunIrradiance": [
+            36.7188,
+            32.5195,
+            27.4023
+          ],
+          "ambientUp": [
+            0.3457,
+            0.668,
+            1.4108
+          ],
+          "ambientDown": [
+            0.6342,
+            0.5617,
+            0.4772
+          ],
+          "envMapUp": [
+            0.3453,
+            0.6652,
+            1.4019
+          ],
+          "envMapDown": [
+            0.6254,
+            0.554,
+            0.4709
+          ]
+        },
+        "grid": {
+          "resolution": [
+            258,
+            176,
+            151
+          ],
+          "voxel": 12,
+          "min": [
+            -1548,
+            0,
+            -906
+          ],
+          "max": [
+            1548,
+            2112,
+            906
+          ],
+          "densityMax": 1,
+          "occupancy": 0.2605228416149793,
+          "bakeMs": 167.29999995231628
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": false,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": false,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 1,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              129,
+              76,
+              88
+            ],
+            "bytes": 20706048,
+            "volumeDims": [
+              258,
+              151,
+              176
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 8,
+            "swaps": 1,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 70.40000003576279,
+          "wallMs": 70.69999998807907,
+          "compileMs": 609.1999999880791,
+          "kernelBytes": 51432,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.08,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "ultra",
+          "lightingModel": "fit",
+          "densityScale": 0.3,
+          "directDensity": 0.08,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 1,
+          "fit": [
+            0.99,
+            0.8,
+            2.47,
+            0.2,
+            0.62,
+            0.3,
+            1,
+            0.38,
+            0.5,
+            0.61,
+            1,
+            2,
+            0,
+            1,
+            0
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "sunward": {
+          "distance": 2997.8601455688477,
+          "sunElevationDeg": 32.48580404496414,
+          "edgeElevationDeg": 35.40000000000079,
+          "insideDeg": 2.9141959550366465,
+          "tauAlongSun": 55.12353203773491,
+          "silhouetteTau": 0.1,
+          "aimBelowDeg": 7
+        },
+        "card": {
+          "def": {
+            "key": "houdini",
+            "label": "H Houdini cumulus, wispy (P2.7b)",
+            "source": "P2.7b: Houdini cumulus (cumulus_4_wispy.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 8000,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 8000,
+            "height": 150
+          },
+          "source": "P2.7b: Houdini cumulus (cumulus_4_wispy.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            258,
+            151,
+            176
+          ],
+          "voxel": 12,
+          "densityRef": 1,
+          "densityMaxSource": 1,
+          "directDensity": 0.08,
+          "extinctionScale": 0.08,
+          "ptSigmaPerUnit": 0.08,
+          "boxMin": [
+            -1548,
+            0,
+            -906
+          ],
+          "boxMax": [
+            1548,
+            2112,
+            906
+          ],
+          "occupied": {
+            "min": [
+              -1512,
+              36,
+              -870
+            ],
+            "max": [
+              1476,
+              2040,
+              834
+            ]
+          },
+          "file": "assets/clouds/houdini-stages/cumulus_4_wispy.vdb",
+          "gridName": "density",
+          "sourceVoxels": 1681908,
+          "up": "y",
+          "worldScale": 1,
+          "nativeVoxel": 12.000000569969416,
+          "taps": 1,
+          "loadMs": 291.69999998807907,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 464
+      },
+      "linear": {
+        "file": "-a8af-1a5e5f64c4b2/scratchpad/p29b/houdini/fit-sunward.pfm",
+        "view": "fit-sunward",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          1.1954068346197406,
+          1.4956383999545748,
+          2.2095087471630217
+        ],
+        "meta": {
+          "lightingModel": "fit",
+          "frame": 469,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "pt-sunward",
+      "file": "-a8af-1a5e5f64c4b2/scratchpad/p29b/houdini/pt-sunward.png",
+      "report": {
+        "view": "pt-sunward",
+        "status": "sun sunward: ready",
+        "cloud": "houdini",
+        "camera": {
+          "position": [
+            2969.8487232020025,
+            150,
+            226.79677214015044
+          ],
+          "target": [
+            2070.1713607529455,
+            580.2874535102392,
+            153.08550537324743
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          640,
+          360
+        ],
+        "sun": {
+          "elevationDeg": 32.48580404496414,
+          "azimuthDeg": 274.6838262195186,
+          "direction": [
+            -0.8407,
+            0.5371,
+            -0.0689
+          ],
+          "timeOfDay": 16.45,
+          "ring": 180
+        },
+        "sky": {
+          "sunIrradiance": [
+            36.7188,
+            32.5195,
+            27.4023
+          ],
+          "ambientUp": [
+            0.3457,
+            0.668,
+            1.4108
+          ],
+          "ambientDown": [
+            0.6342,
+            0.5617,
+            0.4772
+          ],
+          "envMapUp": [
+            0.3453,
+            0.6652,
+            1.4019
+          ],
+          "envMapDown": [
+            0.6254,
+            0.554,
+            0.4709
+          ]
+        },
+        "grid": {
+          "resolution": [
+            258,
+            176,
+            151
+          ],
+          "voxel": 12,
+          "min": [
+            -1548,
+            0,
+            -906
+          ],
+          "max": [
+            1548,
+            2112,
+            906
+          ],
+          "densityMax": 1,
+          "occupancy": 0.2605228416149793,
+          "bakeMs": 167.29999995231628
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": false,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": false,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 0,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              129,
+              76,
+              88
+            ],
+            "bytes": 20706048,
+            "volumeDims": [
+              258,
+              151,
+              176
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 8,
+            "swaps": 1,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 1,
+          "samples": 1024,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            640,
+            360
+          ],
+          "msPerPass": 151.39999997615814,
+          "wallMs": 123886.60000002384,
+          "compileMs": 609.1999999880791,
+          "kernelBytes": 51432,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.08,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "ultra",
+          "lightingModel": "fit",
+          "densityScale": 0.3,
+          "directDensity": 0.08,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 0,
+          "fit": [
+            0.99,
+            0.8,
+            2.47,
+            0.2,
+            0.62,
+            0.3,
+            1,
+            0.38,
+            0.5,
+            0.61,
+            1,
+            2,
+            0,
+            1,
+            0
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "sunward": {
+          "distance": 2997.8601455688477,
+          "sunElevationDeg": 32.48580404496414,
+          "edgeElevationDeg": 35.40000000000079,
+          "insideDeg": 2.9141959550366465,
+          "tauAlongSun": 55.12353203773491,
+          "silhouetteTau": 0.1,
+          "aimBelowDeg": 7
+        },
+        "card": {
+          "def": {
+            "key": "houdini",
+            "label": "H Houdini cumulus, wispy (P2.7b)",
+            "source": "P2.7b: Houdini cumulus (cumulus_4_wispy.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 8000,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 8000,
+            "height": 150
+          },
+          "source": "P2.7b: Houdini cumulus (cumulus_4_wispy.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            258,
+            151,
+            176
+          ],
+          "voxel": 12,
+          "densityRef": 1,
+          "densityMaxSource": 1,
+          "directDensity": 0.08,
+          "extinctionScale": 0.08,
+          "ptSigmaPerUnit": 0.08,
+          "boxMin": [
+            -1548,
+            0,
+            -906
+          ],
+          "boxMax": [
+            1548,
+            2112,
+            906
+          ],
+          "occupied": {
+            "min": [
+              -1512,
+              36,
+              -870
+            ],
+            "max": [
+              1476,
+              2040,
+              834
+            ]
+          },
+          "file": "assets/clouds/houdini-stages/cumulus_4_wispy.vdb",
+          "gridName": "density",
+          "sourceVoxels": 1681908,
+          "up": "y",
+          "worldScale": 1,
+          "nativeVoxel": 12.000000569969416,
+          "taps": 1,
+          "loadMs": 291.69999998807907,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 7895
+      },
+      "linear": {
+        "file": "-a8af-1a5e5f64c4b2/scratchpad/p29b/houdini/pt-sunward.pfm",
+        "view": "pt-sunward",
+        "kind": "radiance",
+        "width": 640,
+        "height": 360,
+        "channels": 4,
+        "byteLength": 3686400,
+        "nonFinite": 0,
+        "meanRgb": [
+          1.2389158077537368,
+          1.5734610464471754,
+          2.337705924606675
+        ],
+        "meta": {
+          "samples": 1024,
+          "seed": 1,
+          "units": "accumulator / samples"
+        }
+      }
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
