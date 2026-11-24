@@ -28,8 +28,61 @@ export const SUNS = {
   // P0.4: 5 degrees above the horizon. solarPosition({ timeOfDay, latitude: 40 }) solved by bisection: 18.949 h -> elevation 5.000, azimuth 296.6.
   // Ring 120: side / back lit (between the low sun's 70 and backlit's 140), so the sunset frame shows a lit rim and a shaded body.
   sunset: { time: 18.949, ring: 120 },
+  // P1.7b: looking toward the sun, the sun just behind the cloud's top edge (silver-lining geometry). Ring 180 gives the camera's side of the
+  // cloud; its distance and aim come from `sunwardCamera` (the ring distance is only the search's starting scale).
+  sunward: { time: 16.45, ring: 180 },
 } as const;
 export type SunName = keyof typeof SUNS;
+
+/** P1.7b sunward view: the sun direction this many degrees inside the top silhouette (tau >= silhouetteTau), the view aimed aimBelowDeg below the sun. */
+export const SUNWARD = { insideDeg: 3, silhouetteTau: 0.1, aimBelowDeg: 7 } as const;
+
+/** Optical depth along a ray through the grid (nearest voxel, steps of half a voxel), sigma per unit density `sigma`, capped at `cap`. */
+function rayTau(g: DensityGrid, sigma: number, o: V3, d: V3, cap = 50): number {
+  let t0 = 0, t1 = Infinity;
+  for (let a = 0; a < 3; a++) {
+    if (Math.abs(d[a]) < 1e-9) { if (o[a] < g.min[a] || o[a] > g.max[a]) return 0; continue; }
+    const ta = (g.min[a] - o[a]) / d[a], tb = (g.max[a] - o[a]) / d[a];
+    t0 = Math.max(t0, Math.min(ta, tb)); t1 = Math.min(t1, Math.max(ta, tb));
+  }
+  if (t1 <= t0) return 0;
+  const [nx, ny, nz] = g.resolution, step = g.voxel * 0.5;
+  let tau = 0;
+  for (let t = t0 + step * 0.5; t < t1; t += step) {
+    const i = Math.floor((o[0] + d[0] * t - g.min[0]) / g.voxel), j = Math.floor((o[1] + d[1] * t - g.min[1]) / g.voxel), k = Math.floor((o[2] + d[2] * t - g.min[2]) / g.voxel);
+    if (i < 0 || j < 0 || k < 0 || i >= nx || j >= ny || k >= nz) continue;
+    tau += g.density[i + nx * (j + ny * k)] * sigma * step;
+    if (tau > cap) break;
+  }
+  return tau;
+}
+
+export interface SunwardInfo { distance: number; sunElevationDeg: number; edgeElevationDeg: number; insideDeg: number; tauAlongSun: number; silhouetteTau: number; aimBelowDeg: number }
+
+/**
+ * P1.7b: the camera for the `sunward` view. The camera stands on the far side of the cloud from the sun (horizontal direction through the
+ * occupied box centre), at `height`; its horizontal distance is solved (bisection) so that, in the vertical plane toward the sun, the cloud's top
+ * silhouette (highest elevation whose ray has tau >= silhouetteTau) sits insideDeg above the sun. The view looks toward the sun, aimBelowDeg lower.
+ */
+export function sunwardCamera(g: DensityGrid, sigma: number, sun: V3, centre: V3, height: number, distance0: number): { position: V3; target: V3; info: SunwardInfo } {
+  const hl = Math.hypot(sun[0], sun[2]) || 1, h = [sun[0] / hl, sun[2] / hl];
+  const elSun = (Math.asin(Math.min(1, sun[1])) * 180) / Math.PI;
+  const camAt = (D: number): V3 => [centre[0] - h[0] * D, height, centre[2] - h[1] * D];
+  const dirAt = (elDeg: number): V3 => { const e = (elDeg * Math.PI) / 180; return [h[0] * Math.cos(e), Math.sin(e), h[1] * Math.cos(e)]; };
+  const topEdge = (D: number): number => {
+    const cam = camAt(D);
+    for (let el = 85; el > elSun - 20; el -= 0.1) if (rayTau(g, sigma, cam, dirAt(el), SUNWARD.silhouetteTau * 2) >= SUNWARD.silhouetteTau) return el;
+    return -90;
+  };
+  const want = elSun + SUNWARD.insideDeg;
+  let lo = distance0 * 0.2, hi = distance0 * 4;   // topEdge falls with distance
+  for (let i = 0; i < 22; i++) { const mid = (lo + hi) / 2; if (topEdge(mid) > want) lo = mid; else hi = mid; }
+  const D = (lo + hi) / 2, position = camAt(D), edge = topEdge(D);
+  const aim = dirAt(elSun - SUNWARD.aimBelowDeg);
+  const target: V3 = [position[0] + aim[0] * 1000, position[1] + aim[1] * 1000, position[2] + aim[2] * 1000];
+  const info = { distance: D, sunElevationDeg: elSun, edgeElevationDeg: edge, insideDeg: edge - elSun, tauAlongSun: rayTau(g, sigma, position, dirAt(elSun), 1e9), silhouetteTau: SUNWARD.silhouetteTau, aimBelowDeg: SUNWARD.aimBelowDeg };
+  return { position, target, info };
+}
 
 export interface CardCloudDef {
   key: CardCloudKey;

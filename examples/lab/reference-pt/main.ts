@@ -12,7 +12,8 @@
 // environment is the runtime's own sky-view LUT as an equirect, its sun the runtime's sun at the cloud centre (a delta light).
 // Wind frozen (the bake is a still).
 //
-// Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave | fit | alpha | rtalpha, sun noon | low | backlit | sunset.
+// Views (bookmarks, also the panel): <renderer>-<sun>, renderer pt | nubis | octave | fit | alpha | rtalpha, sun noon | low | backlit | sunset | sunward
+// (P1.7b: toward the sun, the sun 3 degrees inside the top silhouette; camera solved in cards.ts sunwardCamera).
 // URL: ?cloud=parkouring &view=pt-noon &spp=1024 &ptScale=1 &albedo=0.99 &g=0.8 &voxel=2 &maxDepth=512 &quality=ultra &exposure=0.35 &seed=1
 //      &distance= &height= (override the cloud's camera ring)
 // P0.6 (Review section of the panel; each also a URL parameter): &ptTest=furnace|absorber (the PT medium checks: no sun, a uniform sky of
@@ -43,7 +44,7 @@ import { createCloudBridge } from '../flagship/three-bridge';
 import { createSkyBridge } from '../flagship/sky-bridge';
 import { vdbDeviceLimits } from '../vdb-sky/vdb-direct';
 import { bakeSky, type DensityGrid, type SkyBake, type V3 } from './bake';
-import { CARD_CLOUDS, CARD_DEFS, SUNS, loadCard, type CardCloudKey, type CardScene, type SunName } from './cards';
+import { CARD_CLOUDS, CARD_DEFS, SUNS, loadCard, sunwardCamera, type CardCloudKey, type CardScene, type SunName, type SunwardInfo } from './cards';
 import { PtReference } from './pt';
 import { chunk, composite, describe, readRgba16f, type LinearFrame } from './linear';
 
@@ -230,6 +231,7 @@ try {
   let skyNow: SkyBake | null = null;
   let gridNow: DensityGrid | null = null;
   let camNow: { position: V3; target: V3 } | null = null;
+  let sunwardInfo: SunwardInfo | null = null;
   let busy: Promise<void> = Promise.resolve();
 
   async function applyScene(sun: SunName): Promise<void> {
@@ -237,6 +239,17 @@ try {
     status = `sun ${sun}: sky`;
     sky.setTimeOfDay(SUNS[sun].time);
     camNow = cameraFor(sun);
+    sunwardInfo = null;
+    if (sun === 'sunward') {
+      // P1.7b: solve the camera against the density (Parkouring's grid baked for the ring camera; the others ignore the camera).
+      const k0 = camNow.position.map(v => v.toFixed(1)).join(',');
+      let g0 = grids.get(k0);
+      if (!g0) { status = `sun ${sun}: density grid`; g0 = await card.grid(camNow.position); grids.set(k0, g0); }
+      const sw = sunwardCamera(g0, card.ptExtinction() * settings.extScale, sunNow(), centre(), CAMERA_HEIGHT, CAMERA_DISTANCE);
+      camNow = { position: sw.position, target: sw.target };
+      sunwardInfo = sw.info;
+      console.log(`sunward: ${JSON.stringify(sw.info)}`);
+    }
     camera.position.set(...camNow.position); camera.up.set(0, 1, 0); camera.lookAt(...camNow.target); camera.updateMatrixWorld();
     await frames(12);   // the sky's LUTs follow the new sun over a frame or two
     skyNow = await bakeSky(device, skyBridge.layout, skyBridge.bindGroup, centre());
@@ -427,6 +440,7 @@ try {
       sunShadow: { ...Object.fromEntries(SUN_SHADOW_KEYS.map(k => [k, (runtime.settings as unknown as Record<string, number>)[k]])), grid: runtime.lightGridInfo },
       pt: { majorant: pt.majorant, extScale: settings.extScale, samples: pt.samples, target: settings.spp, seed: pt.seed, film: [pt.width, pt.height], msPerPass: pt.passMs, wallMs: ptWallMs, compileMs: pt.compileMs, kernelBytes: pt.kernelBytes, maxDepth: pt.maxDepth, medium: pt.medium, alphaFilter: pt.alphaFilter },
       runtime: { lightDebug: runtime.settings.lightDebug, edgeDarkening: runtime.settings.edgeDarkening, directProfile: runtime.settings.directProfile, phaseModel: runtime.settings.phaseModel, microDist: runtime.settings.microDist, bodyEnv: runtime.settings.bodyEnv, quality: runtime.quality, lightingModel: runtime.settings.lightingModel, densityScale: runtime.settings.densityScale, directDensity: runtime.settings.directDensity, lightDensityScale: runtime.settings.lightDensityScale, sunShadowGridSource: runtime.settings.sunShadowGridSource, fit: [runtime.settings.fitAlbedo, runtime.settings.fitG, runtime.settings.fitMs, runtime.settings.fitK, runtime.settings.fitAmbient, runtime.settings.fitKUp, runtime.settings.fitDirect, runtime.settings.fitMsFwd, runtime.settings.fitMsG, runtime.settings.fitGround, runtime.settings.fitAmbientForm, runtime.settings.fitMsPow, runtime.settings.fitGroundAtten, runtime.settings.fitMsTauSmooth, runtime.settings.fitMiePhase], phaseG: runtime.settings.phaseG, silverG: runtime.settings.silverG, silverStrength: runtime.settings.silverStrength, msStrength: runtime.settings.msStrength, ambientStrength: runtime.settings.ambientStrength, ambientSaturation: runtime.settings.ambientSaturation, diffuseSun: runtime.settings.diffuseSun, microShadow: runtime.settings.microShadow },
+      sunward: sunwardInfo,
       card: { def: DEF, cameraRing: { distance: CAMERA_DISTANCE, height: CAMERA_HEIGHT }, ...card.describe() },
       exposure: settings.exposure, frames: frame,
     }),
