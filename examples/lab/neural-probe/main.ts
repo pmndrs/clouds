@@ -53,7 +53,7 @@ async function main() {
   }
 
   async function run(label: string, count: number, iters: number, passes: number): Promise<Row> {
-    status(`building ${label}`);
+    setStatus(`building ${label}`);
     const { pipes, groups } = await build(count, iters);
     const wall: number[] = [], enc: number[] = [];
     for (let r = 0; r < WARM + RUNS; r++) {
@@ -89,6 +89,6 @@ async function main() {
   const f = (x: number, d = 3) => x.toFixed(d);
   (document.getElementById('out') as HTMLElement).innerHTML = `<table><tr><th>case</th><th>dispatches</th><th>passes</th><th>iters/elem</th><th>wall ms</th><th>ms/dispatch</th><th>encode ms</th></tr>${
     rows.map(r => `<tr><td>${r.case}</td><td>${r.dispatches}</td><td>${r.passes}</td><td>${r.iters}</td><td>${f(r.wallMs, 2)}</td><td>${f(r.msPerDispatch)}</td><td>${f(r.encodeMs, 2)}</td></tr>`).join('')}</table>`;
-  status('done: ' + report().adapter);
+  setStatus('done: ' + report().adapter);
 }
-main().catch(e => { status('ERROR ' + e); (window as any).__clouds = { ready: false, error: String(e), report: () => ({ error: String(e) }) }; });
+main().catch(e => { setStatus('ERROR ' + e); (window as any).__clouds = { ready: false, error: String(e), report: () => ({ error: String(e) }) }; });
