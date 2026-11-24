@@ -197,6 +197,7 @@ def unet(W, x, tap=None):
         if ATTN_MODES[i] == 0:
             a = x                                           # nn.Identity: attn(x) + x == 2x
         else:
+            t("downs.%d.attn_in" % i, x)                    # attention input (N5.9)
             a = block_attention(W, p + ".2", x, 8)
             t("downs.%d.attn" % i, a)
         x = a + x
@@ -206,6 +207,7 @@ def unet(W, x, tap=None):
         x = conv3x3(x, W[p + ".3.weight"], W[p + ".3.bias"]) if i == nd - 1 else downsample(W, p + ".3", x)
         t("downs.%d.down" % i, x)
     x = resblock(W, "mid_block1", x)
+    t("mid_attn_in", x)                                     # attention input (N5.9)
     a = block_attention(W, "mid_attn", x, 4)
     x = a + x
     t("mid_attn", a)
@@ -218,6 +220,7 @@ def unet(W, x, tap=None):
         if ATTN_MODES[nd - 1 - i] == 0:
             a = x
         else:
+            t("ups.%d.attn_in" % i, x)                      # attention input (N5.9)
             a = block_attention(W, p + ".2", x, 8)
             t("ups.%d.attn" % i, a)
         x = a + x
