@@ -1,0 +1,191 @@
+{
+  "url": "http://127.0.0.1:5391/neural-engine-full/?size=512",
+  "size": [
+    2000,
+    900
+  ],
+  "startedAt": "2026-11-24T01:46:34.739Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N5-10/512/view.jpg",
+      "report": {
+        "task": "N5.10",
+        "size": 512,
+        "batch": 6,
+        "setSplit": 3,
+        "check": "fp32 end-to-end max abs <= 1e-3 vs out_wasm",
+        "pass": true,
+        "results": [
+          {
+            "precision": "fp32",
+            "ops": 83,
+            "dispatches": 88,
+            "endToEnd": {
+              "maxAbs": 0.0000012516975402832031,
+              "meanAbs": 3.5678188699724465e-8,
+              "meanAbsRef": 0.4371438860693881,
+              "relL2": 1.8652449920276494e-7,
+              "nonFinite": 0
+            },
+            "perPass": [
+              {
+                "pass": "dir.pass0",
+                "maxAbs": 4.172325134277344e-7,
+                "meanAbs": 2.01348114326028e-8,
+                "meanAbsRef": 0.028552749708211422,
+                "relL2": 5.242051863523371e-7,
+                "nonFinite": 0
+              },
+              {
+                "pass": "dir.pass1",
+                "maxAbs": 4.172325134277344e-7,
+                "meanAbs": 2.01348114326028e-8,
+                "meanAbsRef": 0.028552749708211422,
+                "relL2": 5.242051863523371e-7,
+                "nonFinite": 0
+              },
+              {
+                "pass": "dir.pass2",
+                "maxAbs": 4.172325134277344e-7,
+                "meanAbs": 2.01348114326028e-8,
+                "meanAbsRef": 0.028552749708211422,
+                "relL2": 5.242051863523371e-7,
+                "nonFinite": 0
+              },
+              {
+                "pass": "env.pass0",
+                "maxAbs": 0.00007128715515136719,
+                "meanAbs": 0.0000024495617704789474,
+                "meanAbsRef": 0.3640020564558313,
+                "relL2": 0.000007942804792835287,
+                "nonFinite": 0
+              },
+              {
+                "pass": "env.pass1",
+                "maxAbs": 0.00006020069122314453,
+                "meanAbs": 0.0000025276241370445623,
+                "meanAbsRef": 0.3931105783725002,
+                "relL2": 0.00000740640218007261,
+                "nonFinite": 0
+              },
+              {
+                "pass": "env.pass2",
+                "maxAbs": 0.000059485435485839844,
+                "meanAbs": 0.0000024179978770910715,
+                "meanAbsRef": 0.4177616806082085,
+                "relL2": 0.000006440557928299627,
+                "nonFinite": 0
+              }
+            ],
+            "vsNumpyBlended": {
+              "maxAbs": 0.0000010728836059570312,
+              "meanAbs": 3.188248835310029e-8,
+              "meanAbsRef": 0.4371438992735837,
+              "relL2": 1.640514420300261e-7,
+              "nonFinite": 0
+            },
+            "timing": {
+              "medianMs": 36.10000002384186,
+              "minMs": 35.80000001192093,
+              "maxMs": 39.299999952316284,
+              "runs": 20,
+              "warmups": 5
+            }
+          },
+          {
+            "precision": "fp16",
+            "ops": 83,
+            "dispatches": 88,
+            "endToEnd": {
+              "maxAbs": 0.006138622760772705,
+              "meanAbs": 0.00014125569280546793,
+              "meanAbsRef": 0.4371438860693881,
+              "relL2": 0.0007486824358859778,
+              "nonFinite": 0
+            },
+            "perPass": [
+              {
+                "pass": "dir.pass0",
+                "maxAbs": 0.002350851893424988,
+                "meanAbs": 0.00006673469394513631,
+                "meanAbsRef": 0.028552749708211422,
+                "relL2": 0.0022321132791204316,
+                "nonFinite": 0
+              },
+              {
+                "pass": "dir.pass1",
+                "maxAbs": 0.002350851893424988,
+                "meanAbs": 0.00006673469394513631,
+                "meanAbsRef": 0.028552749708211422,
+                "relL2": 0.0022321132791204316,
+                "nonFinite": 0
+              },
+              {
+                "pass": "dir.pass2",
+                "maxAbs": 0.002350851893424988,
+                "meanAbs": 0.00006673469394513631,
+                "meanAbsRef": 0.028552749708211422,
+                "relL2": 0.0022321132791204316,
+                "nonFinite": 0
+              },
+              {
+                "pass": "env.pass0",
+                "maxAbs": 0.48216676712036133,
+                "meanAbs": 0.007607261840348656,
+                "meanAbsRef": 0.3640020564558313,
+                "relL2": 0.02722885825812401,
+                "nonFinite": 0
+              },
+              {
+                "pass": "env.pass1",
+                "maxAbs": 0.28828197717666626,
+                "meanAbs": 0.007738108023829682,
+                "meanAbsRef": 0.3931105783725002,
+                "relL2": 0.024639806349395464,
+                "nonFinite": 0
+              },
+              {
+                "pass": "env.pass2",
+                "maxAbs": 0.34270596504211426,
+                "meanAbs": 0.00730290732039407,
+                "meanAbsRef": 0.4177616806082085,
+                "relL2": 0.020391888676495044,
+                "nonFinite": 0
+              }
+            ],
+            "vsNumpyBlended": {
+              "maxAbs": 0.006139576435089111,
+              "meanAbs": 0.00014125098692829852,
+              "meanAbsRef": 0.4371438992735837,
+              "relL2": 0.0007486594197352236,
+              "nonFinite": 0
+            },
+            "timing": {
+              "medianMs": 23.150000005960464,
+              "minMs": 22.899999976158142,
+              "maxMs": 23.5,
+              "runs": 20,
+              "warmups": 5
+            }
+          }
+        ],
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3"
+        }
+      }
+    },
+    {
+      "name": "sheet",
+      "eval": "window.__clouds.sheetJpeg()",
+      "ms": 7
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
