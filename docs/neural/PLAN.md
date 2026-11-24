@@ -149,57 +149,24 @@ These exist because earlier work got stuck in gates, parity and long runs.
     lights inside the cloud, phones, a temporal model, matching the paper's
     PSNR.
 
-## Decisions for the owner
+## Decisions (owner, 2026-11-24)
 
-### D1 — How the network runs in the browser
+| ID | Decision |
+| --- | --- |
+| D1 | ONNX Runtime Web first to get running, hand-written WGSL after. Do not expect the network to get faster until it is hand-written. Subgroup-matrix kernels count as an option though still behind a Chrome flag. |
+| D2 | Experiments go wherever is easiest. For delivery, work that changes the denoiser engine lives in Denoiser; work that is about cloud rendering lives in WebGPUClouds. Decide per sprint by what that sprint's work is about. Cross-project work is fine. |
+| D3 | Stock weights through N4, then decide. No rented GPU until we know the path is right. The owner has an NVIDIA 3060 (low memory); Colab is a later option. |
+| D4 | The authors' browser demo is the parity reference. |
 
-| | A. ONNX Runtime Web | B. Hand-written WGSL | C. A first, then B (recommended) |
-| --- | --- | --- | --- |
-| Quality | exact | exact once verified | exact |
-| Speed | 170–210 ms at 512² measured (whole frame, authors' demo) | unknown; the Denoiser engine suggests roughly 30–60 ms for six passes | A's now, B's later |
-| Difficulty | low: weights already exported | high: five new ops, a weight converter, a parity check | spread over two phases |
-| For future neural work | poor: new architectures depend on ONNX operator support; buffers only, no textures | best: any layer, fusions, caching, shared with the denoiser | best |
-| Risk | runtime bugs outside our control (the Denoiser repo already hit an ORT conv bug) | we maintain every kernel | low |
+The owner's framing: build as planned, but this is a foundation and a way to
+learn. Our own work may end up differing from HaloRT's approach. Bringing the
+frame time down matters.
 
-**Recommendation: C.** A gives a picture within days and a reference to test
-B against. B is where the speed and the reusable foundation are, and it
-matches the goal of learning how these networks work.
-
-### D2 — Where the engine work lives
-
-| | A. Extend Denoiser's `denoiser-wgsl` (recommended) | B. Copy it into WebGPUClouds |
-| --- | --- | --- |
-| Quality | same | same |
-| Speed | inherits its fp16 and fused-conv work | same at the time of the copy, then drifts |
-| Difficulty | medium: its graph assumes 3×3 conv only, so it must be generalised without breaking OIDN | lower at first |
-| Trade-off | one engine for denoising and clouds; touches a published package | two engines to maintain |
-
-**Recommendation: A**, on a branch in the Denoiser worktree, with OIDN parity
-re-run before any merge. Needed only at N5.
-
-### D3 — Training
-
-| | A. No training: stock weights only | B. Train on this Mac (PyTorch MPS), data from our path tracer | C. Rent an NVIDIA GPU, authors' renderer for data |
-| --- | --- | --- | --- |
-| Quality | the paper's; HG phase only, synthetic environments | ours to shape: our phase, our sky, smaller nets | same as B, closer to the paper's data |
-| Speed of the result | fixed architecture | can train smaller, faster networks | same |
-| Difficulty | none | high: generator, training loop, days of rendering | medium-high, plus cost and an account |
-| Cost | none | machine time; the paper used 22 000 images at 4096 spp and 360 k steps | money per hour |
-
-**Recommendation: A through N4, then decide.** Time of day needs no training:
-it is a different sun and sky fed to the same weights. Build the dataset
-generator (the first NT task) only after N4 shows the look is worth it. If we
-train, start with B at small scale, because the generator on our own path
-tracer serves every later neural idea.
-
-### D4 — Reference for parity
-
-The original Python code needs an NVIDIA card. Two options: use the authors'
-browser demo as the oracle (runs here, verified against ONNX by them), or run
-their notebooks on Colab (needs the owner's Google account).
-
-**Recommendation:** the browser demo. Colab only if a difference cannot be
-explained.
+**How agents are used:** Sonnet for gathering and minor code, Opus for code
+and first-pass reviews, nothing higher unless Opus struggles. Short runs with
+a fresh agent per task; reuse an agent's context only when it helps the next
+task. Shared state lives in `work/neural/STATUS.md`, `TASKS.md`, `DIVERGES.md`
+and `work/logs/`, so a fresh agent can pick up from the files.
 
 ## Defaults chosen without asking (say if any is wrong)
 

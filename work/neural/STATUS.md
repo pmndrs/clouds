@@ -10,35 +10,29 @@ Agents: read the plan's Protections before starting. Append to
 `work/logs/N<phase>-<task>.md`; update the table below when a task changes
 state.
 
-_Last updated 2026-11-23._
+_Last updated 2026-11-24._ Tasks: `work/neural/TASKS.md`.
 
 ## Waiting on you
 
-| What | Recommendation | Where |
-| --- | --- | --- |
-| D1 how the network runs | ONNX Runtime first, hand-written WGSL later | PLAN § D1 |
-| D2 where engine work lives | extend the Denoiser engine (needed at N5) | PLAN § D2 |
-| D3 training | none through N4, decide after | PLAN § D3 |
-| D4 parity reference | authors' browser demo | PLAN § D4 |
-| Go-ahead to start N1 | — | — |
+Nothing. D1–D4 were answered on 2026-11-24 (see PLAN § Decisions).
 
 ## Phases
 
 | Phase | What | State |
 | --- | --- | --- |
 | N0 | Research and plan | **done** 2026-11-23 |
-| N1 | Their demo on our bench, with timings | not started |
-| N2 | Our feature pass | not started |
+| N1 | Their demo on our bench, with timings | **running** |
+| N2 | Our feature pass | **running** (N2a) |
 | N3 | Their network on our features | not started |
 | N4 | Time of day | not started |
-| N5 | Our own engine | not started; needs D1, D2 |
+| N5 | Our own engine | not started |
 | N6 | Into the cloud library | not started |
 | N7 | Speed and tuning | not started |
-| NT | Training foundation | not started; needs D3 |
+| NT | Training foundation | not started; decide after N4 |
 
 ## Running
 
-Nothing.
+N1 (Sonnet) and N2a (Opus), started 2026-11-24.
 
 ## Known so far
 
