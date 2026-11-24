@@ -215,6 +215,18 @@ converter and blend** stay in WebGPUClouds and import those ops.
 
 ## 8. Expected cost (*estimate*)
 
+> **Correction, 2026-11-24 (N5.1 probe, `work/logs/N5.md`).** The dispatch-count
+> argument below is not supported. A synthetic probe on the M5 Pro measured a
+> fixed cost of about 6.5 µs per dispatch (12 ms for 1,825), no cost for pass
+> count, and only 5 ms saved by doing the same work in 82 dispatches. So the
+> 100 ms gap between ONNX Runtime's wall time and its GPU timestamps is not
+> dispatch overhead; the timestamps are more likely undercounting on Metal and
+> the network really costs about 130 ms in ONNX Runtime's kernels. The estimate
+> now rests on kernel throughput alone and must be checked by task N5.3 (the
+> Denoiser conv kernel on HaloRT-shaped layers) before kernels are written.
+> Fusion and batching are still right for simplicity, but they are not where
+> the time is.
+
 Assumptions:
 
 - **Work:** 12.6 GMAC per pass at 512², so 75 GMAC for 6 passes (50 for 4).

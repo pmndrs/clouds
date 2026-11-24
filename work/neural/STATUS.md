@@ -22,17 +22,17 @@ Nothing. D1–D4 were answered on 2026-11-24 (see PLAN § Decisions).
 | --- | --- | --- |
 | N0 | Research and plan | **done** 2026-11-23 |
 | N1 | Their demo on our bench, with timings | **done** 2026-11-24 |
-| N2 | Our feature pass | **running** (N2a done, N2b running) |
-| N3 | Their network on our features | not started |
+| N2 | Our feature pass | features done; parity sheet N2d running |
+| N3 | Their network on our features | **first picture done** (N3a) |
 | N4 | Time of day | not started |
-| N5 | Our own engine | design note running (N5-0); moved up, see Known so far |
+| N5 | Our own engine | design note and weight converter done; throughput probe N5.3 running |
 | N6 | Into the cloud library | not started |
 | N7 | Speed and tuning | not started |
 | NT | Training foundation | not started; decide after N4 |
 
 ## Running
 
-N2b (Opus) and N5-0 (Opus, design only), started 2026-11-24.
+N5.3 (Opus) and N2d (Sonnet), started 2026-11-24.
 
 ## Known so far
 
@@ -42,16 +42,28 @@ N2b (Opus) and N5-0 (Opus, design only), started 2026-11-24.
   port follows the code. See DIVERGES N-S1 to N-S5.
 - Training code is not public.
 - **Where the frame goes (N1, N1b; M5 Pro, 512², fp16, authors' demo):** features
-  6.5 ms, network 135 ms of wall time, of which only 33 ms shows as GPU shader
-  time. The other ~100 ms scales with the 1,825 dispatches ONNX Runtime issues
-  per frame. A hand-written engine with fused layers and the six passes
-  batched is therefore the main speed lever, so N5 starts after N3, before N4.
-- Our own feature pass (first half) works on the Disney cloud (N2a).
+  6.5 ms, network 135 ms of wall time. GPU timestamps report only 33 ms of
+  that, but they are unreliable on Metal here.
+- **Dispatch count is not the cost (N5.1).** A probe measured ~6.5 µs per
+  dispatch; going from 1,825 to 82 dispatches saves about 5 ms. The earlier
+  idea that a fused engine would win 100 ms from fewer dispatches was wrong.
+  Whether a hand-written engine is faster now depends on kernel throughput,
+  which N5.3 measures before any kernel is written.
+- **Most of the network's arithmetic is at full resolution** (16-channel 3×3
+  convs at 512², roughly 80 % of the multiply-adds by my count, not measured).
+  Running the network at half resolution with the upscaler is therefore a
+  large lever whatever the engine.
+- Our own feature pass works on the Disney cloud (N2a, N2b), and the authors'
+  network lights it from our features (N3a): about 180 ms per frame at 512²
+  through plain ONNX Runtime.
 
 ## Landed (newest first)
 
 | When | What | Where |
 | --- | --- | --- |
+| 2026-11-24 | N3a: first neural-lit picture from our features | `work/captures/N3a/sheet.jpg` |
+| 2026-11-24 | N5-0, N5.1, N5.2: engine design note, dispatch probe (negative), weight converter | `docs/neural/ENGINE.md`, `work/logs/N5.md`, `work/logs/N5-2.md` |
+| 2026-11-24 | N2b: feature pass complete (14 channels, packed) | `work/captures/N2b/view.jpg` |
 | 2026-11-24 | N1, N1b: demo timed, frame split measured | `work/logs/N1.md` |
 | 2026-11-24 | N2a: feature pass, optical depth and crossings, lab page `/neural/` | `work/captures/N2a/view.jpg`, `work/logs/N2a.md` |
 | 2026-11-23 | N0: 50 reference notes, field summary, HaloRT anatomy, plan | `docs/research/neural/`, `docs/neural/PLAN.md` |
