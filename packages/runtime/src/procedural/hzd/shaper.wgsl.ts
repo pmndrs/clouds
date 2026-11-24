@@ -591,6 +591,23 @@ fn hzdColumnTop(bottom: f32, top: f32, cov: f32, xz: vec2<f32>) -> f32 {
   }
   return bottom + max(top - bottom, 1.0) * mix(1.0, x, P.hzProf.z);
 }
+// P2.6b flank bulges (hzFlank.x > 0): the coverage the column top reads is pushed up or down by a low-frequency 3D billow noise (the shape
+// texture's A.g Worley fBM, mean 0.69, std 0.10, read on its own tile and offset so it does not line up with the body's own shape read),
+// scaled by the height above the base (0 at the base, full at hzFlank.z m). The side boundary of a body at a given height is where the
+// column top equals that height, so it moves in and out with height: stacked rounded bulges on the flanks of tall bodies, flat bases, and
+// small low puffs nearly untouched. Interior columns (coverage well above heightCoverageRef) stay capped at the full top. Ours.
+// Try 2 (hzFlank.w > 0.5): the push also moves the coverage threshold (the body's own side at that height, not only where its column
+// ends), masked by smoothstep(0, 0.1, the 2D coverage) so clear sky never gets cloud.
+fn hzdFlankDelta(covN: f32, p: vec3<f32>, alt: f32, bottom: f32) -> f32 {
+  let rise = saturate((alt - bottom) / P.hzFlank.z);
+  if (rise <= 0.0) { return 0.0; }
+  let q = vec3(p.x - ndfOffset().x, alt, p.z - ndfOffset().y) / P.hzFlank.y + vec3(0.37, 0.11, 0.73);
+  let g = textureSampleLevel(procNoiseA, procRepeat, q, 0.0).g;
+  return P.hzFlank.x * rise * (g - 0.69) / 0.10 * smoothstep(0.0, 0.1, covN);
+}
+fn hzdFlankCov(cov: f32, p: vec3<f32>, alt: f32, bottom: f32) -> f32 {
+  return max(cov + hzdFlankDelta(1.0, p, alt, bottom), 0.0);
+}
 // The HZD low layer (H1-H7, + F1 types and storms). procSample (below) adds the F1 sheets and fractus.
 fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) -> ProcSample {
   var o: ProcSample;
@@ -683,11 +700,19 @@ fn hzdMainSample(p: vec3<f32>, t: f32, footprint: f32, full: bool, jitter: f32) 
   if (cov0 <= 0.0) { return o; }
   // H6 height from coverage (hag p.13, ne22 p.20; constants ours): the column top falls toward the thin edges of each coverage patch, so tops
   // dome at the cloud scale instead of meeting one ceiling.
-  if (P.hzProf.z > 0.0) { top = hzdColumnTop(bottom, top, covN, p.xz); }
+  var flankD = 0.0;   // P2.6b try 2: the push applied to the threshold coverage too
+  if (P.hzProf.z > 0.0) {
+    var covT = covN;
+    if (P.hzFlank.x > 0.0) {   // P2.6b
+      if (P.hzFlank.w > 0.5) { flankD = hzdFlankDelta(covN, p, alt, bottom); covT = max(covN + flankD, 0.0); }
+      else { covT = hzdFlankCov(covN, p, alt, bottom); }
+    }
+    top = hzdColumnTop(bottom, top, covT, p.xz);
+  }
   if (se > 0.0) { top = mix(top, P.hzStorm2.x, se); hzdStormW = se; }
   if (alt <= bottom || alt >= top || top - bottom < 1.0) { return o; }
   let h = (alt - bottom) / (top - bottom);
-  let cov = hzdAnvil(cov0, h, n);
+  let cov = hzdAnvil(max(cov0 + flankD, 0.0), h, n);
   if (cov <= 0.0) { return o; }
   // H7 base lumps: the rise is read up to baseLump (h) higher where the shape's Worley fBM is high (below); the early-out takes the largest offset.
   let lumpMax = 2.0 * P.hzShelf.x;

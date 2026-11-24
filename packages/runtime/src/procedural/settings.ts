@@ -575,6 +575,22 @@ export interface HzdShape {
   /** P2.3b: 0 = one dome per body, 1 = the full turret field. */
   turretAmount: number;
   // ---- end P2.3b ----
+  // ---- P2.6b: flank bulges on tall clouds (packed by packHzdFlank; shaper.wgsl.ts hzdFlankCov) ----
+  /** P2.6b: 0 = off (the coverage the column top reads is the 2D map's); 1 = a low-frequency 3D billow noise pushes that coverage up and
+   *  down by flankAmount x (noise - mean) / std x sat((alt - base) / flankRise), so the height at which a column ends (the body's side
+   *  boundary) moves in and out with height: stacked rounded bulges on the flanks of tall bodies, none at the base (the push is 0 there),
+   *  little on small low puffs. Only with heightFromCoverage on. Constants ours. Cost: one extra 3D texture read per sample (only when on). */
+  flankBulge: number;
+  /** P2.6b: push in coverage units per noise standard deviation at full height. */
+  flankAmount: number;
+  /** P2.6b: bulge cell size (m). */
+  flankSize: number;
+  /** P2.6b: height above the base (m) at which the push is full. */
+  flankRise: number;
+  /** P2.6b try 2: 1 = the push also moves the coverage threshold (the body's side at each height), masked to inside the 2D footprint;
+   *  0 = try 1, only the coverage the column top reads (a barely visible change, see work/logs/P2-6b.md). */
+  flankThreshold: number;
+  // ---- end P2.6b ----
   ndf: HzdNdfSettings;
 }
 
@@ -729,7 +745,9 @@ export const PROC_HZD_STORM_OFFSET = PROC_HZD_MIX_OFFSET + 4;
 export const PROC_HZD_EDGE_OFFSET = PROC_HZD_STORM_OFFSET + 12;
 /** P2.3b: one more vec4 (hzTop) after hzEdge4. */
 export const PROC_HZD_TOP_OFFSET = PROC_HZD_EDGE_OFFSET + 16;
-export const PROC_HZD_LUT_OFFSET = PROC_HZD_TOP_OFFSET + 4;
+/** P2.6b: one more vec4 (hzFlank) after hzTop. */
+export const PROC_HZD_FLANK_OFFSET = PROC_HZD_TOP_OFFSET + 4;
+export const PROC_HZD_LUT_OFFSET = PROC_HZD_FLANK_OFFSET + 4;
 export const PROC_HZD_LUT_FLOATS = 4096;
 let hzdLut: Float32Array | null = null;
 /** The N3 s18 tables as H4 uses them (smoothed top, bottom, and the per-pair peaks), 3 bytes per float (exact in f32; never NaN, so the
@@ -813,6 +831,13 @@ export function packHzdTop(hz: HzdShape, out: Float32Array): void {
   out.set([on ? 1 + Math.min(Math.max(hz.turretAmount ?? 1, 0), 1) : 0, Math.min(Math.max(hz.topDome ?? 1, 0), 1), Math.max(hz.turretSize ?? 700, 10),
     Math.min(Math.max(hz.turretDepth ?? 0.45, 0), 1)], PROC_HZD_TOP_OFFSET);
 }
+/** P2.6b: flank bulge defaults (off; agent-chosen constants). */
+export const HZD_FLANK_DEFAULTS = { flankBulge: 0, flankAmount: 0.2, flankSize: 800, flankRise: 2000, flankThreshold: 1 } satisfies Partial<HzdShape>;
+/** P2.6b: hzFlank = (amount, 0 = off; noise tile (m) = 10 x flankSize, the A.g Worley fBM having ~10 cells per tile; flankRise (m); flankThreshold). */
+export function packHzdFlank(hz: HzdShape, out: Float32Array): void {
+  const on = (hz.flankBulge ?? 0) > 0.5;
+  out.set([on ? Math.max(hz.flankAmount ?? 0.15, 0) : 0, 10 * Math.max(hz.flankSize ?? 800, 10), Math.max(hz.flankRise ?? 2000, 1), (hz.flankThreshold ?? 1) > 0.5 ? 1 : 0], PROC_HZD_FLANK_OFFSET);
+}
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
   const o = PROC_HZD_N3_OFFSET;
@@ -840,7 +865,7 @@ export const HZD_DEFAULTS: HzdShape = {
   stage: 3, noiseFormat: 'rgba8unorm', noiseCarve: 1, noiseFine: 1, noiseSmooth: 0, noiseSupersample: 1, detailRecipe: 'gp7', shapeCubicDistance: 30000, detailCubicDistance: 30000, densityPow: 1, shapeContrast: 1, ringStart: 15000, ringEnd: 35000, ringCoverage: 0.3, ringType: 1, ringFadeStart: 0.5,
   erosionStrength: 0.3, wispyHeight: 0.2, erosionOrder: 'hfw', topRound: 0.7, profileSmooth: true, heightFromCoverage: 0.4, heightCoverageRef: 0.4,
   coverageDensityPow: 0, coverageDensityRef: 0.5, veilWidth: 0.08, veilDensity: 0.04, veilHeight: 0.25, veilWisp: 3, veilDistance: 15000, veilNoise: 'detail',
-  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ...HZD_EDGE_DEFAULTS, ...HZD_TOP_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
+  skirtMode: 'veil', skirtTrail: 500, skirtStretch: 2.5, skirtPeak: 0.08, skirtScale: 3, skirtTrailWidth: 2, skirtGap: 0.25, bottomCurl: 1, lobeTile: 1050, lobeStrength: 0, lobeFull: 0.45, lobeCubic: true, lobeCoverage: 0.5, baseLump: 0, bottomErosion: 0, bottomCurlDown: 0, wispyStrength: 0.3, ...HZD_FORM_DEFAULTS, ...HZD_N3_DEFAULTS, ...HZD_EDGE_DEFAULTS, ...HZD_TOP_DEFAULTS, ...HZD_FLANK_DEFAULTS, ndf: HZD_NDF_DEFAULTS,
 };
 /** A deep copy of the HZD defaults. */
 export const hzdDefaults = (): HzdShape => ({ ...HZD_DEFAULTS, windDirection: [...HZD_DEFAULTS.windDirection], ndf: { ...HZD_NDF_DEFAULTS } });
@@ -933,6 +958,7 @@ export function packProceduralParams(s: ProceduralSettings, out: Float32Array): 
   packHzdStorm(hz, out);
   packHzdEdge(hz, out);
   packHzdTop(hz, out);
+  packHzdFlank(hz, out);
   return [minY, maxY];
 }
 
