@@ -21,18 +21,18 @@ Nothing. D1–D4 were answered on 2026-11-24 (see PLAN § Decisions).
 | Phase | What | State |
 | --- | --- | --- |
 | N0 | Research and plan | **done** 2026-11-23 |
-| N1 | Their demo on our bench, with timings | **running** |
-| N2 | Our feature pass | **running** (N2a) |
+| N1 | Their demo on our bench, with timings | **done** 2026-11-24 |
+| N2 | Our feature pass | **running** (N2a done, N2b running) |
 | N3 | Their network on our features | not started |
 | N4 | Time of day | not started |
-| N5 | Our own engine | not started |
+| N5 | Our own engine | design note running (N5-0); moved up, see Known so far |
 | N6 | Into the cloud library | not started |
 | N7 | Speed and tuning | not started |
 | NT | Training foundation | not started; decide after N4 |
 
 ## Running
 
-N1 (Sonnet) and N2a (Opus), started 2026-11-24.
+N2b (Opus) and N5-0 (Opus, design only), started 2026-11-24.
 
 ## Known so far
 
@@ -41,9 +41,17 @@ N1 (Sonnet) and N2a (Opus), started 2026-11-24.
 - The released code differs from the paper in several feature encodings; the
   port follows the code. See DIVERGES N-S1 to N-S5.
 - Training code is not public.
+- **Where the frame goes (N1, N1b; M5 Pro, 512², fp16, authors' demo):** features
+  6.5 ms, network 135 ms of wall time, of which only 33 ms shows as GPU shader
+  time. The other ~100 ms scales with the 1,825 dispatches ONNX Runtime issues
+  per frame. A hand-written engine with fused layers and the six passes
+  batched is therefore the main speed lever, so N5 starts after N3, before N4.
+- Our own feature pass (first half) works on the Disney cloud (N2a).
 
 ## Landed (newest first)
 
 | When | What | Where |
 | --- | --- | --- |
+| 2026-11-24 | N1, N1b: demo timed, frame split measured | `work/logs/N1.md` |
+| 2026-11-24 | N2a: feature pass, optical depth and crossings, lab page `/neural/` | `work/captures/N2a/view.jpg`, `work/logs/N2a.md` |
 | 2026-11-23 | N0: 50 reference notes, field summary, HaloRT anatomy, plan | `docs/research/neural/`, `docs/neural/PLAN.md` |
