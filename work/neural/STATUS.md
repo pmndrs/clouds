@@ -23,9 +23,9 @@ Nothing. D1–D4 were answered on 2026-11-24 (see PLAN § Decisions).
 | N0 | Research and plan | **done** 2026-11-23 |
 | N1 | Their demo on our bench, with timings | **done** 2026-11-24 |
 | N2 | Our feature pass | **done** 2026-11-24 (parity sheet N2d) |
-| N3 | Their network on our features | **first picture done** (N3a) |
+| N3 | Their network on our features | **done** (N3a picture, N3b comparison) |
 | N4 | Time of day | not started |
-| N5 | Our own engine | **network done and verified** (N5.10); live-page wiring N5.12 next |
+| N5 | Our own engine | **done** (N5.10 verified, N5.12 on the live page); timing table N5.11 not done |
 | N6 | Into the cloud library | **on hold** (owner 2026-11-24: not on main unless it is a speed gain; see PLAN § The bar) |
 | N7 | Speed and tuning | not started |
 | NT | Training foundation | not started; decide after N4 |
@@ -60,6 +60,17 @@ Nothing.
 
   No tuning has been done. Not yet on the live page: the blend runs on the CPU
   in the test page, and `/neural/` still uses ONNX Runtime (N5.12).
+- **Engine on the live page (N5.12).** Whole frame at 512² fp16: 33 ms with our
+  engine, 158 ms with ONNX Runtime. fp32 on the live page is 96–103 ms, about
+  three times the engine alone; not explained, not chased.
+- **Against the raymarcher and the path trace (N3b, Disney cloud, 512²).**
+  Raymarch 1.0 ms a frame, neural 33 ms, path trace 130–184 s.
+  Noon: neural is closest to the path trace in brightness (lit top +11 %,
+  underside −25 %) but softer; the raymarch is sharpest but grey, lit faces
+  −46 %. Low sun: neural is too flat (body +25 %, shallow shadow band, sun
+  colour not matched); the raymarch has the better shadow shape and colour but
+  lit faces −57 %. So HaloRT is about 33 times the raymarcher's cost for a
+  brightness gain and a detail loss.
 - Features match the authors' for matched settings (N2d).
 - Our own feature pass works on the Disney cloud (N2a, N2b), and the authors'
   network lights it from our features (N3a): about 180 ms per frame at 512²
@@ -69,6 +80,8 @@ Nothing.
 
 | When | What | Where |
 | --- | --- | --- |
+| 2026-11-24 | N3b: path trace, neural and raymarch side by side with costs | `work/captures/N3b/sheet.jpg`, `work/logs/N3b.md` |
+| 2026-11-24 | N5.12: engine on the live `/neural/` page, 33 ms a frame at 512² fp16 | `work/captures/N5-12/sheet.jpg`, `work/logs/N5-12.md` |
 | 2026-11-24 | N5.6–N5.10: HaloRT on our WGSL engine, verified end to end, 23 ms at 512² fp16 | `work/captures/N5-10/sheet.jpg`, `work/logs/N5-10.md` |
 | 2026-11-24 | N2d: feature parity sheet | `work/captures/N2d/parity.jpg` |
 | 2026-11-24 | N5.3–N5.5: kernel throughput measured, parity fixture, NumPy reference | `work/logs/N5.md`, `work/logs/N5-4.md`, `work/logs/N5-5.md` |
