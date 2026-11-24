@@ -587,6 +587,9 @@ export interface HzdShape {
   flankSize: number;
   /** P2.6b: height above the base (m) at which the push is full. */
   flankRise: number;
+  /** P2.6b try 2: 1 = the push also moves the coverage threshold (the body's side at each height), masked to inside the 2D footprint;
+   *  0 = try 1, only the coverage the column top reads (a barely visible change, see work/logs/P2-6b.md). */
+  flankThreshold: number;
   // ---- end P2.6b ----
   ndf: HzdNdfSettings;
 }
@@ -829,11 +832,11 @@ export function packHzdTop(hz: HzdShape, out: Float32Array): void {
     Math.min(Math.max(hz.turretDepth ?? 0.45, 0), 1)], PROC_HZD_TOP_OFFSET);
 }
 /** P2.6b: flank bulge defaults (off; agent-chosen constants). */
-export const HZD_FLANK_DEFAULTS = { flankBulge: 0, flankAmount: 0.15, flankSize: 800, flankRise: 2000 } satisfies Partial<HzdShape>;
-/** P2.6b: hzFlank = (amount, 0 = off; noise tile (m) = 10 x flankSize, the A.g Worley fBM having ~10 cells per tile; flankRise (m); 0). */
+export const HZD_FLANK_DEFAULTS = { flankBulge: 0, flankAmount: 0.2, flankSize: 800, flankRise: 2000, flankThreshold: 1 } satisfies Partial<HzdShape>;
+/** P2.6b: hzFlank = (amount, 0 = off; noise tile (m) = 10 x flankSize, the A.g Worley fBM having ~10 cells per tile; flankRise (m); flankThreshold). */
 export function packHzdFlank(hz: HzdShape, out: Float32Array): void {
   const on = (hz.flankBulge ?? 0) > 0.5;
-  out.set([on ? Math.max(hz.flankAmount ?? 0.15, 0) : 0, 10 * Math.max(hz.flankSize ?? 800, 10), Math.max(hz.flankRise ?? 2000, 1), 0], PROC_HZD_FLANK_OFFSET);
+  out.set([on ? Math.max(hz.flankAmount ?? 0.15, 0) : 0, 10 * Math.max(hz.flankSize ?? 800, 10), Math.max(hz.flankRise ?? 2000, 1), (hz.flankThreshold ?? 1) > 0.5 ? 1 : 0], PROC_HZD_FLANK_OFFSET);
 }
 /** Pack the N1 block (see above). */
 export function packHzdN3(hz: HzdShape, out: Float32Array): void {
