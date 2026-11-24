@@ -193,7 +193,7 @@ describe('HZD shaper F1: types and forms', () => {
     packProceduralParams(s, out);
     const o = PROC_HZD_N3_OFFSET;
     expect(o).toBe(PROC_HZD_FORMS_OFFSET + 44);
-    expect(PROC_HZD_LUT_OFFSET).toBe(o + 44);   // P2.5a/b: + 4 edge vec4; P2.3b: + hzTop; L3: the hzMix vec4 and (STORM1) three storm vec4 sit between the N1 block and the tables
+    expect(PROC_HZD_LUT_OFFSET).toBe(o + 48);   // P2.5a/b: + 4 edge vec4; P2.3b: + hzTop; P2.6b: + hzFlank; L3: the hzMix vec4 and (STORM1) three storm vec4 sit between the N1 block and the tables
     expect(Array.from(out.subarray(o, o + 8))).toEqual([1, 600, 1, 0.5, 900, 1, 0, 0]);
     s.hzd.noiseSet = 'hzd'; s.hzd.shapeNoise = 'nubis3';
     packProceduralParams(s, out);
