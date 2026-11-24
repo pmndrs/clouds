@@ -77,7 +77,8 @@ struct Frame {
   // w = fitAmbientForm (0 = P1.2b's U blend of up and down, 1 = up through 1 / (1 + fitKUp tauUp) plus ground unshadowed).
   fit3: vec4<f32>,
   // P1.4b: x = fitMsPow (ms falloff 1 / (1 + fitK tau)^x; 1 = P1.2c), y = fitGroundAtten (1 = the ground term also / (1 + fitKUp tauUp)),
-  // z (P1.4c) = fitMsTauSmooth (the ms term's tau: mix(tau, light grid alone at the sample, z); voxel march only), w 0.
+  // z (P1.4c) = fitMsTauSmooth (the ms term's tau: mix(tau, light grid alone at the sample, z); voxel march only), w (P1.7a) = fitMiePhase
+  // (1 = the direct term's phase is the HG + Draine droplet fit at dropletDiameter, 0 = HG(fitG)).
   fit4: vec4<f32>,
 }
 @group(1) @binding(0) var<uniform> frame: Frame;
