@@ -35,7 +35,7 @@ State: todo, running, done, stopped (say why).
 | N5.9 | Block attention kernel (ENGINE.md task 8). | Opus | done | Block attention in 2 dispatches: ≤7.8e-6 at 256² and 512². `cf7fc04` `93ca24c` |
 | N5.10 | Full graph, batch of 6, blend; end-to-end parity (ENGINE.md task 9). | Opus | done | **Whole network on our engine**, 88 dispatches, one submit. End to end vs authors: 1.3e-6 (fp32). fp16 not distinguishable by eye. Network wall time, batch 6: 512² 36.1 ms fp32 / 23.2 ms fp16; 256² 12.9 / 8.5 ms. Page `/neural-engine-full/`, sheet `work/captures/N5-10/sheet.jpg`. `c010079` `6c0fddb` |
 | N5.11 | Timing table beside ONNX Runtime's (ENGINE.md task 10). | Sonnet | todo | |
-| N5.12 | Engine on the live `/neural/` page: GPU blend op, features buffer straight into the engine, an "engine" switch beside ONNX Runtime. | Opus | todo | |
+| N5.12 | Engine on the live `/neural/` page: GPU blend op, features buffer straight into the engine, an "engine" switch beside ONNX Runtime. | Opus | done | **Live page lit by our engine**, fully on the GPU: `packed` bound straight in (the first conv gathers), GPU blend into the ONNX output buffer (display shared). Review "network" select + `?net=`, default engine. vs ONNX at 512²: fp32 1.0e-6 max abs, fp16 1.1e-2 (same by eye). Frame (features+net+blend) 512²: engine 103 ms fp32 / 33 ms fp16, ONNX 325 / 158 ms; fp32 here is ~3× N5.10's network-only number (log). Sheets `work/captures/N5-12/sheet{,-fp16}.jpg`, log `work/logs/N5-12.md`. `9b1d9c2` |
 | N7.1 | Grey-albedo shortcut: batch of 4 (one sun pass). | Sonnet | todo | |
 | N7.2 | Network at 256² with the upscaler to 512² and above. | Opus | todo | |
 

@@ -1,0 +1,5 @@
+r1-engine {"network":"engine","precision":"fp32","size":512,"runs":20,"warmups":5,"medianMs":102.7,"minMs":63.6,"maxMs":109.8}
+r1-onnx {"network":"onnx","precision":"fp32","size":512,"runs":20,"warmups":5,"medianMs":324.55,"minMs":310.5,"maxMs":357.7}
+h1-engine {"network":"engine","precision":"fp16","size":512,"runs":20,"warmups":5,"medianMs":33.25,"minMs":32.6,"maxMs":34}
+h1-onnx {"network":"onnx","precision":"fp16","size":512,"runs":20,"warmups":5,"medianMs":158.1,"minMs":148.3,"maxMs":393.2}
+t2-engine {"network":"engine","precision":"fp32","size":512,"runs":20,"warmups":5,"medianMs":95.5,"minMs":61.5,"maxMs":134.2}
