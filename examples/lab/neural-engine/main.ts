@@ -6,9 +6,12 @@
 //   - all six items with a plain JS conv3x3 on the CPU (the dumps only hold pass 0; this covers the gather of passes 1-2).
 // N5.7: the graph is now init_conv + stage 0's two ResnetBlocks (kernels A/B: conv3x3 + RMSNorm + SiLU, identity
 // skip, x2 fused in the last op); items 0 and 3 are also compared with dumps downs.0.block1 / downs.0.post_attn_add.
+// N5.8: a second graph of independent pieces (Down as 2x2 s2, 32/64-channel ResnetBlocks, up stages with concat
+// + res_conv skip and nearest-up conv, final_res_block, final_conv), each fed its reference INPUT from the
+// --dump-all dumps in dumps/<size>-all/ (items 0-2 get the dir dump, 3-5 the env dump) and compared on items 0 and 3.
 // Query: ?size=256|512 (default 256), ?precision=fp32|fp16 (default fp32). Report: window.__clouds.report().
 import { Engine } from '../../../experiments/neural/engine/runtime';
-import { HALO_GATHER_B6, stage0Graph } from '../../../experiments/neural/engine/graph';
+import { HALO_GATHER_B6, n58Graph, stage0Graph } from '../../../experiments/neural/engine/graph';
 import { parseTZA, type TensorMap } from '../../../experiments/neural/engine/tza';
 
 declare const __REPO_ROOT__: string;
@@ -131,9 +134,46 @@ async function main() {
   // fp32: max abs <= 1e-4 (N5.6 brief). fp16: relative L2 <= 5e-3 (ENGINE.md §7); max abs is then at f16 output rounding.
   const threshold = F16 ? 5e-3 : 1e-4;
   const ok = (r: { maxAbs: number; relL2: number; nonFinite: number }) => !r.nonFinite && (F16 ? r.relL2 : r.maxAbs) <= threshold;
-  const pass = vsNumpy.every(ok) && vsCpu.every(ok);
+  // ---- N5.8 pieces ----
+  status('N5.8: loading dumps');
+  const allDir = `neural/fixture/dumps/${SIZE}-all`;
+  const allIndex = JSON.parse(new TextDecoder().decode(await fetchBuf(`${allDir}/index.json`))) as Record<string, { file: string; shape: number[] }>;
+  const dumpCache = new Map<string, Float32Array>();
+  const dump = async (key: string) => {
+    if (!dumpCache.has(key)) {
+      if (!allIndex[key]) throw new Error(`dump ${key} missing in ${allDir} (run halonet_ref.py --dump-all)`);
+      dumpCache.set(key, new Float32Array(await fetchBuf(`${allDir}/${allIndex[key].file}`)));
+    }
+    return dumpCache.get(key)!;
+  };
+  const { graph: g58, pieces } = n58Graph();
+  const outIds = pieces.flatMap((pc) => Object.keys(pc.outputs).map(Number));
+  status('N5.8: building engine');
+  const e58 = await Engine.create(device, g58, [Wd, We], { f16: F16, batch: 6, setSplit: 3, keep: outIds });
+  const b58 = e58.bind(SIZE, input);
+  for (const pc of pieces) for (const [id, name] of Object.entries(pc.inputs)) {
+    const [dd, de] = [await dump(`dir.${name}`), await dump(`env.${name}`)];
+    const all = new Float32Array(dd.length * 6);
+    for (let b = 0; b < 6; b++) all.set(b < 3 ? dd : de, b * dd.length);
+    b58.writeTensor(Number(id), all);
+  }
+  b58.run();
+  status('N5.8: comparing');
+  const n58: { piece: string; tensor: number; item: number; ref: string; maxAbs: number; meanAbs: number; meanAbsRef: number; relL2: number; nonFinite: number }[] = [];
+  for (const pc of pieces) for (const [id, name] of Object.entries(pc.outputs)) {
+    const t = await b58.readTensor(Number(id));
+    const per58 = t.length / 6;
+    for (const b of [0, 3]) {
+      const key = `${b < 3 ? 'dir' : 'env'}.${name}`;
+      n58.push({ piece: pc.name, tensor: Number(id), item: b, ref: key, ...diff(t.subarray(b * per58, (b + 1) * per58), await dump(key)) });
+    }
+  }
+  b58.release(); e58.release();
+
+  const pass = vsNumpy.every(ok) && vsCpu.every(ok) && n58.every(ok);
   const report = {
-    task: 'N5.7', op: 'init_conv 3x3 8->16 + downs.0.0, downs.0.1 (conv3x3+RMSNorm+SiLU, identity skip, x2)', size: SIZE, precision: F16 ? 'fp16' : 'fp32', batch: 6, setSplit: 3,
+    n58, n58Dispatches: g58.ops.length,
+    task: 'N5.7 + N5.8', op: 'init_conv 3x3 8->16 + downs.0.0, downs.0.1 (conv3x3+RMSNorm+SiLU, identity skip, x2)', size: SIZE, precision: F16 ? 'fp16' : 'fp32', batch: 6, setSplit: 3,
     dispatches: graph.ops.length, measure: F16 ? 'relL2' : 'maxAbs', threshold, pass, gpuError, vsNumpy, vsCpu, cpuVsNumpyMaxAbs: cpuVsNumpy,
     adapter: { vendor: adapter.info?.vendor, architecture: adapter.info?.architecture },
   };
@@ -146,6 +186,8 @@ async function main() {
     '', 'vs CPU conv3x3 (JS, all six items)             max abs     mean abs    mean |ref|  rel L2',
     ...vsCpu.map((r) => `  item ${r.item} ${r.name.padEnd(29)} ${f(r.maxAbs).padStart(10)}  ${f(r.meanAbs).padStart(10)}  ${f(r.meanAbsRef).padStart(10)}  ${f(r.relL2)}`),
     '', `CPU reference vs NumPy (items 0, 3): ${cpuVsNumpy.map(f).join(', ')}`,
+    '', `N5.8 pieces (${g58.ops.length} dispatches, one pass; inputs from dumps)       max abs     mean abs    mean |ref|  rel L2`,
+    ...n58.map((r) => `  item ${r.item} ${r.ref.padEnd(26)} ${f(r.maxAbs).padStart(10)}  ${f(r.meanAbs).padStart(10)}  ${f(r.meanAbsRef).padStart(10)}  ${f(r.relL2)}${ok(r) ? '' : '  FAIL'}`),
   ].filter((l, i) => l || i > 1).join('\n'));
   clouds.report = () => report;
   clouds.ready = true;

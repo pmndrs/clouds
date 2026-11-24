@@ -30,7 +30,20 @@
 //     `skipAt` value so a second skip kind (1x1 over one or two sources) can
 //     be generated in the same place.
 //   - scale 2: multiplies after the skip (stages whose attention is Identity).
-// Still stubbed: kernels '1x1' / '2x2s2', skip 'conv1x1', upsampled sources.
+// N5.8 adds (ENGINE.md §2 kernel C, task 7):
+//   - kernels '1x1' and '2x2s2' (`directShader`): no tile, each thread reads its
+//     input pixels straight from global memory. 1 output pixel x oc4 groups per
+//     thread, workgroup 8x8, output-channel group in wg.z (like kernel D).
+//     Down = pixel-unshuffle + 1x1 is exactly a 2x2 stride-2 conv: unshuffled
+//     channel c*4 + p1*2 + p2 is tap (p1, p2) of channel c, so the 1x1 weight
+//     [O, 4C, 1, 1] read as [O, C, 2, 2] needs no re-ordering (packWeights taps 4);
+//   - src1.up on 3x3: the loader reads the source at (gy >> 1, gx >> 1) from a
+//     (p.sH, p.sW) = (H/2, W/2) tensor (nearest 2x; Up = this conv, no norm);
+//   - skip 'conv1x1': `skip1x1()` adds a 1x1 conv + bias over one or two
+//     concatenated sources at the output pixel, in the same `skipAt` place as the
+//     identity skip (bindings 8, 9 = sources). Its weights and bias are appended to the
+//     op's own weight / bias buffers after both sets (at 2 * wStride / 2 * bStride, then
+//     per set), which keeps the op at <= 7 storage buffers (the default limit is 8).
 import type { ConvOp } from './graph';
 
 export interface ConvTiling {
@@ -69,17 +82,24 @@ export const DEFAULT_TILING: ConvTiling = { pw: 2, ph: 2, oc4: 2, wgx: 8, wgy: 8
 /** Throws for the op options that are typed but not implemented yet. */
 export function checkSupported(op: ConvOp) {
   const no = (what: string) => { throw new Error(`engine: ${op.name}: ${what} not implemented yet`); };
-  if (op.kernel !== '3x3') no(`kernel ${op.kernel}`);
+  if (op.kernel !== '3x3' && op.kernel !== '1x1' && op.kernel !== '2x2s2') no(`kernel ${op.kernel}`);
   if (op.act !== 'none' && op.act !== 'normSilu') no(`activation ${op.act}`);
-  if (op.skip.kind !== 'none' && op.skip.kind !== 'identity') no(`skip ${op.skip.kind}`);
+  const skipKind: string = op.skip.kind;
+  if (skipKind !== 'none' && skipKind !== 'identity' && skipKind !== 'conv1x1') no(`skip ${skipKind}`);
   if (op.skip.kind === 'identity' && (op.skip.src.kind !== 'tensor' || op.skip.src.up)) no('identity skip from a non-tensor or upsampled source');
+  if (op.skip.kind === 'conv1x1' && [op.skip.src1, op.skip.src2].some((s) => s && (s.kind !== 'tensor' || s.up))) no('conv1x1 skip from a non-tensor or upsampled source');
   if (op.scale !== 1 && op.scale !== 2) no(`scale x${op.scale}`);
-  if (op.src1.kind === 'tensor' && op.src1.up) no('upsampled source');
+  if (op.src1.kind === 'tensor' && op.src1.up && op.kernel !== '3x3') no('upsampled source on a non-3x3 kernel');
   if (op.src2?.kind === 'input') no('input as second source');
+  if (op.src2?.kind === 'tensor' && op.src2.up) no('upsampled second source');
+  if (op.kernel !== '3x3' && (op.act !== 'none' || op.skip.kind !== 'none' || op.scale !== 1 || op.src1.kind !== 'tensor')) {
+    no(`kernel ${op.kernel} with norm, skip, scale or the gathered input`);
+  }
 }
 
 export function convShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvShaderInfo {
   checkSupported(op);
+  if (op.kernel !== '3x3') return directShader(op, f16, tiling);
   const { pw, ph, wgx, wgy } = tiling;
   const MT = f16 ? 'mat4x4<f16>' : 'mat4x4f';
   const VT = f16 ? 'vec4<f16>' : 'vec4f';
@@ -118,6 +138,9 @@ export function convShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvSh
       parts.push(`select(0.0, s1[(gt[${j}] * H + u32(gy)) * W + u32(gx)], k * 4u + ${j}u < ${op.c1}u)`);
     }
     load1 = `let gt = gtab[b * ${c1_4}u + k];\n        v = vec4f(${parts.join(',\n          ')});`;
+  } else if (op.src1.up) {
+    // nearest 2x upsample resolved in the loader: the source is (p.sH, p.sW) = (H/2, W/2)
+    load1 = `v = vec4f(s1[((b * ${c1_4}u + k) * p.sH + (u32(gy) >> 1u)) * p.sW + (u32(gx) >> 1u)]);`;
   } else {
     load1 = `v = vec4f(s1[((b * ${c1_4}u + k) * H + u32(gy)) * W + u32(gx)]);`;
   }
@@ -165,9 +188,22 @@ export function convShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvSh
       epi.push(`let n${py}_${px} = 1.0 / max(sqrt(${sum}), 1e-12);`);
     }
   }
-  // skipAt(oc, y, x): the residual added after the activation. Identity reads x at the output pixel.
-  // A conv1x1 skip would be generated here as a 1x1 over one or two sources (N5.8).
-  const skipAt = op.skip.kind === 'identity' ? `vec4f(sk[((b * ${cout4}u + oc) * H + y) * W + x])` : '';
+  // skipAt(oc, y, x): the residual added after the activation. Identity reads x at the output pixel;
+  // conv1x1 (N5.8) is a 1x1 + bias over one or two concatenated sources at that pixel (skip1x1 below).
+  const sk = op.skip;
+  const sc1_4 = sk.kind === 'conv1x1' ? ceil4(sk.c1) : 0;
+  const sc2_4 = sk.kind === 'conv1x1' && sk.src2 ? ceil4(sk.c2) : 0;
+  const snch = sc1_4 + sc2_4;
+  const skipAt = sk.kind === 'identity' ? `vec4f(sk[((b * ${cout4}u + oc) * H + y) * W + x])`
+    : sk.kind === 'conv1x1' ? 'skip1x1(b, wsi, oc, y, x, H, W)' : '';
+  const skipFn = sk.kind !== 'conv1x1' ? '' : /* wgsl */ `
+fn skip1x1(b: u32, wsi: u32, oc: u32, y: u32, x: u32, H: u32, W: u32) -> vec4f {
+  var r = bias[2u * p.bStride + wsi * ${cout4}u + oc];
+  let wb = 2u * p.wStride + wsi * ${cout4 * snch}u + oc * ${snch}u;
+  for (var k = 0u; k < ${sc1_4}u; k++) { r += mat4x4f(w[wb + k]) * vec4f(sk[((b * ${sc1_4}u + k) * H + y) * W + x]); }
+  ${sc2_4 ? `for (var k = 0u; k < ${sc2_4}u; k++) { r += mat4x4f(w[wb + ${sc1_4}u + k]) * vec4f(sk2[((b * ${sc2_4}u + k) * H + y) * W + x]); }` : ''}
+  return r;
+}`;
   for (let o = 0; o < oc4; o++) {
     epi.push(`{ let oc = og * ${oc4}u + ${o}u;`);
     if (norm) epi.push(`  let gv = gain[wsi * p.bStride + oc];`);
@@ -183,7 +219,7 @@ export function convShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvSh
   }
 
   const code = /* wgsl */ `${f16 ? 'enable f16;\n' : ''}
-// ${op.name}: ${op.kernel} ${op.c1}${op.c2 ? `+${op.c2}` : ''} -> ${op.cout}${gather ? ' (gathered input)' : ''}${norm ? `, RMSNorm+SiLU (G=${G} in local z)` : ''}${skipAt ? ', identity skip' : ''}${op.scale !== 1 ? `, x${op.scale}` : ''}
+// ${op.name}: ${op.kernel} ${op.c1}${op.c2 ? `+${op.c2}` : ''} -> ${op.cout}${gather ? ' (gathered input)' : ''}${norm ? `, RMSNorm+SiLU (G=${G} in local z)` : ''}${skipAt ? `, ${sk.kind} skip` : ''}${op.src1.kind === 'tensor' && op.src1.up ? ', 2x nearest-up source' : ''}${op.scale !== 1 ? `, x${op.scale}` : ''}
 struct P { H: u32, W: u32, sH: u32, sW: u32, ocg: u32, setSplit: u32, wStride: u32, bStride: u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> w: array<${MT}>;
@@ -194,6 +230,8 @@ ${c2_4 ? srcDecl(4, false) : ''}
 ${gather ? '@group(0) @binding(6) var<storage, read> gtab: array<vec4u>;' : ''}
 ${norm ? '@group(0) @binding(7) var<storage, read> gain: array<vec4f>;' : ''}
 ${skipAt ? `@group(0) @binding(8) var<storage, read> sk: array<vec4<${T}>>;` : ''}
+${sc2_4 ? `@group(0) @binding(9) var<storage, read> sk2: array<vec4<${T}>>;` : ''}
+${skipFn}
 
 var<workgroup> tile: array<${VT}, ${tn}>;
 ${norm ? `var<workgroup> ss: array<f32, ${G * npix}>;` : ''}
@@ -235,6 +273,70 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u
 }
 `;
   return { code, tiling: { ...tiling, oc4 }, nch, c1_4, cout4, tileW, tileH, taps, localZ: G };
+}
+
+/**
+ * Kernels '1x1' and '2x2s2' (N5.8; ENGINE.md kernel C for Down, and final_conv): no tile and no norm.
+ * One thread = one output pixel x oc4 output-channel groups; workgroup 8x8; group z = b * ocg + og.
+ * 2x2s2 reads input (2y + ty, 2x + tx) of a (2H, 2W) source for tap ty*2 + tx. Bias only, no activation.
+ */
+export function directShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvShaderInfo {
+  const MT = f16 ? 'mat4x4<f16>' : 'mat4x4f';
+  const T = f16 ? 'f16' : 'f32';
+  const s2 = op.kernel === '2x2s2';
+  const taps = s2 ? 4 : 1;
+  const F = s2 ? 2 : 1;
+  const cout4 = ceil4(op.cout);
+  const oc4 = Math.min(tiling.oc4, cout4);
+  if (cout4 % oc4) throw new Error(`oc4 ${oc4} must divide cout4 ${cout4}`);
+  const c1_4 = ceil4(op.c1);
+  const c2_4 = ceil4(op.c2);
+  const nch = c1_4 + c2_4;
+  const wg = 8;
+  const os = Array.from({ length: oc4 }, (_, o) => o);
+  const tapCode: string[] = [];
+  for (let t = 0; t < taps; t++) {
+    const ty = t >> 1, tx = t & 1;
+    const yy = s2 ? `y * 2u + ${ty}u` : 'y';
+    const xx = s2 ? `x * 2u + ${tx}u` : 'x';
+    const rd = (n: number, c4: number, kk: string) => `vec4f(s${n}[((b * ${c4}u + ${kk}) * SH + ${yy}) * SW + ${xx}])`;
+    const read = c2_4 ? `if (k < ${c1_4}u) { v = ${rd(1, c1_4, 'k')}; } else { v = ${rd(2, c2_4, 'k - ' + c1_4 + 'u')}; }` : `v = ${rd(1, c1_4, 'k')};`;
+    tapCode.push(`{ var v: vec4f; ${read}`);
+    for (const o of os) tapCode.push(`  a${o} += mat4x4f(w[wb${o} + ${t}u]) * v;`);
+    tapCode.push('}');
+  }
+  const code = /* wgsl */ `${f16 ? 'enable f16;\n' : ''}
+// ${op.name}: ${op.kernel} ${op.c1}${op.c2 ? `+${op.c2}` : ''} -> ${op.cout} (direct, bias, no activation)
+struct P { H: u32, W: u32, sH: u32, sW: u32, ocg: u32, setSplit: u32, wStride: u32, bStride: u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> w: array<${MT}>;
+@group(0) @binding(2) var<storage, read> bias: array<vec4f>;
+@group(0) @binding(3) var<storage, read> s1: array<vec4<${T}>>;
+${c2_4 ? `@group(0) @binding(4) var<storage, read> s2: array<vec4<${T}>>;` : ''}
+@group(0) @binding(5) var<storage, read_write> dst: array<vec4<${T}>>;
+
+@compute @workgroup_size(${wg}, ${wg}, 1)
+fn main(@builtin(workgroup_id) wg: vec3u, @builtin(global_invocation_id) gid: vec3u) {
+  let H = p.H;
+  let W = p.W;
+  let SH = H * ${F}u;
+  let SW = W * ${F}u;
+  let og = wg.z % p.ocg;
+  let b = wg.z / p.ocg;
+  let wsi = select(1u, 0u, b < p.setSplit);
+  let wset = wsi * p.wStride;
+  let y = gid.y;
+  let x = gid.x;
+  if (y >= H || x >= W) { return; }
+  ${os.map((o) => `var a${o} = bias[wsi * p.bStride + og * ${oc4}u + ${o}u];`).join('\n  ')}
+  for (var k = 0u; k < ${nch}u; k++) {
+    ${os.map((o) => `let wb${o} = wset + ((og * ${oc4}u + ${o}u) * ${nch}u + k) * ${taps}u;`).join('\n    ')}
+    ${tapCode.join('\n    ')}
+  }
+  ${os.map((o) => `dst[((b * ${cout4}u + og * ${oc4}u + ${o}u) * H + y) * W + x] = vec4<${T}>(a${o});`).join('\n  ')}
+}
+`;
+  return { code, tiling: { ...tiling, oc4 }, nch, c1_4, cout4, tileW: wg, tileH: wg, taps, localZ: 1 };
 }
 
 /**

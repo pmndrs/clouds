@@ -86,14 +86,33 @@ export class Engine {
         const b = s.get(`${op.weight}.bias`);
         if (!w || !b) throw new Error(`engine: missing weights for ${op.weight}`);
         const [cout, cin] = w.shape;
-        if (cout !== op.cout || cin !== op.c1 + op.c2) throw new Error(`engine: ${op.name} weight shape ${w.shape} vs op ${op.cout}x${op.c1 + op.c2}`);
+        // 2x2s2 (Down): the 1x1 weight [cout, 4c] is read as [cout, c, 2, 2] (N5.8)
+        if (cout !== op.cout || cin !== (op.c1 + op.c2) * (op.kernel === '2x2s2' ? 4 : 1)) throw new Error(`engine: ${op.name} weight shape ${w.shape} vs op ${op.cout}x${op.c1 + op.c2}`);
         packedW.push(packWeights(w.data, op.cout, op.c1, op.c2, info.taps));
         packedB.push(packBias(b.data, op.cout));
       }
-      const wAll = new Float32Array(packedW[0].length * 2);
-      wAll.set(packedW[0]); wAll.set(packedW[1], packedW[0].length);
-      const bAll = new Float32Array(packedB[0].length * 2);
-      bAll.set(packedB[0]); bAll.set(packedB[1], packedB[0].length);
+      // conv1x1 skip (res_conv, N5.8): its packed weights / bias for both sets go after the op's own two sets
+      const skW: Float32Array[] = [];
+      const skB: Float32Array[] = [];
+      if (op.skip.kind === 'conv1x1') {
+        const sk = op.skip;
+        for (const s of sets) {
+          const w = s.get(`${sk.weight}.weight`);
+          const b = s.get(`${sk.weight}.bias`);
+          if (!w || !b) throw new Error(`engine: missing skip weights ${sk.weight}`);
+          if (w.shape[0] !== op.cout || w.shape[1] !== sk.c1 + (sk.src2 ? sk.c2 : 0)) throw new Error(`engine: ${op.name} skip weight shape ${w.shape}`);
+          skW.push(packWeights(w.data, op.cout, sk.c1, sk.src2 ? sk.c2 : 0, 1));
+          skB.push(packBias(b.data, op.cout));
+        }
+      }
+      const concat = (parts: Float32Array[]) => {
+        const out = new Float32Array(parts.reduce((n, a) => n + a.length, 0));
+        let o = 0;
+        for (const a of parts) { out.set(a, o); o += a.length; }
+        return out;
+      };
+      const wAll = concat([packedW[0], packedW[1], ...skW]);
+      const bAll = concat([packedB[0], packedB[1], ...skB]);
       const wData = this.f16 ? new F16!(wAll) : wAll;
 
       const module = d.createShaderModule({ code: info.code, label: op.name });
@@ -146,7 +165,7 @@ export class Engine {
       slotBytes[slotOf[t.id]] = Math.max(slotBytes[slotOf[t.id]], B * ceil4(t.channels) * s * s * 4 * bpe);
     }
     const slotBufs = slotBytes.map((sz, i) => d.createBuffer({
-      size: sz, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC, label: `engine.slot${i}`,
+      size: sz, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST, label: `engine.slot${i}`,
     }));
     const tensorBuf = (id: number) => slotBufs[slotOf[id]];
     const srcBuf = (s: Source) => (s.kind === 'input' ? input : tensorBuf(s.id));
@@ -169,6 +188,10 @@ export class Engine {
       if (gather) entries.push({ binding: 6, resource: { buffer: gather } });
       if (gain) entries.push({ binding: 7, resource: { buffer: gain } });
       if (op.skip.kind === 'identity') entries.push({ binding: 8, resource: { buffer: srcBuf(op.skip.src) } });
+      if (op.skip.kind === 'conv1x1') {
+        entries.push({ binding: 8, resource: { buffer: srcBuf(op.skip.src1) } });
+        if (op.skip.src2) entries.push({ binding: 9, resource: { buffer: srcBuf(op.skip.src2) } });
+      }
       const bindGroup = d.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries, label: op.name });
       const groups: [number, number, number] = [Math.ceil(s / tileW), Math.ceil(s / tileH), B * (ocg / localZ)];
       return { name: op.name, pipeline, bindGroup, groups };
@@ -210,8 +233,25 @@ export class Engine {
       return out;
     };
 
+    /** Upload f32 [B][C][H][W] (NCHW per item) into a tensor's slot (NC4HW4, T). For external tensors (N5.8 checks). */
+    const writeTensor = (id: number, data: Float32Array) => {
+      const t = this.graph.tensors[id];
+      const s = size >> t.level;
+      const c4 = ceil4(t.channels);
+      const plane = s * s;
+      if (data.length !== B * t.channels * plane) throw new Error(`engine: writeTensor ${id}: ${data.length} floats, want ${B}x${t.channels}x${s}x${s}`);
+      const packed = new Float32Array(B * c4 * plane * 4);
+      for (let b = 0; b < B; b++) for (let c = 0; c < t.channels; c++) {
+        const dst = (b * c4 + (c >> 2)) * plane * 4 + (c & 3);
+        const src = (b * t.channels + c) * plane;
+        for (let i = 0; i < plane; i++) packed[dst + i * 4] = data[src + i];
+      }
+      const bytes = this.f16 ? new F16!(packed) : packed;
+      d.queue.writeBuffer(tensorBuf(id), 0, bytes as unknown as BufferSource);
+    };
+
     return {
-      size, run, readTensor,
+      size, run, readTensor, writeTensor,
       release: () => { for (const b of owned) b.destroy(); },
     };
   }
@@ -227,6 +267,8 @@ export interface Binding {
   /** Encode every op into one compute pass and submit once. */
   run(): void;
   readTensor(id: number): Promise<Float32Array>;
+  /** Upload f32 [B][C][H][W] into a tensor (graph inputs written by no op; N5.8). */
+  writeTensor(id: number, data: Float32Array): void;
   release(): void;
 }
 
