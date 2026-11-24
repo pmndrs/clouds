@@ -69,7 +69,7 @@ a { color: var(--accent); }
 
 <div class="wrap">
 <header style="display:flex;flex-direction:column;gap:8px">
-  <div class="stamp">WebGPUClouds · updated 2026-11-21 · source work/compass-2026-11/ · plan docs/AUDIT-2026-11.md</div>
+  <div class="stamp">WebGPUClouds · updated 2026-11-24 · source work/compass-2026-11/ · plan docs/AUDIT-2026-11.md</div>
   <h1>Clouds Audit Compass</h1>
   <p class="sub">The plan since the November audit. This replaces the phase list on the earlier Compass, which stays as the record of the work before the audit.</p>
 </header>
@@ -89,7 +89,7 @@ a { color: var(--accent); }
 <section>
   <div class="strip">
     <a href="#p0"><span class="n">Phase 0</span><span class="t">Truth rig</span><span class="s">done</span></a>
-    <a class="now" href="#yourcall"><span class="n">Phases 1 and 2</span><span class="t">Your call</span><span class="s">A or B</span></a>
+    <a class="now" href="#review"><span class="n">Phases 1 and 2</span><span class="t">Light and shape</span><span class="s">your review queue</span></a>
     <a href="#p2"><span class="n">Phase 2</span><span class="t">Shape</span><span class="s">measures in</span></a>
     <a href="#p3"><span class="n">Phase 3</span><span class="t">Image</span><span class="s">later</span></a>
     <a href="#p4"><span class="n">Phase 4</span><span class="t">Speed</span><span class="s">later</span></a>
@@ -140,10 +140,56 @@ a { color: var(--accent); }
   </figure>
 </section>
 
+<section id="review">
+  <h2>Your review queue</h2>
+  <p class="sub">Everything waiting on your eye, most useful first. Start the pages with <code>pnpm dev --port 5180</code> from the repo root (restart it if it was running before today). "Sheet" means a picture further down this page.</p>
+  <div class="tw"><table>
+    <tr><th>#</th><th>Look at</th><th>Where</th><th>The question</th></tr>
+    <tr><td class="id">R1</td><td>Rim light with the sun behind the cloud <span class="pill run">renders running</span></td><td>Two sheets will appear here: a Karma render of the Houdini cumulus (2.9a) and our path tracer on the same clouds (2.9b). Until then: <code>localhost:5180/reference-pt/?cloud=tower4&amp;view=fit-sunward</code></td><td>You said ours looks like an alpha cutout edge. Do the references show a glow that fades into the body?</td></tr>
+    <tr><td class="id">R2</td><td>New lighting at low sun <span class="pill you">from earlier</span></td><td>Sky bench, Review switch P12 on, then lower the sun. <code>localhost:5180/hzd/?view=gp7&amp;proc_lightingModel=fit</code></td><td>It was refitted on four suns after you approved it. Still right, or worse?</td></tr>
+    <tr><td class="id">R3</td><td>New lighting on hero clouds <span class="pill you">from earlier</span></td><td>The "lighting" select on each page. <code>localhost:5180/flagship/?light=fit</code> and <code>localhost:5180/vdb-sky/?light=fit</code>. Sheet: step 1.5a</td><td>Better or worse than each page's own lighting? The EmberGen cloud goes darker than the sky around it.</td></tr>
+    <tr><td class="id">R4</td><td>Scattered layout with rounded tops <span class="pill you">from earlier</span></td><td>Sky bench, P12 + P23 + P24 on. <code>localhost:5180/hzd/?view=ground&amp;proc_lightingModel=fit&amp;layout=scattered&amp;hz_topShape=1</code>. Sheet: step 2.3c</td><td>Closer to your Texas afternoon than today's layout? Should it become the default?</td></tr>
+    <tr><td class="id">R5</td><td>Realistic density and soft edge on the 3D tower</td><td>Card page, cloud "tower4", with the new density select and soft-edge box. <code>localhost:5180/reference-pt/?cloud=tower4&amp;view=fit-noon</code>. Sheets: steps 2.8a and 2.8b</td><td>Agent-chosen defaults: 0.08 per metre and soft edge on. Keep? Is the soft edge too much anywhere?</td></tr>
+    <tr><td class="id">R6</td><td>The Houdini cumulus, stage by stage</td><td>Sheet: step 2.6c. Under our lighting: <code>localhost:5180/reference-pt/?cloud=houdini&amp;view=fit-noon</code></td><td>Is stage 4 the surface quality to aim for, or is it still short of a real cloud to your eye?</td></tr>
+    <tr><td class="id">R7</td><td>Flank bulges on the height field</td><td>Sky bench, P26 on with P23 + P24. Sheet: step 2.6b</td><td>I read it as mixed and would not adopt it. Only look if you disagree from the sheet.</td></tr>
+  </table></div>
+  <p class="note">Already answered: the 3D tower's form ("ok" for now, clearly a 3D cloud; improve as later stages land). Older items from before the audit (style defaults, the muddy afterglow on <code>style=real</code>, package publishing for WebVDB and the upscaler) are still listed in <code>work/STATUS.md</code> under "Waiting on you"; none of them blocks this work.</p>
+</section>
+
+<section id="projects">
+  <h2>Projects</h2>
+  <div class="tw"><table>
+    <tr><th>Project</th><th>Where it stands</th><th>Next</th><th>State</th></tr>
+    <tr><td><strong>Lighting</strong> (Phase 1)</td><td>One new model fitted to path traces, on the sky bench (P12), flagship and VDB sky pages. You approved the direction. Known gaps: sunset shade too bright and warm, shade too warm in several frames, EmberGen creases harder than the path trace, hero cloud and sky lit by two different shadow routes.</td><td>Rim light (R1). Then decide on realistic density everywhere (Q1), which may need one refit.</td><td><span class="pill run">active</span></td></tr>
+    <tr><td><strong>3D bodies</strong> for near and hero clouds (Phase 2)</td><td>Four towers in a day. <code>tower4</code> reads as a 3D cumulus, white at realistic density, with a silver lining from a soft edge. Bakes in 0.35 s, 160 MB.</td><td>Stop polishing one cloud. Several different bodies in one sky: variety, memory, and the handover to the height field.</td><td><span class="pill run">active</span></td></tr>
+    <tr><td><strong>Height field</strong> for mid and far cloud (Phase 2)</td><td>Scattered layout (P23) and domed turret tops (P24) are in, off by default. Flank bulges (P26) were mixed and are not adopted.</td><td>Proportions: bodies are too wide and low. Waiting on R4.</td><td><span class="pill you">your eye</span></td></tr>
+    <tr><td><strong>Artist clouds in</strong></td><td>Works today by drag and drop. Guerrilla's pack clouds load with their three fields as given. Plain VDBs either render directly or are converted, and the converted route replaces the artist's fine detail with our noise.</td><td>Make the direct route the default for artist clouds, and give hero clouds and the sky one shadow route (Q4).</td><td><span class="pill wait">queued</span></td></tr>
+    <tr><td><strong>Houdini reference</strong></td><td>A cumulus rig in four stages, script and VDBs in the repo. It showed that surface displacement, not lobes, makes a cloud stop looking like balls.</td><td>Karma renders of it (R1). Fix the wispy stage so it acts on the base and not the top.</td><td><span class="pill run">active</span></td></tr>
+    <tr><td><strong>Truth rig</strong> (Phase 0)</td><td>Done: path tracer and Cycles agree within 0.3 %; scene card with four suns plus a sun-behind view.</td><td>Pathtracer upgrades (sharper droplet scattering and others) are in your separate pathtracer session.</td><td><span class="pill ok">done</span></td></tr>
+    <tr><td><strong>Crisp tops on the height field</strong> (step 2.5)</td><td>Five tries failed.</td><td>Parked. On 3D bodies the crispness comes from the surface displacement instead.</td><td><span class="pill wait">parked</span></td></tr>
+    <tr><td><strong>Image, speed, breadth, release</strong> (Phases 3 to 6)</td><td>Not started.</td><td>After light and shape.</td><td><span class="pill wait">later</span></td></tr>
+  </table></div>
+</section>
+
+<section id="questions">
+  <h2>My open questions</h2>
+  <div class="tw"><table>
+    <tr><th>#</th><th>Question</th><th>What I'd do</th></tr>
+    <tr><td class="id">Q1</td><td><strong>Realistic density everywhere?</strong> Our towers were about five times denser than real cumulus, and that made them grey. The EmberGen and Disney clouds on the card are still at 0.6 per metre, and the lighting was fitted partly at those densities.</td><td>Yes. Check what 0.08 does to those clouds and the sky bench, then refit the lighting once at realistic densities. Likely to remove the "dense clouds too dark" gap without new lighting terms.</td></tr>
+    <tr><td class="id">Q2</td><td><strong>How far out should 3D bodies reach?</strong> A tower a few kilometres off is seen side-on, which is where a height field looks most like a mound.</td><td>Find out by trying: several bodies in a sky, then measure memory and speed before fixing the handover distance.</td></tr>
+    <tr><td class="id">Q3</td><td><strong>Old lighting models.</strong> You said you don't want to keep going after the old model. I read that as: no more old-versus-new comparison sheets, the old models stay in the code frozen.</td><td>Proceed on that reading unless you say otherwise.</td></tr>
+    <tr><td class="id">Q4</td><td><strong>Artist VDBs: direct by default?</strong> The converted route keeps the outline but drops the artist's interior and fine detail.</td><td>Direct for anything an artist made; keep the converted route as an option for cheap, small files.</td></tr>
+    <tr><td class="id">Q5</td><td><strong>The pathtracer session.</strong> I can't see whether it has landed anything from the handoff, in particular the sharper droplet scattering.</td><td>Tell me when a commit is ready and I'll point the card at it.</td></tr>
+    <tr><td class="id">Q6</td><td><strong>Soft edge without a sun.</strong> The bake has no sun direction, so "keep the lit side crisp" is approximated by height and facing-up. If the sun moves low, a soft side can end up sunlit.</td><td>Accept for now. If R5 shows it, move the softening from the bake into the shader, where the sun is known.</td></tr>
+  </table></div>
+</section>
+
 <section id="yourcall">
-  <h2>Decided: a hybrid (was "Your call: how clouds are shaped")</h2>
-  <p><strong>Your decision, 24 November:</strong> 3D bodies for hero and near clouds; the height field stays for mid and far cloud and keeps being improved; artist-made clouds stay a first-class input; Houdini rigs are a comparison source, with the noise and variance stages, not lobes alone. The table below is the comparison as it stood before you decided.</p>
-  <p><strong>Since then:</strong> a Houdini cumulus stage by stage (2.6c) and the same cloud under our lighting (2.7b); the 3D tower with variance (2.6a) and then rebuilt on the Houdini recipe (2.7a); flank bulges on the height field (2.6b, mixed, not adopted); the silver-lining diagnosis (1.7a, 1.7b): the rim comes from thin soft edges, and the droplet-scattering switch P27 adds nothing visible, so it stays off. Two findings: our towers are about five times denser than real cumulus, which is the likely cause of their grey; and they have no soft edge, which is why they get no silver lining. Both confirmed in step 2.8a: at 0.08 per metre the grey mostly goes and the tower still reads solid, and a soft uneven outer layer gives it a silver lining. The fourth tower (2.8b) puts these together with a tapering core and a shoulder. <strong>Waiting on your eye:</strong> the 2.8b sheet below. Nothing is running.</p>
+  <h2>Decided: a hybrid for shape</h2>
+  <p><strong>Your decision, 24 November:</strong> 3D bodies for hero and near clouds; the height field stays for mid and far cloud and keeps being improved; artist-made clouds stay a first-class input; Houdini rigs are a comparison source, with the noise and variance stages, not lobes alone.</p>
+  <p><strong>Findings since:</strong> surface displacement, not lobes, is what stops a cloud looking like balls. Our towers were about five times denser than real cumulus, which made them grey. The silver lining comes from thin, soft edge material, not from the scattering function: the droplet-scattering switch (P27) adds nothing visible and stays off.</p>
+  <details><summary>The A or B comparison as it stood before the decision</summary>
+  <div style="padding:0 14px 12px">
   <p>The sky today is a height field: every point on the ground gets one cloud base and one cloud top, and noise is added on that. Two ways forward. The sheets for both are just below (steps 2.3c and 2.4a).</p>
   <div class="tw"><table>
     <tr><th></th><th>A. Keep the height field</th><th>B. Build bodies in 3D</th></tr>
@@ -156,14 +202,9 @@ a { color: var(--accent); }
   </table></div>
   <p class="note">Recommendation: B, proven small. The two can also coexist: the height field for distant and flat cloud, 3D bodies for the clouds near enough to read.</p>
 
-  <h3>Worth your eye</h3>
-  <div class="tw"><table>
-    <tr><th>Look at</th><th>Where</th><th>The question</th></tr>
-    <tr><td>New lighting at low sun</td><td>Bench, Review P12 on, sun low. <code>localhost:5180/hzd/?view=gp7&amp;proc_lightingModel=fit</code></td><td>It was refitted after you approved it. Still right, or worse?</td></tr>
-    <tr><td>Scattered layout with rounded tops</td><td>Bench, P12 + P23 + P24 on. <code>localhost:5180/hzd/?view=ground&amp;proc_lightingModel=fit&amp;layout=scattered&amp;hz_topShape=1</code></td><td>Is this layout closer to your Texas afternoon? Do the tall ones bother you?</td></tr>
-    <tr><td>The 3D tower</td><td>Card page. <code>localhost:5180/reference-pt/?cloud=tower&amp;view=fit-noon</code></td><td>Does the form read as a cumulus tower to you, ignoring the smooth surface and the grey?</td></tr>
-    <tr><td>New lighting on hero clouds</td><td><code>localhost:5180/flagship/?light=fit</code> and <code>localhost:5180/vdb-sky/?light=fit</code></td><td>Better or worse than the page's own lighting? The EmberGen cloud goes darker than the sky around it.</td></tr>
-  </table></div>
+  
+  </div>
+  </details>
 </section>
 
 <section id="sheets">
