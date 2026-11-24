@@ -59,12 +59,33 @@ export interface ConvOp {
 
 export interface TensorInfo { id: number; level: number; channels: number }
 
+/**
+ * Block attention (N5.9 kernels in ./attention.ts, two dispatches) as a graph op (N5.10). Reads tensor `src`
+ * (`channels` at `level`), writes `dst` = attn(src) + src when `residual` (the UNet's `x = attn(x) + x`).
+ * Weights `${prefix}.norm.g`, `.to_qkv.weight`, `.to_out.*`, `.mem_kv`; block size `bs` (8, or 4 for mid_attn).
+ */
+export interface AttnOp {
+  kind: 'attention';
+  name: string;
+  prefix: string;
+  bs: number;
+  level: number;
+  channels: number;
+  src: number;
+  dst: number;
+  residual: boolean;
+}
+
+export type Op = ConvOp | AttnOp;
+export const isAttn = (op: Op): op is AttnOp => (op as AttnOp).kind === 'attention';
+
 export interface Graph {
-  ops: ConvOp[];
+  ops: Op[];
   tensors: TensorInfo[];
 }
 
-const sourcesOf = (op: ConvOp): Source[] => {
+const sourcesOf = (op: Op): Source[] => {
+  if (isAttn(op)) return [{ kind: 'tensor', id: op.src }];
   const s: Source[] = [op.src1];
   if (op.src2) s.push(op.src2);
   if (op.skip.kind === 'identity') s.push(op.skip.src);
@@ -291,4 +312,123 @@ export function n58Graph(): { graph: Graph; pieces: CheckPiece[] } {
   pieces.push({ name: 'final_conv (1x1 16 -> 1)', inputs: { [cx]: 'final_res_block' }, outputs: { [co]: 'final_conv' } });
 
   return { graph: { ops, tensors }, pieces };
+}
+
+// ---------------------------------------------------------------------------------------------
+// N5.10: the whole HaloNet (halonet_ref.py `unet`), batch of 6, one graph.
+// ---------------------------------------------------------------------------------------------
+
+/** HaloNetFast config (halonet_ref.py): DIMS, IN_OUT and ATTN_MODES. */
+export const HALO_DIMS = [16, 16, 16, 16, 32, 32, 64, 64];
+export const HALO_IN_OUT: [number, number][] = HALO_DIMS.slice(0, -1).map((d, i) => [d, HALO_DIMS[i + 1]]);
+export const HALO_ATTN = [0, 0, 0, 2, 0, 2, 0];
+
+/**
+ * The full network as one graph: init_conv -> 7 down stages -> mid -> 7 up stages -> final_res_block -> final_conv.
+ * Follows `unet` in scripts/neural/halonet_ref.py line by line. Returns the graph, the output tensor id
+ * (final_conv, 1 channel at level 0) and `taps`: reference dump name -> tensor id (for bisecting against
+ * `--dump-all` dumps; keep them alive with the engine's `keep`).
+ */
+export function haloNetGraph(gather: number[][] = HALO_GATHER_B6): { graph: Graph; output: number; taps: Record<string, number> } {
+  const tensors: TensorInfo[] = [];
+  const ops: Op[] = [];
+  const taps: Record<string, number> = {};
+  const T = (level: number, channels: number) => { tensors.push({ id: tensors.length, level, channels }); return tensors.length - 1; };
+  const nd = HALO_IN_OUT.length;
+
+  // init_conv
+  const r = T(0, 16);
+  ops.push({
+    name: 'init_conv', weight: 'init_conv', kernel: '3x3', level: 0, cout: 16,
+    src1: { kind: 'input', channels: 17, gather }, c1: 8, c2: 0, act: 'none', skip: { kind: 'none' }, scale: 1, dst: r,
+  });
+  taps['init_conv'] = r;
+  let x = r;
+  const hs: number[] = [];
+
+  // down stages: level i, channels in_out[i][0]
+  for (let i = 0; i < nd; i++) {
+    const [cin, cout] = HALO_IN_OUT[i];
+    const p = `downs.${i}`;
+    const m0 = T(i, cin), o0 = T(i, cin);
+    ops.push(...resnetBlockOps(`${p}.0`, `${p}.0`, i, cin, x, m0, o0, 1));
+    taps[`${p}.block1`] = o0;
+    hs.push(o0);
+    const attn = HALO_ATTN[i] !== 0;
+    const m1 = T(i, cin), o1 = T(i, cin);
+    ops.push(...resnetBlockOps(`${p}.1`, `${p}.1`, i, cin, o0, m1, o1, attn ? 1 : 2));   // x2 = Identity attention + x
+    x = o1;
+    if (attn) {
+      const a = T(i, cin);
+      ops.push({ kind: 'attention', name: `${p}.2`, prefix: `${p}.2`, bs: 8, level: i, channels: cin, src: x, dst: a, residual: true });
+      x = a;
+    }
+    taps[`${p}.post_attn_add`] = x;
+    hs.push(x);
+    if (i === nd - 1) {
+      const d = T(i, cout);
+      ops.push(plainConvOp(`${p}.3`, i, cin, cout, x, d));
+      x = d;
+    } else {
+      const d = T(i + 1, cout);
+      ops.push(downOp(`${p}.3`, i + 1, cin, cout, x, d));
+      x = d;
+    }
+    taps[`${p}.down`] = x;
+  }
+
+  // mid (level nd - 1, 64 channels)
+  const L = nd - 1, C = HALO_DIMS[HALO_DIMS.length - 1];
+  {
+    const m = T(L, C), o = T(L, C);
+    ops.push(...resnetBlockOps('mid_block1', 'mid_block1', L, C, x, m, o, 1));
+    const a = T(L, C);
+    ops.push({ kind: 'attention', name: 'mid_attn', prefix: 'mid_attn', bs: 4, level: L, channels: C, src: o, dst: a, residual: true });
+    const m2 = T(L, C), o2 = T(L, C);
+    ops.push(...resnetBlockOps('mid_block2', 'mid_block2', L, C, a, m2, o2, 1));
+    taps['mid_block2'] = o2;
+    x = o2;
+  }
+
+  // up stages: level nd-1-i, (dim_in, dim_out) = reversed(in_out)[i]; blocks cat(x[dim_out], skip[dim_in]) -> dim_out
+  const rev = [...HALO_IN_OUT].reverse();
+  for (let i = 0; i < nd; i++) {
+    const [din, dout] = rev[i];
+    const lv = nd - 1 - i;
+    const p = `ups.${i}`;
+    const s1 = hs.pop()!;
+    const m0 = T(lv, dout), o0 = T(lv, dout);
+    ops.push(...resnetBlockCatOps(`${p}.0`, `${p}.0`, lv, dout, din, dout, x, s1, m0, o0, 1));
+    taps[`${p}.block1`] = o0;
+    const s0 = hs.pop()!;
+    const attn = HALO_ATTN[nd - 1 - i] !== 0;
+    const m1 = T(lv, dout), o1 = T(lv, dout);
+    ops.push(...resnetBlockCatOps(`${p}.1`, `${p}.1`, lv, dout, din, dout, o0, s0, m1, o1, attn ? 1 : 2));
+    x = o1;
+    if (attn) {
+      const a = T(lv, dout);
+      ops.push({ kind: 'attention', name: `${p}.2`, prefix: `${p}.2`, bs: 8, level: lv, channels: dout, src: x, dst: a, residual: true });
+      x = a;
+    }
+    if (i === nd - 1) {
+      const u = T(lv, din);
+      ops.push(plainConvOp(`${p}.3`, lv, dout, din, x, u));
+      x = u;
+    } else {
+      const u = T(lv - 1, din);
+      ops.push(upOp(`${p}.3`, lv - 1, dout, din, x, u));
+      x = u;
+    }
+    taps[p] = x;
+  }
+  if (hs.length) throw new Error('haloNetGraph: skip stack not empty');
+
+  // final_res_block over cat(x, init_conv), final_conv 1x1 16 -> 1
+  const fm = T(0, 16), fo = T(0, 16);
+  ops.push(...resnetBlockCatOps('final_res_block', 'final_res_block', 0, 16, 16, 16, x, r, fm, fo, 1));
+  taps['final_res_block'] = fo;
+  const out = T(0, 1);
+  ops.push(conv1x1Op('final_conv', 0, 16, 1, fo, out));
+  taps['final_conv'] = out;
+  return { graph: { ops, tensors }, output: out, taps };
 }

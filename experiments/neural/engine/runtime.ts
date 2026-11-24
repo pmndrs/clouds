@@ -12,7 +12,8 @@
 // passes 0-2, items 3-5 = `env` passes 0-2. Batch 4 with setSplit 1 is the
 // grey-albedo variant (1 dir + 3 env). Each layer's weight buffer holds set 0
 // then set 1 (set 1 at `wStride` mat4x4s); biases likewise (`bStride` vec4s).
-import { assignSlots, type ConvOp, type Graph, type Source } from './graph';
+import { assignSlots, isAttn, type ConvOp, type Graph, type Source } from './graph';
+import { AttentionLayer } from './attention';
 import { ceil4, convShader, DEFAULT_TILING, packBias, packGain, packWeights, type ConvTiling } from './conv';
 import type { TensorMap } from './tza';
 
@@ -52,6 +53,8 @@ export class Engine {
   readonly batch: number;
   readonly setSplit: number;
   private layers: Layer[] = [];
+  /** N5.10: attention ops (two dispatches each, ./attention.ts), by op index. */
+  private attn = new Map<number, AttentionLayer>();
 
   private constructor(readonly device: GPUDevice, readonly graph: Graph, private opts: EngineOptions) {
     this.f16 = !!opts.f16;
@@ -71,7 +74,15 @@ export class Engine {
   private async init(sets: [TensorMap, TensorMap]) {
     const d = this.device;
     const tiling = { ...DEFAULT_TILING, ...this.opts.tiling };
-    this.layers = await Promise.all(this.graph.ops.map(async (op): Promise<Layer> => {
+    // N5.10: attention ops get an AttentionLayer (both weight sets); conv ops a Layer as before.
+    await Promise.all(this.graph.ops.map(async (op, i) => {
+      if (!isAttn(op)) return;
+      const a = await AttentionLayer.create(d, op.prefix, op.bs, sets, { f16: this.f16, batch: this.batch, setSplit: this.setSplit });
+      if (a.C !== op.channels) throw new Error(`engine: ${op.name} has ${a.C} channels, op says ${op.channels}`);
+      this.attn.set(i, a);
+    }));
+    const convOps = this.graph.ops.filter((op): op is ConvOp => !isAttn(op));
+    this.layers = await Promise.all(convOps.map(async (op): Promise<Layer> => {
       const info = convShader(op, this.f16, tiling);
       const packedW: Float32Array[] = [];
       const packedB: Float32Array[] = [];
@@ -171,7 +182,7 @@ export class Engine {
     const srcBuf = (s: Source) => (s.kind === 'input' ? input : tensorBuf(s.id));
     const owned: GPUBuffer[] = [...slotBufs];
 
-    const steps = this.layers.map(({ op, pipeline, weights, bias, gather, gain, localZ, wStride, bStride, ocg, tileW, tileH }) => {
+    const convSteps = this.layers.map(({ op, pipeline, weights, bias, gather, gain, localZ, wStride, bStride, ocg, tileW, tileH }) => {
       const s = size >> op.level;
       const params = new Uint32Array([s, s, s >> 1, s >> 1, ocg, this.setSplit, wStride, bStride]);
       const ub = d.createBuffer({ size: params.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -196,15 +207,27 @@ export class Engine {
       const groups: [number, number, number] = [Math.ceil(s / tileW), Math.ceil(s / tileH), B * (ocg / localZ)];
       return { name: op.name, pipeline, bindGroup, groups };
     });
+    // N5.10: interleave conv steps and attention bindings in graph order (one pass either way).
+    type Step = { encode(pass: GPUComputePassEncoder): void };
+    const steps: Step[] = [];
+    const attnBindings: { release(): void }[] = [];
+    let ci = 0;
+    this.graph.ops.forEach((op, i) => {
+      if (isAttn(op)) {
+        const s = size >> op.level;
+        const ab = this.attn.get(i)!.bind(s, s, tensorBuf(op.src), tensorBuf(op.dst), { residual: op.residual });
+        attnBindings.push(ab);
+        steps.push(ab);
+      } else {
+        const st = convSteps[ci++];
+        steps.push({ encode: (pass) => { pass.setPipeline(st.pipeline); pass.setBindGroup(0, st.bindGroup); pass.dispatchWorkgroups(...st.groups); } });
+      }
+    });
 
     const run = () => {
       const enc = d.createCommandEncoder({ label: 'engine.halonet' });
       const pass = enc.beginComputePass();
-      for (const st of steps) {
-        pass.setPipeline(st.pipeline);
-        pass.setBindGroup(0, st.bindGroup);
-        pass.dispatchWorkgroups(...st.groups);
-      }
+      for (const st of steps) st.encode(pass);
       pass.end();
       d.queue.submit([enc.finish()]);
     };
@@ -252,14 +275,19 @@ export class Engine {
 
     return {
       size, run, readTensor, writeTensor,
-      release: () => { for (const b of owned) b.destroy(); },
+      release: () => { for (const b of owned) b.destroy(); for (const a of attnBindings) a.release(); },
     };
   }
 
   release() {
     for (const l of this.layers) { l.weights.destroy(); l.bias.destroy(); l.gather?.destroy(); l.gain?.destroy(); }
     this.layers = [];
+    for (const a of this.attn.values()) a.release();
+    this.attn.clear();
   }
+
+  /** Dispatch count (attention = 2 dispatches per op). */
+  get dispatches(): number { return this.layers.length + 2 * this.attn.size; }
 }
 
 export interface Binding {
