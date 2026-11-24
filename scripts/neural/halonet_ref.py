@@ -188,8 +188,7 @@ def unet(W, x, tap=None):
     for i in range(nd):
         p = "downs.%d" % i
         x = resblock(W, p + ".0", x)             # the stage's "block1" is a whole ResnetBlock
-        if i == 0:
-            t("downs.0.block1", x)
+        t("downs.%d.block1" % i, x)                 # (all stages since N5.8; was stage 0 only)
         hs.append(x)
         x = resblock(W, p + ".1", x)
         if i == 0:
@@ -201,8 +200,7 @@ def unet(W, x, tap=None):
             a = block_attention(W, p + ".2", x, 8)
             t("downs.%d.attn" % i, a)
         x = a + x
-        if i == 0:
-            t("downs.0.post_attn_add", x)
+        t("downs.%d.post_attn_add" % i, x)          # the second skip of the stage (all stages since N5.8)
         hs.append(x)
         x = conv3x3(x, W[p + ".3.weight"], W[p + ".3.bias"]) if i == nd - 1 else downsample(W, p + ".3", x)
         t("downs.%d.down" % i, x)
@@ -216,6 +214,7 @@ def unet(W, x, tap=None):
     for i in range(nd):
         p = "ups.%d" % i
         x = resblock(W, p + ".0", np.concatenate([x, hs.pop()], axis=0))
+        t("ups.%d.block1" % i, x)                   # first ResnetBlock of the up stage (N5.8)
         x = resblock(W, p + ".1", np.concatenate([x, hs.pop()], axis=0))
         if ATTN_MODES[nd - 1 - i] == 0:
             a = x
