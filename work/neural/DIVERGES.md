@@ -26,3 +26,4 @@ IDs: `N-S` source code vs paper, `N-F` features, `N-M` model and inference,
 | N-L1 | Environment | synthetic HDR maps, unit mean | Hillaire sky baked to equirect, sun disc removed (planned, N4) | time of day | not measured | open |
 | N-L2 | Phase function | single Henyey–Greenstein | same for now; our clouds elsewhere use dual-lobe | the weights know only HG | — | intended |
 | N-M1 | Runtime | PyTorch + Vulkan/CUDA | ONNX Runtime Web, then hand-written WGSL (pending D1) | browser | — | open |
+| N-F7 | Environment feature colour | their procedural HDR sky (unit mean) | our zenith-gradient sky plus flat ground, unit mean | different sky, as expected (N-F5) | N2d sheet: same pattern, ours bluer and about 10 % brighter at p99 (0.83 vs 0.74); all other 13 channels match by eye | open |

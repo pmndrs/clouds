@@ -142,7 +142,9 @@ async function main() {
   showLabels();
 
   // Orbit camera around the box centre.
-  const orbit = { yaw: 0.6, pitch: 0.15, distance: 3.2 };
+  // ?yaw= ?pitch= (radians) ?dist= ?fov= (degrees) set the camera (N2d: the authors' default view is yaw 0, pitch 0.3, dist 2.7, fov 45).
+  const orbit = { yaw: Number(q.get('yaw') ?? 0.6), pitch: Number(q.get('pitch') ?? 0.15), distance: Number(q.get('dist') ?? 3.2) };
+  const fovDeg = Number(q.get('fov') ?? 40);
   const camera = (): FeatureCamera => {
     const cp = Math.cos(orbit.pitch);
     const pos: [number, number, number] = [Math.sin(orbit.yaw) * cp * orbit.distance, Math.sin(orbit.pitch) * orbit.distance, Math.cos(orbit.yaw) * cp * orbit.distance];
@@ -151,7 +153,7 @@ async function main() {
     const rl = Math.hypot(fwd[2], fwd[0]);
     const right: [number, number, number] = [-fwd[2] / rl, 0, fwd[0] / rl];
     const up: [number, number, number] = [right[1] * fwd[2] - right[2] * fwd[1], right[2] * fwd[0] - right[0] * fwd[2], right[0] * fwd[1] - right[1] * fwd[0]];
-    return { position: pos, forward: fwd, right, up, fovY: (40 * Math.PI) / 180 };
+    return { position: pos, forward: fwd, right, up, fovY: (fovDeg * Math.PI) / 180 };
   };
   let dirty = true;
   let drag: { x: number; y: number } | null = null;
@@ -273,6 +275,21 @@ async function main() {
       PACKED_CHANNELS.forEach((ch, c) => { maxDiff = Math.max(maxDiff, Math.abs(packed[c * plane + rdv] - data[(y * SIZE + x) * FEATURE_STRIDE + ch])); });
     }
     return { dims: [1, PACKED_CHANNELS.length, SIZE, SIZE], maxDiffVsFeatures: maxDiff };
+  };
+  /** N2d: the packed ONNX input (rdv pixel order) restricted to the given channels, as base64 float32, concatenated in the order asked. */
+  (window as unknown as Record<string, unknown>).__neuralPacked = async (channels: number[]) => {
+    const staging = device.createBuffer({ size: pass.packed.size, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(pass.packed, 0, staging, 0, pass.packed.size);
+    device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const all = new Float32Array(staging.getMappedRange());
+    const plane = SIZE * SIZE, out = new Float32Array(channels.length * plane);
+    channels.forEach((c, i) => out.set(all.subarray(c * plane, (c + 1) * plane), i * plane));
+    staging.unmap(); staging.destroy();
+    let bin = ''; const u8 = new Uint8Array(out.buffer);
+    for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000));
+    return btoa(bin);
   };
   harness.ready({ report, busy: () => busy || needsStep() });
 }
