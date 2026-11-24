@@ -248,11 +248,12 @@ export async function loadCard(key: CardCloudKey, ctx: CardContext): Promise<Car
     ctx.status('baking the P2.7a tower (Houdini recipe)');
     const voxel = Number(new URLSearchParams(location.search).get('towerVoxel') ?? 8);
     const levels = Number(new URLSearchParams(location.search).get('towerLevels') ?? 1);
-    const { grid, perLevel } = await bakeTower3(device, voxel, levels);
+    const fringe = Number(new URLSearchParams(location.search).get('towerFringe') ?? 0);   // P2.8a soft outer layer, off by default
+    const { grid, perLevel } = await bakeTower3(device, voxel, levels, fringe);
     console.log(`tower3 bake: lobes per level ${perLevel.join(' / ')}, grid ${grid.resolution.join(' x ')} at ${voxel} m, ${(grid.density.byteLength / 1048576).toFixed(0)} MB f32, ${grid.ms.toFixed(0)} ms`);
     const { density, dims } = worldToLattice(grid);
     built = await buildDirectCloud(device, density, dims, voxel, grid.min, TOWER_SIGMA, 'card tower3');
-    extra = { perLevel, bakeMs: grid.ms, gridDims: grid.resolution, voxel, occupancy: grid.occupancy };
+    extra = { perLevel, bakeMs: grid.ms, gridDims: grid.resolution, voxel, occupancy: grid.occupancy, fringe };
   } else {
     const patch = PROC_PATCHES[key as 'sky' | 'stratus'];
     ctx.status(`baking the procedural ${key} patch at ${patch.voxel} m`);
