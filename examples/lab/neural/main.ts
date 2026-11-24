@@ -1,8 +1,9 @@
-// N2a lab page: HaloRT's primary-ray features (experiments/neural/feature-pass.ts) on the Disney cloud, as six grayscale 512² panels.
-// Drag to orbit, wheel to zoom. Query: ?scale=<densityScale> (default 10), ?step=<step> (default 0.004), ?vdb=sixteenth|eighth.
+// N2a/N2b lab page: HaloRT's per-pixel features (experiments/neural/feature-pass.ts) on the Disney cloud, nine 512² panels (3 x 3).
+// Drag to orbit, wheel to zoom. Query: ?scale=<densityScale> (default 10), ?step=<step> (default 0.004), ?vdb=sixteenth|eighth,
+// ?g= (0.3), ?env= (8), ?sunAz= ?sunEl= (degrees). The same are sliders in the Review box.
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { loadDenseVdb, vdbLimits } from './density';
-import { FEATURE, FEATURE_STRIDE, FeaturePass, type FeatureCamera } from '../../../experiments/neural/feature-pass';
+import { FEATURE, FEATURE_STRIDE, FeaturePass, PACKED_CHANNELS, type FeatureCamera } from '../../../experiments/neural/feature-pass';
 
 declare const __REPO_ROOT__: string;
 const harness = installCloudsHarness();
@@ -11,11 +12,22 @@ const status = (s: string) => { statusEl.textContent = s; };
 
 const SIZE = 512;
 const q = new URLSearchParams(location.search);
-const densityScale = Number(q.get('scale') ?? 10);
+const settings = {
+  densityScale: Number(q.get('scale') ?? 10),
+  g: Number(q.get('g') ?? 0.3),
+  envSamples: Number(q.get('env') ?? 8),
+  sunAz: Number(q.get('sunAz') ?? 120),
+  sunEl: Number(q.get('sunEl') ?? 30),
+};
+const sunDirection = (): [number, number, number] => {
+  const az = (settings.sunAz * Math.PI) / 180, el = (settings.sunEl * Math.PI) / 180;
+  return [Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)];
+};
 const stepSize = Number(q.get('step') ?? 0.004);
 const vdbFile = `disney-cloud/wdas_cloud_${q.get('vdb') ?? 'eighth'}.vdb`;
 
-/** Panels, left to right then top to bottom: [channel, label]. Values shown raw, clamped to [0, 1]. */
+/** Panels, left to right then top to bottom: [channel, label]. Values shown raw, clamped to [0, 1]. RGB | channel = three channels as colour. */
+const RGB = 0x100;
 const PANELS: [number, string][] = [
   [FEATURE.tr, 'tr = 1 - exp(-0.2 tau)'],
   [FEATURE.S, 'S = 1 - exp(-tau)'],
@@ -23,6 +35,9 @@ const PANELS: [number, string][] = [
   [FEATURE.c1, 'crossing 2 (x1): (t2 - t1)^0.25'],
   [FEATURE.c2, 'crossing 3 (x0.25): (t3 - t2)^0.25'],
   [FEATURE.c3, 'crossing 4 (x0.125): (t4 - t3)^0.25'],
+  [FEATURE.nee, 'nee (6): sun transmittance at x(t1)'],
+  [RGB | FEATURE.envR, 'env rgb (7-9): mean T * HG * L / pdf'],
+  [FEATURE.saR, 'albedo (10): sa ^ (2 tau (1 - sa g))'],
 ];
 
 const RESEARCH_CANDIDATES = [`${__REPO_ROOT__}artifacts/research/`, `${__REPO_ROOT__}../../../artifacts/research/`];
@@ -34,7 +49,7 @@ async function researchUrl(file: string): Promise<string> {
 }
 
 const DISPLAY_WGSL = /* wgsl */ `
-struct D { size: u32, stride: u32, cols: u32, _p: u32, channels: array<vec4u, 2> }
+struct D { size: u32, stride: u32, cols: u32, _p: u32, channels: array<vec4u, 3> }
 @group(0) @binding(0) var<uniform> U: D;
 @group(0) @binding(1) var<storage, read> F: array<f32>;
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
@@ -45,9 +60,11 @@ struct D { size: u32, stride: u32, cols: u32, _p: u32, channels: array<vec4u, 2>
   let px = vec2u(pos.xy);
   let panel = (px.y / U.size) * U.cols + px.x / U.size;
   let local = px % vec2u(U.size);
-  let ch = U.channels[panel / 4u][panel % 4u];
-  let v = F[(local.y * U.size + local.x) * U.stride + ch];
-  let g = clamp(v, 0.0, 1.0);
+  let raw = U.channels[panel / 4u][panel % 4u];
+  let ch = raw & 0xffu;
+  let o = (local.y * U.size + local.x) * U.stride + ch;
+  if ((raw & ${RGB}u) != 0u) { return vec4f(clamp(vec3f(F[o], F[o + 1u], F[o + 2u]), vec3f(0.0), vec3f(1.0)), 1.0); }
+  let g = clamp(F[o], 0.0, 1.0);
   return vec4f(g, g, g, 1.0);
 }`;
 
@@ -77,7 +94,7 @@ async function main() {
   const format = navigator.gpu.getPreferredCanvasFormat();
   ctx.configure({ device, format, alphaMode: 'opaque' });
   const cols = 3;
-  const dispU = new Uint32Array(4 + 8);
+  const dispU = new Uint32Array(4 + 12);
   dispU.set([SIZE, FEATURE_STRIDE, cols, 0]);
   PANELS.forEach(([ch], i) => { dispU[4 + i] = ch; });
   const dispBuf = device.createBuffer({ size: dispU.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -121,12 +138,34 @@ async function main() {
   });
   canvas.addEventListener('wheel', e => { e.preventDefault(); orbit.distance = Math.max(1.2, Math.min(10, orbit.distance * Math.exp(e.deltaY * 0.001))); dirty = true; }, { passive: false });
 
-  const info = { vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, densityScale, stepSize, loadMs: Math.round(loadMs) };
-  status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${densityScale}  step ${stepSize}  (drag to orbit)`);
+  const info = { vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, stepSize, envScale: pass.envScale, loadMs: Math.round(loadMs) };
+  const showStatus = () => status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${settings.densityScale}  step ${stepSize}  g ${settings.g}  env ${settings.envSamples}  sun az ${settings.sunAz} el ${settings.sunEl}  (drag to orbit)`);
+  showStatus();
+
+  // Review box: sliders for the inputs the second half of the pass reads.
+  const review = document.getElementById('review')!;
+  const slider = (key: keyof typeof settings, label: string, min: number, max: number, step: number) => {
+    const row = document.createElement('label');
+    const input = document.createElement('input');
+    Object.assign(input, { type: 'range', min: String(min), max: String(max), step: String(step), value: String(settings[key]) });
+    const val = document.createElement('span');
+    val.textContent = String(settings[key]);
+    input.addEventListener('input', () => { settings[key] = Number(input.value); val.textContent = input.value; dirty = true; showStatus(); });
+    row.append(`${label} `, input, val);
+    review.appendChild(row);
+  };
+  slider('sunAz', 'sun azimuth', -180, 180, 1);
+  slider('sunEl', 'sun elevation', -10, 90, 1);
+  slider('g', 'g', -0.9, 0.95, 0.05);
+  slider('densityScale', 'density scale', 1, 60, 1);
+  slider('envSamples', 'env samples', 0, 64, 1);
 
   const frame = () => {
     const enc = device.createCommandEncoder();
-    if (dirty) { pass.encode(enc, { density: densityTex, boxHalf, camera: camera(), densityScale, stepSize }); dirty = false; }
+    if (dirty) {
+      pass.encode(enc, { density: densityTex, boxHalf, camera: camera(), densityScale: settings.densityScale, stepSize, g: settings.g, envSamples: settings.envSamples, sunDirection: sunDirection() });
+      dirty = false;
+    }
     const rp = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 1 } }] });
     rp.setPipeline(dispPipe);
     rp.setBindGroup(0, dispGroup);
@@ -154,7 +193,26 @@ async function main() {
       names.forEach(([, ch], i) => { const v = data[o + ch]; acc[i].min = Math.min(acc[i].min, v); acc[i].max = Math.max(acc[i].max, v); acc[i].sum += v; });
     }
     names.forEach(([n], i) => { stats[n] = { min: +acc[i].min.toFixed(4), mean: +(acc[i].sum / Math.max(1, hit)).toFixed(4), max: +acc[i].max.toFixed(4) }; });
-    return { ...info, orbit: { ...orbit }, pixels: SIZE * SIZE, pixelsWithTau: anyTau, pixelsWithCrossing: hit, stats };
+    return { ...info, settings: { ...settings }, sunDirection: sunDirection(), orbit: { ...orbit }, pixels: SIZE * SIZE, pixelsWithTau: anyTau, pixelsWithCrossing: hit, stats, packed: await packedCheck() };
+  };
+
+  /** Reads the packed ONNX input back and checks it against the per-pixel buffer (rdv order: our pixel turned 180 degrees). */
+  const packedCheck = async () => {
+    const staging = device.createBuffer({ size: pass.packed.size, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(pass.packed, 0, staging, 0, pass.packed.size);
+    device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const packed = new Float32Array(staging.getMappedRange().slice(0));
+    staging.unmap(); staging.destroy();
+    const data = await pass.read();
+    const plane = SIZE * SIZE;
+    let maxDiff = 0;
+    for (let y = 0; y < SIZE; y += 7) for (let x = 0; x < SIZE; x += 7) {
+      const rdv = (SIZE - 1 - y) * SIZE + (SIZE - 1 - x);
+      PACKED_CHANNELS.forEach((ch, c) => { maxDiff = Math.max(maxDiff, Math.abs(packed[c * plane + rdv] - data[(y * SIZE + x) * FEATURE_STRIDE + ch])); });
+    }
+    return { dims: [1, PACKED_CHANNELS.length, SIZE, SIZE], maxDiffVsFeatures: maxDiff };
   };
   harness.ready({ report });
 }

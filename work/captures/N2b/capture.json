@@ -1,0 +1,189 @@
+{
+  "url": "http://localhost:5291/neural/",
+  "size": [
+    1536,
+    1536
+  ],
+  "startedAt": "2026-11-24T01:00:17.308Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N2b/view.jpg",
+      "report": {
+        "vdb": "disney-cloud/wdas_cloud_eighth.vdb",
+        "gridName": "density",
+        "dims": [
+          254,
+          311,
+          174
+        ],
+        "nativeVoxel": 1.6666666269302368,
+        "densityRef": 0.8955078125,
+        "boxHalf": [
+          0.8167202572347267,
+          0.5594855305466238,
+          1
+        ],
+        "stepSize": 0.004,
+        "envScale": [
+          0.2392556616801603,
+          0.3157502683161249,
+          0.5215426102800303
+        ],
+        "loadMs": 248,
+        "settings": {
+          "densityScale": 10,
+          "g": 0.3,
+          "envSamples": 8,
+          "sunAz": 120,
+          "sunEl": 30
+        },
+        "sunDirection": [
+          0.7500000000000001,
+          0.49999999999999994,
+          -0.4330127018922192
+        ],
+        "orbit": {
+          "yaw": 0.6,
+          "pitch": 0.15,
+          "distance": 3.2
+        },
+        "pixels": 262144,
+        "pixelsWithTau": 71404,
+        "pixelsWithCrossing": 69511,
+        "stats": {
+          "tau": {
+            "min": 0.0001,
+            "mean": 3.2722,
+            "max": 7.6652
+          },
+          "S": {
+            "min": 0.0001,
+            "mean": 0.7836,
+            "max": 0.9995
+          },
+          "tr": {
+            "min": 0,
+            "mean": 0.4297,
+            "max": 0.7841
+          },
+          "count": {
+            "min": 4,
+            "mean": 4,
+            "max": 4
+          },
+          "t0": {
+            "min": 2.4644,
+            "mean": 2.8526,
+            "max": 3.9543
+          },
+          "t1": {
+            "min": 2.4644,
+            "mean": 2.9362,
+            "max": 3.9543
+          },
+          "t2": {
+            "min": 2.4644,
+            "mean": 3.0426,
+            "max": 3.9543
+          },
+          "t3": {
+            "min": 2.4644,
+            "mean": 3.0688,
+            "max": 3.9543
+          },
+          "depth": {
+            "min": 0.4007,
+            "mean": 0.451,
+            "max": 0.5827
+          },
+          "c1": {
+            "min": 0,
+            "mean": 0.4753,
+            "max": 0.9067
+          },
+          "c2": {
+            "min": 0,
+            "mean": 0.4724,
+            "max": 0.9054
+          },
+          "c3": {
+            "min": 0,
+            "mean": 0.3117,
+            "max": 0.8772
+          },
+          "g": {
+            "min": 0.3,
+            "mean": 0.3,
+            "max": 0.3
+          },
+          "nee": {
+            "min": 0.0007,
+            "mean": 0.5518,
+            "max": 1
+          },
+          "envR": {
+            "min": 0.0164,
+            "mean": 0.392,
+            "max": 2.6447
+          },
+          "envG": {
+            "min": 0.0128,
+            "mean": 0.3836,
+            "max": 2.382
+          },
+          "envB": {
+            "min": 0.0063,
+            "mean": 0.3724,
+            "max": 2.2479
+          },
+          "saR": {
+            "min": 0.8973,
+            "mean": 0.9553,
+            "max": 1
+          },
+          "saG": {
+            "min": 0.8973,
+            "mean": 0.9553,
+            "max": 1
+          },
+          "saB": {
+            "min": 0.8973,
+            "mean": 0.9553,
+            "max": 1
+          },
+          "bgR": {
+            "min": 1.0449,
+            "mean": 1.0634,
+            "max": 3.132
+          },
+          "bgG": {
+            "min": 0.6968,
+            "mean": 0.7139,
+            "max": 2.5954
+          },
+          "bgB": {
+            "min": 0.3451,
+            "mean": 0.3587,
+            "max": 1.8213
+          }
+        },
+        "packed": {
+          "dims": [
+            1,
+            17,
+            512,
+            512
+          ],
+          "maxDiffVsFeatures": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
