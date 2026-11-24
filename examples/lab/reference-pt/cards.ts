@@ -10,13 +10,14 @@ import { bakeDensity, type DensityGrid, type V3 } from './bake';
 import { buildDirectCloud, occupiedBox, worldToLattice, type DirectCloud } from './direct';
 import { createProcBaker } from './proc-bake';
 import { bakeTower } from './tower-bake';
+import { bakeTower2 } from './tower2-bake';
 
 /** P2.4a tower: sigma (1/m) at density 1, about the sky card's densityRef (0.42) to max (0.50). */
 const TOWER_SIGMA = 0.45;
 
 declare const __REPO_ROOT__: string;
 
-export const CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus', 'tower'] as const;
+export const CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus', 'tower', 'tower2'] as const;
 export type CardCloudKey = (typeof CARD_CLOUDS)[number];
 
 /** Suns: time of day (lat 40, day of year @pmndrs/sky's default) and the camera's ring angle from the sun's azimuth (0 = sun behind the camera). */
@@ -52,6 +53,9 @@ export const CARD_DEFS: Record<CardCloudKey, CardCloudDef> = {
   stratus: { key: 'stratus', label: 'E stratus slab (HZD deck)', source: 'HZD shaper deck slot, form stratus (main layer off): a baked 3 x 3 km slab of procSample', runtime: 'direct', camera: { distance: 1200, height: 100 }, alphaFilter: 'trilinear' },
   // P2.4a proof: one cumulus tower from a smooth union of nested spheres (tower-bake.ts). Low camera, tower about half the frame height.
   tower: { key: 'tower', label: 'F sphere-hierarchy tower (P2.4a probe)', source: 'P2.4a: 9 + level-1 + level-2 spheres, smooth union, 2-octave noise, flat soft base; GPU bake at 8 m, sigma 0.45 / m at density 1', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
+  // P2.6a: the same tower plus the Houdini variance stage (tower2-bake.ts): ellipsoid, jittered, clumped lobes, a level 3, billow displacement on
+  // the tops fading to eroded wisps underneath, non-uniform interior. Same camera and sigma as `tower` for A/B.
+  tower2: { key: 'tower2', label: 'G tower + variance (P2.6a probe)', source: 'P2.6a: tower lobes as jittered clumped ellipsoids + level 3, billow displacement on tops, eroded soft underside, fbm interior; GPU bake at 8 m, sigma 0.45 / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
 };
 
 /** VDB assets (local research files, never committed: artifacts/research of the main checkout), at vdb-sky's presentation. */
@@ -167,6 +171,15 @@ export async function loadCard(key: CardCloudKey, ctx: CardContext): Promise<Car
     console.log(`tower bake: spheres per level ${perLevel.join(' / ')}, grid ${grid.resolution.join(' x ')} at ${voxel} m, ${(grid.density.byteLength / 1048576).toFixed(0)} MB f32, ${grid.ms.toFixed(0)} ms`);
     const { density, dims } = worldToLattice(grid);
     built = await buildDirectCloud(device, density, dims, voxel, grid.min, TOWER_SIGMA, 'card tower');
+    extra = { perLevel, bakeMs: grid.ms, gridDims: grid.resolution, voxel, occupancy: grid.occupancy };
+  } else if (key === 'tower2') {
+    ctx.status('baking the P2.6a tower with variance');
+    const voxel = Number(new URLSearchParams(location.search).get('towerVoxel') ?? 8);
+    const levels = Number(new URLSearchParams(location.search).get('towerLevels') ?? 3);
+    const { grid, perLevel } = await bakeTower2(device, voxel, levels);
+    console.log(`tower2 bake: lobes per level ${perLevel.join(' / ')}, grid ${grid.resolution.join(' x ')} at ${voxel} m, ${(grid.density.byteLength / 1048576).toFixed(0)} MB f32, ${grid.ms.toFixed(0)} ms`);
+    const { density, dims } = worldToLattice(grid);
+    built = await buildDirectCloud(device, density, dims, voxel, grid.min, TOWER_SIGMA, 'card tower2');
     extra = { perLevel, bakeMs: grid.ms, gridDims: grid.resolution, voxel, occupancy: grid.occupancy };
   } else {
     const patch = PROC_PATCHES[key as 'sky' | 'stratus'];
