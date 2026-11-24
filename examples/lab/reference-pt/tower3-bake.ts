@@ -12,6 +12,10 @@
 //            ~130 m low down and on undersides, ~20 m on the tops, so lit ridges stay crisp).
 //   density: crisp ramp (10 m) on up-facing upper surfaces, wide (75 m) on undersides and low down, fbm erosion on the soft parts, ragged soft
 //            base instead of a flat slab; interior fbm as tower2.
+//   fringe:  (P2.8a, ?towerFringe=1, off by default) a soft low-density layer outside the dense body, so edges have thin material for the
+//            sunward silver lining: density up to ~0.35 at the surface falling to 0 over ~60 m on the sides and ~100 m low down / underneath,
+//            only ~8 m on clearly up-facing upper surfaces (lit ridges stay crisp); its width and strength are broken up by 70 m fbm so it is patchy,
+//            not a uniform halo.
 import type { DensityGrid, V3 } from './bake';
 import { TOWER_BASE } from './tower-bake';
 
@@ -121,7 +125,7 @@ const WGSL = /* wgsl */ `
 struct TB {
   origin: vec3<f32>, voxel: f32,
   dims: vec3<u32>, zOffset: u32,
-  count: u32, base: f32, _a: f32, _b: f32,
+  count: u32, base: f32, fringe: f32, _b: f32,
 }
 @group(0) @binding(0) var<uniform> tb: TB;
 @group(0) @binding(1) var<storage, read> lobes: array<vec4<f32>>;   // 2 per lobe: (c, r bound), (scale.xyz, rot)
@@ -235,6 +239,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let soft = (1.0 - crisp) * max(1.0 - smoothstep(80.0, 600.0, hb), 1.0 - smoothstep(-0.6, 0.0, n.y));
   let ero = fbm3(pw / 60.0 + vec3(4.0, 1.0, 8.0)) * 0.5 + 0.5;
   dens = clamp((dens - soft * 0.65 * ero) / max(1.0 - soft * 0.65 * ero, 0.05), 0.0, 1.0);
+  // P2.8a fringe (after the erosion, which would eat it): thin material outside the body (d > 0), wide low down and underneath, narrow on the sides, almost none on lit tops; patchy.
+  if (tb.fringe > 0.0 && d > 0.0) {
+    let fLow = max(low, 1.0 - smoothstep(-0.6, 0.0, n.y));
+    let nf = clamp(fbm3(pw / 70.0 + vec3(21.0, 5.0, 14.0)) * 0.9 + 0.5, 0.0, 1.0);
+    let top = smoothstep(0.2, 0.7, n.y) * smoothstep(80.0, 450.0, hb);   // only clearly up-facing upper surfaces stay crisp (sides do not)
+    let W = mix(mix(60.0, 100.0, fLow), 8.0, top) * (0.35 + 1.1 * nf);
+    let amp = 0.35 * tb.fringe * mix(0.3, 1.0, smoothstep(0.3, 0.7, nf)) * (1.0 - 0.85 * top);
+    let t = clamp(1.0 - d / W, 0.0, 1.0);
+    dens = max(dens, amp * t * t);
+  }
   let inner = 0.6 + 0.4 * clamp(fbm3(p / 260.0 + vec3(13.0, 4.0, 7.0)) * 0.9 + 0.55, 0.0, 1.0);
   let depth = clamp(-d / 300.0, 0.0, 1.0);
   dens *= mix(1.0, inner, smoothstep(0.0, 1.0, clamp(-d / 60.0, 0.0, 1.0))) * (0.9 + 0.1 * depth);
@@ -245,12 +259,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 `;
 
 /** Bakes tower3 into a world grid (x fastest, then y, then z), density in [0, 1]. */
-export async function bakeTower3(device: GPUDevice, voxel = 8, levels = 1): Promise<{ grid: DensityGrid; perLevel: number[] }> {
+export async function bakeTower3(device: GPUDevice, voxel = 8, levels = 1, fringe = 0): Promise<{ grid: DensityGrid; perLevel: number[] }> {
   const t0 = performance.now();
   const lobes = tower3Lobes(TOWER3_SEED, levels);
   const perLevel = [0, 0, 0];
   for (const s of lobes) perLevel[s.level]++;
-  const margin = 160;
+  const margin = fringe > 0 ? 260 : 160;   // the fringe reaches up to ~145 m past the pushed surface
   const lo: V3 = [Infinity, TOWER_BASE - 2 * voxel, Infinity], hi: V3 = [-Infinity, -Infinity, -Infinity];
   for (const s of lobes) for (const a of [0, 1, 2]) { if (a !== 1) lo[a] = Math.min(lo[a], s.c[a] - s.r - margin); hi[a] = Math.max(hi[a], s.c[a] + s.r + margin); }
   const min = lo.map(v => Math.floor(v / voxel) * voxel) as V3;
@@ -273,7 +287,7 @@ export async function bakeTower3(device: GPUDevice, voxel = 8, levels = 1): Prom
     const p = new ArrayBuffer(48), f = new Float32Array(p), u = new Uint32Array(p);
     f.set(min, 0); f[3] = voxel;
     u[4] = nx; u[5] = ny; u[6] = zs; u[7] = z0;
-    u[8] = lobes.length; f[9] = TOWER_BASE;
+    u[8] = lobes.length; f[9] = TOWER_BASE; f[10] = fringe;
     device.queue.writeBuffer(params, 0, p);
     const enc = device.createCommandEncoder({ label: 'tower3 bake' });
     const pass = enc.beginComputePass();
