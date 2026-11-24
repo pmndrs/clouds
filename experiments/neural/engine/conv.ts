@@ -17,7 +17,20 @@
 //   - workgroup mapping unchanged (output-channel group in wg.z = b * ocg + og).
 //     That is fine for kernel D (no norm). Kernels A/B (RMSNorm) need the
 //     channel group in local z instead (ENGINE.md §2); not done here.
-// Only kernel '3x3', act 'none', skip none, scale 1 is implemented (N5.6).
+// N5.7 adds kernels A/B (ENGINE.md §2), selected by the op, same generator:
+//   - act 'normSilu': the output-channel group moves from wg.z into
+//     local_invocation_id.z (workgroup wgx x wgy x G, G = cout4 / oc4, so one
+//     workgroup owns every output channel of its pixels and stages each input
+//     tile once for all of them). Epilogue: per-pixel partial sums of squares
+//     in workgroup memory (f32), barrier, sum of the G partials, then
+//     y * g*sqrt(C) / max(||y||, 1e-12) and SiLU, in f32. The gain
+//     (g * sqrt(C), folded at pack time) is binding 7, laid out like the bias.
+//   - skip 'identity': adds x at the output pixel (binding 8, packed, same
+//     channel count as the output) after the activation; written as a
+//     `skipAt` value so a second skip kind (1x1 over one or two sources) can
+//     be generated in the same place.
+//   - scale 2: multiplies after the skip (stages whose attention is Identity).
+// Still stubbed: kernels '1x1' / '2x2s2', skip 'conv1x1', upsampled sources.
 import type { ConvOp } from './graph';
 
 export interface ConvTiling {
@@ -42,7 +55,12 @@ export interface ConvShaderInfo {
   tileH: number;
   /** Taps per kernel (9 for 3x3). */
   taps: number;
+  /** Output-channel groups held in local z (kernels A/B; 1 for D). Dispatch z = batch * (cout4 / oc4) / localZ. */
+  localZ: number;
 }
+
+/** Max invocations per workgroup the A/B kernels may use (WebGPU default limit). */
+export const MAX_INVOCATIONS = 256;
 
 export const ceil4 = (c: number) => Math.ceil(c / 4);
 
@@ -52,9 +70,10 @@ export const DEFAULT_TILING: ConvTiling = { pw: 2, ph: 2, oc4: 2, wgx: 8, wgy: 8
 export function checkSupported(op: ConvOp) {
   const no = (what: string) => { throw new Error(`engine: ${op.name}: ${what} not implemented yet`); };
   if (op.kernel !== '3x3') no(`kernel ${op.kernel}`);
-  if (op.act !== 'none') no(`activation ${op.act}`);
-  if (op.skip.kind !== 'none') no(`skip ${op.skip.kind}`);
-  if (op.scale !== 1) no(`scale x${op.scale}`);
+  if (op.act !== 'none' && op.act !== 'normSilu') no(`activation ${op.act}`);
+  if (op.skip.kind !== 'none' && op.skip.kind !== 'identity') no(`skip ${op.skip.kind}`);
+  if (op.skip.kind === 'identity' && (op.skip.src.kind !== 'tensor' || op.skip.src.up)) no('identity skip from a non-tensor or upsampled source');
+  if (op.scale !== 1 && op.scale !== 2) no(`scale x${op.scale}`);
   if (op.src1.kind === 'tensor' && op.src1.up) no('upsampled source');
   if (op.src2?.kind === 'input') no('input as second source');
 }
@@ -67,8 +86,15 @@ export function convShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvSh
   const T = f16 ? 'f16' : 'f32';
   const taps = 9;
   const cout4 = ceil4(op.cout);
-  const oc4 = Math.min(tiling.oc4, cout4);
+  const norm = op.act === 'normSilu';
+  let oc4 = Math.min(tiling.oc4, cout4);
+  // A/B: all channel groups in one workgroup; widen oc4 until wgx*wgy*G fits the invocation limit
+  while (norm && (cout4 / oc4) * wgx * wgy > MAX_INVOCATIONS && oc4 < cout4) oc4 *= 2;
   if (cout4 % oc4) throw new Error(`oc4 ${oc4} must divide cout4 ${cout4}`);
+  const G = norm ? cout4 / oc4 : 1;
+  if (G * wgx * wgy > MAX_INVOCATIONS) throw new Error(`engine: ${op.name}: ${wgx}x${wgy}x${G} invocations > ${MAX_INVOCATIONS}`);
+  const threads = wgx * wgy * G;
+  const npix = wgx * wgy * ph * pw; // output pixels per workgroup
   const c1_4 = ceil4(op.c1);
   const c2_4 = ceil4(op.c2);
   const nch = c1_4 + c2_4;
@@ -126,17 +152,38 @@ export function convShader(op: ConvOp, f16: boolean, tiling: ConvTiling): ConvSh
   if (f16) body.push(...each((py, px, o) => `${acc(py, px, o)} += vec4f(${part(py, px, o)});`));
 
   const epi: string[] = [];
+  const pix = (py: number, px: number) => `pb + ${py * pw + px}u`; // this thread's pixel slot in ss[]
+  if (norm) {
+    // RMSNorm across the G channel groups: partial sums of squares -> workgroup memory -> barrier -> sum
+    for (let py = 0; py < ph; py++) for (let px = 0; px < pw; px++) {
+      const terms = Array.from({ length: oc4 }, (_, o) => `dot(${acc(py, px, o)}, ${acc(py, px, o)})`).join(' + ');
+      epi.push(`ss[l.z * ${npix}u + ${pix(py, px)}] = ${terms};`);
+    }
+    epi.push('workgroupBarrier();');
+    for (let py = 0; py < ph; py++) for (let px = 0; px < pw; px++) {
+      const sum = Array.from({ length: G }, (_, g) => `ss[${g * npix}u + ${pix(py, px)}]`).join(' + ');
+      epi.push(`let n${py}_${px} = 1.0 / max(sqrt(${sum}), 1e-12);`);
+    }
+  }
+  // skipAt(oc, y, x): the residual added after the activation. Identity reads x at the output pixel.
+  // A conv1x1 skip would be generated here as a 1x1 over one or two sources (N5.8).
+  const skipAt = op.skip.kind === 'identity' ? `vec4f(sk[((b * ${cout4}u + oc) * H + y) * W + x])` : '';
   for (let o = 0; o < oc4; o++) {
     epi.push(`{ let oc = og * ${oc4}u + ${o}u;`);
+    if (norm) epi.push(`  let gv = gain[wsi * p.bStride + oc];`);
     for (let py = 0; py < ph; py++) for (let px = 0; px < pw; px++) {
       epi.push(`  { let y = oy + ${py}u; let x = ox + ${colOf(px)}u; if (y < H && x < W) {`);
-      epi.push(`    dst[((b * ${cout4}u + oc) * H + y) * W + x] = vec4<${T}>(${acc(py, px, o)}); } }`);
+      epi.push(`    var r = ${acc(py, px, o)};`);
+      if (norm) epi.push(`    r = r * (gv * n${py}_${px}); r = r / (1.0 + exp(-r));`);
+      if (skipAt) epi.push(`    r += ${skipAt};`);
+      if (op.scale !== 1) epi.push(`    r *= ${op.scale.toFixed(1)};`);
+      epi.push(`    dst[((b * ${cout4}u + oc) * H + y) * W + x] = vec4<${T}>(r); } }`);
     }
     epi.push('}');
   }
 
   const code = /* wgsl */ `${f16 ? 'enable f16;\n' : ''}
-// ${op.name}: ${op.kernel} ${op.c1}${op.c2 ? `+${op.c2}` : ''} -> ${op.cout}${gather ? ' (gathered input)' : ''}
+// ${op.name}: ${op.kernel} ${op.c1}${op.c2 ? `+${op.c2}` : ''} -> ${op.cout}${gather ? ' (gathered input)' : ''}${norm ? `, RMSNorm+SiLU (G=${G} in local z)` : ''}${skipAt ? ', identity skip' : ''}${op.scale !== 1 ? `, x${op.scale}` : ''}
 struct P { H: u32, W: u32, sH: u32, sW: u32, ocg: u32, setSplit: u32, wStride: u32, bStride: u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> w: array<${MT}>;
@@ -145,15 +192,18 @@ ${srcDecl(3, gather)}
 ${c2_4 ? srcDecl(4, false) : ''}
 @group(0) @binding(5) var<storage, read_write> dst: array<vec4<${T}>>;
 ${gather ? '@group(0) @binding(6) var<storage, read> gtab: array<vec4u>;' : ''}
+${norm ? '@group(0) @binding(7) var<storage, read> gain: array<vec4f>;' : ''}
+${skipAt ? `@group(0) @binding(8) var<storage, read> sk: array<vec4<${T}>>;` : ''}
 
 var<workgroup> tile: array<${VT}, ${tn}>;
+${norm ? `var<workgroup> ss: array<f32, ${G * npix}>;` : ''}
 
-@compute @workgroup_size(${wgx}, ${wgy}, 1)
+@compute @workgroup_size(${wgx}, ${wgy}, ${G})
 fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u, @builtin(local_invocation_index) li: u32) {
   let H = p.H;
   let W = p.W;
-  let og = wg.z % p.ocg;
-  let b = wg.z / p.ocg;
+  let og = ${norm ? 'l.z' : 'wg.z % p.ocg'};
+  let b = ${norm ? 'wg.z' : 'wg.z / p.ocg'};
   let wsi = select(1u, 0u, b < p.setSplit);
   let wset = wsi * p.wStride;
   let ty0 = i32(wg.y * ${tileH}u) - 1;
@@ -161,10 +211,11 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u
   let oy = wg.y * ${tileH}u + l.y * ${ph}u;
   let ox = wg.x * ${tileW}u + l.x;
   let base = l.y * ${ph * ttw}u + l.x;
+  ${norm ? `let pb = (l.y * ${wgx}u + l.x) * ${ph * pw}u;` : ''}
   ${Array.from({ length: oc4 }, (_, o) => `let bv${o} = bias[wsi * p.bStride + og * ${oc4}u + ${o}u];`).join('\n  ')}
   ${accDecl}
   for (var k = 0u; k < ${nch}u; k++) {
-    for (var i = li; i < ${tn}u; i += ${wgx * wgy}u) {
+    for (var i = li; i < ${tn}u; i += ${threads}u) {
       let gy = ty0 + i32(i / ${ttw}u);
       let gx = tx0 + i32(i % ${ttw}u);
       var v = vec4f(0.0);
@@ -183,7 +234,7 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u
   }
 }
 `;
-  return { code, tiling: { ...tiling, oc4 }, nch, c1_4, cout4, tileW, tileH, taps };
+  return { code, tiling: { ...tiling, oc4 }, nch, c1_4, cout4, tileW, tileH, taps, localZ: G };
 }
 
 /**
@@ -224,5 +275,14 @@ export function packWeights(w: Float32Array, cout: number, c1: number, c2: numbe
 export function packBias(b: Float32Array, cout: number): Float32Array {
   const out = new Float32Array(ceil4(cout) * 4);
   out.set(b.subarray(0, cout));
+  return out;
+}
+
+/** RMSNorm gain with sqrt(C) folded in (ENGINE.md §2), padded to vec4s like the bias. */
+export function packGain(g: Float32Array, cout: number): Float32Array {
+  if (g.length !== cout) throw new Error(`packGain: ${g.length} != ${cout}`);
+  const out = new Float32Array(ceil4(cout) * 4);
+  const k = Math.fround(Math.sqrt(cout));
+  for (let c = 0; c < cout; c++) out[c] = g[c] * k;
   return out;
 }

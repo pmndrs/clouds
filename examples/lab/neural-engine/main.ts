@@ -4,9 +4,11 @@
 // 3-5 env passes 0-2) in one pass and one submit, reads it back, and compares:
 //   - items 0 and 3 with the NumPy dumps dir.init_conv / env.init_conv (scripts/neural/halonet_ref.py, pass 0);
 //   - all six items with a plain JS conv3x3 on the CPU (the dumps only hold pass 0; this covers the gather of passes 1-2).
+// N5.7: the graph is now init_conv + stage 0's two ResnetBlocks (kernels A/B: conv3x3 + RMSNorm + SiLU, identity
+// skip, x2 fused in the last op); items 0 and 3 are also compared with dumps downs.0.block1 / downs.0.post_attn_add.
 // Query: ?size=256|512 (default 256), ?precision=fp32|fp16 (default fp32). Report: window.__clouds.report().
 import { Engine } from '../../../experiments/neural/engine/runtime';
-import { HALO_GATHER_B6, initConvGraph } from '../../../experiments/neural/engine/graph';
+import { HALO_GATHER_B6, stage0Graph } from '../../../experiments/neural/engine/graph';
 import { parseTZA, type TensorMap } from '../../../experiments/neural/engine/tza';
 
 declare const __REPO_ROOT__: string;
@@ -91,10 +93,16 @@ async function main() {
     dir: new Float32Array(await fetchBuf(`neural/fixture/dumps/${SIZE}/${index['dir.init_conv'].file}`)),
     env: new Float32Array(await fetchBuf(`neural/fixture/dumps/${SIZE}/${index['env.init_conv'].file}`)),
   };
+  // N5.7: stage 0 dumps (tensor 2 = first ResnetBlock out, tensor 4 = second ResnetBlock out x2)
+  const STAGE0 = [{ id: 2, ref: 'downs.0.block1' }, { id: 4, ref: 'downs.0.post_attn_add' }];
+  const stageDumps = new Map<string, Float32Array>();
+  for (const set of ['dir', 'env']) for (const { ref } of STAGE0) {
+    stageDumps.set(`${set}.${ref}`, new Float32Array(await fetchBuf(`neural/fixture/dumps/${SIZE}/${index[`${set}.${ref}`].file}`)));
+  }
 
   status('building engine');
-  const graph = initConvGraph(HALO_GATHER_B6);
-  const engine = await Engine.create(device, graph, [Wd, We], { f16: F16, batch: 6, setSplit: 3, keep: [0] });
+  const graph = stage0Graph(HALO_GATHER_B6);
+  const engine = await Engine.create(device, graph, [Wd, We], { f16: F16, batch: 6, setSplit: 3, keep: [0, 2, 4] });
   const input = device.createBuffer({ size: cond.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, label: 'cond' });
   device.queue.writeBuffer(input, 0, cond);
   const binding = engine.bind(SIZE, input);
@@ -108,6 +116,13 @@ async function main() {
     { item: 0, name: ITEMS[0], ref: 'dir.init_conv', ...diff(item(0), dumps.dir) },
     { item: 3, name: ITEMS[3], ref: 'env.init_conv', ...diff(item(3), dumps.env) },
   ];
+  for (const { id, ref } of STAGE0) {
+    const t = await binding.readTensor(id);
+    for (const b of [0, 3]) {
+      const key = `${b < 3 ? 'dir' : 'env'}.${ref}`;
+      vsNumpy.push({ item: b, name: ITEMS[b], ref: key, ...diff(t.subarray(b * per, (b + 1) * per), stageDumps.get(key)!) });
+    }
+  }
   const vsCpu = ITEMS.map((name, b) => {
     const ref = cpuInitConv(b < 3 ? Wd : We, cond, HALO_GATHER_B6[b], SIZE);
     return { item: b, name, ...diff(item(b), ref) };
@@ -118,7 +133,7 @@ async function main() {
   const ok = (r: { maxAbs: number; relL2: number; nonFinite: number }) => !r.nonFinite && (F16 ? r.relL2 : r.maxAbs) <= threshold;
   const pass = vsNumpy.every(ok) && vsCpu.every(ok);
   const report = {
-    task: 'N5.6', op: 'init_conv 3x3 8->16', size: SIZE, precision: F16 ? 'fp16' : 'fp32', batch: 6, setSplit: 3,
+    task: 'N5.7', op: 'init_conv 3x3 8->16 + downs.0.0, downs.0.1 (conv3x3+RMSNorm+SiLU, identity skip, x2)', size: SIZE, precision: F16 ? 'fp16' : 'fp32', batch: 6, setSplit: 3,
     dispatches: graph.ops.length, measure: F16 ? 'relL2' : 'maxAbs', threshold, pass, gpuError, vsNumpy, vsCpu, cpuVsNumpyMaxAbs: cpuVsNumpy,
     adapter: { vendor: adapter.info?.vendor, architecture: adapter.info?.architecture },
   };

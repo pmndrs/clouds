@@ -116,3 +116,33 @@ export function initConvGraph(gather: number[][] = HALO_GATHER_B6): Graph {
     }],
   };
 }
+
+/**
+ * A ResnetBlock with identity skip (dim == dim_out) as two ops (kernels A and B, N5.7):
+ * `block1` = conv3x3 + RMSNorm + SiLU, `block2` = the same, then + x, then x `scale`.
+ * `prefix` is the weight prefix (e.g. 'downs.0.0'); x is tensor `xId`; writes `midId`, then `outId`.
+ */
+export function resnetBlockOps(prefix: string, name: string, level: number, channels: number,
+  xId: number, midId: number, outId: number, scale: 1 | 2 = 1): ConvOp[] {
+  const blk = (k: 'block1' | 'block2', src: number, dst: number, skip: Skip, sc: 1 | 2): ConvOp => ({
+    name: `${name}.${k}`, weight: `${prefix}.${k}.proj`, normG: `${prefix}.${k}.norm.g`, kernel: '3x3', level,
+    cout: channels, src1: { kind: 'tensor', id: src }, c1: channels, c2: 0, act: 'normSilu', skip, scale: sc, dst,
+  });
+  return [
+    blk('block1', xId, midId, { kind: 'none' }, 1),
+    blk('block2', midId, outId, { kind: 'identity', src: { kind: 'tensor', id: xId } }, scale),
+  ];
+}
+
+/**
+ * init_conv plus stage 0's two ResnetBlocks (N5.7 check). Tensors: 0 init_conv, 1 downs.0.0 block1,
+ * 2 downs.0.0 out (dump `downs.0.block1`), 3 downs.0.1 block1, 4 downs.0.1 out x2 (dump `downs.0.post_attn_add`;
+ * stage 0's attention is Identity, so the x2 is fused into the second block's epilogue).
+ */
+export function stage0Graph(gather: number[][] = HALO_GATHER_B6): Graph {
+  const g = initConvGraph(gather);
+  for (let i = 1; i <= 4; i++) g.tensors.push({ id: i, level: 0, channels: 16 });
+  g.ops.push(...resnetBlockOps('downs.0.0', 'downs.0.0', 0, 16, 0, 1, 2, 1));
+  g.ops.push(...resnetBlockOps('downs.0.1', 'downs.0.1', 0, 16, 2, 3, 4, 2));
+  return g;
+}

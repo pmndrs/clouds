@@ -13,7 +13,7 @@
 // grey-albedo variant (1 dir + 3 env). Each layer's weight buffer holds set 0
 // then set 1 (set 1 at `wStride` mat4x4s); biases likewise (`bStride` vec4s).
 import { assignSlots, type ConvOp, type Graph, type Source } from './graph';
-import { ceil4, convShader, DEFAULT_TILING, packBias, packWeights, type ConvTiling } from './conv';
+import { ceil4, convShader, DEFAULT_TILING, packBias, packGain, packWeights, type ConvTiling } from './conv';
 import type { TensorMap } from './tza';
 
 export interface EngineOptions {
@@ -36,6 +36,10 @@ interface Layer {
   weights: GPUBuffer;
   bias: GPUBuffer;
   gather?: GPUBuffer;
+  /** RMSNorm gain (g * sqrt(C)), both sets, set 1 at bStride (act 'normSilu' only). */
+  gain?: GPUBuffer;
+  /** Output-channel groups in local z (A/B kernels); dispatch z = batch * ocg / localZ. */
+  localZ: number;
   wStride: number; // mat4x4 units
   bStride: number; // vec4 units
   ocg: number;
@@ -71,7 +75,13 @@ export class Engine {
       const info = convShader(op, this.f16, tiling);
       const packedW: Float32Array[] = [];
       const packedB: Float32Array[] = [];
+      const packedG: Float32Array[] = [];
       for (const s of sets) {
+        if (op.act === 'normSilu') {
+          const g = op.normG ? s.get(op.normG) : undefined;
+          if (!g) throw new Error(`engine: missing norm gain ${op.normG} for ${op.name}`);
+          packedG.push(packGain(g.data, op.cout));
+        }
         const w = s.get(`${op.weight}.weight`);
         const b = s.get(`${op.weight}.bias`);
         if (!w || !b) throw new Error(`engine: missing weights for ${op.weight}`);
@@ -99,13 +109,20 @@ export class Engine {
       d.queue.writeBuffer(weights, 0, wData as unknown as BufferSource);
       const bias = d.createBuffer({ size: bAll.byteLength, usage, label: `${op.name}.b` });
       d.queue.writeBuffer(bias, 0, bAll);
+      let gain: GPUBuffer | undefined;
+      if (packedG.length) {
+        const gAll = new Float32Array(packedG[0].length * 2);
+        gAll.set(packedG[0]); gAll.set(packedG[1], packedG[0].length);
+        gain = d.createBuffer({ size: gAll.byteLength, usage, label: `${op.name}.g` });
+        d.queue.writeBuffer(gain, 0, gAll);
+      }
       let gather: GPUBuffer | undefined;
       if (op.src1.kind === 'input') {
         gather = d.createBuffer({ size: this.batch * info.c1_4 * 16, usage, label: `${op.name}.gather` });
         d.queue.writeBuffer(gather, 0, gatherTable(op.src1, this.batch, op.c1));
       }
       return {
-        op, pipeline, weights, bias, gather,
+        op, pipeline, weights, bias, gather, gain, localZ: info.localZ,
         wStride: packedW[0].length / 16, bStride: packedB[0].length / 4,
         ocg: info.cout4 / info.tiling.oc4, tileW: info.tileW, tileH: info.tileH,
       };
@@ -135,7 +152,7 @@ export class Engine {
     const srcBuf = (s: Source) => (s.kind === 'input' ? input : tensorBuf(s.id));
     const owned: GPUBuffer[] = [...slotBufs];
 
-    const steps = this.layers.map(({ op, pipeline, weights, bias, gather, wStride, bStride, ocg, tileW, tileH }) => {
+    const steps = this.layers.map(({ op, pipeline, weights, bias, gather, gain, localZ, wStride, bStride, ocg, tileW, tileH }) => {
       const s = size >> op.level;
       const params = new Uint32Array([s, s, s >> 1, s >> 1, ocg, this.setSplit, wStride, bStride]);
       const ub = d.createBuffer({ size: params.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -150,8 +167,10 @@ export class Engine {
       ];
       if (op.src2) entries.push({ binding: 4, resource: { buffer: srcBuf(op.src2) } });
       if (gather) entries.push({ binding: 6, resource: { buffer: gather } });
+      if (gain) entries.push({ binding: 7, resource: { buffer: gain } });
+      if (op.skip.kind === 'identity') entries.push({ binding: 8, resource: { buffer: srcBuf(op.skip.src) } });
       const bindGroup = d.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries, label: op.name });
-      const groups: [number, number, number] = [Math.ceil(s / tileW), Math.ceil(s / tileH), B * ocg];
+      const groups: [number, number, number] = [Math.ceil(s / tileW), Math.ceil(s / tileH), B * (ocg / localZ)];
       return { name: op.name, pipeline, bindGroup, groups };
     });
 
@@ -198,7 +217,7 @@ export class Engine {
   }
 
   release() {
-    for (const l of this.layers) { l.weights.destroy(); l.bias.destroy(); l.gather?.destroy(); }
+    for (const l of this.layers) { l.weights.destroy(); l.bias.destroy(); l.gather?.destroy(); l.gain?.destroy(); }
     this.layers = [];
   }
 }
