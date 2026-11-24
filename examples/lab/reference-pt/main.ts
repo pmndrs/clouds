@@ -195,6 +195,7 @@ try {
 
   // ---- frame loop (the flagship's, minus HUD/auto quality) ----
   let frame = 0;
+  let timingHold = false;   // N3b: runtimeTiming() holds the loop's runtime encode while it measures
   const t0 = performance.now();
   const frameData: CloudFrame = {
     view: new Float32Array(16), projection: new Float32Array(16), viewProjection: new Float32Array(16), inverseViewProjection: new Float32Array(16), previousViewProjection: new Float32Array(16),
@@ -210,7 +211,7 @@ try {
     frameData.atmosphere = skyBridge.bindGroup;
     bridge.syncOutput();
     bridge.renderScene(scene, camera);
-    if (state.renderer === 'nubis' || state.renderer === 'octave' || state.renderer === 'fit' || state.renderer === 'rtalpha') {
+    if (!timingHold && (state.renderer === 'nubis' || state.renderer === 'octave' || state.renderer === 'fit' || state.renderer === 'rtalpha')) {
       bridge.fillFrame(camera, frameData);
       frameData.time = (now - t0) / 1000; frameData.frameIndex = frame;
       const encoder = device.createCommandEncoder({ label: 'pt1 runtime' });
@@ -518,6 +519,30 @@ try {
   /** Reads the current view (after settle) into the page; returns its size and mean. Fetch the floats with linearChunk(offset, bytes). */
   contract.readLinear = async () => { lastLinear = null; lastLinear = await readLinear(); return describe(lastLinear); };
   contract.linearChunk = (offset: number, length: number) => { if (!lastLinear) throw new Error('readLinear() first'); return chunk(lastLinear, offset, length); };
+  /**
+   * N3b: one timing number for the runtime views, as the neural page's __neuralTiming: wall time of one runtime frame (runtime.encode for the
+   * current camera, encode -> onSubmittedWorkDone; the three.js sky and present are not in it), median of `runs` after 5 warm-ups. The frame
+   * loop's runtime encode is held while it runs. Measurement only.
+   */
+  contract.runtimeTiming = async (runs = 30) => {
+    timingHold = true;
+    try {
+      await device.queue.onSubmittedWorkDone();
+      const times: number[] = [];
+      for (let i = 0; i < runs + 5; i++) {
+        bridge.fillFrame(camera, frameData);
+        frameData.frameIndex = frame + i;
+        const t = performance.now();
+        const encoder = device.createCommandEncoder({ label: 'n3b runtime timing' });
+        runtime.encode(encoder, frameData);
+        device.queue.submit([encoder.finish()]);
+        await device.queue.onSubmittedWorkDone();
+        if (i >= 5) times.push(performance.now() - t);
+      }
+      times.sort((a, b) => a - b);
+      return { runs, medianMs: times[runs >> 1], minMs: times[0], maxMs: times[runs - 1], quality: runtime.quality, renderScale: runtime.settings.renderScale, size: [runtime.output?.width, runtime.output?.height] };
+    } finally { timingHold = false; }
+  };
 
   /**
    * P0.4: everything a card frame's scene is made of, from one place (for an external reference renderer: scripts/reference/ reads a per-frame
