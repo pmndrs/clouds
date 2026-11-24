@@ -3,10 +3,13 @@
 // ?g= (0.3), ?env= (8), ?sunAz= ?sunEl= (degrees). The same are sliders in the Review box.
 // N3a: ?view=neural|features (default neural): the authors' HaloRT ONNX network on this page's device, fed by the packed features;
 // ?sun= ?sky= ?exposure= (EV, as the demo's sliders: light_intensity x 2^sun, environment_scale x 2^sky), ?precision=fp32|fp16, ?spp= (16).
+// N5.12: ?net=engine|onnx (Review: "network"): our WGSL engine (experiments/neural/halo-engine.ts, GPU blend) or ONNX Runtime; default
+// engine when it initialises. Both read pass.packed and fill HaloNet.output, so accumulate + display are shared.
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { loadDenseVdb, vdbLimits } from './density';
 import { FEATURE, FEATURE_STRIDE, FeaturePass, PACKED_CHANNELS, type FeatureCamera } from '../../../experiments/neural/feature-pass';
 import { HaloNet, ortDeviceRequest, type HaloPrecision } from '../../../experiments/neural/halort-net';
+import { HaloEngine } from '../../../experiments/neural/halo-engine';
 
 declare const __REPO_ROOT__: string;
 const harness = installCloudsHarness();
@@ -127,6 +130,24 @@ async function main() {
   const net = await HaloNet.create(device, SIZE, await researchUrl(`neural/rdv_on_the_web/halort/halort_${SIZE}${precision === 'fp16' ? '_fp16' : ''}.onnx`), format);
   const netLoadMs = Math.round(performance.now() - tNet);
 
+  // N5.12: our engine, same device, same packed input, blend writes net.output. Weights are local-only (artifacts/research/neural/weights).
+  let network: 'engine' | 'onnx' = q.get('net') === 'onnx' ? 'onnx' : 'engine';
+  let engine: HaloEngine | null = null;
+  let engineError: string | undefined;
+  let engineLoadMs = 0;
+  try {
+    status(`loading HaloRT ${SIZE} ${precision} (our engine)`);
+    const tEng = performance.now();
+    const tza = async (f: string) => { const r = await fetch(await researchUrl(`neural/weights/${f}`)); if (!r.ok) throw new Error(`${f}: ${r.status}`); return r.arrayBuffer(); };
+    const [wd, we] = await Promise.all([tza('halo_dir.tza'), tza('halo_env.tza')]);
+    engine = await HaloEngine.create(device, SIZE, pass.packed, net.output, [wd, we], precision === 'fp16');
+    engineLoadMs = Math.round(performance.now() - tEng);
+  } catch (e) {
+    engineError = e instanceof Error ? e.message : String(e);
+    console.warn('our engine unavailable, using ONNX Runtime:', engineError);
+    network = 'onnx';
+  }
+
   const wrap = document.getElementById('wrap')!;
   const labels: HTMLElement[] = [];
   PANELS.forEach(([, label], i) => {
@@ -168,9 +189,9 @@ async function main() {
   });
   canvas.addEventListener('wheel', e => { e.preventDefault(); orbit.distance = Math.max(1.2, Math.min(10, orbit.distance * Math.exp(e.deltaY * 0.001))); dirty = true; }, { passive: false });
 
-  const info = { precision, netLoadMs, vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, stepSize, envScale: pass.envScale, loadMs: Math.round(loadMs) };
+  const info = { precision, netLoadMs, engineLoadMs, engineError, engineDispatches: engine?.dispatches, vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, stepSize, envScale: pass.envScale, loadMs: Math.round(loadMs) };
   let frameMs = 0;
-  const showStatus = () => status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${settings.densityScale}  step ${stepSize}  g ${settings.g}  env ${settings.envSamples}  sun az ${settings.sunAz} el ${settings.sunEl}  ${view === 'neural' ? `HaloRT ${precision} spp ${net.spp}  frame ${frameMs.toFixed(0)} ms  ` : ''}(drag to orbit)`);
+  const showStatus = () => status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${settings.densityScale}  step ${stepSize}  g ${settings.g}  env ${settings.envSamples}  sun az ${settings.sunAz} el ${settings.sunEl}  ${view === 'neural' ? `HaloRT ${network === 'engine' ? 'our engine' : 'ONNX Runtime'} ${precision} spp ${net.spp}  frame ${frameMs.toFixed(0)} ms  ` : ''}(drag to orbit)`);
   showStatus();
 
   // Review box: sliders for the inputs the second half of the pass reads.
@@ -199,19 +220,36 @@ async function main() {
   box.addEventListener('change', () => { view = box.checked ? 'features' : 'neural'; showLabels(); dirty = true; showStatus(); });
   toggle.append('feature panels ', box);
   review.appendChild(toggle);
+  // N5.12: which network lights the cloud.
+  const netRow = document.createElement('label');
+  const netSel = document.createElement('select');
+  for (const [v, t] of [['onnx', 'ONNX Runtime'], ['engine', 'our engine']] as const) {
+    const o = document.createElement('option');
+    Object.assign(o, { value: v, textContent: t, disabled: v === 'engine' && !engine, selected: v === network });
+    netSel.appendChild(o);
+  }
+  netSel.title = engineError ? `our engine unavailable: ${engineError}` : '';
+  netSel.addEventListener('change', () => { network = netSel.value === 'engine' && engine ? 'engine' : 'onnx'; dirty = true; showStatus(); });
+  netRow.append('network ', netSel);
+  review.appendChild(netRow);
 
   // Features (when dirty, or every frame while the network accumulates: new env samples per frame), then the network, then display.
   // The network run is async: one step in flight at a time; the display draws whatever has accumulated.
   let busy = false;
   let lastStep = 0, steps = 0;
   const encodeFeatures = (enc: GPUCommandEncoder) => pass.encode(enc, { density: densityTex, boxHalf, camera: camera(), densityScale: settings.densityScale, stepSize, g: settings.g, envSamples: settings.envSamples, sunDirection: sunDirection() });
+  const runNetwork = async () => {
+    const li = SUN_RGB.map(x => x * Math.pow(2, settings.sun)), es = pass.envScale.map(x => x * Math.pow(2, settings.sky));
+    if (network === 'engine' && engine) { engine.run(li, es); net.accumulate(); }
+    else await net.run(pass.packed, li, es);
+  };
   const step = async () => {
     if (dirty) { dirty = false; net.restart(); steps = 0; }
     const enc = device.createCommandEncoder();
     encodeFeatures(enc);
     device.queue.submit([enc.finish()]);
     if (view !== 'neural') return;
-    await net.run(pass.packed, SUN_RGB.map(x => x * Math.pow(2, settings.sun)), pass.envScale.map(x => x * Math.pow(2, settings.sky)));
+    await runNetwork();
     const now = performance.now();
     if (steps++ > 0) frameMs = frameMs ? frameMs * 0.8 + (now - lastStep) * 0.2 : now - lastStep;
     lastStep = now;
@@ -255,7 +293,7 @@ async function main() {
       names.forEach(([, ch], i) => { const v = data[o + ch]; acc[i].min = Math.min(acc[i].min, v); acc[i].max = Math.max(acc[i].max, v); acc[i].sum += v; });
     }
     names.forEach(([n], i) => { stats[n] = { min: +acc[i].min.toFixed(4), mean: +(acc[i].sum / Math.max(1, hit)).toFixed(4), max: +acc[i].max.toFixed(4) }; });
-    return { ...info, view, neural: view === 'neural' ? { ...(await net.stats()), frameIntervalMs: +frameMs.toFixed(1), sunRgb: SUN_RGB.map(x => x * Math.pow(2, settings.sun)) } : null, settings: { ...settings }, sunDirection: sunDirection(), orbit: { ...orbit }, pixels: SIZE * SIZE, pixelsWithTau: anyTau, pixelsWithCrossing: hit, stats, packed: await packedCheck() };
+    return { ...info, view, network, neural: view === 'neural' ? { ...(await net.stats()), frameIntervalMs: +frameMs.toFixed(1), sunRgb: SUN_RGB.map(x => x * Math.pow(2, settings.sun)) } : null, settings: { ...settings }, sunDirection: sunDirection(), orbit: { ...orbit }, pixels: SIZE * SIZE, pixelsWithTau: anyTau, pixelsWithCrossing: hit, stats, packed: await packedCheck() };
   };
 
   /** Reads the packed ONNX input back and checks it against the per-pixel buffer (rdv order: our pixel turned 180 degrees). */
@@ -290,6 +328,46 @@ async function main() {
     let bin = ''; const u8 = new Uint8Array(out.buffer);
     for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000));
     return btoa(bin);
+  };
+  /** N5.12: the accumulated radiance / spp ([3, S, S] f32, rdv pixel order) as base64, for the ONNX-vs-engine sheet. */
+  (window as unknown as Record<string, unknown>).__neuralRadiance = async () => {
+    const staging = device.createBuffer({ size: net.accum.size, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(net.accum, 0, staging, 0, net.accum.size);
+    device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const a = new Float32Array(staging.getMappedRange().slice(0));
+    staging.unmap(); staging.destroy();
+    const spp = Math.max(1, net.spp);
+    for (let i = 0; i < a.length; i++) a[i] /= spp;
+    let bin = ''; const u8 = new Uint8Array(a.buffer);
+    for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000));
+    radianceB64 = btoa(bin);
+    return { network, precision, spp: net.spp, size: SIZE, chars: radianceB64.length };
+  };
+  /** Chunk k of the last __neuralRadiance() base64 (1 MB of text per chunk; large CDP returns time out). */
+  let radianceB64 = '';
+  (window as unknown as Record<string, unknown>).__neuralRadianceChunk = (k: number) => radianceB64.slice(k << 20, (k + 1) << 20);
+  /** N5.12: one timing number: wall time per frame (features + network + blend + accumulate, encode -> onSubmittedWorkDone),
+   *  median of `runs` after 5 warm-ups, for the current network. Holds the frame loop's stepping while it runs. */
+  (window as unknown as Record<string, unknown>).__neuralTiming = async (runs = 20) => {
+    while (busy) await new Promise(r => setTimeout(r, 10));
+    busy = true;
+    try {
+      const times: number[] = [];
+      for (let i = 0; i < runs + 5; i++) {
+        const t0 = performance.now();
+        const enc = device.createCommandEncoder();
+        encodeFeatures(enc);
+        device.queue.submit([enc.finish()]);
+        await runNetwork();
+        await device.queue.onSubmittedWorkDone();
+        if (i >= 5) times.push(performance.now() - t0);
+      }
+      times.sort((a, b) => a - b);
+      const m = times.length >> 1;
+      return { network, precision, size: SIZE, runs, warmups: 5, medianMs: +((times.length % 2 ? times[m] : (times[m - 1] + times[m]) / 2)).toFixed(2), minMs: +times[0].toFixed(2), maxMs: +times[times.length - 1].toFixed(2) };
+    } finally { dirty = true; busy = false; }
   };
   harness.ready({ report, busy: () => busy || needsStep() });
 }

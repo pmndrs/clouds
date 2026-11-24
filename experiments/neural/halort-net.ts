@@ -118,13 +118,18 @@ export class HaloNet {
 
   /** One frame: copy the packed features into the network input (GPU copy), set the light feeds, run, accumulate. */
   async run(packed: GPUBuffer, lightIntensity: readonly number[], environmentScale: readonly number[]): Promise<void> {
-    let enc = this.device.createCommandEncoder();
+    const enc = this.device.createCommandEncoder();
     enc.copyBufferToBuffer(packed, 0, this.input, 0, this.input.size);
     this.device.queue.submit([enc.finish()]);
     this.device.queue.writeBuffer(this.light, 0, Float32Array.from(lightIntensity));
     this.device.queue.writeBuffer(this.sky, 0, Float32Array.from(environmentScale));
     await this.session.run(this.feeds, this.fetches);
-    enc = this.device.createCommandEncoder();
+    this.accumulate();
+  }
+
+  /** Adds `output` to the accumulation (one frame). N5.12: also called after our engine's blend has written `output`. */
+  accumulate(): void {
+    const enc = this.device.createCommandEncoder();
     const p = enc.beginComputePass();
     p.setPipeline(this.accPipe);
     p.setBindGroup(0, this.accGroup);

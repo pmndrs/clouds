@@ -275,6 +275,7 @@ export class Engine {
 
     return {
       size, run, readTensor, writeTensor,
+      buffer: tensorBuf,
       release: () => { for (const b of owned) b.destroy(); for (const a of attnBindings) a.release(); },
     };
   }
@@ -297,6 +298,8 @@ export interface Binding {
   readTensor(id: number): Promise<Float32Array>;
   /** Upload f32 [B][C][H][W] into a tensor (graph inputs written by no op; N5.8). */
   writeTensor(id: number, data: Float32Array): void;
+  /** N5.12: the slot buffer holding tensor `id` (NC4HW4, f32 or f16), for GPU ops after the network (the blend). Same validity as readTensor. */
+  buffer(id: number): GPUBuffer;
   release(): void;
 }
 
