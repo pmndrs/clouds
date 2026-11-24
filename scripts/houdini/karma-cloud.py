@@ -4,6 +4,8 @@
   HYTHON=/Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython
   $HYTHON scripts/houdini/karma-cloud.py                          # all three frames (sunward, noon, low) + sheet
   $HYTHON scripts/houdini/karma-cloud.py --frames sunward --res 480 270 --spp 16 --cap 60   # quick test
+  # P2.9c: the card page's houdini sunward camera + sun, exactly (from work/captures/P2-9b/houdini/capture.json)
+  $HYTHON scripts/houdini/karma-cloud.py --frames card-sunward --res 640 360 --spp 32 --out work/captures/P2-9c --no-sheet
 
 Scene (Solaris, built in hython, exported to USD and rendered with husk):
   - Volume LOP: the VDB as written (metres, y up, base at y = 0, 12 m voxels, fog grid `density` 0..1). No rescale.
@@ -45,7 +47,12 @@ FRAMES = {
     'noon': {'alt': 69.0, 'az': 250.0, 'camera': 'side'},
     # Side-on camera, sun 15 deg up from the camera's left (-x, az 270).
     'low': {'alt': 15.0, 'az': 270.0, 'camera': 'side'},
+    # P2.9c: the card page's own sunward shot (examples/lab/reference-pt ?cloud=houdini&view=fit-sunward): camera, fovY and sun
+    # read from that page's capture.json (--card-capture), mapped from card metres to VDB world (see card_view). alt/az filled there.
+    'card-sunward': {'alt': None, 'az': None, 'camera': 'card'},
 }
+CARD_CAPTURE = os.path.join(REPO, 'work', 'captures', 'P2-9b', 'houdini', 'capture.json')
+CARD_MARGIN = 4     # vdb-direct.ts DirectResampler: empty texels around the grid's box
 
 
 def sun_dir(alt, az):
@@ -134,6 +141,33 @@ def sunward_camera(grid, sd, inside_deg=3.0, sil_tau=0.1, aim_below=7.0):
     return pos, aim, info
 
 
+def card_view(grid, capture_path, shot='fit-sunward'):
+    """The card page's camera and sun, in VDB world.
+
+    The card (cards.ts loadCard -> vdb-direct.ts lattice) resamples the VDB onto a 12 m lattice whose origin is the NanoVDB world box min
+    (= the centre of the lowest active voxel) minus CARD_MARGIN texels, with nx = active voxels + 2 x margin, and then places that lattice
+    at card min = (-nx*v/2, base 0, -nz*v/2), y up, no flips. So VDB world = card + (origin - card min)."""
+    arr, vs, mn = grid
+    nz, ny, nx = arr.shape
+    with open(capture_path) as fh:
+        rep = [s for s in json.load(fh)['shots'] if s['name'] == shot][0]['report']
+    origin = [mn[a] + vs / 2 - CARD_MARGIN * vs for a in range(3)]
+    # load_density reads lo..hi with hi exclusive, but activeVoxelBoundingBox's max is inclusive: the active count is shape + 1
+    dims = (nx + 1 + 2 * CARD_MARGIN, ny + 1 + 2 * CARD_MARGIN, nz + 1 + 2 * CARD_MARGIN)
+    card_min = (-dims[0] * vs / 2, 0.0, -dims[2] * vs / 2)
+    if 'grid' in rep:   # cross-check against the page's own report
+        got = rep['grid']['min']
+        assert all(abs(got[a] - card_min[a]) < 1e-3 for a in range(3)), ('card min mismatch', got, card_min)
+    off = [origin[a] - card_min[a] for a in range(3)]
+    pos = tuple(rep['camera']['position'][a] + off[a] for a in range(3))
+    tgt = tuple(rep['camera']['target'][a] + off[a] for a in range(3))
+    sd = rep['sun']['direction']
+    alt = math.degrees(math.asin(sd[1]))
+    az = math.degrees(math.atan2(sd[0], -sd[2])) % 360.0   # Karma: dir(az) = (sin az, ., -cos az)
+    return {'pos': pos, 'aim': tuple(tgt[a] - pos[a] for a in range(3)), 'fovy': float(rep['fovY']), 'alt': alt, 'az': az,
+            'card_to_vdb_offset_m': [round(v, 3) for v in off], 'card_camera': rep['camera'], 'card_sun_dir': sd}
+
+
 def yaw_pitch(d):
     """Rotations (deg, order xyz: pitch about x then yaw about y) that turn local -z into direction d."""
     n = math.sqrt(sum(v * v for v in d))
@@ -141,7 +175,7 @@ def yaw_pitch(d):
     return math.degrees(math.asin(d[1])), math.degrees(math.atan2(-d[0], -d[2]))
 
 
-def build_stage(frame, res, spp, engine, volumelimit, steprate, grid, hfov):
+def build_stage(frame, res, spp, engine, volumelimit, steprate, grid, hfov, card_capture=CARD_CAPTURE):
     import hou
     st = hou.node('/stage')
     for ch in st.children():
@@ -179,10 +213,20 @@ def build_stage(frame, res, spp, engine, volumelimit, steprate, grid, hfov):
     asg.parm('primpattern1').set('/cloud')
     asg.parm('matspecpath1').set('/materials/vapour')
 
-    f = FRAMES[frame]
-    sd = sun_dir(f['alt'], f['az'])
+    f = dict(FRAMES[frame])
     info = {}
-    if f['camera'] == 'sunward':
+    card = None
+    if f['camera'] == 'card':
+        card = card_view(grid, card_capture)
+        f['alt'], f['az'] = card['alt'], card['az']
+        # vertical fov from the card at the render aspect (the card is 16:9 like --res 640 360)
+        hfov = 2 * math.degrees(math.atan(math.tan(math.radians(card['fovy'] / 2)) * res[0] / res[1]))
+        info = {k: card[k] for k in ('card_to_vdb_offset_m', 'card_camera', 'card_sun_dir')}
+        info['fovy_deg'] = card['fovy']
+    sd = sun_dir(f['alt'], f['az'])
+    if card:
+        pos, aim = card['pos'], card['aim']
+    elif f['camera'] == 'sunward':
         pos, aim, info = sunward_camera(grid, sd)
     else:
         c = box_centre(grid)
@@ -198,6 +242,8 @@ def build_stage(frame, res, spp, engine, volumelimit, steprate, grid, hfov):
     cam.parmTuple('r').set((pitch, yaw, 0.0))
     ap = cam.parm('horizontalAperture').eval()
     cam.parm('focalLength').set(ap / 2 / math.tan(math.radians(hfov / 2)))
+    if card:   # aperture at the image aspect, so no aperture-fit policy can widen or crop the card's framing
+        cam.parm('verticalAperture').set(ap * res[1] / res[0])
     cam.parm('clippingRange1').set(1.0)
     cam.parm('clippingRange2').set(1e7)
 
@@ -224,7 +270,8 @@ def build_stage(frame, res, spp, engine, volumelimit, steprate, grid, hfov):
     rs.setDisplayFlag(True)
     st.layoutChildren()
     info.update({'camera_pos': [round(v, 1) for v in pos], 'aim': [round(v, 4) for v in aim], 'pitch_deg': round(pitch, 2),
-                 'yaw_deg': round(yaw, 2), 'sun_dir': [round(v, 4) for v in sd], 'sun_alt': f['alt'], 'sun_az': f['az'], 'hfov_deg': hfov})
+                 'yaw_deg': round(yaw, 2), 'sun_dir': [round(v, 4) for v in sd], 'sun_alt': round(f['alt'], 4), 'sun_az': round(f['az'], 4),
+                 'hfov_deg': round(hfov, 4)})
     return rs, info
 
 
@@ -281,6 +328,7 @@ def make_sheet(items, path):
 
 
 def main():
+    global SIGMA
     ap = argparse.ArgumentParser()
     ap.add_argument('--frames', nargs='+', default=['sunward', 'noon', 'low'])
     ap.add_argument('--res', nargs=2, type=int, default=[960, 540])
@@ -293,10 +341,13 @@ def main():
     ap.add_argument('--cap', type=int, default=180, help='seconds per frame before husk is killed')
     ap.add_argument('--out', default=OUT)
     ap.add_argument('--tag', default='')
+    ap.add_argument('--card-capture', default=CARD_CAPTURE, help="frame card-sunward: the card page's capture.json (camera, fovY, sun)")
     ap.add_argument('--no-sheet', action='store_true')
     ap.add_argument('--no-denoise', action='store_true', help='skip the OIDN companion images')
     ap.add_argument('--reuse', action='store_true', help='skip husk when <frame>.exr exists (re-tonemap / re-sheet only)')
+    ap.add_argument('--sigma', type=float, default=SIGMA, help='extinction per metre at density 1 (0 = sky only, to measure the sun disc)')
     args = ap.parse_args()
+    SIGMA = args.sigma
     args.reuse_times = None
     rpt = os.path.join(args.out, 'report%s.json' % args.tag)
     if args.reuse and os.path.exists(rpt):
@@ -310,7 +361,7 @@ def main():
               'volumelimit': args.volumelimit, 'volumesteprate': args.steprate, 'res': args.res, 'frames': {}}
     items = []
     for fr in args.frames:
-        rs, info = build_stage(fr, args.res, args.spp, args.engine, args.volumelimit, args.steprate, grid, args.hfov)
+        rs, info = build_stage(fr, args.res, args.spp, args.engine, args.volumelimit, args.steprate, grid, args.hfov, args.card_capture)
         name = fr + args.tag
         usd = os.path.join(args.out, name + '.usda')
         rs.stage().Export(usd)
@@ -335,7 +386,7 @@ def main():
         stats = tonemap(exr, exr[:-4] + '.png', ev)
         info.update({'render_s': secs, 'ok': True, 'ev': round(ev, 2), 'lum': {k: round(v, 4) for k, v in stats.items()}})
         report['frames'][fr] = info
-        items.append([exr[:-4] + '.png', '%s  (Karma %s, %d spp, sun %g deg up, %.1f s)' % (fr, args.engine.upper(), spp, FRAMES[fr]['alt'], secs)])
+        items.append([exr[:-4] + '.png', '%s  (Karma %s, %d spp, sun %.1f deg up, %.1f s)' % (fr, args.engine.upper(), spp, info['sun_alt'], secs)])
         if not args.no_denoise:   # OIDN on the beauty only (no albedo / normal AOVs), same exposure: a readability aid, not the reference
             dn = exr[:-4] + '_oidn.exr'
             subprocess.run([os.path.join(HB, 'idenoise'), exr, dn], check=True, capture_output=True)
@@ -350,8 +401,9 @@ def main():
         make_sheet(items, os.path.join(args.out, 'sheet%s.jpg' % args.tag))
         if dn_items:
             make_sheet(dn_items, os.path.join(args.out, 'sheet_denoised%s.jpg' % args.tag))
-    os.makedirs(os.path.dirname(HIP), exist_ok=True)
-    hou.hipFile.save(HIP)
+    if os.path.abspath(args.out) == OUT:   # the committed rig is the P2.9a scene; other outputs (P2.9c) leave it alone
+        os.makedirs(os.path.dirname(HIP), exist_ok=True)
+        hou.hipFile.save(HIP)
 
 
 if __name__ == '__main__':

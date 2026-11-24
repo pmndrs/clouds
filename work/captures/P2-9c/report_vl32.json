@@ -1,0 +1,70 @@
+{
+ "vdb": "assets/clouds/houdini-stages/cumulus_4_wispy.vdb",
+ "sigma_per_m": 0.08,
+ "albedo": 0.99,
+ "g": 0.8,
+ "engine": "cpu",
+ "spp": 32,
+ "volumelimit": 32,
+ "volumesteprate": 1.0,
+ "res": [
+  640,
+  360
+ ],
+ "frames": {
+  "card-sunward": {
+   "card_to_vdb_offset_m": [
+    48.0,
+    -36.0,
+    66.0
+   ],
+   "card_camera": {
+    "position": [
+     2969.8487232020025,
+     150,
+     226.79677214015044
+    ],
+    "target": [
+     2070.1713607529455,
+     580.2874535102392,
+     153.08550537324743
+    ]
+   },
+   "card_sun_dir": [
+    -0.8407,
+    0.5371,
+    -0.0689
+   ],
+   "fovy_deg": 30.0,
+   "camera_pos": [
+    3017.8,
+    114.0,
+    292.8
+   ],
+   "aim": [
+    -899.6774,
+    430.2875,
+    -73.7113
+   ],
+   "pitch_deg": 25.49,
+   "yaw_deg": 85.32,
+   "sun_dir": [
+    -0.8407,
+    0.5371,
+    -0.0689
+   ],
+   "sun_alt": 32.4864,
+   "sun_az": 274.6852,
+   "hfov_deg": 50.942,
+   "spp": 32,
+   "render_s": 39.7,
+   "ok": true,
+   "ev": 2.51,
+   "lum": {
+    "p50": 0.1466,
+    "p99": 0.5254,
+    "max": 1.7673
+   }
+  }
+ }
+}
