@@ -44,7 +44,7 @@ import { createCloudBridge } from '../flagship/three-bridge';
 import { createSkyBridge } from '../flagship/sky-bridge';
 import { vdbDeviceLimits } from '../vdb-sky/vdb-direct';
 import { bakeSky, type DensityGrid, type SkyBake, type V3 } from './bake';
-import { CARD_CLOUDS, CARD_DEFS, SUNS, loadCard, sunwardCamera, type CardCloudKey, type CardScene, type SunName, type SunwardInfo } from './cards';
+import { CARD_CLOUDS, CARD_DEFS, FRINGE_CLOUDS, SUNS, TOWER_CLOUDS, loadCard, towerFringe, towerSigma, sunwardCamera, type CardCloudKey, type CardScene, type SunName, type SunwardInfo } from './cards';
 import { PtReference } from './pt';
 import { chunk, composite, describe, readRgba16f, type LinearFrame } from './linear';
 
@@ -373,6 +373,19 @@ try {
   };
   p11.append(check('sunOnly', 'sun only', SUN_ONLY), check('single', 'single scatter', SINGLE), check('converged', 'converged', CONVERGED));
   panel.appendChild(p11);
+  // P2.8b Review: the tower clouds' density (sigma per metre at density 1) and the soft outer edge (fringe); both reload with their URL key.
+  if (TOWER_CLOUDS.includes(CLOUD)) {
+    const tw = document.createElement('div'); tw.className = 'row'; tw.append('Review: P2.8b tower density /m ');
+    const sigma = String(towerSigma(CLOUD));
+    const sigmas = ['0.45', '0.15', '0.08']; if (!sigmas.includes(sigma)) sigmas.push(sigma);
+    tw.append(select('towerSigma', sigmas, sigma));
+    if (FRINGE_CLOUDS.includes(CLOUD)) {
+      const l = document.createElement('label'); const c = Object.assign(document.createElement('input'), { type: 'checkbox', checked: towerFringe(CLOUD) > 0 });
+      c.onchange = () => reload('towerFringe', c.checked ? '1' : '0');
+      l.append(c, ' soft edge '); tw.append(' ', l);
+    }
+    panel.appendChild(tw);
+  }
   // P1.1b Review: the sun-shadow settings, live (the converged sum restarts on any change); the preset buttons set them together.
   const p11b = document.createElement('div'); p11b.className = 'row'; p11b.append('Review: P1.1b sun shadow ');
   const ssControls: { key: string; el: HTMLInputElement | HTMLSelectElement }[] = [];

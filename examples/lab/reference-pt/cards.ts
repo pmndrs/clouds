@@ -12,14 +12,21 @@ import { createProcBaker } from './proc-bake';
 import { bakeTower } from './tower-bake';
 import { bakeTower2 } from './tower2-bake';
 import { bakeTower3 } from './tower3-bake';
+import { bakeTower4 } from './tower4-bake';
 
 /** P2.4a tower: sigma (1/m) at density 1, about the sky card's densityRef (0.42) to max (0.50). */
 // `?towerSigma=0.08` overrides it: real cumulus is about 0.03 to 0.1 per metre, so 0.45 is some five times too dense (P2.7b finding).
 const TOWER_SIGMA = Number((typeof location !== 'undefined' ? new URLSearchParams(location.search).get('towerSigma') : null) ?? 0.45);
+// P2.8b: tower4 defaults to 0.08 per metre and the soft outer fringe on; the card page's Review row has a density select and a soft-edge box.
+const towerParam = (k: string) => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get(k) : null);
+export const TOWER_CLOUDS: readonly string[] = ['tower', 'tower2', 'tower3', 'tower4'];
+export const FRINGE_CLOUDS: readonly string[] = ['tower3', 'tower4'];
+export const towerSigma = (key: string) => Number(towerParam('towerSigma') ?? (key === 'tower4' ? 0.08 : 0.45));
+export const towerFringe = (key: string) => Number(towerParam('towerFringe') ?? (key === 'tower4' ? 1 : 0));
 
 declare const __REPO_ROOT__: string;
 
-export const CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus', 'tower', 'tower2', 'tower3', 'houdini', 'houdini1'] as const;
+export const CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus', 'tower', 'tower2', 'tower3', 'tower4', 'houdini', 'houdini1'] as const;
 export type CardCloudKey = (typeof CARD_CLOUDS)[number];
 
 /** Suns: time of day (lat 40, day of year @pmndrs/sky's default) and the camera's ring angle from the sun's azimuth (0 = sun behind the camera). */
@@ -114,6 +121,9 @@ export const CARD_DEFS: Record<CardCloudKey, CardCloudDef> = {
   // P2.7a: tower2 reworked to the Houdini cumulus recipe (tower3-bake.ts): core + two flank bodies of overlapping lobes, surface replication,
   // three-scale SDF billow push (340 / 130 / 50 m), advection wisps strong low down and underneath. Same camera and sigma for A/B.
   tower3: { key: 'tower3', label: 'I tower, Houdini recipe (P2.7a probe)', source: 'P2.7a: core + 2 flank bodies of overlapping ellipsoid lobes, replicated surface lobes, 3-pass Worley/fbm SDF push 340/130/50 m, advection wisps low and underneath; GPU bake at 8 m, sigma 0.45 / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
+  // P2.8b: tower3 with a tapering, lumpy, leaning core + a big shoulder and a rounded top, the 340 m billows dominant and no Worley pebbles at 50 m;
+  // defaults sigma 0.08 / m and the soft fringe on (narrow on mid-height sides) (tower4-bake.ts).
+  tower4: { key: 'tower4', label: 'J tower, tapered + shoulder (P2.8b probe)', source: 'P2.8b: tower3 with a tapering leaning core (lumps, a shoulder body, rounded top), push 120/28/8 m at 340/130/50 m (50 m fbm only), soft fringe on; GPU bake at 8 m, sigma 0.08 / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
   houdini: { key: 'houdini', label: 'H Houdini cumulus, wispy (P2.7b)', source: 'P2.7b: Houdini cumulus (cumulus_4_wispy.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
   houdini1: { key: 'houdini1', label: 'H1 Houdini cumulus, lobes only (P2.7b)', source: 'P2.7b: Houdini cumulus (cumulus_1_lobes.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
 };
@@ -248,12 +258,22 @@ export async function loadCard(key: CardCloudKey, ctx: CardContext): Promise<Car
     ctx.status('baking the P2.7a tower (Houdini recipe)');
     const voxel = Number(new URLSearchParams(location.search).get('towerVoxel') ?? 8);
     const levels = Number(new URLSearchParams(location.search).get('towerLevels') ?? 1);
-    const fringe = Number(new URLSearchParams(location.search).get('towerFringe') ?? 0);   // P2.8a soft outer layer, off by default
+    const fringe = towerFringe('tower3');   // P2.8a soft outer layer, off by default
     const { grid, perLevel } = await bakeTower3(device, voxel, levels, fringe);
     console.log(`tower3 bake: lobes per level ${perLevel.join(' / ')}, grid ${grid.resolution.join(' x ')} at ${voxel} m, ${(grid.density.byteLength / 1048576).toFixed(0)} MB f32, ${grid.ms.toFixed(0)} ms`);
     const { density, dims } = worldToLattice(grid);
     built = await buildDirectCloud(device, density, dims, voxel, grid.min, TOWER_SIGMA, 'card tower3');
     extra = { perLevel, bakeMs: grid.ms, gridDims: grid.resolution, voxel, occupancy: grid.occupancy, fringe };
+  } else if (key === 'tower4') {
+    ctx.status('baking the P2.8b tower (tapered, shoulder)');
+    const voxel = Number(new URLSearchParams(location.search).get('towerVoxel') ?? 8);
+    const levels = Number(new URLSearchParams(location.search).get('towerLevels') ?? 1);
+    const fringe = towerFringe('tower4');   // on by default for tower4
+    const { grid, perLevel } = await bakeTower4(device, voxel, levels, fringe);
+    console.log(`tower4 bake: lobes per level ${perLevel.join(' / ')}, grid ${grid.resolution.join(' x ')} at ${voxel} m, ${(grid.density.byteLength / 1048576).toFixed(0)} MB f32, ${grid.ms.toFixed(0)} ms`);
+    const { density, dims } = worldToLattice(grid);
+    built = await buildDirectCloud(device, density, dims, voxel, grid.min, towerSigma('tower4'), 'card tower4');
+    extra = { perLevel, bakeMs: grid.ms, gridDims: grid.resolution, voxel, occupancy: grid.occupancy, fringe, sigma: towerSigma('tower4') };
   } else {
     const patch = PROC_PATCHES[key as 'sky' | 'stratus'];
     ctx.status(`baking the procedural ${key} patch at ${patch.voxel} m`);
