@@ -26,7 +26,7 @@ Nothing. D1–D4 were answered on 2026-11-24 (see PLAN § Decisions).
 | N3 | Their network on our features | **first picture done** (N3a) |
 | N4 | Time of day | not started |
 | N5 | Our own engine | **network done and verified** (N5.10); live-page wiring N5.12 next |
-| N6 | Into the cloud library | not started |
+| N6 | Into the cloud library | **on hold** (owner 2026-11-24: not on main unless it is a speed gain; see PLAN § The bar) |
 | N7 | Speed and tuning | not started |
 | NT | Training foundation | not started; decide after N4 |
 

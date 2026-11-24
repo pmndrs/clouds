@@ -162,6 +162,20 @@ The owner's framing: build as planned, but this is a foundation and a way to
 learn. Our own work may end up differing from HaloRT's approach. Bringing the
 frame time down matters.
 
+### The bar (owner, 2026-11-24, later the same day)
+
+- The goal is speed and quality of cloud rendering. Our VDB and cloud
+  raymarchers are already fast. Lighting that costs more than a frame is a
+  step backwards, so every neural result is judged against the raymarcher:
+  milliseconds, and the picture beside the path trace. Being faster than ONNX
+  Runtime or close to the paper does not count.
+- The HaloRT port is finished as a base for completeness. It stays on this
+  experimental branch. **It does not go to main unless it is a speed
+  improvement.** N6 (into the cloud library) is on hold for that reason.
+- The follow-up directions are documented only (`docs/neural/FOLLOWUPS.md`),
+  each with how it could raise speed or quality against the core raymarcher.
+  No training or design work on them until the owner says we are closer.
+
 **How agents are used:** Sonnet for gathering and minor code, Opus for code
 and first-pass reviews, nothing higher unless Opus struggles. Short runs with
 a fresh agent per task; reuse an agent's context only when it helps the next

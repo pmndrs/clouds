@@ -102,7 +102,7 @@ a { color: var(--accent); }
     <a class="part" href="#n3"><span class="n">N3</span><span class="t">Their net</span><span class="s">first picture</span></a>
     <a href="#n4"><span class="n">N4</span><span class="t">Time of day</span><span class="s">not started</span></a>
     <a class="part" href="#n5"><span class="n">N5</span><span class="t">Our engine</span><span class="s">network verified</span></a>
-    <a href="#n6"><span class="n">N6</span><span class="t">Cloud lib</span><span class="s">later</span></a>
+    <a href="#n6"><span class="n">N6</span><span class="t">Cloud lib</span><span class="s">on hold</span></a>
     <a href="#n7"><span class="n">N7</span><span class="t">Speed</span><span class="s">two levers queued</span></a>
     <a class="side" href="#nt"><span class="n">NT</span><span class="t">Training</span><span class="s">after N4</span></a>
   </div>
@@ -311,7 +311,7 @@ a { color: var(--accent); }
     <dt>Look at</dt><dd>The N3 picture from our engine, and one timing number.</dd>
     <dt>Result</dt><dd>83 ops in 88 dispatches, one submit, six passes as one batch. Equal to the authors' output to 1.3e-6 in fp32. 23.2 ms at 512² fp16. Still owed: the engine on the live page (N5.12) and a proper timing table.</dd></dl></div>
 
-  <div class="phase" id="n6"><div class="head"><span class="n">N6</span><h3>Into the cloud library</h3></div>
+  <div class="phase" id="n6"><div class="head"><span class="n">N6</span><h3>Into the cloud library</h3><span class="pill wait">on hold: not unless it is a speed gain</span></div>
     <dl><dt>Goal</dt><dd>Neural lighting as a selectable mode for VDB hero clouds.</dd>
     <dt>Work</dt><dd>Behind a setting with a Review switch; composited with our sky, aerial perspective and scene depth.</dd>
     <dt>Look at</dt><dd>The bench with the switch flipped.</dd></dl></div>
@@ -335,7 +335,15 @@ a { color: var(--accent); }
     <tr><td class="id">Difficulty</td><td>Lowest. HaloRT itself makes the training targets, no path tracing needed</td><td>Medium. Needs path-traced targets split by scattering order</td><td>Highest. New inputs, new training data, a network inside the march shader</td></tr>
     <tr><td class="id">Reach</td><td>One cloud in a box</td><td>One cloud in a box at first</td><td>Procedural cloudscapes, no box needed</td></tr>
   </table></div>
-  <p class="rec" style="background: var(--accent-soft); border-radius: 4px; padding: 8px 12px; max-width: none;"><strong>Recommendation:</strong> build the training loop with A as its first proof, because it needs no path tracer and a small student fits a 3060. Then B as our first own design: it keeps lit ridges crisp, which the image-space network cannot promise. C is the route to cloudscapes and comes last.</p>
+  <p class="rec" style="background: var(--accent-soft); border-radius: 4px; padding: 8px 12px; max-width: none;"><strong>The bar (owner, 2026-11-24):</strong> a neural method earns a place only if it makes the core VDB or cloud raymarcher faster or better looking. HaloRT as ported costs more than a frame, so it stays on the experimental branch. These three are documented only, in <code>docs/neural/FOLLOWUPS.md</code>.</p>
+  <div class="tw"><table>
+    <tr><th></th><th>Could be faster than today</th><th>Could look better than today</th><th>Fits cloudscapes</th></tr>
+    <tr><td>HaloRT as ported</td><td>No</td><td>Maybe; the comparison sheet is owed</td><td>No</td></tr>
+    <tr><td>A. Student</td><td>No</td><td>Maybe, softer</td><td>No</td></tr>
+    <tr><td>B. Multiple scattering only</td><td>Only if it replaces existing terms</td><td>Yes: it targets the 25–35 % error on lit faces</td><td>Not at first</td></tr>
+    <tr><td>C. Inside the march</td><td>Possibly: it replaces the light march</td><td>Yes</td><td>Yes</td></tr>
+  </table></div>
+  <p class="note">None of this is measured. B and C are the two that bear on the core renderer; A is a training exercise.</p>
 </section>
 
 <section>
