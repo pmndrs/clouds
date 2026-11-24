@@ -510,6 +510,10 @@ export interface CloudSettings {
    * alone read at the sample (half the volume's resolution or coarser: multiply scattered light does not see a crease a few tens of metres wide);
    * the direct term keeps the exact tau. 0 = P1.4b. */
   fitMsTauSmooth: number;
+  /** P1.7a 'fit' model: 1 = the direct term's phase is the Jendersie & d'Eon 2023 HG + Draine droplet fit at `dropletDiameter` (default 10 um;
+   * the sharp sub-degree forward peak that lights thin edges toward the sun, clamped at 25 / sr like phaseModel 'mie'), 0 = HG(fitG) as fitted.
+   * The ms and ambient terms are unchanged. Off by default (no refit). */
+  fitMiePhase: number;
 }
 
 /**
@@ -936,7 +940,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
     converged: 0, convergedStepScale: 4, convergedSamples: 16, convergedBands: 0, convergedSeed: 0, convergedKeep: 0,   // P0.5: the converged march, off
     lightProbe: 0, lightProbeMode: 0, sunAtCentre: 0, lightGridSource: 0, lightGridFull: 0,   // P1.1 debug: off
     sunShadowGridSource: 0, sunShadowGridFull: 0, sunShadowInlineReach: 48, sunShadowInlineSamples: 1, sunShadowInlineJitter: 0, directAlbedo: 1,   // P1.1b sunShadow block: before P1.1b
-    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.47, fitK: 0.2, fitAmbient: 0.62, fitKUp: 0.3, fitDirect: 1, fitMsFwd: 0.38, fitMsG: 0.5, fitGround: 0.61, fitAmbientForm: 1, fitMsPow: 2, fitGroundAtten: 0, fitMsTauSmooth: 1,   // P1.4c: ms tau from the light grid alone, refitted (P1.4b: fitMs 2.42, fitMsTauSmooth 0; the rest unchanged); P1.4b: refitted on 4 suns x 2 clouds (P1.2c: ms 2.58, K 0.4, ambient 0.33, kUp 0.05, msFwd 0.2, ground 0.31, msPow 1); P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
+    fitAlbedo: 0.99, fitG: 0.8, fitMs: 2.47, fitK: 0.2, fitAmbient: 0.62, fitKUp: 0.3, fitDirect: 1, fitMsFwd: 0.38, fitMsG: 0.5, fitGround: 0.61, fitAmbientForm: 1, fitMsPow: 2, fitGroundAtten: 0, fitMsTauSmooth: 1, fitMiePhase: 0,   // P1.4c: ms tau from the light grid alone, refitted (P1.4b: fitMs 2.42, fitMsTauSmooth 0; the rest unchanged); P1.4b: refitted on 4 suns x 2 clouds (P1.2c: ms 2.58, K 0.4, ambient 0.33, kUp 0.05, msFwd 0.2, ground 0.31, msPow 1); P1.2a 'fit' model constants (used only with lightingModel 'fit'); P1.2b: fitMs, fitK, fitAmbient fitted to the path trace (were 3.0, 0.15, 1.0); P1.2c: new form (forward ms share, sky-through-cloud + ground ambient) refitted on RGB (P1.2b: ms 2.3, K 0.18, ambient 0.13, kUp 0.15, msFwd 0, ambientForm 0)
   };
   let materialStash: Partial<Record<MaterialKey, number>> | null = null;   // M1: the settings DIRECT_VOLUME_SETTINGS replaced
   let procModel: ProceduralDensityModel | null = null;
@@ -1526,7 +1530,7 @@ export function createCloudRuntime(device: GPUDevice, options: CloudRuntimeOptio
       // P1.2a 'fit' lighting model (Frame.fit, Frame.fit2).
       f[136] = settings.fitAlbedo; f[137] = settings.fitG; f[138] = settings.fitMs; f[139] = settings.fitK; f[140] = settings.fitAmbient; f[141] = settings.lightingModel === 'fit' ? 1 : 0; f[142] = settings.fitKUp; f[143] = settings.fitDirect;
       f[144] = settings.fitMsFwd; f[145] = settings.fitMsG; f[146] = settings.fitGround; f[147] = settings.fitAmbientForm;
-      f[148] = settings.fitMsPow; f[149] = settings.fitGroundAtten; f[150] = settings.fitMsTauSmooth;   // P1.4b, P1.4c (Frame.fit4)
+      f[148] = settings.fitMsPow; f[149] = settings.fitGroundAtten; f[150] = settings.fitMsTauSmooth; f[151] = settings.fitMiePhase;   // P1.4b, P1.4c (Frame.fit4)
       // ---- temporal amortization (P5-B): rates, cuts, phases ----
       const rates: TemporalRate[] = cv ? [1, 1] : [snapRate(settings.temporalNear), snapRate(settings.temporalFar)];
       const cam = frame.cameraPosition, sun = frame.sunDirection;

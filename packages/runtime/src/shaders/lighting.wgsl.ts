@@ -30,14 +30,17 @@ fn mieLobe(omu: f32, g: f32) -> f32 {
   let q = max(om * om + 2.0 * g * omu, 1e-9);   // 1 + g^2 - 2 g u without the cancellation near u = 1
   return q * sqrt(q);
 }
+// The HG + Draine droplet fit alone (frame.mie from CloudSettings.dropletDiameter), clamped at MIE_PHASE_MAX. Used by cloudPhase (phaseModel 'mie')
+// and by the 'fit' model's direct term (P1.7a, fitMiePhase 1).
+fn miePhase(cosTheta: f32) -> f32 {
+  let m = frame.mie;
+  let omu = 1.0 - cosTheta;
+  let hg = (1.0 - m.x * m.x) / (4.0 * PI * mieLobe(omu, m.x));
+  let draine = (1.0 - m.y * m.y) * (1.0 + m.z * cosTheta * cosTheta) / (4.0 * PI * (1.0 + m.z * (1.0 + 2.0 * m.y * m.y) / 3.0) * mieLobe(omu, m.y));
+  return min(mix(hg, draine, m.w), MIE_PHASE_MAX);
+}
 fn cloudPhase(cosTheta: f32) -> f32 {
-  if (frame.body.z > 0.5) {
-    let m = frame.mie;
-    let omu = 1.0 - cosTheta;
-    let hg = (1.0 - m.x * m.x) / (4.0 * PI * mieLobe(omu, m.x));
-    let draine = (1.0 - m.y * m.y) * (1.0 + m.z * cosTheta * cosTheta) / (4.0 * PI * (1.0 + m.z * (1.0 + 2.0 * m.y * m.y) / 3.0) * mieLobe(omu, m.y));
-    return min(mix(hg, draine, m.w), MIE_PHASE_MAX);
-  }
+  if (frame.body.z > 0.5) { return miePhase(cosTheta); }
   return mix(henyeyGreenstein(cosTheta, frame.phaseG), henyeyGreenstein(cosTheta, frame.silverG), frame.silverStrength);
 }
 // In-scattered radiance per unit scattering at one sample. profile = in-scatter probability, sdf = signed distance to the
@@ -172,12 +175,16 @@ fn octaveVoxel() -> vec4<f32> { return vec4(OCTAVE_VOXEL_DIFFUSE, frame.ambientS
 //   msPhase = (1 - msFwd) / (4 pi) + msFwd HG(cosSun, msG);   ms = sun albedo ms msPhase / (1 + k tau)
 //   ambient = albedo (ambientGain up / (1 + kUp tauUp) + ground down)
 // P1.4b (fit4 = (msPow, groundAtten)): ms = ... / (1 + k tau)^msPow; groundAtten 1: ground down / (1 + kUp tauUp).
+// P1.7a (fit4.w = fitMiePhase): direct = sun albedo miePhase(cosSun) exp(-tau), the droplet fit at dropletDiameter instead of HG(g).
 fn fitOn() -> bool { return frame.fit2.y > 0.5; }
 // P1.4c: tauMs, the ms term's own (smoother) optical depth toward the sun; the direct term keeps tau. cloudFitLight: tauMs = tau (the procedural trace).
 fn cloudFitLight(tau: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> { return cloudFitLightMs(tau, tau, tauUp, cosSun, sun, up, down); }
 fn cloudFitLightMs(tau: f32, tauMs: f32, tauUp: f32, cosSun: f32, sun: vec3<f32>, up: vec3<f32>, down: vec3<f32>) -> vec3<f32> {
   let f = frame.fit;
-  let direct = sun * (f.x * henyeyGreenstein(cosSun, f.y) * exp(-tau) * frame.fit2.w);   // P1.2b: fit2.w = fitDirect (1; debug)
+  // P1.7a: fit4.w = fitMiePhase: 1 = the direct term's phase is the HG + Draine droplet fit (sharp sub-degree forward peak, the silver lining),
+  // 0 = HG(fitG) as fitted. The ms term keeps its own phase either way.
+  let directPhase = select(henyeyGreenstein(cosSun, f.y), miePhase(cosSun), frame.fit4.w > 0.5);
+  let direct = sun * (f.x * directPhase * exp(-tau) * frame.fit2.w);   // P1.2b: fit2.w = fitDirect (1; debug)
   let f3 = frame.fit3;
   let msPhase = (1.0 - f3.x) * ISO_PHASE + f3.x * henyeyGreenstein(cosSun, f3.y);   // P1.2c: f3.x = 0 is P1.2b's isotropic ms
   let ms = sun * (f.x * f.z * msPhase / pow(1.0 + f.w * tauMs, frame.fit4.x));   // P1.4b: fit4.x = fitMsPow (1 = P1.2c)
