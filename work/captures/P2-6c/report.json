@@ -1,0 +1,200 @@
+{
+ "houdini": "21.0.792",
+ "params": {
+  "bodies": [
+   [
+    "con",
+    [
+     0.0,
+     0.0,
+     0.0
+    ],
+    2.0,
+    0.25,
+    1
+   ],
+   [
+    "med",
+    [
+     -0.95,
+     0.0,
+     0.15
+    ],
+    1.0,
+    0.25,
+    2
+   ],
+   [
+    "med",
+    [
+     0.95,
+     0.0,
+     -0.1
+    ],
+    1.0,
+    0.25,
+    3
+   ]
+  ],
+  "generate": {
+   "scattersecshapes": 1,
+   "secniter": 3,
+   "doflatten": 1
+  },
+  "replicate1": {
+   "surfacescatter": 1,
+   "pointsep": 0.09,
+   "scalemin": 0.8,
+   "scalemax": 1.6,
+   "elementsize": 0.4,
+   "doupvectorfalloff": 1,
+   "upvectorbias": 0.35,
+   "dodirscale": 1,
+   "dirscalemin": 1.0,
+   "dirscalemax": 1.6
+  },
+  "replicate2_seed_fraction": 0.03,
+  "replicate2_min_ny": -0.2,
+  "replicate2": {
+   "surfacescatter": 1,
+   "pointsep": 0.035,
+   "scalemin": 0.8,
+   "scalemax": 1.5,
+   "elementsize": 0.15,
+   "doupvectorfalloff": 1,
+   "upvectorbias": 0.5
+  },
+  "voxel_km": 0.016,
+  "unit_m": 750.0,
+  "billowy": {
+   "basis": "simplex",
+   "amplitude": 0.1,
+   "elementsize": 0.45,
+   "oct": 5,
+   "rough": 0.5,
+   "doiter": 1,
+   "niters": 3,
+   "amplitude_atten": 0.45,
+   "elementsize_atten": 0.38,
+   "doworleydetails": 1,
+   "worleyblend": 0.8,
+   "worleyerosion": 0.6,
+   "worleyelementsizescale": 2.0,
+   "doupvectorfalloff": 1,
+   "upvectorbias": 0.6,
+   "advectnoise": 1,
+   "advect_ampscale": 0.5,
+   "advect_elementsizecale": 0.6,
+   "densityscale": 1.0,
+   "fogisovalue": 0.5
+  },
+  "wispy": {
+   "noisetype": "aaflow",
+   "amplitude": 0.25,
+   "elementsize": 0.12,
+   "oct": 6,
+   "rough": 0.55,
+   "doiter": 1,
+   "niters": 2,
+   "substeps": 2,
+   "doboundscale": 1,
+   "boundidx": 1,
+   "boundmin": 0.0,
+   "boundmax": 1.0,
+   "densityscale": 1.0
+  }
+ },
+ "stages": {
+  "1_lobes": {
+   "cook_s": 2.1,
+   "bytes": 1496272,
+   "grids": [
+    {
+     "name": "density",
+     "active": 694461,
+     "max": 1.0,
+     "mean": 0.8332,
+     "voxel_m": 12.0,
+     "bbox_m": [
+      -1278,
+      6,
+      -606,
+      1350,
+      1758,
+      726
+     ]
+    }
+   ]
+  },
+  "2_replicate": {
+   "cook_s": 1.5,
+   "bytes": 2222209,
+   "grids": [
+    {
+     "name": "density",
+     "active": 1491422,
+     "max": 1.0,
+     "mean": 0.8901,
+     "voxel_m": 12.0,
+     "bbox_m": [
+      -1422,
+      6,
+      -762,
+      1494,
+      1974,
+      870
+     ]
+    }
+   ]
+  },
+  "3_billowy": {
+   "cook_s": 1.4,
+   "bytes": 3806353,
+   "grids": [
+    {
+     "name": "density",
+     "active": 1694425,
+     "max": 1.0,
+     "mean": 0.7854,
+     "voxel_m": 12.0,
+     "bbox_m": [
+      -1458,
+      6,
+      -798,
+      1530,
+      2010,
+      906
+     ]
+    }
+   ]
+  },
+  "4_wispy": {
+   "cook_s": 0.1,
+   "bytes": 4432310,
+   "grids": [
+    {
+     "name": "density",
+     "active": 1681908,
+     "max": 1.0,
+     "mean": 0.7861,
+     "voxel_m": 12.0,
+     "bbox_m": [
+      -1458,
+      6,
+      -798,
+      1530,
+      2010,
+      906
+     ]
+    }
+   ]
+  }
+ },
+ "hip": "/Users/dex/Developer/WebGPUClouds/.claude/worktrees/agent-a5b4bbe57fcfe77f6/houdini/rigs/cumulus_stages.hip",
+ "render_s": {
+  "1_lobes": 0.6,
+  "2_replicate": 0.6,
+  "3_billowy": 0.6,
+  "4_wispy": 0.6
+ }
+}
