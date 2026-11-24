@@ -1,0 +1,297 @@
+{
+  "url": "http://localhost:5417/reference-pt/?clean=1&cloud=wdas&view=nubis-low&quality=high&g=0.8&extScale=0.3654&s.directDensity=0.21925&spp=1024",
+  "size": [
+    512,
+    512
+  ],
+  "startedAt": "2026-11-24T07:41:47.187Z",
+  "shots": [
+    {
+      "name": "nubis-low",
+      "file": "pu-neural-clouds-5e8baf/53a9b35b-9c1c-4c68-8e02-d8f4fe78d7c4/scratchpad/n3b/rm-low/nubis-low.png",
+      "report": {
+        "view": "nubis-low",
+        "status": "sun low: ready",
+        "cloud": "wdas",
+        "camera": {
+          "position": [
+            -1940.0558731964372,
+            150,
+            2791.246686338768
+          ],
+          "target": [
+            -3,
+            1422,
+            -3
+          ]
+        },
+        "fovY": 30,
+        "viewport": [
+          512,
+          512
+        ],
+        "sun": {
+          "elevationDeg": 19.481079685240942,
+          "azimuthDeg": 284.73086424947815,
+          "direction": [
+            -0.9118,
+            0.3335,
+            -0.2397
+          ],
+          "timeOfDay": 17.6,
+          "ring": 70
+        },
+        "sky": {
+          "sunIrradiance": [
+            35.0781,
+            29.082,
+            22.4414
+          ],
+          "ambientUp": [
+            0.3163,
+            0.586,
+            1.1886
+          ],
+          "ambientDown": [
+            0.3738,
+            0.3078,
+            0.2375
+          ],
+          "envMapUp": [
+            0.317,
+            0.5846,
+            1.1823
+          ],
+          "envMapDown": [
+            0.3687,
+            0.3038,
+            0.2346
+          ]
+        },
+        "grid": {
+          "resolution": [
+            253,
+            175,
+            308
+          ],
+          "voxel": 6,
+          "min": [
+            -759,
+            900,
+            -924
+          ],
+          "max": [
+            759,
+            1950,
+            924
+          ],
+          "densityMax": 1.0869140625,
+          "occupancy": 0.21107768008389127,
+          "bakeMs": 280.69999998807907
+        },
+        "ptTest": "off",
+        "p11": {
+          "sunOnly": false,
+          "single": false,
+          "converged": false,
+          "probe": 0,
+          "probeMode": 0,
+          "convergedInfo": {
+            "active": false,
+            "samples": 0,
+            "target": 16,
+            "done": false,
+            "restarts": 0,
+            "reason": "",
+            "band": 0
+          }
+        },
+        "sunShadow": {
+          "sunShadowGridSource": 0,
+          "sunShadowGridFull": 0,
+          "sunShadowInlineReach": 48,
+          "sunShadowInlineSamples": 1,
+          "sunShadowInlineJitter": 0,
+          "lightDensityScale": 1,
+          "directAlbedo": 1,
+          "sunAtCentre": 0,
+          "grid": {
+            "dims": [
+              127,
+              154,
+              88
+            ],
+            "bytes": 41306496,
+            "volumeDims": [
+              253,
+              308,
+              175
+            ],
+            "building": false,
+            "progress": 0,
+            "passes": 16,
+            "swaps": 1,
+            "restarts": 0
+          }
+        },
+        "pt": {
+          "majorant": "brick",
+          "extScale": 0.3654,
+          "samples": 0,
+          "target": 1024,
+          "seed": 1,
+          "film": [
+            512,
+            512
+          ],
+          "msPerPass": 0,
+          "wallMs": 0,
+          "compileMs": 68.10000002384186,
+          "kernelBytes": 52922,
+          "maxDepth": 512,
+          "medium": {
+            "extinction": 0.201737197265625,
+            "albedo": 0.99,
+            "g": 0.8
+          },
+          "alphaFilter": "trilinear"
+        },
+        "runtime": {
+          "lightDebug": 0,
+          "edgeDarkening": 0.5,
+          "directProfile": 0,
+          "phaseModel": "hg",
+          "microDist": 4,
+          "bodyEnv": 1,
+          "quality": "high",
+          "lightingModel": "nubis",
+          "densityScale": 0.3,
+          "directDensity": 0.21925,
+          "lightDensityScale": 1,
+          "sunShadowGridSource": 0,
+          "fit": [
+            0.99,
+            0.8,
+            2.47,
+            0.2,
+            0.62,
+            0.3,
+            1,
+            0.38,
+            0.5,
+            0.61,
+            1,
+            2,
+            0,
+            1
+          ],
+          "phaseG": 0.2,
+          "silverG": 0.85,
+          "silverStrength": 0.4,
+          "msStrength": 0.2,
+          "ambientStrength": 0.5,
+          "ambientSaturation": 0.5,
+          "diffuseSun": 0.5,
+          "microShadow": 0
+        },
+        "card": {
+          "def": {
+            "key": "wdas",
+            "label": "C Disney cloud (WDAS 1/8 VDB)",
+            "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+            "runtime": "direct",
+            "camera": {
+              "distance": 3400,
+              "height": 150
+            },
+            "alphaFilter": "trilinear"
+          },
+          "cameraRing": {
+            "distance": 3400,
+            "height": 150
+          },
+          "source": "Walt Disney Animation Studios cloud, 1/8 resolution .vdb (CC BY-SA 3.0), 1800 m wide, sigma_t = 0.6 x density / m",
+          "runtime": "direct volume (V2 DIRECT_DENSITY_WGSL: r16f density / densityRef marched as-is, no up-rez), material auto (DIRECT_VOLUME_SETTINGS)",
+          "latticeDims": [
+            253,
+            308,
+            175
+          ],
+          "voxel": 6,
+          "densityRef": 0.920166015625,
+          "densityMaxSource": 1,
+          "directDensity": 0.6,
+          "extinctionScale": 0.6,
+          "ptSigmaPerUnit": 0.552099609375,
+          "boxMin": [
+            -759,
+            900,
+            -924
+          ],
+          "boxMax": [
+            759,
+            1950,
+            924
+          ],
+          "occupied": {
+            "min": [
+              -735,
+              930,
+              -900
+            ],
+            "max": [
+              729,
+              1914,
+              894
+            ]
+          },
+          "file": "disney-cloud/wdas_cloud_eighth.vdb",
+          "gridName": "density",
+          "sourceVoxels": 3122022,
+          "up": "y",
+          "worldScale": 3.517915393319893,
+          "nativeVoxel": 5.863192182410423,
+          "taps": 1,
+          "loadMs": 442.19999998807907,
+          "resample": "vdb-direct.ts DirectResampler: the mean of 1^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)"
+        },
+        "exposure": 0.35,
+        "frames": 106
+      },
+      "linear": {
+        "file": "pu-neural-clouds-5e8baf/53a9b35b-9c1c-4c68-8e02-d8f4fe78d7c4/scratchpad/n3b/rm-low/nubis-low.pfm",
+        "view": "nubis-low",
+        "kind": "radiance",
+        "width": 512,
+        "height": 512,
+        "channels": 4,
+        "byteLength": 4194304,
+        "nonFinite": 0,
+        "meanRgb": [
+          0.6763647559461106,
+          0.9071615644402868,
+          1.389792146310441
+        ],
+        "meta": {
+          "lightingModel": "nubis",
+          "frame": 111,
+          "units": "scene * transmittance + cloud, before exposure and tone mapping"
+        }
+      }
+    },
+    {
+      "name": "timing",
+      "eval": "window.__clouds.runtimeTiming(30)",
+      "ms": 43
+    }
+  ],
+  "console": [
+    "log: Failed to load module script: The server responded with a non-JavaScript MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec.",
+    "warning: PtMegakernel: medium 0 expects ~573 tentative collisions on its longest segment (14% of the 4096 loop cap): the cap can silently bias the image (free flight darkens, ratio tracking brightens). Use majorant: 'brick' or lower the density scale."
+  ],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1,0 +1,240 @@
+{
+  "url": "http://localhost:5417/neural/?net=engine&precision=fp16&g=0.8&fov=30&yaw=0.50285&pitch=-0.35917&dist=3.97859&sunAz=-41.174&sunEl=69.342&sky=-3.6182",
+  "size": [
+    1024,
+    1024
+  ],
+  "startedAt": "2026-11-24T07:42:10.815Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "pu-neural-clouds-5e8baf/53a9b35b-9c1c-4c68-8e02-d8f4fe78d7c4/scratchpad/n3b/nn-noon/view.jpg",
+      "report": {
+        "precision": "fp16",
+        "netLoadMs": 935,
+        "engineLoadMs": 647,
+        "engineDispatches": 89,
+        "vdb": "disney-cloud/wdas_cloud_eighth.vdb",
+        "gridName": "density",
+        "dims": [
+          254,
+          311,
+          174
+        ],
+        "nativeVoxel": 1.6666666269302368,
+        "densityRef": 0.8955078125,
+        "boxHalf": [
+          0.8167202572347267,
+          0.5594855305466238,
+          1
+        ],
+        "stepSize": 0.004,
+        "envScale": [
+          0.2392556616801603,
+          0.3157502683161249,
+          0.5215426102800303
+        ],
+        "loadMs": 257,
+        "view": "neural",
+        "network": "engine",
+        "neural": {
+          "spp": 16,
+          "mean": 0.0686,
+          "max": 0.365,
+          "nonFinite": 0,
+          "frameIntervalMs": 29.8,
+          "sunRgb": [
+            1.7674882411956787,
+            1.685422420501709,
+            1.5254981517791748
+          ]
+        },
+        "settings": {
+          "densityScale": 179,
+          "g": 0.8,
+          "envSamples": 8,
+          "sunAz": -41.174,
+          "sunEl": 69.342,
+          "sun": 2,
+          "sky": -3.6182,
+          "exposure": 1
+        },
+        "sunDirection": [
+          -0.23225793894330865,
+          0.9357028900720975,
+          0.265549150457181
+        ],
+        "orbit": {
+          "yaw": 0.50285,
+          "pitch": -0.35917,
+          "distance": 3.97859
+        },
+        "pixels": 262144,
+        "pixelsWithTau": 72562,
+        "pixelsWithCrossing": 71820,
+        "stats": {
+          "tau": {
+            "min": 0.0001,
+            "mean": 16.8556,
+            "max": 20.7923
+          },
+          "S": {
+            "min": 0.0001,
+            "mean": 0.915,
+            "max": 1
+          },
+          "tr": {
+            "min": 0,
+            "mean": 0.8581,
+            "max": 0.9844
+          },
+          "count": {
+            "min": 4,
+            "mean": 4,
+            "max": 4
+          },
+          "t0": {
+            "min": 2.9616,
+            "mean": 3.5145,
+            "max": 4.4986
+          },
+          "t1": {
+            "min": 2.9706,
+            "mean": 3.5387,
+            "max": 4.4986
+          },
+          "t2": {
+            "min": 3.0412,
+            "mean": 3.5763,
+            "max": 4.4986
+          },
+          "t3": {
+            "min": 3.0624,
+            "mean": 3.5977,
+            "max": 4.4986
+          },
+          "depth": {
+            "min": 0.4652,
+            "mean": 0.5317,
+            "max": 0.6417
+          },
+          "c1": {
+            "min": 0,
+            "mean": 0.3407,
+            "max": 0.893
+          },
+          "c2": {
+            "min": 0,
+            "mean": 0.3891,
+            "max": 0.8944
+          },
+          "c3": {
+            "min": 0,
+            "mean": 0.3346,
+            "max": 0.8772
+          },
+          "g": {
+            "min": 0.8,
+            "mean": 0.8,
+            "max": 0.8
+          },
+          "nee": {
+            "min": 0,
+            "mean": 0.2571,
+            "max": 1
+          },
+          "envR": {
+            "min": 0,
+            "mean": 0.1664,
+            "max": 13.6372
+          },
+          "envG": {
+            "min": 0,
+            "mean": 0.1667,
+            "max": 14.5058
+          },
+          "envB": {
+            "min": 0,
+            "mean": 0.1644,
+            "max": 15.073
+          },
+          "saR": {
+            "min": 0.9167,
+            "mean": 0.9323,
+            "max": 1
+          },
+          "saG": {
+            "min": 0.9167,
+            "mean": 0.9323,
+            "max": 1
+          },
+          "saB": {
+            "min": 0.9167,
+            "mean": 0.9323,
+            "max": 1
+          },
+          "bgR": {
+            "min": 0.8257,
+            "mean": 1.1801,
+            "max": 1.6528
+          },
+          "bgG": {
+            "min": 1.2264,
+            "mean": 1.4368,
+            "max": 1.7174
+          },
+          "bgB": {
+            "min": 1.645,
+            "mean": 1.6721,
+            "max": 1.7082
+          }
+        },
+        "packed": {
+          "dims": [
+            1,
+            17,
+            512,
+            512
+          ],
+          "maxDiffVsFeatures": 0
+        }
+      }
+    },
+    {
+      "name": "rad",
+      "eval": "__neuralRadiance()",
+      "ms": 45
+    },
+    {
+      "name": "chunk0",
+      "eval": "__neuralRadianceChunk(0)",
+      "ms": 31
+    },
+    {
+      "name": "chunk1",
+      "eval": "__neuralRadianceChunk(1)",
+      "ms": 28
+    },
+    {
+      "name": "chunk2",
+      "eval": "__neuralRadianceChunk(2)",
+      "ms": 31
+    },
+    {
+      "name": "chunk3",
+      "eval": "__neuralRadianceChunk(3)",
+      "ms": 31
+    },
+    {
+      "name": "timing",
+      "eval": "__neuralTiming(20)",
+      "ms": 828
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

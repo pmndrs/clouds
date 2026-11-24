@@ -1,0 +1,1 @@
+{"network":"engine","precision":"fp16","size":512,"runs":20,"warmups":5,"medianMs":33.1,"minMs":32.6,"maxMs":34.6}
