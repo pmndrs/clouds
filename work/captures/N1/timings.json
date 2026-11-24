@@ -1,0 +1,80 @@
+[
+ {
+  "page": "halort",
+  "res": 256,
+  "prec": "fp32",
+  "ok": true,
+  "features": 0.1,
+  "network": 10.67,
+  "accumulate": 0.02,
+  "gpu": 10.78,
+  "interval": 44.66,
+  "gpuName": "apple metal-3 Apple M5 Pro",
+  "err": ""
+ },
+ {
+  "page": "halort",
+  "res": 256,
+  "prec": "fp16",
+  "ok": true,
+  "features": 0.07,
+  "network": 10.8,
+  "accumulate": 0.03,
+  "gpu": 10.9,
+  "interval": 41.31,
+  "gpuName": "apple metal-3 Apple M5 Pro",
+  "err": ""
+ },
+ {
+  "page": "halort",
+  "res": 512,
+  "prec": "fp32",
+  "ok": true,
+  "features": 0.09,
+  "network": 38.75,
+  "accumulate": 0,
+  "gpu": 38.84,
+  "interval": 168.41,
+  "gpuName": "apple metal-3 Apple M5 Pro",
+  "err": ""
+ },
+ {
+  "page": "halort",
+  "res": 512,
+  "prec": "fp16",
+  "ok": true,
+  "features": 0.05,
+  "network": 32.68,
+  "accumulate": 0,
+  "gpu": 32.71,
+  "interval": 141.74,
+  "gpuName": "apple metal-3 Apple M5 Pro",
+  "err": ""
+ },
+ {
+  "page": "halort_dir",
+  "res": 512,
+  "prec": "fp32",
+  "ok": true,
+  "features": 0.08,
+  "network": null,
+  "accumulate": 1.1,
+  "gpu": 13.58,
+  "interval": 30.34,
+  "gpuName": "apple metal-3 Apple M5 Pro",
+  "err": ""
+ },
+ {
+  "page": "halort_dir",
+  "res": 512,
+  "prec": "fp16",
+  "ok": true,
+  "features": 0.08,
+  "network": null,
+  "accumulate": 0,
+  "gpu": 17.59,
+  "interval": 26.93,
+  "gpuName": "apple metal-3 Apple M5 Pro",
+  "err": ""
+ }
+]
