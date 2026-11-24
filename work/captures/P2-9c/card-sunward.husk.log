@@ -1,0 +1,170 @@
+[16:43:15] /Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/Current/Resources/bin/husk version 21.0.792
+[16:43:16] Loading work/captures/P2-9c/card-sunward.usda
+[16:43:17] Using stage default settings: /Render/rendersettings
+[16:43:17] Running prerender procedurals script: /Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/21.0/Resources/houdini/python3.11libs/husd/runprocedurals.py --mode prerender --validategeo
+[16:43:17] Load 554 properties from /Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/21.0/Resources/houdini/RenderProperties.json
+[16:43:17] Creating karma scene
+[16:43:17] Running preframe procedurals script: /Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/21.0/Resources/houdini/python3.11libs/husd/runprocedurals.py --mode preframe --validategeo
+[16:43:17] Start Wall Clock Time: 0:00:02.25
+[16:43:17]   Start Memory Usage: 418.41 GB
+[16:43:17] >>> Render work/captures/P2-9c/card-sunward.exr (1 of 1) - 640x360 work/captures/P2-9c/card-sunward.usda frame: 1
+[16:43:17] Host: denniss-macbook-pro.local (Apple M5 Pro)
+[16:43:17] CPU Features: ARM64: ht
+[16:43:18] Build volume BVH accelerator
+[16:43:18] Adding samplefilter module: copyalpha
+[16:43:18] Pixel oracle: variance
+[16:43:18] Variance oracle automatic minimum ray count: 5
+[16:43:18]   Load Wall Clock Time: 0:00:02.57
+[16:43:18] Update Wall Clock Time: 0:00:00.87
+[16:43:18]          Load CPU Time: 0:00:02.16
+[16:43:18]   Load System CPU Time: 0:00:00.27
+[16:43:18]      Load Memory Usage: 418.56 GB
+[16:43:18] Light Tree: 0 lights
+[16:43:18] Use verbosity 6 to see reason lights weren't added
+[16:43:18] Uniform List: 2 lights
+[16:43:18] Acceleration build time (wall clock): 0:00.00
+[16:43:18] First Pixel: 0:01.20
+[16:43:18]   0.6% Lap= 0:00:01.14 Left= 0:03:01 Mem= 418.77 GiB Peak= 418.77 GiB
+[16:43:19]   1.7% Lap= 0:00:01.67 Left= 0:01:35 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:19]   2.9% Lap= 0:00:02.19 Left= 0:01:12 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:20]   4.1% Lap= 0:00:02.72 Left= 0:01:04 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:21]   5.8% Lap= 0:00:03.25 Left= 0:00:52 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:21]   6.5% Lap= 0:00:03.77 Left= 0:00:53 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:22]   8.4% Lap= 0:00:04.29 Left= 0:00:46 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:22]   9.0% Lap= 0:00:04.82 Left= 0:00:48 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:23]  10.2% Lap= 0:00:05.35 Left= 0:00:47 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:23]  11.6% Lap= 0:00:05.87 Left= 0:00:44 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:24]  12.8% Lap= 0:00:06.40 Left= 0:00:43 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:24]  14.5% Lap= 0:00:06.93 Left= 0:00:40 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:25]  15.2% Lap= 0:00:07.56 Left= 0:00:42 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:25]  15.9% Lap= 0:00:08.09 Left= 0:00:42 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:26]  17.8% Lap= 0:00:08.61 Left= 0:00:39 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:26]  18.3% Lap= 0:00:09.14 Left= 0:00:40 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:27]  20.3% Lap= 0:00:09.66 Left= 0:00:37 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:28]  20.9% Lap= 0:00:10.30 Left= 0:00:38 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:28]  22.2% Lap= 0:00:10.83 Left= 0:00:38 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:29]  23.0% Lap= 0:00:11.36 Left= 0:00:38 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:29]  23.7% Lap= 0:00:11.90 Left= 0:00:38 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:30]  25.9% Lap= 0:00:12.43 Left= 0:00:35 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:30]  26.5% Lap= 0:00:12.96 Left= 0:00:35 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:31]  27.0% Lap= 0:00:13.49 Left= 0:00:36 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:31]  29.0% Lap= 0:00:14.02 Left= 0:00:34 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:32]  29.5% Lap= 0:00:14.65 Left= 0:00:34 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:32]  30.0% Lap= 0:00:15.17 Left= 0:00:35 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:33]  31.6% Lap= 0:00:15.71 Left= 0:00:34 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:34]  32.7% Lap= 0:00:16.23 Left= 0:00:33 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:34]  33.2% Lap= 0:00:16.75 Left= 0:00:33 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:35]  34.8% Lap= 0:00:17.28 Left= 0:00:32 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:35]  35.3% Lap= 0:00:17.81 Left= 0:00:32 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:36]  36.6% Lap= 0:00:18.35 Left= 0:00:31 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:36]  37.6% Lap= 0:00:18.88 Left= 0:00:31 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:37]  38.6% Lap= 0:00:19.41 Left= 0:00:30 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:37]  39.1% Lap= 0:00:19.95 Left= 0:00:31 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:38]  40.2% Lap= 0:00:20.49 Left= 0:00:30 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:38]  41.5% Lap= 0:00:21.02 Left= 0:00:29 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:39]  42.1% Lap= 0:00:21.55 Left= 0:00:29 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:39]  43.4% Lap= 0:00:22.08 Left= 0:00:28 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:40]  44.0% Lap= 0:00:22.61 Left= 0:00:28 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:40]  44.7% Lap= 0:00:23.14 Left= 0:00:28 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:41]  46.1% Lap= 0:00:23.68 Left= 0:00:27 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:42]  46.7% Lap= 0:00:24.22 Left= 0:00:27 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:42]  48.0% Lap= 0:00:24.75 Left= 0:00:26 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:43]  49.0% Lap= 0:00:25.28 Left= 0:00:26 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:43]  49.5% Lap= 0:00:25.81 Left= 0:00:26 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:44]  50.1% Lap= 0:00:26.35 Left= 0:00:26 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:44]  51.9% Lap= 0:00:26.90 Left= 0:00:24 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:45]  52.5% Lap= 0:00:27.43 Left= 0:00:24 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:45]  53.1% Lap= 0:00:27.96 Left= 0:00:24 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:46]  54.8% Lap= 0:00:28.49 Left= 0:00:23 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:46]  55.3% Lap= 0:00:29.15 Left= 0:00:23 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:47]  56.0% Lap= 0:00:29.67 Left= 0:00:23 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:47]  56.8% Lap= 0:00:30.20 Left= 0:00:22 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:48]  57.7% Lap= 0:00:30.74 Left= 0:00:22 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:49]  58.2% Lap= 0:00:31.28 Left= 0:00:22 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:49]  59.5% Lap= 0:00:31.81 Left= 0:00:21 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:50]  60.8% Lap= 0:00:32.33 Left= 0:00:20 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:50]  61.4% Lap= 0:00:32.97 Left= 0:00:20 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:51]  62.1% Lap= 0:00:33.51 Left= 0:00:20 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:51]  63.6% Lap= 0:00:34.05 Left= 0:00:19 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:52]  64.1% Lap= 0:00:34.58 Left= 0:00:19 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:52]  64.6% Lap= 0:00:35.11 Left= 0:00:19 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:53]  66.3% Lap= 0:00:35.66 Left= 0:00:18 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:54]  66.9% Lap= 0:00:36.30 Left= 0:00:17 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:54]  67.5% Lap= 0:00:36.84 Left= 0:00:17 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:55]  68.7% Lap= 0:00:37.38 Left= 0:00:17 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:55]  69.4% Lap= 0:00:37.91 Left= 0:00:16 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:56]  70.0% Lap= 0:00:38.44 Left= 0:00:16 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:56]  70.8% Lap= 0:00:38.97 Left= 0:00:16 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:57]  72.0% Lap= 0:00:39.50 Left= 0:00:15 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:57]  72.6% Lap= 0:00:40.02 Left= 0:00:15 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:58]  73.2% Lap= 0:00:40.55 Left= 0:00:14 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:58]  74.9% Lap= 0:00:41.09 Left= 0:00:13 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:59]  75.5% Lap= 0:00:41.63 Left= 0:00:13 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:43:59]  76.1% Lap= 0:00:42.18 Left= 0:00:13 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:00]  77.9% Lap= 0:00:42.71 Left= 0:00:12 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:01]  78.5% Lap= 0:00:43.23 Left= 0:00:11 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:01]  79.1% Lap= 0:00:43.77 Left= 0:00:11 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:02]  80.7% Lap= 0:00:44.30 Left= 0:00:10 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:02]  81.2% Lap= 0:00:44.83 Left= 0:00:10 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:03]  81.8% Lap= 0:00:45.36 Left= 0:00:10 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:03]  82.4% Lap= 0:00:45.89 Left= 0:00:09 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:04]  83.9% Lap= 0:00:46.41 Left= 0:00:08 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:04]  84.5% Lap= 0:00:46.95 Left= 0:00:08 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:05]  85.1% Lap= 0:00:47.48 Left= 0:00:08 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:05]  86.7% Lap= 0:00:48.01 Left= 0:00:07 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:06]  87.2% Lap= 0:00:48.54 Left= 0:00:07 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:06]  87.8% Lap= 0:00:49.07 Left= 0:00:06 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:07]  89.3% Lap= 0:00:49.60 Left= 0:00:05 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:07]  89.9% Lap= 0:00:50.13 Left= 0:00:05 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:08]  90.4% Lap= 0:00:50.66 Left= 0:00:05 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:08]  91.5% Lap= 0:00:51.20 Left= 0:00:04 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:09]  92.8% Lap= 0:00:51.73 Left= 0:00:04 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:10]  93.3% Lap= 0:00:52.69 Left= 0:00:03 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:11]  93.8% Lap= 0:00:53.64 Left= 0:00:03 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:12]  94.4% Lap= 0:00:54.48 Left= 0:00:03 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:13]  94.9% Lap= 0:00:55.43 Left= 0:00:02 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:14]  95.4% Lap= 0:00:56.49 Left= 0:00:02 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:15]  96.0% Lap= 0:00:57.45 Left= 0:00:02 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:16]  96.5% Lap= 0:00:58.49 Left= 0:00:02 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:17]  97.0% Lap= 0:00:59.45 Left= 0:00:01 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:18]  97.6% Lap= 0:01:00.60 Left= 0:00:01 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:19]  98.1% Lap= 0:01:01.67 Left= 0:00:01 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:20]  98.7% Lap= 0:01:02.85 Left= 0:00:00 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:21]  99.2% Lap= 0:01:03.91 Left= 0:00:00 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:22]  99.7% Lap= 0:01:05.18 Left= 0:00:00 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:23] Render complete
+[16:44:24] 100.0% Lap= 0:01:06.22 Left= 0:00:00 Mem= 418.78 GiB Peak= 418.78 GiB
+[16:44:24] VEX module cache misses: 0
+[16:44:24] Ray Counts:
+[16:44:24]          Camera Rays:   3,517,513
+[16:44:24]             Indirect:  84,672,346
+[16:44:24]       Light Geometry: 184,142,136
+[16:44:24]            Occlusion: 184,144,184
+[16:44:24]                Probe:           0
+[16:44:24]                Total: 456,476,179
+[16:44:24] Shader Calls:
+[16:44:24]         Displacement:           0
+[16:44:24]             Emission:           0
+[16:44:24]                Light: 277,166,225
+[16:44:24]              Opacity:           0
+[16:44:24]              Surface:  92,071,068
+[16:44:24]               Volume:     526,336
+[16:44:24] Bucket Time Breakdown:
+[16:44:24]               Category         Time  Percentage
+[16:44:24]                Shadows   0:11:15.65       57.61
+[16:44:24]               Lighting   0:03:20.68       17.11
+[16:44:24]          Indirect rays   0:02:42.85       13.89
+[16:44:24]            Unaccounted   0:01:15.86        6.47
+[16:44:24]                Shading   0:00:39.39        3.36
+[16:44:24]           Primary rays   0:00:18.19        1.55
+[16:44:24]              Filtering   0:00:00.15        0.01
+[16:44:24]                 Dicing      0:00:00        0.00
+[16:44:24]            SSS samples      0:00:00        0.00
+[16:44:24] Total Wall Clock Time: 0:01:08.52
+[16:44:24]        Total CPU Time: 0:17:26.21
+[16:44:24]  System CPU Time Only: 0:00:10.82
+[16:44:24]  Current Memory Usage: 418.78 GiB
+[16:44:24]     Peak Memory Usage: 418.78 GiB
+[16:44:24] Saved Image: work/captures/P2-9c/card-sunward.exr
+[16:44:24] Running postframe procedurals script: /Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/21.0/Resources/houdini/python3.11libs/husd/runprocedurals.py --mode postframe --validategeo
+[16:44:24] Running postrender procedurals script: /Applications/Houdini/Houdini21.0.792/Frameworks/Houdini.framework/Versions/21.0/Resources/houdini/python3.11libs/husd/runprocedurals.py --mode postrender --validategeo
