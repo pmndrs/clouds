@@ -100,7 +100,7 @@ async function main() {
     const host = F16 ? new F16A!(packed) : packed;
     const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
     const src = device.createBuffer({ size: host.byteLength, usage, label: `${L.prefix} src` });
-    device.queue.writeBuffer(src, 0, host);
+    device.queue.writeBuffer(src, 0, host.buffer as ArrayBuffer, host.byteOffset, host.byteLength);
     const dstA = device.createBuffer({ size: host.byteLength, usage, label: `${L.prefix} out` });
     const dstB = device.createBuffer({ size: host.byteLength, usage, label: `${L.prefix} out+x` });
     const bA = layer.bind(H, W, src, dstA), bB = layer.bind(H, W, src, dstB, { residual: true });
