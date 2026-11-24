@@ -1,9 +1,7 @@
 // N2a lab page: HaloRT's primary-ray features (experiments/neural/feature-pass.ts) on the Disney cloud, as six grayscale 512² panels.
 // Drag to orbit, wheel to zoom. Query: ?scale=<densityScale> (default 10), ?step=<step> (default 0.004), ?vdb=sixteenth|eighth.
-import { VDBGridPool } from '@pmndrs/vdb';
 import { installCloudsHarness } from '../harness/clouds-contract';
-import { DirectResampler, directDensityRef, readVdbSource, vdbDeviceLimits } from '../vdb-sky/vdb-direct';
-import { toHalfBits } from '../../../packages/runtime/src/half';
+import { loadDenseVdb, vdbLimits } from './density';
 import { FEATURE, FEATURE_STRIDE, FeaturePass, type FeatureCamera } from '../../../experiments/neural/feature-pass';
 
 declare const __REPO_ROOT__: string;
@@ -56,7 +54,7 @@ struct D { size: u32, stride: u32, cols: u32, _p: u32, channels: array<vec4u, 2>
 async function main() {
   const adapter = await navigator.gpu?.requestAdapter();
   if (!adapter) throw new Error('no WebGPU adapter');
-  const device = await adapter.requestDevice({ requiredLimits: vdbDeviceLimits(adapter) });
+  const device = await adapter.requestDevice({ requiredLimits: vdbLimits(adapter) });
   device.addEventListener('uncapturederror', e => harness.fail(`GPU: ${(e as GPUUncapturedErrorEvent).error.message}`));
 
   // Density: the Disney cloud through vdb-sky's route A resampler at its native voxel (VDB world units), / p99 into r16float.
@@ -64,21 +62,10 @@ async function main() {
   const t0 = performance.now();
   const res = await fetch(await researchUrl(vdbFile));
   if (!res.ok) throw new Error(`fetch ${vdbFile}: ${res.status}`);
-  const src = readVdbSource(vdbFile.split('/').pop()!, await res.arrayBuffer());
-  const pool = await VDBGridPool.create(device, { label: 'neural n2a' });
-  const id = pool.add(src.image, { label: 'wdas' });
-  pool.flush(); await pool.settled();
-  const resampler = new DirectResampler(device, pool);
-  const native = Math.max(...pool.info(id).voxelSize);
   status('resampling');
-  const r = await resampler.resample(id, { worldScale: 1, voxelSize: native, up: 'y', margin: 2 }, 'neural n2a');
-  pool.dispose();
-  const [nx, nRow, nUp] = r.dims;
-  const { ref } = directDensityRef(r.density);
-  const half = new Uint16Array(r.density.length);
-  for (let i = 0; i < half.length; i++) half[i] = toHalfBits(r.density[i] / ref);
-  const densityTex = device.createTexture({ label: 'n2a density', dimension: '3d', format: 'r16float', size: [nx, nRow, nUp], usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
-  device.queue.writeTexture({ texture: densityTex }, half, { bytesPerRow: nx * 2, rowsPerImage: nRow }, [nx, nRow, nUp]);
+  const dense = await loadDenseVdb(device, vdbFile.split('/').pop()!, await res.arrayBuffer());
+  const densityTex = dense.texture;
+  const [nx, nRow, nUp] = dense.dims;
   const loadMs = performance.now() - t0;
   // Object [-1, 1]^3; world half-extents (x, y up, z) with the longest axis at 1.
   const longest = Math.max(nx, nRow, nUp);
@@ -134,7 +121,7 @@ async function main() {
   });
   canvas.addEventListener('wheel', e => { e.preventDefault(); orbit.distance = Math.max(1.2, Math.min(10, orbit.distance * Math.exp(e.deltaY * 0.001))); dirty = true; }, { passive: false });
 
-  const info = { vdb: vdbFile, gridName: src.gridName, dims: r.dims, nativeVoxel: native, densityRef: ref, boxHalf, densityScale, stepSize, loadMs: Math.round(loadMs) };
+  const info = { vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, densityScale, stepSize, loadMs: Math.round(loadMs) };
   status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${densityScale}  step ${stepSize}  (drag to orbit)`);
 
   const frame = () => {

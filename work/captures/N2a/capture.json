@@ -1,0 +1,109 @@
+{
+  "url": "http://localhost:5297/neural/",
+  "size": [
+    1536,
+    1024
+  ],
+  "startedAt": "2026-11-24T00:54:48.072Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N2a/view.jpg",
+      "report": {
+        "vdb": "disney-cloud/wdas_cloud_eighth.vdb",
+        "gridName": "density",
+        "dims": [
+          254,
+          311,
+          174
+        ],
+        "nativeVoxel": 1.6666666269302368,
+        "densityRef": 0.8955078125,
+        "boxHalf": [
+          0.8167202572347267,
+          0.5594855305466238,
+          1
+        ],
+        "densityScale": 10,
+        "stepSize": 0.004,
+        "loadMs": 471,
+        "orbit": {
+          "yaw": 0.6,
+          "pitch": 0.15,
+          "distance": 3.2
+        },
+        "pixels": 262144,
+        "pixelsWithTau": 71404,
+        "pixelsWithCrossing": 69511,
+        "stats": {
+          "tau": {
+            "min": 0.0001,
+            "mean": 3.2722,
+            "max": 7.6652
+          },
+          "S": {
+            "min": 0.0001,
+            "mean": 0.7836,
+            "max": 0.9995
+          },
+          "tr": {
+            "min": 0,
+            "mean": 0.4297,
+            "max": 0.7841
+          },
+          "count": {
+            "min": 4,
+            "mean": 4,
+            "max": 4
+          },
+          "t0": {
+            "min": 2.4644,
+            "mean": 2.8526,
+            "max": 3.9543
+          },
+          "t1": {
+            "min": 2.4644,
+            "mean": 2.9362,
+            "max": 3.9543
+          },
+          "t2": {
+            "min": 2.4644,
+            "mean": 3.0426,
+            "max": 3.9543
+          },
+          "t3": {
+            "min": 2.4644,
+            "mean": 3.0688,
+            "max": 3.9543
+          },
+          "depth": {
+            "min": 0.4007,
+            "mean": 0.451,
+            "max": 0.5827
+          },
+          "c1": {
+            "min": 0,
+            "mean": 0.4753,
+            "max": 0.9067
+          },
+          "c2": {
+            "min": 0,
+            "mean": 0.4724,
+            "max": 0.9054
+          },
+          "c3": {
+            "min": 0,
+            "mean": 0.3117,
+            "max": 0.8772
+          }
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
