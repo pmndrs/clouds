@@ -1,0 +1,113 @@
+{
+ "vdb": "assets/clouds/houdini-stages/cumulus_4_wispy.vdb",
+ "sigma_per_m": 0.08,
+ "albedo": 0.99,
+ "g": 0.8,
+ "engine": "cpu",
+ "spp": 32,
+ "volumelimit": 32,
+ "volumesteprate": 1.0,
+ "res": [
+  960,
+  540
+ ],
+ "frames": {
+  "sunward": {
+   "distance_m": 2362.2,
+   "sun_elevation_deg": 32.0,
+   "edge_elevation_deg": 35.0,
+   "tau_along_sun": 26.8,
+   "camera_pos": [
+    36.0,
+    150.0,
+    2416.2
+   ],
+   "aim": [
+    0.0,
+    0.4226,
+    -0.9063
+   ],
+   "pitch_deg": 25.0,
+   "yaw_deg": -0.0,
+   "sun_dir": [
+    0.0,
+    0.5299,
+    -0.848
+   ],
+   "sun_alt": 32.0,
+   "sun_az": 0.0,
+   "hfov_deg": 50.0,
+   "spp": 16,
+   "render_s": 74.8,
+   "ok": true,
+   "ev": 1.95,
+   "lum": {
+    "p50": 0.1167,
+    "p99": 0.7765,
+    "max": 1.9336
+   }
+  },
+  "noon": {
+   "camera_pos": [
+    36.0,
+    150.0,
+    5554.0
+   ],
+   "aim": [
+    0.0,
+    850.0,
+    -5500.0
+   ],
+   "pitch_deg": 8.79,
+   "yaw_deg": -0.0,
+   "sun_dir": [
+    -0.3368,
+    0.9336,
+    0.1226
+   ],
+   "sun_alt": 69.0,
+   "sun_az": 250.0,
+   "hfov_deg": 50.0,
+   "spp": 32,
+   "render_s": 115.1,
+   "ok": true,
+   "ev": 3.64,
+   "lum": {
+    "p50": 0.0954,
+    "p99": 0.2402,
+    "max": 0.8269
+   }
+  },
+  "low": {
+   "camera_pos": [
+    36.0,
+    150.0,
+    5554.0
+   ],
+   "aim": [
+    0.0,
+    850.0,
+    -5500.0
+   ],
+   "pitch_deg": 8.79,
+   "yaw_deg": -0.0,
+   "sun_dir": [
+    -0.9659,
+    0.2588,
+    0.0
+   ],
+   "sun_alt": 15.0,
+   "sun_az": 270.0,
+   "hfov_deg": 50.0,
+   "spp": 32,
+   "render_s": 103.1,
+   "ok": true,
+   "ev": 4.22,
+   "lum": {
+    "p50": 0.0634,
+    "p99": 0.1614,
+    "max": 0.4211
+   }
+  }
+ }
+}
