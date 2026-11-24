@@ -1,9 +1,12 @@
 // N2a/N2b lab page: HaloRT's per-pixel features (experiments/neural/feature-pass.ts) on the Disney cloud, nine 512² panels (3 x 3).
-// Drag to orbit, wheel to zoom. Query: ?scale=<densityScale> (default 10), ?step=<step> (default 0.004), ?vdb=sixteenth|eighth,
+// Drag to orbit, wheel to zoom. Query: ?scale=<densityScale> (default 10; neural view 200 x densityRef = 179), ?step=<step> (default 0.004), ?vdb=sixteenth|eighth,
 // ?g= (0.3), ?env= (8), ?sunAz= ?sunEl= (degrees). The same are sliders in the Review box.
+// N3a: ?view=neural|features (default neural): the authors' HaloRT ONNX network on this page's device, fed by the packed features;
+// ?sun= ?sky= ?exposure= (EV, as the demo's sliders: light_intensity x 2^sun, environment_scale x 2^sky), ?precision=fp32|fp16, ?spp= (16).
 import { installCloudsHarness } from '../harness/clouds-contract';
 import { loadDenseVdb, vdbLimits } from './density';
 import { FEATURE, FEATURE_STRIDE, FeaturePass, PACKED_CHANNELS, type FeatureCamera } from '../../../experiments/neural/feature-pass';
+import { HaloNet, ortDeviceRequest, type HaloPrecision } from '../../../experiments/neural/halort-net';
 
 declare const __REPO_ROOT__: string;
 const harness = installCloudsHarness();
@@ -13,12 +16,21 @@ const status = (s: string) => { statusEl.textContent = s; };
 const SIZE = 512;
 const q = new URLSearchParams(location.search);
 const settings = {
+  // Neural view without ?scale=: the authors' units, 200 x raw density (set after load: 200 x densityRef, as our grid is raw / p99).
   densityScale: Number(q.get('scale') ?? 10),
   g: Number(q.get('g') ?? 0.3),
   envSamples: Number(q.get('env') ?? 8),
   sunAz: Number(q.get('sunAz') ?? 120),
   sunEl: Number(q.get('sunEl') ?? 30),
+  sun: Number(q.get('sun') ?? 2),
+  sky: Number(q.get('sky') ?? 0),
+  exposure: Number(q.get('exposure') ?? 1),
 };
+/** The demo's exported sun colour (scene.json light_intensity); the sun slider scales it by 2^sun. */
+const SUN_RGB = [0.4418720602989197, 0.42135560512542725, 0.3813745379447937];
+const maxSpp = Number(q.get('spp') ?? 16);
+let view: 'neural' | 'features' = q.get('view') === 'features' ? 'features' : 'neural';
+const NEURAL_PX = 1024;
 const sunDirection = (): [number, number, number] => {
   const az = (settings.sunAz * Math.PI) / 180, el = (settings.sunEl * Math.PI) / 180;
   return [Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)];
@@ -71,7 +83,11 @@ struct D { size: u32, stride: u32, cols: u32, _p: u32, channels: array<vec4u, 3>
 async function main() {
   const adapter = await navigator.gpu?.requestAdapter();
   if (!adapter) throw new Error('no WebGPU adapter');
-  const device = await adapter.requestDevice({ requiredLimits: vdbLimits(adapter) });
+  // One device for the feature pass and ONNX Runtime (the features never leave the GPU): the larger of each limit both want.
+  const ortReq = ortDeviceRequest(adapter);
+  const limits: Record<string, number> = { ...ortReq.requiredLimits };
+  for (const [k, v] of Object.entries(vdbLimits(adapter))) limits[k] = k.startsWith('min') ? Math.min(limits[k] ?? v, v) : Math.max(limits[k] ?? v, v);
+  const device = await adapter.requestDevice({ requiredFeatures: ortReq.requiredFeatures, requiredLimits: limits });
   device.addEventListener('uncapturederror', e => harness.fail(`GPU: ${(e as GPUUncapturedErrorEvent).error.message}`));
 
   // Density: the Disney cloud through vdb-sky's route A resampler at its native voxel (VDB world units), / p99 into r16float.
@@ -83,6 +99,7 @@ async function main() {
   const dense = await loadDenseVdb(device, vdbFile.split('/').pop()!, await res.arrayBuffer());
   const densityTex = dense.texture;
   const [nx, nRow, nUp] = dense.dims;
+  if (!q.has('scale') && view === 'neural') settings.densityScale = Math.round(200 * dense.densityRef);
   const loadMs = performance.now() - t0;
   // Object [-1, 1]^3; world half-extents (x, y up, z) with the longest axis at 1.
   const longest = Math.max(nx, nRow, nUp);
@@ -103,7 +120,15 @@ async function main() {
   const dispPipe = device.createRenderPipeline({ layout: 'auto', vertex: { module: dispModule, entryPoint: 'vs' }, fragment: { module: dispModule, entryPoint: 'fs', targets: [{ format }] }, primitive: { topology: 'triangle-list' } });
   const dispGroup = device.createBindGroup({ layout: dispPipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: dispBuf } }, { binding: 1, resource: { buffer: pass.output } }] });
 
+  // HaloRT network (N3a): fp32 by default; fp16 needs shader-f16.
+  const precision: HaloPrecision = q.get('precision') === 'fp16' && device.features.has('shader-f16') ? 'fp16' : 'fp32';
+  status(`loading HaloRT ${SIZE} ${precision} (ONNX Runtime Web)`);
+  const tNet = performance.now();
+  const net = await HaloNet.create(device, SIZE, await researchUrl(`neural/rdv_on_the_web/halort/halort_${SIZE}${precision === 'fp16' ? '_fp16' : ''}.onnx`), format);
+  const netLoadMs = Math.round(performance.now() - tNet);
+
   const wrap = document.getElementById('wrap')!;
+  const labels: HTMLElement[] = [];
   PANELS.forEach(([, label], i) => {
     const el = document.createElement('div');
     el.className = 'label';
@@ -111,7 +136,10 @@ async function main() {
     el.style.left = `${(i % cols) * SIZE + 4}px`;
     el.style.top = `${Math.floor(i / cols) * SIZE + 4}px`;
     wrap.appendChild(el);
+    labels.push(el);
   });
+  const showLabels = () => labels.forEach(el => { el.style.display = view === 'features' ? '' : 'none'; });
+  showLabels();
 
   // Orbit camera around the box centre.
   const orbit = { yaw: 0.6, pitch: 0.15, distance: 3.2 };
@@ -138,8 +166,9 @@ async function main() {
   });
   canvas.addEventListener('wheel', e => { e.preventDefault(); orbit.distance = Math.max(1.2, Math.min(10, orbit.distance * Math.exp(e.deltaY * 0.001))); dirty = true; }, { passive: false });
 
-  const info = { vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, stepSize, envScale: pass.envScale, loadMs: Math.round(loadMs) };
-  const showStatus = () => status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${settings.densityScale}  step ${stepSize}  g ${settings.g}  env ${settings.envSamples}  sun az ${settings.sunAz} el ${settings.sunEl}  (drag to orbit)`);
+  const info = { precision, netLoadMs, vdb: vdbFile, gridName: dense.gridName, dims: dense.dims, nativeVoxel: dense.voxel, densityRef: dense.densityRef, boxHalf, stepSize, envScale: pass.envScale, loadMs: Math.round(loadMs) };
+  let frameMs = 0;
+  const showStatus = () => status(`${vdbFile.split('/').pop()}  ${nx}x${nRow}x${nUp}  densityScale ${settings.densityScale}  step ${stepSize}  g ${settings.g}  env ${settings.envSamples}  sun az ${settings.sunAz} el ${settings.sunEl}  ${view === 'neural' ? `HaloRT ${precision} spp ${net.spp}  frame ${frameMs.toFixed(0)} ms  ` : ''}(drag to orbit)`);
   showStatus();
 
   // Review box: sliders for the inputs the second half of the pass reads.
@@ -157,20 +186,51 @@ async function main() {
   slider('sunAz', 'sun azimuth', -180, 180, 1);
   slider('sunEl', 'sun elevation', -10, 90, 1);
   slider('g', 'g', -0.9, 0.95, 0.05);
-  slider('densityScale', 'density scale', 1, 60, 1);
+  slider('densityScale', 'density scale', 1, 300, 1);
   slider('envSamples', 'env samples', 0, 64, 1);
+  slider('sun', 'sun intensity (EV)', -3, 5, 0.1);
+  slider('sky', 'sky intensity (EV)', -3, 3, 0.1);
+  slider('exposure', 'exposure (EV)', -3, 5, 0.1);
+  const toggle = document.createElement('label');
+  const box = document.createElement('input');
+  Object.assign(box, { type: 'checkbox', checked: view === 'features' });
+  box.addEventListener('change', () => { view = box.checked ? 'features' : 'neural'; showLabels(); dirty = true; showStatus(); });
+  toggle.append('feature panels ', box);
+  review.appendChild(toggle);
 
-  const frame = () => {
+  // Features (when dirty, or every frame while the network accumulates: new env samples per frame), then the network, then display.
+  // The network run is async: one step in flight at a time; the display draws whatever has accumulated.
+  let busy = false;
+  let lastStep = 0, steps = 0;
+  const encodeFeatures = (enc: GPUCommandEncoder) => pass.encode(enc, { density: densityTex, boxHalf, camera: camera(), densityScale: settings.densityScale, stepSize, g: settings.g, envSamples: settings.envSamples, sunDirection: sunDirection() });
+  const step = async () => {
+    if (dirty) { dirty = false; net.restart(); steps = 0; }
     const enc = device.createCommandEncoder();
-    if (dirty) {
-      pass.encode(enc, { density: densityTex, boxHalf, camera: camera(), densityScale: settings.densityScale, stepSize, g: settings.g, envSamples: settings.envSamples, sunDirection: sunDirection() });
-      dirty = false;
+    encodeFeatures(enc);
+    device.queue.submit([enc.finish()]);
+    if (view !== 'neural') return;
+    await net.run(pass.packed, SUN_RGB.map(x => x * Math.pow(2, settings.sun)), pass.envScale.map(x => x * Math.pow(2, settings.sky)));
+    const now = performance.now();
+    if (steps++ > 0) frameMs = frameMs ? frameMs * 0.8 + (now - lastStep) * 0.2 : now - lastStep;
+    lastStep = now;
+    showStatus();
+  };
+  const needsStep = () => dirty || (view === 'neural' && net.spp < maxSpp);
+  const frame = () => {
+    if (!busy && needsStep()) {
+      busy = true;
+      step().catch(e => harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e))).finally(() => { busy = false; });
     }
-    const rp = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 1 } }] });
-    rp.setPipeline(dispPipe);
-    rp.setBindGroup(0, dispGroup);
-    rp.draw(3);
-    rp.end();
+    const enc = device.createCommandEncoder();
+    const target = ctx.getCurrentTexture().createView();
+    if (view === 'neural') net.draw(enc, target, settings.exposure, [0, 0], [NEURAL_PX, NEURAL_PX]);
+    else {
+      const rp = enc.beginRenderPass({ colorAttachments: [{ view: target, loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 1 } }] });
+      rp.setPipeline(dispPipe);
+      rp.setBindGroup(0, dispGroup);
+      rp.draw(3);
+      rp.end();
+    }
     device.queue.submit([enc.finish()]);
     harness.frame();
     requestAnimationFrame(frame);
@@ -193,7 +253,7 @@ async function main() {
       names.forEach(([, ch], i) => { const v = data[o + ch]; acc[i].min = Math.min(acc[i].min, v); acc[i].max = Math.max(acc[i].max, v); acc[i].sum += v; });
     }
     names.forEach(([n], i) => { stats[n] = { min: +acc[i].min.toFixed(4), mean: +(acc[i].sum / Math.max(1, hit)).toFixed(4), max: +acc[i].max.toFixed(4) }; });
-    return { ...info, settings: { ...settings }, sunDirection: sunDirection(), orbit: { ...orbit }, pixels: SIZE * SIZE, pixelsWithTau: anyTau, pixelsWithCrossing: hit, stats, packed: await packedCheck() };
+    return { ...info, view, neural: view === 'neural' ? { ...(await net.stats()), frameIntervalMs: +frameMs.toFixed(1), sunRgb: SUN_RGB.map(x => x * Math.pow(2, settings.sun)) } : null, settings: { ...settings }, sunDirection: sunDirection(), orbit: { ...orbit }, pixels: SIZE * SIZE, pixelsWithTau: anyTau, pixelsWithCrossing: hit, stats, packed: await packedCheck() };
   };
 
   /** Reads the packed ONNX input back and checks it against the per-pixel buffer (rdv order: our pixel turned 180 degrees). */
@@ -214,7 +274,7 @@ async function main() {
     }
     return { dims: [1, PACKED_CHANNELS.length, SIZE, SIZE], maxDiffVsFeatures: maxDiff };
   };
-  harness.ready({ report });
+  harness.ready({ report, busy: () => busy || needsStep() });
 }
 
 main().catch(e => harness.fail(e instanceof Error ? (e.stack ?? e.message) : String(e)));

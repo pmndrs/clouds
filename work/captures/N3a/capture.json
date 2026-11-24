@@ -1,0 +1,207 @@
+{
+  "url": "http://localhost:5297/neural/",
+  "size": [
+    1024,
+    1024
+  ],
+  "startedAt": "2026-11-24T01:05:49.684Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N3a/view.jpg",
+      "report": {
+        "precision": "fp32",
+        "netLoadMs": 831,
+        "vdb": "disney-cloud/wdas_cloud_eighth.vdb",
+        "gridName": "density",
+        "dims": [
+          254,
+          311,
+          174
+        ],
+        "nativeVoxel": 1.6666666269302368,
+        "densityRef": 0.8955078125,
+        "boxHalf": [
+          0.8167202572347267,
+          0.5594855305466238,
+          1
+        ],
+        "stepSize": 0.004,
+        "envScale": [
+          0.2392556616801603,
+          0.3157502683161249,
+          0.5215426102800303
+        ],
+        "loadMs": 480,
+        "view": "neural",
+        "neural": {
+          "spp": 16,
+          "mean": 0.4372,
+          "max": 1.0954,
+          "nonFinite": 0,
+          "frameIntervalMs": 177.3,
+          "sunRgb": [
+            1.7674882411956787,
+            1.685422420501709,
+            1.5254981517791748
+          ]
+        },
+        "settings": {
+          "densityScale": 179,
+          "g": 0.3,
+          "envSamples": 8,
+          "sunAz": 120,
+          "sunEl": 30,
+          "sun": 2,
+          "sky": 0,
+          "exposure": 1
+        },
+        "sunDirection": [
+          0.7500000000000001,
+          0.49999999999999994,
+          -0.4330127018922192
+        ],
+        "orbit": {
+          "yaw": 0.6,
+          "pitch": 0.15,
+          "distance": 3.2
+        },
+        "pixels": 262144,
+        "pixelsWithTau": 71404,
+        "pixelsWithCrossing": 70579,
+        "stats": {
+          "tau": {
+            "min": 0.0001,
+            "mean": 16.6846,
+            "max": 20.7983
+          },
+          "S": {
+            "min": 0.0001,
+            "mean": 0.9097,
+            "max": 1
+          },
+          "tr": {
+            "min": 0,
+            "mean": 0.8512,
+            "max": 0.9844
+          },
+          "count": {
+            "min": 4,
+            "mean": 4,
+            "max": 4
+          },
+          "t0": {
+            "min": 2.4255,
+            "mean": 2.8068,
+            "max": 3.9543
+          },
+          "t1": {
+            "min": 2.4366,
+            "mean": 2.8221,
+            "max": 3.9543
+          },
+          "t2": {
+            "min": 2.4644,
+            "mean": 2.849,
+            "max": 3.9543
+          },
+          "t3": {
+            "min": 2.4644,
+            "mean": 2.8675,
+            "max": 3.9543
+          },
+          "depth": {
+            "min": 0.3955,
+            "mean": 0.4451,
+            "max": 0.5827
+          },
+          "c1": {
+            "min": 0,
+            "mean": 0.3061,
+            "max": 0.9275
+          },
+          "c2": {
+            "min": 0,
+            "mean": 0.3597,
+            "max": 0.9275
+          },
+          "c3": {
+            "min": 0,
+            "mean": 0.3239,
+            "max": 0.9027
+          },
+          "g": {
+            "min": 0.3,
+            "mean": 0.3,
+            "max": 0.3
+          },
+          "nee": {
+            "min": 0,
+            "mean": 0.3816,
+            "max": 1
+          },
+          "envR": {
+            "min": 0,
+            "mean": 0.2254,
+            "max": 2.3217
+          },
+          "envG": {
+            "min": 0,
+            "mean": 0.2303,
+            "max": 2.2172
+          },
+          "envB": {
+            "min": 0,
+            "mean": 0.2339,
+            "max": 2.0699
+          },
+          "saR": {
+            "min": 0.7454,
+            "mean": 0.7941,
+            "max": 1
+          },
+          "saG": {
+            "min": 0.7454,
+            "mean": 0.7941,
+            "max": 1
+          },
+          "saB": {
+            "min": 0.7454,
+            "mean": 0.7941,
+            "max": 1
+          },
+          "bgR": {
+            "min": 1.0449,
+            "mean": 1.0634,
+            "max": 3.132
+          },
+          "bgG": {
+            "min": 0.6968,
+            "mean": 0.7138,
+            "max": 2.5954
+          },
+          "bgB": {
+            "min": 0.3451,
+            "mean": 0.3587,
+            "max": 1.8213
+          }
+        },
+        "packed": {
+          "dims": [
+            1,
+            17,
+            512,
+            512
+          ],
+          "maxDiffVsFeatures": 0
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
