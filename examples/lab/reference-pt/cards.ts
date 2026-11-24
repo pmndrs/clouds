@@ -17,7 +17,7 @@ const TOWER_SIGMA = 0.45;
 
 declare const __REPO_ROOT__: string;
 
-export const CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus', 'tower', 'tower2'] as const;
+export const CARD_CLOUDS = ['parkouring', 'embergen02', 'wdas', 'sky', 'stratus', 'tower', 'tower2', 'houdini', 'houdini1'] as const;
 export type CardCloudKey = (typeof CARD_CLOUDS)[number];
 
 /** Suns: time of day (lat 40, day of year @pmndrs/sky's default) and the camera's ring angle from the sun's azimuth (0 = sun behind the camera). */
@@ -56,12 +56,17 @@ export const CARD_DEFS: Record<CardCloudKey, CardCloudDef> = {
   // P2.6a: the same tower plus the Houdini variance stage (tower2-bake.ts): ellipsoid, jittered, clumped lobes, a level 3, billow displacement on
   // the tops fading to eroded wisps underneath, non-uniform interior. Same camera and sigma as `tower` for A/B.
   tower2: { key: 'tower2', label: 'G tower + variance (P2.6a probe)', source: 'P2.6a: tower lobes as jittered clumped ellipsoids + level 3, billow displacement on tops, eroded soft underside, fbm interior; GPU bake at 8 m, sigma 0.45 / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
+  houdini: { key: 'houdini', label: 'H Houdini cumulus, wispy (P2.7b)', source: 'P2.7b: Houdini cumulus (cumulus_4_wispy.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
+  houdini1: { key: 'houdini1', label: 'H1 Houdini cumulus, lobes only (P2.7b)', source: 'P2.7b: Houdini cumulus (cumulus_1_lobes.vdb), 12 m voxels, metres, y up, flat base at 0; sigma_t = 0.08 x density / m', runtime: 'direct', camera: { distance: 8000, height: 150 }, alphaFilter: 'trilinear' },
 };
 
 /** VDB assets (local research files, never committed: artifacts/research of the main checkout), at vdb-sky's presentation. */
-const VDBS: Partial<Record<CardCloudKey, { file: string; up: UpAxis; widthMeters: number; extinction: number }>> = {
+const VDBS: Partial<Record<CardCloudKey, { file: string; up: UpAxis; widthMeters: number; extinction: number; repo?: boolean; base?: number }>> = {
   embergen02: { file: 'vdbs/CloudPack/CloudPackVDB/cloud_02_variant_0000.vdb', up: 'z', widthMeters: 1900, extinction: 0.6 },
   wdas: { file: 'disney-cloud/wdas_cloud_eighth.vdb', up: 'y', widthMeters: 1800, extinction: 0.6 },
+  // P2.7b: Houdini stages (committed, assets/clouds/houdini-stages). Already in metres (widthMeters 0 = world scale 1), base at the ground like `tower`.
+  houdini: { file: 'assets/clouds/houdini-stages/cumulus_4_wispy.vdb', up: 'y', widthMeters: 0, extinction: 0.08, repo: true, base: 0 },
+  houdini1: { file: 'assets/clouds/houdini-stages/cumulus_1_lobes.vdb', up: 'y', widthMeters: 0, extinction: 0.08, repo: true, base: 0 },
 };
 /** VDB clouds sit with their lattice's base at this height, centred on the origin (vdb-sky's CLOUD_AT base). */
 const VDB_BASE = 900;
@@ -141,7 +146,7 @@ export async function loadCard(key: CardCloudKey, ctx: CardContext): Promise<Car
   if (vdb) {
     ctx.status(`fetching ${vdb.file}`);
     const t0 = performance.now();
-    const res = await fetch(await researchUrl(vdb.file));
+    const res = await fetch(vdb.repo ? `/@fs${__REPO_ROOT__}${vdb.file}` : await researchUrl(vdb.file));
     if (!res.ok) throw new Error(`fetch ${vdb.file}: ${res.status}`);
     const src = readVdbSource(vdb.file.split('/').pop()!, await res.arrayBuffer());
     const pool = await VDBGridPool.create(device, { label: 'p0.4 card' });
@@ -150,7 +155,7 @@ export async function loadCard(key: CardCloudKey, ctx: CardContext): Promise<Car
     const resampler = new DirectResampler(device, pool);
     const info = pool.info(id);
     const ext = [0, 1, 2].map(a => info.worldBBox.max[a] - info.worldBBox.min[a]);
-    const worldScale = vdb.widthMeters / (vdb.up === 'y' ? Math.max(ext[0], ext[2]) : Math.max(ext[0], ext[1]));
+    const worldScale = vdb.widthMeters === 0 ? 1 : vdb.widthMeters / (vdb.up === 'y' ? Math.max(ext[0], ext[2]) : Math.max(ext[0], ext[1]));
     const native = Math.max(...info.voxelSize) * worldScale;
     // vdb-sky's route A lattice: the source voxel x the world scale, rounded to 0.5 m (no 48 M texel cap needed for these two).
     const voxel = Math.max(2, Math.round(native * 2) / 2);
@@ -159,7 +164,7 @@ export async function loadCard(key: CardCloudKey, ctx: CardContext): Promise<Car
     const r = await resampler.resample(id, placement, `card ${key}`);
     pool.dispose();
     const [w, h] = r.dims;
-    const min: V3 = [-(w * voxel) / 2, VDB_BASE, -(h * voxel) / 2];
+    const min: V3 = [-(w * voxel) / 2, vdb.base ?? VDB_BASE, -(h * voxel) / 2];
     built = await buildDirectCloud(device, r.density, r.dims, voxel, min, vdb.extinction, `card ${key}`);
     extra = { file: vdb.file, gridName: src.gridName, sourceVoxels: src.voxels, up: vdb.up, worldScale, nativeVoxel: native, taps: r.taps, loadMs: performance.now() - t0,
       resample: `vdb-direct.ts DirectResampler: the mean of ${r.taps}^3 trilinear taps per texel (vdbModuleWgsl 'sample' profile)` };

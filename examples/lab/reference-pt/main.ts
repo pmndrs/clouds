@@ -125,7 +125,7 @@ if (query.get('clean') === '1') { hud.style.display = 'none'; panel.style.displa
 try {
   // The VDB clouds need the pool's device limits (and room for large direct volumes); Parkouring keeps the PT1 renderer as it was.
   let requiredLimits: Record<string, number> | undefined;
-  if (CLOUD === 'embergen02' || CLOUD === 'wdas') {
+  if (CLOUD === 'embergen02' || CLOUD === 'wdas' || CLOUD === 'houdini' || CLOUD === 'houdini1') {
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
     if (!adapter) throw new Error('WebGPU: no adapter');
     requiredLimits = vdbDeviceLimits(adapter);
