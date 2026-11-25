@@ -16,6 +16,13 @@ clouds without marching. B1–B4 are not being run. What a network could still
 offer is not speed: one small relightable imposter in place of an atlas per
 sun direction (memory), or lighting closer to a path trace (quality).
 
+Full-sky cost for reference (B0c, `/hzd/` cloudscape, 1280x720, M5 Pro,
+about half the frame cloud): ultra 15 ms a frame with the cloud pass 14.6 ms
+(11.5 ms at the horizon view); high 7–8 ms. This is the amount an imposter or
+level-of-detail scheme has to save from. A per-pixel network over the same
+960x540 trace would cost about 49 ms (5×64, measured rate) or about 10 ms
+(3×32, estimated), so the conclusion above stands.
+
 ## Idea (owner's framing)
 
 Use a network as an imposter or level of detail, so that a cloud can be drawn
