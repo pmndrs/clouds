@@ -79,6 +79,7 @@ Local: <path> · Tags: shape layering detail weather light perf authoring storm 
 | rdr2 | `papers/slides_public_release.pptx` | horizon light perf | P3 | 🟦 (`rdr2-atmosphere.md`) | |
 | mie | `jendersie/` | light | P3 | 🟦 (`approximate-mie.md`) | |
 | pack | `nubis-pack/` (voxel cloud pack) | authoring | P2 | 🟦 (P0 work) | Re-read its docs for authoring conventions |
+| neural | `papers/neural/` (44 PDFs, local) + `docs/research/neural/refs/` (one note per paper) | neural light perf | closed 2026-11-25 | ✅ `neural/RESULTS.md`; field summary `neural/README.md` | HaloRT ported and measured; not a speed route for our clouds. Not extracted with the source-note template: these are short reference notes |
 
 | gos17 | `papers/Goswami-Neyret2017-LandscapeConvectiveClouds.pdf` (VRIPHYS 2017) | shape evolve multi-body | P1 | ⬜ fetched 2026-10-10 | Parcels + hypertexture amplification; evolving cumulus at landscape scale |
 | gos19 | `papers/Goswami2019-CumulusCloudMap.pdf` (STAG 2019) | shape evolve multi-body | P1 | ⬜ fetched 2026-10-10 | Parcel physics + 2D cloud maps, ~200 fps; closest published work to the Santa's Sleigh merge |
