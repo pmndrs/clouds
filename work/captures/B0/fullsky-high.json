@@ -1,0 +1,101 @@
+{
+ "url": "http://localhost:5332/hzd/?quality=high&clean=1",
+ "size": [
+  1280,
+  720
+ ],
+ "settle": 200,
+ "at": "2026-11-25T06:40:37.947Z",
+ "rows": [
+  {
+   "rep": 0,
+   "config": "base",
+   "view": "gp7",
+   "gpuMs": {
+    "lightGridReduce": 0.011958,
+    "lightGrid": 0.007792,
+    "marchNear": 0.02125,
+    "marchFar": 0.021875,
+    "shadowMap": 0.005458,
+    "composite": 0.080957,
+    "dome": 0.330995,
+    "resolveNear": 0.013125,
+    "resolveFar": 0.016167,
+    "skyLayer": 7.80834,
+    "skyResolve": 0.045208,
+    "skyLayerMin": 7.674841,
+    "skyLayerN": 5,
+    "avg": {
+     "scene": 41.35339933333333,
+     "lightGridReduce": 0.011958,
+     "lightGrid": 0.007792,
+     "marchNear": 0.021900518518518514,
+     "marchFar": 0.022561185185185188,
+     "shadowMap": 0.006305333333333334,
+     "composite": 0.06360518518518518,
+     "dome": 0.1541624814814815,
+     "resolveNear": 0.012400461538461542,
+     "resolveFar": 0.01585853846153846,
+     "skyLayer": 6.962609666666667,
+     "skyResolve": 0.04457966666666667,
+     "cloudsTotal": 7.323733037037037,
+     "total": 48.677132370370366
+    },
+    "cloudsTotal": 8.350707,
+    "frameMs": 8.331999999880791,
+    "frameMsMin": 8.325,
+    "frameMsAll": [
+     8.33600000023842,
+     8.331999999880791,
+     8.325
+    ]
+   },
+   "load": 7.6787109375
+  },
+  {
+   "rep": 0,
+   "config": "base",
+   "view": "horizon",
+   "gpuMs": {
+    "lightGridReduce": 0.011958,
+    "lightGrid": 0.007792,
+    "marchNear": 0.022667,
+    "marchFar": 0.022042,
+    "shadowMap": 0.005458,
+    "composite": 0.091499,
+    "dome": 0.341079,
+    "resolveNear": 0.013417,
+    "resolveFar": 0.016667,
+    "skyLayer": 6.385985,
+    "skyResolve": 0.043499,
+    "skyLayerMin": 6.262654,
+    "skyLayerN": 4,
+    "avg": {
+     "scene": 56.82398558333333,
+     "lightGridReduce": 0.011958,
+     "lightGrid": 0.007792,
+     "marchNear": 0.02188028571428571,
+     "marchFar": 0.022426914285714288,
+     "shadowMap": 0.006305333333333334,
+     "composite": 0.06939637142857141,
+     "dome": 0.1963206,
+     "resolveNear": 0.012660352941176473,
+     "resolveFar": 0.01600820588235294,
+     "skyLayer": 6.916477130434783,
+     "skyResolve": 0.04449739130434782,
+     "cloudsTotal": 7.3257225853245656,
+     "total": 64.1497081686579
+    },
+    "cloudsTotal": 6.949561,
+    "frameMs": 7.268999999761581,
+    "frameMsMin": 7.20800000011921,
+    "frameMsAll": [
+     7.268999999761581,
+     7.20800000011921,
+     7.306999999880791
+    ]
+   },
+   "load": 7.49365234375
+  }
+ ]
+}

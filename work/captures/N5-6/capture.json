@@ -1,0 +1,126 @@
+{
+  "url": "http://127.0.0.1:5263/neural-engine/?size=256",
+  "size": [
+    900,
+    600
+  ],
+  "startedAt": "2026-11-24T01:30:55.532Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N5-6/view.jpg",
+      "report": {
+        "task": "N5.6",
+        "op": "init_conv 3x3 8->16",
+        "size": 256,
+        "precision": "fp32",
+        "batch": 6,
+        "setSplit": 3,
+        "dispatches": 1,
+        "measure": "maxAbs",
+        "threshold": 0.0001,
+        "pass": true,
+        "vsNumpy": [
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.init_conv",
+            "maxAbs": 9.5367431640625e-7,
+            "meanAbs": 2.5968462671291815e-8,
+            "meanAbsRef": 0.33996916711846525,
+            "relL2": 1.2101204095135986e-7,
+            "nonFinite": 0,
+            "maxAt": 535716
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.init_conv",
+            "maxAbs": 0.0000011920928955078125,
+            "meanAbs": 4.1800913764232506e-8,
+            "meanAbsRef": 0.4760016465505803,
+            "relL2": 1.1464861406987874e-7,
+            "nonFinite": 0,
+            "maxAt": 865171
+          }
+        ],
+        "vsCpu": [
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "maxAbs": 0.0000011920928955078125,
+            "meanAbs": 1.9380087423748193e-8,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 1.1998475727912747e-7,
+            "nonFinite": 0,
+            "maxAt": 542284
+          },
+          {
+            "item": 1,
+            "name": "dir pass 1",
+            "maxAbs": 0.0000011920928955078125,
+            "meanAbs": 1.9380087423748193e-8,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 1.1998475727912747e-7,
+            "nonFinite": 0,
+            "maxAt": 542284
+          },
+          {
+            "item": 2,
+            "name": "dir pass 2",
+            "maxAbs": 0.0000011920928955078125,
+            "meanAbs": 1.9380087423748193e-8,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 1.1998475727912747e-7,
+            "nonFinite": 0,
+            "maxAt": 542284
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "maxAbs": 0.000001430511474609375,
+            "meanAbs": 2.340120297539272e-8,
+            "meanAbsRef": 0.47600165339039063,
+            "relL2": 1.0041847945542907e-7,
+            "nonFinite": 0,
+            "maxAt": 874459
+          },
+          {
+            "item": 4,
+            "name": "env pass 1",
+            "maxAbs": 0.0000011920928955078125,
+            "meanAbs": 2.3329045806264048e-8,
+            "meanAbsRef": 0.4760822348694456,
+            "relL2": 1.0063455271871402e-7,
+            "nonFinite": 0,
+            "maxAt": 876347
+          },
+          {
+            "item": 5,
+            "name": "env pass 2",
+            "maxAbs": 9.5367431640625e-7,
+            "meanAbs": 2.3235215307337853e-8,
+            "meanAbsRef": 0.4765603702052591,
+            "relL2": 1.0026823790901492e-7,
+            "nonFinite": 0,
+            "maxAt": 872928
+          }
+        ],
+        "cpuVsNumpyMaxAbs": [
+          0.0000010728836059570312,
+          0.000001430511474609375
+        ],
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3"
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "url": "http://127.0.0.1:5291/neural-engine/?size=256&precision=fp16",
+  "size": [
+    900,
+    600
+  ],
+  "startedAt": "2026-11-24T01:34:44.768Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N5-7/fp16/view.jpg",
+      "report": {
+        "task": "N5.7",
+        "op": "init_conv 3x3 8->16 + downs.0.0, downs.0.1 (conv3x3+RMSNorm+SiLU, identity skip, x2)",
+        "size": 256,
+        "precision": "fp16",
+        "batch": 6,
+        "setSplit": 3,
+        "dispatches": 5,
+        "measure": "relL2",
+        "threshold": 0.005,
+        "pass": true,
+        "vsNumpy": [
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.init_conv",
+            "maxAbs": 0.0076732635498046875,
+            "meanAbs": 0.0001825672324931027,
+            "meanAbsRef": 0.33996916711846525,
+            "relL2": 0.0007353994644044783,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.init_conv",
+            "maxAbs": 0.010167598724365234,
+            "meanAbs": 0.00023132022198346647,
+            "meanAbsRef": 0.4760016465505803,
+            "relL2": 0.0006861838896002252,
+            "nonFinite": 0,
+            "maxAt": 862652
+          },
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.downs.0.block1",
+            "maxAbs": 0.008567333221435547,
+            "meanAbs": 0.00027339179691993065,
+            "meanAbsRef": 0.3848924488764251,
+            "relL2": 0.0007779229482333422,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.downs.0.block1",
+            "maxAbs": 0.01118612289428711,
+            "meanAbs": 0.0002844989996668712,
+            "meanAbsRef": 0.4155573148806788,
+            "relL2": 0.0007880814896806454,
+            "nonFinite": 0,
+            "maxAt": 862652
+          },
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.downs.0.post_attn_add",
+            "maxAbs": 0.016985177993774414,
+            "meanAbs": 0.0008859406950058046,
+            "meanAbsRef": 0.6468132315075646,
+            "relL2": 0.0013953549685235059,
+            "nonFinite": 0,
+            "maxAt": 684154
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.downs.0.post_attn_add",
+            "maxAbs": 0.03194999694824219,
+            "meanAbs": 0.0012094138388785147,
+            "meanAbsRef": 0.998602295851422,
+            "relL2": 0.0013252084935606455,
+            "nonFinite": 0,
+            "maxAt": 350426
+          }
+        ],
+        "vsCpu": [
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "maxAbs": 0.007673025131225586,
+            "meanAbs": 0.00018256532677485212,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 0.0007354005283311051,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 1,
+            "name": "dir pass 1",
+            "maxAbs": 0.007673025131225586,
+            "meanAbs": 0.00018256532677485212,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 0.0007354005283311051,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 2,
+            "name": "dir pass 2",
+            "maxAbs": 0.007673025131225586,
+            "meanAbs": 0.00018256532677485212,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 0.0007354005283311051,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "maxAbs": 0.010167598724365234,
+            "meanAbs": 0.00023131438322853987,
+            "meanAbsRef": 0.47600165339039063,
+            "relL2": 0.0006861728788698458,
+            "nonFinite": 0,
+            "maxAt": 862652
+          },
+          {
+            "item": 4,
+            "name": "env pass 1",
+            "maxAbs": 0.00870370864868164,
+            "meanAbs": 0.0002321391940817239,
+            "meanAbsRef": 0.4760822348694456,
+            "relL2": 0.0006893211609064052,
+            "nonFinite": 0,
+            "maxAt": 886334
+          },
+          {
+            "item": 5,
+            "name": "env pass 2",
+            "maxAbs": 0.010110855102539062,
+            "meanAbs": 0.0002329722730592676,
+            "meanAbsRef": 0.4765603702052591,
+            "relL2": 0.0006912020262605721,
+            "nonFinite": 0,
+            "maxAt": 886334
+          }
+        ],
+        "cpuVsNumpyMaxAbs": [
+          0.0000010728836059570312,
+          0.000001430511474609375
+        ],
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3"
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}

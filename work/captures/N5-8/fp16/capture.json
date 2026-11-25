@@ -1,0 +1,437 @@
+{
+  "url": "http://127.0.0.1:5240/neural-engine/?size=256&precision=fp16",
+  "size": [
+    900,
+    900
+  ],
+  "startedAt": "2026-11-24T01:41:58.025Z",
+  "shots": [
+    {
+      "name": "view",
+      "file": "work/captures/N5-8/fp16/view.jpg",
+      "report": {
+        "n58": [
+          {
+            "piece": "Down downs.0.3 (2x2 s2, 16 -> 16, 256 -> 128)",
+            "tensor": 1,
+            "item": 0,
+            "ref": "dir.downs.0.down",
+            "maxAbs": 0.002382993698120117,
+            "meanAbs": 0.00018124923731477338,
+            "meanAbsRef": 0.5157611062437635,
+            "relL2": 0.00030842957280912195,
+            "nonFinite": 0,
+            "maxAt": 88088
+          },
+          {
+            "piece": "Down downs.0.3 (2x2 s2, 16 -> 16, 256 -> 128)",
+            "tensor": 1,
+            "item": 3,
+            "ref": "env.downs.0.down",
+            "maxAbs": 0.0024590492248535156,
+            "meanAbs": 0.00029067120727432894,
+            "meanAbsRef": 1.0072550659034576,
+            "relL2": 0.00028036916795530557,
+            "nonFinite": 0,
+            "maxAt": 139679
+          },
+          {
+            "piece": "ResnetBlock downs.4.0 (32 ch, 16x16)",
+            "tensor": 4,
+            "item": 0,
+            "ref": "dir.downs.4.block1",
+            "maxAbs": 0.0023689866065979004,
+            "meanAbs": 0.00021775116380240434,
+            "meanAbsRef": 0.542154024469653,
+            "relL2": 0.0004646694938306282,
+            "nonFinite": 0,
+            "maxAt": 8043
+          },
+          {
+            "piece": "ResnetBlock downs.4.0 (32 ch, 16x16)",
+            "tensor": 4,
+            "item": 3,
+            "ref": "env.downs.4.block1",
+            "maxAbs": 0.00333404541015625,
+            "meanAbs": 0.00030187242094825706,
+            "meanAbsRef": 0.8480183090145488,
+            "relL2": 0.0003864958633735267,
+            "nonFinite": 0,
+            "maxAt": 6144
+          },
+          {
+            "piece": "ResnetBlock downs.6.0 (64 ch, 4x4)",
+            "tensor": 7,
+            "item": 0,
+            "ref": "dir.downs.6.block1",
+            "maxAbs": 0.0019559860229492188,
+            "meanAbs": 0.00024190869589801878,
+            "meanAbsRef": 0.6007015022478299,
+            "relL2": 0.0004379525064750147,
+            "nonFinite": 0,
+            "maxAt": 370
+          },
+          {
+            "piece": "ResnetBlock downs.6.0 (64 ch, 4x4)",
+            "tensor": 7,
+            "item": 3,
+            "ref": "env.downs.6.block1",
+            "maxAbs": 0.0024261474609375,
+            "meanAbs": 0.00029616170286317356,
+            "meanAbsRef": 0.6737809271580772,
+            "relL2": 0.0005111419210083966,
+            "nonFinite": 0,
+            "maxAt": 439
+          },
+          {
+            "piece": "Up stage ups.0 (concat + res_conv at 4x4, x2, Up 4 -> 8)",
+            "tensor": 12,
+            "item": 0,
+            "ref": "dir.ups.0.block1",
+            "maxAbs": 0.0066977739334106445,
+            "meanAbs": 0.0008264208881882951,
+            "meanAbsRef": 1.2988887226238148,
+            "relL2": 0.0007161852095772799,
+            "nonFinite": 0,
+            "maxAt": 41
+          },
+          {
+            "piece": "Up stage ups.0 (concat + res_conv at 4x4, x2, Up 4 -> 8)",
+            "tensor": 12,
+            "item": 3,
+            "ref": "env.ups.0.block1",
+            "maxAbs": 0.008044242858886719,
+            "meanAbs": 0.0009559904265188379,
+            "meanAbsRef": 1.3946177455163706,
+            "relL2": 0.0007797066058720471,
+            "nonFinite": 0,
+            "maxAt": 5
+          },
+          {
+            "piece": "Up stage ups.0 (concat + res_conv at 4x4, x2, Up 4 -> 8)",
+            "tensor": 15,
+            "item": 0,
+            "ref": "dir.ups.0",
+            "maxAbs": 0.024687767028808594,
+            "meanAbs": 0.0037358486720222572,
+            "meanAbsRef": 2.571707667548253,
+            "relL2": 0.0014841447760631022,
+            "nonFinite": 0,
+            "maxAt": 1064
+          },
+          {
+            "piece": "Up stage ups.0 (concat + res_conv at 4x4, x2, Up 4 -> 8)",
+            "tensor": 15,
+            "item": 3,
+            "ref": "env.ups.0",
+            "maxAbs": 0.026418685913085938,
+            "meanAbs": 0.004137785453167453,
+            "meanAbsRef": 2.831678217137778,
+            "relL2": 0.0014788720128075103,
+            "nonFinite": 0,
+            "maxAt": 502
+          },
+          {
+            "piece": "Up stage ups.5 (concat at 128, x2, Up 128 -> 256)",
+            "tensor": 20,
+            "item": 0,
+            "ref": "dir.ups.5.block1",
+            "maxAbs": 0.006636977195739746,
+            "meanAbs": 0.000582737330721006,
+            "meanAbsRef": 1.2199573965550221,
+            "relL2": 0.0005503654482950399,
+            "nonFinite": 0,
+            "maxAt": 175035
+          },
+          {
+            "piece": "Up stage ups.5 (concat at 128, x2, Up 128 -> 256)",
+            "tensor": 20,
+            "item": 3,
+            "ref": "env.ups.5.block1",
+            "maxAbs": 0.00823819637298584,
+            "meanAbs": 0.0005808591738434288,
+            "meanAbsRef": 1.021780240587126,
+            "relL2": 0.000577197115886281,
+            "nonFinite": 0,
+            "maxAt": 187778
+          },
+          {
+            "piece": "Up stage ups.5 (concat at 128, x2, Up 128 -> 256)",
+            "tensor": 23,
+            "item": 0,
+            "ref": "dir.ups.5",
+            "maxAbs": 0.019306182861328125,
+            "meanAbs": 0.0021072247627014207,
+            "meanAbsRef": 1.4241638754612236,
+            "relL2": 0.0014744042420126446,
+            "nonFinite": 0,
+            "maxAt": 683059
+          },
+          {
+            "piece": "Up stage ups.5 (concat at 128, x2, Up 128 -> 256)",
+            "tensor": 23,
+            "item": 3,
+            "ref": "env.ups.5",
+            "maxAbs": 0.022394180297851562,
+            "meanAbs": 0.0015698842375186928,
+            "meanAbsRef": 1.1989781924555638,
+            "relL2": 0.0011899697644585194,
+            "nonFinite": 0,
+            "maxAt": 325942
+          },
+          {
+            "piece": "Up stage ups.6 (concat at 256, x2, plain conv3x3)",
+            "tensor": 27,
+            "item": 0,
+            "ref": "dir.ups.6.block1",
+            "maxAbs": 0.005958437919616699,
+            "meanAbs": 0.0002490005519125982,
+            "meanAbsRef": 0.4248380625302387,
+            "relL2": 0.000647558473838207,
+            "nonFinite": 0,
+            "maxAt": 98301
+          },
+          {
+            "piece": "Up stage ups.6 (concat at 256, x2, plain conv3x3)",
+            "tensor": 27,
+            "item": 3,
+            "ref": "env.ups.6.block1",
+            "maxAbs": 0.005586683750152588,
+            "meanAbs": 0.00048492088586793436,
+            "meanAbsRef": 0.9351151318045072,
+            "relL2": 0.0005666942520639416,
+            "nonFinite": 0,
+            "maxAt": 79186
+          },
+          {
+            "piece": "Up stage ups.6 (concat at 256, x2, plain conv3x3)",
+            "tensor": 30,
+            "item": 0,
+            "ref": "dir.ups.6",
+            "maxAbs": 0.00896143913269043,
+            "meanAbs": 0.000559070625873237,
+            "meanAbsRef": 0.3016984745068737,
+            "relL2": 0.0015500469698656867,
+            "nonFinite": 0,
+            "maxAt": 745281
+          },
+          {
+            "piece": "Up stage ups.6 (concat at 256, x2, plain conv3x3)",
+            "tensor": 30,
+            "item": 3,
+            "ref": "env.ups.6",
+            "maxAbs": 0.01841878890991211,
+            "meanAbs": 0.0020589822915843548,
+            "meanAbsRef": 0.7016122689993802,
+            "relL2": 0.0025320353629307564,
+            "nonFinite": 0,
+            "maxAt": 117788
+          },
+          {
+            "piece": "final_res_block (cat 32 -> 16, res_conv)",
+            "tensor": 34,
+            "item": 0,
+            "ref": "dir.final_res_block",
+            "maxAbs": 0.0032258033752441406,
+            "meanAbs": 0.00008944944594053983,
+            "meanAbsRef": 0.14192489785664636,
+            "relL2": 0.00045140124565727575,
+            "nonFinite": 0,
+            "maxAt": 688189
+          },
+          {
+            "piece": "final_res_block (cat 32 -> 16, res_conv)",
+            "tensor": 34,
+            "item": 3,
+            "ref": "env.final_res_block",
+            "maxAbs": 0.08139342069625854,
+            "meanAbs": 0.0012081420001345685,
+            "meanAbsRef": 0.304572706687922,
+            "relL2": 0.005300967559421521,
+            "nonFinite": 0,
+            "maxAt": 1018432
+          },
+          {
+            "piece": "final_conv (1x1 16 -> 1)",
+            "tensor": 36,
+            "item": 0,
+            "ref": "dir.final_conv",
+            "maxAbs": 0.00016130506992340088,
+            "meanAbs": 0.000020175414420009474,
+            "meanAbsRef": 0.02624913280715191,
+            "relL2": 0.0004689717488712854,
+            "nonFinite": 0,
+            "maxAt": 23405
+          },
+          {
+            "piece": "final_conv (1x1 16 -> 1)",
+            "tensor": 36,
+            "item": 3,
+            "ref": "env.final_conv",
+            "maxAbs": 0.0013074874877929688,
+            "meanAbs": 0.00007575050221930724,
+            "meanAbsRef": 0.32649821451582284,
+            "relL2": 0.00024461839323642015,
+            "nonFinite": 0,
+            "maxAt": 31433
+          }
+        ],
+        "n58Dispatches": 23,
+        "task": "N5.7 + N5.8",
+        "op": "init_conv 3x3 8->16 + downs.0.0, downs.0.1 (conv3x3+RMSNorm+SiLU, identity skip, x2)",
+        "size": 256,
+        "precision": "fp16",
+        "batch": 6,
+        "setSplit": 3,
+        "dispatches": 5,
+        "measure": "relL2",
+        "threshold": 0.005,
+        "pass": false,
+        "vsNumpy": [
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.init_conv",
+            "maxAbs": 0.0076732635498046875,
+            "meanAbs": 0.0001825672324931027,
+            "meanAbsRef": 0.33996916711846525,
+            "relL2": 0.0007353994644044783,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.init_conv",
+            "maxAbs": 0.010167598724365234,
+            "meanAbs": 0.00023132022198346647,
+            "meanAbsRef": 0.4760016465505803,
+            "relL2": 0.0006861838896002252,
+            "nonFinite": 0,
+            "maxAt": 862652
+          },
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.downs.0.block1",
+            "maxAbs": 0.008567333221435547,
+            "meanAbs": 0.00027339179691993065,
+            "meanAbsRef": 0.3848924488764251,
+            "relL2": 0.0007779229482333422,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.downs.0.block1",
+            "maxAbs": 0.01118612289428711,
+            "meanAbs": 0.0002844989996668712,
+            "meanAbsRef": 0.4155573148806788,
+            "relL2": 0.0007880814896806454,
+            "nonFinite": 0,
+            "maxAt": 862652
+          },
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "ref": "dir.downs.0.post_attn_add",
+            "maxAbs": 0.016985177993774414,
+            "meanAbs": 0.0008859406950058046,
+            "meanAbsRef": 0.6468132315075646,
+            "relL2": 0.0013953549685235059,
+            "nonFinite": 0,
+            "maxAt": 684154
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "ref": "env.downs.0.post_attn_add",
+            "maxAbs": 0.03194999694824219,
+            "meanAbs": 0.0012094138388785147,
+            "meanAbsRef": 0.998602295851422,
+            "relL2": 0.0013252084935606455,
+            "nonFinite": 0,
+            "maxAt": 350426
+          }
+        ],
+        "vsCpu": [
+          {
+            "item": 0,
+            "name": "dir pass 0",
+            "maxAbs": 0.007673025131225586,
+            "meanAbs": 0.00018256532677485212,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 0.0007354005283311051,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 1,
+            "name": "dir pass 1",
+            "maxAbs": 0.007673025131225586,
+            "meanAbs": 0.00018256532677485212,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 0.0007354005283311051,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 2,
+            "name": "dir pass 2",
+            "maxAbs": 0.007673025131225586,
+            "meanAbs": 0.00018256532677485212,
+            "meanAbsRef": 0.33996917178022157,
+            "relL2": 0.0007354005283311051,
+            "nonFinite": 0,
+            "maxAt": 556607
+          },
+          {
+            "item": 3,
+            "name": "env pass 0",
+            "maxAbs": 0.010167598724365234,
+            "meanAbs": 0.00023131438322853987,
+            "meanAbsRef": 0.47600165339039063,
+            "relL2": 0.0006861728788698458,
+            "nonFinite": 0,
+            "maxAt": 862652
+          },
+          {
+            "item": 4,
+            "name": "env pass 1",
+            "maxAbs": 0.00870370864868164,
+            "meanAbs": 0.0002321391940817239,
+            "meanAbsRef": 0.4760822348694456,
+            "relL2": 0.0006893211609064052,
+            "nonFinite": 0,
+            "maxAt": 886334
+          },
+          {
+            "item": 5,
+            "name": "env pass 2",
+            "maxAbs": 0.010110855102539062,
+            "meanAbs": 0.0002329722730592676,
+            "meanAbsRef": 0.4765603702052591,
+            "relL2": 0.0006912020262605721,
+            "nonFinite": 0,
+            "maxAt": 886334
+          }
+        ],
+        "cpuVsNumpyMaxAbs": [
+          0.0000010728836059570312,
+          0.000001430511474609375
+        ],
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3"
+        }
+      }
+    }
+  ],
+  "console": [],
+  "errors": [],
+  "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  }
+}
