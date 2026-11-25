@@ -4,6 +4,18 @@ Written 2026-11-25. Branch `neural/bake-experiments` (the HaloRT port is
 frozen at tag `neural-halort-port-end`). Protections in `PLAN.md` still apply:
 one task = one change + one check, two tries, nothing over 30 minutes.
 
+## Outcome, 2026-11-25: not built
+
+B0 measured the budget (`work/logs/B0.md`). For one cloud the network is
+slower than the march at 256² and 512² (6.3 and 24.6 ms for 5×64 against
+about 1 ms), and only an estimate puts a 3×32 network near it at 128². The
+owner's read, which the numbers support: there is no case here where a
+network is a speed gain over the raymarch, and billboards, octahedral
+imposters or a baked 3D texture are the practical routes to drawing distant
+clouds without marching. B1–B4 are not being run. What a network could still
+offer is not speed: one small relightable imposter in place of an atlas per
+sun direction (memory), or lighting closer to a path trace (quality).
+
 ## Idea (owner's framing)
 
 Use a network as an imposter or level of detail, so that a cloud can be drawn
