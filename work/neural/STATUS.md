@@ -12,6 +12,12 @@ state.
 
 _Last updated 2026-11-24._ Tasks: `work/neural/TASKS.md`.
 
+**2026-11-25: the HaloRT port is stopped (owner).** It is complete as a base
+(features, engine, live page, comparison) and stays on this branch. Reason:
+the raymarcher is about 33 times cheaper and sharper (N3b). N4, N6, N7 and
+the speed levers are not being run. Direction under discussion: a network for
+multiple scattering only, and MRBNN-style baking; see `docs/neural/FOLLOWUPS.md`.
+
 ## Waiting on you
 
 Nothing. D1–D4 were answered on 2026-11-24 (see PLAN § Decisions).
