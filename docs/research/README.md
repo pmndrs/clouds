@@ -11,6 +11,10 @@ Tags: `shape` cloud shape and species · `weather` weather and type maps · `lig
 
 ## Our notes (`docs/research/`)
 
+### Rendering experiments
+
+- [Volumetric primitives and cloud shadows](volumetric-primitives.md) — CPU transmission measurements, the Gabor Fields shadow-ray timings, and the WebGPUClouds profile-only shadow experiment.
+
 ### Current (written 2026-10-08/09, after the reset)
 
 | Doc | Tags | What it gives you |
